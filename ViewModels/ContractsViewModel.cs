@@ -83,6 +83,13 @@ internal static class ContractFmt
 
     public static string Date(DateTimeOffset? d) =>
         d.HasValue ? d.Value.ToLocalTime().ToString(CommonText.DateMonthDayYearTime) : "—";
+
+    /// <summary>An item's name as the screen shows it, in the interface language. ⚠️ Display only:
+    /// the English map it is read from is what anything that matches goes on using.</summary>
+    public static string ItemName(int typeId, IReadOnlyDictionary<int, string> typeNames) =>
+        typeNames.TryGetValue(typeId, out var english)
+            ? SdeNames.Type(typeId, english)
+            : string.Format(CommonText.TypeNumbered, typeId);
 }
 
 // ── Row / detail view-models ────────────────────────────────────────────────────
@@ -177,7 +184,7 @@ public class ContractItemRowVm : ReactiveObject
         IsOffered = it.IsIncluded;
         Kind      = it.IsIncluded ? MarketText.ItemOffered : MarketText.ItemRequested;
         KindColor = it.IsIncluded ? Palette.Good : Palette.Bad;
-        TypeName  = typeNames.TryGetValue(it.TypeId, out var n) ? n : string.Format(CommonText.TypeNumbered, it.TypeId);
+        TypeName  = ContractFmt.ItemName(it.TypeId, typeNames);
         TypeId    = it.TypeId;
         QuantityRaw = it.Quantity;
         Quantity  = it.Quantity.ToString("N0");
@@ -344,8 +351,10 @@ public class ContractDetailVm : ReactiveObject
         Buyout     = ContractFmt.Isk(c.Buyout)     + " ISK";
         Volume     = $"{c.Volume:N1} m³";
 
+        // By the name as shown, which is the interface language's.
         foreach (var it in items.OrderByDescending(i => i.IsIncluded)
-                                 .ThenBy(i => typeNames.TryGetValue(i.TypeId, out var n) ? n : ""))
+                                 .ThenBy(i => typeNames.TryGetValue(i.TypeId, out var n) ? SdeNames.Type(i.TypeId, n) : "",
+                                         StringComparer.CurrentCulture))
             Items.Add(new ContractItemRowVm(it, typeNames, values));
 
         var offered   = Items.Where(r => r.IsOffered).ToList();
@@ -489,13 +498,13 @@ public class ContractRowVm
             Contents = c.Title!;
         else if (included.Count == 1)
         {
-            Contents       = $"{Name(included[0])} ×{included[0].Quantity:N0}";
+            Contents       = $"{ContractFmt.ItemName(included[0].TypeId, typeNames)} ×{included[0].Quantity:N0}";
             ContentsTypeId = included[0].TypeId;
         }
         else if (included.Count > 1)
         {
             // The summary leads with the first item's name, so that is what the link opens.
-            Contents       = $"{Name(included[0])} +{included.Count - 1} more";
+            Contents       = $"{ContractFmt.ItemName(included[0].TypeId, typeNames)} +{included.Count - 1} more";
             ContentsTypeId = included[0].TypeId;
         }
         else if (items.Count > 0)
@@ -1053,6 +1062,9 @@ public class OwnedContractsViewModel : ReactiveObject
             _locations = await _names.ResolveLocationsAsync(
                 contracts.SelectMany(c => new[] { c.StartLocationId ?? 0, c.EndLocationId ?? 0 }));
 
+            // Item names in the interface language before the rows are built (ContractFmt.ItemName).
+            await SdeNames.EnsureLoadedAsync();
+
             _all = contracts
                 .Select(c => new ContractRowVm(
                     c,
@@ -1183,7 +1195,6 @@ public class PublicContractsViewModel : ReactiveObject
     private Dictionary<int, int?>   _parentOf   = new();
     private Dictionary<int, string> _mgName     = new();
     private Dictionary<int, List<int>> _childrenOf = new();
-    private Dictionary<string, int> _categoryRootId = new(StringComparer.OrdinalIgnoreCase);
 
     private IReadOnlyList<ContractRowVm> _rows = [];
     public IReadOnlyList<ContractRowVm> Rows
@@ -1193,7 +1204,10 @@ public class PublicContractsViewModel : ReactiveObject
     }
 
     public ObservableCollection<ContractRegionOption> Regions    { get; } = new();
-    public ObservableCollection<string>               Categories { get; } = new();
+
+    /// <summary>The top-level market groups, by id: the name shown is the interface language's,
+    /// so the filter goes by the id and never by the words.</summary>
+    public ObservableCollection<Choice<int>>          Categories { get; } = new();
     public IReadOnlyList<Choice<string>>               StatusOptions { get; } =
     [
         new("Active",     MarketText.FilterActive),
@@ -1270,11 +1284,20 @@ public class PublicContractsViewModel : ReactiveObject
         set { this.RaiseAndSetIfChanged(ref _selectedRegion, value); ResetToFirstPageAndReload(); }
     }
 
-    private string _selectedCategory = MarketText.AllCategories;
-    public string SelectedCategory
+    /// <summary>Every category: no market group, so the filter adds nothing.</summary>
+    private static readonly Choice<int> AllCategories = new(0, MarketText.AllCategories);
+
+    private Choice<int> _selectedCategory = AllCategories;
+    public Choice<int> SelectedCategory
     {
         get => _selectedCategory;
-        set { this.RaiseAndSetIfChanged(ref _selectedCategory, value ?? MarketText.AllCategories); ResetToFirstPageAndReload(); }
+        set
+        {
+            // A detaching ComboBox sets null; that is not a choice.
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            this.RaiseAndSetIfChanged(ref _selectedCategory, value);
+            ResetToFirstPageAndReload();
+        }
     }
 
     private string _typeFilter = "";
@@ -1366,7 +1389,7 @@ public class PublicContractsViewModel : ReactiveObject
         ClearFiltersCommand = ReactiveCommand.Create(() =>
         {
             _typeFilter = ""; this.RaisePropertyChanged(nameof(TypeFilter));
-            _selectedCategory = MarketText.AllCategories; this.RaisePropertyChanged(nameof(SelectedCategory));
+            _selectedCategory = AllCategories; this.RaisePropertyChanged(nameof(SelectedCategory));
             ResetToFirstPageAndReload();
         });
         FirstPageCommand = ReactiveCommand.Create(() => GoToPage(1));
@@ -1415,15 +1438,16 @@ public class PublicContractsViewModel : ReactiveObject
                 .GroupBy(g => g.ParentGroupId!.Value)
                 .ToDictionary(gr => gr.Key, gr => gr.Select(g => g.MarketGroupId).ToList());
 
+            // The categories and regions are named in the interface language, and listed in the
+            // order of the names shown; the filters go by their ids.
+            await SdeNames.EnsureLoadedAsync();
+
             Categories.Clear();
-            Categories.Add(MarketText.AllCategories);
-            _categoryRootId.Clear();
-            foreach (var g in mgs.Where(g => g.ParentGroupId == null)
-                         .OrderBy(g => g.Name, StringComparer.OrdinalIgnoreCase))
-            {
-                Categories.Add(g.Name);
-                _categoryRootId[g.Name] = g.MarketGroupId;
-            }
+            Categories.Add(AllCategories);
+            foreach (var category in mgs.Where(g => g.ParentGroupId == null)
+                         .Select(g => new Choice<int>(g.MarketGroupId, SdeNames.MarketGroup(g.MarketGroupId, g.Name)))
+                         .OrderBy(c => c.Label, StringComparer.CurrentCulture))
+                Categories.Add(category);
 
             var regionIds = await db.EsiContracts.Where(c => c.OwnerType == "public")
                 .Select(c => c.RegionId).Distinct().ToListAsync();
@@ -1432,8 +1456,10 @@ public class PublicContractsViewModel : ReactiveObject
 
             Regions.Clear();
             Regions.Add(new ContractRegionOption(MarketText.AllRegions, null));
-            foreach (var kv in regionNames.OrderBy(k => k.Value))
-                Regions.Add(new ContractRegionOption(kv.Value, kv.Key));
+            foreach (var option in regionNames
+                         .Select(kv => new ContractRegionOption(SdeNames.Region(kv.Key, kv.Value), kv.Key))
+                         .OrderBy(o => o.Label, StringComparer.CurrentCulture))
+                Regions.Add(option);
 
             _selectedRegion = Regions.FirstOrDefault();
             this.RaisePropertyChanged(nameof(SelectedRegion));
@@ -1486,15 +1512,19 @@ public class PublicContractsViewModel : ReactiveObject
         var typeF = _typeFilter.Trim();
         if (typeF.Length > 0)
         {
+            // The English name, or the name the screen shows: the types whose name in the
+            // interface language holds the text are added by id, as integer literals.
+            var shownIds = SdeNames.Find(SdeNameKind.Type, typeF);
+            var orShown  = shownIds.Count == 0 ? ""
+                : $" OR i.\"TypeId\" IN ({string.Join(",", shownIds.Select(id => id.ToString(System.Globalization.CultureInfo.InvariantCulture)))})";
             parts.Add($"EXISTS (SELECT 1 FROM \"EsiContractItems\" i JOIN \"SdeTypes\" t ON t.\"TypeId\" = i.\"TypeId\" "
-                    + $"WHERE i.\"ContractId\" = c.\"ContractId\" AND t.\"Name\" LIKE {{{ps.Count}}})");
+                    + $"WHERE i.\"ContractId\" = c.\"ContractId\" AND (t.\"Name\" LIKE {{{ps.Count}}}{orShown}))");
             ps.Add($"%{typeF}%");
         }
 
-        if (_selectedCategory is { Length: > 0 } cat && cat != MarketText.AllCategories
-            && _categoryRootId.TryGetValue(cat, out var rootId))
+        if (_selectedCategory.Value > 0)
         {
-            var ids = DescendantGroupIds(rootId);
+            var ids = DescendantGroupIds(_selectedCategory.Value);
             if (ids.Count > 0)
                 parts.Add($"EXISTS (SELECT 1 FROM \"EsiContractItems\" i JOIN \"SdeTypes\" t ON t.\"TypeId\" = i.\"TypeId\" "
                         + $"WHERE i.\"ContractId\" = c.\"ContractId\" AND t.\"MarketGroupId\" IN ({string.Join(",", ids)}))");
@@ -1579,7 +1609,7 @@ public class PublicContractsViewModel : ReactiveObject
                 var its = _itemsByContract.TryGetValue(c.ContractId, out var list) ? list : new List<ContractItem>();
                 var cats = its.Select(i => typeCategory.TryGetValue(i.TypeId, out var cc) ? cc : "")
                               .Where(s => s.Length > 0).ToHashSet(StringComparer.OrdinalIgnoreCase);
-                var region = regionNames.TryGetValue(c.RegionId, out var rn) ? rn : "";
+                var region = regionNames.TryGetValue(c.RegionId, out var rn) ? SdeNames.Region(c.RegionId, rn) : "";
                 return new ContractRowVm(c, its, _typeNames, _partyNames, region, cats);
             }).ToList();
 

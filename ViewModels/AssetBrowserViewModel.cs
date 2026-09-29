@@ -1,9 +1,11 @@
 ﻿using System.Data.Common;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using Avalonia.Threading;
 using Microsoft.Data.Sqlite;
 using ReactiveUI;
 using EveConsole.Data;
+using EveConsole.Models;
 using EveConsole.Services;
 using EveConsole.Localization;
 
@@ -103,6 +105,8 @@ public class AssetBrowserViewModel : ReactiveObject
         "Owner Id", "Root Location Id",
         // Carried so the names above them can be links; never a column of their own.
         "Solar System Id", "Region Id", "Is Station",
+        // Carried so the names above them can be shown in the interface language (ShowNames).
+        "Group Id", "Category Id", "Container Type Ids",
     ];
 
     /// <summary>
@@ -309,6 +313,10 @@ public class AssetBrowserViewModel : ReactiveObject
 
         try
         {
+            // The names in the interface language, before any row is built (ShowNames): at once
+            // in English, and otherwise a wait for the one background load, the first time.
+            await SdeNames.EnsureLoadedAsync(ct);
+
             await using var conn = AppDb.Connect();
             await conn.OpenAsync(ct);
             await AppendPageAsync(conn, await CountAsync(conn, ct), ct);
@@ -349,6 +357,7 @@ public class AssetBrowserViewModel : ReactiveObject
             var row = new Dictionary<string, string>(reader.FieldCount);
             for (int i = 0; i < reader.FieldCount; i++)
                 row[reader.GetName(i)] = reader.IsDBNull(i) ? "" : FormatValue(reader.GetName(i), reader.GetValue(i));
+            ShowNames(row);
             rows.Add(new GridRow(row));
         }
 
@@ -393,6 +402,7 @@ public class AssetBrowserViewModel : ReactiveObject
             var row = new Dictionary<string, string>(reader.FieldCount);
             for (int i = 0; i < reader.FieldCount; i++)
                 row[reader.GetName(i)] = reader.IsDBNull(i) ? "" : FormatValue(reader.GetName(i), reader.GetValue(i));
+            ShowNames(row);
             newRows.Add(new GridRow(row));
         }
 
@@ -467,6 +477,113 @@ public class AssetBrowserViewModel : ReactiveObject
                 && division is >= 1 and <= 7)
                 steps[i] = string.Format(AssetsText.DivisionNumbered, division);
         return string.Join(ContainerSeparator, steps);
+    }
+
+    // ── SDE names: shown in the interface language ───────────────────────────────
+    //
+    // ⚠️ Display only, like the markers above. Base writes every name in English, and the filters,
+    // the sort and the aggregate tabs' grouping all run on that; a row's names are put into the
+    // interface language only as it is read, by the ids the row carries beside them.
+
+    /// <summary>The names in one row, as shown: types, groups, categories, systems and regions, and
+    /// the container types on the Container path.</summary>
+    private static void ShowNames(Dictionary<string, string> row)
+    {
+        Show(row, "Type Name",    "Type Id",         SdeNames.Type);
+        Show(row, "Group",        "Group Id",        SdeNames.Group);
+        Show(row, "Category",     "Category Id",     SdeNames.Category);
+        Show(row, "Solar System", "Solar System Id", SdeNames.SolarSystem);
+        Show(row, "Region Name",  "Region Id",       SdeNames.Region);
+
+        // An item in space: its place IS the solar system, and named by it. The detailed grid
+        // carries the place as Root Location Id; By Location names the same id Location Id.
+        var root = row.ContainsKey("Root Location Id") ? "Root Location Id" : "Location Id";
+        var system = IdIn(row, "Solar System Id");
+        if (system > 0 && IdIn(row, root) == system)
+            Show(row, "Location Name", "Solar System Id", SdeNames.SolarSystem);
+
+        if (row.TryGetValue("Container", out var path) && path.Length > 0
+            && row.TryGetValue("Container Type Ids", out var hops) && hops.Length > 0)
+            row["Container"] = ContainerTypesShown(path, hops);
+    }
+
+    private static void Show(Dictionary<string, string> row, string nameColumn, string idColumn,
+                             Func<long, string, string> shown)
+    {
+        if (!row.TryGetValue(nameColumn, out var english) || english.Length == 0) return;
+        var id = IdIn(row, idColumn);
+        if (id > 0) row[nameColumn] = shown(id, english);
+    }
+
+    /// <summary>An id column of a row as read, or 0 where the row has none.</summary>
+    private static long IdIn(Dictionary<string, string> row, string column) =>
+        row.TryGetValue(column, out var text)
+        && long.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out var id) ? id : 0;
+
+    /// <summary>
+    /// A Container path with its container types in the interface language, from Base's Container
+    /// and Container Type Ids — internal, like the labels above, for anything else that reads Base.
+    ///
+    /// <para>The path is the outermost container, then the division when there is one, then the
+    /// containers inward; the ids are the containers alone, in the same order. So the first id is
+    /// the first step and the others are the last steps, whatever a division's own name holds.</para>
+    /// </summary>
+    internal static string ContainerTypesShown(string path, string hops)
+    {
+        var ids   = hops.Split(',');
+        var steps = path.Split(ContainerSeparator);
+        if (steps.Length < ids.Length) return path;   // not the shape Base writes: left as it is
+
+        for (var i = 0; i < ids.Length; i++)
+        {
+            var at = i == 0 ? 0 : steps.Length - ids.Length + i;
+            if (long.TryParse(ids[i], NumberStyles.Integer, CultureInfo.InvariantCulture, out var typeId))
+                steps[at] = SdeNames.Type(typeId, steps[at]);
+        }
+        return string.Join(ContainerSeparator, steps);
+    }
+
+    /// <summary>
+    /// The filterable columns that show an SDE name: its kind, the column its id is in, and when it
+    /// is that name at all — a Location Name is a system's only for an item in space, whose place
+    /// is the system.
+    /// </summary>
+    private static (SdeNameKind Kind, string IdColumn, string? Guard)? ShownNameColumn(string column) => column switch
+    {
+        "Type Name"     => (SdeNameKind.Type,        "Type Id",         null),
+        "Group"         => (SdeNameKind.Group,       "Group Id",        null),
+        "Category"      => (SdeNameKind.Category,    "Category Id",     null),
+        "Solar System"  => (SdeNameKind.SolarSystem, "Solar System Id", null),
+        "Region Name"   => (SdeNameKind.Region,      "Region Id",       null),
+        "Location Name" => (SdeNameKind.SolarSystem, "Solar System Id", "\"Root Location Id\" = \"Solar System Id\""),
+        _               => null,
+    };
+
+    /// <summary>
+    /// One filter row as SQL. On a column that shows an SDE name, a text match also finds the name
+    /// the screen shows: the SQL goes on comparing the English, and the ids whose name in the
+    /// interface language matches are added beside it — and excluded as well, for a negated match.
+    /// </summary>
+    private static string FilterClause(ActiveFilter f, int index)
+    {
+        var clause = SqlFilter.Clause(f.Column, f.Op, index);
+        if (ShownNameColumn(f.Column) is not { } shown) return clause;
+
+        IReadOnlyList<long> ids =
+              f.Op.UseLike            ? SdeNames.Find(shown.Kind, f.Value)
+            : f.Op.Sql is "=" or "!=" ? SdeNames.Map(shown.Kind).Where(kv => kv.Value == f.Value).Select(kv => kv.Key).ToList()
+            :                           [];
+        if (ids.Count == 0) return clause;
+
+        // Integers the app computed, not typed text, so they are written into the SQL as they are.
+        var list = string.Join(",", ids.Select(id => id.ToString(CultureInfo.InvariantCulture)));
+        var match = shown.Guard is null
+            ? $"(\"{shown.IdColumn}\" IN ({list}))"
+            : $"({shown.Guard} AND \"{shown.IdColumn}\" IN ({list}))";
+
+        return f.Op.Sql is "NOT LIKE" or "!="
+            ? $"({clause} AND NOT {match})"
+            : $"({clause} OR {match})";
     }
 
     // ── SQL ───────────────────────────────────────────────────────────────────
@@ -644,6 +761,18 @@ public class AssetBrowserViewModel : ReactiveObject
                 -- NPC station to the entity browser, player structure to its own tool.
                 -- RootLocationType already tells the two apart.
                 CASE WHEN a."RootLocationType" = 'station' THEN 1 ELSE 0 END              AS "Is Station",
+                -- Hidden: the ids behind Group, Category and each Container step, so those names
+                -- can be shown in the interface language (ShowNames). The container ids are in the
+                -- path's own order, outermost first, by the same depth rule as Container above.
+                COALESCE(g."GroupId", 0)                                    AS "Group Id",
+                COALESCE(cat."CategoryId", 0)                               AS "Category Id",
+                CASE cj.ContainerDepth
+                    WHEN 1 THEN CAST(cj.CP1TypeId AS TEXT)
+                    WHEN 2 THEN CAST(cj.CP2TypeId AS TEXT) || ',' || CAST(cj.CP1TypeId AS TEXT)
+                    WHEN 3 THEN CAST(cj.CP3TypeId AS TEXT) || ',' || CAST(cj.CP2TypeId AS TEXT)
+                              || ',' || CAST(cj.CP1TypeId AS TEXT)
+                    ELSE NULL
+                END                                                         AS "Container Type Ids",
                 a."LocationType"    AS "Location Type",
                 t."Volume"          AS "Volume",
                 t."Volume" * CAST(a."Quantity" AS DOUBLE PRECISION)                   AS "Total Volume",
@@ -762,6 +891,9 @@ public class AssetBrowserViewModel : ReactiveObject
                 jf.FacilitySolarSystemId                                           AS "Solar System Id",
                 jf.FacilityRegionId                                                AS "Region Id",
                 jf.FacilityIsStation                                               AS "Is Station",
+                COALESCE(bg."GroupId", 0)                                          AS "Group Id",
+                COALESCE(bcat."CategoryId", 0)                                     AS "Category Id",
+                NULL                                                               AS "Container Type Ids",
                 'item'                                                             AS "Location Type",
                 bt."Volume"                                                          AS "Volume",
                 bt."Volume"                                                          AS "Total Volume",
@@ -807,6 +939,9 @@ public class AssetBrowserViewModel : ReactiveObject
                 jf.FacilitySolarSystemId                                           AS "Solar System Id",
                 jf.FacilityRegionId                                                AS "Region Id",
                 jf.FacilityIsStation                                               AS "Is Station",
+                COALESCE(pg."GroupId", 0)                                          AS "Group Id",
+                COALESCE(pcat."CategoryId", 0)                                     AS "Category Id",
+                NULL                                                               AS "Container Type Ids",
                 'item'                                                             AS "Location Type",
                 pt."Volume"                                                          AS "Volume",
                 pt."Volume" * CAST(jf.ItemsProduced AS DOUBLE PRECISION)                        AS "Total Volume",
@@ -918,7 +1053,7 @@ public class AssetBrowserViewModel : ReactiveObject
         var scope   = ScopeClause();
         var filters = _activeFilters.Count == 0
             ? ""
-            : $"({string.Join(" AND ", _activeFilters.Select((f, i) => SqlFilter.Clause(f.Column, f.Op, i)))})";
+            : $"({string.Join(" AND ", _activeFilters.Select((f, i) => FilterClause(f, i)))})";
         var parts = new[] { scope, filters }.Where(p => p.Length > 0).ToList();
         return parts.Count == 0 ? "" : $"WHERE {string.Join(" AND ", parts)}";
     }

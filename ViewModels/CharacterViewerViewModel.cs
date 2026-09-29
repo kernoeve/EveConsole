@@ -515,6 +515,10 @@ public class CharacterViewerViewModel : ReactiveObject
             // Start portrait download concurrently while DB loads
             var portraitTask = LoadPortraitAsync(character, ct);
 
+            // The game's names in the interface language before any tab is built: at once in
+            // English, and otherwise a wait for the one background load, the first time.
+            await SdeNames.EnsureLoadedAsync(ct);
+
             await LoadCorpNameAsync(character, ct);
             await LoadSkillsAsync(character, ct);
             await LoadAttributesAsync(character, ct);
@@ -564,7 +568,8 @@ public class CharacterViewerViewModel : ReactiveObject
         var npc = await _db.SdeNpcCorporations
             .Where(n => n.CorporationId == character.CorporationId)
             .FirstOrDefaultAsync(ct);
-        CorpName = npc is not null ? npc.Name : string.Format(CharactersText.CorpNumbered, character.CorporationId);
+        CorpName = npc is not null ? SdeNames.NpcCorporation(npc.CorporationId, npc.Name)
+                                   : string.Format(CharactersText.CorpNumbered, character.CorporationId);
     }
 
     private async Task LoadSkillsAsync(Character character, CancellationToken ct)
@@ -590,22 +595,24 @@ public class CharacterViewerViewModel : ReactiveObject
 
         ct.ThrowIfCancellationRequested();
 
+        // Skills and their groups are named in the interface language, and listed in the order of
+        // the names shown. The group a skill falls in is decided by id, never by the name.
         var grouped = skills
             .GroupBy(s => typeMap.TryGetValue(s.SkillId, out var t) ? t.GroupId : 0)
             .Select(g =>
             {
                 var gId   = g.Key;
-                var gName = gId > 0 && groupMap.TryGetValue(gId, out var n) ? n : CharactersText.SkillGroupUnknown;
+                var gName = gId > 0 && groupMap.TryGetValue(gId, out var n) ? SdeNames.Group(gId, n) : CharactersText.SkillGroupUnknown;
                 var items = g.Select(s =>
                     {
-                        var name = typeMap.TryGetValue(s.SkillId, out var t2) ? t2.Name : string.Format(CharactersText.SkillNumbered, s.SkillId);
+                        var name = typeMap.TryGetValue(s.SkillId, out var t2) ? SdeNames.Type(s.SkillId, t2.Name) : string.Format(CharactersText.SkillNumbered, s.SkillId);
                         return new SkillItem(s.SkillId, name, s.TrainedSkillLevel, s.ActiveSkillLevel, s.SkillpointsInSkill);
                     })
-                    .OrderBy(s => s.Name)
+                    .OrderBy(s => s.Name, StringComparer.CurrentCulture)
                     .ToList();
                 return new SkillGroupData(gId, gName, g.Sum(s => s.SkillpointsInSkill), items);
             })
-            .OrderBy(g => g.GroupName)
+            .OrderBy(g => g.GroupName, StringComparer.CurrentCulture)
             .ToList();
 
         var totalSp  = grouped.Sum(g => g.TotalSp);
@@ -621,7 +628,7 @@ public class CharacterViewerViewModel : ReactiveObject
 
         var queueVms = activeQueue.Select((q, idx) =>
         {
-            var skillName = typeMap.TryGetValue(q.SkillId, out var t3) ? t3.Name : string.Format(CharactersText.SkillNumbered, q.SkillId);
+            var skillName = typeMap.TryGetValue(q.SkillId, out var t3) ? SdeNames.Type(q.SkillId, t3.Name) : string.Format(CharactersText.SkillNumbered, q.SkillId);
             return new QueueItemVm(q.SkillId, idx, skillName, q.FinishedLevel, q.StartDate, q.FinishDate);
         }).ToList();
 
@@ -710,9 +717,12 @@ public class CharacterViewerViewModel : ReactiveObject
             .Where(t => implantTypeIds.Contains(t.TypeId))
             .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct);
 
+        // Implants are named in the interface language, and listed in the order of the names shown.
         var activeImplants = implantTypeIds
-            .Select(id => new ActiveImplantVm(implantNameMap.GetValueOrDefault(id, string.Format(CharactersText.ImplantNumbered, id))))
-            .OrderBy(i => i.Name)
+            .Select(id => new ActiveImplantVm(implantNameMap.TryGetValue(id, out var n)
+                ? SdeNames.Type(id, n)
+                : string.Format(CharactersText.ImplantNumbered, id)))
+            .OrderBy(i => i.Name, StringComparer.CurrentCulture)
             .ToList();
 
         var jClones = await _db.EsiJumpClones
@@ -733,8 +743,10 @@ public class CharacterViewerViewModel : ReactiveObject
         {
             var implants = jImplants
                 .Where(i => i.JumpCloneId == jc.JumpCloneId)
-                .Select(i => jNameMap.GetValueOrDefault(i.TypeId, string.Format(CharactersText.ImplantNumbered, i.TypeId)))
-                .OrderBy(n => n)
+                .Select(i => jNameMap.TryGetValue(i.TypeId, out var n)
+                    ? SdeNames.Type(i.TypeId, n)
+                    : string.Format(CharactersText.ImplantNumbered, i.TypeId))
+                .OrderBy(n => n, StringComparer.CurrentCulture)
                 .ToList();
             var location = string.Format(CharactersText.CloneLocation, jc.LocationId, jc.LocationType);
             return new JumpCloneVm(location, jc.Name, implants);
@@ -833,15 +845,26 @@ public class CharacterViewerViewModel : ReactiveObject
         {
             var sdeMap = s.FromType == "faction" ? factionMap : npcCorpMap;
             var name = (sdeMap.TryGetValue(s.FromId, out var sn) && sn.Length > 0) ? sn
-                     : esiNameMap.GetValueOrDefault(s.FromId)
-                    ?? s.FromType switch
-                     {
-                         "faction"  => string.Format(CharactersText.FactionNumbered, s.FromId),
-                         "npc_corp" => string.Format(CharactersText.CorpNumbered, s.FromId),
-                         "agent"    => string.Format(CharactersText.AgentNumbered, s.FromId),
-                         _          => string.Format(CharactersText.EntityNumbered, s.FromId)
-                     };
-            return new StandingVm(name, s.FromType, s.Standing);
+                     : esiNameMap.GetValueOrDefault(s.FromId);
+
+            // Every one of these is the game's own — a faction, an NPC corporation, an agent — so
+            // each is shown in the interface language, whichever source gave the English.
+            var shown = name is null
+                ? s.FromType switch
+                  {
+                      "faction"  => string.Format(CharactersText.FactionNumbered, s.FromId),
+                      "npc_corp" => string.Format(CharactersText.CorpNumbered, s.FromId),
+                      "agent"    => string.Format(CharactersText.AgentNumbered, s.FromId),
+                      _          => string.Format(CharactersText.EntityNumbered, s.FromId)
+                  }
+                : s.FromType switch
+                  {
+                      "faction"  => SdeNames.Faction(s.FromId, name),
+                      "npc_corp" => SdeNames.NpcCorporation(s.FromId, name),
+                      "agent"    => SdeNames.Agent(s.FromId, name),
+                      _          => name
+                  };
+            return new StandingVm(shown, s.FromType, s.Standing);
         })
         .OrderByDescending(s => s.Standing)
         .ToList();

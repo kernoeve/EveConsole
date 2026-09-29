@@ -152,7 +152,8 @@ public class WalletTransactionRowVm
         IReadOnlyDictionary<(long, int), string> divisionNames)
     {
         DateText     = t.Date.ToLocalTime().ToString(CommonText.DateMonthDayTime);
-        TypeName     = typeNames.TryGetValue(t.TypeId, out var n) ? n : string.Format(CommonText.TypeNumbered, t.TypeId);
+        // In the interface language: the grid is all that reads it, and the filter matches both.
+        TypeName     = typeNames.TryGetValue(t.TypeId, out var n) ? SdeNames.Type(t.TypeId, n) : string.Format(CommonText.TypeNumbered, t.TypeId);
         QuantityRaw  = t.Quantity;
         Quantity     = t.Quantity.ToString("N0");
         UnitPriceRaw = t.UnitPrice;
@@ -777,6 +778,10 @@ public class WalletViewModel : ReactiveObject
             var locationNames = await BuildLocationNamesAsync(db, rows.Select(r => r.LocationId));
             var divMap        = await BuildDivisionMapAsync(db, owner);
 
+            // Item names in the interface language before the rows are built: at once in English,
+            // and otherwise a wait for the one background load, the first time.
+            await SdeNames.EnsureLoadedAsync();
+
             TransactionRows.Clear();
             foreach (var r in rows)
                 TransactionRows.Add(new WalletTransactionRowVm(r, typeNames, ownerNames, locationNames, divMap));
@@ -825,8 +830,13 @@ public class WalletViewModel : ReactiveObject
         var itemF = _txnItemFilter.Trim();
         if (itemF.Length > 0)
         {
+            // The English name, or the name the grid shows: the types whose name in the interface
+            // language holds the text are added by id, as integer literals.
+            var shownIds = SdeNames.Find(SdeNameKind.Type, itemF);
+            var orShown  = shownIds.Count == 0 ? ""
+                : $" OR x.\"TypeId\" IN ({string.Join(",", shownIds.Select(id => id.ToString(System.Globalization.CultureInfo.InvariantCulture)))})";
             int i = ps.Count; ps.Add("%" + itemF + "%");
-            parts.Add($"x.\"TypeId\" IN (SELECT \"TypeId\" FROM \"SdeTypes\" WHERE \"Name\" LIKE {{{i}}})");
+            parts.Add($"(x.\"TypeId\" IN (SELECT \"TypeId\" FROM \"SdeTypes\" WHERE \"Name\" LIKE {{{i}}}){orShown})");
         }
 
         if (_txnDirectionFilter == "Buy")  parts.Add("x.\"IsBuy\" = TRUE");

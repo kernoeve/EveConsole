@@ -461,8 +461,10 @@ public class FittingCanvas : Control
     {
         var culture = System.Globalization.CultureInfo.CurrentCulture;
 
+        // The module's name in the interface language, looked up as it is drawn: the slot carries
+        // the English, whoever built it.
         var title = new FormattedText(
-            slot.IsEmpty ? EmptySlotTitle(slot.Band) : slot.Name,
+            slot.IsEmpty ? EmptySlotTitle(slot.Band) : SdeNames.Type(slot.TypeId, slot.Name),
             culture, FlowDirection.LeftToRight, BoldFace, 12, TipTitle);
 
         var body = new FormattedText(

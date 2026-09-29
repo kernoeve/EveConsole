@@ -179,6 +179,10 @@ public class FitSelectorViewModel : ReactiveObject
 
         await using var db = _dbFactory.CreateDbContext();
 
+        // Market groups and hulls are named in the interface language, and each level of the tree
+        // is listed in the order of the names shown. The tree itself is built by id.
+        await SdeNames.EnsureLoadedAsync(ct);
+
         // Group fits by ship TypeId
         var fitsByShip = fits
             .GroupBy(f => f.Data.ShipTypeId)
@@ -231,17 +235,19 @@ public class FitSelectorViewModel : ReactiveObject
         foreach (var (typeId, groupId) in shipGroupIdMap)
         {
             if (!fitsByShip.TryGetValue(typeId, out var typeFits)) continue;
-            var name = shipInfo.TryGetValue(typeId, out var si) ? si.Name : string.Format(CommonText.TypeIdWithId, typeId);
+            var name = shipInfo.TryGetValue(typeId, out var si) ? SdeNames.Type(typeId, si.Name) : string.Format(CommonText.TypeIdWithId, typeId);
             if (!shipsByGroup.TryGetValue(groupId, out var ships))
                 shipsByGroup[groupId] = ships = [];
             ships.Add((typeId, name, typeFits));
         }
 
+        string GroupName(int id) => SdeNames.MarketGroup(id, allGroups[id].Name);
+
         // Root groups = relevant groups whose parent is NOT in the relevant set
         var rootIds = relevantGroupIds
             .Where(id => !allGroups[id].ParentGroupId.HasValue
                          || !relevantGroupIds.Contains(allGroups[id].ParentGroupId!.Value))
-            .OrderBy(id => allGroups[id].Name)
+            .OrderBy(GroupName, StringComparer.CurrentCulture)
             .ToList();
 
         // Recursive tree builder
@@ -250,16 +256,16 @@ public class FitSelectorViewModel : ReactiveObject
             var node = new FitTreeNode(startExpanded: true)
             {
                 Kind = FitNodeKind.MarketGroup,
-                Name = allGroups[groupId].Name
+                Name = GroupName(groupId)
             };
 
             if (childrenMap.TryGetValue(groupId, out var children))
-                foreach (var cid in children.OrderBy(id => allGroups[id].Name))
+                foreach (var cid in children.OrderBy(GroupName, StringComparer.CurrentCulture))
                     node.Children.Add(BuildGroupNode(cid));
 
             if (shipsByGroup.TryGetValue(groupId, out var ships))
             {
-                foreach (var (typeId, shipName, shipFits) in ships.OrderBy(s => s.Name))
+                foreach (var (typeId, shipName, shipFits) in ships.OrderBy(s => s.Name, StringComparer.CurrentCulture))
                 {
                     var shipNode = new FitTreeNode { Kind = FitNodeKind.Ship, Name = shipName, TypeId = typeId };
                     foreach (var entry in shipFits.OrderBy(f => f.Data.Name))
@@ -357,7 +363,12 @@ public class FitSelectorViewModel : ReactiveObject
             .Where(t => allTypeIds.Contains(t.TypeId))
             .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct);
 
-        string Name(int id) => typeNames.GetValueOrDefault(id, string.Format(CommonText.TypeIdWithId, id));
+        // The hull and every module, charge and drone in the interface language, each section in
+        // the order of the names shown.
+        await SdeNames.EnsureLoadedAsync(ct);
+        string Name(int id) => typeNames.TryGetValue(id, out var english)
+            ? SdeNames.Type(id, english)
+            : string.Format(CommonText.TypeIdWithId, id);
 
         DetailLines.Add(new FitDetailLine { IsHeader = true, Text = CommonText.FitSectionHull });
         DetailLines.Add(new FitDetailLine { Text = $"1× {Name(entry.Data.ShipTypeId)}" });
@@ -366,7 +377,7 @@ public class FitSelectorViewModel : ReactiveObject
         {
             if (!byCategory.TryGetValue(cat, out var items)) continue;
             DetailLines.Add(new FitDetailLine { IsHeader = true, Text = Heading(cat) });
-            foreach (var (typeId, qty) in items.OrderBy(kv => Name(kv.Key)))
+            foreach (var (typeId, qty) in items.OrderBy(kv => Name(kv.Key), StringComparer.CurrentCulture))
                 DetailLines.Add(new FitDetailLine { Text = $"{qty:N0}× {Name(typeId)}" });
         }
     }
