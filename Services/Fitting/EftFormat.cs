@@ -1,7 +1,7 @@
 namespace EveConsole.Services.Fitting;
 
 /// <summary>
-/// The EFT text format — what the client's "copy to clipboard", Pyfa and every fitting site
+/// The EFT text format — what the client's "copy to clipboard" and fitting tools and sites
 /// exchange:
 /// <code>
 /// [Rifter, My Rifter]

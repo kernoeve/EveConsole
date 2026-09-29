@@ -56,6 +56,7 @@ public sealed class DogmaData
     public const int AttrMass        = 4;
     public const int AttrCapacity    = 38;
     public const int AttrVolume      = 161;
+    public const int AttrRadius      = 162;
     public const int AttrSkillLevel  = 280;
     private static readonly int[] RequiredSkillAttrs = [182, 183, 184, 1285, 1289, 1290];
 
@@ -138,7 +139,7 @@ public sealed class DogmaData
             var types = await (from t in db.SdeTypes.AsNoTracking()
                                join g in db.SdeGroups.AsNoTracking() on t.GroupId equals g.GroupId
                                where ids.Contains(t.TypeId)
-                               select new { t.TypeId, t.Name, t.GroupId, g.CategoryId, t.Mass, t.Capacity, t.Volume })
+                               select new { t.TypeId, t.Name, t.GroupId, g.CategoryId, t.Mass, t.Capacity, t.Volume, t.Radius })
                               .ToListAsync(ct);
             var attrs = (await db.SdeTypeDogmaAttributes.AsNoTracking().Where(a => ids.Contains(a.TypeId)).ToListAsync(ct))
                 .ToLookup(a => a.TypeId);
@@ -153,6 +154,7 @@ public sealed class DogmaData
                 a.TryAdd(AttrMass,     t.Mass);
                 a.TryAdd(AttrCapacity, t.Capacity);
                 a.TryAdd(AttrVolume,   t.Volume);
+                if (t.Radius > 0) a.TryAdd(AttrRadius, t.Radius);
 
                 var required = RequiredSkillAttrs
                     .Where(a.ContainsKey).Select(id => (int)a[id]).Where(id => id > 0).ToHashSet();

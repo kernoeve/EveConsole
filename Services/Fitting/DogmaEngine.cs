@@ -39,10 +39,10 @@ internal sealed record Modification(DogmaItem Source, int Operation, int Modifyi
 /// </summary>
 /// <remarks>
 /// <para>Built from the SDE's modifierInfo rather than from a handler per effect: 3,205 of the
-/// 3,422 effects describe themselves that way. Pyfa (GPLv3, like this project) is the reference
-/// for the numbers and for the rules modifierInfo leaves out — the operation order, the stacking
-/// penalty, which effect categories run in which module state — and its handlers are the model
-/// for the few effects that carry no modifiers at all (propulsion, repairers, weapons).</para>
+/// 3,422 effects describe themselves that way. What modifierInfo leaves out is the game's general
+/// rules, which live here: the order operations apply in, the stacking penalty, and which effect
+/// categories run in which module state. The few effects that change attributes with no
+/// modifiers at all go through <see cref="EffectHandlers"/>.</para>
 ///
 /// <para>An attribute is computed the first time it is asked for and remembered: its base
 /// value, then every modification aimed at it, each of which reads an attribute of its source —
@@ -63,7 +63,8 @@ public sealed class DogmaEngine
     internal const int OpPostPercent = 6;
     internal const int OpPostAssign  = 7;
 
-    // Pyfa's constant: the i-th penalized multiplier keeps e^-(i²/7.1289) of its effect.
+    // The stacking penalty: the i-th penalized multiplier (0-based, strongest first) keeps
+    // e^-(i²/7.1289) of its effect — 100%, 86.9%, 57.1%, 28.3%, 10.6%, …
     private const double PenaltyDenominator = 7.1289;
 
     /// <summary>skillEffect, on every skill: derives the level from skill points (operation 9).
@@ -245,15 +246,13 @@ public sealed class DogmaEngine
             foreach (var (_, amount) in resolved.Where(r => r.m.Operation == OpPreAssign))
                 value = amount;
 
-            // Pyfa's order: additions, then plain multipliers, then penalized multipliers,
-            // with pre- and post- multiplications pooled together.
+            // Then additions, then plain multipliers, then each penalty group's chain.
             foreach (var (m, amount) in resolved)
                 if (m.Operation == OpModAdd) value += amount;
                 else if (m.Operation == OpModSub) value -= amount;
 
-            // Penalized multipliers are penalized within their group only, as Pyfa does: a
-            // percentage bonus and a post-multiplication on the same attribute do not reduce
-            // each other.
+            // Penalized multipliers are penalized within their group only: multipliers applied by
+            // different operations on the same attribute do not reduce each other.
             var penalized = new Dictionary<string, List<double>>();
             foreach (var (m, amount) in resolved)
             {
@@ -291,8 +290,8 @@ public sealed class DogmaEngine
     }
 
     /// <summary>The stacking group a penalized multiplier joins when its effect does not say.
-    /// Pyfa's default group holds its percentage bonuses and plain multiplications alike;
-    /// divisions and pre-multiplications have groups of their own.</summary>
+    /// Percentage bonuses and plain multiplications share one; divisions and
+    /// pre-multiplications have groups of their own.</summary>
     internal static string DefaultPenaltyGroup(int operation) => operation switch
     {
         OpPreMul              => "preMul",
@@ -328,7 +327,7 @@ public sealed class DogmaEngine
     // ── Registration ────────────────────────────────────────────────────────────
 
     /// <summary>Whether <paramref name="item"/>'s effect of <paramref name="category"/> runs.
-    /// Pyfa's rules: a module's passive effects run whatever its state, its online effects when
+    /// A module's passive effects run whatever its state, its online effects when
     /// it is online, its active ones when active, its overload ones when overheated; a charge
     /// follows its module; everything else is passive and always on.</summary>
     public static bool Runs(DogmaItem item, int category)

@@ -43,7 +43,7 @@ public sealed class SkillSet
     public int Level(int skillTypeId) => _levels.GetValueOrDefault(skillTypeId);
     public IReadOnlyDictionary<int, int> Levels => _levels;
 
-    /// <summary>Every published skill at <paramref name="level"/> — Pyfa's "All 5".</summary>
+    /// <summary>Every published skill at <paramref name="level"/> — the usual "All V" pilot.</summary>
     public static SkillSet AllAt(DogmaData data, int level) =>
         new($"All {level}", data.SkillTypeIds.ToDictionary(id => id, _ => level));
 }
