@@ -35,10 +35,18 @@ public sealed record FittingSlot(
     int         TypeId,
     string      Name,
     Bitmap?     Icon = null,
-    bool        FromAssets = false)
+    bool        FromAssets = false,
+    SlotActivity Activity = SlotActivity.None,
+    Bitmap?     ChargeIcon = null,
+    string?     Detail = null,
+    object?     Tag = null)
 {
     public bool IsEmpty => TypeId == 0;
 }
+
+/// <summary>A fitted module's state, where the caller knows it. <see cref="None"/> draws nothing —
+/// the structure view, which has no states, never sets it.</summary>
+public enum SlotActivity { None, Offline, Online, Active, Overheated }
 
 /// <summary>
 /// The fitting ring: slots arranged around a hull render, in the manner of the in-game fitting
@@ -75,6 +83,30 @@ public class FittingCanvas : Control
         set => SetValue(IsReadOnlyProperty, value);
     }
 
+    /// <summary>The largest a slot box is drawn. The structure view keeps the compact default; the
+    /// fitting tool, where the ring is the main thing on screen, asks for more.</summary>
+    public static readonly StyledProperty<double> MaxSlotSizeProperty =
+        AvaloniaProperty.Register<FittingCanvas, double>(nameof(MaxSlotSize), BaseSlotSize);
+
+    public double MaxSlotSize
+    {
+        get => GetValue(MaxSlotSizeProperty);
+        set => SetValue(MaxSlotSizeProperty, value);
+    }
+
+    /// <summary>The slot whose <see cref="FittingSlot.Tag"/> equals this is outlined as selected.</summary>
+    public static readonly StyledProperty<object?> SelectedTagProperty =
+        AvaloniaProperty.Register<FittingCanvas, object?>(nameof(SelectedTag));
+
+    public object? SelectedTag
+    {
+        get => GetValue(SelectedTagProperty);
+        set => SetValue(SelectedTagProperty, value);
+    }
+
+    /// <summary>Raised on a right-click on a slot, with where it happened, for a context menu.</summary>
+    public event Action<FittingSlot, Point>? SlotContextRequested;
+
     public IReadOnlyList<FittingSlot>? Slots
     {
         get => GetValue(SlotsProperty);
@@ -94,7 +126,7 @@ public class FittingCanvas : Control
     }
 
     static FittingCanvas() =>
-        AffectsRender<FittingCanvas>(SlotsProperty, HullRenderProperty, IsReadOnlyProperty);
+        AffectsRender<FittingCanvas>(SlotsProperty, HullRenderProperty, IsReadOnlyProperty, MaxSlotSizeProperty, SelectedTagProperty);
 
     public FittingCanvas()
     {
@@ -112,6 +144,10 @@ public class FittingCanvas : Control
     private static IPen   EmptyPen   => _emptyPen ??= new Pen(Palette.BorderDefault, 1);
     private static IPen   HoverPen   => _hoverPen ??= new Pen(Palette.Info, 1.5);
     private static IBrush RingBrush  => Palette.SurfacePanel;
+    private static readonly IBrush OfflineVeil = new ImmutableSolidColorBrush(Color.FromArgb(150, 10, 10, 14));
+    private static IPen ActivePen   => new Pen(Palette.Good, 2);
+    private static IPen HeatPen     => new Pen(Palette.Bad, 2);
+    private static IPen SelectedPen => new Pen(Palette.Accent, 1.5);
     private static IPen   RingPen    => _ringPen ??= new Pen(Palette.BorderSubtle, 1);
 
     // One colour per band, so a glance says which ring you are looking at without reading labels.
@@ -213,14 +249,15 @@ public class FittingCanvas : Control
                             .OrderBy(s => s.Index).ToList();
 
         // The service row lives below the circle, so the circle gives up that height.
-        var reserved = services.Count > 0 ? BaseSlotSize + 16 : 0;
+        var maxSlot  = Math.Max(MinSlotSize, MaxSlotSize);
+        var reserved = services.Count > 0 ? maxSlot + 16 : 0;
 
         var cx = Bounds.Width / 2;
         var cy = (Bounds.Height - reserved) / 2;
-        _radius = Math.Min(Bounds.Width, Bounds.Height - reserved) / 2 - BaseSlotSize * 0.75;
+        _radius = Math.Min(Bounds.Width, Bounds.Height - reserved) / 2 - maxSlot * 0.75;
         _centre = new Point(cx, cy);
 
-        if (_radius <= BaseSlotSize) return;
+        if (_radius <= maxSlot) return;
 
         // ── One box size, set by the tightest band ───────────────────────────
         // Decided before anything is placed: a band forced to tighten its step caps how big a box
@@ -239,7 +276,7 @@ public class FittingCanvas : Control
                      Room(FittingBand.Low,  _radius * HorizontalExtent)),
                      Room(FittingBand.Mid,  _radius * MidExtent));
 
-        _slotSize = Math.Clamp(tightest - SlotGap, MinSlotSize, BaseSlotSize);
+        _slotSize = Math.Clamp(tightest - SlotGap, MinSlotSize, maxSlot);
 
         // ⚠️ Slots are spaced along a straight axis, then pushed out to the circle — NOT spread
         // by equal angles. Equal angles look even in degrees and uneven on screen: across the top
@@ -368,9 +405,19 @@ public class FittingCanvas : Control
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         base.OnPointerPressed(e);
-        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
-
         if (IsReadOnly) return;
+
+        var props = e.GetCurrentPoint(this).Properties;
+        if (props.IsRightButtonPressed)
+        {
+            if (SlotAt(e.GetPosition(this)) is { } hit && SlotContextRequested is { } handler)
+            {
+                handler(hit, e.GetPosition(this));
+                e.Handled = true;
+            }
+            return;
+        }
+        if (!props.IsLeftButtonPressed) return;
 
         if (SlotAt(e.GetPosition(this)) is { } slot &&
             SlotClickedCommand?.CanExecute(slot) == true)
@@ -422,6 +469,33 @@ public class FittingCanvas : Control
             if (slot.Icon is { } icon)
                 ctx.DrawImage(icon, rect.Deflate(2));
 
+            // The loaded charge, small in the lower right corner, as the game shows it.
+            if (slot.ChargeIcon is { } charge)
+            {
+                var s = rect.Width * 0.42;
+                var r = new Rect(rect.Right - s - 1, rect.Bottom - s - 1, s, s);
+                ctx.DrawRectangle(BackBrush, null, new RoundedRect(r, 2));
+                ctx.DrawImage(charge, r.Deflate(1));
+            }
+
+            // State: dimmed when offline, an edge in the "good" colour when running and the
+            // "bad" colour when overheated. Online draws nothing — it is the resting state.
+            switch (slot.Activity)
+            {
+                case SlotActivity.Offline:
+                    ctx.DrawRectangle(OfflineVeil, null, new RoundedRect(rect, 3));
+                    break;
+                case SlotActivity.Active:
+                    ctx.DrawRectangle(null, ActivePen, new RoundedRect(rect.Inflate(1), 4));
+                    break;
+                case SlotActivity.Overheated:
+                    ctx.DrawRectangle(null, HeatPen, new RoundedRect(rect.Inflate(1), 4));
+                    break;
+            }
+
+            if (SelectedTag is not null && Equals(slot.Tag, SelectedTag))
+                ctx.DrawRectangle(null, SelectedPen, new RoundedRect(rect.Inflate(3), 5));
+
             if (ReferenceEquals(slot, _hover))
                 ctx.DrawRectangle(null, HoverPen, new RoundedRect(rect.Inflate(2), 4));
         }
@@ -453,7 +527,8 @@ public class FittingCanvas : Control
             culture, FlowDirection.LeftToRight, BoldFace, 12, TipTitle);
 
         var body = new FormattedText(
-            IsReadOnly
+            slot.Detail is { Length: > 0 } detail ? detail
+            : IsReadOnly
                 ? $"{LabelFor(slot.Band)} {slot.Index} · from assets — the game is the authority here"
                 : slot.IsEmpty
                     ? "Click to fit a module"

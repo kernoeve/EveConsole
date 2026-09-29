@@ -21,11 +21,16 @@ public static class TypeIcons
     private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(15) };
     private static readonly ConcurrentDictionary<int, Task<Bitmap?>> Cache = new();
 
-    public static Task<Bitmap?> GetAsync(int typeId, int size = 32) => Cache.GetOrAdd(typeId * 1000 + size, async _ =>
+    public static Task<Bitmap?> GetAsync(int typeId, int size = 32) => Fetch(typeId * 1000 + size, $"https://images.evetech.net/types/{typeId}/icon?size={size}");
+
+    /// <summary>The hull's render — the picture the fitting ring is drawn around.</summary>
+    public static Task<Bitmap?> RenderAsync(int typeId) => Fetch(-typeId, $"https://images.evetech.net/types/{typeId}/render?size=512");
+
+    private static Task<Bitmap?> Fetch(int key, string url) => Cache.GetOrAdd(key, async _ =>
     {
         try
         {
-            var bytes = await Http.GetByteArrayAsync($"https://images.evetech.net/types/{typeId}/icon?size={size}");
+            var bytes = await Http.GetByteArrayAsync(url);
             using var ms = new MemoryStream(bytes);
             return new Bitmap(ms);
         }
@@ -52,7 +57,7 @@ public sealed class FittingModuleRowVm : ReactiveObject
         set
         {
             this.RaiseAndSetIfChanged(ref _state, value);
-            foreach (var p in new[] { nameof(StateLabel), nameof(StateTip), nameof(IsOff), nameof(IsActive), nameof(IsHeated) })
+            foreach (var p in new[] { nameof(StateLabel), nameof(StateTip), nameof(HeatTip), nameof(IsOff), nameof(IsActive), nameof(IsHeated) })
                 this.RaisePropertyChanged(p);
         }
     }
@@ -67,7 +72,14 @@ public sealed class FittingModuleRowVm : ReactiveObject
         ModuleState.Overheated => "HEAT",
         _                      => "",
     };
-    public string StateTip => $"{State} — click to change";
+    public string StateTip => State switch
+    {
+        ModuleState.Offline    => "Offline — click to put online",
+        ModuleState.Online     => CanActivate ? "Online — click to activate" : "Online — click to take offline",
+        ModuleState.Active     => "Active — click to take offline",
+        _                      => "Overheated — click to take offline",
+    };
+    public string HeatTip => IsHeated ? "Overheated — click to stop" : "Click to overheat";
 
     private IReadOnlyList<CatalogEntry> _charges = [];
     public IReadOnlyList<CatalogEntry> Charges
@@ -83,11 +95,15 @@ public sealed class FittingModuleRowVm : ReactiveObject
     private Bitmap? _icon;
     public Bitmap? Icon { get => _icon; set => this.RaiseAndSetIfChanged(ref _icon, value); }
 
+    private Bitmap? _chargeIcon;
+    public Bitmap? ChargeIcon { get => _chargeIcon; set => this.RaiseAndSetIfChanged(ref _chargeIcon, value); }
+
     private string _detail = "";
     /// <summary>What the module costs and does, after the last calculation: "CPU 30 · PG 1".</summary>
     public string Detail { get => _detail; set => this.RaiseAndSetIfChanged(ref _detail, value); }
 
     public ReactiveCommand<Unit, Unit>? CycleStateCommand { get; set; }
+    public ReactiveCommand<Unit, Unit>? HeatCommand       { get; set; }
     public ReactiveCommand<Unit, Unit>? RemoveCommand     { get; set; }
     public ReactiveCommand<Unit, Unit>? ClearChargeCommand { get; set; }
 
@@ -170,6 +186,10 @@ public sealed class FitSnapshot
     public double Speed, Align, Signature, Warp, Mass, Agility;
     public double Range, ScanRes, MaxTargets, Sensor; public string SensorType = "";
     public Dictionary<int, string> ModuleDetail = new();   // by module index
+    public TankRates? Rates;
+    public double ShieldRecharge;
+    /// <summary>Per layer, the share of incoming (even) damage that is not resisted: HP/s ÷ this = EHP/s.</summary>
+    public double ShieldTaken = 1, ArmorTaken = 1, HullTaken = 1;
 }
 
 // ── The tool ─────────────────────────────────────────────────────────────────
@@ -306,8 +326,11 @@ public class FittingViewModel : ReactiveObject
         // An empty search with no category would list seven thousand items; ask for a word first,
         // unless a category narrows it.
         if (SearchText.Trim().Length < 2 && kinds is null) { SearchResults.Clear(); return; }
+        if (kinds is not null && SearchText.Trim().Length == 0 && FinderSlot is null && kinds.Contains(CatalogKind.Module)) { SearchResults.Clear(); return; }
 
-        var found = _catalog.Search(SearchText, kinds).Take(400).ToList();
+        var found = _catalog.Search(SearchText, kinds)
+            .Where(f => FinderSlot is not { } only || f.Slot == only)
+            .Take(400).ToList();
         if (FitsOnly && _lastEngine is { } engine)
         {
             // Slot and rig-size rules only; a full slot does not hide what could go in it.
@@ -367,7 +390,8 @@ public class FittingViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> NewFitCommand      { get; }
 
     /// <summary>The module row the user last clicked — where a charge picked in the finder goes.</summary>
-    public FittingModuleRowVm? SelectedModule { get; set; }
+    private FittingModuleRowVm? _selectedModule;
+    public FittingModuleRowVm? SelectedModule { get => _selectedModule; set => this.RaiseAndSetIfChanged(ref _selectedModule, value); }
 
     public async Task AddAsync(CatalogEntry entry)
     {
@@ -430,7 +454,12 @@ public class FittingViewModel : ReactiveObject
     {
         var bmp = await TypeIcons.GetAsync(typeId, 64);
         if (typeId == _shipTypeId) ShipIcon = bmp;
+        var render = await TypeIcons.RenderAsync(typeId);
+        if (typeId == _shipTypeId) ShipRender = render;
     }
+
+    private Bitmap? _shipRender;
+    public Bitmap? ShipRender { get => _shipRender; private set => this.RaiseAndSetIfChanged(ref _shipRender, value); }
 
     private async Task AddModuleAsync(int typeId, ModuleState state, int? chargeTypeId)
     {
@@ -442,10 +471,16 @@ public class FittingViewModel : ReactiveObject
             CanOverheat = type.EffectIds.Any(id => _data.Effects.TryGetValue(id, out var e) && e.Category == 5),
         };
         row.State = state;
-        row.CycleStateCommand  = ReactiveCommand.Create(() => { CycleState(row); ScheduleRecalc(); });
-        row.RemoveCommand      = ReactiveCommand.Create(() => { _modules.Remove(row); RebuildSlots(); ScheduleRecalc(); });
+        row.CycleStateCommand  = ReactiveCommand.Create(() => SetState(row, NextState(row)));
+        // Overheat is a switch of its own, as it is in the game: heating a module that is not on
+        // turns it on as well, and cooling it leaves it running.
+        row.HeatCommand        = ReactiveCommand.Create(() =>
+            SetState(row, row.State == ModuleState.Overheated ? ModuleState.Active : ModuleState.Overheated));
+        row.RemoveCommand      = ReactiveCommand.Create(() => Remove(row));
         row.ClearChargeCommand = ReactiveCommand.Create(() => { row.Charge = null; });
         row.WhenAnyValue(r => r.Charge).Skip(1).Subscribe(_ => ScheduleRecalc());
+        row.WhenAnyValue(r => r.Charge).Subscribe(c => _ = LoadChargeIconAsync(row, c));
+        row.WhenAnyValue(r => r.Icon).Skip(1).Subscribe(_ => RebuildRing());
         _modules.Add(row);
         _ = LoadRowIconAsync(row);
 
@@ -455,13 +490,11 @@ public class FittingViewModel : ReactiveObject
 
     private static async Task LoadRowIconAsync(FittingModuleRowVm row) => row.Icon = await TypeIcons.GetAsync(row.TypeId);
 
-    private static void CycleState(FittingModuleRowVm row) => row.State = row.State switch
+    private async Task LoadChargeIconAsync(FittingModuleRowVm row, CatalogEntry? charge)
     {
-        ModuleState.Offline                       => ModuleState.Online,
-        ModuleState.Online when row.CanActivate   => ModuleState.Active,
-        ModuleState.Active when row.CanOverheat   => ModuleState.Overheated,
-        _                                         => ModuleState.Offline,
-    };
+        row.ChargeIcon = charge is null ? null : await TypeIcons.GetAsync(charge.TypeId);
+        RebuildRing();
+    }
 
     private async Task LoadChargeAsync(CatalogEntry charge)
     {
@@ -492,7 +525,7 @@ public class FittingViewModel : ReactiveObject
 
     private void NewFit(bool announce)
     {
-        _shipTypeId = 0; ShipName = ""; ShipIcon = null; FitName = "";
+        _shipTypeId = 0; ShipName = ""; ShipIcon = null; ShipRender = null; SelectedModule = null; FitName = "";
         _modules.Clear(); Drones.Clear(); Implants.Clear(); _cargo = [];
         _lastEngine = null; _loadedSavedId = null;
         this.RaisePropertyChanged(nameof(HasShip));
@@ -501,11 +534,111 @@ public class FittingViewModel : ReactiveObject
         if (announce) Status = "New fit. Pick a hull.";
     }
 
+    // ── The ring ────────────────────────────────────────────────────────────────
+
+    private IReadOnlyList<Controls.FittingSlot> _ringSlots = [];
+    /// <summary>The slots as the fitting ring draws them, in the game's arrangement.</summary>
+    public IReadOnlyList<Controls.FittingSlot> RingSlots { get => _ringSlots; private set => this.RaiseAndSetIfChanged(ref _ringSlots, value); }
+
+    private void RebuildRing()
+    {
+        var slots = new List<Controls.FittingSlot>();
+        foreach (var group in SlotGroups)
+            for (var i = 0; i < group.Rows.Count; i++)
+            {
+                var r = group.Rows[i];
+                var band = r.Slot switch
+                {
+                    FitSlot.High      => Controls.FittingBand.High,
+                    FitSlot.Mid       => Controls.FittingBand.Mid,
+                    FitSlot.Low       => Controls.FittingBand.Low,
+                    FitSlot.Rig       => Controls.FittingBand.Rig,
+                    FitSlot.Subsystem => Controls.FittingBand.Subsystem,
+                    _                 => Controls.FittingBand.Service,
+                };
+                var activity = r.IsEmpty || !r.CanToggle ? Controls.SlotActivity.None : r.State switch
+                {
+                    ModuleState.Offline    => Controls.SlotActivity.Offline,
+                    ModuleState.Active     => Controls.SlotActivity.Active,
+                    ModuleState.Overheated => Controls.SlotActivity.Overheated,
+                    _                      => Controls.SlotActivity.Online,
+                };
+                var detail = r.IsEmpty ? "Click to choose a module for this slot"
+                    : string.Join("  ·  ", new[] { r.CanToggle ? r.State.ToString() : null, r.Charge?.Name, r.Detail }
+                        .Where(x => !string.IsNullOrEmpty(x)));
+                slots.Add(new Controls.FittingSlot(band, i, r.TypeId, r.Name, r.Icon, false, activity, r.ChargeIcon, detail, r));
+            }
+        RingSlots = slots;
+    }
+
+    /// <summary>Left-click on the ring: a filled slot is switched the way the game switches it
+    /// (on, active, off); an empty one points the finder at modules for that slot.</summary>
+    public ReactiveCommand<Controls.FittingSlot, Unit> RingSlotClickedCommand => _ringClicked ??= ReactiveCommand.Create<Controls.FittingSlot>(RingSlotClicked);
+    private ReactiveCommand<Controls.FittingSlot, Unit>? _ringClicked;
+
+    public void RingSlotClicked(Controls.FittingSlot slot)
+    {
+        if (slot.Tag is FittingModuleRowVm { IsEmpty: false } row)
+        {
+            SelectedModule = row;
+            if (row.CanToggle) SetState(row, NextState(row));
+            return;
+        }
+        if (slot.Tag is FittingModuleRowVm empty)
+        {
+            FinderSlot = empty.Slot;
+            KindFilter = empty.Slot switch { FitSlot.Rig => "Rigs", FitSlot.Subsystem => "Subsystems", _ => "Modules" };
+            FitsOnly   = true;
+            Status     = $"Choose a {FittingCatalog.SlotName(empty.Slot)} slot module from Items.";
+        }
+    }
+
+    public void SetState(FittingModuleRowVm row, ModuleState state)
+    {
+        row.State = state;
+        RebuildRing();
+        ScheduleRecalc();
+    }
+
+    public void Remove(FittingModuleRowVm row)
+    {
+        _modules.Remove(row);
+        if (SelectedModule == row) SelectedModule = null;
+        RebuildSlots();
+        ScheduleRecalc();
+    }
+
+    private static ModuleState NextState(FittingModuleRowVm row) => row.State switch
+    {
+        ModuleState.Offline                     => ModuleState.Online,
+        ModuleState.Online when row.CanActivate => ModuleState.Active,
+        _                                       => ModuleState.Offline,
+    };
+
+    private FitSlot? _finderSlot;
+    /// <summary>When set, the finder lists only modules for this slot — set by clicking an empty
+    /// slot on the ring, cleared by the ✕ beside the note it shows.</summary>
+    public FitSlot? FinderSlot
+    {
+        get => _finderSlot;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _finderSlot, value);
+            this.RaisePropertyChanged(nameof(FinderSlotText));
+            this.RaisePropertyChanged(nameof(HasFinderSlot));
+            _ = RunSearchAsync();
+        }
+    }
+    public bool   HasFinderSlot  => _finderSlot is not null;
+    public string FinderSlotText => _finderSlot is { } s ? $"{char.ToUpper(FittingCatalog.SlotName(s)[0])}{FittingCatalog.SlotName(s)[1..]} slot modules only" : "";
+    public ReactiveCommand<Unit, Unit> ClearFinderSlotCommand => _clearFinderSlot ??= ReactiveCommand.Create(() => { FinderSlot = null; });
+    private ReactiveCommand<Unit, Unit>? _clearFinderSlot;
+
     /// <summary>Slot sections for the hull: what is fitted, then an empty row per free slot.</summary>
     private void RebuildSlots()
     {
         SlotGroups.Clear();
-        if (_shipTypeId == 0) return;
+        if (_shipTypeId == 0) { RebuildRing(); return; }
         var counts = Stats?.Slots ?? new Dictionary<FitSlot, int>();
         foreach (var slot in new[] { FitSlot.High, FitSlot.Mid, FitSlot.Low, FitSlot.Rig, FitSlot.Subsystem, FitSlot.Service })
         {
@@ -516,6 +649,7 @@ public class FittingViewModel : ReactiveObject
             var name = slot == FitSlot.Mid ? "Mid" : char.ToUpper(FittingCatalog.SlotName(slot)[0]) + FittingCatalog.SlotName(slot)[1..];
             SlotGroups.Add(new FittingSlotGroupVm($"{name} slots  {fitted.Count} / {total}", rows, fitted.Count > total));
         }
+        RebuildRing();
     }
 
     // ── Calculation ─────────────────────────────────────────────────────────────
@@ -614,6 +748,11 @@ public class FittingViewModel : ReactiveObject
             snap.Tank.Add(new TankLayerRow(name, $"{layer.Hp:N0}", Pct(layer.EmResonance), Pct(layer.ThermalResonance),
                 Pct(layer.KineticResonance), Pct(layer.ExplosiveResonance), $"{layer.Ehp(DamageProfile.Uniform):N0}"));
         snap.Ehp = s.Ehp();
+        var repairs = s.Repairs();
+        snap.Rates = s.Tank(repairs);
+        snap.ShieldRecharge = s.ShieldRechargeSeconds;
+        static double Taken(LayerStats l) => (l.EmResonance + l.ThermalResonance + l.KineticResonance + l.ExplosiveResonance) / 4;
+        snap.ShieldTaken = Taken(s.Shield); snap.ArmorTaken = Taken(s.Armor); snap.HullTaken = Taken(s.Hull);
         snap.Cap = s.Capacitor();
         var weapons = s.Weapons();
         snap.WeaponDps = s.WeaponDps(weapons); snap.DroneDps = s.DroneDps(weapons); snap.Volley = s.Volley(weapons);
@@ -634,6 +773,7 @@ public class FittingViewModel : ReactiveObject
                 if (e.Value(m, "power") is var pg and > 0) parts.Add($"PG {pg:0.##}");
             }
             if (byModule.TryGetValue(m, out var w)) parts.Add($"{w.Dps.Total:N1} DPS");
+            if (repairs.FirstOrDefault(r => r.Item == m) is { } rep) parts.Add($"{rep.PerSecond:N1} {rep.Layer.ToString().ToLower()} HP/s");
             snap.ModuleDetail[i] = string.Join(" · ", parts);
         }
         return snap;
@@ -655,6 +795,19 @@ public class FittingViewModel : ReactiveObject
     public bool   DroneOver       => Stats is { } s && (s.DroneBay > s.DroneBayOut + 1e-9 || s.Bandwidth > s.BandwidthOut + 1e-9);
     public IReadOnlyList<TankLayerRow> TankRows => Stats?.Tank ?? [];
     public string EhpText         => Stats is { } s ? $"{s.Ehp:N0} EHP" : "";
+    /// <summary>Peak shield regeneration and recharge time — what a passive shield tank lives on.</summary>
+    public string RegenText       => Stats is { Rates: { } r } s && r.PassiveShield > 0
+        ? $"Shield regen {r.PassiveShield:N1} HP/s at peak ({r.PassiveShield / s.ShieldTaken:N0} EHP/s)    Recharge {FormatDuration(s.ShieldRecharge)}" : "";
+    /// <summary>What active modules repair, per layer, raw and effective against even damage.</summary>
+    public string RepairText      => Stats is { Rates: { } r } s ? string.Join(Environment.NewLine, new[]
+        {
+            r.ShieldBoost > 0 ? $"Shield boost {r.ShieldBoost:N1} HP/s ({r.ShieldBoost / s.ShieldTaken:N0} EHP/s)" : null,
+            r.ArmorRepair > 0 ? $"Armor repair {r.ArmorRepair:N1} HP/s ({r.ArmorRepair / s.ArmorTaken:N0} EHP/s)" : null,
+            r.HullRepair  > 0 ? $"Hull repair {r.HullRepair:N1} HP/s ({r.HullRepair / s.HullTaken:N0} EHP/s)" : null,
+            (r.ShieldBoost + r.ArmorRepair + r.HullRepair) > 0 && s.Cap is { Stable: false } c
+                ? $"Repairs that use capacitor stop when it runs out ({FormatDuration(c.LastsSeconds)})" : null,
+        }.OfType<string>()) : "";
+    public bool HasRepairs        => Stats is { Rates: { } r } && r.ShieldBoost + r.ArmorRepair + r.HullRepair > 0;
     public string CapText         => Stats?.Cap is { } c ? $"{c.Capacity:N0} GJ" : "";
     public string CapStateText    => Stats?.Cap is { } c
         ? c.Stable ? $"Stable at {c.StableFraction * 100:0.0}%" : $"Lasts {FormatDuration(c.LastsSeconds)}" : "";
@@ -683,7 +836,7 @@ public class FittingViewModel : ReactiveObject
     {
         foreach (var p in new[] { nameof(CpuText), nameof(CpuFraction), nameof(CpuOver), nameof(PowerText), nameof(PowerFraction), nameof(PowerOver),
                      nameof(CalibText), nameof(CalibFraction), nameof(CalibOver), nameof(HardpointsText), nameof(HardpointsOver), nameof(DroneText), nameof(DroneOver),
-                     nameof(TankRows), nameof(EhpText), nameof(CapText), nameof(CapStateText), nameof(CapStable), nameof(CapFlowText),
+                     nameof(TankRows), nameof(EhpText), nameof(RegenText), nameof(RepairText), nameof(HasRepairs), nameof(CapText), nameof(CapStateText), nameof(CapStable), nameof(CapFlowText),
                      nameof(DpsText), nameof(DpsSplitText), nameof(DamageTypesText), nameof(SpeedText), nameof(NavText), nameof(MassText),
                      nameof(TargetingText), nameof(SensorText) })
             this.RaisePropertyChanged(p);
