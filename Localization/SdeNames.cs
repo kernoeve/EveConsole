@@ -102,6 +102,25 @@ public static class SdeNames
         Get(SdeNameKind.DogmaUnit, unitId, englishDisplayName);
 
     /// <summary>
+    /// A name ESI resolved — /universe/names/ and the UniverseNames cache — by its ESI category,
+    /// in the interface language where the SDE has it: item types, solar systems, constellations,
+    /// regions and factions, and the NPC corporations and agents among corporations and characters.
+    /// Everything else comes back as it is: players, their corporations and alliances, stations
+    /// and structures.
+    /// </summary>
+    public static string ForEsiCategory(string? category, long id, string english) => category switch
+    {
+        "inventory_type" => Type(id, english),
+        "solar_system"   => SolarSystem(id, english),
+        "constellation"  => Constellation(id, english),
+        "region"         => Region(id, english),
+        "faction"        => Faction(id, english),
+        "corporation"    => NpcCorporation(id, english),   // a player corporation has no row
+        "character"      => Agent(id, english),            // nor has a player
+        _                => english,
+    };
+
+    /// <summary>
     /// Every name of one kind in the interface language, by id — for code that builds its own
     /// id → name map. It holds only the names that differ from the English: look each id up, and
     /// fall back to the English column for any it lacks. Empty in English and until the load has
