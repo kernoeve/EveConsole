@@ -2183,13 +2183,14 @@ public class ItemBrowserViewModel : ReactiveObject
             .ToListAsync(ct);
 
         var categories = await GetCategoryNamesAsync(ct);
+        var units      = await GetUnitNamesAsync([.. raw.Select(a => (a.UnitId, a.Value))], ct);
 
         return raw
             .Select(a =>
             {
                 var dn    = a.DisplayName.Length > 0 && a.DisplayName != a.Name
                     ? a.DisplayName : PrettyName(a.Name);
-                var value = FormatAttrValue(a.Value, a.UnitId);
+                var value = FormatAttrValue(a.Value, a.UnitId, units);
                 return (CatId: a.CategoryId, Attr: new AttrDisplayVm(dn, value));
             })
             .GroupBy(x => x.CatId)
@@ -2526,27 +2527,144 @@ public class ItemBrowserViewModel : ReactiveObject
         catch { /* icon is optional */ }
     }
 
-    // ── Unit label table ──────────────────────────────────────────────────────
+    // ── Attribute units ───────────────────────────────────────────────────────
+    //
+    // ⚠️ Keyed by the SDE's own dogma unit ids (SdeDogmaUnits), and shown the way the game client
+    // shows an attribute. This was a hand-kept table whose ids matched the SDE's in a handful of
+    // places: powergrid (MW) read "GJ/s", capacitor recharge (milliseconds) "tf", and CPU and
+    // velocity had no unit at all.
+    //
+    // Most units are the value and the unit's display name from the SDE ("250 m/sec", "40 tf").
+    // Some are converted first: milliseconds are shown in seconds, and the resonance and
+    // multiplier units as the percentage they mean. The units whose value is an id or a code — a
+    // group, a type, an attribute, a size, yes or no — show the thing it names.
 
-    private static readonly Dictionary<int, string> _units = new()
-    {
-        {1,"m"}, {2,"kg"}, {3,"s"}, {4,"m/s"}, {6,"m³"}, {9,"%"},
-        {101,"tf"}, {102,"km"}, {105,"MW"}, {107,"GJ/s"}, {108,"s"},
-        {109,"m"}, {111,"AU"}, {113,"HP"}, {114,"GJ"}, {115,"m³/s"},
-        {116,"m/s"}, {117,"m"}, {118,"Ω"}, {119,"S"}, {120,"mm"},
-        {124,"pts"}, {127,"m"}, {128,"tf"}, {129,"MN"}, {131,"AU"},
-        {133,"pts"}, {134,"m³"}, {135,"1/s"},
-    };
+    private const int UnitMilliseconds            = 101;
+    private const int UnitInverseAbsolutePercent  = 108;   // a resonance: 0.6 → 40 %
+    private const int UnitModifierPercent         = 109;   // 1.1 → 10 %
+    private const int UnitInversedModifierPercent = 111;   // 0.85 → 15 %
+    private const int UnitGroupId                 = 115;
+    private const int UnitTypeId                  = 116;
+    private const int UnitSizeClass               = 117;
+    private const int UnitAttributeId             = 119;
+    private const int UnitFittingSlots            = 122;
+    private const int UnitAbsolutePercent         = 127;   // 0.25 → 25 %
+    private const int UnitHours                   = 129;
+    private const int UnitSlot                    = 136;
+    private const int UnitBoolean                 = 137;
+    private const int UnitBonus                   = 139;   // +2
+    private const int UnitLevel                   = 140;
+    private const int UnitSex                     = 142;
+    private const int UnitDatetime                = 143;   // days since 1970
 
-    private static string FormatAttrValue(double value, int? unitId)
+    // The words these units are shown as. Interface text: they move to the Item Browser's
+    // resources with the rest of this screen's text.
+    private const string AttrYes        = "Yes";
+    private const string AttrNo         = "No";
+    private const string AttrSmall      = "Small";
+    private const string AttrMedium     = "Medium";
+    private const string AttrLarge      = "Large";
+    private const string AttrExtraLarge = "Extra Large";
+    private const string AttrMale       = "Male";
+    private const string AttrUnisex     = "Unisex";
+    private const string AttrFemale     = "Female";
+    private const string AttrHours      = "{0} h";
+
+    /// <summary>What an attribute's unit needs in order to be shown: the SDE's display names for
+    /// the units, and the names of the groups, types and attributes some attributes' values are.</summary>
+    private sealed record UnitNames(
+        IReadOnlyDictionary<int, string> Units,
+        IReadOnlyDictionary<int, string> Groups,
+        IReadOnlyDictionary<int, string> Types,
+        IReadOnlyDictionary<int, string> Attributes);
+
+    private Dictionary<int, string>? _unitDisplayNames;
+
+    /// <summary>
+    /// The unit display names (read once), and the names of the groups, types and attributes that
+    /// these attributes' values point at — one query each, for this item's values only.
+    /// </summary>
+    private async Task<UnitNames> GetUnitNamesAsync(
+        IReadOnlyCollection<(int? UnitId, double Value)> attrs, CancellationToken ct)
     {
-        var unit = unitId.HasValue && _units.TryGetValue(unitId.Value, out var u) ? u : "";
-        string formatted;
-        if (value >= 1_000_000_000)      formatted = $"{value / 1_000_000_000:N2}B";
-        else if (value >= 1_000_000)     formatted = $"{value / 1_000_000:N2}M";
-        else if (value >= 1_000)         formatted = $"{value:N0}";
-        else if (value == Math.Floor(value)) formatted = $"{value:N0}";
-        else                             formatted = $"{value:N4}".TrimEnd('0').TrimEnd('.');
-        return unit.Length > 0 ? $"{formatted} {unit}" : formatted;
+        if (_unitDisplayNames is null)
+        {
+            try
+            {
+                _unitDisplayNames = await _db.SdeDogmaUnits.AsNoTracking()
+                    .ToDictionaryAsync(u => u.UnitId, u => u.DisplayName, ct);
+            }
+            catch { _unitDisplayNames = []; }
+        }
+
+        List<int> ValuesOf(int unit) =>
+            [.. attrs.Where(a => a.UnitId == unit).Select(a => (int)a.Value).Distinct()];
+        var groupIds = ValuesOf(UnitGroupId);
+        var typeIds  = ValuesOf(UnitTypeId);
+        var attrIds  = ValuesOf(UnitAttributeId);
+
+        var groups = groupIds.Count == 0 ? [] : await _db.SdeGroups.AsNoTracking()
+            .Where(g => groupIds.Contains(g.GroupId))
+            .ToDictionaryAsync(g => g.GroupId, g => g.Name, ct);
+        var types = typeIds.Count == 0 ? [] : await _db.SdeTypes.AsNoTracking()
+            .Where(t => typeIds.Contains(t.TypeId))
+            .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct);
+        var attributes = attrIds.Count == 0 ? [] : (await _db.SdeDogmaAttributes.AsNoTracking()
+                .Where(d => attrIds.Contains(d.AttributeId))
+                .Select(d => new { d.AttributeId, d.Name, d.DisplayName })
+                .ToListAsync(ct))
+            .ToDictionary(d => d.AttributeId, d => d.DisplayName.Length > 0 ? d.DisplayName : PrettyName(d.Name));
+
+        return new UnitNames(_unitDisplayNames, groups, types, attributes);
+    }
+
+    private static string FormatAttrValue(double value, int? unitId, UnitNames names)
+    {
+        string With(double v, string? unit) =>
+            string.IsNullOrWhiteSpace(unit) ? AttrNumber(v) : $"{AttrNumber(v)} {unit}";
+        string Named(IReadOnlyDictionary<int, string> map) =>
+            map.TryGetValue((int)value, out var name) ? name : AttrNumber(value);
+
+        return unitId switch
+        {
+            null => AttrNumber(value),
+
+            // The SDE's display name for this unit is already "s": the game shows it in seconds.
+            UnitMilliseconds            => With(value / 1000, names.Units.GetValueOrDefault(UnitMilliseconds, "s")),
+            UnitInverseAbsolutePercent  => With((1 - value) * 100, "%"),
+            UnitModifierPercent         => With((value - 1) * 100, "%"),
+            UnitInversedModifierPercent => With((1 - value) * 100, "%"),
+            UnitAbsolutePercent         => With(value * 100, "%"),
+
+            UnitGroupId     => Named(names.Groups),
+            UnitTypeId      => Named(names.Types),
+            UnitAttributeId => Named(names.Attributes),
+
+            // Codes, whose SDE display name is a legend ("1=True 0=False"), not a unit.
+            UnitBoolean   => value != 0 ? AttrYes : AttrNo,
+            UnitSizeClass => value switch { 1 => AttrSmall, 2 => AttrMedium, 3 => AttrLarge, 4 => AttrExtraLarge, _ => AttrNumber(value) },
+            UnitSex       => value switch { 1 => AttrMale, 2 => AttrUnisex, 3 => AttrFemale, _ => AttrNumber(value) },
+
+            UnitBonus    => value > 0 ? $"+{AttrNumber(value)}" : AttrNumber(value),
+            UnitHours    => string.Format(AttrHours, AttrNumber(value)),
+            UnitDatetime => DateTime.UnixEpoch.AddDays(value).ToString("yyyy-MM-dd"),
+
+            // The attribute's own name already says what the number is — "Implant Slot",
+            // "Tech Level", "Required Thermodynamics Level" — so the number alone, not "Level 2".
+            UnitSlot or UnitFittingSlots or UnitLevel => AttrNumber(value),
+
+            _ => With(value, names.Units.GetValueOrDefault(unitId.Value)),
+        };
+    }
+
+    /// <summary>A number as the attribute list writes one: millions and billions shortened, whole
+    /// from a thousand up, and at most four decimals below that, with no trailing zeros.</summary>
+    private static string AttrNumber(double v)
+    {
+        var size = Math.Abs(v);
+        if (size >= 1_000_000_000) return $"{v / 1_000_000_000:N2}B";
+        if (size >= 1_000_000)     return $"{v / 1_000_000:N2}M";
+        if (size >= 1_000)         return v.ToString("N0");
+        return v.ToString("#,##0.####");
     }
 }
