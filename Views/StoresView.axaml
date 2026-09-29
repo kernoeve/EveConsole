@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="using:EveConsole.ViewModels"
              xmlns:controls="using:EveConsole.Controls"
              x:Class="EveConsole.Views.StoresView"
@@ -33,16 +34,16 @@
     <Border Grid.Row="0" Background="{DynamicResource SurfaceBaseBrush}" Padding="10 6"
             BorderThickness="0 0 0 1" BorderBrush="{DynamicResource BorderSubtleBrush}">
       <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*">
-        <Button Grid.Column="0" Command="{Binding AddStoreCommand}" Content="+ Add Store"
+        <Button Grid.Column="0" Command="{Binding AddStoreCommand}" Content="{x:Static loc:SalesText.AddStore}"
                 Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource AccentBrush}"
                 BorderBrush="{DynamicResource AccentSurfaceBrush}" BorderThickness="1" Padding="12 4" FontSize="11" />
-        <Button Grid.Column="1" Command="{Binding DeleteStoreCommand}" Content="Delete"
+        <Button Grid.Column="1" Command="{Binding DeleteStoreCommand}" Content="{x:Static loc:SalesText.Delete}"
                 Background="{DynamicResource BadSurfaceBrush}" Foreground="{DynamicResource BadBrush}"
                 BorderBrush="{DynamicResource BadSurfaceBrush}" BorderThickness="1" Padding="12 4" FontSize="11" Margin="8 0 0 0" />
-        <Button Grid.Column="2" Command="{Binding CheckMailCommand}" Content="Check Mail Now"
+        <Button Grid.Column="2" Command="{Binding CheckMailCommand}" Content="{x:Static loc:SalesText.CheckMailNow}"
                 Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
                 BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" Padding="12 4" FontSize="11" Margin="8 0 0 0" />
-        <Button Grid.Column="3" Command="{Binding RefreshCommand}" Content="Refresh"
+        <Button Grid.Column="3" Command="{Binding RefreshCommand}" Content="{x:Static loc:SalesText.Refresh}"
                 Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
                 BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" Padding="12 4" FontSize="11" Margin="8 0 0 0" />
         <TextBlock Grid.Column="4" Text="{Binding Status}" FontSize="11" Foreground="{DynamicResource TextDimBrush}"
@@ -74,7 +75,7 @@
            every time to see whether anyone had written in. -->
       <TabControl Grid.Column="1" IsVisible="{Binding HasSelection}" Padding="0">
 
-        <TabItem Header="Overview" FontSize="12">
+        <TabItem Header="{x:Static loc:SalesText.TabOverview}" FontSize="12">
           <!-- A grid, not a stack in a scroller: the counts are four lines and fixed, and
                everything left over is split between the two logs. A log sized to a guess wastes
                half the window on a tall screen and shows six rows on a short one.
@@ -88,19 +89,19 @@
                   CornerRadius="4" Padding="14 12">
             <Grid ColumnDefinitions="*,*,*,*">
               <StackPanel Grid.Column="0" Spacing="2">
-                <TextBlock Text="Inquiries" FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
+                <TextBlock Text="{x:Static loc:SalesText.Inquiries}" FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
                 <TextBlock Text="{Binding StatInquiries}" FontSize="18" Foreground="{DynamicResource AccentBrush}" />
               </StackPanel>
               <StackPanel Grid.Column="1" Spacing="2">
-                <TextBlock Text="Active items" FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
+                <TextBlock Text="{x:Static loc:SalesText.ActiveItems}" FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
                 <TextBlock Text="{Binding StatActive}" FontSize="18" Foreground="{DynamicResource InfoBrush}" />
               </StackPanel>
               <StackPanel Grid.Column="2" Spacing="2">
-                <TextBlock Text="Completed" FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
+                <TextBlock Text="{x:Static loc:SalesText.Completed}" FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
                 <TextBlock Text="{Binding StatCompleted}" FontSize="18" Foreground="{DynamicResource GoodBrush}" />
               </StackPanel>
               <StackPanel Grid.Column="3" Spacing="2">
-                <TextBlock Text="Cancelled" FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
+                <TextBlock Text="{x:Static loc:SalesText.Cancelled}" FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
                 <TextBlock Text="{Binding StatCancelled}" FontSize="18" Foreground="{DynamicResource BadBrush}" />
               </StackPanel>
             </Grid>
@@ -109,25 +110,25 @@
           <Border Grid.Row="2" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                   CornerRadius="4" Padding="14 12">
             <DockPanel LastChildFill="True">
-              <TextBlock DockPanel.Dock="Top" Text="Active orders" FontSize="13"
+              <TextBlock DockPanel.Dock="Top" Text="{x:Static loc:SalesText.ActiveOrders}" FontSize="13"
                          FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" Margin="0 0 0 8" />
               <DataGrid ItemsSource="{Binding Orders}" AutoGenerateColumns="False" IsReadOnly="True"
                         Background="Transparent" HeadersVisibility="Column" FontSize="11">
                 <DataGrid.Columns>
-                  <DataGridTextColumn Header="Created on" Binding="{Binding Created}" Width="100" />
-                  <DataGridTextColumn Header="Order"      Binding="{Binding Ref}"     Width="80" />
-                  <DataGridTextColumn Header="Item"       Binding="{Binding Item}"    Width="*" />
+                  <DataGridTextColumn Header="{x:Static loc:SalesText.ColCreatedOn}" Binding="{Binding Created}" Width="100" />
+                  <DataGridTextColumn Header="{x:Static loc:SalesText.ColOrder2}"      Binding="{Binding Ref}"     Width="80" />
+                  <DataGridTextColumn Header="{x:Static loc:SalesText.ColItem}"       Binding="{Binding Item}"    Width="*" />
                   <!-- Sorted on the number, shown with separators: 9 sorts below 50, which it
                        would not if the column sorted the text it displays. -->
-                  <DataGridTextColumn Header="Units"      Binding="{Binding UnitsText}"
+                  <DataGridTextColumn Header="{x:Static loc:SalesText.ColUnits}"      Binding="{Binding UnitsText}"
                                       SortMemberPath="Units" Width="80" CellStyleClasses="num" />
-                  <DataGridTextColumn Header="Buyer"      Binding="{Binding Buyer}"   Width="160" />
-                  <DataGridTextColumn Header="Est date"   Binding="{Binding EstDate}" Width="90" />
+                  <DataGridTextColumn Header="{x:Static loc:SalesText.ColBuyer}"      Binding="{Binding Buyer}"   Width="160" />
+                  <DataGridTextColumn Header="{x:Static loc:SalesText.ColEstDate2}"   Binding="{Binding EstDate}" Width="90" />
                   <!-- The column that moves while an order is open. Status is here because it was
                        asked for and stays correct if the list ever shows more than active orders,
                        but on this tab it reads "Pending" on every row by construction. -->
-                  <DataGridTextColumn Header="Source"     Binding="{Binding Source}"  Width="100" />
-                  <DataGridTextColumn Header="Status"     Binding="{Binding Status}"  Width="90" />
+                  <DataGridTextColumn Header="{x:Static loc:SalesText.ColSource}"     Binding="{Binding Source}"  Width="100" />
+                  <DataGridTextColumn Header="{x:Static loc:SalesText.ColStatus}"     Binding="{Binding Status}"  Width="90" />
                 </DataGrid.Columns>
               </DataGrid>
             </DockPanel>
@@ -136,21 +137,21 @@
           <Border Grid.Row="4" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                   CornerRadius="4" Padding="14 12">
             <DockPanel LastChildFill="True">
-              <TextBlock DockPanel.Dock="Top" Text="Messages" FontSize="13" FontWeight="SemiBold"
+              <TextBlock DockPanel.Dock="Top" Text="{x:Static loc:SalesText.Messages}" FontSize="13" FontWeight="SemiBold"
                          Foreground="{DynamicResource AccentBrush}" Margin="0 0 0 8" />
               <DataGrid ItemsSource="{Binding Mails}" AutoGenerateColumns="False" IsReadOnly="True"
                         Background="Transparent" HeadersVisibility="Column" FontSize="11">
                 <DataGrid.Columns>
-                  <DataGridTextColumn Header="When"      Binding="{Binding When}"      Width="130" />
-                  <DataGridTextColumn Header="Direction" Binding="{Binding Direction}" Width="80" />
-                  <DataGridTextColumn Header="Who"       Binding="{Binding Party}"     Width="150" />
-                  <DataGridTextColumn Header="Command"   Binding="{Binding Command}"   Width="80" />
-                  <DataGridTextColumn Header="Subject"   Binding="{Binding Subject}"   Width="*" />
-                  <DataGridTextColumn Header="Order"     Binding="{Binding OrderRef}"  Width="80" />
-                  <DataGridTextColumn Header="Outcome"   Binding="{Binding Outcome}"   Width="80" />
+                  <DataGridTextColumn Header="{x:Static loc:SalesText.ColWhen}"      Binding="{Binding When}"      Width="130" />
+                  <DataGridTextColumn Header="{x:Static loc:SalesText.ColDirection}" Binding="{Binding Direction}" Width="80" />
+                  <DataGridTextColumn Header="{x:Static loc:SalesText.ColWho}"       Binding="{Binding Party}"     Width="150" />
+                  <DataGridTextColumn Header="{x:Static loc:SalesText.ColCommand}"   Binding="{Binding Command}"   Width="80" />
+                  <DataGridTextColumn Header="{x:Static loc:SalesText.ColSubject}"   Binding="{Binding Subject}"   Width="*" />
+                  <DataGridTextColumn Header="{x:Static loc:SalesText.ColOrder2}"     Binding="{Binding OrderRef}"  Width="80" />
+                  <DataGridTextColumn Header="{x:Static loc:SalesText.ColOutcome}"   Binding="{Binding Outcome}"   Width="80" />
                   <!-- Wrapped, not truncated: the note is where a rejection explains itself, and
                        an ellipsis in the one column that says why is the column doing nothing. -->
-                  <DataGridTemplateColumn Header="Note" Width="320" ClipboardContentBinding="{Binding Detail}">
+                  <DataGridTemplateColumn Header="{x:Static loc:SalesText.ColNote}" Width="320" ClipboardContentBinding="{Binding Detail}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:StoreMailRowVm">
                         <TextBlock Text="{Binding Detail}" TextWrapping="Wrap"
@@ -168,21 +169,21 @@
                   CornerRadius="4" Padding="14 12">
             <DockPanel LastChildFill="True">
               <DockPanel DockPanel.Dock="Top" Margin="0 0 0 8" LastChildFill="False">
-                <TextBlock DockPanel.Dock="Left" Text="Web site events" FontSize="13" FontWeight="SemiBold"
+                <TextBlock DockPanel.Dock="Left" Text="{x:Static loc:SalesText.WebSiteEvents}" FontSize="13" FontWeight="SemiBold"
                            Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
                 <!-- Visits are logged either way; the tick only says whether they sit in the list. -->
-                <CheckBox DockPanel.Dock="Right" IsChecked="{Binding ShowWebVisits}" Content="Show visits" FontSize="11"
+                <CheckBox DockPanel.Dock="Right" IsChecked="{Binding ShowWebVisits}" Content="{x:Static loc:SalesText.ShowVisits}" FontSize="11"
                           Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
               </DockPanel>
               <DataGrid ItemsSource="{Binding WebEvents}" AutoGenerateColumns="False" IsReadOnly="True"
                         Background="Transparent" HeadersVisibility="Column" FontSize="11">
                 <DataGrid.Columns>
-                  <DataGridTextColumn Header="When"    Binding="{Binding When}"     Width="130" />
-                  <DataGridTextColumn Header="Kind"    Binding="{Binding Kind}"     Width="70" />
-                  <DataGridTextColumn Header="Buyer"   Binding="{Binding Buyer}"    Width="150" />
-                  <DataGridTextColumn Header="Outcome" Binding="{Binding Outcome}"  Width="120" />
-                  <DataGridTextColumn Header="Order"   Binding="{Binding OrderRef}" Width="80" />
-                  <DataGridTemplateColumn Header="Note" Width="*" ClipboardContentBinding="{Binding Detail}">
+                  <DataGridTextColumn Header="{x:Static loc:SalesText.ColWhen}"    Binding="{Binding When}"     Width="130" />
+                  <DataGridTextColumn Header="{x:Static loc:SalesText.ColKind}"    Binding="{Binding Kind}"     Width="70" />
+                  <DataGridTextColumn Header="{x:Static loc:SalesText.ColBuyer}"   Binding="{Binding Buyer}"    Width="150" />
+                  <DataGridTextColumn Header="{x:Static loc:SalesText.ColOutcome}" Binding="{Binding Outcome}"  Width="120" />
+                  <DataGridTextColumn Header="{x:Static loc:SalesText.ColOrder2}"   Binding="{Binding OrderRef}" Width="80" />
+                  <DataGridTemplateColumn Header="{x:Static loc:SalesText.ColNote}" Width="*" ClipboardContentBinding="{Binding Detail}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:StoreWebEventRowVm">
                         <TextBlock Text="{Binding Detail}" TextWrapping="Wrap" FontSize="11" Margin="4 2" />
@@ -193,11 +194,11 @@
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="vm:StoreWebEventRowVm">
                         <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsHeld}">
-                          <Button Click="OnApproveWebEvent" Content="Book it"
+                          <Button Click="OnApproveWebEvent" Content="{x:Static loc:SalesText.BookIt}"
                                   Background="{DynamicResource GoodSurfaceBrush}" Foreground="{DynamicResource GoodBrush}"
                                   BorderBrush="{DynamicResource GoodSurfaceBrush}" BorderThickness="1"
                                   Padding="6 1" FontSize="10" Cursor="Hand" />
-                          <Button Click="OnDeclineWebEvent" Content="Decline"
+                          <Button Click="OnDeclineWebEvent" Content="{x:Static loc:SalesText.Decline}"
                                   Background="{DynamicResource BadSurfaceBrush}" Foreground="{DynamicResource BadBrush}"
                                   BorderBrush="{DynamicResource BadSurfaceBrush}" BorderThickness="1"
                                   Padding="6 1" FontSize="10" Cursor="Hand" />
@@ -212,22 +213,22 @@
           </Grid>
         </TabItem>
 
-        <TabItem Header="Config" FontSize="12">
+        <TabItem Header="{x:Static loc:SalesText.TabConfig}" FontSize="12">
           <!-- Four sub-tabs: what the store is, who it serves and how much, and its two
                doorways. Each holds the cards that were one long page. -->
           <TabControl Margin="14 6 14 0" Padding="0" TabStripPlacement="Top">
-            <TabItem Header="General" FontSize="11">
+            <TabItem Header="{x:Static loc:SalesText.TabGeneral}" FontSize="11">
               <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel Margin="0 10 0 14" Spacing="14">
               <!-- Settings -->
               <Border Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                       CornerRadius="4" Padding="14 12">
                 <StackPanel Spacing="10">
-                  <TextBlock Text="Store" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+                  <TextBlock Text="{x:Static loc:SalesText.Store}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
     
                   <Grid ColumnDefinitions="120,*" RowDefinitions="Auto,Auto,Auto">
     
-                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Name" FontSize="11"
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static loc:SalesText.Name}" FontSize="11"
                                Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
                     <!-- LostFocus, not the default per-keystroke: every change writes to the
                          database, and a store name typed at speed would be a dozen writes. -->
@@ -236,7 +237,7 @@
                              FontSize="11" Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
                              BorderBrush="{DynamicResource BorderDefaultBrush}" Margin="0 0 0 6" />
     
-                    <TextBlock Grid.Row="1" Grid.Column="0" Text="EVE Mailbox" FontSize="11"
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="{x:Static loc:SalesText.EveMailbox}" FontSize="11"
                                Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
                     <!-- The character whose mailbox the store uses. Order status notifications go out
                          from it whatever doorway took the order; its inbox is read for store requests
@@ -245,11 +246,11 @@
                       <ComboBox ItemsSource="{Binding CharacterOptions}"
                                 SelectedItem="{Binding StoreCharacter}" FontSize="11" MinWidth="220"
                                 Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
-                      <TextBlock Text="Used for order status notifications, and for store requests when the EVE mail store is open."
+                      <TextBlock Text="{x:Static loc:SalesText.UsedForOrderStatusNote}"
                                  FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap" VerticalAlignment="Center" MaxWidth="440" />
                     </StackPanel>
     
-                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Price list" FontSize="11"
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="{x:Static loc:SalesText.PriceList}" FontSize="11"
                                Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
                     <StackPanel Grid.Row="2" Grid.Column="1" Spacing="3" Margin="0 0 0 6">
                       <ComboBox ItemsSource="{Binding PostingOptions}"
@@ -273,7 +274,7 @@
                        writes the contract". -->
                   <StackPanel Orientation="Horizontal" Spacing="6">
                     <CheckBox IsChecked="{Binding AutoEstimate}"
-                              Content="Give in-stock orders an expected date" FontSize="11"
+                              Content="{x:Static loc:SalesText.GiveInStockOrders}" FontSize="11"
                               Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
                     <!-- ⚠️ Wide enough for the DIGITS. A NumericUpDown spends most of its width on
                          the two spinner buttons, so 88 left the text box narrower than one character
@@ -282,7 +283,7 @@
                                    Increment="1" FormatString="0" Width="130" FontSize="11"
                                    IsEnabled="{Binding AutoEstimate}"
                                    Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
-                    <TextBlock Text="day(s) from the order" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                    <TextBlock Text="{x:Static loc:SalesText.DaySFromTheOrder}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
                                VerticalAlignment="Center" />
                   </StackPanel>
     
@@ -290,12 +291,12 @@
     
                   <!-- Put on every order this store takes, so a shop can be a programme: tag the
                        orders once here rather than remembering to tag each one later. -->
-                  <TextBlock Text="ORDER LABELS  (on every order this store takes)" FontSize="10"
+                  <TextBlock Text="{x:Static loc:SalesText.OrderLabelsOnEveryNote}" FontSize="10"
                              FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" />
                   <controls:LabelsBox LabelsText="{Binding StoreOrderLabels, Mode=TwoWay}"
                                       KnownLabels="{Binding KnownLabels}" />
                   <TextBlock FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
-                             Text="Labels appear on the Order Tracker and can be filtered there. Anything typed here is offered in its label pickers, so a programme can be set up before its first order arrives." />
+                             Text="{x:Static loc:SalesText.LabelsAppearOnTheNote}" />
     
                 </StackPanel>
               </Border>
@@ -303,23 +304,23 @@
                 </StackPanel>
               </ScrollViewer>
             </TabItem>
-            <TabItem Header="Restrictions" FontSize="11">
+            <TabItem Header="{x:Static loc:SalesText.TabRestrictions}" FontSize="11">
               <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel Margin="0 10 0 14" Spacing="14">
               <!-- Allow list -->
               <Border Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                       CornerRadius="4" Padding="14 12">
                 <StackPanel Spacing="8">
-                  <TextBlock Text="Who may order" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+                  <TextBlock Text="{x:Static loc:SalesText.WhoMayOrder}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
                   <TextBlock FontSize="10" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
-                             Text="Used when Serve is set to List. A sender matches by their own name, their corporation, or their alliance. Names are resolved against ids the app has already seen." />
+                             Text="{x:Static loc:SalesText.UsedWhenServeIsNote}" />
     
                   <!-- The policy itself, then the list it may refer to. -->
                   <StackPanel Orientation="Horizontal" Spacing="12">
-                    <TextBlock Text="Serve" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+                    <TextBlock Text="{x:Static loc:SalesText.Serve}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
                     <ComboBox ItemsSource="{Binding PolicyOptions}" SelectedItem="{Binding SenderPolicy}" FontSize="11" MinWidth="120"
                               Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
-                    <TextBlock Text="Anyone, or only the list below. The same for EVE mail and the web site."
+                    <TextBlock Text="{x:Static loc:SalesText.AnyoneOrOnlyTheNote}"
                                FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap" VerticalAlignment="Center" MaxWidth="440" />
                   </StackPanel>
     
@@ -337,10 +338,10 @@
                                      Text="{Binding SenderName}"
                                      ValueMemberBinding="{Binding Name}"
                                      FilterMode="None" MinimumPrefixLength="2"
-                                     Watermark="Type two letters of the name…"
+                                     Watermark="{x:Static loc:SalesText.HintTypeTwoLettersOfThe}"
                                      FontSize="11" Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
                                      BorderBrush="{DynamicResource BorderDefaultBrush}" Margin="8 0" />
-                    <Button Grid.Column="2" Command="{Binding AddSenderCommand}" Content="Add"
+                    <Button Grid.Column="2" Command="{Binding AddSenderCommand}" Content="{x:Static loc:SalesText.Add}"
                             Background="{DynamicResource SurfaceBaseBrush}" Foreground="{DynamicResource GoodBrush}"
                             BorderBrush="{DynamicResource GoodSurfaceBrush}" BorderThickness="1" Padding="12 4" FontSize="11" />
                   </Grid>
@@ -349,12 +350,12 @@
                             AutoGenerateColumns="False" IsReadOnly="True" MaxHeight="160"
                             Background="Transparent" HeadersVisibility="Column" FontSize="11">
                     <DataGrid.Columns>
-                      <DataGridTextColumn Header="Kind" Binding="{Binding Kind}" Width="110" />
-                      <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" />
+                      <DataGridTextColumn Header="{x:Static loc:SalesText.ColKind}" Binding="{Binding Kind}" Width="110" />
+                      <DataGridTextColumn Header="{x:Static loc:SalesText.ColName}" Binding="{Binding Name}" Width="*" />
                       <DataGridTemplateColumn Header="" Width="70">
                         <DataGridTemplateColumn.CellTemplate>
                           <DataTemplate x:DataType="vm:StoreSenderRowVm">
-                            <Button Click="OnRemoveSender" Content="Remove"
+                            <Button Click="OnRemoveSender" Content="{x:Static loc:SalesText.Remove}"
                                     Background="{DynamicResource BadSurfaceBrush}" Foreground="{DynamicResource BadBrush}"
                                     BorderBrush="{DynamicResource BadSurfaceBrush}" BorderThickness="1"
                                     Padding="6 1" FontSize="10" Cursor="Hand" />
@@ -373,20 +374,20 @@
               <Border Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                       CornerRadius="4" Padding="14 12">
                 <StackPanel Spacing="10">
-                  <TextBlock Text="Purchase limit" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+                  <TextBlock Text="{x:Static loc:SalesText.PurchaseLimit}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
                   <TextBlock FontSize="10" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
-                             Text="How much one buyer may take, counted over their orders in this store that were not cancelled, whichever doorway placed them. For a programme that hands out the first hull of each kind: one unit of each item type, all time. On the site an item a buyer may no longer order is greyed out and the units box holds what remains; an order over the limit that reaches the app anyway is held for you to look at, never booked on its own." />
+                             Text="{x:Static loc:SalesText.HowMuchOneBuyerNote}" />
     
-                  <CheckBox IsChecked="{Binding LimitEnabled}" Content="Limit each buyer" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
+                  <CheckBox IsChecked="{Binding LimitEnabled}" Content="{x:Static loc:SalesText.LimitEachBuyer}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
     
                   <StackPanel Orientation="Horizontal" Spacing="8" IsEnabled="{Binding LimitEnabled}">
-                    <TextBlock Text="to" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+                    <TextBlock Text="{x:Static loc:SalesText.To}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
                     <NumericUpDown Value="{Binding LimitUnits}" Minimum="1" Maximum="10000" Increment="1" FormatString="0" Width="130" FontSize="11"
                                    Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
-                    <TextBlock Text="unit(s) of" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+                    <TextBlock Text="{x:Static loc:SalesText.UnitSOf}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
                     <ComboBox ItemsSource="{Binding LimitScopeOptions}" SelectedItem="{Binding LimitScope}" FontSize="11" MinWidth="140"
                               Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
-                    <TextBlock Text="per" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+                    <TextBlock Text="{x:Static loc:SalesText.Per}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
                     <NumericUpDown Value="{Binding LimitPeriodCount}" Minimum="1" Maximum="999" Increment="1" FormatString="0" Width="110" FontSize="11"
                                    IsEnabled="{Binding LimitPeriodHasCount}"
                                    Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
@@ -400,7 +401,7 @@
                 </StackPanel>
               </ScrollViewer>
             </TabItem>
-            <TabItem Header="EVE Mail" FontSize="11">
+            <TabItem Header="{x:Static loc:SalesText.TabEveMail}" FontSize="11">
               <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel Margin="0 10 0 14" Spacing="14">
               <!-- The EVE mail doorway. The mailbox above is read for store requests only while this
@@ -408,41 +409,41 @@
               <Border Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                       CornerRadius="4" Padding="14 12">
                 <StackPanel Spacing="10">
-                  <TextBlock Text="EVE Mail" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+                  <TextBlock Text="{x:Static loc:SalesText.EveMail}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
                   <TextBlock FontSize="10" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
-                             Text="A shop front in the mailbox: buyers write to the character above and the app answers, books orders and keeps them posted. Who may buy is set on the Restrictions tab, the same for mail and the web." />
+                             Text="{x:Static loc:SalesText.AShopFrontInNote}" />
     
                   <CheckBox IsChecked="{Binding StoreEnabled}"
-                            Content="Open by EVE mail — read and answer mail sent to the mailbox" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
+                            Content="{x:Static loc:SalesText.OpenByEveMail}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
     
                   <TextBlock FontSize="10" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
-                             Text="Buyers put the command in the mail SUBJECT: PRICES, ORDER, STATUS, CANCEL or HELP. An ORDER body is one item per line — dragging the item in is easiest. STATUS on its own lists every open order; CANCEL needs the reference from the confirmation mail." />
+                             Text="{x:Static loc:SalesText.BuyersPutTheCommandNote}" />
     
                   <!-- On every mail the shop sends: answers, rejections and unprompted order updates
     
                        alike. EVE's own markup works here — <b>, <i>, <u>, <br>, font tags and dragged
                        links — because this is the owner's text, not a buyer's. -->
-                  <TextBlock Text="MESSAGE HEADER  (on every mail this store sends)" FontSize="10"
+                  <TextBlock Text="{x:Static loc:SalesText.MessageHeaderOnEveryNote}" FontSize="10"
                              FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" />
                   <Grid ColumnDefinitions="*,Auto">
                     <TextBox Grid.Column="0" Text="{Binding MessageHeader, UpdateSourceTrigger=LostFocus}"
                              AcceptsReturn="True" TextWrapping="Wrap" MinHeight="44" MaxHeight="110"
-                             Watermark="e.g. Thanks for shopping with us." FontSize="11"
-                             ToolTip.Tip="EVE markup works here: &lt;b&gt;, &lt;i&gt;, &lt;u&gt;, dragged links, and [color=#rrggbb]text[/color]. The colour beside this box tints the whole block; the tag colours part of it."
+                             Watermark="{x:Static loc:SalesText.HintEGThanksFor}" FontSize="11"
+                             ToolTip.Tip="{x:Static loc:SalesText.TipEveMarkupWorksHere}"
                              Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
                     <controls:ColorField Grid.Column="1" Width="160" Margin="8 0 0 0"
                                          VerticalAlignment="Top"
                                          Value="{Binding MessageHeaderColor, Mode=TwoWay}" />
                   </Grid>
     
-                  <TextBlock Text="MESSAGE FOOTER" FontSize="10"
+                  <TextBlock Text="{x:Static loc:SalesText.MessageFooterLabel}" FontSize="10"
                              FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" Margin="0 6 0 0" />
                   <TextBlock FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
-                             Text="Both accept EVE markup — bold, italic, underline, dragged links — and [color=#rrggbb]text[/color] for part of a line. The picker beside each box tints the whole block." />
+                             Text="{x:Static loc:SalesText.BothAcceptEveMarkupNote}" />
                   <Grid ColumnDefinitions="*,Auto">
                     <TextBox Grid.Column="0" Text="{Binding MessageFooter, UpdateSourceTrigger=LostFocus}"
                              AcceptsReturn="True" TextWrapping="Wrap" MinHeight="44" MaxHeight="110"
-                             Watermark="e.g. Contracts are issued from Jita 4-4." FontSize="11"
+                             Watermark="{x:Static loc:SalesText.HintEGContractsAre}" FontSize="11"
                              Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
                     <controls:ColorField Grid.Column="1" Width="160" Margin="8 0 0 0"
                                          VerticalAlignment="Top"
@@ -454,7 +455,7 @@
                 </StackPanel>
               </ScrollViewer>
             </TabItem>
-            <TabItem Header="Web site" FontSize="11">
+            <TabItem Header="{x:Static loc:SalesText.TabWebSite}" FontSize="11">
               <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel Margin="0 10 0 14" Spacing="14">
               <!-- The web channel. A site the owner hosts; the app pushes the posting and the order
@@ -463,21 +464,21 @@
               <Border Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                       CornerRadius="4" Padding="14 12">
                 <StackPanel Spacing="10">
-                  <TextBlock Text="Web site" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+                  <TextBlock Text="{x:Static loc:SalesText.WebSite}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
                   <TextBlock FontSize="10" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
-                             Text="A shop front on the web, on a site you host. Buyers sign in with EVE SSO, see this price list with what is in stock, in build and reserved, place orders and follow them. The app sends the site what it may show and collects what buyers did every few minutes; nothing on the site reaches the database. Who may buy is set on the Restrictions tab, the same for mail and the web." />
+                             Text="{x:Static loc:SalesText.AShopFrontOnNote}" />
     
                   <CheckBox IsChecked="{Binding WebEnabled}"
-                            Content="Open on the web — publish to the site and take its orders" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
+                            Content="{x:Static loc:SalesText.OpenOnTheWeb}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
     
                   <Grid ColumnDefinitions="120,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
-                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Site address" FontSize="11"
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static loc:SalesText.SiteAddress}" FontSize="11"
                                Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
                     <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding WebUrl, UpdateSourceTrigger=LostFocus}"
                              Watermark="https://your-shop.your-account.workers.dev" FontSize="11" Margin="0 0 0 6"
                              Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
     
-                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Secret" FontSize="11"
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="{x:Static loc:SalesText.Secret}" FontSize="11"
                                Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
                     <Grid Grid.Row="1" Grid.Column="1" ColumnDefinitions="*,Auto,Auto" Margin="0 0 0 6">
                       <!-- Read-only and selectable: it is shown to be copied into the site's secrets,
@@ -485,13 +486,13 @@
                       <TextBox Grid.Column="0" Text="{Binding WebSecret}" IsReadOnly="True" FontSize="11"
                                FontFamily="Consolas, Menlo, DejaVu Sans Mono, Liberation Mono, monospace"
                                Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
-                      <Button Grid.Column="1" Click="OnCopySecret" Content="Copy" Margin="6 0 0 0" Padding="10 4" FontSize="11"
+                      <Button Grid.Column="1" Click="OnCopySecret" Content="{x:Static loc:SalesText.Copy}" Margin="6 0 0 0" Padding="10 4" FontSize="11"
                               Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}" BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" />
-                      <Button Grid.Column="2" Command="{Binding NewSecretCommand}" Content="New secret" Margin="6 0 0 0" Padding="10 4" FontSize="11"
+                      <Button Grid.Column="2" Command="{Binding NewSecretCommand}" Content="{x:Static loc:SalesText.NewSecret}" Margin="6 0 0 0" Padding="10 4" FontSize="11"
                               Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" />
                     </Grid>
     
-                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Theme" FontSize="11"
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="{x:Static loc:SalesText.Theme}" FontSize="11"
                                Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
                     <StackPanel Grid.Row="2" Grid.Column="1" Spacing="6" Margin="0 0 0 6">
                       <ComboBox ItemsSource="{Binding ThemeOptions}" SelectedItem="{Binding WebTheme}" FontSize="11" MinWidth="160" HorizontalAlignment="Left"
@@ -499,7 +500,7 @@
                       <!-- The themes a buyer may pick from in the site's header. The store's own is always
                            among them; with more than one the site shows a dropdown like the app's, and
                            remembers each buyer's pick. -->
-                      <TextBlock Text="Buyers may also choose:" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" />
+                      <TextBlock Text="{x:Static loc:SalesText.BuyersMayAlsoChooseLabel}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" />
                       <ItemsControl ItemsSource="{Binding WebThemeChoices}">
                         <ItemsControl.ItemsPanel>
                           <ItemsPanelTemplate>
@@ -517,42 +518,42 @@
     
                     <!-- How often the app calls the site. Each call is what a buyer's confirmation
                          waits on, and one of the site's free daily requests. -->
-                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Check the site" FontSize="11"
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="{x:Static loc:SalesText.CheckTheSite}" FontSize="11"
                                Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
                     <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Spacing="8" Margin="0 0 0 6">
-                      <TextBlock Text="every" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                      <TextBlock Text="{x:Static loc:SalesText.Every}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
                       <!-- Wide enough for the digits; see the note by the estimate-days spinner. -->
                       <NumericUpDown Value="{Binding WebPollMinutes}" Minimum="1" Maximum="1440" Increment="1" FormatString="0" Width="130" FontSize="11"
                                      Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
-                      <TextBlock Text="minutes. A buyer waits up to this long for a confirmation; every call is one of the site's free daily requests." FontSize="10"
+                      <TextBlock Text="{x:Static loc:SalesText.MinutesABuyerWaitsNote}" FontSize="10"
                                  Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" TextWrapping="Wrap" MaxWidth="520" />
                     </StackPanel>
 
                     <CheckBox Grid.Row="4" Grid.Column="1" IsChecked="{Binding WebMailUpdates}"
-                              Content="Also mail web buyers as their orders move (needs the character above)"
+                              Content="{x:Static loc:SalesText.AlsoMailWebBuyers}"
                               FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
                   </Grid>
     
                   <TextBlock FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
-                             Text="The theme is the store's own and has nothing to do with the theme this desktop is showing. The secret is what the app signs each call with; set the same value as the site's STORE_SYNC_SECRET when you set the site up by hand." />
+                             Text="{x:Static loc:SalesText.TheThemeIsTheNote}" />
     
-                  <TextBlock Text="ABOUT THIS STORE, ON THE SITE" FontSize="10"
+                  <TextBlock Text="{x:Static loc:SalesText.AboutThisStoreOnTheLabel}" FontSize="10"
                              FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" Margin="0 4 0 0" />
                   <TextBox Text="{Binding WebBlurb, UpdateSourceTrigger=LostFocus}"
                            AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" MaxHeight="220"
-                           Watermark="Contract terms, pickup, whatever a buyer should read before ordering. Plain text or HTML."
+                           Watermark="{x:Static loc:SalesText.HintContractTermsPickupWhatever}"
                            FontSize="11" FontFamily="Consolas, Menlo, DejaVu Sans Mono, Liberation Mono, monospace"
                            Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
                   <TextBlock FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
-                             Text="HTML is welcome: &lt;b&gt; &lt;i&gt; &lt;u&gt; &lt;a href&gt; &lt;br&gt; &lt;p&gt; &lt;h2&gt; &lt;ul&gt; &lt;ol&gt; &lt;li&gt; &lt;hr&gt; &lt;img src&gt; &lt;table&gt; &lt;blockquote&gt; &lt;code&gt; and the mail markup's &lt;font color&gt;. Line breaks and blank lines are kept as written until you lay it out with paragraph or list tags, after which the tags decide. The site drops scripts, handlers and tags it does not know, and closes any tag left open." />
+                             Text="{x:Static loc:SalesText.HtmlIsWelcomeBNote}" />
 
                   <!-- The banner: a picture across the top of the price list. Kept with the store,
                        bytes and all, so every client of the database pushes the same one; the app
                        scales it for the site, which holds one row of up to a megabyte. -->
-                  <TextBlock Text="BANNER" FontSize="10"
+                  <TextBlock Text="{x:Static loc:SalesText.BannerLabel}" FontSize="10"
                              FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" Margin="0 4 0 0" />
                   <TextBlock FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
-                             Text="Optional. Shown across the top of the price list, the width of the page and up to 300 pixels tall; a wide picture, about 1100 by 250, fits best, and a taller one shows its middle. A big file is scaled down and sent as WebP." />
+                             Text="{x:Static loc:SalesText.OptionalShownAcrossTheNote}" />
                   <StackPanel Orientation="Horizontal" Spacing="12">
                     <Border IsVisible="{Binding HasWebBanner}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="3"
                             Background="{DynamicResource SurfaceRaisedBrush}" VerticalAlignment="Center">
@@ -561,16 +562,16 @@
                     <StackPanel Spacing="6" VerticalAlignment="Center">
                       <TextBlock Text="{Binding WebBannerText}" FontSize="10" Foreground="{DynamicResource TextDimBrush}" />
                       <StackPanel Orientation="Horizontal" Spacing="6">
-                        <Button Click="OnChooseBanner" Content="Choose picture…" Padding="10 4" FontSize="11"
+                        <Button Click="OnChooseBanner" Content="{x:Static loc:SalesText.ChoosePicture}" Padding="10 4" FontSize="11"
                                 Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}" BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" />
-                        <Button Command="{Binding RemoveWebBannerCommand}" Content="Remove" IsVisible="{Binding HasWebBanner}" Padding="10 4" FontSize="11"
+                        <Button Command="{Binding RemoveWebBannerCommand}" Content="{x:Static loc:SalesText.Remove}" IsVisible="{Binding HasWebBanner}" Padding="10 4" FontSize="11"
                                 Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" />
                       </StackPanel>
                     </StackPanel>
                   </StackPanel>
     
                   <Grid ColumnDefinitions="Auto,*">
-                    <Button Grid.Column="0" Command="{Binding SyncWebNowCommand}" Content="Sync now" Padding="12 4" FontSize="11"
+                    <Button Grid.Column="0" Command="{Binding SyncWebNowCommand}" Content="{x:Static loc:SalesText.SyncNow}" Padding="12 4" FontSize="11"
                             Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
                             BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" />
                     <TextBlock Grid.Column="1" Text="{Binding WebStatusText}" FontSize="10" TextWrapping="Wrap"
@@ -581,36 +582,36 @@
                   <!-- Buyers sign in with EVE SSO, so the site needs an EVE developer application
                        whoever hosts it. The keys are the store's: the Deploy button places them on
                        the site, and a site set up by hand takes the same values as its own secrets. -->
-                  <TextBlock Text="EVE APPLICATION  (needed before buyers can sign in)" FontSize="10"
+                  <TextBlock Text="{x:Static loc:SalesText.EveApplicationNeededBeforeNote}" FontSize="10"
                              FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" Margin="0 4 0 0" />
                   <TextBlock FontSize="10" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
-                             Text="Deploy first, so the site has an address. Then register an application on the EVE developer site: any name and description, Authentication only (no scopes), and the callback address shown below. Copy its Client ID and Secret Key into the two boxes: a site deployed from here receives them the moment they are saved, and the line under the boxes says whether the site holds these keys. A site set up by hand needs the same values as its EVE_CLIENT_ID and EVE_CLIENT_SECRET secrets." />
+                             Text="{x:Static loc:SalesText.DeployFirstSoTheNote}" />
     
-                  <HyperlinkButton Content="Open developers.eveonline.com to create the application" NavigateUri="https://developers.eveonline.com/applications/create"
+                  <HyperlinkButton Content="{x:Static loc:SalesText.OpenDevelopersEveonlineCom}" NavigateUri="https://developers.eveonline.com/applications/create"
                                    FontSize="11" Padding="0" HorizontalAlignment="Left" />
     
                   <Grid ColumnDefinitions="120,*" RowDefinitions="Auto,Auto,Auto">
-                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Callback URL" FontSize="11"
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static loc:SalesText.CallbackUrl}" FontSize="11"
                                Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
                     <Grid Grid.Row="0" Grid.Column="1" ColumnDefinitions="*,Auto" Margin="0 0 0 6">
                       <TextBox Grid.Column="0" Text="{Binding WebCallbackUrl}" IsReadOnly="True" FontSize="11"
-                               Watermark="Known once the site has an address, or an account and worker name below"
+                               Watermark="{x:Static loc:SalesText.HintKnownOnceTheSite}"
                                FontFamily="Consolas, Menlo, DejaVu Sans Mono, Liberation Mono, monospace"
                                Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
-                      <Button Grid.Column="1" Click="OnCopyCallback" Content="Copy" Margin="6 0 0 0" Padding="10 4" FontSize="11"
+                      <Button Grid.Column="1" Click="OnCopyCallback" Content="{x:Static loc:SalesText.Copy}" Margin="6 0 0 0" Padding="10 4" FontSize="11"
                               Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}" BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" />
                     </Grid>
     
-                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Client ID" FontSize="11"
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="{x:Static loc:SalesText.ClientId}" FontSize="11"
                                Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
                     <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding WebEveClientId, UpdateSourceTrigger=LostFocus}" FontSize="11" Margin="0 0 0 6"
-                             Watermark="From the application's page on the developer site"
+                             Watermark="{x:Static loc:SalesText.HintFromTheApplicationsPage}"
                              Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
     
-                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Secret Key" FontSize="11"
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="{x:Static loc:SalesText.SecretKey}" FontSize="11"
                                Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
                     <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding WebEveClientSecret, UpdateSourceTrigger=LostFocus}" PasswordChar="•" FontSize="11" Margin="0 0 0 6"
-                             Watermark="Shown once, when the application is created"
+                             Watermark="{x:Static loc:SalesText.HintShownOnceWhenThe}"
                              Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
                   </Grid>
     
@@ -626,46 +627,46 @@
                   <!-- Automatic deployment. Only the Deploy button needs any of this: a site put up by
                        hand with wrangler is the same thing afterwards, and the address and secret
                        above are all that syncing needs. The token stays on this machine. -->
-                  <TextBlock Text="AUTOMATIC DEPLOYMENT AND UPDATES ON CLOUDFLARE  (only for the Deploy button)" FontSize="10"
+                  <TextBlock Text="{x:Static loc:SalesText.AutomaticDeploymentAndUpdatesNote}" FontSize="10"
                              FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" Margin="0 8 0 0" />
                   <TextBlock FontSize="10" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
-                             Text="Fill these in only to have the app put the site on your own Cloudflare account and keep it current with the Deploy or update site button: it creates the database, uploads the newest release of the site, sets the secrets above and puts it on the free workers.dev address or a domain of your own on that account. Deploying again updates the site without touching its orders. To set the site up by hand instead, follow the documentation, then enter the site address and secret above; none of these fields is needed for that." />
+                             Text="{x:Static loc:SalesText.FillTheseInOnlyNote}" />
                   <StackPanel Orientation="Horizontal" Spacing="18">
-                    <HyperlinkButton Content="Documentation" NavigateUri="https://docs.eveconsole.com/stores/web-site/" FontSize="11" Padding="0" />
-                    <HyperlinkButton Content="Site source and releases" NavigateUri="https://github.com/kernoeve/eveconsole-store" FontSize="11" Padding="0" />
-                    <HyperlinkButton Content="Create a Cloudflare API token" NavigateUri="https://dash.cloudflare.com/profile/api-tokens" FontSize="11" Padding="0" />
+                    <HyperlinkButton Content="{x:Static loc:SalesText.Documentation}" NavigateUri="https://docs.eveconsole.com/stores/web-site/" FontSize="11" Padding="0" />
+                    <HyperlinkButton Content="{x:Static loc:SalesText.SiteSourceAndReleases}" NavigateUri="https://github.com/kernoeve/eveconsole-store" FontSize="11" Padding="0" />
+                    <HyperlinkButton Content="{x:Static loc:SalesText.CreateACloudflareApiToken}" NavigateUri="https://dash.cloudflare.com/profile/api-tokens" FontSize="11" Padding="0" />
                   </StackPanel>
                   <TextBlock FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
-                             Text="On the Cloudflare token page: Create Token, the “Edit Cloudflare Workers” template, add the permission D1 Edit, then Continue and Create. Paste it below and press Save token; it is checked, then kept on this machine only, encrypted for your account." />
+                             Text="{x:Static loc:SalesText.OnTheCloudflareTokenNote}" />
     
                   <Grid ColumnDefinitions="120,*" RowDefinitions="Auto,Auto,Auto">
-                    <TextBlock Grid.Row="0" Grid.Column="0" Text="API token" FontSize="11"
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static loc:SalesText.ApiToken}" FontSize="11"
                                Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
                     <Grid Grid.Row="0" Grid.Column="1" ColumnDefinitions="*,Auto,Auto" Margin="0 0 0 6">
-                      <TextBox Grid.Column="0" Text="{Binding CloudflareToken}" PasswordChar="•" Watermark="Paste a token to save it on this machine" FontSize="11"
+                      <TextBox Grid.Column="0" Text="{Binding CloudflareToken}" PasswordChar="•" Watermark="{x:Static loc:SalesText.HintPasteATokenTo}" FontSize="11"
                                Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
-                      <Button Grid.Column="1" Command="{Binding SaveCloudflareTokenCommand}" Content="Save token" Margin="6 0 0 0" Padding="10 4" FontSize="11"
+                      <Button Grid.Column="1" Command="{Binding SaveCloudflareTokenCommand}" Content="{x:Static loc:SalesText.SaveToken}" Margin="6 0 0 0" Padding="10 4" FontSize="11"
                               Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}" BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" />
-                      <Button Grid.Column="2" Command="{Binding ForgetCloudflareTokenCommand}" Content="Forget" Margin="6 0 0 0" Padding="10 4" FontSize="11"
+                      <Button Grid.Column="2" Command="{Binding ForgetCloudflareTokenCommand}" Content="{x:Static loc:SalesText.Forget}" Margin="6 0 0 0" Padding="10 4" FontSize="11"
                               Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" />
                     </Grid>
     
-                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Account" FontSize="11"
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="{x:Static loc:SalesText.Account}" FontSize="11"
                                Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
                     <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="12" Margin="0 0 0 6">
                       <ComboBox ItemsSource="{Binding CloudflareAccounts}" SelectedItem="{Binding CloudflareAccount}" FontSize="11" MinWidth="220"
-                                PlaceholderText="Save a token to list accounts"
+                                PlaceholderText="{x:Static loc:SalesText.HintSaveATokenToList}"
                                 Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
                       <TextBlock Text="{Binding CloudflareTokenText}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
                                  TextWrapping="Wrap" VerticalAlignment="Center" MaxWidth="440" />
                     </StackPanel>
     
-                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Worker name" FontSize="11"
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="{x:Static loc:SalesText.WorkerName}" FontSize="11"
                                Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 0 6" />
                     <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Spacing="12" Margin="0 0 0 6">
                       <TextBox Text="{Binding WebWorkerName, UpdateSourceTrigger=LostFocus}" FontSize="11" MinWidth="220"
                                Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
-                      <TextBlock Text="Also the database's name. Lower-case letters, digits and hyphens; the site's address is this name on the account's workers.dev unless a domain of your own is chosen below."
+                      <TextBlock Text="{x:Static loc:SalesText.AlsoTheDatabasesNameNote}"
                                  FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap" VerticalAlignment="Center" MaxWidth="440" />
                     </StackPanel>
                   </Grid>
@@ -673,32 +674,32 @@
                   <!-- Where the site lives: Cloudflare's free address, or a domain of the owner's own
                        that is already on the account. Asked once at the first deploy; changed here. -->
                   <StackPanel Spacing="4">
-                    <TextBlock Text="Address" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
+                    <TextBlock Text="{x:Static loc:SalesText.Address}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
                     <StackPanel Orientation="Horizontal" Spacing="10">
                       <RadioButton GroupName="siteAddress" IsChecked="{Binding WebUsesFreeAddress}"
-                                   Content="The free workers.dev address: the worker name on the account's workers.dev"
+                                   Content="{x:Static loc:SalesText.TheFreeWorkersDev}"
                                    FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
                       <!-- The dashboard's own rename, from here: every Worker on the account moves with it,
                            and the stores' addresses follow. -->
-                      <Button Command="{Binding RenameSubdomainCommand}" Content="Rename the account's workers.dev name…" Padding="8 2" FontSize="10"
+                      <Button Command="{Binding RenameSubdomainCommand}" Content="{x:Static loc:SalesText.RenameTheAccountsWorkersDev}" Padding="8 2" FontSize="10"
                               Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" />
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" Spacing="8">
-                      <RadioButton GroupName="siteAddress" IsChecked="{Binding WebUsesOwnDomain}" Content="A domain of my own on Cloudflare:"
+                      <RadioButton GroupName="siteAddress" IsChecked="{Binding WebUsesOwnDomain}" Content="{x:Static loc:SalesText.ADomainOfMy2}"
                                    FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
                       <TextBox Text="{Binding WebCustomHostname, UpdateSourceTrigger=LostFocus}" IsEnabled="{Binding WebUsesOwnDomain}"
                                Watermark="store.example.com" FontSize="11" MinWidth="220"
                                Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
                     </StackPanel>
                     <TextBlock FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap" MaxWidth="640" HorizontalAlignment="Left"
-                               Text="A domain must already be on this Cloudflare account with its DNS there. The next Deploy attaches the site to it, Cloudflare makes the record and the certificate, and the workers.dev address is switched off so buyers and the EVE application's callback see one name; switching back lets the domain go. Either way the callback URL above changes, so update the EVE application to match." />
+                               Text="{x:Static loc:SalesText.ADomainMustAlreadyNote}" />
                   </StackPanel>
 
                   <Grid ColumnDefinitions="Auto,Auto,*">
-                    <Button Grid.Column="0" Command="{Binding DeploySiteCommand}" Content="Deploy or update site" Padding="12 4" FontSize="11"
+                    <Button Grid.Column="0" Command="{Binding DeploySiteCommand}" Content="{x:Static loc:SalesText.DeployOrUpdateSite}" Padding="12 4" FontSize="11"
                             Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource AccentBrush}"
                             BorderBrush="{DynamicResource AccentSurfaceBrush}" BorderThickness="1" />
-                    <Button Grid.Column="1" Command="{Binding CheckSiteCommand}" Content="Check" Margin="6 0 0 0" Padding="12 4" FontSize="11"
+                    <Button Grid.Column="1" Command="{Binding CheckSiteCommand}" Content="{x:Static loc:SalesText.Check}" Margin="6 0 0 0" Padding="12 4" FontSize="11"
                             Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
                             BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" />
                     <TextBlock Grid.Column="2" Text="{Binding DeployStatusText}" FontSize="10" TextWrapping="Wrap"
@@ -713,22 +714,22 @@
           </TabControl>
         </TabItem>
 
-        <TabItem Header="Info" FontSize="12">
+        <TabItem Header="{x:Static loc:SalesText.TabInfo}" FontSize="12">
           <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="14" Spacing="14">
 
               <Border Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                       CornerRadius="4" Padding="14 12">
                 <StackPanel Spacing="8">
-                  <TextBlock Text="About this store" FontSize="13" FontWeight="SemiBold"
+                  <TextBlock Text="{x:Static loc:SalesText.AboutThisStore}" FontSize="13" FontWeight="SemiBold"
                              Foreground="{DynamicResource AccentBrush}" />
                   <TextBlock FontSize="10" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
-                             Text="What INFO sends back: who runs the store, what it stocks, delivery terms, whatever a buyer should know before ordering. Leave it empty and the command is not offered — the usage message will not mention INFO, and anyone who mails it anyway gets the usage instead." />
+                             Text="{x:Static loc:SalesText.WhatInfoSendsBackNote}" />
 
                   <!-- ⚠️ No checkbox, unlike the usage message. The text is the switch: a store
                        with something to say has written it. A flag as well would be a second way
                        to say the same thing, and a way for the two to disagree. -->
-                  <TextBlock Text="INFORMATION" FontSize="10" FontWeight="SemiBold"
+                  <TextBlock Text="{x:Static loc:SalesText.InformationLabel}" FontSize="10" FontWeight="SemiBold"
                              Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" Margin="0 4 0 0" />
                   <TextBox Text="{Binding StoreInfo, UpdateSourceTrigger=LostFocus}"
                            AcceptsReturn="True" TextWrapping="Wrap"
@@ -738,7 +739,7 @@
                            VerticalContentAlignment="Top" />
 
                   <TextBlock FontSize="10" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
-                             Text="Write it as text — newlines become line breaks when it is sent. The same EVE mail markup the usage message takes: &lt;b&gt; &lt;i&gt; &lt;u&gt;, &lt;font size=&quot;12&quot;&gt; and &lt;font color=&quot;#ffc8a84b&quot;&gt; — colours are ARGB, so the alpha pair is not optional. Whitespace on its own does not count as filled in." />
+                             Text="{x:Static loc:SalesText.WriteItAsTextNote}" />
                 </StackPanel>
               </Border>
 
@@ -746,23 +747,23 @@
           </ScrollViewer>
         </TabItem>
 
-        <TabItem Header="Usage" FontSize="12">
+        <TabItem Header="{x:Static loc:SalesText.TabUsage}" FontSize="12">
           <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="14" Spacing="14">
 
               <Border Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
                       CornerRadius="4" Padding="14 12">
                 <StackPanel Spacing="8">
-                  <TextBlock Text="Usage message" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+                  <TextBlock Text="{x:Static loc:SalesText.UsageMessage}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
                   <TextBlock FontSize="10" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
-                             Text="What HELP sends, and what goes back with anything this store could not understand. The default explains ordering in general; a store with its own rules — one hull per buyer, a fixed price, a programme with conditions — is better off saying so in its own words than sending instructions that do not apply." />
+                             Text="{x:Static loc:SalesText.WhatHelpSendsAndNote}" />
 
                   <CheckBox IsChecked="{Binding UseCustomUsage}" FontSize="11"
-                            Content="Use a custom usage message for this store" />
+                            Content="{x:Static loc:SalesText.UseACustomUsage}" />
 
                   <!-- Pre-filled with the default, markup and all, so writing one starts from
                        something that already works rather than an empty box. -->
-                  <TextBlock Text="MESSAGE" FontSize="10" FontWeight="SemiBold"
+                  <TextBlock Text="{x:Static loc:SalesText.MessageLabel}" FontSize="10" FontWeight="SemiBold"
                              Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" Margin="0 4 0 0" />
                   <TextBox Text="{Binding CustomUsage, UpdateSourceTrigger=LostFocus}"
                            IsEnabled="{Binding UseCustomUsage}"
@@ -773,9 +774,9 @@
                            VerticalContentAlignment="Top" />
 
                   <TextBlock FontSize="10" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
-                             Text="Write it as text — newlines become line breaks when it is sent. EVE mail markup: &lt;b&gt; &lt;i&gt; &lt;u&gt;, &lt;font size=&quot;12&quot;&gt; and &lt;font color=&quot;#ffc8a84b&quot;&gt; — colours are ARGB, so the alpha pair is not optional. Item and character links are &lt;a href=&quot;showinfo:TYPEID&quot;&gt; and &lt;a href=&quot;showinfo:1373//CHARACTERID&quot;&gt;. Spaces are kept as written; HTML entities are not decoded and will be drawn as typed." />
+                             Text="{x:Static loc:SalesText.WriteItAsTextNote2}" />
 
-                  <Button Content="Reset to the default message" Click="OnResetUsage"
+                  <Button Content="{x:Static loc:SalesText.ResetToTheDefaultMessage}" Click="OnResetUsage"
                           IsEnabled="{Binding UseCustomUsage}" FontSize="11" Padding="12 4"
                           HorizontalAlignment="Left"
                           Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />

@@ -1,10 +1,11 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:EveConsole.Localization"
         xmlns:views="clr-namespace:EveConsole.Views"
         xmlns:vm="clr-namespace:EveConsole.ViewModels"
         x:Class="EveConsole.Views.ItemBrowserWindow"
         x:DataType="vm:ItemBrowserViewModel"
-        Title="Item Browser"
+        Title="{x:Static loc:AssetsText.TitleItemBrowser}"
         Width="1000" Height="680"
         MinWidth="720" MinHeight="480"
         Background="{DynamicResource SurfaceBaseBrush}">

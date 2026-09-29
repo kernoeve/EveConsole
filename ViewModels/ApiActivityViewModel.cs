@@ -2,6 +2,7 @@
 using System.Collections.Specialized;
 using System.Reactive;
 using Avalonia.Threading;
+using EveConsole.Localization;
 using EveConsole.Data;
 using EveConsole.Models;
 using EveConsole.Monitoring;
@@ -427,11 +428,13 @@ public class ApiActivityViewModel : ReactiveObject
 
     // ── The status bar's lines ────────────────────────────────────────────────
 
-    public StatusBarItem BarEsiCalls      { get; } = new("ESI Calls",      "ESI Activity Log");
-    public StatusBarItem BarPriceHistory  { get; } = new("Price History",  "Price History");
-    public StatusBarItem BarContractItems { get; } = new("Contract Items", "Contract Items");
-    public StatusBarItem BarLpStore       { get; } = new("LP Store",       "LP Store");
-    public StatusBarItem BarKillmails     { get; } = new("Killmails",      "Killmails");
+    // ⚠️ The tab is found by its header, so it is named by the same resource the header is built
+    // from — the English words would find nothing in any other language.
+    public StatusBarItem BarEsiCalls      { get; } = new("ESI Calls",      DataText.TabEsiActivityLog);
+    public StatusBarItem BarPriceHistory  { get; } = new("Price History",  DataText.TabPriceHistory);
+    public StatusBarItem BarContractItems { get; } = new("Contract Items", DataText.TabContractItems);
+    public StatusBarItem BarLpStore       { get; } = new("LP Store",       DataText.TabLpStore);
+    public StatusBarItem BarKillmails     { get; } = new("Killmails",      DataText.TabKillmails);
 
     /// <summary>The five, in the order the bar shows them.</summary>
     public IReadOnlyList<StatusBarItem> StatusBarItems { get; }

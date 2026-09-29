@@ -1,9 +1,10 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:EveConsole.Localization"
         xmlns:vm="clr-namespace:EveConsole.ViewModels"
         x:Class="EveConsole.Views.FitSelectorWindow"
         x:CompileBindings="False"
-        Title="Add Items From Fit"
+        Title="{x:Static loc:CommonText.TitleAddItemsFromFit}"
         Width="800" Height="600"
         MinWidth="600" MinHeight="440"
         CanResize="True"
@@ -48,7 +49,7 @@
     <!-- ── Group selector ───────────────────────────────────────────────── -->
     <Grid Grid.Row="0" ColumnDefinitions="Auto,*" Margin="0 0 0 10">
       <TextBlock Grid.Column="0"
-                 Text="ADD TO GROUP:" FontSize="10" FontWeight="SemiBold"
+                 Text="{x:Static loc:CommonText.AddToGroupLabel}" FontSize="10" FontWeight="SemiBold"
                  Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1"
                  VerticalAlignment="Center" Margin="0 0 10 0" />
       <ComboBox Grid.Column="1"
@@ -73,7 +74,7 @@
               CornerRadius="3">
         <Grid RowDefinitions="Auto,*">
           <TextBlock Grid.Row="0"
-                     Text="FITS" FontSize="10" FontWeight="SemiBold"
+                     Text="{x:Static loc:CommonText.FitsLabel}" FontSize="10" FontWeight="SemiBold"
                      Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" Margin="8 8 8 4" />
 
           <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto">
@@ -112,7 +113,7 @@
         <Grid RowDefinitions="Auto,Auto,*">
 
           <TextBlock Grid.Row="0"
-                     Text="FIT CONTENTS" FontSize="10" FontWeight="SemiBold"
+                     Text="{x:Static loc:CommonText.FitContentsLabel}" FontSize="10" FontWeight="SemiBold"
                      Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" Margin="8 8 8 2" />
 
           <!-- Source badge row when a fit is selected -->
@@ -153,12 +154,12 @@
                  FontSize="11" Foreground="{DynamicResource TextFaintBrush}"
                  VerticalAlignment="Center" TextWrapping="Wrap" />
       <Button Grid.Column="1"
-              Content="Cancel" Click="OnCancelClick"
+              Content="{x:Static loc:CommonText.Cancel}" Click="OnCancelClick"
               Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
               BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
               Padding="14 6" Margin="0 0 8 0" />
       <Button Grid.Column="2"
-              Content="Add Items" Click="OnConfirmClick"
+              Content="{x:Static loc:CommonText.AddItems2}" Click="OnConfirmClick"
               IsEnabled="{Binding CanConfirm}"
               Background="{DynamicResource SurfaceSelectedBrush}" Foreground="{DynamicResource AccentBrush}"
               BorderBrush="{DynamicResource AccentSurfaceBrush}" BorderThickness="1"

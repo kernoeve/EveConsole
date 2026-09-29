@@ -1,10 +1,11 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:EveConsole.Localization"
         xmlns:vm="clr-namespace:EveConsole.ViewModels"
         xmlns:views="clr-namespace:EveConsole.Views"
         x:Class="EveConsole.Views.ApiActivityWindow"
         x:DataType="vm:ApiActivityViewModel"
-        Title="Background Processes"
+        Title="{x:Static loc:DataText.TitleBackgroundProcesses}"
         Width="900" Height="560"
         MinWidth="640" MinHeight="340"
         Background="{DynamicResource SurfaceBaseBrush}">

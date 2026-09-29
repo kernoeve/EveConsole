@@ -1,10 +1,11 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:EveConsole.Localization"
         xmlns:views="clr-namespace:EveConsole.Views"
         xmlns:vm="clr-namespace:EveConsole.ViewModels"
         x:Class="EveConsole.Views.WalletWindow"
         x:DataType="vm:WalletViewModel"
-        Title="Wallet"
+        Title="{x:Static loc:FinanceText.TitleWallet}"
         Width="1200" Height="700"
         MinWidth="800" MinHeight="500"
         Background="{DynamicResource SurfaceBaseBrush}">

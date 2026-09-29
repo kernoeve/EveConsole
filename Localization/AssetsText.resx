@@ -1,0 +1,708 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TitleGroup" xml:space="preserve">
+    <value>Group</value>
+    <comment>Window title in AddEditInvGroupDialog.</comment>
+  </data>
+  <data name="GroupNameLabel" xml:space="preserve">
+    <value>GROUP NAME</value>
+    <comment>Label in AddEditInvGroupDialog.</comment>
+  </data>
+  <data name="CollectionLabel" xml:space="preserve">
+    <value>COLLECTION</value>
+    <comment>Label in AddEditInvGroupDialog.</comment>
+  </data>
+  <data name="ScopeLabel" xml:space="preserve">
+    <value>SCOPE</value>
+    <comment>Label in AddEditInvGroupDialog.</comment>
+  </data>
+  <data name="Station" xml:space="preserve">
+    <value>Station</value>
+    <comment>Button or option in AddEditInvGroupDialog.</comment>
+  </data>
+  <data name="System" xml:space="preserve">
+    <value>System</value>
+    <comment>Button or option in AddEditInvGroupDialog.</comment>
+  </data>
+  <data name="Region" xml:space="preserve">
+    <value>Region</value>
+    <comment>Button or option in AddEditInvGroupDialog.</comment>
+  </data>
+  <data name="Everywhere" xml:space="preserve">
+    <value>Everywhere</value>
+    <comment>Button or option in AddEditInvGroupDialog.</comment>
+  </data>
+  <data name="LocationLabel" xml:space="preserve">
+    <value>LOCATION</value>
+    <comment>Label in AddEditInvGroupDialog.</comment>
+  </data>
+  <data name="HintTypeToSearch" xml:space="preserve">
+    <value>Type to search…</value>
+    <comment>Hint in an empty box in AddEditInvGroupDialog.</comment>
+  </data>
+  <data name="IncludeLabel" xml:space="preserve">
+    <value>INCLUDE</value>
+    <comment>Label in AddEditInvGroupDialog.</comment>
+  </data>
+  <data name="Assets" xml:space="preserve">
+    <value>Assets</value>
+    <comment>Button or option in AddEditInvGroupDialog.</comment>
+  </data>
+  <data name="IndustryJobsProducts" xml:space="preserve">
+    <value>Industry Jobs (products)</value>
+    <comment>Button or option in AddEditInvGroupDialog.</comment>
+  </data>
+  <data name="MarketBuyOrders" xml:space="preserve">
+    <value>Market Buy Orders</value>
+    <comment>Button or option in AddEditInvGroupDialog.</comment>
+  </data>
+  <data name="ContractsBuying" xml:space="preserve">
+    <value>Contracts Buying</value>
+    <comment>Button or option in AddEditInvGroupDialog.</comment>
+  </data>
+  <data name="OnlyCountPackagedItems" xml:space="preserve">
+    <value>Only count packaged items (skip assembled / fitted hulls)</value>
+    <comment>Button or option in AddEditInvGroupDialog.</comment>
+  </data>
+  <data name="TipBlueprintsAreNeverFiltered" xml:space="preserve">
+    <value>Blueprints are never filtered by this: a copy is non-stacking rather than assembled.</value>
+    <comment>Tooltip in AddEditInvGroupDialog.</comment>
+  </data>
+  <data name="MultiplierLabel" xml:space="preserve">
+    <value>MULTIPLIER</value>
+    <comment>Label in AddEditInvGroupDialog.</comment>
+  </data>
+  <data name="TargetQuantitiesForAllItems" xml:space="preserve">
+    <value>× target quantities for all items</value>
+    <comment>Text in AddEditInvGroupDialog.</comment>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+    <comment>Button or option in AddEditInvGroupDialog.</comment>
+  </data>
+  <data name="Ok" xml:space="preserve">
+    <value>OK</value>
+    <comment>Button or option in AddEditInvGroupDialog.</comment>
+  </data>
+  <data name="Scope" xml:space="preserve">
+    <value>Scope</value>
+    <comment>Text in AssetBrowserView.</comment>
+  </data>
+  <data name="TheFiltersBelowSearchNote" xml:space="preserve">
+    <value>The filters below search within this scope.</value>
+    <comment>Note in AssetBrowserView.</comment>
+  </data>
+  <data name="Apply" xml:space="preserve">
+    <value>Apply</value>
+    <comment>Button or option in AssetBrowserView.</comment>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>Clear</value>
+    <comment>Button or option in AssetBrowserView.</comment>
+  </data>
+  <data name="Filter" xml:space="preserve">
+    <value>+ Filter</value>
+    <comment>Button or option in AssetBrowserView.</comment>
+  </data>
+  <data name="TabDetailedView" xml:space="preserve">
+    <value>Detailed View</value>
+    <comment>Tab in AssetBrowserView.</comment>
+  </data>
+  <data name="TabByLocation" xml:space="preserve">
+    <value>By Location</value>
+    <comment>Tab in AssetBrowserView.</comment>
+  </data>
+  <data name="TabBySystem" xml:space="preserve">
+    <value>By System</value>
+    <comment>Tab in AssetBrowserView.</comment>
+  </data>
+  <data name="TabByRegion" xml:space="preserve">
+    <value>By Region</value>
+    <comment>Tab in AssetBrowserView.</comment>
+  </data>
+  <data name="LoadMore" xml:space="preserve">
+    <value>Load More</value>
+    <comment>Button or option in AssetBrowserView.</comment>
+  </data>
+  <data name="TitleAssetBrowser" xml:space="preserve">
+    <value>Asset Browser</value>
+    <comment>Window title in AssetBrowserWindow.</comment>
+  </data>
+  <data name="AddGroup" xml:space="preserve">
+    <value>+ Add Group</value>
+    <comment>Button or option in InvLevelView.</comment>
+  </data>
+  <data name="Collection" xml:space="preserve">
+    <value>+ Collection</value>
+    <comment>Button or option in InvLevelView.</comment>
+  </data>
+  <data name="ImportCollection" xml:space="preserve">
+    <value>Import Collection</value>
+    <comment>Button or option in InvLevelView.</comment>
+  </data>
+  <data name="TipReadACollectionFrom" xml:space="preserve">
+    <value>Read a collection from a file. It always comes in as a new collection, never merged into an existing one.</value>
+    <comment>Tooltip in InvLevelView.</comment>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Refresh</value>
+    <comment>Button or option in InvLevelView.</comment>
+  </data>
+  <data name="MenuOpenInItemBrowser" xml:space="preserve">
+    <value>Open in Item Browser</value>
+    <comment>Menu item in InvLevelView.</comment>
+  </data>
+  <data name="MenuAddItemsFromFit" xml:space="preserve">
+    <value>Add Items From Fit</value>
+    <comment>Menu item in InvLevelView.</comment>
+  </data>
+  <data name="MenuAddItemsFromMarketGroup" xml:space="preserve">
+    <value>Add Items From Market Group</value>
+    <comment>Menu item in InvLevelView.</comment>
+  </data>
+  <data name="MenuAddItemsFromBlueprint" xml:space="preserve">
+    <value>Add Items From Blueprint</value>
+    <comment>Menu item in InvLevelView.</comment>
+  </data>
+  <data name="MenuDeleteItem" xml:space="preserve">
+    <value>Delete Item</value>
+    <comment>Menu item in InvLevelView.</comment>
+  </data>
+  <data name="ColGroupItem" xml:space="preserve">
+    <value>GROUP / ITEM</value>
+    <comment>Column header in InvLevelView.</comment>
+  </data>
+  <data name="TipExpandAllGroups" xml:space="preserve">
+    <value>Expand all groups</value>
+    <comment>Tooltip in InvLevelView.</comment>
+  </data>
+  <data name="TipCollapseAllGroups" xml:space="preserve">
+    <value>Collapse all groups</value>
+    <comment>Tooltip in InvLevelView.</comment>
+  </data>
+  <data name="Rename" xml:space="preserve">
+    <value>Rename</value>
+    <comment>Button or option in InvLevelView.</comment>
+  </data>
+  <data name="Export" xml:space="preserve">
+    <value>Export</value>
+    <comment>Button or option in InvLevelView.</comment>
+  </data>
+  <data name="TipSaveThisCollectionsGroups" xml:space="preserve">
+    <value>Save this collection's groups, scopes and item targets to a file.</value>
+    <comment>Tooltip in InvLevelView.</comment>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Delete</value>
+    <comment>Button or option in InvLevelView.</comment>
+  </data>
+  <data name="Item" xml:space="preserve">
+    <value>+ Item</value>
+    <comment>Button or option in InvLevelView.</comment>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Edit</value>
+    <comment>Button or option in InvLevelView.</comment>
+  </data>
+  <data name="TipOpenThisLocation" xml:space="preserve">
+    <value>Open this location</value>
+    <comment>Tooltip in InvLevelView.</comment>
+  </data>
+  <data name="TipOpenInTheItemBrowser" xml:space="preserve">
+    <value>Open in the Item Browser</value>
+    <comment>Tooltip in InvLevelView.</comment>
+  </data>
+  <data name="ColTarget" xml:space="preserve">
+    <value>TARGET</value>
+    <comment>Column header in InvLevelView.</comment>
+  </data>
+  <data name="ColTgtTotal" xml:space="preserve">
+    <value>TGT TOTAL</value>
+    <comment>Column header in InvLevelView.</comment>
+  </data>
+  <data name="ColAvail" xml:space="preserve">
+    <value>AVAIL</value>
+    <comment>Column header in InvLevelView.</comment>
+  </data>
+  <data name="ColDiff" xml:space="preserve">
+    <value>DIFF</value>
+    <comment>Column header in InvLevelView.</comment>
+  </data>
+  <data name="ColAssets" xml:space="preserve">
+    <value>ASSETS</value>
+    <comment>Column header in InvLevelView.</comment>
+  </data>
+  <data name="ColIndJobs" xml:space="preserve">
+    <value>IND JOBS</value>
+    <comment>Column header in InvLevelView.</comment>
+  </data>
+  <data name="ColBuyOrders" xml:space="preserve">
+    <value>BUY ORDERS</value>
+    <comment>Column header in InvLevelView.</comment>
+  </data>
+  <data name="ColContracts" xml:space="preserve">
+    <value>CONTRACTS</value>
+    <comment>Column header in InvLevelView.</comment>
+  </data>
+  <data name="ColMktPrice" xml:space="preserve">
+    <value>MKT PRICE</value>
+    <comment>Column header in InvLevelView.</comment>
+  </data>
+  <data name="ColBuildPrice" xml:space="preserve">
+    <value>BUILD PRICE</value>
+    <comment>Column header in InvLevelView.</comment>
+  </data>
+  <data name="ColVolumeM" xml:space="preserve">
+    <value>VOLUME (m³)</value>
+    <comment>Column header in InvLevelView.</comment>
+  </data>
+  <data name="TitleInventoryLevels" xml:space="preserve">
+    <value>Inventory Levels</value>
+    <comment>Window title in InvLevelWindow.</comment>
+  </data>
+  <data name="TipGoBack" xml:space="preserve">
+    <value>Go back</value>
+    <comment>Tooltip in ItemBrowserView.</comment>
+  </data>
+  <data name="TipGoForward" xml:space="preserve">
+    <value>Go forward</value>
+    <comment>Tooltip in ItemBrowserView.</comment>
+  </data>
+  <data name="HintSearchItems" xml:space="preserve">
+    <value>Search items…</value>
+    <comment>Hint in an empty box in ItemBrowserView.</comment>
+  </data>
+  <data name="LoadingCategories" xml:space="preserve">
+    <value>Loading categories…</value>
+    <comment>Text in ItemBrowserView.</comment>
+  </data>
+  <data name="SelectAnItemFromNote" xml:space="preserve">
+    <value>Select an item from the tree or search to view its details.</value>
+    <comment>Note in ItemBrowserView.</comment>
+  </data>
+  <data name="VolumeLabel" xml:space="preserve">
+    <value>Volume:</value>
+    <comment>Label in ItemBrowserView.</comment>
+  </data>
+  <data name="BuildCostLabel" xml:space="preserve">
+    <value>Build Cost:</value>
+    <comment>Label in ItemBrowserView.</comment>
+  </data>
+  <data name="ReprocValueLabel" xml:space="preserve">
+    <value>Reproc Value:</value>
+    <comment>Label in ItemBrowserView.</comment>
+  </data>
+  <data name="TabDescription" xml:space="preserve">
+    <value>Description</value>
+    <comment>Tab in ItemBrowserView.</comment>
+  </data>
+  <data name="TabAttributes" xml:space="preserve">
+    <value>Attributes</value>
+    <comment>Tab in ItemBrowserView.</comment>
+  </data>
+  <data name="TabRequirements" xml:space="preserve">
+    <value>Requirements</value>
+    <comment>Tab in ItemBrowserView.</comment>
+  </data>
+  <data name="NoSkillRequirements" xml:space="preserve">
+    <value>No skill requirements.</value>
+    <comment>Text in ItemBrowserView.</comment>
+  </data>
+  <data name="TabRequiredFor" xml:space="preserve">
+    <value>Required For</value>
+    <comment>Tab in ItemBrowserView.</comment>
+  </data>
+  <data name="NothingRequiresThisSkillNote" xml:space="preserve">
+    <value>Nothing requires this skill at this level.</value>
+    <comment>Note in ItemBrowserView.</comment>
+  </data>
+  <data name="TabIndustry" xml:space="preserve">
+    <value>Industry</value>
+    <comment>Tab in ItemBrowserView.</comment>
+  </data>
+  <data name="OutcomeLabel" xml:space="preserve">
+    <value>OUTCOME</value>
+    <comment>Label in ItemBrowserView.</comment>
+  </data>
+  <data name="RequiredSkillsLabel" xml:space="preserve">
+    <value>REQUIRED SKILLS</value>
+    <comment>Label in ItemBrowserView.</comment>
+  </data>
+  <data name="InputMaterialsLabel" xml:space="preserve">
+    <value>INPUT MATERIALS</value>
+    <comment>Label in ItemBrowserView.</comment>
+  </data>
+  <data name="NoBlueprintDataAvailableNote" xml:space="preserve">
+    <value>No blueprint data available for this item.</value>
+    <comment>Note in ItemBrowserView.</comment>
+  </data>
+  <data name="ProducedByLabel" xml:space="preserve">
+    <value>PRODUCED BY</value>
+    <comment>Label in ItemBrowserView.</comment>
+  </data>
+  <data name="RequiredMaterialsLabel" xml:space="preserve">
+    <value>Required Materials:</value>
+    <comment>Label in ItemBrowserView.</comment>
+  </data>
+  <data name="ProducedByReprocessingLabel" xml:space="preserve">
+    <value>PRODUCED BY REPROCESSING</value>
+    <comment>Label in ItemBrowserView.</comment>
+  </data>
+  <data name="ReprocessOneBatchOfNote" xml:space="preserve">
+    <value>Reprocess one batch of these and this item is among what comes back. Each row is judged against its own ceiling — 90.6% for ore, ice and moon ore, 55% for everything else — so the amounts are the best case, not the SDE's 100% figures.</value>
+    <comment>Note in ItemBrowserView.</comment>
+  </data>
+  <data name="ShowLabel" xml:space="preserve">
+    <value>Show:</value>
+    <comment>Label in ItemBrowserView.</comment>
+  </data>
+  <data name="TipOreIncludesIceAnd" xml:space="preserve">
+    <value>Ore includes ice and moon ore — everything in the Asteroid category. Non Ore is the rest: modules, ships, salvage and the like.</value>
+    <comment>Tooltip in ItemBrowserView.</comment>
+  </data>
+  <data name="NoneOfThatKindNote" xml:space="preserve">
+    <value>None of that kind yields this item.</value>
+    <comment>Note in ItemBrowserView.</comment>
+  </data>
+  <data name="ReprocessesToLabel" xml:space="preserve">
+    <value>REPROCESSES TO</value>
+    <comment>Label in ItemBrowserView.</comment>
+  </data>
+  <data name="UsedInManufacturingLabel" xml:space="preserve">
+    <value>USED IN MANUFACTURING</value>
+    <comment>Label in ItemBrowserView.</comment>
+  </data>
+  <data name="TabAssets" xml:space="preserve">
+    <value>Assets</value>
+    <comment>Tab in ItemBrowserView.</comment>
+  </data>
+  <data name="GroupByLabel" xml:space="preserve">
+    <value>Group by:</value>
+    <comment>Label in ItemBrowserView.</comment>
+  </data>
+  <data name="ScopeLabel2" xml:space="preserve">
+    <value>Scope:</value>
+    <comment>Label in ItemBrowserView.</comment>
+  </data>
+  <data name="ColLocation" xml:space="preserve">
+    <value>Location</value>
+    <comment>Column header in ItemBrowserView.</comment>
+  </data>
+  <data name="ColOwner" xml:space="preserve">
+    <value>Owner</value>
+    <comment>Column header in ItemBrowserView.</comment>
+  </data>
+  <data name="TipOpenInTheEntityBrowser" xml:space="preserve">
+    <value>Open in the entity browser</value>
+    <comment>Tooltip in ItemBrowserView.</comment>
+  </data>
+  <data name="ColQty" xml:space="preserve">
+    <value>Qty</value>
+    <comment>Column header in ItemBrowserView.</comment>
+  </data>
+  <data name="ColContainer" xml:space="preserve">
+    <value>Container</value>
+    <comment>Column header in ItemBrowserView.</comment>
+  </data>
+  <data name="ColFlag" xml:space="preserve">
+    <value>Flag</value>
+    <comment>Column header in ItemBrowserView.</comment>
+  </data>
+  <data name="ColValue" xml:space="preserve">
+    <value>Value</value>
+    <comment>Column header in ItemBrowserView.</comment>
+  </data>
+  <data name="ColSystem" xml:space="preserve">
+    <value>System</value>
+    <comment>Column header in ItemBrowserView.</comment>
+  </data>
+  <data name="TipOpenThisSystem" xml:space="preserve">
+    <value>Open this system</value>
+    <comment>Tooltip in ItemBrowserView.</comment>
+  </data>
+  <data name="ColSec" xml:space="preserve">
+    <value>Sec</value>
+    <comment>Column header in ItemBrowserView.</comment>
+  </data>
+  <data name="ColRegion" xml:space="preserve">
+    <value>Region</value>
+    <comment>Column header in ItemBrowserView.</comment>
+  </data>
+  <data name="TabLpStore" xml:space="preserve">
+    <value>LP Store</value>
+    <comment>Tab in ItemBrowserView.</comment>
+  </data>
+  <data name="OfferedByTheLoyaltyNote" xml:space="preserve">
+    <value>Offered by the loyalty point stores below. An item can be sold by several corporations at different rates — the one worth using is whichever you hold LP with. Your balance is the highest any single character holds.</value>
+    <comment>Note in ItemBrowserView.</comment>
+  </data>
+  <data name="ColCorporation" xml:space="preserve">
+    <value>Corporation</value>
+    <comment>Column header in ItemBrowserView.</comment>
+  </data>
+  <data name="TipOpenThisCorporationInNpc" xml:space="preserve">
+    <value>Open this corporation in NPC Entities</value>
+    <comment>Tooltip in ItemBrowserView.</comment>
+  </data>
+  <data name="ColLpCost" xml:space="preserve">
+    <value>LP Cost</value>
+    <comment>Column header in ItemBrowserView.</comment>
+  </data>
+  <data name="ColIskCost" xml:space="preserve">
+    <value>ISK Cost</value>
+    <comment>Column header in ItemBrowserView.</comment>
+  </data>
+  <data name="ColYourLp" xml:space="preserve">
+    <value>Your LP</value>
+    <comment>Column header in ItemBrowserView.</comment>
+  </data>
+  <data name="ColLpEstValue" xml:space="preserve">
+    <value>LP Est. Value</value>
+    <comment>Column header in ItemBrowserView.</comment>
+  </data>
+  <data name="TipItemValueLessIsk" xml:space="preserve">
+    <value>Item value less ISK and required items, per LP, both reduced to a single unit.</value>
+    <comment>Tooltip in ItemBrowserView.</comment>
+  </data>
+  <data name="ColRequiredItems" xml:space="preserve">
+    <value>Required Items</value>
+    <comment>Column header in ItemBrowserView.</comment>
+  </data>
+  <data name="TabMarketOrders" xml:space="preserve">
+    <value>Market Orders</value>
+    <comment>Tab in ItemBrowserView.</comment>
+  </data>
+  <data name="SourceLabel" xml:space="preserve">
+    <value>Source:</value>
+    <comment>Label in ItemBrowserView.</comment>
+  </data>
+  <data name="NoEsiMarketSourcesNote" xml:space="preserve">
+    <value>No ESI market sources configured. Add an ESI Region or ESI Structure source in Settings → Market.</value>
+    <comment>Note in ItemBrowserView.</comment>
+  </data>
+  <data name="SellOrdersLabel" xml:space="preserve">
+    <value>SELL ORDERS</value>
+    <comment>Label in ItemBrowserView.</comment>
+  </data>
+  <data name="ColPriceIsk" xml:space="preserve">
+    <value>Price (ISK)</value>
+    <comment>Column header in ItemBrowserView.</comment>
+  </data>
+  <data name="TipOpenThisStationOrStructure" xml:space="preserve">
+    <value>Open this station or structure</value>
+    <comment>Tooltip in ItemBrowserView.</comment>
+  </data>
+  <data name="ColExpires" xml:space="preserve">
+    <value>Expires</value>
+    <comment>Column header in ItemBrowserView.</comment>
+  </data>
+  <data name="BuyOrdersLabel" xml:space="preserve">
+    <value>BUY ORDERS</value>
+    <comment>Label in ItemBrowserView.</comment>
+  </data>
+  <data name="ColRange" xml:space="preserve">
+    <value>Range</value>
+    <comment>Column header in ItemBrowserView.</comment>
+  </data>
+  <data name="ColMinQty" xml:space="preserve">
+    <value>Min Qty</value>
+    <comment>Column header in ItemBrowserView.</comment>
+  </data>
+  <data name="TabPriceHistory" xml:space="preserve">
+    <value>Price History</value>
+    <comment>Tab in ItemBrowserView.</comment>
+  </data>
+  <data name="RegionLabel" xml:space="preserve">
+    <value>Region:</value>
+    <comment>Label in ItemBrowserView.</comment>
+  </data>
+  <data name="PeriodLabel" xml:space="preserve">
+    <value>Period:</value>
+    <comment>Label in ItemBrowserView.</comment>
+  </data>
+  <data name="NoPriceHistoryAvailableNote" xml:space="preserve">
+    <value>No price history available for this item in the selected region.</value>
+    <comment>Note in ItemBrowserView.</comment>
+  </data>
+  <data name="TabChart" xml:space="preserve">
+    <value>Chart</value>
+    <comment>Tab in ItemBrowserView.</comment>
+  </data>
+  <data name="TabGrid" xml:space="preserve">
+    <value>Grid</value>
+    <comment>Tab in ItemBrowserView.</comment>
+  </data>
+  <data name="ColDate" xml:space="preserve">
+    <value>Date</value>
+    <comment>Column header in ItemBrowserView.</comment>
+  </data>
+  <data name="ColVolume" xml:space="preserve">
+    <value>Volume</value>
+    <comment>Column header in ItemBrowserView.</comment>
+  </data>
+  <data name="ColAvgPrice" xml:space="preserve">
+    <value>Avg Price</value>
+    <comment>Column header in ItemBrowserView.</comment>
+  </data>
+  <data name="ColHigh" xml:space="preserve">
+    <value>High</value>
+    <comment>Column header in ItemBrowserView.</comment>
+  </data>
+  <data name="ColLow" xml:space="preserve">
+    <value>Low</value>
+    <comment>Column header in ItemBrowserView.</comment>
+  </data>
+  <data name="ColOrders" xml:space="preserve">
+    <value>Orders</value>
+    <comment>Column header in ItemBrowserView.</comment>
+  </data>
+  <data name="TabDerivedHistory" xml:space="preserve">
+    <value>Derived History</value>
+    <comment>Tab in ItemBrowserView.</comment>
+  </data>
+  <data name="NoDerivedPriceHistoryNote" xml:space="preserve">
+    <value>No derived price history recorded for this item yet. A daily snapshot of market, build, contract and reprocessed value is captured automatically as prices refresh.</value>
+    <comment>Note in ItemBrowserView.</comment>
+  </data>
+  <data name="FmtWhatOneBatchReturns" xml:space="preserve">
+    <value>What one batch returns at {0}, the best this item can be refined at — a rigged Tatara in nullsec with the skills and implants for it. Ore, ice and moon ore top out at 90.6%; everything else is scrapmetal, where 55% is the ceiling however good the structure. Your own refine will return less.</value>
+    <comment>Formatted text ({0} is filled in) in ItemBrowserView.</comment>
+  </data>
+  <data name="TitleItemBrowser" xml:space="preserve">
+    <value>Item Browser</value>
+    <comment>Window title in ItemBrowserWindow.</comment>
+  </data>
+  <data name="StationLabel" xml:space="preserve">
+    <value>Station:</value>
+    <comment>Label in ItemValuationView.</comment>
+  </data>
+  <data name="HintTypeAStationOrStructure" xml:space="preserve">
+    <value>type a station or structure name…</value>
+    <comment>Hint in an empty box in ItemValuationView.</comment>
+  </data>
+  <data name="TipAnyStationOrStructure" xml:space="preserve">
+    <value>Any station or structure with orders in the app's books, whichever market source fetched them. Sells are read at the station; buys at the station, from its system, or region-wide.</value>
+    <comment>Tooltip in ItemValuationView.</comment>
+  </data>
+  <data name="PricesLabel" xml:space="preserve">
+    <value>Prices:</value>
+    <comment>Label in ItemValuationView.</comment>
+  </data>
+  <data name="TipSellTheLowestSell" xml:space="preserve">
+    <value>Sell: the lowest sell order. Buy: the highest buy order. Split: halfway between.</value>
+    <comment>Tooltip in ItemValuationView.</comment>
+  </data>
+  <data name="ValueLabel" xml:space="preserve">
+    <value>Value:</value>
+    <comment>Label in ItemValuationView.</comment>
+  </data>
+  <data name="TipTheItemsAsPasted" xml:space="preserve">
+    <value>The items as pasted, or what they become reprocessed: the materials, batch by batch at the app's yields, and whatever could not go in.</value>
+    <comment>Tooltip in ItemValuationView.</comment>
+  </data>
+  <data name="PriceLabel" xml:space="preserve">
+    <value>Price %:</value>
+    <comment>Label in ItemValuationView.</comment>
+  </data>
+  <data name="TipTheShareOfThe" xml:space="preserve">
+    <value>The share of the price to value at: 100 is the price itself, 90 a buyback paying nine tenths.</value>
+    <comment>Tooltip in ItemValuationView.</comment>
+  </data>
+  <data name="Appraise" xml:space="preserve">
+    <value>Appraise</value>
+    <comment>Button or option in ItemValuationView.</comment>
+  </data>
+  <data name="TipValueTheListA" xml:space="preserve">
+    <value>Value the list. A paste into the box, or Enter in it, does the same.</value>
+    <comment>Tooltip in ItemValuationView.</comment>
+  </data>
+  <data name="Copy" xml:space="preserve">
+    <value>Copy</value>
+    <comment>Button or option in ItemValuationView.</comment>
+  </data>
+  <data name="TipCopyBothTablesAnd" xml:space="preserve">
+    <value>Copy both tables and the totals as tab-separated text, for a spreadsheet or a chat.</value>
+    <comment>Tooltip in ItemValuationView.</comment>
+  </data>
+  <data name="HideList" xml:space="preserve">
+    <value>Hide list</value>
+    <comment>Button or option in ItemValuationView.</comment>
+  </data>
+  <data name="HintPasteAListOf" xml:space="preserve">
+    <value>Paste a list of items: a hangar or cargo
+hold copied from the client, a contract,
+a fit, a multibuy list, or lines like
+Tritanium 22222
+Pyerite x 3000
+Warrior II 5
+
+A paste values the list on its own; so
+does Enter. Once valued, the list folds
+away: Edit list brings it back.</value>
+    <comment>Hint in an empty box in ItemValuationView.</comment>
+  </data>
+  <data name="TabValues" xml:space="preserve">
+    <value>Values</value>
+    <comment>Tab in ItemValuationView.</comment>
+  </data>
+  <data name="Volume" xml:space="preserve">
+    <value>volume</value>
+    <comment>Text in ItemValuationView.</comment>
+  </data>
+  <data name="ItemsUnits" xml:space="preserve">
+    <value>items / units</value>
+    <comment>Text in ItemValuationView.</comment>
+  </data>
+  <data name="HintFilterByItemName" xml:space="preserve">
+    <value>filter by item name…</value>
+    <comment>Hint in an empty box in ItemValuationView.</comment>
+  </data>
+  <data name="TipShowOnlyTheItems" xml:space="preserve">
+    <value>Show only the items whose name holds this text, on both tabs.</value>
+    <comment>Tooltip in ItemValuationView.</comment>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>Item</value>
+    <comment>Column header in ItemValuationView.</comment>
+  </data>
+  <data name="TipOpenInItemBrowser" xml:space="preserve">
+    <value>Open in Item Browser</value>
+    <comment>Tooltip in ItemValuationView.</comment>
+  </data>
+  <data name="TipNoOrdersAtThis" xml:space="preserve">
+    <value>No orders at this station: priced from contracts.</value>
+    <comment>Tooltip in ItemValuationView.</comment>
+  </data>
+  <data name="ColUnit" xml:space="preserve">
+    <value>Unit</value>
+    <comment>Column header in ItemValuationView.</comment>
+  </data>
+  <data name="ColTotal" xml:space="preserve">
+    <value>Total</value>
+    <comment>Column header in ItemValuationView.</comment>
+  </data>
+  <data name="ColVsBest" xml:space="preserve">
+    <value>vs best</value>
+    <comment>Column header in ItemValuationView.</comment>
+  </data>
+  <data name="TabMarketCompare" xml:space="preserve">
+    <value>Market compare</value>
+    <comment>Tab in ItemValuationView.</comment>
+  </data>
+  <data name="CompareWithLabel" xml:space="preserve">
+    <value>Compare with:</value>
+    <comment>Label in ItemValuationView.</comment>
+  </data>
+  <data name="HintTypeAStationOr" xml:space="preserve">
+    <value>type a station or structure name, then Add…</value>
+    <comment>Hint in an empty box in ItemValuationView.</comment>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Add</value>
+    <comment>Button or option in ItemValuationView.</comment>
+  </data>
+</root>

@@ -1,0 +1,1291 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TitlePosting" xml:space="preserve">
+    <value>Posting</value>
+    <comment>Window title in AddEditPostingDialog.</comment>
+  </data>
+  <data name="PostingNameLabel" xml:space="preserve">
+    <value>POSTING NAME</value>
+    <comment>Label in AddEditPostingDialog.</comment>
+  </data>
+  <data name="InventoryScopeInStockIn" xml:space="preserve">
+    <value>INVENTORY SCOPE (In Stock / In Build)</value>
+    <comment>Text in AddEditPostingDialog.</comment>
+  </data>
+  <data name="Station" xml:space="preserve">
+    <value>Station</value>
+    <comment>Button or option in AddEditPostingDialog.</comment>
+  </data>
+  <data name="System" xml:space="preserve">
+    <value>System</value>
+    <comment>Button or option in AddEditPostingDialog.</comment>
+  </data>
+  <data name="Region" xml:space="preserve">
+    <value>Region</value>
+    <comment>Button or option in AddEditPostingDialog.</comment>
+  </data>
+  <data name="Everywhere" xml:space="preserve">
+    <value>Everywhere</value>
+    <comment>Button or option in AddEditPostingDialog.</comment>
+  </data>
+  <data name="LocationLabel" xml:space="preserve">
+    <value>LOCATION</value>
+    <comment>Label in AddEditPostingDialog.</comment>
+  </data>
+  <data name="HintTypeToSearch" xml:space="preserve">
+    <value>Type to search…</value>
+    <comment>Hint in an empty box in AddEditPostingDialog.</comment>
+  </data>
+  <data name="SalePriceBasisLabel" xml:space="preserve">
+    <value>SALE PRICE BASIS</value>
+    <comment>Label in AddEditPostingDialog.</comment>
+  </data>
+  <data name="BuildCost" xml:space="preserve">
+    <value>Build Cost</value>
+    <comment>Button or option in AddEditPostingDialog.</comment>
+  </data>
+  <data name="ContractCost" xml:space="preserve">
+    <value>Contract Cost</value>
+    <comment>Button or option in AddEditPostingDialog.</comment>
+  </data>
+  <data name="SpecificMarket" xml:space="preserve">
+    <value>Specific Market</value>
+    <comment>Button or option in AddEditPostingDialog.</comment>
+  </data>
+  <data name="MarketCurrentOrdersSameNote" xml:space="preserve">
+    <value>MARKET (current orders — same list as Trade Opportunities)</value>
+    <comment>Note in AddEditPostingDialog.</comment>
+  </data>
+  <data name="NoPolledMarketsYetNote" xml:space="preserve">
+    <value>No polled markets yet — add a Market config under Market Overview first.</value>
+    <comment>Note in AddEditPostingDialog.</comment>
+  </data>
+  <data name="PriceTypeLabel" xml:space="preserve">
+    <value>PRICE TYPE</value>
+    <comment>Label in AddEditPostingDialog.</comment>
+  </data>
+  <data name="SalePriceBasisLabel2" xml:space="preserve">
+    <value>SALE PRICE = BASIS ×  %</value>
+    <comment>Label in AddEditPostingDialog.</comment>
+  </data>
+  <data name="BuildDefaults110ContractMarket" xml:space="preserve">
+    <value>%  (Build defaults 110%, Contract/Market 100%)</value>
+    <comment>Text in AddEditPostingDialog.</comment>
+  </data>
+  <data name="ShowQuantitiesInPostingLabel" xml:space="preserve">
+    <value>SHOW QUANTITIES IN POSTING</value>
+    <comment>Label in AddEditPostingDialog.</comment>
+  </data>
+  <data name="InStock" xml:space="preserve">
+    <value>In Stock</value>
+    <comment>Button or option in AddEditPostingDialog.</comment>
+  </data>
+  <data name="InBuild" xml:space="preserve">
+    <value>In Build</value>
+    <comment>Button or option in AddEditPostingDialog.</comment>
+  </data>
+  <data name="Reserved" xml:space="preserve">
+    <value>Reserved</value>
+    <comment>Button or option in AddEditPostingDialog.</comment>
+  </data>
+  <data name="IncludeEarliestJobCompletion" xml:space="preserve">
+    <value>Include earliest job completion date (when In Stock = 0 and In Build ≥ 1)</value>
+    <comment>Button or option in AddEditPostingDialog.</comment>
+  </data>
+  <data name="OnlyIncludePackagedItems" xml:space="preserve">
+    <value>Only include packaged items (skip assembled / fitted hulls)</value>
+    <comment>Button or option in AddEditPostingDialog.</comment>
+  </data>
+  <data name="ColourEveMailOnlyNote" xml:space="preserve">
+    <value>COLOUR  (EVE mail only — other formats ignore it)</value>
+    <comment>Note in AddEditPostingDialog.</comment>
+  </data>
+  <data name="ColourEachItemLine" xml:space="preserve">
+    <value>Colour each item line by whether it is in stock, in build, or neither</value>
+    <comment>Button or option in AddEditPostingDialog.</comment>
+  </data>
+  <data name="InStockLabel" xml:space="preserve">
+    <value>IN STOCK</value>
+    <comment>Label in AddEditPostingDialog.</comment>
+  </data>
+  <data name="InBuildLabel" xml:space="preserve">
+    <value>IN BUILD</value>
+    <comment>Label in AddEditPostingDialog.</comment>
+  </data>
+  <data name="NeitherLabel" xml:space="preserve">
+    <value>NEITHER</value>
+    <comment>Label in AddEditPostingDialog.</comment>
+  </data>
+  <data name="AColourSetOnNote" xml:space="preserve">
+    <value>A colour set on an item beats this; a section's colour applies where neither is set. In header, footer and static text, write [color=#rrggbb]text[/color] — every other format strips it.</value>
+    <comment>Note in AddEditPostingDialog.</comment>
+  </data>
+  <data name="PostBlocksFirstParentNote" xml:space="preserve">
+    <value>POST BLOCKS  (first = parent; rest = thread detail)</value>
+    <comment>Note in AddEditPostingDialog.</comment>
+  </data>
+  <data name="AddPost" xml:space="preserve">
+    <value>+ Add Post</value>
+    <comment>Button or option in AddEditPostingDialog.</comment>
+  </data>
+  <data name="HintName" xml:space="preserve">
+    <value>Name</value>
+    <comment>Hint in an empty box in AddEditPostingDialog.</comment>
+  </data>
+  <data name="TipMoveUp" xml:space="preserve">
+    <value>Move up</value>
+    <comment>Tooltip in AddEditPostingDialog.</comment>
+  </data>
+  <data name="TipMoveDown" xml:space="preserve">
+    <value>Move down</value>
+    <comment>Tooltip in AddEditPostingDialog.</comment>
+  </data>
+  <data name="TipDelete" xml:space="preserve">
+    <value>Delete</value>
+    <comment>Tooltip in AddEditPostingDialog.</comment>
+  </data>
+  <data name="HintStaticContent" xml:space="preserve">
+    <value>Static content…</value>
+    <comment>Hint in an empty box in AddEditPostingDialog.</comment>
+  </data>
+  <data name="HintHeaderTextBeforeTheContent" xml:space="preserve">
+    <value>Header — text before the content…</value>
+    <comment>Hint in an empty box in AddEditPostingDialog.</comment>
+  </data>
+  <data name="HintFooterTextAfterTheContent" xml:space="preserve">
+    <value>Footer — text after the content…</value>
+    <comment>Hint in an empty box in AddEditPostingDialog.</comment>
+  </data>
+  <data name="FooterColourLabel" xml:space="preserve">
+    <value>FOOTER COLOUR</value>
+    <comment>Label in AddEditPostingDialog.</comment>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+    <comment>Button or option in AddEditPostingDialog.</comment>
+  </data>
+  <data name="Ok" xml:space="preserve">
+    <value>OK</value>
+    <comment>Button or option in AddEditPostingDialog.</comment>
+  </data>
+  <data name="TitleSection" xml:space="preserve">
+    <value>Section</value>
+    <comment>Window title in AddEditSectionDialog.</comment>
+  </data>
+  <data name="SectionNameLabel" xml:space="preserve">
+    <value>SECTION NAME</value>
+    <comment>Label in AddEditSectionDialog.</comment>
+  </data>
+  <data name="SectionPrefixOutputOnlyNote" xml:space="preserve">
+    <value>SECTION PREFIX  (output only — e.g. Slack :macro:)</value>
+    <comment>Note in AddEditSectionDialog.</comment>
+  </data>
+  <data name="HintEGShips" xml:space="preserve">
+    <value>e.g. :ships:</value>
+    <comment>Hint in an empty box in AddEditSectionDialog.</comment>
+  </data>
+  <data name="SectionHeaderColourEveMail" xml:space="preserve">
+    <value>SECTION HEADER COLOUR  (EVE mail only)</value>
+    <comment>Text in AddEditSectionDialog.</comment>
+  </data>
+  <data name="SectionRowColourLabel" xml:space="preserve">
+    <value>SECTION ROW COLOUR</value>
+    <comment>Label in AddEditSectionDialog.</comment>
+  </data>
+  <data name="OnlyUsedWhenTheNote" xml:space="preserve">
+    <value>⚠ Only used when the posting is NOT colouring by state. That setting is per line and takes precedence, so with it on this has no effect. An item's own colour beats both.</value>
+    <comment>Note in AddEditSectionDialog.</comment>
+  </data>
+  <data name="OverrideInventoryScopeForThis" xml:space="preserve">
+    <value>Override inventory scope for this section</value>
+    <comment>Button or option in AddEditSectionDialog.</comment>
+  </data>
+  <data name="ScopeLabel" xml:space="preserve">
+    <value>SCOPE</value>
+    <comment>Label in AddEditSectionDialog.</comment>
+  </data>
+  <data name="OverrideSalePriceBasis" xml:space="preserve">
+    <value>Override sale price basis for this section</value>
+    <comment>Button or option in AddEditSectionDialog.</comment>
+  </data>
+  <data name="MarketCurrentOrders" xml:space="preserve">
+    <value>MARKET (current orders)</value>
+    <comment>Text in AddEditSectionDialog.</comment>
+  </data>
+  <data name="Build110ContractMarket100" xml:space="preserve">
+    <value>%  (Build 110%, Contract/Market 100%)</value>
+    <comment>Text in AddEditSectionDialog.</comment>
+  </data>
+  <data name="OverridePackagedOnlySetting" xml:space="preserve">
+    <value>Override packaged-only setting for this section</value>
+    <comment>Button or option in AddEditSectionDialog.</comment>
+  </data>
+  <data name="TitleWhereShouldTheSiteLive" xml:space="preserve">
+    <value>Where should the site live?</value>
+    <comment>Window title in DeployAddressDialog.</comment>
+  </data>
+  <data name="TheSiteNeedsAnNote" xml:space="preserve">
+    <value>The site needs an address. It can have the free one Cloudflare gives every Worker, or a domain of your own that is already on this Cloudflare account. Either can be changed later on the Web site tab.</value>
+    <comment>Note in DeployAddressDialog.</comment>
+  </data>
+  <data name="TheFreeWorkersDevAddress" xml:space="preserve">
+    <value>The free workers.dev address</value>
+    <comment>Button or option in DeployAddressDialog.</comment>
+  </data>
+  <data name="ThisAccountHasNoNote" xml:space="preserve">
+    <value>This account has no workers.dev name yet. Name it:</value>
+    <comment>Note in DeployAddressDialog.</comment>
+  </data>
+  <data name="HintYourName" xml:space="preserve">
+    <value>your-name</value>
+    <comment>Hint in an empty box in DeployAddressDialog.</comment>
+  </data>
+  <data name="WorkersDev" xml:space="preserve">
+    <value>.workers.dev</value>
+    <comment>Text in DeployAddressDialog.</comment>
+  </data>
+  <data name="EveryWorkerOnThisNote" xml:space="preserve">
+    <value>Every Worker on this Cloudflare account shares it, it has to be unique across all of Cloudflare, and it can be changed later in the dashboard under Workers &amp; Pages, Account details. Lower-case letters, digits and hyphens.</value>
+    <comment>Note in DeployAddressDialog.</comment>
+  </data>
+  <data name="ADomainOfMy" xml:space="preserve">
+    <value>A domain of my own on Cloudflare</value>
+    <comment>Button or option in DeployAddressDialog.</comment>
+  </data>
+  <data name="TheDomainMustAlreadyNote" xml:space="preserve">
+    <value>The domain must already be on this Cloudflare account, with its DNS there. Cloudflare creates the record and the certificate; the site answers only on this name.</value>
+    <comment>Note in DeployAddressDialog.</comment>
+  </data>
+  <data name="Continue" xml:space="preserve">
+    <value>Continue</value>
+    <comment>Button or option in DeployAddressDialog.</comment>
+  </data>
+  <data name="TitleAddOrder" xml:space="preserve">
+    <value>Add Order</value>
+    <comment>Window title in OrderEditDialog.</comment>
+  </data>
+  <data name="ItemTypeLabel" xml:space="preserve">
+    <value>ITEM TYPE</value>
+    <comment>Label in OrderEditDialog.</comment>
+  </data>
+  <data name="NoneSelected" xml:space="preserve">
+    <value>(none selected)</value>
+    <comment>Text in OrderEditDialog.</comment>
+  </data>
+  <data name="HintStartTypingItemName" xml:space="preserve">
+    <value>Start typing item name…</value>
+    <comment>Hint in an empty box in OrderEditDialog.</comment>
+  </data>
+  <data name="UnitsLabel" xml:space="preserve">
+    <value>UNITS</value>
+    <comment>Label in OrderEditDialog.</comment>
+  </data>
+  <data name="PurchasePriceTotalLabel" xml:space="preserve">
+    <value>PURCHASE PRICE (TOTAL)</value>
+    <comment>Label in OrderEditDialog.</comment>
+  </data>
+  <data name="BuyerLabel" xml:space="preserve">
+    <value>BUYER</value>
+    <comment>Label in OrderEditDialog.</comment>
+  </data>
+  <data name="HintStartTypingACharacterOr" xml:space="preserve">
+    <value>Start typing a character or corporation…</value>
+    <comment>Hint in an empty box in OrderEditDialog.</comment>
+  </data>
+  <data name="EstimatedDateLabel" xml:space="preserve">
+    <value>ESTIMATED DATE</value>
+    <comment>Label in OrderEditDialog.</comment>
+  </data>
+  <data name="CompletedDateLabel" xml:space="preserve">
+    <value>COMPLETED DATE</value>
+    <comment>Label in OrderEditDialog.</comment>
+  </data>
+  <data name="SetAutomaticallyTodayWhenNote" xml:space="preserve">
+    <value>Set automatically: today when you mark an order completed or cancelled, or the date the linked contract was accepted. Override it here if the real date differs.</value>
+    <comment>Note in OrderEditDialog.</comment>
+  </data>
+  <data name="PriorityPutThisOrder" xml:space="preserve">
+    <value>Priority — put this order and everything it needs at the top</value>
+    <comment>Button or option in OrderEditDialog.</comment>
+  </data>
+  <data name="TipOutranksEveryOtherOrder" xml:space="preserve">
+    <value>Outranks every other order regardless of estimated date, along with the jobs, purchases and hauls that serve it.</value>
+    <comment>Tooltip in OrderEditDialog.</comment>
+  </data>
+  <data name="ContractLabel" xml:space="preserve">
+    <value>CONTRACT</value>
+    <comment>Label in OrderEditDialog.</comment>
+  </data>
+  <data name="HintContractIdsIfThe" xml:space="preserve">
+    <value>contract ids, if the match missed one</value>
+    <comment>Hint in an empty box in OrderEditDialog.</comment>
+  </data>
+  <data name="NormallyFilledInAutomaticallyNote" xml:space="preserve">
+    <value>Normally filled in automatically — every contract carrying this order, since an order can go out over several. Add an id here when a contract cannot be matched, usually because it was made out before the order was entered; separate several with commas. Removing an id lets that contract go.</value>
+    <comment>Note in OrderEditDialog.</comment>
+  </data>
+  <data name="LabelsLabel" xml:space="preserve">
+    <value>LABELS</value>
+    <comment>Label in OrderEditDialog.</comment>
+  </data>
+  <data name="FreeTagsForGroupingNote" xml:space="preserve">
+    <value>Free tags for grouping orders — a corp programme, a customer, a shipment. Type anything; if it does not exist yet, pressing Enter creates it. The Order Tracker can filter on them.</value>
+    <comment>Note in OrderEditDialog.</comment>
+  </data>
+  <data name="StatusLabel" xml:space="preserve">
+    <value>STATUS</value>
+    <comment>Label in OrderEditDialog.</comment>
+  </data>
+  <data name="SelectAnItemTypeAbove" xml:space="preserve">
+    <value>Select an item type above.</value>
+    <comment>Text in OrderEditDialog.</comment>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Save</value>
+    <comment>Button or option in OrderEditDialog.</comment>
+  </data>
+  <data name="OrderTracker" xml:space="preserve">
+    <value>Order Tracker</value>
+    <comment>Text in OrderTrackerView.</comment>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Refresh</value>
+    <comment>Button or option in OrderTrackerView.</comment>
+  </data>
+  <data name="AddOrder" xml:space="preserve">
+    <value>Add Order</value>
+    <comment>Button or option in OrderTrackerView.</comment>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Edit</value>
+    <comment>Button or option in OrderTrackerView.</comment>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Delete</value>
+    <comment>Button or option in OrderTrackerView.</comment>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Status</value>
+    <comment>Text in OrderTrackerView.</comment>
+  </data>
+  <data name="Created" xml:space="preserve">
+    <value>Created</value>
+    <comment>Text in OrderTrackerView.</comment>
+  </data>
+  <data name="HintFromYyyyMmDd" xml:space="preserve">
+    <value>from yyyy-MM-dd</value>
+    <comment>Hint in an empty box in OrderTrackerView.</comment>
+  </data>
+  <data name="HintThruYyyyMmDd" xml:space="preserve">
+    <value>thru yyyy-MM-dd</value>
+    <comment>Hint in an empty box in OrderTrackerView.</comment>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>Type</value>
+    <comment>Text in OrderTrackerView.</comment>
+  </data>
+  <data name="HintItemName" xml:space="preserve">
+    <value>item name</value>
+    <comment>Hint in an empty box in OrderTrackerView.</comment>
+  </data>
+  <data name="Buyer" xml:space="preserve">
+    <value>Buyer</value>
+    <comment>Text in OrderTrackerView.</comment>
+  </data>
+  <data name="HintBuyer" xml:space="preserve">
+    <value>buyer</value>
+    <comment>Hint in an empty box in OrderTrackerView.</comment>
+  </data>
+  <data name="Label" xml:space="preserve">
+    <value>Label</value>
+    <comment>Text in OrderTrackerView.</comment>
+  </data>
+  <data name="MenuAddLabel" xml:space="preserve">
+    <value>Add label</value>
+    <comment>Menu item in OrderTrackerView.</comment>
+  </data>
+  <data name="MenuRemoveLabel" xml:space="preserve">
+    <value>Remove label</value>
+    <comment>Menu item in OrderTrackerView.</comment>
+  </data>
+  <data name="ColCreated" xml:space="preserve">
+    <value>Created</value>
+    <comment>Column header in OrderTrackerView.</comment>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>Type</value>
+    <comment>Column header in OrderTrackerView.</comment>
+  </data>
+  <data name="TipOpenInTheItemBrowser" xml:space="preserve">
+    <value>Open in the Item Browser</value>
+    <comment>Tooltip in OrderTrackerView.</comment>
+  </data>
+  <data name="ColUnits" xml:space="preserve">
+    <value>Units</value>
+    <comment>Column header in OrderTrackerView.</comment>
+  </data>
+  <data name="ColBuyer" xml:space="preserve">
+    <value>Buyer</value>
+    <comment>Column header in OrderTrackerView.</comment>
+  </data>
+  <data name="TipOpenInTheEntityBrowser" xml:space="preserve">
+    <value>Open in the entity browser</value>
+    <comment>Tooltip in OrderTrackerView.</comment>
+  </data>
+  <data name="ColOrder" xml:space="preserve">
+    <value>Order #</value>
+    <comment>Column header in OrderTrackerView.</comment>
+  </data>
+  <data name="ColLabels" xml:space="preserve">
+    <value>Labels</value>
+    <comment>Column header in OrderTrackerView.</comment>
+  </data>
+  <data name="ColStore" xml:space="preserve">
+    <value>Store</value>
+    <comment>Column header in OrderTrackerView.</comment>
+  </data>
+  <data name="ColContractTo" xml:space="preserve">
+    <value>Contract To</value>
+    <comment>Column header in OrderTrackerView.</comment>
+  </data>
+  <data name="ColStock" xml:space="preserve">
+    <value>Stock</value>
+    <comment>Column header in OrderTrackerView.</comment>
+  </data>
+  <data name="ColOnHand" xml:space="preserve">
+    <value>On hand</value>
+    <comment>Column header in OrderTrackerView.</comment>
+  </data>
+  <data name="ColIndyJob" xml:space="preserve">
+    <value>Indy Job</value>
+    <comment>Column header in OrderTrackerView.</comment>
+  </data>
+  <data name="ColShort" xml:space="preserve">
+    <value>Short</value>
+    <comment>Column header in OrderTrackerView.</comment>
+  </data>
+  <data name="ColOnContract" xml:space="preserve">
+    <value>On contract</value>
+    <comment>Column header in OrderTrackerView.</comment>
+  </data>
+  <data name="ColDelivered" xml:space="preserve">
+    <value>Delivered</value>
+    <comment>Column header in OrderTrackerView.</comment>
+  </data>
+  <data name="ColContract" xml:space="preserve">
+    <value>Contract</value>
+    <comment>Column header in OrderTrackerView.</comment>
+  </data>
+  <data name="ColEstDate" xml:space="preserve">
+    <value>Est. Date</value>
+    <comment>Column header in OrderTrackerView.</comment>
+  </data>
+  <data name="ColPri" xml:space="preserve">
+    <value>Pri</value>
+    <comment>Column header in OrderTrackerView.</comment>
+  </data>
+  <data name="ColPurchasePrice" xml:space="preserve">
+    <value>Purchase Price</value>
+    <comment>Column header in OrderTrackerView.</comment>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>Status</value>
+    <comment>Column header in OrderTrackerView.</comment>
+  </data>
+  <data name="ColCompleted" xml:space="preserve">
+    <value>Completed</value>
+    <comment>Column header in OrderTrackerView.</comment>
+  </data>
+  <data name="ColBuildCost" xml:space="preserve">
+    <value>Build Cost</value>
+    <comment>Column header in OrderTrackerView.</comment>
+  </data>
+  <data name="ColProfit" xml:space="preserve">
+    <value>Profit</value>
+    <comment>Column header in OrderTrackerView.</comment>
+  </data>
+  <data name="ColProfit2" xml:space="preserve">
+    <value>Profit %</value>
+    <comment>Column header in OrderTrackerView.</comment>
+  </data>
+  <data name="SalesTracker" xml:space="preserve">
+    <value>Sales Tracker →</value>
+    <comment>Text in SaleListingView.</comment>
+  </data>
+  <data name="ColDateTime" xml:space="preserve">
+    <value>Date / Time</value>
+    <comment>Column header in SaleListingView.</comment>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>Item</value>
+    <comment>Column header in SaleListingView.</comment>
+  </data>
+  <data name="ColAmount" xml:space="preserve">
+    <value>Amount</value>
+    <comment>Column header in SaleListingView.</comment>
+  </data>
+  <data name="TabDefinitions" xml:space="preserve">
+    <value>Definitions</value>
+    <comment>Tab in SalePostingView.</comment>
+  </data>
+  <data name="AddPosting" xml:space="preserve">
+    <value>+ Add Posting</value>
+    <comment>Button or option in SalePostingView.</comment>
+  </data>
+  <data name="ImportPosting" xml:space="preserve">
+    <value>Import Posting</value>
+    <comment>Button or option in SalePostingView.</comment>
+  </data>
+  <data name="ProfitBasedOn" xml:space="preserve">
+    <value>Profit based on</value>
+    <comment>Text in SalePostingView.</comment>
+  </data>
+  <data name="MenuOpenInItemBrowser" xml:space="preserve">
+    <value>Open in Item Browser</value>
+    <comment>Menu item in SalePostingView.</comment>
+  </data>
+  <data name="MenuAddItemsFromMarketGroup" xml:space="preserve">
+    <value>Add Items From Market Group</value>
+    <comment>Menu item in SalePostingView.</comment>
+  </data>
+  <data name="MenuDeleteItem" xml:space="preserve">
+    <value>Delete Item</value>
+    <comment>Menu item in SalePostingView.</comment>
+  </data>
+  <data name="ColPostingSectionItem" xml:space="preserve">
+    <value>POSTING / SECTION / ITEM</value>
+    <comment>Column header in SalePostingView.</comment>
+  </data>
+  <data name="Section" xml:space="preserve">
+    <value>+ Section</value>
+    <comment>Button or option in SalePostingView.</comment>
+  </data>
+  <data name="Export" xml:space="preserve">
+    <value>Export</value>
+    <comment>Button or option in SalePostingView.</comment>
+  </data>
+  <data name="TipOpenThisLocation" xml:space="preserve">
+    <value>Open this location</value>
+    <comment>Tooltip in SalePostingView.</comment>
+  </data>
+  <data name="Item" xml:space="preserve">
+    <value>+ Item</value>
+    <comment>Button or option in SalePostingView.</comment>
+  </data>
+  <data name="ColNameOverride" xml:space="preserve">
+    <value>NAME OVERRIDE</value>
+    <comment>Column header in SalePostingView.</comment>
+  </data>
+  <data name="ColPrefix" xml:space="preserve">
+    <value>PREFIX</value>
+    <comment>Column header in SalePostingView.</comment>
+  </data>
+  <data name="ColColour" xml:space="preserve">
+    <value>COLOUR</value>
+    <comment>Column header in SalePostingView.</comment>
+  </data>
+  <data name="HintRrggbb" xml:space="preserve">
+    <value>#rrggbb</value>
+    <comment>Hint in an empty box in SalePostingView.</comment>
+  </data>
+  <data name="ColInStock" xml:space="preserve">
+    <value>IN STOCK</value>
+    <comment>Column header in SalePostingView.</comment>
+  </data>
+  <data name="ColStockOvr" xml:space="preserve">
+    <value>STOCK OVR</value>
+    <comment>Column header in SalePostingView.</comment>
+  </data>
+  <data name="ColInBuild" xml:space="preserve">
+    <value>IN BUILD</value>
+    <comment>Column header in SalePostingView.</comment>
+  </data>
+  <data name="ColBuildOvr" xml:space="preserve">
+    <value>BUILD OVR</value>
+    <comment>Column header in SalePostingView.</comment>
+  </data>
+  <data name="ColReserved" xml:space="preserve">
+    <value>RESERVED</value>
+    <comment>Column header in SalePostingView.</comment>
+  </data>
+  <data name="ColRsrvOvr" xml:space="preserve">
+    <value>RSRV OVR</value>
+    <comment>Column header in SalePostingView.</comment>
+  </data>
+  <data name="ColBuildCost2" xml:space="preserve">
+    <value>BUILD COST</value>
+    <comment>Column header in SalePostingView.</comment>
+  </data>
+  <data name="ColMktValue" xml:space="preserve">
+    <value>MKT VALUE</value>
+    <comment>Column header in SalePostingView.</comment>
+  </data>
+  <data name="ColContract2" xml:space="preserve">
+    <value>CONTRACT</value>
+    <comment>Column header in SalePostingView.</comment>
+  </data>
+  <data name="ColSalePrice" xml:space="preserve">
+    <value>SALE PRICE</value>
+    <comment>Column header in SalePostingView.</comment>
+  </data>
+  <data name="ColProfit3" xml:space="preserve">
+    <value>PROFIT</value>
+    <comment>Column header in SalePostingView.</comment>
+  </data>
+  <data name="ColProfit4" xml:space="preserve">
+    <value>PROFIT %</value>
+    <comment>Column header in SalePostingView.</comment>
+  </data>
+  <data name="ColReadyEst" xml:space="preserve">
+    <value>READY (EST.)</value>
+    <comment>Column header in SalePostingView.</comment>
+  </data>
+  <data name="TabPosting" xml:space="preserve">
+    <value>Posting</value>
+    <comment>Tab in SalePostingView.</comment>
+  </data>
+  <data name="Format" xml:space="preserve">
+    <value>Format</value>
+    <comment>Text in SalePostingView.</comment>
+  </data>
+  <data name="TipReRenderTheSelected" xml:space="preserve">
+    <value>Re-render the selected posting with the latest definitions data</value>
+    <comment>Tooltip in SalePostingView.</comment>
+  </data>
+  <data name="PostToSlack" xml:space="preserve">
+    <value>Post to Slack</value>
+    <comment>Text in SalePostingView.</comment>
+  </data>
+  <data name="Copy" xml:space="preserve">
+    <value>Copy</value>
+    <comment>Button or option in SalePostingView.</comment>
+  </data>
+  <data name="TipCopyTheRawFormatted" xml:space="preserve">
+    <value>Copy the raw formatted text (with markup) to the clipboard</value>
+    <comment>Tooltip in SalePostingView.</comment>
+  </data>
+  <data name="SalesTracker2" xml:space="preserve">
+    <value>Sales Tracker</value>
+    <comment>Text in SalesTrackerView.</comment>
+  </data>
+  <data name="From" xml:space="preserve">
+    <value>From</value>
+    <comment>Text in SalesTrackerView.</comment>
+  </data>
+  <data name="Thru" xml:space="preserve">
+    <value>Thru</value>
+    <comment>Text in SalesTrackerView.</comment>
+  </data>
+  <data name="Owner" xml:space="preserve">
+    <value>Owner</value>
+    <comment>Text in SalesTrackerView.</comment>
+  </data>
+  <data name="SaleType" xml:space="preserve">
+    <value>Sale Type</value>
+    <comment>Text in SalesTrackerView.</comment>
+  </data>
+  <data name="ShowNotForProfit" xml:space="preserve">
+    <value>Show not for profit</value>
+    <comment>Button or option in SalesTrackerView.</comment>
+  </data>
+  <data name="TipIncludeSalesMarkedAs" xml:space="preserve">
+    <value>Include sales marked as not for profit. They count everywhere on this screen when shown: the summaries, the charts and the grid all follow this box.</value>
+    <comment>Tooltip in SalesTrackerView.</comment>
+  </data>
+  <data name="TabSummary" xml:space="preserve">
+    <value>Summary</value>
+    <comment>Tab in SalesTrackerView.</comment>
+  </data>
+  <data name="ProfitByBuyer" xml:space="preserve">
+    <value>Profit by Buyer</value>
+    <comment>Text in SalesTrackerView.</comment>
+  </data>
+  <data name="ColSales" xml:space="preserve">
+    <value>Sales</value>
+    <comment>Column header in SalesTrackerView.</comment>
+  </data>
+  <data name="ProfitByMarketGroup" xml:space="preserve">
+    <value>Profit by Market Group</value>
+    <comment>Text in SalesTrackerView.</comment>
+  </data>
+  <data name="ColGroup" xml:space="preserve">
+    <value>Group</value>
+    <comment>Column header in SalesTrackerView.</comment>
+  </data>
+  <data name="ProfitByItem" xml:space="preserve">
+    <value>Profit by Item</value>
+    <comment>Text in SalesTrackerView.</comment>
+  </data>
+  <data name="NoProfitToShow" xml:space="preserve">
+    <value>No profit to show</value>
+    <comment>Text in SalesTrackerView.</comment>
+  </data>
+  <data name="ChartBy" xml:space="preserve">
+    <value>Chart by</value>
+    <comment>Text in SalesTrackerView.</comment>
+  </data>
+  <data name="CostsSalesAndProfit" xml:space="preserve">
+    <value>Costs, sales and profit</value>
+    <comment>Text in SalesTrackerView.</comment>
+  </data>
+  <data name="Margin" xml:space="preserve">
+    <value>Margin</value>
+    <comment>Text in SalesTrackerView.</comment>
+  </data>
+  <data name="TabDetail" xml:space="preserve">
+    <value>Detail</value>
+    <comment>Tab in SalesTrackerView.</comment>
+  </data>
+  <data name="MenuMarkAsNotForProfit" xml:space="preserve">
+    <value>Mark as not for profit</value>
+    <comment>Menu item in SalesTrackerView.</comment>
+  </data>
+  <data name="MenuRestoreToProfit" xml:space="preserve">
+    <value>Restore to profit</value>
+    <comment>Menu item in SalesTrackerView.</comment>
+  </data>
+  <data name="ColOwner" xml:space="preserve">
+    <value>Owner</value>
+    <comment>Column header in SalesTrackerView.</comment>
+  </data>
+  <data name="ColLocation" xml:space="preserve">
+    <value>Location</value>
+    <comment>Column header in SalesTrackerView.</comment>
+  </data>
+  <data name="TipOpenThisStationOrStructure" xml:space="preserve">
+    <value>Open this station or structure</value>
+    <comment>Tooltip in SalesTrackerView.</comment>
+  </data>
+  <data name="ColItemS" xml:space="preserve">
+    <value>Item(s)</value>
+    <comment>Column header in SalesTrackerView.</comment>
+  </data>
+  <data name="ColTotalSale" xml:space="preserve">
+    <value>Total Sale</value>
+    <comment>Column header in SalesTrackerView.</comment>
+  </data>
+  <data name="ColBuildPrice" xml:space="preserve">
+    <value>Build Price</value>
+    <comment>Column header in SalesTrackerView.</comment>
+  </data>
+  <data name="ColMarketPrice" xml:space="preserve">
+    <value>Market Price</value>
+    <comment>Column header in SalesTrackerView.</comment>
+  </data>
+  <data name="AddStore" xml:space="preserve">
+    <value>+ Add Store</value>
+    <comment>Button or option in StoresView.</comment>
+  </data>
+  <data name="CheckMailNow" xml:space="preserve">
+    <value>Check Mail Now</value>
+    <comment>Button or option in StoresView.</comment>
+  </data>
+  <data name="TabOverview" xml:space="preserve">
+    <value>Overview</value>
+    <comment>Tab in StoresView.</comment>
+  </data>
+  <data name="Inquiries" xml:space="preserve">
+    <value>Inquiries</value>
+    <comment>Text in StoresView.</comment>
+  </data>
+  <data name="ActiveItems" xml:space="preserve">
+    <value>Active items</value>
+    <comment>Text in StoresView.</comment>
+  </data>
+  <data name="Completed" xml:space="preserve">
+    <value>Completed</value>
+    <comment>Text in StoresView.</comment>
+  </data>
+  <data name="Cancelled" xml:space="preserve">
+    <value>Cancelled</value>
+    <comment>Text in StoresView.</comment>
+  </data>
+  <data name="ActiveOrders" xml:space="preserve">
+    <value>Active orders</value>
+    <comment>Text in StoresView.</comment>
+  </data>
+  <data name="ColCreatedOn" xml:space="preserve">
+    <value>Created on</value>
+    <comment>Column header in StoresView.</comment>
+  </data>
+  <data name="ColOrder2" xml:space="preserve">
+    <value>Order</value>
+    <comment>Column header in StoresView.</comment>
+  </data>
+  <data name="ColEstDate2" xml:space="preserve">
+    <value>Est date</value>
+    <comment>Column header in StoresView.</comment>
+  </data>
+  <data name="ColSource" xml:space="preserve">
+    <value>Source</value>
+    <comment>Column header in StoresView.</comment>
+  </data>
+  <data name="Messages" xml:space="preserve">
+    <value>Messages</value>
+    <comment>Text in StoresView.</comment>
+  </data>
+  <data name="ColWhen" xml:space="preserve">
+    <value>When</value>
+    <comment>Column header in StoresView.</comment>
+  </data>
+  <data name="ColDirection" xml:space="preserve">
+    <value>Direction</value>
+    <comment>Column header in StoresView.</comment>
+  </data>
+  <data name="ColWho" xml:space="preserve">
+    <value>Who</value>
+    <comment>Column header in StoresView.</comment>
+  </data>
+  <data name="ColCommand" xml:space="preserve">
+    <value>Command</value>
+    <comment>Column header in StoresView.</comment>
+  </data>
+  <data name="ColSubject" xml:space="preserve">
+    <value>Subject</value>
+    <comment>Column header in StoresView.</comment>
+  </data>
+  <data name="ColOutcome" xml:space="preserve">
+    <value>Outcome</value>
+    <comment>Column header in StoresView.</comment>
+  </data>
+  <data name="ColNote" xml:space="preserve">
+    <value>Note</value>
+    <comment>Column header in StoresView.</comment>
+  </data>
+  <data name="WebSiteEvents" xml:space="preserve">
+    <value>Web site events</value>
+    <comment>Text in StoresView.</comment>
+  </data>
+  <data name="ShowVisits" xml:space="preserve">
+    <value>Show visits</value>
+    <comment>Button or option in StoresView.</comment>
+  </data>
+  <data name="ColKind" xml:space="preserve">
+    <value>Kind</value>
+    <comment>Column header in StoresView.</comment>
+  </data>
+  <data name="BookIt" xml:space="preserve">
+    <value>Book it</value>
+    <comment>Button or option in StoresView.</comment>
+  </data>
+  <data name="Decline" xml:space="preserve">
+    <value>Decline</value>
+    <comment>Button or option in StoresView.</comment>
+  </data>
+  <data name="TabConfig" xml:space="preserve">
+    <value>Config</value>
+    <comment>Tab in StoresView.</comment>
+  </data>
+  <data name="TabGeneral" xml:space="preserve">
+    <value>General</value>
+    <comment>Tab in StoresView.</comment>
+  </data>
+  <data name="Store" xml:space="preserve">
+    <value>Store</value>
+    <comment>Text in StoresView.</comment>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Name</value>
+    <comment>Text in StoresView.</comment>
+  </data>
+  <data name="EveMailbox" xml:space="preserve">
+    <value>EVE Mailbox</value>
+    <comment>Text in StoresView.</comment>
+  </data>
+  <data name="UsedForOrderStatusNote" xml:space="preserve">
+    <value>Used for order status notifications, and for store requests when the EVE mail store is open.</value>
+    <comment>Note in StoresView.</comment>
+  </data>
+  <data name="PriceList" xml:space="preserve">
+    <value>Price list</value>
+    <comment>Text in StoresView.</comment>
+  </data>
+  <data name="GiveInStockOrders" xml:space="preserve">
+    <value>Give in-stock orders an expected date</value>
+    <comment>Button or option in StoresView.</comment>
+  </data>
+  <data name="DaySFromTheOrder" xml:space="preserve">
+    <value>day(s) from the order</value>
+    <comment>Text in StoresView.</comment>
+  </data>
+  <data name="OrderLabelsOnEveryNote" xml:space="preserve">
+    <value>ORDER LABELS  (on every order this store takes)</value>
+    <comment>Note in StoresView.</comment>
+  </data>
+  <data name="LabelsAppearOnTheNote" xml:space="preserve">
+    <value>Labels appear on the Order Tracker and can be filtered there. Anything typed here is offered in its label pickers, so a programme can be set up before its first order arrives.</value>
+    <comment>Note in StoresView.</comment>
+  </data>
+  <data name="TabRestrictions" xml:space="preserve">
+    <value>Restrictions</value>
+    <comment>Tab in StoresView.</comment>
+  </data>
+  <data name="WhoMayOrder" xml:space="preserve">
+    <value>Who may order</value>
+    <comment>Text in StoresView.</comment>
+  </data>
+  <data name="UsedWhenServeIsNote" xml:space="preserve">
+    <value>Used when Serve is set to List. A sender matches by their own name, their corporation, or their alliance. Names are resolved against ids the app has already seen.</value>
+    <comment>Note in StoresView.</comment>
+  </data>
+  <data name="Serve" xml:space="preserve">
+    <value>Serve</value>
+    <comment>Text in StoresView.</comment>
+  </data>
+  <data name="AnyoneOrOnlyTheNote" xml:space="preserve">
+    <value>Anyone, or only the list below. The same for EVE mail and the web site.</value>
+    <comment>Note in StoresView.</comment>
+  </data>
+  <data name="HintTypeTwoLettersOfThe" xml:space="preserve">
+    <value>Type two letters of the name…</value>
+    <comment>Hint in an empty box in StoresView.</comment>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Add</value>
+    <comment>Button or option in StoresView.</comment>
+  </data>
+  <data name="ColName" xml:space="preserve">
+    <value>Name</value>
+    <comment>Column header in StoresView.</comment>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>Remove</value>
+    <comment>Button or option in StoresView.</comment>
+  </data>
+  <data name="PurchaseLimit" xml:space="preserve">
+    <value>Purchase limit</value>
+    <comment>Text in StoresView.</comment>
+  </data>
+  <data name="HowMuchOneBuyerNote" xml:space="preserve">
+    <value>How much one buyer may take, counted over their orders in this store that were not cancelled, whichever doorway placed them. For a programme that hands out the first hull of each kind: one unit of each item type, all time. On the site an item a buyer may no longer order is greyed out and the units box holds what remains; an order over the limit that reaches the app anyway is held for you to look at, never booked on its own.</value>
+    <comment>Note in StoresView.</comment>
+  </data>
+  <data name="LimitEachBuyer" xml:space="preserve">
+    <value>Limit each buyer</value>
+    <comment>Button or option in StoresView.</comment>
+  </data>
+  <data name="To" xml:space="preserve">
+    <value>to</value>
+    <comment>Text in StoresView.</comment>
+  </data>
+  <data name="UnitSOf" xml:space="preserve">
+    <value>unit(s) of</value>
+    <comment>Text in StoresView.</comment>
+  </data>
+  <data name="Per" xml:space="preserve">
+    <value>per</value>
+    <comment>Text in StoresView.</comment>
+  </data>
+  <data name="TabEveMail" xml:space="preserve">
+    <value>EVE Mail</value>
+    <comment>Tab in StoresView.</comment>
+  </data>
+  <data name="EveMail" xml:space="preserve">
+    <value>EVE Mail</value>
+    <comment>Text in StoresView.</comment>
+  </data>
+  <data name="AShopFrontInNote" xml:space="preserve">
+    <value>A shop front in the mailbox: buyers write to the character above and the app answers, books orders and keeps them posted. Who may buy is set on the Restrictions tab, the same for mail and the web.</value>
+    <comment>Note in StoresView.</comment>
+  </data>
+  <data name="OpenByEveMail" xml:space="preserve">
+    <value>Open by EVE mail — read and answer mail sent to the mailbox</value>
+    <comment>Button or option in StoresView.</comment>
+  </data>
+  <data name="BuyersPutTheCommandNote" xml:space="preserve">
+    <value>Buyers put the command in the mail SUBJECT: PRICES, ORDER, STATUS, CANCEL or HELP. An ORDER body is one item per line — dragging the item in is easiest. STATUS on its own lists every open order; CANCEL needs the reference from the confirmation mail.</value>
+    <comment>Note in StoresView.</comment>
+  </data>
+  <data name="MessageHeaderOnEveryNote" xml:space="preserve">
+    <value>MESSAGE HEADER  (on every mail this store sends)</value>
+    <comment>Note in StoresView.</comment>
+  </data>
+  <data name="HintEGThanksFor" xml:space="preserve">
+    <value>e.g. Thanks for shopping with us.</value>
+    <comment>Hint in an empty box in StoresView.</comment>
+  </data>
+  <data name="TipEveMarkupWorksHere" xml:space="preserve">
+    <value>EVE markup works here: &lt;b&gt;, &lt;i&gt;, &lt;u&gt;, dragged links, and [color=#rrggbb]text[/color]. The colour beside this box tints the whole block; the tag colours part of it.</value>
+    <comment>Tooltip in StoresView.</comment>
+  </data>
+  <data name="MessageFooterLabel" xml:space="preserve">
+    <value>MESSAGE FOOTER</value>
+    <comment>Label in StoresView.</comment>
+  </data>
+  <data name="BothAcceptEveMarkupNote" xml:space="preserve">
+    <value>Both accept EVE markup — bold, italic, underline, dragged links — and [color=#rrggbb]text[/color] for part of a line. The picker beside each box tints the whole block.</value>
+    <comment>Note in StoresView.</comment>
+  </data>
+  <data name="HintEGContractsAre" xml:space="preserve">
+    <value>e.g. Contracts are issued from Jita 4-4.</value>
+    <comment>Hint in an empty box in StoresView.</comment>
+  </data>
+  <data name="TabWebSite" xml:space="preserve">
+    <value>Web site</value>
+    <comment>Tab in StoresView.</comment>
+  </data>
+  <data name="WebSite" xml:space="preserve">
+    <value>Web site</value>
+    <comment>Text in StoresView.</comment>
+  </data>
+  <data name="AShopFrontOnNote" xml:space="preserve">
+    <value>A shop front on the web, on a site you host. Buyers sign in with EVE SSO, see this price list with what is in stock, in build and reserved, place orders and follow them. The app sends the site what it may show and collects what buyers did every few minutes; nothing on the site reaches the database. Who may buy is set on the Restrictions tab, the same for mail and the web.</value>
+    <comment>Note in StoresView.</comment>
+  </data>
+  <data name="OpenOnTheWeb" xml:space="preserve">
+    <value>Open on the web — publish to the site and take its orders</value>
+    <comment>Button or option in StoresView.</comment>
+  </data>
+  <data name="SiteAddress" xml:space="preserve">
+    <value>Site address</value>
+    <comment>Text in StoresView.</comment>
+  </data>
+  <data name="Secret" xml:space="preserve">
+    <value>Secret</value>
+    <comment>Text in StoresView.</comment>
+  </data>
+  <data name="NewSecret" xml:space="preserve">
+    <value>New secret</value>
+    <comment>Button or option in StoresView.</comment>
+  </data>
+  <data name="Theme" xml:space="preserve">
+    <value>Theme</value>
+    <comment>Text in StoresView.</comment>
+  </data>
+  <data name="BuyersMayAlsoChooseLabel" xml:space="preserve">
+    <value>Buyers may also choose:</value>
+    <comment>Label in StoresView.</comment>
+  </data>
+  <data name="CheckTheSite" xml:space="preserve">
+    <value>Check the site</value>
+    <comment>Text in StoresView.</comment>
+  </data>
+  <data name="Every" xml:space="preserve">
+    <value>every</value>
+    <comment>Text in StoresView.</comment>
+  </data>
+  <data name="MinutesABuyerWaitsNote" xml:space="preserve">
+    <value>minutes. A buyer waits up to this long for a confirmation; every call is one of the site's free daily requests.</value>
+    <comment>Note in StoresView.</comment>
+  </data>
+  <data name="AlsoMailWebBuyers" xml:space="preserve">
+    <value>Also mail web buyers as their orders move (needs the character above)</value>
+    <comment>Button or option in StoresView.</comment>
+  </data>
+  <data name="TheThemeIsTheNote" xml:space="preserve">
+    <value>The theme is the store's own and has nothing to do with the theme this desktop is showing. The secret is what the app signs each call with; set the same value as the site's STORE_SYNC_SECRET when you set the site up by hand.</value>
+    <comment>Note in StoresView.</comment>
+  </data>
+  <data name="AboutThisStoreOnTheLabel" xml:space="preserve">
+    <value>ABOUT THIS STORE, ON THE SITE</value>
+    <comment>Label in StoresView.</comment>
+  </data>
+  <data name="HintContractTermsPickupWhatever" xml:space="preserve">
+    <value>Contract terms, pickup, whatever a buyer should read before ordering. Plain text or HTML.</value>
+    <comment>Hint in an empty box in StoresView.</comment>
+  </data>
+  <data name="HtmlIsWelcomeBNote" xml:space="preserve">
+    <value>HTML is welcome: &lt;b&gt; &lt;i&gt; &lt;u&gt; &lt;a href&gt; &lt;br&gt; &lt;p&gt; &lt;h2&gt; &lt;ul&gt; &lt;ol&gt; &lt;li&gt; &lt;hr&gt; &lt;img src&gt; &lt;table&gt; &lt;blockquote&gt; &lt;code&gt; and the mail markup's &lt;font color&gt;. Line breaks and blank lines are kept as written until you lay it out with paragraph or list tags, after which the tags decide. The site drops scripts, handlers and tags it does not know, and closes any tag left open.</value>
+    <comment>Note in StoresView.</comment>
+  </data>
+  <data name="BannerLabel" xml:space="preserve">
+    <value>BANNER</value>
+    <comment>Label in StoresView.</comment>
+  </data>
+  <data name="OptionalShownAcrossTheNote" xml:space="preserve">
+    <value>Optional. Shown across the top of the price list, the width of the page and up to 300 pixels tall; a wide picture, about 1100 by 250, fits best, and a taller one shows its middle. A big file is scaled down and sent as WebP.</value>
+    <comment>Note in StoresView.</comment>
+  </data>
+  <data name="ChoosePicture" xml:space="preserve">
+    <value>Choose picture…</value>
+    <comment>Button or option in StoresView.</comment>
+  </data>
+  <data name="SyncNow" xml:space="preserve">
+    <value>Sync now</value>
+    <comment>Button or option in StoresView.</comment>
+  </data>
+  <data name="EveApplicationNeededBeforeNote" xml:space="preserve">
+    <value>EVE APPLICATION  (needed before buyers can sign in)</value>
+    <comment>Note in StoresView.</comment>
+  </data>
+  <data name="DeployFirstSoTheNote" xml:space="preserve">
+    <value>Deploy first, so the site has an address. Then register an application on the EVE developer site: any name and description, Authentication only (no scopes), and the callback address shown below. Copy its Client ID and Secret Key into the two boxes: a site deployed from here receives them the moment they are saved, and the line under the boxes says whether the site holds these keys. A site set up by hand needs the same values as its EVE_CLIENT_ID and EVE_CLIENT_SECRET secrets.</value>
+    <comment>Note in StoresView.</comment>
+  </data>
+  <data name="OpenDevelopersEveonlineCom" xml:space="preserve">
+    <value>Open developers.eveonline.com to create the application</value>
+    <comment>Button or option in StoresView.</comment>
+  </data>
+  <data name="CallbackUrl" xml:space="preserve">
+    <value>Callback URL</value>
+    <comment>Text in StoresView.</comment>
+  </data>
+  <data name="HintKnownOnceTheSite" xml:space="preserve">
+    <value>Known once the site has an address, or an account and worker name below</value>
+    <comment>Hint in an empty box in StoresView.</comment>
+  </data>
+  <data name="ClientId" xml:space="preserve">
+    <value>Client ID</value>
+    <comment>Text in StoresView.</comment>
+  </data>
+  <data name="HintFromTheApplicationsPage" xml:space="preserve">
+    <value>From the application's page on the developer site</value>
+    <comment>Hint in an empty box in StoresView.</comment>
+  </data>
+  <data name="SecretKey" xml:space="preserve">
+    <value>Secret Key</value>
+    <comment>Text in StoresView.</comment>
+  </data>
+  <data name="HintShownOnceWhenThe" xml:space="preserve">
+    <value>Shown once, when the application is created</value>
+    <comment>Hint in an empty box in StoresView.</comment>
+  </data>
+  <data name="AutomaticDeploymentAndUpdatesNote" xml:space="preserve">
+    <value>AUTOMATIC DEPLOYMENT AND UPDATES ON CLOUDFLARE  (only for the Deploy button)</value>
+    <comment>Note in StoresView.</comment>
+  </data>
+  <data name="FillTheseInOnlyNote" xml:space="preserve">
+    <value>Fill these in only to have the app put the site on your own Cloudflare account and keep it current with the Deploy or update site button: it creates the database, uploads the newest release of the site, sets the secrets above and puts it on the free workers.dev address or a domain of your own on that account. Deploying again updates the site without touching its orders. To set the site up by hand instead, follow the documentation, then enter the site address and secret above; none of these fields is needed for that.</value>
+    <comment>Note in StoresView.</comment>
+  </data>
+  <data name="Documentation" xml:space="preserve">
+    <value>Documentation</value>
+    <comment>Button or option in StoresView.</comment>
+  </data>
+  <data name="SiteSourceAndReleases" xml:space="preserve">
+    <value>Site source and releases</value>
+    <comment>Button or option in StoresView.</comment>
+  </data>
+  <data name="CreateACloudflareApiToken" xml:space="preserve">
+    <value>Create a Cloudflare API token</value>
+    <comment>Button or option in StoresView.</comment>
+  </data>
+  <data name="OnTheCloudflareTokenNote" xml:space="preserve">
+    <value>On the Cloudflare token page: Create Token, the “Edit Cloudflare Workers” template, add the permission D1 Edit, then Continue and Create. Paste it below and press Save token; it is checked, then kept on this machine only, encrypted for your account.</value>
+    <comment>Note in StoresView.</comment>
+  </data>
+  <data name="ApiToken" xml:space="preserve">
+    <value>API token</value>
+    <comment>Text in StoresView.</comment>
+  </data>
+  <data name="HintPasteATokenTo" xml:space="preserve">
+    <value>Paste a token to save it on this machine</value>
+    <comment>Hint in an empty box in StoresView.</comment>
+  </data>
+  <data name="SaveToken" xml:space="preserve">
+    <value>Save token</value>
+    <comment>Button or option in StoresView.</comment>
+  </data>
+  <data name="Forget" xml:space="preserve">
+    <value>Forget</value>
+    <comment>Button or option in StoresView.</comment>
+  </data>
+  <data name="Account" xml:space="preserve">
+    <value>Account</value>
+    <comment>Text in StoresView.</comment>
+  </data>
+  <data name="HintSaveATokenToList" xml:space="preserve">
+    <value>Save a token to list accounts</value>
+    <comment>Hint in an empty box in StoresView.</comment>
+  </data>
+  <data name="WorkerName" xml:space="preserve">
+    <value>Worker name</value>
+    <comment>Text in StoresView.</comment>
+  </data>
+  <data name="AlsoTheDatabasesNameNote" xml:space="preserve">
+    <value>Also the database's name. Lower-case letters, digits and hyphens; the site's address is this name on the account's workers.dev unless a domain of your own is chosen below.</value>
+    <comment>Note in StoresView.</comment>
+  </data>
+  <data name="Address" xml:space="preserve">
+    <value>Address</value>
+    <comment>Text in StoresView.</comment>
+  </data>
+  <data name="TheFreeWorkersDev" xml:space="preserve">
+    <value>The free workers.dev address: the worker name on the account's workers.dev</value>
+    <comment>Button or option in StoresView.</comment>
+  </data>
+  <data name="RenameTheAccountsWorkersDev" xml:space="preserve">
+    <value>Rename the account's workers.dev name…</value>
+    <comment>Button or option in StoresView.</comment>
+  </data>
+  <data name="ADomainOfMy2" xml:space="preserve">
+    <value>A domain of my own on Cloudflare:</value>
+    <comment>Button or option in StoresView.</comment>
+  </data>
+  <data name="ADomainMustAlreadyNote" xml:space="preserve">
+    <value>A domain must already be on this Cloudflare account with its DNS there. The next Deploy attaches the site to it, Cloudflare makes the record and the certificate, and the workers.dev address is switched off so buyers and the EVE application's callback see one name; switching back lets the domain go. Either way the callback URL above changes, so update the EVE application to match.</value>
+    <comment>Note in StoresView.</comment>
+  </data>
+  <data name="DeployOrUpdateSite" xml:space="preserve">
+    <value>Deploy or update site</value>
+    <comment>Button or option in StoresView.</comment>
+  </data>
+  <data name="Check" xml:space="preserve">
+    <value>Check</value>
+    <comment>Button or option in StoresView.</comment>
+  </data>
+  <data name="TabInfo" xml:space="preserve">
+    <value>Info</value>
+    <comment>Tab in StoresView.</comment>
+  </data>
+  <data name="AboutThisStore" xml:space="preserve">
+    <value>About this store</value>
+    <comment>Text in StoresView.</comment>
+  </data>
+  <data name="WhatInfoSendsBackNote" xml:space="preserve">
+    <value>What INFO sends back: who runs the store, what it stocks, delivery terms, whatever a buyer should know before ordering. Leave it empty and the command is not offered — the usage message will not mention INFO, and anyone who mails it anyway gets the usage instead.</value>
+    <comment>Note in StoresView.</comment>
+  </data>
+  <data name="InformationLabel" xml:space="preserve">
+    <value>INFORMATION</value>
+    <comment>Label in StoresView.</comment>
+  </data>
+  <data name="WriteItAsTextNote" xml:space="preserve">
+    <value>Write it as text — newlines become line breaks when it is sent. The same EVE mail markup the usage message takes: &lt;b&gt; &lt;i&gt; &lt;u&gt;, &lt;font size="12"&gt; and &lt;font color="#ffc8a84b"&gt; — colours are ARGB, so the alpha pair is not optional. Whitespace on its own does not count as filled in.</value>
+    <comment>Note in StoresView.</comment>
+  </data>
+  <data name="TabUsage" xml:space="preserve">
+    <value>Usage</value>
+    <comment>Tab in StoresView.</comment>
+  </data>
+  <data name="UsageMessage" xml:space="preserve">
+    <value>Usage message</value>
+    <comment>Text in StoresView.</comment>
+  </data>
+  <data name="WhatHelpSendsAndNote" xml:space="preserve">
+    <value>What HELP sends, and what goes back with anything this store could not understand. The default explains ordering in general; a store with its own rules — one hull per buyer, a fixed price, a programme with conditions — is better off saying so in its own words than sending instructions that do not apply.</value>
+    <comment>Note in StoresView.</comment>
+  </data>
+  <data name="UseACustomUsage" xml:space="preserve">
+    <value>Use a custom usage message for this store</value>
+    <comment>Button or option in StoresView.</comment>
+  </data>
+  <data name="MessageLabel" xml:space="preserve">
+    <value>MESSAGE</value>
+    <comment>Label in StoresView.</comment>
+  </data>
+  <data name="WriteItAsTextNote2" xml:space="preserve">
+    <value>Write it as text — newlines become line breaks when it is sent. EVE mail markup: &lt;b&gt; &lt;i&gt; &lt;u&gt;, &lt;font size="12"&gt; and &lt;font color="#ffc8a84b"&gt; — colours are ARGB, so the alpha pair is not optional. Item and character links are &lt;a href="showinfo:TYPEID"&gt; and &lt;a href="showinfo:1373//CHARACTERID"&gt;. Spaces are kept as written; HTML entities are not decoded and will be drawn as typed.</value>
+    <comment>Note in StoresView.</comment>
+  </data>
+  <data name="ResetToTheDefaultMessage" xml:space="preserve">
+    <value>Reset to the default message</value>
+    <comment>Button or option in StoresView.</comment>
+  </data>
+  <data name="OrderStatusPending" xml:space="preserve">
+    <value>Pending</value>
+    <comment>An order's status, in the list on the order dialog.</comment>
+  </data>
+  <data name="OrderStatusCompleted" xml:space="preserve">
+    <value>Completed</value>
+    <comment>An order's status, in the list on the order dialog.</comment>
+  </data>
+  <data name="OrderStatusCanceled" xml:space="preserve">
+    <value>Canceled</value>
+    <comment>An order's status, in the list on the order dialog.</comment>
+  </data>
+</root>

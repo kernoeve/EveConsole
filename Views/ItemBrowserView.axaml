@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              xmlns:conv="clr-namespace:EveConsole.Views"
              xmlns:collections="clr-namespace:Avalonia.Collections;assembly=Avalonia.Controls.DataGrid"
@@ -49,7 +50,7 @@
                 BorderThickness="0 0 0 1" BorderBrush="{DynamicResource BorderSubtleBrush}">
           <StackPanel Orientation="Horizontal" Spacing="4">
             <Button Command="{Binding GoBackCommand}"
-                    ToolTip.Tip="Go back"
+                    ToolTip.Tip="{x:Static loc:AssetsText.TipGoBack}"
                     Width="26" Height="22" Padding="2 0"
                     FontSize="14" FontWeight="SemiBold"
                     Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextSecondaryBrush}"
@@ -59,7 +60,7 @@
                     VerticalContentAlignment="Center"
                     Content="&#x2190;" />
             <Button Command="{Binding GoForwardCommand}"
-                    ToolTip.Tip="Go forward"
+                    ToolTip.Tip="{x:Static loc:AssetsText.TipGoForward}"
                     Width="26" Height="22" Padding="2 0"
                     FontSize="14" FontWeight="SemiBold"
                     Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextSecondaryBrush}"
@@ -74,7 +75,7 @@
         <!-- Search box -->
         <Border Grid.Row="1" Background="{DynamicResource SurfacePanelBrush}" Padding="10 8" BorderThickness="0 0 0 1" BorderBrush="{DynamicResource BorderSubtleBrush}">
           <TextBox Text="{Binding SearchText}"
-                   Watermark="Search items…"
+                   Watermark="{x:Static loc:AssetsText.HintSearchItems}"
                    Background="{DynamicResource SurfaceRaisedBrush}"
                    BorderBrush="{DynamicResource BorderDefaultBrush}"
                    BorderThickness="1"
@@ -88,7 +89,7 @@
         <!-- Loading indicator -->
         <TextBlock Grid.Row="2"
                    IsVisible="{Binding IsLoading}"
-                   Text="Loading categories…"
+                   Text="{x:Static loc:AssetsText.LoadingCategories}"
                    FontSize="11" Foreground="{DynamicResource TextFaintBrush}"
                    Margin="12 8" />
 
@@ -148,7 +149,7 @@
 
         <!-- Empty state -->
         <TextBlock IsVisible="{Binding NoItem}"
-                   Text="Select an item from the tree or search to view its details."
+                   Text="{x:Static loc:AssetsText.SelectAnItemFromNote}"
                    Foreground="{DynamicResource TextFaintBrush}" FontSize="13"
                    HorizontalAlignment="Center" VerticalAlignment="Center"
                    TextWrapping="Wrap" Margin="40" />
@@ -174,7 +175,7 @@
                 <StackPanel Orientation="Horizontal" Spacing="16" Margin="0 4 0 0">
                   <StackPanel Orientation="Horizontal" Spacing="4"
                               IsVisible="{Binding VolumeText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-                    <TextBlock Text="Volume:" FontSize="12" Foreground="{DynamicResource TextDimBrush}" />
+                    <TextBlock Text="{x:Static loc:AssetsText.VolumeLabel}" FontSize="12" Foreground="{DynamicResource TextDimBrush}" />
                     <TextBlock Text="{Binding VolumeText}" FontSize="12" Foreground="{DynamicResource AccentBrush}" />
                   </StackPanel>
                   <StackPanel Orientation="Horizontal" Spacing="4"
@@ -184,7 +185,7 @@
                   </StackPanel>
                   <StackPanel Orientation="Horizontal" Spacing="4"
                               IsVisible="{Binding HasBuildCost}">
-                    <TextBlock Text="Build Cost:" FontSize="12" Foreground="{DynamicResource TextDimBrush}" />
+                    <TextBlock Text="{x:Static loc:AssetsText.BuildCostLabel}" FontSize="12" Foreground="{DynamicResource TextDimBrush}" />
                     <TextBlock Text="{Binding BuildCostText}"
                                FontSize="12" Foreground="{DynamicResource AccentBrush}"
                                IsVisible="{Binding BuildCostText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
@@ -193,7 +194,7 @@
                   </StackPanel>
                   <StackPanel Orientation="Horizontal" Spacing="4"
                               IsVisible="{Binding ReprocessedValueText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-                    <TextBlock Text="Reproc Value:" FontSize="12" Foreground="{DynamicResource TextDimBrush}" />
+                    <TextBlock Text="{x:Static loc:AssetsText.ReprocValueLabel}" FontSize="12" Foreground="{DynamicResource TextDimBrush}" />
                     <TextBlock Text="{Binding ReprocessedValueText}" FontSize="12" Foreground="{DynamicResource AccentBrush}" />
                   </StackPanel>
                 </StackPanel>
@@ -232,7 +233,7 @@
             </TabControl.Styles>
 
             <!-- Description tab -->
-            <TabItem Header="Description">
+            <TabItem Header="{x:Static loc:AssetsText.TabDescription}">
               <ScrollViewer Padding="20 16">
                 <TextBlock Text="{Binding SelectedItem.Description}"
                            FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}"
@@ -242,7 +243,7 @@
             </TabItem>
 
             <!-- Attributes tab -->
-            <TabItem Header="Attributes">
+            <TabItem Header="{x:Static loc:AssetsText.TabAttributes}">
               <ScrollViewer Padding="16 12">
                 <StackPanel Spacing="12">
 
@@ -293,7 +294,7 @@
             </TabItem>
 
             <!-- Requirements tab: skills needed to use/build this item -->
-            <TabItem Header="Requirements">
+            <TabItem Header="{x:Static loc:AssetsText.TabRequirements}">
               <ScrollViewer Padding="16 12">
                 <StackPanel Spacing="6">
                   <ItemsControl ItemsSource="{Binding SelectedItem.Requirements}">
@@ -317,14 +318,14 @@
                   </ItemsControl>
 
                   <TextBlock IsVisible="{Binding !SelectedItem.HasRequirements}"
-                             Text="No skill requirements."
+                             Text="{x:Static loc:AssetsText.NoSkillRequirements}"
                              FontSize="12" Foreground="{DynamicResource TextFaintBrush}" FontStyle="Italic" />
                 </StackPanel>
               </ScrollViewer>
             </TabItem>
 
             <!-- Required For tab: only relevant when this item is itself a skill -->
-            <TabItem Header="Required For" IsVisible="{Binding SelectedItem.IsSkill}">
+            <TabItem Header="{x:Static loc:AssetsText.TabRequiredFor}" IsVisible="{Binding SelectedItem.IsSkill}">
               <Grid RowDefinitions="Auto,*">
 
                 <!-- Level selector (I - V) -->
@@ -392,7 +393,7 @@
                     </ItemsControl>
 
                     <TextBlock IsVisible="{Binding !HasRequiredForGroups}"
-                               Text="Nothing requires this skill at this level."
+                               Text="{x:Static loc:AssetsText.NothingRequiresThisSkillNote}"
                                FontSize="12" Foreground="{DynamicResource TextFaintBrush}" FontStyle="Italic" />
                   </StackPanel>
                 </ScrollViewer>
@@ -400,7 +401,7 @@
             </TabItem>
 
             <!-- Industry tab -->
-            <TabItem Header="Industry">
+            <TabItem Header="{x:Static loc:AssetsText.TabIndustry}">
               <ScrollViewer Padding="16 12">
                 <StackPanel Spacing="0">
 
@@ -457,7 +458,7 @@
                     <StackPanel x:CompileBindings="False"
                                 IsVisible="{Binding SelectedBpActivity.HasProducts}"
                                 Spacing="6" Margin="0 0 0 20">
-                      <TextBlock Text="OUTCOME" FontSize="10" FontWeight="SemiBold"
+                      <TextBlock Text="{x:Static loc:AssetsText.OutcomeLabel}" FontSize="10" FontWeight="SemiBold"
                                  Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" Margin="0 0 0 2" />
                       <ItemsControl ItemsSource="{Binding SelectedBpActivity.Products}">
                         <ItemsControl.ItemTemplate>
@@ -493,7 +494,7 @@
                     <StackPanel x:CompileBindings="False"
                                 IsVisible="{Binding SelectedBpActivity.HasSkills}"
                                 Spacing="6" Margin="0 0 0 20">
-                      <TextBlock Text="REQUIRED SKILLS" FontSize="10" FontWeight="SemiBold"
+                      <TextBlock Text="{x:Static loc:AssetsText.RequiredSkillsLabel}" FontSize="10" FontWeight="SemiBold"
                                  Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" Margin="0 0 0 2" />
                       <ItemsControl ItemsSource="{Binding SelectedBpActivity.Skills}">
                         <ItemsControl.ItemTemplate>
@@ -520,7 +521,7 @@
                     <StackPanel x:CompileBindings="False"
                                 IsVisible="{Binding SelectedBpActivity.HasMaterials}"
                                 Spacing="6">
-                      <TextBlock Text="INPUT MATERIALS" FontSize="10" FontWeight="SemiBold"
+                      <TextBlock Text="{x:Static loc:AssetsText.InputMaterialsLabel}" FontSize="10" FontWeight="SemiBold"
                                  Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" Margin="0 0 0 2" />
                       <ItemsControl ItemsSource="{Binding SelectedBpActivity.Materials}">
                         <ItemsControl.ItemTemplate>
@@ -548,13 +549,13 @@
                   <StackPanel IsVisible="{Binding SelectedItem.IsNotBlueprint}" Spacing="20">
 
                     <TextBlock IsVisible="{Binding !SelectedItem.HasIndustry}"
-                               Text="No blueprint data available for this item."
+                               Text="{x:Static loc:AssetsText.NoBlueprintDataAvailableNote}"
                                FontSize="12" Foreground="{DynamicResource TextFaintBrush}"
                                Margin="4 8" />
 
                     <!-- Produced By -->
                     <StackPanel IsVisible="{Binding SelectedItem.HasProducedBy}" Spacing="8">
-                      <TextBlock Text="PRODUCED BY" FontSize="10" FontWeight="SemiBold"
+                      <TextBlock Text="{x:Static loc:AssetsText.ProducedByLabel}" FontSize="10" FontWeight="SemiBold"
                                  Foreground="{DynamicResource TextDimBrush}" LetterSpacing="1" />
                       <ItemsControl ItemsSource="{Binding SelectedItem.ProducedBy}">
                         <ItemsControl.ItemTemplate>
@@ -571,7 +572,7 @@
                                              FontSize="13" FontWeight="SemiBold"
                                              Foreground="{DynamicResource AccentBrush}" TextDecorations="Underline" />
                                 </Button>
-                                <TextBlock Text="Required Materials:" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" />
+                                <TextBlock Text="{x:Static loc:AssetsText.RequiredMaterialsLabel}" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" />
                                 <ItemsControl ItemsSource="{Binding Materials}">
                                   <ItemsControl.ItemTemplate>
                                     <DataTemplate x:DataType="vm:BlueprintMatVm">
@@ -600,20 +601,20 @@
                     <!-- Produced by reprocessing. For a great many items this is the ONLY way they
                          are made: nothing on Helium Isotopes said they come out of Clear Icicle. -->
                     <StackPanel IsVisible="{Binding SelectedItem.HasReprocessedFrom}" Spacing="8">
-                      <TextBlock Text="PRODUCED BY REPROCESSING" FontSize="10" FontWeight="SemiBold"
+                      <TextBlock Text="{x:Static loc:AssetsText.ProducedByReprocessingLabel}" FontSize="10" FontWeight="SemiBold"
                                  Foreground="{DynamicResource TextDimBrush}" LetterSpacing="1" />
                       <TextBlock FontSize="11" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
-                                 Text="Reprocess one batch of these and this item is among what comes back. Each row is judged against its own ceiling — 90.6% for ore, ice and moon ore, 55% for everything else — so the amounts are the best case, not the SDE's 100% figures." />
+                                 Text="{x:Static loc:AssetsText.ReprocessOneBatchOfNote}" />
                       <StackPanel Orientation="Horizontal" Spacing="8">
-                        <TextBlock Text="Show:" FontSize="11" Foreground="{DynamicResource TextDimBrush}"
+                        <TextBlock Text="{x:Static loc:AssetsText.ShowLabel}" FontSize="11" Foreground="{DynamicResource TextDimBrush}"
                                    VerticalAlignment="Center"/>
                         <ComboBox ItemsSource="{Binding ReprocessSourceFilters}"
                                   SelectedItem="{Binding SelectedReprocessSourceFilter}"
                                   MinWidth="110" FontSize="11"
-                                  ToolTip.Tip="Ore includes ice and moon ore — everything in the Asteroid category. Non Ore is the rest: modules, ships, salvage and the like."/>
+                                  ToolTip.Tip="{x:Static loc:AssetsText.TipOreIncludesIceAnd}"/>
                       </StackPanel>
                       <TextBlock IsVisible="{Binding ReprocessedFromFilteredEmpty}"
-                                 Text="None of that kind yields this item."
+                                 Text="{x:Static loc:AssetsText.NoneOfThatKindNote}"
                                  FontSize="11" FontStyle="Italic" Foreground="{DynamicResource TextFaintBrush}"/>
                       <ItemsControl ItemsSource="{Binding ReprocessedFromShown}">
                         <ItemsControl.ItemTemplate>
@@ -649,10 +650,10 @@
                     <!-- What this item yields when reprocessed. One rate for the section, because
                          it is one item going in; the caption names it. -->
                     <StackPanel IsVisible="{Binding SelectedItem.HasReprocessedTo}" Spacing="8">
-                      <TextBlock Text="REPROCESSES TO" FontSize="10" FontWeight="SemiBold"
+                      <TextBlock Text="{x:Static loc:AssetsText.ReprocessesToLabel}" FontSize="10" FontWeight="SemiBold"
                                  Foreground="{DynamicResource TextDimBrush}" LetterSpacing="1" />
                       <TextBlock FontSize="11" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
-                                 Text="{Binding SelectedItem.RefineRateText, StringFormat='What one batch returns at {0}, the best this item can be refined at — a rigged Tatara in nullsec with the skills and implants for it. Ore, ice and moon ore top out at 90.6%; everything else is scrapmetal, where 55% is the ceiling however good the structure. Your own refine will return less.'}" />
+                                 Text="{Binding SelectedItem.RefineRateText, StringFormat={x:Static loc:AssetsText.FmtWhatOneBatchReturns}}" />
                       <ItemsControl ItemsSource="{Binding SelectedItem.ReprocessedTo}">
                         <ItemsControl.ItemTemplate>
                           <DataTemplate x:DataType="vm:ReprocessOutputVm">
@@ -679,7 +680,7 @@
 
                     <!-- Used In -->
                     <StackPanel IsVisible="{Binding SelectedItem.HasUsedIn}" Spacing="8">
-                      <TextBlock Text="USED IN MANUFACTURING" FontSize="10" FontWeight="SemiBold"
+                      <TextBlock Text="{x:Static loc:AssetsText.UsedInManufacturingLabel}" FontSize="10" FontWeight="SemiBold"
                                  Foreground="{DynamicResource TextDimBrush}" LetterSpacing="1" />
                       <ItemsControl ItemsSource="{Binding SelectedItem.UsedIn}">
                         <ItemsControl.ItemTemplate>
@@ -712,16 +713,16 @@
 
             <!-- Assets tab: every stack of this one item the app knows of, grouped by where it is
                  or by who holds it. The rows are the Asset Browser's own, filtered to the type. -->
-            <TabItem Header="Assets">
+            <TabItem Header="{x:Static loc:AssetsText.TabAssets}">
               <Grid RowDefinitions="Auto,6,Auto,8,*" Margin="16 12">
 
                 <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10">
-                  <TextBlock Text="Group by:" FontSize="12" Foreground="{DynamicResource TextDimBrush}"
+                  <TextBlock Text="{x:Static loc:AssetsText.GroupByLabel}" FontSize="12" Foreground="{DynamicResource TextDimBrush}"
                              VerticalAlignment="Center"/>
                   <ComboBox ItemsSource="{Binding AssetGroupOptions}"
                             SelectedItem="{Binding SelectedAssetGroup}"
                             MinWidth="110" FontSize="11"/>
-                  <TextBlock Text="Scope:" FontSize="12" Foreground="{DynamicResource TextDimBrush}"
+                  <TextBlock Text="{x:Static loc:AssetsText.ScopeLabel2}" FontSize="12" Foreground="{DynamicResource TextDimBrush}"
                              VerticalAlignment="Center" Margin="10 0 0 0"/>
                   <ComboBox ItemsSource="{Binding AssetScopeOptions}"
                             SelectedItem="{Binding SelectedAssetScope}"
@@ -766,12 +767,12 @@
                     </Style>
                   </DataGrid.Styles>
                   <DataGrid.Columns>
-                    <DataGridTemplateColumn Header="Location" Width="2*" SortMemberPath="Location" ClipboardContentBinding="{Binding Location}">
+                    <DataGridTemplateColumn Header="{x:Static loc:AssetsText.ColLocation}" Width="2*" SortMemberPath="Location" ClipboardContentBinding="{Binding Location}">
                       <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="vm:ItemAssetRowVm">
                           <Panel Margin="6 0">
                             <Button Classes="link" Click="OnOpenAssetLocation" IsVisible="{Binding HasLocationLink}"
-                                    ToolTip.Tip="Open this location">
+                                    ToolTip.Tip="{x:Static loc:AssetsText.TipOpenThisLocation}">
                               <TextBlock Text="{Binding Location}" FontSize="11" TextTrimming="CharacterEllipsis"
                                          Foreground="{DynamicResource TextPrimaryBrush}"/>
                             </Button>
@@ -782,12 +783,12 @@
                         </DataTemplate>
                       </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="Owner" Width="170" SortMemberPath="Owner" ClipboardContentBinding="{Binding Owner}">
+                    <DataGridTemplateColumn Header="{x:Static loc:AssetsText.ColOwner}" Width="170" SortMemberPath="Owner" ClipboardContentBinding="{Binding Owner}">
                       <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="vm:ItemAssetRowVm">
                           <Panel Margin="6 0">
                             <Button Classes="link" Click="OnOpenAssetOwner" IsVisible="{Binding HasOwnerLink}"
-                                    ToolTip.Tip="Open in the entity browser">
+                                    ToolTip.Tip="{x:Static loc:AssetsText.TipOpenInTheEntityBrowser}">
                               <TextBlock Text="{Binding Owner}" FontSize="11" TextTrimming="CharacterEllipsis"
                                          Foreground="{DynamicResource TextPrimaryBrush}"/>
                             </Button>
@@ -798,7 +799,7 @@
                         </DataTemplate>
                       </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="Qty" Width="90" SortMemberPath="Quantity" ClipboardContentBinding="{Binding QuantityText}">
+                    <DataGridTemplateColumn Header="{x:Static loc:AssetsText.ColQty}" Width="90" SortMemberPath="Quantity" ClipboardContentBinding="{Binding QuantityText}">
                       <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="vm:ItemAssetRowVm">
                           <TextBlock Text="{Binding QuantityText}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"
@@ -809,9 +810,9 @@
                     <!-- ⚠️ FontSize on each text column: a DataGridTextColumn does not take the
                          grid's FontSize, it has its own larger default — the templated columns
                          around these set 11 on their TextBlocks. -->
-                    <DataGridTextColumn Header="Container" Binding="{Binding Container}" Width="1.5*" FontSize="11"/>
-                    <DataGridTextColumn Header="Flag"      Binding="{Binding Flag}"      Width="110"  FontSize="11"/>
-                    <DataGridTemplateColumn Header="Value" Width="90" SortMemberPath="Value" ClipboardContentBinding="{Binding ValueText}">
+                    <DataGridTextColumn Header="{x:Static loc:AssetsText.ColContainer}" Binding="{Binding Container}" Width="1.5*" FontSize="11"/>
+                    <DataGridTextColumn Header="{x:Static loc:AssetsText.ColFlag}"      Binding="{Binding Flag}"      Width="110"  FontSize="11"/>
+                    <DataGridTemplateColumn Header="{x:Static loc:AssetsText.ColValue}" Width="90" SortMemberPath="Value" ClipboardContentBinding="{Binding ValueText}">
                       <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="vm:ItemAssetRowVm">
                           <TextBlock Text="{Binding ValueText}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"
@@ -819,12 +820,12 @@
                         </DataTemplate>
                       </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="System" Width="120" SortMemberPath="SolarSystem" ClipboardContentBinding="{Binding SolarSystem}">
+                    <DataGridTemplateColumn Header="{x:Static loc:AssetsText.ColSystem}" Width="120" SortMemberPath="SolarSystem" ClipboardContentBinding="{Binding SolarSystem}">
                       <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="vm:ItemAssetRowVm">
                           <Panel Margin="6 0">
                             <Button Classes="link" Click="OnOpenAssetSystem" IsVisible="{Binding HasSystemLink}"
-                                    ToolTip.Tip="Open this system">
+                                    ToolTip.Tip="{x:Static loc:AssetsText.TipOpenThisSystem}">
                               <TextBlock Text="{Binding SolarSystem}" FontSize="11" TextTrimming="CharacterEllipsis"
                                          Foreground="{DynamicResource TextPrimaryBrush}"/>
                             </Button>
@@ -834,7 +835,7 @@
                         </DataTemplate>
                       </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="Sec" Width="46" SortMemberPath="Security" ClipboardContentBinding="{Binding SecurityText}">
+                    <DataGridTemplateColumn Header="{x:Static loc:AssetsText.ColSec}" Width="46" SortMemberPath="Security" ClipboardContentBinding="{Binding SecurityText}">
                       <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="vm:ItemAssetRowVm">
                           <TextBlock Text="{Binding SecurityText}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
@@ -842,37 +843,37 @@
                         </DataTemplate>
                       </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTextColumn Header="Region" Binding="{Binding Region}" Width="120" FontSize="11"/>
+                    <DataGridTextColumn Header="{x:Static loc:AssetsText.ColRegion}" Binding="{Binding Region}" Width="120" FontSize="11"/>
                   </DataGrid.Columns>
                 </DataGrid>
               </Grid>
             </TabItem>
 
             <!-- LP Store tab — hidden unless some NPC corporation sells this item -->
-            <TabItem Header="LP Store" IsVisible="{Binding HasLpOffers}">
+            <TabItem Header="{x:Static loc:AssetsText.TabLpStore}" IsVisible="{Binding HasLpOffers}">
               <Grid RowDefinitions="Auto,8,*" Margin="16 12">
 
                 <TextBlock Grid.Row="0" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
-                           Text="Offered by the loyalty point stores below. An item can be sold by several corporations at different rates — the one worth using is whichever you hold LP with. Your balance is the highest any single character holds."/>
+                           Text="{x:Static loc:AssetsText.OfferedByTheLoyaltyNote}"/>
 
                 <DataGrid Grid.Row="2" ItemsSource="{Binding LpOffers}"
                           IsReadOnly="True" AutoGenerateColumns="False" FontSize="11"
                           Background="Transparent" GridLinesVisibility="None"
                           RowBackground="Transparent">
                   <DataGrid.Columns>
-                    <DataGridTemplateColumn Header="Corporation" Width="220" SortMemberPath="CorporationName" ClipboardContentBinding="{Binding CorporationName}">
+                    <DataGridTemplateColumn Header="{x:Static loc:AssetsText.ColCorporation}" Width="220" SortMemberPath="CorporationName" ClipboardContentBinding="{Binding CorporationName}">
                       <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="vm:LpOfferVm">
                           <Button Classes="link" Click="OnOpenLpCorp" Padding="0"
                                   HorizontalAlignment="Left" HorizontalContentAlignment="Left"
-                                  ToolTip.Tip="Open this corporation in NPC Entities">
+                                  ToolTip.Tip="{x:Static loc:AssetsText.TipOpenThisCorporationInNpc}">
                             <TextBlock Text="{Binding CorporationName}" FontSize="11"
                                        Foreground="{DynamicResource TextPrimaryBrush}"/>
                           </Button>
                         </DataTemplate>
                       </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="Qty" Width="60" SortMemberPath="Quantity" ClipboardContentBinding="{Binding QuantityText}">
+                    <DataGridTemplateColumn Header="{x:Static loc:AssetsText.ColQty}" Width="60" SortMemberPath="Quantity" ClipboardContentBinding="{Binding QuantityText}">
                       <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="vm:LpOfferVm">
                           <TextBlock Text="{Binding QuantityText}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"
@@ -880,7 +881,7 @@
                         </DataTemplate>
                       </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="LP Cost" Width="110" SortMemberPath="LpCost" ClipboardContentBinding="{Binding LpText}">
+                    <DataGridTemplateColumn Header="{x:Static loc:AssetsText.ColLpCost}" Width="110" SortMemberPath="LpCost" ClipboardContentBinding="{Binding LpText}">
                       <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="vm:LpOfferVm">
                           <TextBlock Text="{Binding LpText}" FontSize="11" Foreground="{DynamicResource AccentBrush}"
@@ -888,7 +889,7 @@
                         </DataTemplate>
                       </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="ISK Cost" Width="140" SortMemberPath="IskCost" ClipboardContentBinding="{Binding IskText}">
+                    <DataGridTemplateColumn Header="{x:Static loc:AssetsText.ColIskCost}" Width="140" SortMemberPath="IskCost" ClipboardContentBinding="{Binding IskText}">
                       <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="vm:LpOfferVm">
                           <TextBlock Text="{Binding IskText}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"
@@ -896,7 +897,7 @@
                         </DataTemplate>
                       </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="Your LP" Width="110" SortMemberPath="LpHeld" ClipboardContentBinding="{Binding HeldText}">
+                    <DataGridTemplateColumn Header="{x:Static loc:AssetsText.ColYourLp}" Width="110" SortMemberPath="LpHeld" ClipboardContentBinding="{Binding HeldText}">
                       <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="vm:LpOfferVm">
                           <TextBlock Text="{Binding HeldText}" FontSize="11"
@@ -905,18 +906,18 @@
                         </DataTemplate>
                       </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="LP Est. Value" Width="130" SortMemberPath="IskPerLp" ClipboardContentBinding="{Binding IskPerLpText}">
+                    <DataGridTemplateColumn Header="{x:Static loc:AssetsText.ColLpEstValue}" Width="130" SortMemberPath="IskPerLp" ClipboardContentBinding="{Binding IskPerLpText}">
                       <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="vm:LpOfferVm">
                           <TextBlock Text="{Binding IskPerLpText}" FontSize="11"
                                      Foreground="{Binding IskPerLpColor}"
                                      TextAlignment="Right" Margin="0 0 6 0" VerticalAlignment="Center"
-                                     ToolTip.Tip="Item value less ISK and required items, per LP, both reduced to a single unit."/>
+                                     ToolTip.Tip="{x:Static loc:AssetsText.TipItemValueLessIsk}"/>
                         </DataTemplate>
                       </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
                     <!-- FontSize on each: text columns ignore the grid's (see the Assets grid). -->
-                    <DataGridTextColumn Header="Required Items" Binding="{Binding RequiredText}" Width="*"  FontSize="11"/>
+                    <DataGridTextColumn Header="{x:Static loc:AssetsText.ColRequiredItems}" Binding="{Binding RequiredText}" Width="*"  FontSize="11"/>
                     <DataGridTextColumn Header="AK" Binding="{Binding AkText}" Width="80" FontSize="11"/>
                   </DataGrid.Columns>
                 </DataGrid>
@@ -924,11 +925,11 @@
             </TabItem>
 
             <!-- Market Orders tab -->
-            <TabItem Header="Market Orders">
+            <TabItem Header="{x:Static loc:AssetsText.TabMarketOrders}">
               <Grid RowDefinitions="Auto,8,*,8,*" Margin="16 12">
 
                 <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10">
-                  <TextBlock Text="Source:" FontSize="12" Foreground="{DynamicResource TextDimBrush}"
+                  <TextBlock Text="{x:Static loc:AssetsText.SourceLabel}" FontSize="12" Foreground="{DynamicResource TextDimBrush}"
                              VerticalAlignment="Center" />
                   <ComboBox ItemsSource="{Binding MarketConfigs}"
                             SelectedItem="{Binding SelectedMarketConfig}"
@@ -940,13 +941,13 @@
 
                 <TextBlock Grid.Row="0" Grid.RowSpan="5"
                            IsVisible="{Binding !HasMarketConfigs}"
-                           Text="No ESI market sources configured. Add an ESI Region or ESI Structure source in Settings → Market."
+                           Text="{x:Static loc:AssetsText.NoEsiMarketSourcesNote}"
                            FontSize="12" Foreground="{DynamicResource TextFaintBrush}"
                            HorizontalAlignment="Center" VerticalAlignment="Center"
                            TextWrapping="Wrap" TextAlignment="Center" Margin="32" />
 
                 <Grid Grid.Row="2" RowDefinitions="Auto,*" IsVisible="{Binding HasMarketConfigs}">
-                  <TextBlock Grid.Row="0" Text="SELL ORDERS" FontSize="11" FontWeight="SemiBold"
+                  <TextBlock Grid.Row="0" Text="{x:Static loc:AssetsText.SellOrdersLabel}" FontSize="11" FontWeight="SemiBold"
                              Foreground="{DynamicResource BadBrush}" LetterSpacing="1" Margin="0 0 0 4" />
                   <DataGrid Grid.Row="1"
                             ItemsSource="{Binding SellOrders}"
@@ -964,21 +965,21 @@
                       </Style>
                     </DataGrid.Styles>
                     <DataGrid.Columns>
-                      <DataGridTextColumn Header="Qty"
+                      <DataGridTextColumn Header="{x:Static loc:AssetsText.ColQty}"
                                           Binding="{ReflectionBinding VolumeRemainText}"
                                           SortMemberPath="VolumeRemain"
                                           Width="80" />
-                      <DataGridTextColumn Header="Price (ISK)"
+                      <DataGridTextColumn Header="{x:Static loc:AssetsText.ColPriceIsk}"
                                           Binding="{ReflectionBinding PriceText}"
                                           SortMemberPath="Price"
                                           Width="130" />
-                      <DataGridTemplateColumn Header="Location" SortMemberPath="LocationName" Width="*" ClipboardContentBinding="{Binding LocationName}">
+                      <DataGridTemplateColumn Header="{x:Static loc:AssetsText.ColLocation}" SortMemberPath="LocationName" Width="*" ClipboardContentBinding="{Binding LocationName}">
                         <DataGridTemplateColumn.CellTemplate>
                           <DataTemplate x:DataType="vm:OrderRowVm">
                             <Panel>
                               <Button Classes="link" Click="OnOpenOrderLocation"
                                       IsVisible="{Binding HasLocationLink}"
-                                      ToolTip.Tip="Open this station or structure">
+                                      ToolTip.Tip="{x:Static loc:AssetsText.TipOpenThisStationOrStructure}">
                                 <TextBlock Text="{Binding LocationName}" Classes="linktext"
                                            VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                               </Button>
@@ -988,7 +989,7 @@
                           </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                       </DataGridTemplateColumn>
-                      <DataGridTemplateColumn Header="Sec" SortMemberPath="Security" Width="55" ClipboardContentBinding="{ReflectionBinding SecurityText}">
+                      <DataGridTemplateColumn Header="{x:Static loc:AssetsText.ColSec}" SortMemberPath="Security" Width="55" ClipboardContentBinding="{ReflectionBinding SecurityText}">
                         <DataGridTemplateColumn.CellTemplate>
                           <DataTemplate>
                             <TextBlock Text="{ReflectionBinding SecurityText}"
@@ -998,7 +999,7 @@
                           </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                       </DataGridTemplateColumn>
-                      <DataGridTextColumn Header="Expires"
+                      <DataGridTextColumn Header="{x:Static loc:AssetsText.ColExpires}"
                                           Binding="{ReflectionBinding ExpiresText}"
                                           SortMemberPath="Expires"
                                           Width="90" />
@@ -1007,7 +1008,7 @@
                 </Grid>
 
                 <Grid Grid.Row="4" RowDefinitions="Auto,*" IsVisible="{Binding HasMarketConfigs}">
-                  <TextBlock Grid.Row="0" Text="BUY ORDERS" FontSize="11" FontWeight="SemiBold"
+                  <TextBlock Grid.Row="0" Text="{x:Static loc:AssetsText.BuyOrdersLabel}" FontSize="11" FontWeight="SemiBold"
                              Foreground="{DynamicResource GoodBrush}" LetterSpacing="1" Margin="0 0 0 4" />
                   <DataGrid Grid.Row="1"
                             ItemsSource="{Binding BuyOrders}"
@@ -1025,29 +1026,29 @@
                       </Style>
                     </DataGrid.Styles>
                     <DataGrid.Columns>
-                      <DataGridTextColumn Header="Qty"
+                      <DataGridTextColumn Header="{x:Static loc:AssetsText.ColQty}"
                                           Binding="{ReflectionBinding VolumeRemainText}"
                                           SortMemberPath="VolumeRemain"
                                           Width="80" />
-                      <DataGridTextColumn Header="Price (ISK)"
+                      <DataGridTextColumn Header="{x:Static loc:AssetsText.ColPriceIsk}"
                                           Binding="{ReflectionBinding PriceText}"
                                           SortMemberPath="Price"
                                           Width="130" />
-                      <DataGridTextColumn Header="Range"
+                      <DataGridTextColumn Header="{x:Static loc:AssetsText.ColRange}"
                                           Binding="{ReflectionBinding RangeDisplay}"
                                           SortMemberPath="Range"
                                           Width="90" />
-                      <DataGridTextColumn Header="Min Qty"
+                      <DataGridTextColumn Header="{x:Static loc:AssetsText.ColMinQty}"
                                           Binding="{ReflectionBinding MinVolumeText}"
                                           SortMemberPath="MinVolume"
                                           Width="75" />
-                      <DataGridTemplateColumn Header="Location" SortMemberPath="LocationName" Width="*" ClipboardContentBinding="{Binding LocationName}">
+                      <DataGridTemplateColumn Header="{x:Static loc:AssetsText.ColLocation}" SortMemberPath="LocationName" Width="*" ClipboardContentBinding="{Binding LocationName}">
                         <DataGridTemplateColumn.CellTemplate>
                           <DataTemplate x:DataType="vm:OrderRowVm">
                             <Panel>
                               <Button Classes="link" Click="OnOpenOrderLocation"
                                       IsVisible="{Binding HasLocationLink}"
-                                      ToolTip.Tip="Open this station or structure">
+                                      ToolTip.Tip="{x:Static loc:AssetsText.TipOpenThisStationOrStructure}">
                                 <TextBlock Text="{Binding LocationName}" Classes="linktext"
                                            VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                               </Button>
@@ -1057,7 +1058,7 @@
                           </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                       </DataGridTemplateColumn>
-                      <DataGridTemplateColumn Header="Sec" SortMemberPath="Security" Width="55" ClipboardContentBinding="{ReflectionBinding SecurityText}">
+                      <DataGridTemplateColumn Header="{x:Static loc:AssetsText.ColSec}" SortMemberPath="Security" Width="55" ClipboardContentBinding="{ReflectionBinding SecurityText}">
                         <DataGridTemplateColumn.CellTemplate>
                           <DataTemplate>
                             <TextBlock Text="{ReflectionBinding SecurityText}"
@@ -1067,7 +1068,7 @@
                           </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                       </DataGridTemplateColumn>
-                      <DataGridTextColumn Header="Expires"
+                      <DataGridTextColumn Header="{x:Static loc:AssetsText.ColExpires}"
                                           Binding="{ReflectionBinding ExpiresText}"
                                           SortMemberPath="Expires"
                                           Width="90" />
@@ -1079,13 +1080,13 @@
             </TabItem>
 
             <!-- Price History tab -->
-            <TabItem Header="Price History"
+            <TabItem Header="{x:Static loc:AssetsText.TabPriceHistory}"
                      IsVisible="{Binding HasPriceHistoryRegions}">
               <Grid RowDefinitions="Auto,8,*" Margin="16 12">
 
                 <!-- Header row: region picker + period picker + loading indicator -->
                 <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10">
-                  <TextBlock Text="Region:" FontSize="12" Foreground="{DynamicResource TextDimBrush}"
+                  <TextBlock Text="{x:Static loc:AssetsText.RegionLabel}" FontSize="12" Foreground="{DynamicResource TextDimBrush}"
                              VerticalAlignment="Center" />
                   <ComboBox x:CompileBindings="False"
                             ItemsSource="{Binding HistoryRegions}"
@@ -1097,7 +1098,7 @@
                       </DataTemplate>
                     </ComboBox.ItemTemplate>
                   </ComboBox>
-                  <TextBlock Text="Period:" FontSize="12" Foreground="{DynamicResource TextDimBrush}"
+                  <TextBlock Text="{x:Static loc:AssetsText.PeriodLabel}" FontSize="12" Foreground="{DynamicResource TextDimBrush}"
                              VerticalAlignment="Center" />
                   <ComboBox x:CompileBindings="False"
                             ItemsSource="{Binding PeriodOptions}"
@@ -1117,7 +1118,7 @@
                 <!-- Empty state -->
                 <TextBlock Grid.Row="2"
                            IsVisible="{Binding HistoryIsEmpty}"
-                           Text="No price history available for this item in the selected region."
+                           Text="{x:Static loc:AssetsText.NoPriceHistoryAvailableNote}"
                            FontSize="12" Foreground="{DynamicResource TextFaintBrush}"
                            HorizontalAlignment="Center" VerticalAlignment="Center"
                            TextWrapping="Wrap" TextAlignment="Center" Margin="32" />
@@ -1139,7 +1140,7 @@
                     </Style>
                   </TabControl.Styles>
 
-                  <TabItem Header="Chart">
+                  <TabItem Header="{x:Static loc:AssetsText.TabChart}">
                     <lvc:CartesianChart Series="{Binding HistorySeries}"
                                         XAxes="{Binding HistoryXAxes}"
                                         YAxes="{Binding HistoryYAxes}"
@@ -1149,7 +1150,7 @@
                                         Background="Transparent" />
                   </TabItem>
 
-                  <TabItem Header="Grid">
+                  <TabItem Header="{x:Static loc:AssetsText.TabGrid}">
                     <DataGrid x:CompileBindings="False"
                               ItemsSource="{Binding HistoryRows}"
                               AutoGenerateColumns="False"
@@ -1157,12 +1158,12 @@
                               CanUserSortColumns="True"
                               CanUserResizeColumns="True">
                       <DataGrid.Columns>
-                        <DataGridTextColumn Header="Date"       Binding="{ReflectionBinding Date}"                                    Width="115" />
-                        <DataGridTextColumn Header="Volume"     Binding="{ReflectionBinding Volume,    StringFormat=N0}"              Width="120" SortMemberPath="Volume" />
-                        <DataGridTextColumn Header="Avg Price"  Binding="{ReflectionBinding Average,   StringFormat=N2}"              Width="140" SortMemberPath="Average" />
-                        <DataGridTextColumn Header="High"       Binding="{ReflectionBinding Highest,   StringFormat=N2}"              Width="140" SortMemberPath="Highest" />
-                        <DataGridTextColumn Header="Low"        Binding="{ReflectionBinding Lowest,    StringFormat=N2}"              Width="140" SortMemberPath="Lowest" />
-                        <DataGridTextColumn Header="Orders"     Binding="{ReflectionBinding OrderCount}"                              Width="95"  SortMemberPath="OrderCount" />
+                        <DataGridTextColumn Header="{x:Static loc:AssetsText.ColDate}"       Binding="{ReflectionBinding Date}"                                    Width="115" />
+                        <DataGridTextColumn Header="{x:Static loc:AssetsText.ColVolume}"     Binding="{ReflectionBinding Volume,    StringFormat=N0}"              Width="120" SortMemberPath="Volume" />
+                        <DataGridTextColumn Header="{x:Static loc:AssetsText.ColAvgPrice}"  Binding="{ReflectionBinding Average,   StringFormat=N2}"              Width="140" SortMemberPath="Average" />
+                        <DataGridTextColumn Header="{x:Static loc:AssetsText.ColHigh}"       Binding="{ReflectionBinding Highest,   StringFormat=N2}"              Width="140" SortMemberPath="Highest" />
+                        <DataGridTextColumn Header="{x:Static loc:AssetsText.ColLow}"        Binding="{ReflectionBinding Lowest,    StringFormat=N2}"              Width="140" SortMemberPath="Lowest" />
+                        <DataGridTextColumn Header="{x:Static loc:AssetsText.ColOrders}"     Binding="{ReflectionBinding OrderCount}"                              Width="95"  SortMemberPath="OrderCount" />
                       </DataGrid.Columns>
                     </DataGrid>
                   </TabItem>
@@ -1173,12 +1174,12 @@
             </TabItem>
 
             <!-- Derived History tab -->
-            <TabItem Header="Derived History">
+            <TabItem Header="{x:Static loc:AssetsText.TabDerivedHistory}">
               <Grid RowDefinitions="Auto,8,*" Margin="16 12">
 
                 <!-- Header row: period picker + loading indicator -->
                 <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10">
-                  <TextBlock Text="Period:" FontSize="12" Foreground="{DynamicResource TextDimBrush}"
+                  <TextBlock Text="{x:Static loc:AssetsText.PeriodLabel}" FontSize="12" Foreground="{DynamicResource TextDimBrush}"
                              VerticalAlignment="Center" />
                   <ComboBox x:CompileBindings="False"
                             ItemsSource="{Binding PeriodOptions}"
@@ -1198,7 +1199,7 @@
                 <!-- Empty state -->
                 <TextBlock Grid.Row="2"
                            IsVisible="{Binding DerivedIsEmpty}"
-                           Text="No derived price history recorded for this item yet. A daily snapshot of market, build, contract and reprocessed value is captured automatically as prices refresh."
+                           Text="{x:Static loc:AssetsText.NoDerivedPriceHistoryNote}"
                            FontSize="12" Foreground="{DynamicResource TextFaintBrush}"
                            HorizontalAlignment="Center" VerticalAlignment="Center"
                            TextWrapping="Wrap" TextAlignment="Center" Margin="32" />

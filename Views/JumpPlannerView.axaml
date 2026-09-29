@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              xmlns:svc="clr-namespace:EveConsole.Services"
              xmlns:ctl="clr-namespace:EveConsole.Controls"
@@ -62,22 +63,22 @@
     <ScrollViewer Grid.Column="0" Background="{DynamicResource SurfaceBaseBrush}" Padding="12 12">
       <StackPanel Spacing="14">
 
-        <TextBlock Classes="section" Text="SHIP" />
+        <TextBlock Classes="section" Text="{x:Static loc:MapText.ShipLabel}" />
         <StackPanel Spacing="8">
           <StackPanel>
-            <TextBlock Classes="flabel" Text="HULL" />
+            <TextBlock Classes="flabel" Text="{x:Static loc:MapText.HullLabel}" />
             <ComboBox ItemsSource="{Binding Ships}" SelectedItem="{Binding SelectedShip}"
                       HorizontalAlignment="Stretch" MaxDropDownHeight="360" />
           </StackPanel>
 
           <Grid ColumnDefinitions="*,*">
             <StackPanel Grid.Column="0" Margin="0 0 5 0">
-              <TextBlock Classes="flabel" Text="JUMP DRIVE CALIBRATION" />
+              <TextBlock Classes="flabel" Text="{x:Static loc:MapText.JumpDriveCalibrationLabel}" />
               <ComboBox ItemsSource="{Binding SkillLevels}" SelectedItem="{Binding JdcLevel}"
                         HorizontalAlignment="Stretch" />
             </StackPanel>
             <StackPanel Grid.Column="1" Margin="5 0 0 0">
-              <TextBlock Classes="flabel" Text="JUMP FUEL CONSERVATION" />
+              <TextBlock Classes="flabel" Text="{x:Static loc:MapText.JumpFuelConservationLabel}" />
               <ComboBox ItemsSource="{Binding SkillLevels}" SelectedItem="{Binding JfcLevel}"
                         HorizontalAlignment="Stretch" />
             </StackPanel>
@@ -86,15 +87,15 @@
           <TextBlock Text="{Binding RangeText}" FontSize="10.5" Foreground="{DynamicResource AccentBrush}" />
 
           <StackPanel>
-            <TextBlock Classes="flabel" Text="JUMP THROUGH" />
+            <TextBlock Classes="flabel" Text="{x:Static loc:MapText.JumpThroughLabel}" />
             <ComboBox ItemsSource="{Binding MidpointOptions}" SelectedItem="{Binding SelectedMidpoints}"
                       HorizontalAlignment="Stretch" />
             <TextBlock FontSize="9.5" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap" Margin="2 3 0 0"
-                       Text="Limits where the route may stop, not where it may start or end. Station systems means anywhere dockable — NPC station or player structure. Player structures are only those this app has resolved a name for, so both options under-report rather than guess." />
+                       Text="{x:Static loc:MapText.LimitsWhereTheRouteNote}" />
           </StackPanel>
         </StackPanel>
 
-        <TextBlock Classes="section" Text="WAYPOINTS" />
+        <TextBlock Classes="section" Text="{x:Static loc:MapText.WaypointsLabel}" />
         <StackPanel Spacing="6">
           <Grid ColumnDefinitions="*,Auto">
             <!-- ValueMemberBinding keeps the text box holding just the system name, so the
@@ -109,7 +110,7 @@
                              MinimumPopulateDelay="0:0:0.2"
                              MaxDropDownHeight="260"
                              FontSize="11"
-                             Watermark="system name…">
+                             Watermark="{x:Static loc:MapText.HintSystemName}">
               <AutoCompleteBox.ItemTemplate>
                 <DataTemplate x:DataType="vm:SystemMatch">
                   <Grid ColumnDefinitions="*,Auto" MinWidth="240">
@@ -122,7 +123,7 @@
                 </DataTemplate>
               </AutoCompleteBox.ItemTemplate>
             </AutoCompleteBox>
-            <Button Grid.Column="1" Classes="tool" Content="Add" Margin="6 0 0 0"
+            <Button Grid.Column="1" Classes="tool" Content="{x:Static loc:MapText.Add}" Margin="6 0 0 0"
                     Command="{Binding AddWaypointCommand}" />
           </Grid>
 
@@ -138,7 +139,7 @@
                   <Grid ColumnDefinitions="Auto,*,Auto">
                     <TextBlock Grid.Column="0" Text="⋮⋮" FontSize="11" Foreground="{DynamicResource TextFaintBrush}"
                                VerticalAlignment="Center" Margin="0 0 8 0"
-                               ToolTip.Tip="Drag to reorder" />
+                               ToolTip.Tip="{x:Static loc:MapText.TipDragToReorder}" />
                     <StackPanel Grid.Column="1" Spacing="1">
                       <TextBlock Text="{Binding Name}" FontSize="11.5" Foreground="{DynamicResource TextPrimaryBrush}"
                                  FontWeight="SemiBold" />
@@ -157,9 +158,9 @@
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" Spacing="8">
-          <Button Classes="tool" Content="Plan Route" Command="{Binding PlanCommand}"
+          <Button Classes="tool" Content="{x:Static loc:MapText.PlanRoute}" Command="{Binding PlanCommand}"
                   IsEnabled="{Binding !IsBusy}" />
-          <Button Classes="tool" Content="Clear" Command="{Binding ClearCommand}" />
+          <Button Classes="tool" Content="{x:Static loc:MapText.Clear}" Command="{Binding ClearCommand}" />
         </StackPanel>
 
         <TextBlock Text="{Binding StatusText}" FontSize="10.5" Foreground="{DynamicResource InfoBrush}"
@@ -212,8 +213,8 @@
             </ListBox>
 
             <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="6" Margin="0 8 0 0">
-              <Button Classes="tool" Content="Use" Command="{Binding ApplyAlternativeCommand}" />
-              <Button Classes="tool" Content="Cancel" Command="{Binding CancelAlternativeCommand}" />
+              <Button Classes="tool" Content="{x:Static loc:MapText.Use}" Command="{Binding ApplyAlternativeCommand}" />
+              <Button Classes="tool" Content="{x:Static loc:MapText.Cancel}" Command="{Binding CancelAlternativeCommand}" />
             </StackPanel>
           </Grid>
         </Border>
@@ -228,12 +229,12 @@
                 Background="{DynamicResource SurfaceBaseBrush}">
         <DataGrid.Columns>
           <DataGridTextColumn Header="#"        Binding="{Binding Number}"       Width="44" />
-          <DataGridTemplateColumn Header="From" Width="130" SortMemberPath="From" ClipboardContentBinding="{Binding From}">
+          <DataGridTemplateColumn Header="{x:Static loc:MapText.ColFrom}" Width="130" SortMemberPath="From" ClipboardContentBinding="{Binding From}">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:JumpLegVm">
                 <Panel>
                   <Button Classes="link" Click="OnOpenLegFrom" IsVisible="{Binding HasFromLink}"
-                          ToolTip.Tip="Open this system">
+                          ToolTip.Tip="{x:Static loc:MapText.TipOpenThisSystem}">
                     <TextBlock Text="{Binding From}" Classes="linktext"
                                TextTrimming="CharacterEllipsis" />
                   </Button>
@@ -243,12 +244,12 @@
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
-          <DataGridTemplateColumn Header="Jump to" Width="130" SortMemberPath="To" ClipboardContentBinding="{Binding To}">
+          <DataGridTemplateColumn Header="{x:Static loc:MapText.ColJumpTo}" Width="130" SortMemberPath="To" ClipboardContentBinding="{Binding To}">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:JumpLegVm">
                 <Panel>
                   <Button Classes="link" Click="OnOpenLegTo" IsVisible="{Binding HasToLink}"
-                          ToolTip.Tip="Open this system">
+                          ToolTip.Tip="{x:Static loc:MapText.TipOpenThisSystem}">
                     <TextBlock Text="{Binding To}" Classes="linktext"
                                TextTrimming="CharacterEllipsis" />
                   </Button>
@@ -258,12 +259,12 @@
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
-          <DataGridTemplateColumn Header="Region" Width="160" SortMemberPath="ToRegion" ClipboardContentBinding="{Binding ToRegion}">
+          <DataGridTemplateColumn Header="{x:Static loc:MapText.ColRegion}" Width="160" SortMemberPath="ToRegion" ClipboardContentBinding="{Binding ToRegion}">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:JumpLegVm">
                 <Panel>
                   <Button Classes="link" Click="OnOpenLegRegion" IsVisible="{Binding HasRegionLink}"
-                          ToolTip.Tip="Frame this region on the map">
+                          ToolTip.Tip="{x:Static loc:MapText.TipFrameThisRegionOnThe}">
                     <TextBlock Text="{Binding ToRegion}" Classes="linktext"
                                TextTrimming="CharacterEllipsis" />
                   </Button>
@@ -273,9 +274,9 @@
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
-          <DataGridTextColumn Header="Sec"      Binding="{Binding SecurityText}" Width="70" />
-          <DataGridTextColumn Header="Distance" Binding="{Binding DistanceText}" Width="110" />
-          <DataGridTextColumn Header="Fuel"     Binding="{Binding FuelText}"     Width="110" />
+          <DataGridTextColumn Header="{x:Static loc:MapText.ColSec}"      Binding="{Binding SecurityText}" Width="70" />
+          <DataGridTextColumn Header="{x:Static loc:MapText.ColDistance}" Binding="{Binding DistanceText}" Width="110" />
+          <DataGridTextColumn Header="{x:Static loc:MapText.ColFuel}"     Binding="{Binding FuelText}"     Width="110" />
         </DataGrid.Columns>
       </DataGrid>
     </Grid>

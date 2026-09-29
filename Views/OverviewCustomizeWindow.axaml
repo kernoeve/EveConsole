@@ -1,25 +1,26 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:EveConsole.Localization"
         xmlns:vm="clr-namespace:EveConsole.ViewModels"
         x:Class="EveConsole.Views.OverviewCustomizeWindow"
         x:DataType="vm:OverviewCustomizeViewModel"
-        Title="Customize Overview" Width="820" Height="560"
+        Title="{x:Static loc:OverviewText.TitleCustomizeOverview}" Width="820" Height="560"
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource SurfaceBaseBrush}">
 
   <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="16">
 
-    <TextBlock Grid.Row="0" Text="Overview Layout" FontSize="15" FontWeight="SemiBold"
+    <TextBlock Grid.Row="0" Text="{x:Static loc:OverviewText.OverviewLayout}" FontSize="15" FontWeight="SemiBold"
                Foreground="{DynamicResource AccentBrush}" Margin="0 0 0 4" />
 
     <!-- Grid size -->
     <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="10" Margin="0 8 0 12"
                 VerticalAlignment="Center">
-      <TextBlock Text="Grid size —" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" FontSize="12" />
-      <TextBlock Text="Rows" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" FontSize="12" />
+      <TextBlock Text="{x:Static loc:OverviewText.GridSize}" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" FontSize="12" />
+      <TextBlock Text="{x:Static loc:OverviewText.Rows}" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" FontSize="12" />
       <NumericUpDown Value="{Binding Rows}" Minimum="1" Maximum="25" Increment="1"
                      FormatString="0" Width="110" />
-      <TextBlock Text="Columns" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" FontSize="12" />
+      <TextBlock Text="{x:Static loc:OverviewText.Columns}" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" FontSize="12" />
       <NumericUpDown Value="{Binding Cols}" Minimum="1" Maximum="25" Increment="1"
                      FormatString="0" Width="110" />
     </StackPanel>
@@ -30,9 +31,9 @@
       <!-- Palette of sections not yet on the grid -->
       <Border Grid.Column="0" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="4" Padding="8">
         <DockPanel>
-          <TextBlock DockPanel.Dock="Top" Text="Sections" FontSize="12" FontWeight="SemiBold"
+          <TextBlock DockPanel.Dock="Top" Text="{x:Static loc:OverviewText.Sections}" FontSize="12" FontWeight="SemiBold"
                      Foreground="{DynamicResource TextMutedBrush}" Margin="0 0 0 8" />
-          <TextBlock DockPanel.Dock="Bottom" Text="Drag a section onto the grid to add it."
+          <TextBlock DockPanel.Dock="Bottom" Text="{x:Static loc:OverviewText.DragASectionOntoNote}"
                      FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap" Margin="0 8 0 0" />
           <ScrollViewer VerticalScrollBarVisibility="Auto">
             <ItemsControl x:Name="Palette" ItemsSource="{Binding Sections}">
@@ -61,10 +62,10 @@
 
     <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right"
                 Spacing="8" Margin="0 12 0 0">
-      <Button Content="Cancel" Click="OnCancel"
+      <Button Content="{x:Static loc:OverviewText.Cancel}" Click="OnCancel"
               FontSize="12" Padding="14 6"
               Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" />
-      <Button Content="Apply" Click="OnApply"
+      <Button Content="{x:Static loc:OverviewText.Apply}" Click="OnApply"
               FontSize="12" Padding="14 6"
               Background="{DynamicResource WarnSurfaceBrush}" Foreground="{DynamicResource AccentBrush}" BorderBrush="{DynamicResource AccentSurfaceBrush}" BorderThickness="1" />
     </StackPanel>

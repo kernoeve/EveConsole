@@ -1,0 +1,363 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="PeriodLabel" xml:space="preserve">
+    <value>Period:</value>
+    <comment>Label in CharacterView.</comment>
+  </data>
+  <data name="CustomizeLayout" xml:space="preserve">
+    <value>⚙ Customize Layout</value>
+    <comment>Button or option in CharacterView.</comment>
+  </data>
+  <data name="ActivitySummary" xml:space="preserve">
+    <value>Activity Summary</value>
+    <comment>Text in CharacterView.</comment>
+  </data>
+  <data name="InPeriod" xml:space="preserve">
+    <value>In Period</value>
+    <comment>Text in CharacterView.</comment>
+  </data>
+  <data name="Count" xml:space="preserve">
+    <value>Count</value>
+    <comment>Text in CharacterView.</comment>
+  </data>
+  <data name="MarketSales" xml:space="preserve">
+    <value>Market Sales</value>
+    <comment>Text in CharacterView.</comment>
+  </data>
+  <data name="MarketPurchases" xml:space="preserve">
+    <value>Market Purchases</value>
+    <comment>Text in CharacterView.</comment>
+  </data>
+  <data name="CompletedJobs" xml:space="preserve">
+    <value>Completed Jobs</value>
+    <comment>Text in CharacterView.</comment>
+  </data>
+  <data name="PlayerShipKills" xml:space="preserve">
+    <value>Player Ship Kills</value>
+    <comment>Text in CharacterView.</comment>
+  </data>
+  <data name="TipRequiresFullKillMail" xml:space="preserve">
+    <value>Requires full kill mail fetch to distinguish kills from losses</value>
+    <comment>Tooltip in CharacterView.</comment>
+  </data>
+  <data name="ShipsLost" xml:space="preserve">
+    <value>Ships Lost</value>
+    <comment>Text in CharacterView.</comment>
+  </data>
+  <data name="CurrentState" xml:space="preserve">
+    <value>Current State</value>
+    <comment>Text in CharacterView.</comment>
+  </data>
+  <data name="Value" xml:space="preserve">
+    <value>Value</value>
+    <comment>Text in CharacterView.</comment>
+  </data>
+  <data name="OutstandingSellOrders" xml:space="preserve">
+    <value>Outstanding Sell Orders</value>
+    <comment>Text in CharacterView.</comment>
+  </data>
+  <data name="OutstandingBuyOrders" xml:space="preserve">
+    <value>Outstanding Buy Orders</value>
+    <comment>Text in CharacterView.</comment>
+  </data>
+  <data name="OutstandingContracts" xml:space="preserve">
+    <value>Outstanding Contracts</value>
+    <comment>Text in CharacterView.</comment>
+  </data>
+  <data name="ActiveIndyJobs" xml:space="preserve">
+    <value>Active Indy Jobs</value>
+    <comment>Text in CharacterView.</comment>
+  </data>
+  <data name="Alerts" xml:space="preserve">
+    <value>Alerts</value>
+    <comment>Text in CharacterView.</comment>
+  </data>
+  <data name="AlertSettings" xml:space="preserve">
+    <value>Alert Settings →</value>
+    <comment>Text in CharacterView.</comment>
+  </data>
+  <data name="NoActiveAlerts" xml:space="preserve">
+    <value>No active alerts.</value>
+    <comment>Text in CharacterView.</comment>
+  </data>
+  <data name="Dismiss" xml:space="preserve">
+    <value>Dismiss</value>
+    <comment>Button or option in CharacterView.</comment>
+  </data>
+  <data name="EveOnlineNews" xml:space="preserve">
+    <value>Eve Online News</value>
+    <comment>Text in CharacterView.</comment>
+  </data>
+  <data name="NewsUnavailableWillRetryNext" xml:space="preserve">
+    <value>News unavailable — will retry next refresh.</value>
+    <comment>Text in CharacterView.</comment>
+  </data>
+  <data name="Notifications" xml:space="preserve">
+    <value>Notifications</value>
+    <comment>Text in CharacterView.</comment>
+  </data>
+  <data name="Notifications2" xml:space="preserve">
+    <value>Notifications →</value>
+    <comment>Text in CharacterView.</comment>
+  </data>
+  <data name="NoRecentNotifications" xml:space="preserve">
+    <value>No recent notifications.</value>
+    <comment>Text in CharacterView.</comment>
+  </data>
+  <data name="PersonalKillmails" xml:space="preserve">
+    <value>Personal Killmails</value>
+    <comment>Text in CharacterView.</comment>
+  </data>
+  <data name="Killmails" xml:space="preserve">
+    <value>Killmails →</value>
+    <comment>Text in CharacterView.</comment>
+  </data>
+  <data name="KillsLabel" xml:space="preserve">
+    <value>KILLS</value>
+    <comment>Label in CharacterView.</comment>
+  </data>
+  <data name="LossesLabel" xml:space="preserve">
+    <value>LOSSES</value>
+    <comment>Label in CharacterView.</comment>
+  </data>
+  <data name="NoKillmailsInThisPeriod" xml:space="preserve">
+    <value>No killmails in this period.</value>
+    <comment>Text in CharacterView.</comment>
+  </data>
+  <data name="Income" xml:space="preserve">
+    <value>Income</value>
+    <comment>Text in CharacterView.</comment>
+  </data>
+  <data name="NoIncomeDataForThis" xml:space="preserve">
+    <value>No income data for this period.</value>
+    <comment>Text in CharacterView.</comment>
+  </data>
+  <data name="Expenses" xml:space="preserve">
+    <value>Expenses</value>
+    <comment>Text in CharacterView.</comment>
+  </data>
+  <data name="NoExpenseDataForThis" xml:space="preserve">
+    <value>No expense data for this period.</value>
+    <comment>Text in CharacterView.</comment>
+  </data>
+  <data name="Orders" xml:space="preserve">
+    <value>Orders</value>
+    <comment>Text in CharacterView.</comment>
+  </data>
+  <data name="OrderTracker" xml:space="preserve">
+    <value>Order Tracker →</value>
+    <comment>Text in CharacterView.</comment>
+  </data>
+  <data name="NoActiveOrders" xml:space="preserve">
+    <value>No active orders.</value>
+    <comment>Text in CharacterView.</comment>
+  </data>
+  <data name="ColCreatedOn" xml:space="preserve">
+    <value>Created on</value>
+    <comment>Column header in CharacterView.</comment>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>Item</value>
+    <comment>Column header in CharacterView.</comment>
+  </data>
+  <data name="ColUnits" xml:space="preserve">
+    <value>Units</value>
+    <comment>Column header in CharacterView.</comment>
+  </data>
+  <data name="ColBuyer" xml:space="preserve">
+    <value>Buyer</value>
+    <comment>Column header in CharacterView.</comment>
+  </data>
+  <data name="ColEstDate" xml:space="preserve">
+    <value>Est date</value>
+    <comment>Column header in CharacterView.</comment>
+  </data>
+  <data name="ColSource" xml:space="preserve">
+    <value>Source</value>
+    <comment>Column header in CharacterView.</comment>
+  </data>
+  <data name="StandingBuyOrders" xml:space="preserve">
+    <value>Standing Buy Orders</value>
+    <comment>Text in CharacterView.</comment>
+  </data>
+  <data name="StandingBuyOrders2" xml:space="preserve">
+    <value>Standing Buy Orders →</value>
+    <comment>Text in CharacterView.</comment>
+  </data>
+  <data name="NoStandingBuyOrders" xml:space="preserve">
+    <value>No standing buy orders.</value>
+    <comment>Text in CharacterView.</comment>
+  </data>
+  <data name="TipOpenInTheItemBrowser" xml:space="preserve">
+    <value>Open in the Item Browser</value>
+    <comment>Tooltip in CharacterView.</comment>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>Status</value>
+    <comment>Column header in CharacterView.</comment>
+  </data>
+  <data name="ColOurBid" xml:space="preserve">
+    <value>Our bid</value>
+    <comment>Column header in CharacterView.</comment>
+  </data>
+  <data name="ColRem" xml:space="preserve">
+    <value>Rem.</value>
+    <comment>Column header in CharacterView.</comment>
+  </data>
+  <data name="ColExpires" xml:space="preserve">
+    <value>Expires</value>
+    <comment>Column header in CharacterView.</comment>
+  </data>
+  <data name="WorklistAll" xml:space="preserve">
+    <value>Worklist (All)</value>
+    <comment>Text in CharacterView.</comment>
+  </data>
+  <data name="Worklist" xml:space="preserve">
+    <value>Worklist →</value>
+    <comment>Text in CharacterView.</comment>
+  </data>
+  <data name="ColTask" xml:space="preserve">
+    <value>Task</value>
+    <comment>Column header in CharacterView.</comment>
+  </data>
+  <data name="ColValue" xml:space="preserve">
+    <value>Value</value>
+    <comment>Column header in CharacterView.</comment>
+  </data>
+  <data name="ColVolume" xml:space="preserve">
+    <value>Volume</value>
+    <comment>Column header in CharacterView.</comment>
+  </data>
+  <data name="WorklistBuy" xml:space="preserve">
+    <value>Worklist (Buy)</value>
+    <comment>Text in CharacterView.</comment>
+  </data>
+  <data name="WorklistHaul" xml:space="preserve">
+    <value>Worklist (Haul)</value>
+    <comment>Text in CharacterView.</comment>
+  </data>
+  <data name="WorklistJobs" xml:space="preserve">
+    <value>Worklist (Jobs)</value>
+    <comment>Text in CharacterView.</comment>
+  </data>
+  <data name="WorklistStationNeeds" xml:space="preserve">
+    <value>Worklist (Station Needs)</value>
+    <comment>Text in CharacterView.</comment>
+  </data>
+  <data name="StationNeeds" xml:space="preserve">
+    <value>Station Needs →</value>
+    <comment>Text in CharacterView.</comment>
+  </data>
+  <data name="ColShort" xml:space="preserve">
+    <value>Short</value>
+    <comment>Column header in CharacterView.</comment>
+  </data>
+  <data name="ColTotal" xml:space="preserve">
+    <value>Total</value>
+    <comment>Column header in CharacterView.</comment>
+  </data>
+  <data name="ColOnHand" xml:space="preserve">
+    <value>On hand</value>
+    <comment>Column header in CharacterView.</comment>
+  </data>
+  <data name="ColOrderJobs" xml:space="preserve">
+    <value>Order jobs</value>
+    <comment>Column header in CharacterView.</comment>
+  </data>
+  <data name="ColJobs" xml:space="preserve">
+    <value>Jobs</value>
+    <comment>Column header in CharacterView.</comment>
+  </data>
+  <data name="ColInvLevels" xml:space="preserve">
+    <value>Inv levels</value>
+    <comment>Column header in CharacterView.</comment>
+  </data>
+  <data name="ColStnLevels" xml:space="preserve">
+    <value>Stn levels</value>
+    <comment>Column header in CharacterView.</comment>
+  </data>
+  <data name="ColShortValue" xml:space="preserve">
+    <value>Short value</value>
+    <comment>Column header in CharacterView.</comment>
+  </data>
+  <data name="ColShortVolume" xml:space="preserve">
+    <value>Short volume</value>
+    <comment>Column header in CharacterView.</comment>
+  </data>
+  <data name="StandingProjects" xml:space="preserve">
+    <value>Standing Projects</value>
+    <comment>Text in CharacterView.</comment>
+  </data>
+  <data name="CorpActivity" xml:space="preserve">
+    <value>Corp Activity →</value>
+    <comment>Text in CharacterView.</comment>
+  </data>
+  <data name="NoStandingProjects" xml:space="preserve">
+    <value>No standing projects.</value>
+    <comment>Text in CharacterView.</comment>
+  </data>
+  <data name="ColProject" xml:space="preserve">
+    <value>Project</value>
+    <comment>Column header in CharacterView.</comment>
+  </data>
+  <data name="ColProjectStatus" xml:space="preserve">
+    <value>Project Status</value>
+    <comment>Column header in CharacterView.</comment>
+  </data>
+  <data name="ColRemaining" xml:space="preserve">
+    <value>Remaining</value>
+    <comment>Column header in CharacterView.</comment>
+  </data>
+  <data name="ColRem2" xml:space="preserve">
+    <value>Rem. %</value>
+    <comment>Column header in CharacterView.</comment>
+  </data>
+  <data name="OverviewDataReflectsCharactersNote" xml:space="preserve">
+    <value>Overview data reflects characters and personal corporations only.</value>
+    <comment>Note in CharacterView.</comment>
+  </data>
+  <data name="TipOpenInNotifications" xml:space="preserve">
+    <value>Open in Notifications</value>
+    <comment>Tooltip in NotificationCard.</comment>
+  </data>
+  <data name="TitleCustomizeOverview" xml:space="preserve">
+    <value>Customize Overview</value>
+    <comment>Window title in OverviewCustomizeWindow.</comment>
+  </data>
+  <data name="OverviewLayout" xml:space="preserve">
+    <value>Overview Layout</value>
+    <comment>Text in OverviewCustomizeWindow.</comment>
+  </data>
+  <data name="GridSize" xml:space="preserve">
+    <value>Grid size —</value>
+    <comment>Text in OverviewCustomizeWindow.</comment>
+  </data>
+  <data name="Rows" xml:space="preserve">
+    <value>Rows</value>
+    <comment>Text in OverviewCustomizeWindow.</comment>
+  </data>
+  <data name="Columns" xml:space="preserve">
+    <value>Columns</value>
+    <comment>Text in OverviewCustomizeWindow.</comment>
+  </data>
+  <data name="Sections" xml:space="preserve">
+    <value>Sections</value>
+    <comment>Text in OverviewCustomizeWindow.</comment>
+  </data>
+  <data name="DragASectionOntoNote" xml:space="preserve">
+    <value>Drag a section onto the grid to add it.</value>
+    <comment>Note in OverviewCustomizeWindow.</comment>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+    <comment>Button or option in OverviewCustomizeWindow.</comment>
+  </data>
+  <data name="Apply" xml:space="preserve">
+    <value>Apply</value>
+    <comment>Button or option in OverviewCustomizeWindow.</comment>
+  </data>
+</root>

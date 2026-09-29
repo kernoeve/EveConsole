@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              xmlns:svc="clr-namespace:EveConsole.Services"
              x:Class="EveConsole.Views.EntityTabView"
@@ -33,7 +34,7 @@
                      MinimumPopulateDelay="0:0:0.35"
                      MaxDropDownHeight="320"
                      FontSize="12"
-                     Watermark="Type at least two characters to search…">
+                     Watermark="{x:Static loc:CorpText.HintTypeAtLeastTwo}">
       <AutoCompleteBox.ItemTemplate>
         <DataTemplate x:DataType="svc:EntityMatch">
           <Grid ColumnDefinitions="*,Auto" MinWidth="380">
@@ -51,7 +52,7 @@
                IsVisible="{Binding SearchNote, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
 
     <TextBlock Grid.Row="3" IsVisible="{Binding NoSelection}"
-               Text="Search above and pick an entity to see its details."
+               Text="{x:Static loc:CorpText.SearchAboveAndPickNote}"
                FontSize="12" Foreground="{DynamicResource TextFaintBrush}"
                HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
@@ -119,14 +120,14 @@
                 Padding="0" Background="Transparent">
 
       <!-- Multi-line, so it gets a tab of its own rather than crowding the header. -->
-      <TabItem Header="Description" IsVisible="{Binding HasDescription}">
+      <TabItem Header="{x:Static loc:CorpText.TabDescription}" IsVisible="{Binding HasDescription}">
         <ScrollViewer Padding="6 10">
           <TextBlock Text="{Binding Description}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
                      TextWrapping="Wrap"/>
         </ScrollViewer>
       </TabItem>
 
-      <TabItem Header="Kills / Losses" IsVisible="{Binding HasKills}">
+      <TabItem Header="{x:Static loc:CorpText.TabKillsLosses}" IsVisible="{Binding HasKills}">
         <Grid RowDefinitions="Auto,*" Margin="0 6">
           <TextBlock Grid.Row="0" Text="{Binding KillsStatus}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
                      Margin="4 0 0 6"/>
@@ -159,7 +160,7 @@
                     Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
                     DoubleTapped="OnMemberDoubleTapped">
             <DataGrid.Columns>
-              <DataGridTemplateColumn Header="Name" Width="320" SortMemberPath="Name" ClipboardContentBinding="{Binding Name}">
+              <DataGridTemplateColumn Header="{x:Static loc:CorpText.ColName2}" Width="320" SortMemberPath="Name" ClipboardContentBinding="{Binding Name}">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate x:DataType="svc:EntityMemberRow">
                     <Button Content="{Binding Name}"
@@ -171,13 +172,13 @@
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
-              <DataGridTextColumn Header="Details"  Binding="{Binding Subtitle}" FontSize="10" Width="*"
+              <DataGridTextColumn Header="{x:Static loc:CorpText.ColDetails}"  Binding="{Binding Subtitle}" FontSize="10" Width="*"
                                   IsVisible="{Binding $parent[UserControl].((vm:EntityTabViewModel)DataContext).ShowMemberSubtitle}"/>
-              <DataGridTextColumn Header="Lvl"      Binding="{Binding Level}"    FontSize="10" Width="55"
+              <DataGridTextColumn Header="{x:Static loc:CorpText.ColLvl}"      Binding="{Binding Level}"    FontSize="10" Width="55"
                                   IsVisible="{Binding $parent[UserControl].((vm:EntityTabViewModel)DataContext).ShowAgentColumns}" CellStyleClasses="num"/>
-              <DataGridTextColumn Header="Division" Binding="{Binding Division}" FontSize="10" Width="140"
+              <DataGridTextColumn Header="{x:Static loc:CorpText.ColDivision}" Binding="{Binding Division}" FontSize="10" Width="140"
                                   IsVisible="{Binding $parent[UserControl].((vm:EntityTabViewModel)DataContext).ShowAgentColumns}"/>
-              <DataGridTemplateColumn Header="Station" Width="*" SortMemberPath="Station"
+              <DataGridTemplateColumn Header="{x:Static loc:CorpText.ColStation}" Width="*" SortMemberPath="Station"
                                       IsVisible="{Binding $parent[UserControl].((vm:EntityTabViewModel)DataContext).ShowAgentStation}" ClipboardContentBinding="{Binding Station}">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate x:DataType="svc:EntityMemberRow">
@@ -187,7 +188,7 @@
                             Background="Transparent" BorderThickness="0" Padding="0"
                             FontSize="10" Foreground="{DynamicResource AccentBrush}" Cursor="Hand"
                             HorizontalContentAlignment="Left" VerticalAlignment="Center"
-                            ToolTip.Tip="Open in the Stations tab"/>
+                            ToolTip.Tip="{x:Static loc:CorpText.TipOpenInTheStationsTab}"/>
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
@@ -220,22 +221,22 @@
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
-              <DataGridTextColumn Header="From"     Binding="{Binding From}" FontSize="10"     Width="130"/>
-              <DataGridTextColumn Header="Until"    Binding="{Binding Until}" FontSize="10"    Width="130"/>
-              <DataGridTextColumn Header="Duration" Binding="{Binding Duration}" FontSize="10" Width="130"/>
+              <DataGridTextColumn Header="{x:Static loc:CorpText.ColFrom}"     Binding="{Binding From}" FontSize="10"     Width="130"/>
+              <DataGridTextColumn Header="{x:Static loc:CorpText.ColUntil}"    Binding="{Binding Until}" FontSize="10"    Width="130"/>
+              <DataGridTextColumn Header="{x:Static loc:CorpText.ColDuration}" Binding="{Binding Duration}" FontSize="10" Width="130"/>
             </DataGrid.Columns>
           </DataGrid>
         </Grid>
       </TabItem>
 
-      <TabItem Header="Stations" IsVisible="{Binding HasStations}">
+      <TabItem Header="{x:Static loc:CorpText.TabStations}" IsVisible="{Binding HasStations}">
         <Grid RowDefinitions="Auto,*" Margin="4 6">
           <TextBlock Grid.Row="0" Text="{Binding StationsStatus}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" Margin="0 0 0 6"/>
           <DataGrid Grid.Row="1" ItemsSource="{Binding Stations}"
                     IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
                     Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
             <DataGrid.Columns>
-              <DataGridTemplateColumn Header="Station" Width="*" SortMemberPath="Name" ClipboardContentBinding="{Binding Name}">
+              <DataGridTemplateColumn Header="{x:Static loc:CorpText.ColStation}" Width="*" SortMemberPath="Name" ClipboardContentBinding="{Binding Name}">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate x:DataType="svc:EntityStationRow">
                     <Button Content="{Binding Name}"
@@ -244,13 +245,13 @@
                             Background="Transparent" BorderThickness="0" Padding="0"
                             FontSize="10" Foreground="{DynamicResource AccentBrush}" Cursor="Hand"
                             HorizontalContentAlignment="Left" VerticalAlignment="Center"
-                            ToolTip.Tip="Open in the Stations tab"/>
+                            ToolTip.Tip="{x:Static loc:CorpText.TipOpenInTheStationsTab}"/>
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
-              <DataGridTextColumn Header="System"   Binding="{Binding System}" FontSize="10"   Width="130"/>
-              <DataGridTextColumn Header="Region"   Binding="{Binding Region}" FontSize="10"   Width="150"/>
-              <DataGridTemplateColumn Header="Sec" Width="60" SortMemberPath="Security" CellStyleClasses="num" ClipboardContentBinding="{Binding SecurityText}">
+              <DataGridTextColumn Header="{x:Static loc:CorpText.ColSystem}"   Binding="{Binding System}" FontSize="10"   Width="130"/>
+              <DataGridTextColumn Header="{x:Static loc:CorpText.ColRegion}"   Binding="{Binding Region}" FontSize="10"   Width="150"/>
+              <DataGridTemplateColumn Header="{x:Static loc:CorpText.ColSec}" Width="60" SortMemberPath="Security" CellStyleClasses="num" ClipboardContentBinding="{Binding SecurityText}">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate x:DataType="svc:EntityStationRow">
                     <TextBlock Text="{Binding SecurityText}" Foreground="{Binding SecurityColor}"
@@ -259,7 +260,7 @@
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
-              <DataGridTextColumn Header="Agents"   Binding="{Binding Agents}" FontSize="10"   Width="70" CellStyleClasses="num"/>
+              <DataGridTextColumn Header="{x:Static loc:CorpText.ColAgents}"   Binding="{Binding Agents}" FontSize="10"   Width="70" CellStyleClasses="num"/>
             </DataGrid.Columns>
           </DataGrid>
         </Grid>
@@ -267,18 +268,18 @@
 
       <!-- Sells and buys are separate questions — "what can I get here" versus "what will they
            take off me" — so they get a grid each rather than a side column to scan past. -->
-      <TabItem Header="Orders" IsVisible="{Binding HasOrders}">
+      <TabItem Header="{x:Static loc:CorpText.TabOrders}" IsVisible="{Binding HasOrders}">
         <Grid RowDefinitions="Auto,*" Margin="4 6">
           <TextBlock Grid.Row="0" Text="{Binding OrdersStatus}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" Margin="0 0 0 6"/>
           <Grid Grid.Row="1" ColumnDefinitions="*,10,*">
             <Grid Grid.Column="0" RowDefinitions="Auto,*">
-              <TextBlock Grid.Row="0" Text="Sells" FontSize="11" FontWeight="SemiBold"
+              <TextBlock Grid.Row="0" Text="{x:Static loc:CorpText.Sells}" FontSize="11" FontWeight="SemiBold"
                          Foreground="{DynamicResource AccentBrush}" Margin="0 0 0 4"/>
               <DataGrid Grid.Row="1" ItemsSource="{Binding Sells}"
                         IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
                         Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
                 <DataGrid.Columns>
-                  <DataGridTemplateColumn Header="Item" Width="*" SortMemberPath="Item" ClipboardContentBinding="{Binding Item}">
+                  <DataGridTemplateColumn Header="{x:Static loc:CorpText.ColItem}" Width="*" SortMemberPath="Item" ClipboardContentBinding="{Binding Item}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="svc:NpcOrderItemRow">
                         <Button Content="{Binding Item}"
@@ -287,24 +288,24 @@
                                 Background="Transparent" BorderThickness="0" Padding="0"
                                 FontSize="10" Foreground="{DynamicResource AccentBrush}" Cursor="Hand"
                                 HorizontalContentAlignment="Left" VerticalAlignment="Center"
-                                ToolTip.Tip="Open in Item Browser"/>
+                                ToolTip.Tip="{x:Static loc:CorpText.TipOpenInItemBrowser}"/>
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTextColumn Header="Low Price"  Binding="{Binding LowText}"  SortMemberPath="LowPrice"  FontSize="10" Width="110" CellStyleClasses="num"/>
-                  <DataGridTextColumn Header="High Price" Binding="{Binding HighText}" SortMemberPath="HighPrice" FontSize="10" Width="110" CellStyleClasses="num"/>
+                  <DataGridTextColumn Header="{x:Static loc:CorpText.ColLowPrice}"  Binding="{Binding LowText}"  SortMemberPath="LowPrice"  FontSize="10" Width="110" CellStyleClasses="num"/>
+                  <DataGridTextColumn Header="{x:Static loc:CorpText.ColHighPrice}" Binding="{Binding HighText}" SortMemberPath="HighPrice" FontSize="10" Width="110" CellStyleClasses="num"/>
                 </DataGrid.Columns>
               </DataGrid>
             </Grid>
 
             <Grid Grid.Column="2" RowDefinitions="Auto,*">
-              <TextBlock Grid.Row="0" Text="Buys" FontSize="11" FontWeight="SemiBold"
+              <TextBlock Grid.Row="0" Text="{x:Static loc:CorpText.Buys}" FontSize="11" FontWeight="SemiBold"
                          Foreground="{DynamicResource GoodBrush}" Margin="0 0 0 4"/>
               <DataGrid Grid.Row="1" ItemsSource="{Binding Buys}"
                         IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
                         Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
                 <DataGrid.Columns>
-                  <DataGridTemplateColumn Header="Item" Width="*" SortMemberPath="Item" ClipboardContentBinding="{Binding Item}">
+                  <DataGridTemplateColumn Header="{x:Static loc:CorpText.ColItem}" Width="*" SortMemberPath="Item" ClipboardContentBinding="{Binding Item}">
                     <DataGridTemplateColumn.CellTemplate>
                       <DataTemplate x:DataType="svc:NpcOrderItemRow">
                         <Button Content="{Binding Item}"
@@ -313,12 +314,12 @@
                                 Background="Transparent" BorderThickness="0" Padding="0"
                                 FontSize="10" Foreground="{DynamicResource AccentBrush}" Cursor="Hand"
                                 HorizontalContentAlignment="Left" VerticalAlignment="Center"
-                                ToolTip.Tip="Open in Item Browser"/>
+                                ToolTip.Tip="{x:Static loc:CorpText.TipOpenInItemBrowser}"/>
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
-                  <DataGridTextColumn Header="Low Price"  Binding="{Binding LowText}"  SortMemberPath="LowPrice"  FontSize="10" Width="110" CellStyleClasses="num"/>
-                  <DataGridTextColumn Header="High Price" Binding="{Binding HighText}" SortMemberPath="HighPrice" FontSize="10" Width="110" CellStyleClasses="num"/>
+                  <DataGridTextColumn Header="{x:Static loc:CorpText.ColLowPrice}"  Binding="{Binding LowText}"  SortMemberPath="LowPrice"  FontSize="10" Width="110" CellStyleClasses="num"/>
+                  <DataGridTextColumn Header="{x:Static loc:CorpText.ColHighPrice}" Binding="{Binding HighText}" SortMemberPath="HighPrice" FontSize="10" Width="110" CellStyleClasses="num"/>
                 </DataGrid.Columns>
               </DataGrid>
             </Grid>
@@ -326,14 +327,14 @@
         </Grid>
       </TabItem>
 
-      <TabItem Header="LP Offers" IsVisible="{Binding HasLpOffers}">
+      <TabItem Header="{x:Static loc:CorpText.TabLpOffers}" IsVisible="{Binding HasLpOffers}">
         <Grid RowDefinitions="Auto,*" Margin="4 6">
           <TextBlock Grid.Row="0" Text="{Binding LpOffersStatus}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" Margin="0 0 0 6"/>
           <DataGrid Grid.Row="1" ItemsSource="{Binding LpOffers}"
                     IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
                     Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
             <DataGrid.Columns>
-              <DataGridTemplateColumn Header="Item" Width="*" SortMemberPath="Item" ClipboardContentBinding="{Binding Item}">
+              <DataGridTemplateColumn Header="{x:Static loc:CorpText.ColItem}" Width="*" SortMemberPath="Item" ClipboardContentBinding="{Binding Item}">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate x:DataType="svc:LpOfferRow">
                     <Button Content="{Binding Item}"
@@ -342,32 +343,32 @@
                             Background="Transparent" BorderThickness="0" Padding="0"
                             FontSize="10" Foreground="{DynamicResource AccentBrush}" Cursor="Hand"
                             HorizontalContentAlignment="Left" VerticalAlignment="Center"
-                            ToolTip.Tip="Open in Item Browser"/>
+                            ToolTip.Tip="{x:Static loc:CorpText.TipOpenInItemBrowser}"/>
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
-              <DataGridTextColumn Header="Qty"      Binding="{Binding Quantity}" FontSize="10" Width="80" CellStyleClasses="num"/>
+              <DataGridTextColumn Header="{x:Static loc:CorpText.ColQty}"      Binding="{Binding Quantity}" FontSize="10" Width="80" CellStyleClasses="num"/>
               <DataGridTextColumn Header="LP"       Binding="{Binding LpText}" SortMemberPath="LpCost" FontSize="10"   Width="110" CellStyleClasses="num"/>
               <DataGridTextColumn Header="ISK"      Binding="{Binding IskText}" SortMemberPath="IskCost" FontSize="10"  Width="130" CellStyleClasses="num"/>
-              <DataGridTextColumn Header="Requires" Binding="{Binding Required}" FontSize="10" Width="300"/>
+              <DataGridTextColumn Header="{x:Static loc:CorpText.ColRequires}" Binding="{Binding Required}" FontSize="10" Width="300"/>
             </DataGrid.Columns>
           </DataGrid>
         </Grid>
       </TabItem>
 
-      <TabItem Header="Faction Warfare" IsVisible="{Binding HasWarfare}">
+      <TabItem Header="{x:Static loc:CorpText.TabFactionWarfare}" IsVisible="{Binding HasWarfare}">
         <Grid RowDefinitions="Auto,*" Margin="4 6">
           <TextBlock Grid.Row="0" Text="{Binding WarfareStatus}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" Margin="0 0 0 6"/>
           <DataGrid Grid.Row="1" ItemsSource="{Binding Warfare}"
                     IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
                     Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
             <DataGrid.Columns>
-              <DataGridTextColumn Header="System"    Binding="{Binding System}" FontSize="10"    Width="140"/>
-              <DataGridTextColumn Header="Region"    Binding="{Binding Region}" FontSize="10"    Width="150"/>
-              <DataGridTextColumn Header="Role"      Binding="{Binding Role}" FontSize="10"      Width="80"/>
-              <DataGridTextColumn Header="Owner"     Binding="{Binding Owner}" FontSize="10"     Width="150"/>
+              <DataGridTextColumn Header="{x:Static loc:CorpText.ColSystem}"    Binding="{Binding System}" FontSize="10"    Width="140"/>
+              <DataGridTextColumn Header="{x:Static loc:CorpText.ColRegion}"    Binding="{Binding Region}" FontSize="10"    Width="150"/>
+              <DataGridTextColumn Header="{x:Static loc:CorpText.ColRole}"      Binding="{Binding Role}" FontSize="10"      Width="80"/>
+              <DataGridTextColumn Header="{x:Static loc:CorpText.ColOwner}"     Binding="{Binding Owner}" FontSize="10"     Width="150"/>
               <!-- Red when it differs from the owner: the system has been taken and not reset. -->
-              <DataGridTemplateColumn Header="Held By" SortMemberPath="Occupier" Width="150" ClipboardContentBinding="{Binding Occupier}">
+              <DataGridTemplateColumn Header="{x:Static loc:CorpText.ColHeldBy}" SortMemberPath="Occupier" Width="150" ClipboardContentBinding="{Binding Occupier}">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate x:DataType="svc:FactionWarfareRow">
                     <TextBlock Text="{Binding Occupier}" Foreground="{Binding OccupierColor}"
@@ -375,16 +376,16 @@
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
-              <DataGridTextColumn Header="Contested" Binding="{Binding Contested}" FontSize="10" Width="100"/>
+              <DataGridTextColumn Header="{x:Static loc:CorpText.ColContested}" Binding="{Binding Contested}" FontSize="10" Width="100"/>
               <DataGridTextColumn Header="%"         Binding="{Binding ContestedPercent}" SortMemberPath="ContestedFraction" FontSize="10" Width="70" CellStyleClasses="num"/>
-              <DataGridTextColumn Header="Points"    Binding="{Binding PointsText}"    SortMemberPath="Points"    FontSize="10" Width="90" CellStyleClasses="num"/>
-              <DataGridTextColumn Header="Threshold" Binding="{Binding ThresholdText}" SortMemberPath="Threshold" FontSize="10" Width="*" CellStyleClasses="num"/>
+              <DataGridTextColumn Header="{x:Static loc:CorpText.ColPoints}"    Binding="{Binding PointsText}"    SortMemberPath="Points"    FontSize="10" Width="90" CellStyleClasses="num"/>
+              <DataGridTextColumn Header="{x:Static loc:CorpText.ColThreshold}" Binding="{Binding ThresholdText}" SortMemberPath="Threshold" FontSize="10" Width="*" CellStyleClasses="num"/>
             </DataGrid.Columns>
           </DataGrid>
         </Grid>
       </TabItem>
 
-      <TabItem Header="Intel Reports" IsVisible="{Binding HasIntel}">
+      <TabItem Header="{x:Static loc:CorpText.TabIntelReports}" IsVisible="{Binding HasIntel}">
         <Grid RowDefinitions="Auto,*" Margin="4 6">
           <TextBlock Grid.Row="0" Text="{Binding IntelStatus}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
                      TextWrapping="Wrap" Margin="0 0 0 6"/>
@@ -392,11 +393,11 @@
                     IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
                     Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
             <DataGrid.Columns>
-              <DataGridTextColumn Header="When"     Binding="{Binding When}" FontSize="10"     Width="130"/>
-              <DataGridTextColumn Header="System"   Binding="{Binding System}" FontSize="10"   Width="130"/>
-              <DataGridTextColumn Header="Ship"     Binding="{Binding Ship}" FontSize="10"     Width="160"/>
-              <DataGridTextColumn Header="Channel"  Binding="{Binding Channel}" FontSize="10"  Width="140"/>
-              <DataGridTextColumn Header="Reporter" Binding="{Binding Reporter}" FontSize="10" Width="*"/>
+              <DataGridTextColumn Header="{x:Static loc:CorpText.ColWhen}"     Binding="{Binding When}" FontSize="10"     Width="130"/>
+              <DataGridTextColumn Header="{x:Static loc:CorpText.ColSystem}"   Binding="{Binding System}" FontSize="10"   Width="130"/>
+              <DataGridTextColumn Header="{x:Static loc:CorpText.ColShip}"     Binding="{Binding Ship}" FontSize="10"     Width="160"/>
+              <DataGridTextColumn Header="{x:Static loc:CorpText.ColChannel}"  Binding="{Binding Channel}" FontSize="10"  Width="140"/>
+              <DataGridTextColumn Header="{x:Static loc:CorpText.ColReporter}" Binding="{Binding Reporter}" FontSize="10" Width="*"/>
             </DataGrid.Columns>
           </DataGrid>
         </Grid>

@@ -1,0 +1,623 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="ShipLabel" xml:space="preserve">
+    <value>SHIP</value>
+    <comment>Label in JumpPlannerView.</comment>
+  </data>
+  <data name="HullLabel" xml:space="preserve">
+    <value>HULL</value>
+    <comment>Label in JumpPlannerView.</comment>
+  </data>
+  <data name="JumpDriveCalibrationLabel" xml:space="preserve">
+    <value>JUMP DRIVE CALIBRATION</value>
+    <comment>Label in JumpPlannerView.</comment>
+  </data>
+  <data name="JumpFuelConservationLabel" xml:space="preserve">
+    <value>JUMP FUEL CONSERVATION</value>
+    <comment>Label in JumpPlannerView.</comment>
+  </data>
+  <data name="JumpThroughLabel" xml:space="preserve">
+    <value>JUMP THROUGH</value>
+    <comment>Label in JumpPlannerView.</comment>
+  </data>
+  <data name="LimitsWhereTheRouteNote" xml:space="preserve">
+    <value>Limits where the route may stop, not where it may start or end. Station systems means anywhere dockable — NPC station or player structure. Player structures are only those this app has resolved a name for, so both options under-report rather than guess.</value>
+    <comment>Note in JumpPlannerView.</comment>
+  </data>
+  <data name="WaypointsLabel" xml:space="preserve">
+    <value>WAYPOINTS</value>
+    <comment>Label in JumpPlannerView.</comment>
+  </data>
+  <data name="HintSystemName" xml:space="preserve">
+    <value>system name…</value>
+    <comment>Hint in an empty box in JumpPlannerView.</comment>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Add</value>
+    <comment>Button or option in JumpPlannerView.</comment>
+  </data>
+  <data name="TipDragToReorder" xml:space="preserve">
+    <value>Drag to reorder</value>
+    <comment>Tooltip in JumpPlannerView.</comment>
+  </data>
+  <data name="PlanRoute" xml:space="preserve">
+    <value>Plan Route</value>
+    <comment>Button or option in JumpPlannerView.</comment>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>Clear</value>
+    <comment>Button or option in JumpPlannerView.</comment>
+  </data>
+  <data name="Use" xml:space="preserve">
+    <value>Use</value>
+    <comment>Button or option in JumpPlannerView.</comment>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+    <comment>Button or option in JumpPlannerView.</comment>
+  </data>
+  <data name="ColFrom" xml:space="preserve">
+    <value>From</value>
+    <comment>Column header in JumpPlannerView.</comment>
+  </data>
+  <data name="TipOpenThisSystem" xml:space="preserve">
+    <value>Open this system</value>
+    <comment>Tooltip in JumpPlannerView.</comment>
+  </data>
+  <data name="ColJumpTo" xml:space="preserve">
+    <value>Jump to</value>
+    <comment>Column header in JumpPlannerView.</comment>
+  </data>
+  <data name="ColRegion" xml:space="preserve">
+    <value>Region</value>
+    <comment>Column header in JumpPlannerView.</comment>
+  </data>
+  <data name="TipFrameThisRegionOnThe" xml:space="preserve">
+    <value>Frame this region on the map</value>
+    <comment>Tooltip in JumpPlannerView.</comment>
+  </data>
+  <data name="ColSec" xml:space="preserve">
+    <value>Sec</value>
+    <comment>Column header in JumpPlannerView.</comment>
+  </data>
+  <data name="ColDistance" xml:space="preserve">
+    <value>Distance</value>
+    <comment>Column header in JumpPlannerView.</comment>
+  </data>
+  <data name="ColFuel" xml:space="preserve">
+    <value>Fuel</value>
+    <comment>Column header in JumpPlannerView.</comment>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Refresh</value>
+    <comment>Button or option in StructureBrowserView.</comment>
+  </data>
+  <data name="ResolveViaEsi" xml:space="preserve">
+    <value>Resolve via ESI</value>
+    <comment>Button or option in StructureBrowserView.</comment>
+  </data>
+  <data name="AddById" xml:space="preserve">
+    <value>Add by ID…</value>
+    <comment>Button or option in StructureBrowserView.</comment>
+  </data>
+  <data name="ClearFilters" xml:space="preserve">
+    <value>Clear Filters</value>
+    <comment>Button or option in StructureBrowserView.</comment>
+  </data>
+  <data name="ShowUnknown" xml:space="preserve">
+    <value>Show unknown</value>
+    <comment>Button or option in StructureBrowserView.</comment>
+  </data>
+  <data name="RegionLabel" xml:space="preserve">
+    <value>REGION</value>
+    <comment>Label in StructureBrowserView.</comment>
+  </data>
+  <data name="HintAny" xml:space="preserve">
+    <value>any</value>
+    <comment>Hint in an empty box in StructureBrowserView.</comment>
+  </data>
+  <data name="ConstellationLabel" xml:space="preserve">
+    <value>CONSTELLATION</value>
+    <comment>Label in StructureBrowserView.</comment>
+  </data>
+  <data name="SystemLabel" xml:space="preserve">
+    <value>SYSTEM</value>
+    <comment>Label in StructureBrowserView.</comment>
+  </data>
+  <data name="TypeLabel" xml:space="preserve">
+    <value>TYPE</value>
+    <comment>Label in StructureBrowserView.</comment>
+  </data>
+  <data name="CorpLabel" xml:space="preserve">
+    <value>CORP</value>
+    <comment>Label in StructureBrowserView.</comment>
+  </data>
+  <data name="AllianceLabel" xml:space="preserve">
+    <value>ALLIANCE</value>
+    <comment>Label in StructureBrowserView.</comment>
+  </data>
+  <data name="ColStructure" xml:space="preserve">
+    <value>Structure</value>
+    <comment>Column header in StructureBrowserView.</comment>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>Type</value>
+    <comment>Column header in StructureBrowserView.</comment>
+  </data>
+  <data name="TipOpenInTheItemBrowser" xml:space="preserve">
+    <value>Open in the Item Browser</value>
+    <comment>Tooltip in StructureBrowserView.</comment>
+  </data>
+  <data name="ColSystem" xml:space="preserve">
+    <value>System</value>
+    <comment>Column header in StructureBrowserView.</comment>
+  </data>
+  <data name="TipOpenOnTheMap" xml:space="preserve">
+    <value>Open on the map</value>
+    <comment>Tooltip in StructureBrowserView.</comment>
+  </data>
+  <data name="ColConstellation" xml:space="preserve">
+    <value>Constellation</value>
+    <comment>Column header in StructureBrowserView.</comment>
+  </data>
+  <data name="TipFrameThisConstellationOnThe" xml:space="preserve">
+    <value>Frame this constellation on the map</value>
+    <comment>Tooltip in StructureBrowserView.</comment>
+  </data>
+  <data name="ColCorp" xml:space="preserve">
+    <value>Corp</value>
+    <comment>Column header in StructureBrowserView.</comment>
+  </data>
+  <data name="TipOpenInTheEntityBrowser" xml:space="preserve">
+    <value>Open in the entity browser</value>
+    <comment>Tooltip in StructureBrowserView.</comment>
+  </data>
+  <data name="ColAlliance" xml:space="preserve">
+    <value>Alliance</value>
+    <comment>Column header in StructureBrowserView.</comment>
+  </data>
+  <data name="ColNearest" xml:space="preserve">
+    <value>Nearest</value>
+    <comment>Column header in StructureBrowserView.</comment>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>Status</value>
+    <comment>Column header in StructureBrowserView.</comment>
+  </data>
+  <data name="SelectAStructureAboveNote" xml:space="preserve">
+    <value>Select a structure above to view and edit it.</value>
+    <comment>Note in StructureBrowserView.</comment>
+  </data>
+  <data name="LocationId" xml:space="preserve">
+    <value>Location ID</value>
+    <comment>Text in StructureBrowserView.</comment>
+  </data>
+  <data name="TabDetails" xml:space="preserve">
+    <value>Details</value>
+    <comment>Tab in StructureBrowserView.</comment>
+  </data>
+  <data name="NameLabel" xml:space="preserve">
+    <value>NAME</value>
+    <comment>Label in StructureBrowserView.</comment>
+  </data>
+  <data name="HintTypeTwoLettersOf" xml:space="preserve">
+    <value>Type two letters of the system name…</value>
+    <comment>Hint in an empty box in StructureBrowserView.</comment>
+  </data>
+  <data name="NotesLabel" xml:space="preserve">
+    <value>NOTES</value>
+    <comment>Label in StructureBrowserView.</comment>
+  </data>
+  <data name="HintAccessNotesWhoTo" xml:space="preserve">
+    <value>Access notes, who to ask for a docking invite — anything ESI will never carry.</value>
+    <comment>Hint in an empty box in StructureBrowserView.</comment>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Save</value>
+    <comment>Button or option in StructureBrowserView.</comment>
+  </data>
+  <data name="PullFromEsi" xml:space="preserve">
+    <value>Pull from ESI</value>
+    <comment>Button or option in StructureBrowserView.</comment>
+  </data>
+  <data name="TipAsksEsiAboutThis" xml:space="preserve">
+    <value>Asks ESI about this structure now, ignoring the 30-day backoff a 403 normally earns. Use after gaining docking rights.</value>
+    <comment>Tooltip in StructureBrowserView.</comment>
+  </data>
+  <data name="LocationIdCannotBeNote" xml:space="preserve">
+    <value>Location ID cannot be changed — it is the structure's identity.</value>
+    <comment>Note in StructureBrowserView.</comment>
+  </data>
+  <data name="TabFitting" xml:space="preserve">
+    <value>Fitting</value>
+    <comment>Tab in StructureBrowserView.</comment>
+  </data>
+  <data name="HintFilterModules" xml:space="preserve">
+    <value>filter modules…</value>
+    <comment>Hint in an empty box in StructureBrowserView.</comment>
+  </data>
+  <data name="Fit" xml:space="preserve">
+    <value>Fit</value>
+    <comment>Button or option in StructureBrowserView.</comment>
+  </data>
+  <data name="ClearSlot" xml:space="preserve">
+    <value>Clear slot</value>
+    <comment>Button or option in StructureBrowserView.</comment>
+  </data>
+  <data name="ColSlot" xml:space="preserve">
+    <value>Slot</value>
+    <comment>Column header in StructureBrowserView.</comment>
+  </data>
+  <data name="ColModule" xml:space="preserve">
+    <value>Module</value>
+    <comment>Column header in StructureBrowserView.</comment>
+  </data>
+  <data name="TabAssets" xml:space="preserve">
+    <value>Assets</value>
+    <comment>Tab in StructureBrowserView.</comment>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>Item</value>
+    <comment>Column header in StructureBrowserView.</comment>
+  </data>
+  <data name="ColContainer" xml:space="preserve">
+    <value>Container</value>
+    <comment>Column header in StructureBrowserView.</comment>
+  </data>
+  <data name="ColWhere" xml:space="preserve">
+    <value>Where</value>
+    <comment>Column header in StructureBrowserView.</comment>
+  </data>
+  <data name="ColQty" xml:space="preserve">
+    <value>Qty</value>
+    <comment>Column header in StructureBrowserView.</comment>
+  </data>
+  <data name="ColOwner" xml:space="preserve">
+    <value>Owner</value>
+    <comment>Column header in StructureBrowserView.</comment>
+  </data>
+  <data name="TabCargo" xml:space="preserve">
+    <value>Cargo</value>
+    <comment>Tab in StructureBrowserView.</comment>
+  </data>
+  <data name="TabFuel" xml:space="preserve">
+    <value>Fuel</value>
+    <comment>Tab in StructureBrowserView.</comment>
+  </data>
+  <data name="TabFighters" xml:space="preserve">
+    <value>Fighters</value>
+    <comment>Tab in StructureBrowserView.</comment>
+  </data>
+  <data name="ColFighter" xml:space="preserve">
+    <value>Fighter</value>
+    <comment>Column header in StructureBrowserView.</comment>
+  </data>
+  <data name="TabIndustryJobs" xml:space="preserve">
+    <value>Industry Jobs</value>
+    <comment>Tab in StructureBrowserView.</comment>
+  </data>
+  <data name="EndsFromLabel" xml:space="preserve">
+    <value>ENDS FROM</value>
+    <comment>Label in StructureBrowserView.</comment>
+  </data>
+  <data name="EndsThruLabel" xml:space="preserve">
+    <value>ENDS THRU</value>
+    <comment>Label in StructureBrowserView.</comment>
+  </data>
+  <data name="StatusLabel" xml:space="preserve">
+    <value>STATUS</value>
+    <comment>Label in StructureBrowserView.</comment>
+  </data>
+  <data name="ColActivity" xml:space="preserve">
+    <value>Activity</value>
+    <comment>Column header in StructureBrowserView.</comment>
+  </data>
+  <data name="ColProduct" xml:space="preserve">
+    <value>Product</value>
+    <comment>Column header in StructureBrowserView.</comment>
+  </data>
+  <data name="ColRuns" xml:space="preserve">
+    <value>Runs</value>
+    <comment>Column header in StructureBrowserView.</comment>
+  </data>
+  <data name="ColEnds" xml:space="preserve">
+    <value>Ends</value>
+    <comment>Column header in StructureBrowserView.</comment>
+  </data>
+  <data name="AddAStructureByLocation" xml:space="preserve">
+    <value>Add a structure by location ID</value>
+    <comment>Text in StructureBrowserView.</comment>
+  </data>
+  <data name="StructuresNormallyArriveOnNote" xml:space="preserve">
+    <value>Structures normally arrive on their own, from assets, jobs, contracts and kills. Use this for one that has not — a station you have been given docking rights to, or an ID someone has passed you.</value>
+    <comment>Note in StructureBrowserView.</comment>
+  </data>
+  <data name="LocationIdLabel" xml:space="preserve">
+    <value>LOCATION ID</value>
+    <comment>Label in StructureBrowserView.</comment>
+  </data>
+  <data name="LookUp" xml:space="preserve">
+    <value>Look up</value>
+    <comment>Button or option in StructureBrowserView.</comment>
+  </data>
+  <data name="TipTrueSecurity" xml:space="preserve">
+    <value>True security</value>
+    <comment>Tooltip in SystemPageView.</comment>
+  </data>
+  <data name="Region" xml:space="preserve">
+    <value>Region</value>
+    <comment>Text in SystemPageView.</comment>
+  </data>
+  <data name="Constellation" xml:space="preserve">
+    <value>Constellation</value>
+    <comment>Text in SystemPageView.</comment>
+  </data>
+  <data name="Sovereignty" xml:space="preserve">
+    <value>Sovereignty</value>
+    <comment>Text in SystemPageView.</comment>
+  </data>
+  <data name="LocalPirates" xml:space="preserve">
+    <value>Local pirates</value>
+    <comment>Text in SystemPageView.</comment>
+  </data>
+  <data name="IndustryIndices" xml:space="preserve">
+    <value>Industry indices</value>
+    <comment>Text in SystemPageView.</comment>
+  </data>
+  <data name="TipManufacturingTimeEfficiencyMaterial" xml:space="preserve">
+    <value>Manufacturing · time efficiency · material efficiency · copying · invention · reactions</value>
+    <comment>Tooltip in SystemPageView.</comment>
+  </data>
+  <data name="Production" xml:space="preserve">
+    <value>Production</value>
+    <comment>Text in SystemPageView.</comment>
+  </data>
+  <data name="Planets" xml:space="preserve">
+    <value>Planets</value>
+    <comment>Text in SystemPageView.</comment>
+  </data>
+  <data name="Moons" xml:space="preserve">
+    <value>Moons</value>
+    <comment>Text in SystemPageView.</comment>
+  </data>
+  <data name="Belts" xml:space="preserve">
+    <value>Belts</value>
+    <comment>Text in SystemPageView.</comment>
+  </data>
+  <data name="Jumps1h24h" xml:space="preserve">
+    <value>Jumps 1h / 24h</value>
+    <comment>Text in SystemPageView.</comment>
+  </data>
+  <data name="ShipKills" xml:space="preserve">
+    <value>Ship kills</value>
+    <comment>Text in SystemPageView.</comment>
+  </data>
+  <data name="NpcKills" xml:space="preserve">
+    <value>NPC kills</value>
+    <comment>Text in SystemPageView.</comment>
+  </data>
+  <data name="PodKills" xml:space="preserve">
+    <value>Pod kills</value>
+    <comment>Text in SystemPageView.</comment>
+  </data>
+  <data name="TabOverview" xml:space="preserve">
+    <value>Overview</value>
+    <comment>Tab in SystemPageView.</comment>
+  </data>
+  <data name="JumpsLabel" xml:space="preserve">
+    <value>JUMPS</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="NpcKillsLabel" xml:space="preserve">
+    <value>NPC KILLS</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="ShipKillsLabel" xml:space="preserve">
+    <value>SHIP KILLS</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="PodKillsLabel" xml:space="preserve">
+    <value>POD KILLS</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="SovereigntyStructuresLabel" xml:space="preserve">
+    <value>SOVEREIGNTY STRUCTURES</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="NoSovereigntyStructuresInThis" xml:space="preserve">
+    <value>No sovereignty structures in this system.</value>
+    <comment>Text in SystemPageView.</comment>
+  </data>
+  <data name="OwnerLabel" xml:space="preserve">
+    <value>OWNER</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="StateLabel" xml:space="preserve">
+    <value>STATE</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="VulnerabilityWindowLabel" xml:space="preserve">
+    <value>VULNERABILITY WINDOW</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="SovereigntyChangesLabel" xml:space="preserve">
+    <value>SOVEREIGNTY CHANGES</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="NoChangesRecordedInNote" xml:space="preserve">
+    <value>No changes recorded in the stored window.</value>
+    <comment>Note in SystemPageView.</comment>
+  </data>
+  <data name="GatesLabel" xml:space="preserve">
+    <value>GATES</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="PlayerStructuresLabel" xml:space="preserve">
+    <value>PLAYER STRUCTURES</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="CorporationLabel" xml:space="preserve">
+    <value>CORPORATION</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="LocationLabel" xml:space="preserve">
+    <value>LOCATION</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="TipOpenInTheStructureBrowser" xml:space="preserve">
+    <value>Open in the Structure Browser</value>
+    <comment>Tooltip in SystemPageView.</comment>
+  </data>
+  <data name="NpcStationsLabel" xml:space="preserve">
+    <value>NPC STATIONS</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="TipOpenInNpcEntities" xml:space="preserve">
+    <value>Open in NPC Entities</value>
+    <comment>Tooltip in SystemPageView.</comment>
+  </data>
+  <data name="TabCelestials" xml:space="preserve">
+    <value>Celestials</value>
+    <comment>Tab in SystemPageView.</comment>
+  </data>
+  <data name="LaidOutAsTheNote" xml:space="preserve">
+    <value>Laid out as the system is arranged in space: the star, the gates, then each planet in orbital order with its belts, moons and anything docked at them nested beneath.</value>
+    <comment>Note in SystemPageView.</comment>
+  </data>
+  <data name="ObjectLabel" xml:space="preserve">
+    <value>OBJECT</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="PowerLabel" xml:space="preserve">
+    <value>POWER</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="WorkforceLabel" xml:space="preserve">
+    <value>WORKFORCE</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="ReagentLabel" xml:space="preserve">
+    <value>REAGENT</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="TabGraphs" xml:space="preserve">
+    <value>Graphs</value>
+    <comment>Tab in SystemPageView.</comment>
+  </data>
+  <data name="ShipJumpsLabel" xml:space="preserve">
+    <value>SHIP JUMPS</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="ActivityDefenseMultiplierLabel" xml:space="preserve">
+    <value>ACTIVITY DEFENSE MULTIPLIER</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="IndustryCostIndicesLabel" xml:space="preserve">
+    <value>INDUSTRY COST INDICES</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="TabAgents" xml:space="preserve">
+    <value>Agents</value>
+    <comment>Tab in SystemPageView.</comment>
+  </data>
+  <data name="DivisionLabel" xml:space="preserve">
+    <value>DIVISION</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="LevelLabel" xml:space="preserve">
+    <value>LEVEL</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="LocatorLabel" xml:space="preserve">
+    <value>LOCATOR</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="TipOpenTheStationInNpc" xml:space="preserve">
+    <value>Open the station in NPC Entities</value>
+    <comment>Tooltip in SystemPageView.</comment>
+  </data>
+  <data name="TabKills" xml:space="preserve">
+    <value>Kills</value>
+    <comment>Tab in SystemPageView.</comment>
+  </data>
+  <data name="TipDoubleClickToOpen" xml:space="preserve">
+    <value>Double-click to open in the Killmail Browser</value>
+    <comment>Tooltip in SystemPageView.</comment>
+  </data>
+  <data name="TabEvents" xml:space="preserve">
+    <value>Events</value>
+    <comment>Tab in SystemPageView.</comment>
+  </data>
+  <data name="NoEventsRecordedInNote" xml:space="preserve">
+    <value>No events recorded in the stored window.</value>
+    <comment>Note in SystemPageView.</comment>
+  </data>
+  <data name="TabIntel" xml:space="preserve">
+    <value>Intel</value>
+    <comment>Tab in SystemPageView.</comment>
+  </data>
+  <data name="WhenUtcLabel" xml:space="preserve">
+    <value>WHEN (UTC)</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="PilotsLabel" xml:space="preserve">
+    <value>PILOTS</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="NoteLabel" xml:space="preserve">
+    <value>NOTE</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="ReportedByLabel" xml:space="preserve">
+    <value>REPORTED BY</value>
+    <comment>Label in SystemPageView.</comment>
+  </data>
+  <data name="TipNoVisualReportedPresent" xml:space="preserve">
+    <value>No visual — reported present but not seen</value>
+    <comment>Tooltip in SystemPageView.</comment>
+  </data>
+  <data name="TipOpenInPlayerEntities" xml:space="preserve">
+    <value>Open in Player Entities</value>
+    <comment>Tooltip in SystemPageView.</comment>
+  </data>
+  <data name="OverlayLabel" xml:space="preserve">
+    <value>OVERLAY</value>
+    <comment>Label in UniverseView.</comment>
+  </data>
+  <data name="GoToLabel" xml:space="preserve">
+    <value>GO TO</value>
+    <comment>Label in UniverseView.</comment>
+  </data>
+  <data name="HintRegionOrSystem" xml:space="preserve">
+    <value>region or system</value>
+    <comment>Hint in an empty box in UniverseView.</comment>
+  </data>
+  <data name="ClickANodeForNote" xml:space="preserve">
+    <value>Click a node for details. Double-click to open it.</value>
+    <comment>Note in UniverseView.</comment>
+  </data>
+  <data name="LegendLabel" xml:space="preserve">
+    <value>LEGEND</value>
+    <comment>Label in UniverseView.</comment>
+  </data>
+  <data name="DockingBarAboveTheBoxLabel" xml:space="preserve">
+    <value>DOCKING — BAR ABOVE THE BOX</value>
+    <comment>Label in UniverseView.</comment>
+  </data>
+  <data name="ServicesUnderTheBoxLabel" xml:space="preserve">
+    <value>SERVICES — UNDER THE BOX</value>
+    <comment>Label in UniverseView.</comment>
+  </data>
+  <data name="MergedFromNpcStationsNote" xml:space="preserve">
+    <value>Merged from NPC stations and player structures. A structure whose type we have not resolved contributes nothing, so a blank side means "not known" rather than "nothing there".</value>
+    <comment>Note in UniverseView.</comment>
+  </data>
+  <data name="ScrollToZoomDragNote" xml:space="preserve">
+    <value>Scroll to zoom, drag to pan. Kill counts come from killmails this app has stored, not from all of New Eden.</value>
+    <comment>Note in UniverseView.</comment>
+  </data>
+</root>

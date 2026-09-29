@@ -216,4 +216,172 @@
   <data name="TipReleasePage" xml:space="preserve">
     <value>Open the release page on GitHub</value>
   </data>
+  <data name="TitleAboutEveConsole" xml:space="preserve">
+    <value>About EVE Console</value>
+    <comment>Window title in AboutWindow.</comment>
+  </data>
+  <data name="AnEveOnlineIndustrialNote" xml:space="preserve">
+    <value>An EVE Online industrial companion for production planning, asset tracking, market pricing, and character management.</value>
+    <comment>Note in AboutWindow.</comment>
+  </data>
+  <data name="Website" xml:space="preserve">
+    <value>Website</value>
+    <comment>Text in AboutWindow.</comment>
+  </data>
+  <data name="Documentation" xml:space="preserve">
+    <value>Documentation</value>
+    <comment>Text in AboutWindow.</comment>
+  </data>
+  <data name="TipCommunityChatAndSupport" xml:space="preserve">
+    <value>Community chat and support</value>
+    <comment>Tooltip in AboutWindow.</comment>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Close</value>
+    <comment>Button or option in AboutWindow.</comment>
+  </data>
+  <data name="TitleEveConsoleDatabaseProblem" xml:space="preserve">
+    <value>EVE Console — database problem</value>
+    <comment>Window title in DatabaseRecoveryDialog.</comment>
+  </data>
+  <data name="TheDatabaseCouldNotBe" xml:space="preserve">
+    <value>The database could not be opened</value>
+    <comment>Text in DatabaseRecoveryDialog.</comment>
+  </data>
+  <data name="ReportedLabel" xml:space="preserve">
+    <value>REPORTED</value>
+    <comment>Label in DatabaseRecoveryDialog.</comment>
+  </data>
+  <data name="RestoreFromABackup" xml:space="preserve">
+    <value>Restore from a backup</value>
+    <comment>Text in DatabaseRecoveryDialog.</comment>
+  </data>
+  <data name="TheMostRecentIsNote" xml:space="preserve">
+    <value>The most recent is selected. Anything recorded since it was taken will need to be polled again.</value>
+    <comment>Note in DatabaseRecoveryDialog.</comment>
+  </data>
+  <data name="NoBackupsWereFoundNote" xml:space="preserve">
+    <value>No backups were found beside the database, so there is nothing to restore from. Starting fresh will build an empty database and leave the damaged one in place.</value>
+    <comment>Note in DatabaseRecoveryDialog.</comment>
+  </data>
+  <data name="Quit" xml:space="preserve">
+    <value>Quit</value>
+    <comment>Button or option in DatabaseRecoveryDialog.</comment>
+  </data>
+  <data name="StartFresh" xml:space="preserve">
+    <value>Start fresh</value>
+    <comment>Button or option in DatabaseRecoveryDialog.</comment>
+  </data>
+  <data name="RestoreBackup" xml:space="preserve">
+    <value>Restore backup</value>
+    <comment>Button or option in DatabaseRecoveryDialog.</comment>
+  </data>
+  <data name="UpToDate" xml:space="preserve">
+    <value>up to date</value>
+    <comment>Text in MainWindow.</comment>
+  </data>
+  <data name="UpdateAvailable" xml:space="preserve">
+    <value>update available</value>
+    <comment>Button or option in MainWindow.</comment>
+  </data>
+  <data name="BackgroundLabel" xml:space="preserve">
+    <value>Background:</value>
+    <comment>Label in MainWindow.</comment>
+  </data>
+  <data name="NoneOfYourCharactersAre" xml:space="preserve">
+    <value>None of your characters are online.</value>
+    <comment>Text in MainWindow.</comment>
+  </data>
+  <data name="FmtStaticDataExport" xml:space="preserve">
+    <value>Static Data Export: {0}</value>
+    <comment>Formatted text ({0} is filled in) in MainWindow.</comment>
+  </data>
+  <data name="FmtNewestFromCcpIs" xml:space="preserve">
+    <value>Newest from CCP is {0}</value>
+    <comment>Formatted text ({0} is filled in) in MainWindow.</comment>
+  </data>
+  <data name="FmtNewestIsOpenTheSde" xml:space="preserve">
+    <value>Newest is {0} — open the SDE settings</value>
+    <comment>Formatted text ({0} is filled in) in MainWindow.</comment>
+  </data>
+  <data name="FmtToggleAiCompanion" xml:space="preserve">
+    <value>Toggle {0} AI companion</value>
+    <comment>Formatted text ({0} is filled in) in MainWindow.</comment>
+  </data>
+  <data name="Initializing" xml:space="preserve">
+    <value>Initializing…</value>
+    <comment>Text in SplashWindow.</comment>
+  </data>
+  <data name="TitleUpdateAvailable" xml:space="preserve">
+    <value>Update Available</value>
+    <comment>Window title in UpdateDialog.</comment>
+  </data>
+  <data name="ANewVersionOfNote" xml:space="preserve">
+    <value>A new version of EVE Console is available.</value>
+    <comment>Note in UpdateDialog.</comment>
+  </data>
+  <data name="CurrentLabel" xml:space="preserve">
+    <value>Current:</value>
+    <comment>Label in UpdateDialog.</comment>
+  </data>
+  <data name="LatestLabel" xml:space="preserve">
+    <value>Latest:</value>
+    <comment>Label in UpdateDialog.</comment>
+  </data>
+  <data name="TheAppWillDownloadNote" xml:space="preserve">
+    <value>The app will download the update and restart to apply it.</value>
+    <comment>Note in UpdateDialog.</comment>
+  </data>
+  <data name="UpdateNow" xml:space="preserve">
+    <value>Update Now</value>
+    <comment>Button or option in UpdateDialog.</comment>
+  </data>
+  <data name="NotNow" xml:space="preserve">
+    <value>Not Now</value>
+    <comment>Button or option in UpdateDialog.</comment>
+  </data>
+  <data name="UpdatingEveConsole" xml:space="preserve">
+    <value>Updating EVE Console…</value>
+    <comment>Text in UpdateDialog.</comment>
+  </data>
+  <data name="ThisBuildIsOlderNote" xml:space="preserve">
+    <value>This build is older than the database</value>
+    <comment>Note in UpdateRequiredDialog.</comment>
+  </data>
+  <data name="CheckingForAnUpdate" xml:space="preserve">
+    <value>Checking for an update…</value>
+    <comment>Text in UpdateRequiredDialog.</comment>
+  </data>
+  <data name="ReleasesPage" xml:space="preserve">
+    <value>Releases page</value>
+    <comment>Button or option in UpdateRequiredDialog.</comment>
+  </data>
+  <data name="UpdateAndRestart" xml:space="preserve">
+    <value>Update and restart</value>
+    <comment>Button or option in UpdateRequiredDialog.</comment>
+  </data>
+  <data name="TitleWelcomeToEveConsole" xml:space="preserve">
+    <value>Welcome to EVE Console</value>
+    <comment>Window title in WelcomeWindow.</comment>
+  </data>
+  <data name="WelcomeToEve" xml:space="preserve">
+    <value>Welcome to EVE </value>
+    <comment>Text in WelcomeWindow.</comment>
+  </data>
+  <data name="EveConsoleIsDownloadingNote" xml:space="preserve">
+    <value>EVE Console is downloading the EVE game data it needs (the Static Data Export and Hoboleaks data) in the background. This can take a few minutes — item lookups, market pricing, and industry tools will fill in as it completes. You can watch progress on the SDE tab in Settings.</value>
+    <comment>Note in WelcomeWindow.</comment>
+  </data>
+  <data name="OnceThatFinishesRestartNote" xml:space="preserve">
+    <value>Once that finishes, restart EVE Console. Some tools load their reference data when they first open, so a restart makes sure everything sees the freshly imported data.</value>
+    <comment>Note in WelcomeWindow.</comment>
+  </data>
+  <data name="ToPullInYourNote" xml:space="preserve">
+    <value>To pull in your own characters and corporation data, add your ESI character tokens. The Settings window will open on the ESI Tokens tab next — click Add Character there to log in through EVE's SSO.</value>
+    <comment>Note in WelcomeWindow.</comment>
+  </data>
+  <data name="GetStarted" xml:space="preserve">
+    <value>Get Started</value>
+    <comment>Button or option in WelcomeWindow.</comment>
+  </data>
 </root>

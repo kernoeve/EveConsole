@@ -62,26 +62,26 @@
           <TextBlock Text="{Binding SdeVm.SdeShortText}"
                      FontSize="11" Foreground="{DynamicResource TextDimBrush}"
                      VerticalAlignment="Center" Margin="10 0 0 0"
-                     ToolTip.Tip="{Binding SdeVm.LoadedBuild, StringFormat='Static Data Export: {0}'}" />
+                     ToolTip.Tip="{Binding SdeVm.LoadedBuild, StringFormat={x:Static loc:ShellText.FmtStaticDataExport}}" />
 
           <!-- ⚠️ Bound to SdeUpToDate, not to the absence of an update. If CCP's feed cannot be
                reached the comparison never runs and UpdateAvailable stays false, so keying off
                that would say "up to date" about a build nobody checked. When the check did not
                complete the bar shows neither state. -->
-          <TextBlock Text="up to date"
+          <TextBlock Text="{x:Static loc:ShellText.UpToDate}"
                      IsVisible="{Binding SdeVm.SdeUpToDate}"
                      FontSize="11" Foreground="{DynamicResource GoodBrush}"
                      VerticalAlignment="Center" Margin="6 0 0 0"
-                     ToolTip.Tip="{Binding SdeVm.LatestBuild, StringFormat='Newest from CCP is {0}'}" />
+                     ToolTip.Tip="{Binding SdeVm.LatestBuild, StringFormat={x:Static loc:ShellText.FmtNewestFromCcpIs}}" />
 
           <Button x:Name="SdeUpdateLinkButton"
                   IsVisible="{Binding SdeVm.UpdateAvailable}"
-                  Content="update available"
+                  Content="{x:Static loc:ShellText.UpdateAvailable}"
                   Background="Transparent" BorderThickness="0" Padding="6 1"
                   FontSize="11" Foreground="{DynamicResource InfoBrush}"
                   VerticalAlignment="Center"
                   Cursor="Hand"
-                  ToolTip.Tip="{Binding SdeVm.LatestBuild, StringFormat='Newest is {0} — open the SDE settings'}"
+                  ToolTip.Tip="{Binding SdeVm.LatestBuild, StringFormat={x:Static loc:ShellText.FmtNewestIsOpenTheSde}}"
                   Click="OnSdeUpdateLinkClick" />
 
           <!-- Which database this window is talking to. The icon carries it before the word is
@@ -145,7 +145,7 @@
           <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center"
                       Margin="10 0 0 0" Background="Transparent"
                       ToolTip.Tip="{Binding WorkerTip}">
-            <TextBlock Text="Background:" FontSize="11" Foreground="{DynamicResource TextDimBrush}"
+            <TextBlock Text="{x:Static loc:ShellText.BackgroundLabel}" FontSize="11" Foreground="{DynamicResource TextDimBrush}"
                        VerticalAlignment="Center" />
             <TextBlock Text="{Binding WorkerOwner}" FontSize="11"
                        VerticalAlignment="Center"
@@ -177,7 +177,7 @@
                    clipped the ship column clean off. -->
               <ToolTip MaxWidth="1400">
               <StackPanel Spacing="2" Margin="2">
-                <TextBlock Text="None of your characters are online." FontSize="11"
+                <TextBlock Text="{x:Static loc:ShellText.NoneOfYourCharactersAre}" FontSize="11"
                            Foreground="{DynamicResource TextMutedBrush}"
                            IsVisible="{Binding !HasOnlineCharacters}" />
                 <ItemsControl ItemsSource="{Binding OnlineCharacters}" Grid.IsSharedSizeScope="True"
@@ -262,7 +262,7 @@
           <Button Content="{Binding AgentVm.AgentName, StringFormat='✦ {0}'}" FontSize="11"
                   Background="{DynamicResource SurfaceBaseBrush}" BorderThickness="1" BorderBrush="{DynamicResource AccentSurfaceBrush}"
                   Foreground="{DynamicResource AccentBrush}" Padding="8 4" VerticalAlignment="Center"
-                  ToolTip.Tip="{Binding AgentVm.AgentName, StringFormat='Toggle {0} AI companion'}"
+                  ToolTip.Tip="{Binding AgentVm.AgentName, StringFormat={x:Static loc:ShellText.FmtToggleAiCompanion}}"
                   IsVisible="{Binding AgentVm.IsAgentEnabled}"
                   Click="OnAgentToggleClick" />
 

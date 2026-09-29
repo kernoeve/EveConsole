@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TabSummary" xml:space="preserve">
+    <value>Summary</value>
+    <comment>Tab in CharacterViewerView.</comment>
+  </data>
+  <data name="AllCharacters" xml:space="preserve">
+    <value>All characters</value>
+    <comment>Text in CharacterViewerView.</comment>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Refresh</value>
+    <comment>Button or option in CharacterViewerView.</comment>
+  </data>
+  <data name="DoubleClickARowNote" xml:space="preserve">
+    <value>Double-click a row to open it on the Detail tab.</value>
+    <comment>Note in CharacterViewerView.</comment>
+  </data>
+  <data name="ColCharacter" xml:space="preserve">
+    <value>Character</value>
+    <comment>Column header in CharacterViewerView.</comment>
+  </data>
+  <data name="ColCorp" xml:space="preserve">
+    <value>Corp</value>
+    <comment>Column header in CharacterViewerView.</comment>
+  </data>
+  <data name="ColAlliance" xml:space="preserve">
+    <value>Alliance</value>
+    <comment>Column header in CharacterViewerView.</comment>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>Status</value>
+    <comment>Column header in CharacterViewerView.</comment>
+  </data>
+  <data name="ColLocation" xml:space="preserve">
+    <value>Location</value>
+    <comment>Column header in CharacterViewerView.</comment>
+  </data>
+  <data name="ColShip" xml:space="preserve">
+    <value>Ship</value>
+    <comment>Column header in CharacterViewerView.</comment>
+  </data>
+  <data name="ColPodValue" xml:space="preserve">
+    <value>Pod value</value>
+    <comment>Column header in CharacterViewerView.</comment>
+  </data>
+  <data name="ColHomeStation" xml:space="preserve">
+    <value>Home station</value>
+    <comment>Column header in CharacterViewerView.</comment>
+  </data>
+  <data name="ColSkillQueue" xml:space="preserve">
+    <value>Skill queue</value>
+    <comment>Column header in CharacterViewerView.</comment>
+  </data>
+  <data name="TipEntriesInTheQueue" xml:space="preserve">
+    <value>Entries in the queue, and how long until the last one finishes.</value>
+    <comment>Tooltip in CharacterViewerView.</comment>
+  </data>
+  <data name="ColTotalSp" xml:space="preserve">
+    <value>Total SP</value>
+    <comment>Column header in CharacterViewerView.</comment>
+  </data>
+  <data name="ColAssets" xml:space="preserve">
+    <value>Assets</value>
+    <comment>Column header in CharacterViewerView.</comment>
+  </data>
+  <data name="ColMfg" xml:space="preserve">
+    <value>Mfg</value>
+    <comment>Column header in CharacterViewerView.</comment>
+  </data>
+  <data name="TipManufacturingSlotsFreeOfTotal" xml:space="preserve">
+    <value>Manufacturing slots free of total</value>
+    <comment>Tooltip in CharacterViewerView.</comment>
+  </data>
+  <data name="ColRxn" xml:space="preserve">
+    <value>Rxn</value>
+    <comment>Column header in CharacterViewerView.</comment>
+  </data>
+  <data name="TipReactionSlotsFreeOfTotal" xml:space="preserve">
+    <value>Reaction slots free of total</value>
+    <comment>Tooltip in CharacterViewerView.</comment>
+  </data>
+  <data name="ColSci" xml:space="preserve">
+    <value>Sci</value>
+    <comment>Column header in CharacterViewerView.</comment>
+  </data>
+  <data name="TipScienceSlotsFreeOf" xml:space="preserve">
+    <value>Science slots free of total — copying, research and invention</value>
+    <comment>Tooltip in CharacterViewerView.</comment>
+  </data>
+  <data name="TabDetail" xml:space="preserve">
+    <value>Detail</value>
+    <comment>Tab in CharacterViewerView.</comment>
+  </data>
+  <data name="CharacterLabel" xml:space="preserve">
+    <value>Character:</value>
+    <comment>Label in CharacterViewerView.</comment>
+  </data>
+  <data name="TotalSpLabel" xml:space="preserve">
+    <value>Total SP: </value>
+    <comment>Label in CharacterViewerView.</comment>
+  </data>
+  <data name="UnallocatedLabel" xml:space="preserve">
+    <value>Unallocated: </value>
+    <comment>Label in CharacterViewerView.</comment>
+  </data>
+  <data name="SecStatusLabel" xml:space="preserve">
+    <value>Sec Status: </value>
+    <comment>Label in CharacterViewerView.</comment>
+  </data>
+  <data name="TabSkills" xml:space="preserve">
+    <value>Skills</value>
+    <comment>Tab in CharacterViewerView.</comment>
+  </data>
+  <data name="SkillGroups" xml:space="preserve">
+    <value>Skill Groups</value>
+    <comment>Text in CharacterViewerView.</comment>
+  </data>
+  <data name="TipOpenInItemBrowser" xml:space="preserve">
+    <value>Open in Item Browser</value>
+    <comment>Tooltip in CharacterViewerView.</comment>
+  </data>
+  <data name="TrainingQueue" xml:space="preserve">
+    <value>Training Queue</value>
+    <comment>Text in CharacterViewerView.</comment>
+  </data>
+  <data name="TabAttributes" xml:space="preserve">
+    <value>Attributes</value>
+    <comment>Tab in CharacterViewerView.</comment>
+  </data>
+  <data name="CharacterAttributes" xml:space="preserve">
+    <value>Character Attributes</value>
+    <comment>Text in CharacterViewerView.</comment>
+  </data>
+  <data name="Intelligence" xml:space="preserve">
+    <value>Intelligence</value>
+    <comment>Text in CharacterViewerView.</comment>
+  </data>
+  <data name="Memory" xml:space="preserve">
+    <value>Memory</value>
+    <comment>Text in CharacterViewerView.</comment>
+  </data>
+  <data name="Charisma" xml:space="preserve">
+    <value>Charisma</value>
+    <comment>Text in CharacterViewerView.</comment>
+  </data>
+  <data name="Perception" xml:space="preserve">
+    <value>Perception</value>
+    <comment>Text in CharacterViewerView.</comment>
+  </data>
+  <data name="Willpower" xml:space="preserve">
+    <value>Willpower</value>
+    <comment>Text in CharacterViewerView.</comment>
+  </data>
+  <data name="NoAttributeDataAvailableNote" xml:space="preserve">
+    <value>No attribute data available. Character attributes are loaded during ESI polling.</value>
+    <comment>Note in CharacterViewerView.</comment>
+  </data>
+  <data name="NeuralRemapping" xml:space="preserve">
+    <value>Neural Remapping</value>
+    <comment>Text in CharacterViewerView.</comment>
+  </data>
+  <data name="LastRemapLabel" xml:space="preserve">
+    <value>Last Remap:</value>
+    <comment>Label in CharacterViewerView.</comment>
+  </data>
+  <data name="TabClones" xml:space="preserve">
+    <value>Clones</value>
+    <comment>Tab in CharacterViewerView.</comment>
+  </data>
+  <data name="ActiveCloneImplants" xml:space="preserve">
+    <value>Active Clone Implants</value>
+    <comment>Text in CharacterViewerView.</comment>
+  </data>
+  <data name="NoImplantsFittedInActive" xml:space="preserve">
+    <value>No implants fitted in active clone.</value>
+    <comment>Text in CharacterViewerView.</comment>
+  </data>
+  <data name="JumpClones" xml:space="preserve">
+    <value>Jump Clones</value>
+    <comment>Text in CharacterViewerView.</comment>
+  </data>
+  <data name="NoJumpClones" xml:space="preserve">
+    <value>No jump clones.</value>
+    <comment>Text in CharacterViewerView.</comment>
+  </data>
+  <data name="TabMedals" xml:space="preserve">
+    <value>Medals</value>
+    <comment>Tab in CharacterViewerView.</comment>
+  </data>
+  <data name="TabTitles" xml:space="preserve">
+    <value>Titles</value>
+    <comment>Tab in CharacterViewerView.</comment>
+  </data>
+  <data name="NoTitlesHeldByThis" xml:space="preserve">
+    <value>No titles held by this character.</value>
+    <comment>Text in CharacterViewerView.</comment>
+  </data>
+  <data name="TabStandings" xml:space="preserve">
+    <value>Standings</value>
+    <comment>Tab in CharacterViewerView.</comment>
+  </data>
+  <data name="NoStandingsDataAvailable" xml:space="preserve">
+    <value>No standings data available.</value>
+    <comment>Text in CharacterViewerView.</comment>
+  </data>
+  <data name="FmtUpdated" xml:space="preserve">
+    <value>Updated: {0:dd MMM yyyy HH:mm}</value>
+    <comment>Formatted text ({0} is filled in) in CharacterViewerView.</comment>
+  </data>
+  <data name="TitleCharacterViewer" xml:space="preserve">
+    <value>Character Viewer</value>
+    <comment>Window title in CharacterViewerWindow.</comment>
+  </data>
+</root>

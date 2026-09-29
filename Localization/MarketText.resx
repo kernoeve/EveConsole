@@ -1,0 +1,751 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TitleGroup" xml:space="preserve">
+    <value>Group</value>
+    <comment>Window title in AddEditGroupDialog.</comment>
+  </data>
+  <data name="GroupNameLabel" xml:space="preserve">
+    <value>GROUP NAME</value>
+    <comment>Label in AddEditGroupDialog.</comment>
+  </data>
+  <data name="CollectionLabel" xml:space="preserve">
+    <value>COLLECTION</value>
+    <comment>Label in AddEditGroupDialog.</comment>
+  </data>
+  <data name="StationLabel" xml:space="preserve">
+    <value>STATION</value>
+    <comment>Label in AddEditGroupDialog.</comment>
+  </data>
+  <data name="OnlyStationsWithCachedNote" xml:space="preserve">
+    <value>Only stations with cached sell orders appear here.</value>
+    <comment>Note in AddEditGroupDialog.</comment>
+  </data>
+  <data name="MarketPriceSourceLabel" xml:space="preserve">
+    <value>MARKET PRICE SOURCE</value>
+    <comment>Label in AddEditGroupDialog.</comment>
+  </data>
+  <data name="MaxPriceOverSourceLabel" xml:space="preserve">
+    <value>MAX PRICE OVER SOURCE (%)</value>
+    <comment>Label in AddEditGroupDialog.</comment>
+  </data>
+  <data name="HintEG100Leave" xml:space="preserve">
+    <value>e.g. 100 — leave blank to disable</value>
+    <comment>Hint in an empty box in AddEditGroupDialog.</comment>
+  </data>
+  <data name="MultiplierLabel" xml:space="preserve">
+    <value>MULTIPLIER</value>
+    <comment>Label in AddEditGroupDialog.</comment>
+  </data>
+  <data name="TargetQuantitiesForAllNote" xml:space="preserve">
+    <value>× target quantities for all items in this group</value>
+    <comment>Note in AddEditGroupDialog.</comment>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+    <comment>Button or option in AddEditGroupDialog.</comment>
+  </data>
+  <data name="Ok" xml:space="preserve">
+    <value>OK</value>
+    <comment>Button or option in AddEditGroupDialog.</comment>
+  </data>
+  <data name="Issuer" xml:space="preserve">
+    <value>Issuer</value>
+    <comment>Text in ContractDetailView.</comment>
+  </data>
+  <data name="TipOpenInTheEntityBrowser" xml:space="preserve">
+    <value>Open in the entity browser</value>
+    <comment>Tooltip in ContractDetailView.</comment>
+  </data>
+  <data name="Assignee" xml:space="preserve">
+    <value>Assignee</value>
+    <comment>Text in ContractDetailView.</comment>
+  </data>
+  <data name="Acceptor" xml:space="preserve">
+    <value>Acceptor</value>
+    <comment>Text in ContractDetailView.</comment>
+  </data>
+  <data name="Price" xml:space="preserve">
+    <value>Price</value>
+    <comment>Text in ContractDetailView.</comment>
+  </data>
+  <data name="Reward" xml:space="preserve">
+    <value>Reward</value>
+    <comment>Text in ContractDetailView.</comment>
+  </data>
+  <data name="Collateral" xml:space="preserve">
+    <value>Collateral</value>
+    <comment>Text in ContractDetailView.</comment>
+  </data>
+  <data name="Buyout" xml:space="preserve">
+    <value>Buyout</value>
+    <comment>Text in ContractDetailView.</comment>
+  </data>
+  <data name="Volume" xml:space="preserve">
+    <value>Volume</value>
+    <comment>Text in ContractDetailView.</comment>
+  </data>
+  <data name="From" xml:space="preserve">
+    <value>From</value>
+    <comment>Text in ContractDetailView.</comment>
+  </data>
+  <data name="To" xml:space="preserve">
+    <value>To</value>
+    <comment>Text in ContractDetailView.</comment>
+  </data>
+  <data name="Issued" xml:space="preserve">
+    <value>Issued</value>
+    <comment>Text in ContractDetailView.</comment>
+  </data>
+  <data name="Expires" xml:space="preserve">
+    <value>Expires</value>
+    <comment>Text in ContractDetailView.</comment>
+  </data>
+  <data name="Accepted" xml:space="preserve">
+    <value>Accepted</value>
+    <comment>Text in ContractDetailView.</comment>
+  </data>
+  <data name="Completed" xml:space="preserve">
+    <value>Completed</value>
+    <comment>Text in ContractDetailView.</comment>
+  </data>
+  <data name="PullItemsFromEsi" xml:space="preserve">
+    <value>Pull items from ESI</value>
+    <comment>Button or option in ContractDetailView.</comment>
+  </data>
+  <data name="TipAskEveryEndpointThis" xml:space="preserve">
+    <value>Ask every endpoint this contract has for its items, once more, and say what each answered.</value>
+    <comment>Tooltip in ContractDetailView.</comment>
+  </data>
+  <data name="Offered" xml:space="preserve">
+    <value>Offered</value>
+    <comment>Text in ContractDetailView.</comment>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>Item</value>
+    <comment>Column header in ContractDetailView.</comment>
+  </data>
+  <data name="TipOpenInTheItemBrowser" xml:space="preserve">
+    <value>Open in the Item Browser</value>
+    <comment>Tooltip in ContractDetailView.</comment>
+  </data>
+  <data name="ColQty" xml:space="preserve">
+    <value>Qty</value>
+    <comment>Column header in ContractDetailView.</comment>
+  </data>
+  <data name="ColMarketValue" xml:space="preserve">
+    <value>Market value</value>
+    <comment>Column header in ContractDetailView.</comment>
+  </data>
+  <data name="ColBuildValue" xml:space="preserve">
+    <value>Build value</value>
+    <comment>Column header in ContractDetailView.</comment>
+  </data>
+  <data name="ColDetails" xml:space="preserve">
+    <value>Details</value>
+    <comment>Column header in ContractDetailView.</comment>
+  </data>
+  <data name="Requested" xml:space="preserve">
+    <value>Requested</value>
+    <comment>Text in ContractDetailView.</comment>
+  </data>
+  <data name="TabCorporationPersonal" xml:space="preserve">
+    <value>Corporation &amp; Personal</value>
+    <comment>Tab in ContractsView.</comment>
+  </data>
+  <data name="ScopeLabel" xml:space="preserve">
+    <value>Scope:</value>
+    <comment>Label in ContractsView.</comment>
+  </data>
+  <data name="StatusLabel" xml:space="preserve">
+    <value>Status:</value>
+    <comment>Label in ContractsView.</comment>
+  </data>
+  <data name="AssigneeLabel" xml:space="preserve">
+    <value>Assignee:</value>
+    <comment>Label in ContractsView.</comment>
+  </data>
+  <data name="AcceptorLabel" xml:space="preserve">
+    <value>Acceptor:</value>
+    <comment>Label in ContractsView.</comment>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>↻ Refresh</value>
+    <comment>Button or option in ContractsView.</comment>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>Type</value>
+    <comment>Column header in ContractsView.</comment>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>Status</value>
+    <comment>Column header in ContractsView.</comment>
+  </data>
+  <data name="ColContents" xml:space="preserve">
+    <value>Contents</value>
+    <comment>Column header in ContractsView.</comment>
+  </data>
+  <data name="ColFrom" xml:space="preserve">
+    <value>From</value>
+    <comment>Column header in ContractsView.</comment>
+  </data>
+  <data name="ColAssignee" xml:space="preserve">
+    <value>Assignee</value>
+    <comment>Column header in ContractsView.</comment>
+  </data>
+  <data name="ColAcceptor" xml:space="preserve">
+    <value>Acceptor</value>
+    <comment>Column header in ContractsView.</comment>
+  </data>
+  <data name="ColPrice" xml:space="preserve">
+    <value>Price</value>
+    <comment>Column header in ContractsView.</comment>
+  </data>
+  <data name="ColReward" xml:space="preserve">
+    <value>Reward</value>
+    <comment>Column header in ContractsView.</comment>
+  </data>
+  <data name="ColIssued" xml:space="preserve">
+    <value>Issued</value>
+    <comment>Column header in ContractsView.</comment>
+  </data>
+  <data name="ColExpires" xml:space="preserve">
+    <value>Expires</value>
+    <comment>Column header in ContractsView.</comment>
+  </data>
+  <data name="SelectAContractToNote" xml:space="preserve">
+    <value>Select a contract to view its details.</value>
+    <comment>Note in ContractsView.</comment>
+  </data>
+  <data name="TabPublic" xml:space="preserve">
+    <value>Public</value>
+    <comment>Tab in ContractsView.</comment>
+  </data>
+  <data name="ShowLabel" xml:space="preserve">
+    <value>Show:</value>
+    <comment>Label in ContractsView.</comment>
+  </data>
+  <data name="ContractLabel" xml:space="preserve">
+    <value>Contract:</value>
+    <comment>Label in ContractsView.</comment>
+  </data>
+  <data name="RegionLabel" xml:space="preserve">
+    <value>Region:</value>
+    <comment>Label in ContractsView.</comment>
+  </data>
+  <data name="CategoryLabel" xml:space="preserve">
+    <value>Category:</value>
+    <comment>Label in ContractsView.</comment>
+  </data>
+  <data name="ItemLabel" xml:space="preserve">
+    <value>Item:</value>
+    <comment>Label in ContractsView.</comment>
+  </data>
+  <data name="HintTypeName" xml:space="preserve">
+    <value>type name…</value>
+    <comment>Hint in an empty box in ContractsView.</comment>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>Clear</value>
+    <comment>Button or option in ContractsView.</comment>
+  </data>
+  <data name="SortLabel" xml:space="preserve">
+    <value>Sort:</value>
+    <comment>Label in ContractsView.</comment>
+  </data>
+  <data name="ColRegion" xml:space="preserve">
+    <value>Region</value>
+    <comment>Column header in ContractsView.</comment>
+  </data>
+  <data name="ColVolM" xml:space="preserve">
+    <value>Vol m³</value>
+    <comment>Column header in ContractsView.</comment>
+  </data>
+  <data name="First" xml:space="preserve">
+    <value>⏮ First</value>
+    <comment>Button or option in ContractsView.</comment>
+  </data>
+  <data name="Prev" xml:space="preserve">
+    <value>◀ Prev</value>
+    <comment>Button or option in ContractsView.</comment>
+  </data>
+  <data name="Next" xml:space="preserve">
+    <value>Next ▶</value>
+    <comment>Button or option in ContractsView.</comment>
+  </data>
+  <data name="Last" xml:space="preserve">
+    <value>Last ⏭</value>
+    <comment>Button or option in ContractsView.</comment>
+  </data>
+  <data name="TabCurrentValues" xml:space="preserve">
+    <value>Current Values</value>
+    <comment>Tab in LpMarketValuesView.</comment>
+  </data>
+  <data name="Recalculate" xml:space="preserve">
+    <value>Recalculate</value>
+    <comment>Button or option in LpMarketValuesView.</comment>
+  </data>
+  <data name="TipRePriceEveryOffer" xml:space="preserve">
+    <value>Re-price every offer against current market and contract prices. Happens automatically when market prices refresh; this runs it now.</value>
+    <comment>Tooltip in LpMarketValuesView.</comment>
+  </data>
+  <data name="MeanIskPerLoyaltyNote" xml:space="preserve">
+    <value>Mean ISK per loyalty point across the offers in each store that price out above zero. Offers worth nothing or less are shown per item in the Item Browser but are not counted here, since nobody spends LP on them; the median covers exactly the same offers. Corporations you hold LP with are listed first. Double-click a row for its history.</value>
+    <comment>Note in LpMarketValuesView.</comment>
+  </data>
+  <data name="ColCorporation" xml:space="preserve">
+    <value>Corporation</value>
+    <comment>Column header in LpMarketValuesView.</comment>
+  </data>
+  <data name="TipOpenInNpcEntities" xml:space="preserve">
+    <value>Open in NPC Entities</value>
+    <comment>Tooltip in LpMarketValuesView.</comment>
+  </data>
+  <data name="ColIskLp" xml:space="preserve">
+    <value>ISK / LP</value>
+    <comment>Column header in LpMarketValuesView.</comment>
+  </data>
+  <data name="TipMeanIskPerLp" xml:space="preserve">
+    <value>Mean ISK per LP across the offers counted for this corporation.</value>
+    <comment>Tooltip in LpMarketValuesView.</comment>
+  </data>
+  <data name="ColMedian" xml:space="preserve">
+    <value>Median</value>
+    <comment>Column header in LpMarketValuesView.</comment>
+  </data>
+  <data name="TipTheMiddleOfferOver" xml:space="preserve">
+    <value>The middle offer, over the same counted offers as the mean. Highlighted when it sits well below the mean, which means a few very high offers are lifting the average above what a typical offer returns.</value>
+    <comment>Tooltip in LpMarketValuesView.</comment>
+  </data>
+  <data name="ColBestOffer" xml:space="preserve">
+    <value>Best Offer</value>
+    <comment>Column header in LpMarketValuesView.</comment>
+  </data>
+  <data name="ColBestItem" xml:space="preserve">
+    <value>Best Item</value>
+    <comment>Column header in LpMarketValuesView.</comment>
+  </data>
+  <data name="TipOpenInItemBrowser" xml:space="preserve">
+    <value>Open in Item Browser</value>
+    <comment>Tooltip in LpMarketValuesView.</comment>
+  </data>
+  <data name="ColCounted" xml:space="preserve">
+    <value>Counted</value>
+    <comment>Column header in LpMarketValuesView.</comment>
+  </data>
+  <data name="TipOffersBehindTheseFigures" xml:space="preserve">
+    <value>Offers behind these figures, out of the store total. Excludes offers that could not be priced, and offers worth zero or less — nobody spends LP on those, so they are shown per item but not averaged here.</value>
+    <comment>Tooltip in LpMarketValuesView.</comment>
+  </data>
+  <data name="ColYourLp" xml:space="preserve">
+    <value>Your LP</value>
+    <comment>Column header in LpMarketValuesView.</comment>
+  </data>
+  <data name="ColHoldingWorth" xml:space="preserve">
+    <value>Holding Worth</value>
+    <comment>Column header in LpMarketValuesView.</comment>
+  </data>
+  <data name="ColUpdated" xml:space="preserve">
+    <value>Updated</value>
+    <comment>Column header in LpMarketValuesView.</comment>
+  </data>
+  <data name="TabHistory" xml:space="preserve">
+    <value>History</value>
+    <comment>Tab in LpMarketValuesView.</comment>
+  </data>
+  <data name="CorporationLabel" xml:space="preserve">
+    <value>Corporation:</value>
+    <comment>Label in LpMarketValuesView.</comment>
+  </data>
+  <data name="PeriodLabel" xml:space="preserve">
+    <value>Period:</value>
+    <comment>Label in LpMarketValuesView.</comment>
+  </data>
+  <data name="AddGroup" xml:space="preserve">
+    <value>+ Add Group</value>
+    <comment>Button or option in MarketLevelView.</comment>
+  </data>
+  <data name="Collection" xml:space="preserve">
+    <value>+ Collection</value>
+    <comment>Button or option in MarketLevelView.</comment>
+  </data>
+  <data name="MenuOpenInItemBrowser" xml:space="preserve">
+    <value>Open in Item Browser</value>
+    <comment>Menu item in MarketLevelView.</comment>
+  </data>
+  <data name="MenuAddItemsFromFit" xml:space="preserve">
+    <value>Add Items From Fit</value>
+    <comment>Menu item in MarketLevelView.</comment>
+  </data>
+  <data name="MenuAddItemsFromMarketGroup" xml:space="preserve">
+    <value>Add Items From Market Group</value>
+    <comment>Menu item in MarketLevelView.</comment>
+  </data>
+  <data name="MenuAddItemsFromBlueprint" xml:space="preserve">
+    <value>Add Items From Blueprint</value>
+    <comment>Menu item in MarketLevelView.</comment>
+  </data>
+  <data name="MenuDeleteItem" xml:space="preserve">
+    <value>Delete Item</value>
+    <comment>Menu item in MarketLevelView.</comment>
+  </data>
+  <data name="ColGroupItem" xml:space="preserve">
+    <value>GROUP / ITEM</value>
+    <comment>Column header in MarketLevelView.</comment>
+  </data>
+  <data name="TipExpandAllGroups" xml:space="preserve">
+    <value>Expand all groups</value>
+    <comment>Tooltip in MarketLevelView.</comment>
+  </data>
+  <data name="TipCollapseAllGroups" xml:space="preserve">
+    <value>Collapse all groups</value>
+    <comment>Tooltip in MarketLevelView.</comment>
+  </data>
+  <data name="Rename" xml:space="preserve">
+    <value>Rename</value>
+    <comment>Button or option in MarketLevelView.</comment>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Delete</value>
+    <comment>Button or option in MarketLevelView.</comment>
+  </data>
+  <data name="Item" xml:space="preserve">
+    <value>+ Item</value>
+    <comment>Button or option in MarketLevelView.</comment>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Edit</value>
+    <comment>Button or option in MarketLevelView.</comment>
+  </data>
+  <data name="ColTarget" xml:space="preserve">
+    <value>TARGET</value>
+    <comment>Column header in MarketLevelView.</comment>
+  </data>
+  <data name="ColTgtTotal" xml:space="preserve">
+    <value>TGT TOTAL</value>
+    <comment>Column header in MarketLevelView.</comment>
+  </data>
+  <data name="ColAvail" xml:space="preserve">
+    <value>AVAIL</value>
+    <comment>Column header in MarketLevelView.</comment>
+  </data>
+  <data name="ColDiff" xml:space="preserve">
+    <value>DIFF</value>
+    <comment>Column header in MarketLevelView.</comment>
+  </data>
+  <data name="ColMktPrice" xml:space="preserve">
+    <value>MKT PRICE</value>
+    <comment>Column header in MarketLevelView.</comment>
+  </data>
+  <data name="ColStMin" xml:space="preserve">
+    <value>ST MIN</value>
+    <comment>Column header in MarketLevelView.</comment>
+  </data>
+  <data name="ColStAvg" xml:space="preserve">
+    <value>ST AVG</value>
+    <comment>Column header in MarketLevelView.</comment>
+  </data>
+  <data name="ColStMax" xml:space="preserve">
+    <value>ST MAX</value>
+    <comment>Column header in MarketLevelView.</comment>
+  </data>
+  <data name="ColBuildPrice" xml:space="preserve">
+    <value>BUILD PRICE</value>
+    <comment>Column header in MarketLevelView.</comment>
+  </data>
+  <data name="ColVolumeM" xml:space="preserve">
+    <value>VOLUME (m³)</value>
+    <comment>Column header in MarketLevelView.</comment>
+  </data>
+  <data name="TitleMarketLevels" xml:space="preserve">
+    <value>Market Levels</value>
+    <comment>Window title in MarketLevelWindow.</comment>
+  </data>
+  <data name="TabSummary" xml:space="preserve">
+    <value>Summary</value>
+    <comment>Tab in MarketViewerView.</comment>
+  </data>
+  <data name="SellOrderCountLabel" xml:space="preserve">
+    <value>SELL ORDER COUNT</value>
+    <comment>Label in MarketViewerView.</comment>
+  </data>
+  <data name="SellOrderIskLabel" xml:space="preserve">
+    <value>SELL ORDER ISK</value>
+    <comment>Label in MarketViewerView.</comment>
+  </data>
+  <data name="SellOrderTypesLabel" xml:space="preserve">
+    <value>SELL ORDER TYPES</value>
+    <comment>Label in MarketViewerView.</comment>
+  </data>
+  <data name="BuyOrderCountLabel" xml:space="preserve">
+    <value>BUY ORDER COUNT</value>
+    <comment>Label in MarketViewerView.</comment>
+  </data>
+  <data name="BuyOrderIskLabel" xml:space="preserve">
+    <value>BUY ORDER ISK</value>
+    <comment>Label in MarketViewerView.</comment>
+  </data>
+  <data name="BuyOrderTypesLabel" xml:space="preserve">
+    <value>BUY ORDER TYPES</value>
+    <comment>Label in MarketViewerView.</comment>
+  </data>
+  <data name="SalesUnitsLabel" xml:space="preserve">
+    <value>SALES UNITS</value>
+    <comment>Label in MarketViewerView.</comment>
+  </data>
+  <data name="SalesIskLabel" xml:space="preserve">
+    <value>SALES ISK</value>
+    <comment>Label in MarketViewerView.</comment>
+  </data>
+  <data name="SalesTypesLabel" xml:space="preserve">
+    <value>SALES TYPES</value>
+    <comment>Label in MarketViewerView.</comment>
+  </data>
+  <data name="SellOrdersByType" xml:space="preserve">
+    <value>Sell Orders by Type</value>
+    <comment>Text in MarketViewerView.</comment>
+  </data>
+  <data name="NoSellOrdersForThis" xml:space="preserve">
+    <value>No sell orders for this selection.</value>
+    <comment>Text in MarketViewerView.</comment>
+  </data>
+  <data name="BuyOrdersByType" xml:space="preserve">
+    <value>Buy Orders by Type</value>
+    <comment>Text in MarketViewerView.</comment>
+  </data>
+  <data name="NoBuyOrdersForThis" xml:space="preserve">
+    <value>No buy orders for this selection.</value>
+    <comment>Text in MarketViewerView.</comment>
+  </data>
+  <data name="SalesByMarketGroup" xml:space="preserve">
+    <value>Sales by Market Group</value>
+    <comment>Text in MarketViewerView.</comment>
+  </data>
+  <data name="NoSalesForThisSelection" xml:space="preserve">
+    <value>No sales for this selection.</value>
+    <comment>Text in MarketViewerView.</comment>
+  </data>
+  <data name="DailySalesIsk" xml:space="preserve">
+    <value>Daily Sales ISK</value>
+    <comment>Text in MarketViewerView.</comment>
+  </data>
+  <data name="NoSalesHistoryForThis" xml:space="preserve">
+    <value>No sales history for this selection.</value>
+    <comment>Text in MarketViewerView.</comment>
+  </data>
+  <data name="TabByMarketGroup" xml:space="preserve">
+    <value>By Market Group</value>
+    <comment>Tab in MarketViewerView.</comment>
+  </data>
+  <data name="ColMarketGroup" xml:space="preserve">
+    <value>Market Group</value>
+    <comment>Column header in MarketViewerView.</comment>
+  </data>
+  <data name="ColSellOrderUnits" xml:space="preserve">
+    <value>Sell Order Units</value>
+    <comment>Column header in MarketViewerView.</comment>
+  </data>
+  <data name="ColSellOrderIsk" xml:space="preserve">
+    <value>Sell Order ISK</value>
+    <comment>Column header in MarketViewerView.</comment>
+  </data>
+  <data name="ColBuyOrderUnits" xml:space="preserve">
+    <value>Buy Order Units</value>
+    <comment>Column header in MarketViewerView.</comment>
+  </data>
+  <data name="ColBuyOrderIsk" xml:space="preserve">
+    <value>Buy Order ISK</value>
+    <comment>Column header in MarketViewerView.</comment>
+  </data>
+  <data name="ColSalesUnits" xml:space="preserve">
+    <value>Sales Units</value>
+    <comment>Column header in MarketViewerView.</comment>
+  </data>
+  <data name="ColSalesIsk" xml:space="preserve">
+    <value>Sales ISK</value>
+    <comment>Column header in MarketViewerView.</comment>
+  </data>
+  <data name="TabByType" xml:space="preserve">
+    <value>By Type</value>
+    <comment>Tab in MarketViewerView.</comment>
+  </data>
+  <data name="TabSellOrdersByType" xml:space="preserve">
+    <value>Sell Orders by Type</value>
+    <comment>Tab in MarketViewerView.</comment>
+  </data>
+  <data name="ColUnits" xml:space="preserve">
+    <value>Units</value>
+    <comment>Column header in MarketViewerView.</comment>
+  </data>
+  <data name="TabBuyOrdersByType" xml:space="preserve">
+    <value>Buy Orders by Type</value>
+    <comment>Tab in MarketViewerView.</comment>
+  </data>
+  <data name="TitleStandingBuyOrder" xml:space="preserve">
+    <value>Standing Buy Order</value>
+    <comment>Window title in StandingBuyOrderDialog.</comment>
+  </data>
+  <data name="DeclareABuyOrderNote" xml:space="preserve">
+    <value>Declare a buy order you intend to keep standing. EVE Console will report whether a matching live buy order exists at this location, and how much of it is left.</value>
+    <comment>Note in StandingBuyOrderDialog.</comment>
+  </data>
+  <data name="ItemTypeLabel" xml:space="preserve">
+    <value>ITEM TYPE</value>
+    <comment>Label in StandingBuyOrderDialog.</comment>
+  </data>
+  <data name="HintSearchForItemType" xml:space="preserve">
+    <value>Search for item type…</value>
+    <comment>Hint in an empty box in StandingBuyOrderDialog.</comment>
+  </data>
+  <data name="StationStructureLabel" xml:space="preserve">
+    <value>STATION / STRUCTURE</value>
+    <comment>Label in StandingBuyOrderDialog.</comment>
+  </data>
+  <data name="HintSearchForStationOrStructure" xml:space="preserve">
+    <value>Search for station or structure…</value>
+    <comment>Hint in an empty box in StandingBuyOrderDialog.</comment>
+  </data>
+  <data name="NpcStationsPlayerStructuresNote" xml:space="preserve">
+    <value>NPC stations, player structures and your corp's structures are all searchable.</value>
+    <comment>Note in StandingBuyOrderDialog.</comment>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Save</value>
+    <comment>Button or option in StandingBuyOrderDialog.</comment>
+  </data>
+  <data name="StandingBuyOrders" xml:space="preserve">
+    <value>Standing Buy Orders</value>
+    <comment>Text in StandingBuyOrdersView.</comment>
+  </data>
+  <data name="BuyOrdersYouIntendNote" xml:space="preserve">
+    <value>Buy orders you intend to keep standing at a station or structure. Each is matched against your characters' and corporations' live buy orders.</value>
+    <comment>Note in StandingBuyOrdersView.</comment>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Add</value>
+    <comment>Button or option in StandingBuyOrdersView.</comment>
+  </data>
+  <data name="Refresh2" xml:space="preserve">
+    <value>Refresh</value>
+    <comment>Button or option in StandingBuyOrdersView.</comment>
+  </data>
+  <data name="ColLocation" xml:space="preserve">
+    <value>Location</value>
+    <comment>Column header in StandingBuyOrdersView.</comment>
+  </data>
+  <data name="TipOpenThisStationOrStructure" xml:space="preserve">
+    <value>Open this station or structure</value>
+    <comment>Tooltip in StandingBuyOrdersView.</comment>
+  </data>
+  <data name="ColHeldBy" xml:space="preserve">
+    <value>Held by</value>
+    <comment>Column header in StandingBuyOrdersView.</comment>
+  </data>
+  <data name="ColOurBid" xml:space="preserve">
+    <value>Our bid</value>
+    <comment>Column header in StandingBuyOrdersView.</comment>
+  </data>
+  <data name="ColStationBestBid" xml:space="preserve">
+    <value>Station best bid</value>
+    <comment>Column header in StandingBuyOrdersView.</comment>
+  </data>
+  <data name="ColRemaining" xml:space="preserve">
+    <value>Remaining</value>
+    <comment>Column header in StandingBuyOrdersView.</comment>
+  </data>
+  <data name="ColNote" xml:space="preserve">
+    <value>Note</value>
+    <comment>Column header in StandingBuyOrdersView.</comment>
+  </data>
+  <data name="Calculate" xml:space="preserve">
+    <value>Calculate</value>
+    <comment>Button or option in TradeOpportunitiesView.</comment>
+  </data>
+  <data name="HintTypeToFilter" xml:space="preserve">
+    <value>Type to filter…</value>
+    <comment>Hint in an empty box in TradeOpportunitiesView.</comment>
+  </data>
+  <data name="CargoM" xml:space="preserve">
+    <value>Cargo (m³)</value>
+    <comment>Text in TradeOpportunitiesView.</comment>
+  </data>
+  <data name="IskCap" xml:space="preserve">
+    <value>ISK Cap</value>
+    <comment>Text in TradeOpportunitiesView.</comment>
+  </data>
+  <data name="HintNoLimit" xml:space="preserve">
+    <value>No limit</value>
+    <comment>Hint in an empty box in TradeOpportunitiesView.</comment>
+  </data>
+  <data name="Min30dIskVol" xml:space="preserve">
+    <value>Min 30d ISK Vol</value>
+    <comment>Text in TradeOpportunitiesView.</comment>
+  </data>
+  <data name="HintNoFilter" xml:space="preserve">
+    <value>No filter</value>
+    <comment>Hint in an empty box in TradeOpportunitiesView.</comment>
+  </data>
+  <data name="Min30dUnitVol" xml:space="preserve">
+    <value>Min 30d Unit Vol</value>
+    <comment>Text in TradeOpportunitiesView.</comment>
+  </data>
+  <data name="ExcludeGroups" xml:space="preserve">
+    <value>Exclude Groups</value>
+    <comment>Text in TradeOpportunitiesView.</comment>
+  </data>
+  <data name="TipRemoveThisExclusion" xml:space="preserve">
+    <value>Remove this exclusion</value>
+    <comment>Tooltip in TradeOpportunitiesView.</comment>
+  </data>
+  <data name="VolumeLabel" xml:space="preserve">
+    <value>VOLUME</value>
+    <comment>Label in TradeOpportunitiesView.</comment>
+  </data>
+  <data name="CostLabel" xml:space="preserve">
+    <value>COST</value>
+    <comment>Label in TradeOpportunitiesView.</comment>
+  </data>
+  <data name="ProfitLabel" xml:space="preserve">
+    <value>PROFIT</value>
+    <comment>Label in TradeOpportunitiesView.</comment>
+  </data>
+  <data name="ColSellPrice" xml:space="preserve">
+    <value>Sell Price</value>
+    <comment>Column header in TradeOpportunitiesView.</comment>
+  </data>
+  <data name="ColDestPrice" xml:space="preserve">
+    <value>Dest Price</value>
+    <comment>Column header in TradeOpportunitiesView.</comment>
+  </data>
+  <data name="ColProfitUnit" xml:space="preserve">
+    <value>Profit / Unit</value>
+    <comment>Column header in TradeOpportunitiesView.</comment>
+  </data>
+  <data name="ColProfitM" xml:space="preserve">
+    <value>Profit / m³</value>
+    <comment>Column header in TradeOpportunitiesView.</comment>
+  </data>
+  <data name="ColVolumeM2" xml:space="preserve">
+    <value>Volume (m³)</value>
+    <comment>Column header in TradeOpportunitiesView.</comment>
+  </data>
+  <data name="ColTotalCost" xml:space="preserve">
+    <value>Total Cost</value>
+    <comment>Column header in TradeOpportunitiesView.</comment>
+  </data>
+  <data name="ColTotalProfit" xml:space="preserve">
+    <value>Total Profit</value>
+    <comment>Column header in TradeOpportunitiesView.</comment>
+  </data>
+  <data name="ScanningForTradeOpportunities" xml:space="preserve">
+    <value>Scanning for trade opportunities…</value>
+    <comment>Text in TradeOpportunitiesView.</comment>
+  </data>
+  <data name="TitleTradeOpportunities" xml:space="preserve">
+    <value>Trade Opportunities</value>
+    <comment>Window title in TradeOpportunitiesWindow.</comment>
+  </data>
+</root>

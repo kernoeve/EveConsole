@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              x:Class="EveConsole.Views.TradeOpportunitiesView"
              x:DataType="vm:TradeOpportunitiesViewModel"
@@ -49,7 +50,7 @@
       <DockPanel>
 
         <Button DockPanel.Dock="Right"
-                Content="Calculate"
+                Content="{x:Static loc:MarketText.Calculate}"
                 Command="{Binding CalculateCommand}"
                 Padding="18 6"
                 Background="{DynamicResource BorderSubtleBrush}"
@@ -71,14 +72,14 @@
             </ComboBox.ItemTemplate>
           </ComboBox>
 
-          <TextBlock Text="From" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
+          <TextBlock Text="{x:Static loc:MarketText.From}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
                      VerticalAlignment="Center" />
           <AutoCompleteBox ItemsSource="{Binding Stations}"
                            SelectedItem="{Binding SourceStation}"
                            ValueMemberBinding="{Binding Name}"
                            FilterMode="Contains"
                            MinimumPrefixLength="0"
-                           Watermark="Type to filter…"
+                           Watermark="{x:Static loc:MarketText.HintTypeToFilter}"
                            Width="220" FontSize="12"
                            Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextPrimaryBrush}">
             <AutoCompleteBox.ItemTemplate>
@@ -88,14 +89,14 @@
             </AutoCompleteBox.ItemTemplate>
           </AutoCompleteBox>
 
-          <TextBlock Text="To" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
+          <TextBlock Text="{x:Static loc:MarketText.To}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
                      VerticalAlignment="Center" />
           <AutoCompleteBox ItemsSource="{Binding Stations}"
                            SelectedItem="{Binding DestinationStation}"
                            ValueMemberBinding="{Binding Name}"
                            FilterMode="Contains"
                            MinimumPrefixLength="0"
-                           Watermark="Type to filter…"
+                           Watermark="{x:Static loc:MarketText.HintTypeToFilter}"
                            Width="220" FontSize="12"
                            Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextPrimaryBrush}">
             <AutoCompleteBox.ItemTemplate>
@@ -105,27 +106,27 @@
             </AutoCompleteBox.ItemTemplate>
           </AutoCompleteBox>
 
-          <TextBlock Text="Cargo (m³)" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
+          <TextBlock Text="{x:Static loc:MarketText.CargoM}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
                      VerticalAlignment="Center" />
           <TextBox Text="{Binding CargoM3}" Width="90" FontSize="12"
                    Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextPrimaryBrush}" />
 
-          <TextBlock Text="ISK Cap" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
+          <TextBlock Text="{x:Static loc:MarketText.IskCap}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
                      VerticalAlignment="Center" />
           <TextBox Text="{Binding IskCap}" Width="110" FontSize="12"
-                   Watermark="No limit"
+                   Watermark="{x:Static loc:MarketText.HintNoLimit}"
                    Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextPrimaryBrush}" />
 
-          <TextBlock Text="Min 30d ISK Vol" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
+          <TextBlock Text="{x:Static loc:MarketText.Min30dIskVol}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
                      VerticalAlignment="Center" />
           <TextBox Text="{Binding MinIskVolume}" Width="110" FontSize="12"
-                   Watermark="No filter"
+                   Watermark="{x:Static loc:MarketText.HintNoFilter}"
                    Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextPrimaryBrush}" />
 
-          <TextBlock Text="Min 30d Unit Vol" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
+          <TextBlock Text="{x:Static loc:MarketText.Min30dUnitVol}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
                      VerticalAlignment="Center" />
           <TextBox Text="{Binding MinUnitVolume}" Width="110" FontSize="12"
-                   Watermark="No filter"
+                   Watermark="{x:Static loc:MarketText.HintNoFilter}"
                    Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextPrimaryBrush}" />
 
         </StackPanel>
@@ -133,7 +134,7 @@
 
       <!-- ── Excluded market groups ─────────────────────────────────────────── -->
       <StackPanel Orientation="Horizontal" Spacing="8">
-        <TextBlock Text="Exclude Groups" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
+        <TextBlock Text="{x:Static loc:MarketText.ExcludeGroups}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
                    VerticalAlignment="Center" />
 
         <ItemsControl ItemsSource="{Binding ExcludedMarketGroups}">
@@ -154,7 +155,7 @@
                           Background="Transparent" BorderThickness="0"
                           Foreground="{DynamicResource BadBrush}" FontSize="10" Padding="0"
                           Cursor="Hand" VerticalAlignment="Center"
-                          ToolTip.Tip="Remove this exclusion" />
+                          ToolTip.Tip="{x:Static loc:MarketText.TipRemoveThisExclusion}" />
                   <TextBlock Text="{Binding Name}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"
                              VerticalAlignment="Center" />
                 </StackPanel>
@@ -163,7 +164,7 @@
           </ItemsControl.ItemTemplate>
         </ItemsControl>
 
-        <Button Content="+ Add Group"
+        <Button Content="{x:Static loc:MarketText.AddGroup}"
                 Command="{Binding AddExcludedGroupCommand}"
                 Padding="8 3" FontSize="11"
                 Background="{DynamicResource SurfacePanelAltBrush}" Foreground="{DynamicResource InfoBrush}"
@@ -189,7 +190,7 @@
           <Border Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                   CornerRadius="3" Padding="10 4">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <TextBlock Text="VOLUME" FontSize="9" Foreground="{DynamicResource TextFaintBrush}"
+              <TextBlock Text="{x:Static loc:MarketText.VolumeLabel}" FontSize="9" Foreground="{DynamicResource TextFaintBrush}"
                          FontWeight="SemiBold" LetterSpacing="1" VerticalAlignment="Center" />
               <TextBlock Text="{Binding SummaryVolume}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" />
             </StackPanel>
@@ -198,7 +199,7 @@
           <Border Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                   CornerRadius="3" Padding="10 4">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <TextBlock Text="COST" FontSize="9" Foreground="{DynamicResource TextFaintBrush}"
+              <TextBlock Text="{x:Static loc:MarketText.CostLabel}" FontSize="9" Foreground="{DynamicResource TextFaintBrush}"
                          FontWeight="SemiBold" LetterSpacing="1" VerticalAlignment="Center" />
               <TextBlock Text="{Binding SummaryCost}" FontSize="12" Foreground="{DynamicResource InfoBrush}" />
             </StackPanel>
@@ -207,7 +208,7 @@
           <Border Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                   CornerRadius="3" Padding="10 4">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <TextBlock Text="PROFIT" FontSize="9" Foreground="{DynamicResource TextFaintBrush}"
+              <TextBlock Text="{x:Static loc:MarketText.ProfitLabel}" FontSize="9" Foreground="{DynamicResource TextFaintBrush}"
                          FontWeight="SemiBold" LetterSpacing="1" VerticalAlignment="Center" />
               <TextBlock Text="{Binding SummaryProfit}" FontSize="12" Foreground="{DynamicResource GoodBrush}" />
             </StackPanel>
@@ -232,12 +233,12 @@
 
       <DataGrid.Columns>
 
-        <DataGridTemplateColumn Header="Item" Width="*" MinWidth="150" SortMemberPath="TypeName" ClipboardContentBinding="{Binding TypeName}">
+        <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColItem}" Width="*" MinWidth="150" SortMemberPath="TypeName" ClipboardContentBinding="{Binding TypeName}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <Panel>
                 <Button Classes="link" Click="OnOpenItem" IsVisible="{Binding HasItemLink}"
-                        ToolTip.Tip="Open in the Item Browser">
+                        ToolTip.Tip="{x:Static loc:MarketText.TipOpenInTheItemBrowser}">
                   <TextBlock Text="{Binding TypeName}" Classes="linktext"
                              TextTrimming="CharacterEllipsis" />
                 </Button>
@@ -248,7 +249,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Sell Price" Width="110" SortMemberPath="BestSell" ClipboardContentBinding="{Binding BestSellDisplay}">
+        <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColSellPrice}" Width="110" SortMemberPath="BestSell" ClipboardContentBinding="{Binding BestSellDisplay}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding BestSellDisplay}"
@@ -258,7 +259,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Dest Price" Width="110" SortMemberPath="DestPrice" ClipboardContentBinding="{Binding DestPriceDisplay}">
+        <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColDestPrice}" Width="110" SortMemberPath="DestPrice" ClipboardContentBinding="{Binding DestPriceDisplay}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding DestPriceDisplay}"
@@ -268,7 +269,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Profit / Unit" Width="110" SortMemberPath="ProfitPerUnit" ClipboardContentBinding="{Binding ProfitUnitDisplay}">
+        <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColProfitUnit}" Width="110" SortMemberPath="ProfitPerUnit" ClipboardContentBinding="{Binding ProfitUnitDisplay}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding ProfitUnitDisplay}"
@@ -279,7 +280,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Profit / m³" Width="100" SortMemberPath="ProfitPerM3" ClipboardContentBinding="{Binding ProfitM3Display}">
+        <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColProfitM}" Width="100" SortMemberPath="ProfitPerM3" ClipboardContentBinding="{Binding ProfitM3Display}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding ProfitM3Display}"
@@ -290,7 +291,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Qty" Width="80" SortMemberPath="Quantity" ClipboardContentBinding="{Binding QuantityDisplay}">
+        <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColQty}" Width="80" SortMemberPath="Quantity" ClipboardContentBinding="{Binding QuantityDisplay}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding QuantityDisplay}"
@@ -300,7 +301,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Volume (m³)" Width="100" SortMemberPath="TotalVolume" ClipboardContentBinding="{Binding TotalVolumeDisplay}">
+        <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColVolumeM2}" Width="100" SortMemberPath="TotalVolume" ClipboardContentBinding="{Binding TotalVolumeDisplay}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding TotalVolumeDisplay}"
@@ -310,7 +311,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Total Cost" Width="110" SortMemberPath="TotalCost" ClipboardContentBinding="{Binding TotalCostDisplay}">
+        <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColTotalCost}" Width="110" SortMemberPath="TotalCost" ClipboardContentBinding="{Binding TotalCostDisplay}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding TotalCostDisplay}"
@@ -321,7 +322,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Total Profit" Width="110" SortMemberPath="TotalProfit" ClipboardContentBinding="{Binding TotalProfitDisplay}">
+        <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColTotalProfit}" Width="110" SortMemberPath="TotalProfit" ClipboardContentBinding="{Binding TotalProfitDisplay}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding TotalProfitDisplay}"
@@ -347,7 +348,7 @@
                      Width="240" Height="3"
                      Foreground="{DynamicResource AccentBrush}"
                      Background="{DynamicResource SurfaceRaisedBrush}" />
-        <TextBlock Text="Scanning for trade opportunities…"
+        <TextBlock Text="{x:Static loc:MarketText.ScanningForTradeOpportunities}"
                    FontSize="14" FontWeight="SemiBold"
                    Foreground="{DynamicResource AccentBrush}"
                    HorizontalAlignment="Center" />

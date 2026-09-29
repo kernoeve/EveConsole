@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              x:Class="EveConsole.Views.SaleListingView"
              x:DataType="vm:SaleListingViewModel"
@@ -45,7 +46,7 @@
         <TextBlock Grid.Column="1" Text="{Binding StatusText}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
                    VerticalAlignment="Center" Margin="12 0 12 0" />
         <Button Grid.Column="2" Classes="link" Click="OnOpenSalesTracker" VerticalAlignment="Center">
-          <TextBlock Text="Sales Tracker →" FontSize="11" Foreground="{DynamicResource InfoBrush}" TextDecorations="Underline" />
+          <TextBlock Text="{x:Static loc:SalesText.SalesTracker}" FontSize="11" Foreground="{DynamicResource InfoBrush}" TextDecorations="Underline" />
         </Button>
       </Grid>
     </Border>
@@ -62,16 +63,16 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
-        <DataGridTextColumn Header="Date / Time" Binding="{Binding WhenText}" SortMemberPath="WhenSort" Width="130" />
+        <DataGridTextColumn Header="{x:Static loc:SalesText.ColDateTime}" Binding="{Binding WhenText}" SortMemberPath="WhenSort" Width="130" />
         <!-- Buyer and Item are links. The item cell links only the named type: on a contract it
              reads "Revelation +3 more items", and that tail stands for items this row carries no
              ids for, so linking the whole string would promise a page it cannot open. -->
-        <DataGridTemplateColumn Header="Buyer" SortMemberPath="Buyer" Width="144" ClipboardContentBinding="{Binding Buyer}">
+        <DataGridTemplateColumn Header="{x:Static loc:SalesText.ColBuyer}" SortMemberPath="Buyer" Width="144" ClipboardContentBinding="{Binding Buyer}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:SaleListingRowVm">
               <Panel>
                 <Button Classes="link" Click="OnOpenBuyer" IsVisible="{Binding HasBuyerLink}"
-                        HorizontalAlignment="Left" ToolTip.Tip="Open in the entity browser">
+                        HorizontalAlignment="Left" ToolTip.Tip="{x:Static loc:SalesText.TipOpenInTheEntityBrowser}">
                   <TextBlock Text="{Binding Buyer}" Classes="linktext" TextTrimming="CharacterEllipsis" />
                 </Button>
                 <TextBlock Text="{Binding Buyer}" IsVisible="{Binding !HasBuyerLink}"
@@ -81,12 +82,12 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Item" SortMemberPath="Item" Width="*" ClipboardContentBinding="{Binding ItemName}">
+        <DataGridTemplateColumn Header="{x:Static loc:SalesText.ColItem}" SortMemberPath="Item" Width="*" ClipboardContentBinding="{Binding ItemName}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:SaleListingRowVm">
               <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                 <Button Classes="link" Click="OnOpenItem" IsVisible="{Binding HasItemLink}"
-                        HorizontalAlignment="Left" ToolTip.Tip="Open in the Item Browser">
+                        HorizontalAlignment="Left" ToolTip.Tip="{x:Static loc:SalesText.TipOpenInTheItemBrowser}">
                   <TextBlock Text="{Binding ItemName}" Classes="linktext" TextTrimming="CharacterEllipsis" />
                 </Button>
                 <TextBlock Text="{Binding ItemName}" IsVisible="{Binding !HasItemLink}"
@@ -96,11 +97,11 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
-        <DataGridTextColumn Header="Amount"      Binding="{Binding Amount}"   SortMemberPath="AmountRaw" Width="60" CellStyleClasses="num" />
+        <DataGridTextColumn Header="{x:Static loc:SalesText.ColAmount}"      Binding="{Binding Amount}"   SortMemberPath="AmountRaw" Width="60" CellStyleClasses="num" />
         <!-- ⚠️ TextAlignment, not HorizontalAlignment. A template column's cell does not stretch
              its content the way a text column's does, so HorizontalAlignment="Right" had nothing
              to align against and these two read as left-aligned beside the Amount column. -->
-        <DataGridTemplateColumn Header="Profit"   SortMemberPath="ProfitRaw"    Width="60" ClipboardContentBinding="{Binding Profit}">
+        <DataGridTemplateColumn Header="{x:Static loc:SalesText.ColProfit}"   SortMemberPath="ProfitRaw"    Width="60" ClipboardContentBinding="{Binding Profit}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:SaleListingRowVm">
               <TextBlock Text="{Binding Profit}" Foreground="{Binding ProfitBrush}" FontSize="11"
@@ -109,7 +110,7 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
-        <DataGridTemplateColumn Header="Profit %" SortMemberPath="ProfitPctRaw" Width="64" ClipboardContentBinding="{Binding ProfitPct}">
+        <DataGridTemplateColumn Header="{x:Static loc:SalesText.ColProfit2}" SortMemberPath="ProfitPctRaw" Width="64" ClipboardContentBinding="{Binding ProfitPct}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:SaleListingRowVm">
               <TextBlock Text="{Binding ProfitPct}" Foreground="{Binding ProfitBrush}" FontSize="11"

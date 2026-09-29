@@ -1,0 +1,835 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="CorporationLabel" xml:space="preserve">
+    <value>Corporation:</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Refresh</value>
+    <comment>Button or option in CorpActivityView.</comment>
+  </data>
+  <data name="TabActivity24h" xml:space="preserve">
+    <value>ACTIVITY (24H)</value>
+    <comment>Tab in CorpActivityView.</comment>
+  </data>
+  <data name="PlayersActiveLabel" xml:space="preserve">
+    <value>PLAYERS ACTIVE:</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="IncomeLabel" xml:space="preserve">
+    <value>INCOME:</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="ExpensesLabel" xml:space="preserve">
+    <value>EXPENSES:</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="RattingLabel" xml:space="preserve">
+    <value>RATTING</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="ColCharacter" xml:space="preserve">
+    <value>CHARACTER</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="TipOpenInTheEntityBrowser" xml:space="preserve">
+    <value>Open in the entity browser</value>
+    <comment>Tooltip in CorpActivityView.</comment>
+  </data>
+  <data name="ColValue" xml:space="preserve">
+    <value>VALUE</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="IndustryLabel" xml:space="preserve">
+    <value>INDUSTRY</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="MiningLabel" xml:space="preserve">
+    <value>MINING</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="RecentKillsLossesLabel" xml:space="preserve">
+    <value>RECENT KILLS &amp; LOSSES</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="TabMonthlyActivity" xml:space="preserve">
+    <value>MONTHLY ACTIVITY</value>
+    <comment>Tab in CorpActivityView.</comment>
+  </data>
+  <data name="ColMonth" xml:space="preserve">
+    <value>MONTH</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColTotalIncome" xml:space="preserve">
+    <value>TOTAL INCOME</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColTotalExpense" xml:space="preserve">
+    <value>TOTAL EXPENSE</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColRattingTax" xml:space="preserve">
+    <value>RATTING TAX</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColIndustryTax" xml:space="preserve">
+    <value>INDUSTRY TAX</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColProjPayouts" xml:space="preserve">
+    <value>PROJ PAYOUTS</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColMinedValue" xml:space="preserve">
+    <value>MINED VALUE</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColKills" xml:space="preserve">
+    <value>KILLS</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColLosses" xml:space="preserve">
+    <value>LOSSES</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColIskEff" xml:space="preserve">
+    <value>ISK EFF</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColPlayersActive" xml:space="preserve">
+    <value>PLAYERS ACTIVE</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="IskTrendsBillions" xml:space="preserve">
+    <value>ISK TRENDS (billions)</value>
+    <comment>Text in CorpActivityView.</comment>
+  </data>
+  <data name="KillsLossesIskEfficiencyRight" xml:space="preserve">
+    <value>KILLS / LOSSES (ISK efficiency right)</value>
+    <comment>Text in CorpActivityView.</comment>
+  </data>
+  <data name="PlayersActiveLabel2" xml:space="preserve">
+    <value>PLAYERS ACTIVE</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="MiningReprocessedValue" xml:space="preserve">
+    <value>MINING (reprocessed value)</value>
+    <comment>Text in CorpActivityView.</comment>
+  </data>
+  <data name="TabIncome" xml:space="preserve">
+    <value>INCOME</value>
+    <comment>Tab in CorpActivityView.</comment>
+  </data>
+  <data name="IncomeByTypeLabel" xml:space="preserve">
+    <value>INCOME BY TYPE</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="PeriodLabel" xml:space="preserve">
+    <value>Period:</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="TabSummary" xml:space="preserve">
+    <value>SUMMARY</value>
+    <comment>Tab in CorpActivityView.</comment>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>TYPE</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColCount" xml:space="preserve">
+    <value>COUNT</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColAmount" xml:space="preserve">
+    <value>AMOUNT</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="TabDetail" xml:space="preserve">
+    <value>DETAIL</value>
+    <comment>Tab in CorpActivityView.</comment>
+  </data>
+  <data name="TypeLabel" xml:space="preserve">
+    <value>TYPE</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="NameLabel" xml:space="preserve">
+    <value>NAME</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="HintContains" xml:space="preserve">
+    <value>contains…</value>
+    <comment>Hint in an empty box in CorpActivityView.</comment>
+  </data>
+  <data name="ColDateTime" xml:space="preserve">
+    <value>DATE / TIME</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColName" xml:space="preserve">
+    <value>NAME</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColReason" xml:space="preserve">
+    <value>REASON</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="TabExpense" xml:space="preserve">
+    <value>EXPENSE</value>
+    <comment>Tab in CorpActivityView.</comment>
+  </data>
+  <data name="ExpensesByTypeLabel" xml:space="preserve">
+    <value>EXPENSES BY TYPE</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="TabRattingTaxes" xml:space="preserve">
+    <value>RATTING TAXES</value>
+    <comment>Tab in CorpActivityView.</comment>
+  </data>
+  <data name="RattingTaxLabel" xml:space="preserve">
+    <value>RATTING TAX</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="DailyRattingTaxLabel" xml:space="preserve">
+    <value>DAILY RATTING TAX</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="TabIndustryTaxes" xml:space="preserve">
+    <value>INDUSTRY TAXES</value>
+    <comment>Tab in CorpActivityView.</comment>
+  </data>
+  <data name="IndustryTaxLabel" xml:space="preserve">
+    <value>INDUSTRY TAX</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="DailyIndustryTaxLabel" xml:space="preserve">
+    <value>DAILY INDUSTRY TAX</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="TabDonations" xml:space="preserve">
+    <value>DONATIONS</value>
+    <comment>Tab in CorpActivityView.</comment>
+  </data>
+  <data name="DonationsLabel" xml:space="preserve">
+    <value>DONATIONS</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="ColDonated" xml:space="preserve">
+    <value>DONATED</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="DailyDonationsLabel" xml:space="preserve">
+    <value>DAILY DONATIONS</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="ColDonor" xml:space="preserve">
+    <value>DONOR</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="TabMining" xml:space="preserve">
+    <value>MINING</value>
+    <comment>Tab in CorpActivityView.</comment>
+  </data>
+  <data name="MiningLedgerLabel" xml:space="preserve">
+    <value>MINING LEDGER</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="NoMiningDataForNote" xml:space="preserve">
+    <value>No mining data for this period. If a step failed, the status line above says so.</value>
+    <comment>Note in CorpActivityView.</comment>
+  </data>
+  <data name="ColDate" xml:space="preserve">
+    <value>DATE</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColOreType" xml:space="preserve">
+    <value>ORE TYPE</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="TipOpenInTheItemBrowser" xml:space="preserve">
+    <value>Open in the Item Browser</value>
+    <comment>Tooltip in CorpActivityView.</comment>
+  </data>
+  <data name="ColQuantity" xml:space="preserve">
+    <value>QUANTITY</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColReprocessedValue" xml:space="preserve">
+    <value>REPROCESSED VALUE</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="TabKillmails" xml:space="preserve">
+    <value>KILLMAILS</value>
+    <comment>Tab in CorpActivityView.</comment>
+  </data>
+  <data name="KillmailsLabel" xml:space="preserve">
+    <value>KILLMAILS</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="DailyKillsLossesLabel" xml:space="preserve">
+    <value>DAILY KILLS / LOSSES</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="TabProjects" xml:space="preserve">
+    <value>PROJECTS</value>
+    <comment>Tab in CorpActivityView.</comment>
+  </data>
+  <data name="TabActive" xml:space="preserve">
+    <value>ACTIVE</value>
+    <comment>Tab in CorpActivityView.</comment>
+  </data>
+  <data name="TotalRewardLabel" xml:space="preserve">
+    <value>Total Reward:</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="RemainingLabel" xml:space="preserve">
+    <value>Remaining:</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="NoActiveCorpProjects" xml:space="preserve">
+    <value>No active corp projects.</value>
+    <comment>Text in CorpActivityView.</comment>
+  </data>
+  <data name="ColCareer" xml:space="preserve">
+    <value>CAREER</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColProgress" xml:space="preserve">
+    <value>PROGRESS</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColRemReward" xml:space="preserve">
+    <value>REM. REWARD</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColCreator" xml:space="preserve">
+    <value>CREATOR</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColCreated" xml:space="preserve">
+    <value>CREATED</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="TabHistory" xml:space="preserve">
+    <value>HISTORY</value>
+    <comment>Tab in CorpActivityView.</comment>
+  </data>
+  <data name="NoProjectHistoryAvailable" xml:space="preserve">
+    <value>No project history available.</value>
+    <comment>Text in CorpActivityView.</comment>
+  </data>
+  <data name="ColState" xml:space="preserve">
+    <value>STATE</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColCompleted" xml:space="preserve">
+    <value>COMPLETED</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="TabStandingProjects" xml:space="preserve">
+    <value>STANDING PROJECTS</value>
+    <comment>Tab in CorpActivityView.</comment>
+  </data>
+  <data name="AddProject" xml:space="preserve">
+    <value>+ Add Project</value>
+    <comment>Button or option in CorpActivityView.</comment>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>Loading…</value>
+    <comment>Text in CorpActivityView.</comment>
+  </data>
+  <data name="MenuCloneItem" xml:space="preserve">
+    <value>Clone item</value>
+    <comment>Menu item in CorpActivityView.</comment>
+  </data>
+  <data name="MenuOpenItemInItemBrowser" xml:space="preserve">
+    <value>Open Item in Item Browser</value>
+    <comment>Menu item in CorpActivityView.</comment>
+  </data>
+  <data name="ColDescription" xml:space="preserve">
+    <value>DESCRIPTION</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColLocation" xml:space="preserve">
+    <value>LOCATION</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="TipOpenThisStationOrStructure" xml:space="preserve">
+    <value>Open this station or structure</value>
+    <comment>Tooltip in CorpActivityView.</comment>
+  </data>
+  <data name="ColProjectStatus" xml:space="preserve">
+    <value>PROJECT STATUS</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColRemaining" xml:space="preserve">
+    <value>REMAINING</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColRem" xml:space="preserve">
+    <value>REM. %</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColPayout" xml:space="preserve">
+    <value>PAYOUT</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Edit</value>
+    <comment>Button or option in CorpActivityView.</comment>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Delete</value>
+    <comment>Button or option in CorpActivityView.</comment>
+  </data>
+  <data name="NoStandingProjectsDefinedNote" xml:space="preserve">
+    <value>No standing projects defined. Click '+ Add Project' to create one.</value>
+    <comment>Note in CorpActivityView.</comment>
+  </data>
+  <data name="SelectAProjectAboveNote" xml:space="preserve">
+    <value>Select a project above to view details.</value>
+    <comment>Note in CorpActivityView.</comment>
+  </data>
+  <data name="TabDetails" xml:space="preserve">
+    <value>DETAILS</value>
+    <comment>Tab in CorpActivityView.</comment>
+  </data>
+  <data name="ConfigurationLabel" xml:space="preserve">
+    <value>CONFIGURATION</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="TabContributors" xml:space="preserve">
+    <value>CONTRIBUTORS</value>
+    <comment>Tab in CorpActivityView.</comment>
+  </data>
+  <data name="ColContributed" xml:space="preserve">
+    <value>CONTRIBUTED</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColOfTarget" xml:space="preserve">
+    <value>% OF TARGET</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="TabTop10Lists" xml:space="preserve">
+    <value>TOP 10 LISTS</value>
+    <comment>Tab in CorpActivityView.</comment>
+  </data>
+  <data name="Top10ByMonthLabel" xml:space="preserve">
+    <value>TOP 10 BY MONTH</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="MonthLabel" xml:space="preserve">
+    <value>Month:</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="YearLabel" xml:space="preserve">
+    <value>Year:</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="Loading2" xml:space="preserve">
+    <value>Loading...</value>
+    <comment>Text in CorpActivityView.</comment>
+  </data>
+  <data name="TipFormatUsedForExport" xml:space="preserve">
+    <value>Format used for Export to Clipboard and Post to Slack</value>
+    <comment>Tooltip in CorpActivityView.</comment>
+  </data>
+  <data name="ExportToClipboard" xml:space="preserve">
+    <value>Export to Clipboard</value>
+    <comment>Button or option in CorpActivityView.</comment>
+  </data>
+  <data name="ExportNoIsk" xml:space="preserve">
+    <value>Export (No ISK)</value>
+    <comment>Button or option in CorpActivityView.</comment>
+  </data>
+  <data name="PostToSlack" xml:space="preserve">
+    <value>Post to Slack</value>
+    <comment>Text in CorpActivityView.</comment>
+  </data>
+  <data name="MiningUnitsMinedLabel" xml:space="preserve">
+    <value>MINING — UNITS MINED</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="KillsLabel" xml:space="preserve">
+    <value>KILLS</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="ProjectContributorsLabel" xml:space="preserve">
+    <value>PROJECT CONTRIBUTORS</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="TabMonthlySummary" xml:space="preserve">
+    <value>MONTHLY SUMMARY</value>
+    <comment>Tab in CorpActivityView.</comment>
+  </data>
+  <data name="MonthlySummaryLabel" xml:space="preserve">
+    <value>MONTHLY SUMMARY</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="ThisMonth" xml:space="preserve">
+    <value>This month</value>
+    <comment>Text in CorpActivityView.</comment>
+  </data>
+  <data name="Change" xml:space="preserve">
+    <value>Change</value>
+    <comment>Text in CorpActivityView.</comment>
+  </data>
+  <data name="TipChangeVsThePreviousMonth" xml:space="preserve">
+    <value>Change vs the previous month</value>
+    <comment>Tooltip in CorpActivityView.</comment>
+  </data>
+  <data name="TipPercentChangeVsThePrevious" xml:space="preserve">
+    <value>Percent change vs the previous month</value>
+    <comment>Tooltip in CorpActivityView.</comment>
+  </data>
+  <data name="FmtRows" xml:space="preserve">
+    <value>{0:N0} rows</value>
+    <comment>Formatted text ({0} is filled in) in CorpActivityView.</comment>
+  </data>
+  <data name="TitleCorpActivity" xml:space="preserve">
+    <value>Corp Activity</value>
+    <comment>Window title in CorpActivityWindow.</comment>
+  </data>
+  <data name="HintTypeAtLeastTwo" xml:space="preserve">
+    <value>Type at least two characters to search…</value>
+    <comment>Hint in an empty box in EntityTabView.</comment>
+  </data>
+  <data name="SearchAboveAndPickNote" xml:space="preserve">
+    <value>Search above and pick an entity to see its details.</value>
+    <comment>Note in EntityTabView.</comment>
+  </data>
+  <data name="TabDescription" xml:space="preserve">
+    <value>Description</value>
+    <comment>Tab in EntityTabView.</comment>
+  </data>
+  <data name="TabKillsLosses" xml:space="preserve">
+    <value>Kills / Losses</value>
+    <comment>Tab in EntityTabView.</comment>
+  </data>
+  <data name="ColName2" xml:space="preserve">
+    <value>Name</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="ColDetails" xml:space="preserve">
+    <value>Details</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="ColLvl" xml:space="preserve">
+    <value>Lvl</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="ColDivision" xml:space="preserve">
+    <value>Division</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="ColStation" xml:space="preserve">
+    <value>Station</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="TipOpenInTheStationsTab" xml:space="preserve">
+    <value>Open in the Stations tab</value>
+    <comment>Tooltip in EntityTabView.</comment>
+  </data>
+  <data name="ColFrom" xml:space="preserve">
+    <value>From</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="ColUntil" xml:space="preserve">
+    <value>Until</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="ColDuration" xml:space="preserve">
+    <value>Duration</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="TabStations" xml:space="preserve">
+    <value>Stations</value>
+    <comment>Tab in EntityTabView.</comment>
+  </data>
+  <data name="ColSystem" xml:space="preserve">
+    <value>System</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="ColRegion" xml:space="preserve">
+    <value>Region</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="ColSec" xml:space="preserve">
+    <value>Sec</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="ColAgents" xml:space="preserve">
+    <value>Agents</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="TabOrders" xml:space="preserve">
+    <value>Orders</value>
+    <comment>Tab in EntityTabView.</comment>
+  </data>
+  <data name="Sells" xml:space="preserve">
+    <value>Sells</value>
+    <comment>Text in EntityTabView.</comment>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>Item</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="TipOpenInItemBrowser" xml:space="preserve">
+    <value>Open in Item Browser</value>
+    <comment>Tooltip in EntityTabView.</comment>
+  </data>
+  <data name="ColLowPrice" xml:space="preserve">
+    <value>Low Price</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="ColHighPrice" xml:space="preserve">
+    <value>High Price</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="Buys" xml:space="preserve">
+    <value>Buys</value>
+    <comment>Text in EntityTabView.</comment>
+  </data>
+  <data name="TabLpOffers" xml:space="preserve">
+    <value>LP Offers</value>
+    <comment>Tab in EntityTabView.</comment>
+  </data>
+  <data name="ColQty" xml:space="preserve">
+    <value>Qty</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="ColRequires" xml:space="preserve">
+    <value>Requires</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="TabFactionWarfare" xml:space="preserve">
+    <value>Faction Warfare</value>
+    <comment>Tab in EntityTabView.</comment>
+  </data>
+  <data name="ColRole" xml:space="preserve">
+    <value>Role</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="ColOwner" xml:space="preserve">
+    <value>Owner</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="ColHeldBy" xml:space="preserve">
+    <value>Held By</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="ColContested" xml:space="preserve">
+    <value>Contested</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="ColPoints" xml:space="preserve">
+    <value>Points</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="ColThreshold" xml:space="preserve">
+    <value>Threshold</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="TabIntelReports" xml:space="preserve">
+    <value>Intel Reports</value>
+    <comment>Tab in EntityTabView.</comment>
+  </data>
+  <data name="ColWhen" xml:space="preserve">
+    <value>When</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="ColShip" xml:space="preserve">
+    <value>Ship</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="ColChannel" xml:space="preserve">
+    <value>Channel</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="ColReporter" xml:space="preserve">
+    <value>Reporter</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="HintCharacter" xml:space="preserve">
+    <value>Character…</value>
+    <comment>Hint in an empty box in KillmailBrowserView.</comment>
+  </data>
+  <data name="HintCorp" xml:space="preserve">
+    <value>Corp…</value>
+    <comment>Hint in an empty box in KillmailBrowserView.</comment>
+  </data>
+  <data name="FromLabel" xml:space="preserve">
+    <value>From:</value>
+    <comment>Label in KillmailBrowserView.</comment>
+  </data>
+  <data name="ThruLabel" xml:space="preserve">
+    <value>Thru:</value>
+    <comment>Label in KillmailBrowserView.</comment>
+  </data>
+  <data name="HintShip" xml:space="preserve">
+    <value>Ship…</value>
+    <comment>Hint in an empty box in KillmailBrowserView.</comment>
+  </data>
+  <data name="HintSystemRegion" xml:space="preserve">
+    <value>System/Region…</value>
+    <comment>Hint in an empty box in KillmailBrowserView.</comment>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>Clear</value>
+    <comment>Button or option in KillmailBrowserView.</comment>
+  </data>
+  <data name="LoadMore" xml:space="preserve">
+    <value>Load More</value>
+    <comment>Button or option in KillmailBrowserView.</comment>
+  </data>
+  <data name="SelectAKillmailToView" xml:space="preserve">
+    <value>Select a killmail to view details.</value>
+    <comment>Text in KillmailBrowserView.</comment>
+  </data>
+  <data name="TipOpenOnTheUniverseMap" xml:space="preserve">
+    <value>Open on the Universe map</value>
+    <comment>Tooltip in KillmailBrowserView.</comment>
+  </data>
+  <data name="DestroyedLabel" xml:space="preserve">
+    <value>DESTROYED</value>
+    <comment>Label in KillmailBrowserView.</comment>
+  </data>
+  <data name="DroppedLabel" xml:space="preserve">
+    <value>DROPPED</value>
+    <comment>Label in KillmailBrowserView.</comment>
+  </data>
+  <data name="TotalLabel" xml:space="preserve">
+    <value>TOTAL</value>
+    <comment>Label in KillmailBrowserView.</comment>
+  </data>
+  <data name="AttackersLabel" xml:space="preserve">
+    <value>ATTACKERS</value>
+    <comment>Label in KillmailBrowserView.</comment>
+  </data>
+  <data name="TitleKillmails" xml:space="preserve">
+    <value>Killmails</value>
+    <comment>Window title in KillmailBrowserWindow.</comment>
+  </data>
+  <data name="TabAgents" xml:space="preserve">
+    <value>Agents</value>
+    <comment>Tab in NpcEntitiesView.</comment>
+  </data>
+  <data name="TabCorporations" xml:space="preserve">
+    <value>Corporations</value>
+    <comment>Tab in NpcEntitiesView.</comment>
+  </data>
+  <data name="TabFactions" xml:space="preserve">
+    <value>Factions</value>
+    <comment>Tab in NpcEntitiesView.</comment>
+  </data>
+  <data name="TabPilots" xml:space="preserve">
+    <value>Pilots</value>
+    <comment>Tab in PlayerEntitiesView.</comment>
+  </data>
+  <data name="TabAlliances" xml:space="preserve">
+    <value>Alliances</value>
+    <comment>Tab in PlayerEntitiesView.</comment>
+  </data>
+  <data name="TitleStandingProject" xml:space="preserve">
+    <value>Standing Project</value>
+    <comment>Window title in StandingProjectDialog.</comment>
+  </data>
+  <data name="ProjectTypeLabel" xml:space="preserve">
+    <value>PROJECT TYPE</value>
+    <comment>Label in StandingProjectDialog.</comment>
+  </data>
+  <data name="DeliverItem" xml:space="preserve">
+    <value>Deliver Item</value>
+    <comment>Button or option in StandingProjectDialog.</comment>
+  </data>
+  <data name="DestroyNpc" xml:space="preserve">
+    <value>Destroy NPC</value>
+    <comment>Button or option in StandingProjectDialog.</comment>
+  </data>
+  <data name="ItemTypeLabel" xml:space="preserve">
+    <value>ITEM TYPE</value>
+    <comment>Label in StandingProjectDialog.</comment>
+  </data>
+  <data name="HintSearchForItemType" xml:space="preserve">
+    <value>Search for item type…</value>
+    <comment>Hint in an empty box in StandingProjectDialog.</comment>
+  </data>
+  <data name="DestinationStationStructureLabel" xml:space="preserve">
+    <value>DESTINATION STATION / STRUCTURE</value>
+    <comment>Label in StandingProjectDialog.</comment>
+  </data>
+  <data name="HintSearchForStationOrStructure" xml:space="preserve">
+    <value>Search for station or structure…</value>
+    <comment>Hint in an empty box in StandingProjectDialog.</comment>
+  </data>
+  <data name="ScopeLabel" xml:space="preserve">
+    <value>SCOPE</value>
+    <comment>Label in StandingProjectDialog.</comment>
+  </data>
+  <data name="SpecificSystem" xml:space="preserve">
+    <value>Specific System</value>
+    <comment>Button or option in StandingProjectDialog.</comment>
+  </data>
+  <data name="AllSystemsInA" xml:space="preserve">
+    <value>All systems in a Region below min ADM</value>
+    <comment>Button or option in StandingProjectDialog.</comment>
+  </data>
+  <data name="AllSystemsInA2" xml:space="preserve">
+    <value>All systems in a Constellation below min ADM</value>
+    <comment>Button or option in StandingProjectDialog.</comment>
+  </data>
+  <data name="AllSystemsWhereAn" xml:space="preserve">
+    <value>All systems where an Alliance holds sovereignty</value>
+    <comment>Button or option in StandingProjectDialog.</comment>
+  </data>
+  <data name="SolarSystemLabel" xml:space="preserve">
+    <value>SOLAR SYSTEM</value>
+    <comment>Label in StandingProjectDialog.</comment>
+  </data>
+  <data name="HintSearchForSolarSystem" xml:space="preserve">
+    <value>Search for solar system…</value>
+    <comment>Hint in an empty box in StandingProjectDialog.</comment>
+  </data>
+  <data name="RegionLabel" xml:space="preserve">
+    <value>REGION</value>
+    <comment>Label in StandingProjectDialog.</comment>
+  </data>
+  <data name="HintSearchForRegion" xml:space="preserve">
+    <value>Search for region…</value>
+    <comment>Hint in an empty box in StandingProjectDialog.</comment>
+  </data>
+  <data name="MinAdmLabel" xml:space="preserve">
+    <value>MIN ADM:</value>
+    <comment>Label in StandingProjectDialog.</comment>
+  </data>
+  <data name="ConstellationLabel" xml:space="preserve">
+    <value>CONSTELLATION</value>
+    <comment>Label in StandingProjectDialog.</comment>
+  </data>
+  <data name="HintSearchForConstellation" xml:space="preserve">
+    <value>Search for constellation…</value>
+    <comment>Hint in an empty box in StandingProjectDialog.</comment>
+  </data>
+  <data name="AllianceLabel" xml:space="preserve">
+    <value>ALLIANCE</value>
+    <comment>Label in StandingProjectDialog.</comment>
+  </data>
+  <data name="NoAllianceFoundOnNote" xml:space="preserve">
+    <value>No alliance found on any tracked character.</value>
+    <comment>Note in StandingProjectDialog.</comment>
+  </data>
+  <data name="EverySystemThisAllianceNote" xml:space="preserve">
+    <value>Every system this alliance holds that is below the ADM, wherever it is. Re-read from the sovereignty map each time the grid is built.</value>
+    <comment>Note in StandingProjectDialog.</comment>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+    <comment>Button or option in StandingProjectDialog.</comment>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Save</value>
+    <comment>Button or option in StandingProjectDialog.</comment>
+  </data>
+</root>

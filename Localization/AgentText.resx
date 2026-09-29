@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="CopyMarkdown" xml:space="preserve">
+    <value>Copy Markdown</value>
+    <comment>Button or option in AgentDocumentView.</comment>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Save</value>
+    <comment>Button or option in AgentDocumentView.</comment>
+  </data>
+  <data name="CopySelected" xml:space="preserve">
+    <value>Copy Selected</value>
+    <comment>Button or option in AgentGridView.</comment>
+  </data>
+  <data name="TipCopiesTheSelectedRows" xml:space="preserve">
+    <value>Copies the selected rows, with headers, as tab-separated text — paste straight into a spreadsheet. Ctrl+C does the same.</value>
+    <comment>Tooltip in AgentGridView.</comment>
+  </data>
+  <data name="CopyAll" xml:space="preserve">
+    <value>Copy All</value>
+    <comment>Button or option in AgentGridView.</comment>
+  </data>
+  <data name="SaveCsv" xml:space="preserve">
+    <value>Save CSV</value>
+    <comment>Button or option in AgentGridView.</comment>
+  </data>
+  <data name="AiCompanion" xml:space="preserve">
+    <value>AI Companion</value>
+    <comment>Text in AgentPanel.</comment>
+  </data>
+  <data name="TipVoiceVolumeIndependentOfSystem" xml:space="preserve">
+    <value>Voice volume (independent of system volume)</value>
+    <comment>Tooltip in AgentPanel.</comment>
+  </data>
+  <data name="TipClearConversation" xml:space="preserve">
+    <value>Clear conversation</value>
+    <comment>Tooltip in AgentPanel.</comment>
+  </data>
+  <data name="TipClosePanel" xml:space="preserve">
+    <value>Close panel</value>
+    <comment>Tooltip in AgentPanel.</comment>
+  </data>
+  <data name="EarlierContextSummarized" xml:space="preserve">
+    <value>— earlier context summarized —</value>
+    <comment>Text in AgentPanel.</comment>
+  </data>
+  <data name="TipHoldToTalkRelease" xml:space="preserve">
+    <value>Hold to talk, release to send. Or hold the global hotkey.</value>
+    <comment>Tooltip in AgentPanel.</comment>
+  </data>
+  <data name="FmtMuteUnmuteVoice" xml:space="preserve">
+    <value>Mute / unmute {0} voice</value>
+    <comment>Formatted text ({0} is filled in) in AgentPanel.</comment>
+  </data>
+</root>

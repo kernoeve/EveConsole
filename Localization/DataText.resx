@@ -1,0 +1,595 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AiUsageCost" xml:space="preserve">
+    <value>AI Usage &amp; Cost</value>
+    <comment>Text in AgentUsageView.</comment>
+  </data>
+  <data name="From" xml:space="preserve">
+    <value>From</value>
+    <comment>Text in AgentUsageView.</comment>
+  </data>
+  <data name="Thru" xml:space="preserve">
+    <value>Thru</value>
+    <comment>Text in AgentUsageView.</comment>
+  </data>
+  <data name="HintToday" xml:space="preserve">
+    <value>(today)</value>
+    <comment>Hint in an empty box in AgentUsageView.</comment>
+  </data>
+  <data name="GroupBy" xml:space="preserve">
+    <value>Group by</value>
+    <comment>Text in AgentUsageView.</comment>
+  </data>
+  <data name="Service" xml:space="preserve">
+    <value>Service</value>
+    <comment>Text in AgentUsageView.</comment>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Refresh</value>
+    <comment>Button or option in AgentUsageView.</comment>
+  </data>
+  <data name="EstimatedCostLabel" xml:space="preserve">
+    <value>ESTIMATED COST</value>
+    <comment>Label in AgentUsageView.</comment>
+  </data>
+  <data name="AgentLabel" xml:space="preserve">
+    <value>AGENT</value>
+    <comment>Label in AgentUsageView.</comment>
+  </data>
+  <data name="SpeechOutLabel" xml:space="preserve">
+    <value>SPEECH OUT</value>
+    <comment>Label in AgentUsageView.</comment>
+  </data>
+  <data name="SpeechInLabel" xml:space="preserve">
+    <value>SPEECH IN</value>
+    <comment>Label in AgentUsageView.</comment>
+  </data>
+  <data name="CallsLabel" xml:space="preserve">
+    <value>CALLS</value>
+    <comment>Label in AgentUsageView.</comment>
+  </data>
+  <data name="TabSummary" xml:space="preserve">
+    <value>Summary</value>
+    <comment>Tab in AgentUsageView.</comment>
+  </data>
+  <data name="ColPeriod" xml:space="preserve">
+    <value>Period</value>
+    <comment>Column header in AgentUsageView.</comment>
+  </data>
+  <data name="ColService" xml:space="preserve">
+    <value>Service</value>
+    <comment>Column header in AgentUsageView.</comment>
+  </data>
+  <data name="ColProvider" xml:space="preserve">
+    <value>Provider</value>
+    <comment>Column header in AgentUsageView.</comment>
+  </data>
+  <data name="ColModel" xml:space="preserve">
+    <value>Model</value>
+    <comment>Column header in AgentUsageView.</comment>
+  </data>
+  <data name="ColCalls" xml:space="preserve">
+    <value>Calls</value>
+    <comment>Column header in AgentUsageView.</comment>
+  </data>
+  <data name="ColInput" xml:space="preserve">
+    <value>Input</value>
+    <comment>Column header in AgentUsageView.</comment>
+  </data>
+  <data name="ColOutput" xml:space="preserve">
+    <value>Output</value>
+    <comment>Column header in AgentUsageView.</comment>
+  </data>
+  <data name="ColCacheRd" xml:space="preserve">
+    <value>Cache rd</value>
+    <comment>Column header in AgentUsageView.</comment>
+  </data>
+  <data name="ColCacheWr" xml:space="preserve">
+    <value>Cache wr</value>
+    <comment>Column header in AgentUsageView.</comment>
+  </data>
+  <data name="ColUnits" xml:space="preserve">
+    <value>Units</value>
+    <comment>Column header in AgentUsageView.</comment>
+  </data>
+  <data name="ColAvg" xml:space="preserve">
+    <value>Avg</value>
+    <comment>Column header in AgentUsageView.</comment>
+  </data>
+  <data name="ColErrors" xml:space="preserve">
+    <value>Errors</value>
+    <comment>Column header in AgentUsageView.</comment>
+  </data>
+  <data name="ColCost" xml:space="preserve">
+    <value>Cost</value>
+    <comment>Column header in AgentUsageView.</comment>
+  </data>
+  <data name="TabDetail" xml:space="preserve">
+    <value>Detail</value>
+    <comment>Tab in AgentUsageView.</comment>
+  </data>
+  <data name="ColTime" xml:space="preserve">
+    <value>Time</value>
+    <comment>Column header in AgentUsageView.</comment>
+  </data>
+  <data name="ColTook" xml:space="preserve">
+    <value>Took</value>
+    <comment>Column header in AgentUsageView.</comment>
+  </data>
+  <data name="ColActivity" xml:space="preserve">
+    <value>Activity</value>
+    <comment>Column header in AgentUsageView.</comment>
+  </data>
+  <data name="ColError" xml:space="preserve">
+    <value>Error</value>
+    <comment>Column header in AgentUsageView.</comment>
+  </data>
+  <data name="First" xml:space="preserve">
+    <value>⏮ First</value>
+    <comment>Button or option in AgentUsageView.</comment>
+  </data>
+  <data name="Prev" xml:space="preserve">
+    <value>◀ Prev</value>
+    <comment>Button or option in AgentUsageView.</comment>
+  </data>
+  <data name="Next" xml:space="preserve">
+    <value>Next ▶</value>
+    <comment>Button or option in AgentUsageView.</comment>
+  </data>
+  <data name="Last" xml:space="preserve">
+    <value>Last ⏭</value>
+    <comment>Button or option in AgentUsageView.</comment>
+  </data>
+  <data name="TabRates" xml:space="preserve">
+    <value>Rates</value>
+    <comment>Tab in AgentUsageView.</comment>
+  </data>
+  <data name="WhatEachServiceChargesNote" xml:space="preserve">
+    <value>What each service charges. Cost is worked out from these at the moment you look, never stored with the usage — published prices change, and a figure baked into a release six months ago is a number that looks authoritative and is wrong. The values below are the list prices at the time this version was built; correct any that have moved. Rates are entered at the scale each vendor quotes them in, shown beside every row. A provider with no row here is counted as unpriced, not as free — only the rows marked local are genuinely free.</value>
+    <comment>Note in AgentUsageView.</comment>
+  </data>
+  <data name="Input" xml:space="preserve">
+    <value>Input</value>
+    <comment>Text in AgentUsageView.</comment>
+  </data>
+  <data name="Output" xml:space="preserve">
+    <value>Output</value>
+    <comment>Text in AgentUsageView.</comment>
+  </data>
+  <data name="CacheRead" xml:space="preserve">
+    <value>Cache read</value>
+    <comment>Text in AgentUsageView.</comment>
+  </data>
+  <data name="CacheWrite" xml:space="preserve">
+    <value>Cache write</value>
+    <comment>Text in AgentUsageView.</comment>
+  </data>
+  <data name="Notes" xml:space="preserve">
+    <value>Notes</value>
+    <comment>Text in AgentUsageView.</comment>
+  </data>
+  <data name="SaveRates" xml:space="preserve">
+    <value>Save Rates</value>
+    <comment>Button or option in AgentUsageView.</comment>
+  </data>
+  <data name="TitleBackgroundProcesses" xml:space="preserve">
+    <value>Background Processes</value>
+    <comment>Window title in ApiActivityWindow.</comment>
+  </data>
+  <data name="TabEsiActivityLog" xml:space="preserve">
+    <value>ESI Activity Log</value>
+    <comment>Tab in BackgroundProcessesView.</comment>
+  </data>
+  <data name="InProgress" xml:space="preserve">
+    <value>In Progress</value>
+    <comment>Text in BackgroundProcessesView.</comment>
+  </data>
+  <data name="NoCallsInProgress" xml:space="preserve">
+    <value>No calls in progress.</value>
+    <comment>Text in BackgroundProcessesView.</comment>
+  </data>
+  <data name="Character" xml:space="preserve">
+    <value>Character</value>
+    <comment>Text in BackgroundProcessesView.</comment>
+  </data>
+  <data name="Endpoint" xml:space="preserve">
+    <value>Endpoint</value>
+    <comment>Text in BackgroundProcessesView.</comment>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>Clear</value>
+    <comment>Button or option in BackgroundProcessesView.</comment>
+  </data>
+  <data name="Timestamp" xml:space="preserve">
+    <value>Timestamp</value>
+    <comment>Text in BackgroundProcessesView.</comment>
+  </data>
+  <data name="Result" xml:space="preserve">
+    <value>Result</value>
+    <comment>Text in BackgroundProcessesView.</comment>
+  </data>
+  <data name="TabEsiCallSchedule" xml:space="preserve">
+    <value>ESI Call Schedule</value>
+    <comment>Tab in BackgroundProcessesView.</comment>
+  </data>
+  <data name="TabCharacterCorporation" xml:space="preserve">
+    <value>Character / Corporation</value>
+    <comment>Tab in BackgroundProcessesView.</comment>
+  </data>
+  <data name="TokenLabel" xml:space="preserve">
+    <value>Token:</value>
+    <comment>Label in BackgroundProcessesView.</comment>
+  </data>
+  <data name="SelectATokenToNote" xml:space="preserve">
+    <value>Select a token to see its polling schedule.</value>
+    <comment>Note in BackgroundProcessesView.</comment>
+  </data>
+  <data name="LastCalled" xml:space="preserve">
+    <value>Last Called</value>
+    <comment>Text in BackgroundProcessesView.</comment>
+  </data>
+  <data name="NextCall" xml:space="preserve">
+    <value>Next Call</value>
+    <comment>Text in BackgroundProcessesView.</comment>
+  </data>
+  <data name="TimeUntil" xml:space="preserve">
+    <value>Time Until</value>
+    <comment>Text in BackgroundProcessesView.</comment>
+  </data>
+  <data name="TabMarketRefresh" xml:space="preserve">
+    <value>Market Refresh</value>
+    <comment>Tab in BackgroundProcessesView.</comment>
+  </data>
+  <data name="MarketSource" xml:space="preserve">
+    <value>Market Source</value>
+    <comment>Text in BackgroundProcessesView.</comment>
+  </data>
+  <data name="LastRefresh" xml:space="preserve">
+    <value>Last Refresh</value>
+    <comment>Text in BackgroundProcessesView.</comment>
+  </data>
+  <data name="NextRefresh" xml:space="preserve">
+    <value>Next Refresh</value>
+    <comment>Text in BackgroundProcessesView.</comment>
+  </data>
+  <data name="TabPriceHistory" xml:space="preserve">
+    <value>Price History</value>
+    <comment>Tab in BackgroundProcessesView.</comment>
+  </data>
+  <data name="Region" xml:space="preserve">
+    <value>Region</value>
+    <comment>Text in BackgroundProcessesView.</comment>
+  </data>
+  <data name="RefreshedTotal24h" xml:space="preserve">
+    <value>Refreshed / Total (24h)</value>
+    <comment>Text in BackgroundProcessesView.</comment>
+  </data>
+  <data name="Queued" xml:space="preserve">
+    <value>Queued</value>
+    <comment>Text in BackgroundProcessesView.</comment>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Status</value>
+    <comment>Text in BackgroundProcessesView.</comment>
+  </data>
+  <data name="TabContractItems" xml:space="preserve">
+    <value>Contract Items</value>
+    <comment>Tab in BackgroundProcessesView.</comment>
+  </data>
+  <data name="ColSource" xml:space="preserve">
+    <value>Source</value>
+    <comment>Column header in BackgroundProcessesView.</comment>
+  </data>
+  <data name="ColContracts" xml:space="preserve">
+    <value>Contracts</value>
+    <comment>Column header in BackgroundProcessesView.</comment>
+  </data>
+  <data name="ColItemsPulled" xml:space="preserve">
+    <value>Items pulled</value>
+    <comment>Column header in BackgroundProcessesView.</comment>
+  </data>
+  <data name="ColQueued" xml:space="preserve">
+    <value>Queued</value>
+    <comment>Column header in BackgroundProcessesView.</comment>
+  </data>
+  <data name="ColNote" xml:space="preserve">
+    <value>Note</value>
+    <comment>Column header in BackgroundProcessesView.</comment>
+  </data>
+  <data name="ItemsArePulledOneNote" xml:space="preserve">
+    <value>Items are pulled one contract at a time, a call apiece: your own contracts first, then the public listings behind them. A contract is pulled once and kept.</value>
+    <comment>Note in BackgroundProcessesView.</comment>
+  </data>
+  <data name="TabLpStore" xml:space="preserve">
+    <value>LP Store</value>
+    <comment>Tab in BackgroundProcessesView.</comment>
+  </data>
+  <data name="ColCorporation" xml:space="preserve">
+    <value>Corporation</value>
+    <comment>Column header in BackgroundProcessesView.</comment>
+  </data>
+  <data name="ColStore" xml:space="preserve">
+    <value>Store</value>
+    <comment>Column header in BackgroundProcessesView.</comment>
+  </data>
+  <data name="ColOffers" xml:space="preserve">
+    <value>Offers</value>
+    <comment>Column header in BackgroundProcessesView.</comment>
+  </data>
+  <data name="ColLastChecked" xml:space="preserve">
+    <value>Last checked</value>
+    <comment>Column header in BackgroundProcessesView.</comment>
+  </data>
+  <data name="LpStoreCataloguesComeNote" xml:space="preserve">
+    <value>LP store catalogues come from a public ESI endpoint, one call per NPC corporation, swept daily. Until the first pass finishes an item's LP Store tab stays hidden whether or not anyone sells it — an incomplete catalogue and a genuine absence look the same.</value>
+    <comment>Note in BackgroundProcessesView.</comment>
+  </data>
+  <data name="TabKillmails" xml:space="preserve">
+    <value>Killmails</value>
+    <comment>Tab in BackgroundProcessesView.</comment>
+  </data>
+  <data name="ScopeLabel" xml:space="preserve">
+    <value>Scope: </value>
+    <comment>Label in BackgroundProcessesView.</comment>
+  </data>
+  <data name="CoverageLabel" xml:space="preserve">
+    <value>Coverage: </value>
+    <comment>Label in BackgroundProcessesView.</comment>
+  </data>
+  <data name="ColStage" xml:space="preserve">
+    <value>Stage</value>
+    <comment>Column header in BackgroundProcessesView.</comment>
+  </data>
+  <data name="ColState" xml:space="preserve">
+    <value>State</value>
+    <comment>Column header in BackgroundProcessesView.</comment>
+  </data>
+  <data name="ColDetail" xml:space="preserve">
+    <value>Detail</value>
+    <comment>Column header in BackgroundProcessesView.</comment>
+  </data>
+  <data name="TabIntel" xml:space="preserve">
+    <value>Intel</value>
+    <comment>Tab in BackgroundProcessesView.</comment>
+  </data>
+  <data name="Channels" xml:space="preserve">
+    <value>Channels</value>
+    <comment>Text in BackgroundProcessesView.</comment>
+  </data>
+  <data name="Parsing" xml:space="preserve">
+    <value>Parsing</value>
+    <comment>Text in BackgroundProcessesView.</comment>
+  </data>
+  <data name="Backlog" xml:space="preserve">
+    <value>Backlog</value>
+    <comment>Text in BackgroundProcessesView.</comment>
+  </data>
+  <data name="ParsingRunsStraightAfterNote" xml:space="preserve">
+    <value>Parsing runs straight after each chat log tail, so a sighting reaches the map on the same pass that stored the message. Channels are chosen under Settings → Chat Logs, where there is also a button to parse the history already on disk.</value>
+    <comment>Note in BackgroundProcessesView.</comment>
+  </data>
+  <data name="TabAlarms" xml:space="preserve">
+    <value>Alarms</value>
+    <comment>Tab in BackgroundProcessesView.</comment>
+  </data>
+  <data name="NextCheckLabel" xml:space="preserve">
+    <value>Next check: </value>
+    <comment>Label in BackgroundProcessesView.</comment>
+  </data>
+  <data name="LastFiringLabel" xml:space="preserve">
+    <value>Last firing: </value>
+    <comment>Label in BackgroundProcessesView.</comment>
+  </data>
+  <data name="ColAlarm" xml:space="preserve">
+    <value>Alarm</value>
+    <comment>Column header in BackgroundProcessesView.</comment>
+  </data>
+  <data name="ColCondition" xml:space="preserve">
+    <value>Condition</value>
+    <comment>Column header in BackgroundProcessesView.</comment>
+  </data>
+  <data name="ColEnabled" xml:space="preserve">
+    <value>Enabled</value>
+    <comment>Column header in BackgroundProcessesView.</comment>
+  </data>
+  <data name="ColEvery" xml:space="preserve">
+    <value>Every</value>
+    <comment>Column header in BackgroundProcessesView.</comment>
+  </data>
+  <data name="ColLastFired" xml:space="preserve">
+    <value>Last fired</value>
+    <comment>Column header in BackgroundProcessesView.</comment>
+  </data>
+  <data name="ColFired" xml:space="preserve">
+    <value>Fired</value>
+    <comment>Column header in BackgroundProcessesView.</comment>
+  </data>
+  <data name="ColLastError" xml:space="preserve">
+    <value>Last error</value>
+    <comment>Column header in BackgroundProcessesView.</comment>
+  </data>
+  <data name="EachAlarmIsCheckedNote" xml:space="preserve">
+    <value>Each alarm is checked on its own interval, so the loop only touches the database when one is actually due. An alarm announces only what it has not announced before — a condition that stays true does not repeat itself — which is why a check that keeps matching shows here as armed rather than as firing over and over.</value>
+    <comment>Note in BackgroundProcessesView.</comment>
+  </data>
+  <data name="TabOrderFulfilment" xml:space="preserve">
+    <value>Order Fulfilment</value>
+    <comment>Tab in BackgroundProcessesView.</comment>
+  </data>
+  <data name="OrderFulfilment" xml:space="preserve">
+    <value>Order fulfilment</value>
+    <comment>Text in BackgroundProcessesView.</comment>
+  </data>
+  <data name="State" xml:space="preserve">
+    <value>State</value>
+    <comment>Text in BackgroundProcessesView.</comment>
+  </data>
+  <data name="LastCheck" xml:space="preserve">
+    <value>Last check</value>
+    <comment>Text in BackgroundProcessesView.</comment>
+  </data>
+  <data name="NextCheck" xml:space="preserve">
+    <value>Next check</value>
+    <comment>Text in BackgroundProcessesView.</comment>
+  </data>
+  <data name="EveryThirtySecondsAndNote" xml:space="preserve">
+    <value>Every thirty seconds, and at once after a poll brings in jobs, contracts or assets, each pending order in the Order Tracker is matched against what could fill it: a contract issued by one of your characters or personal corporations to that buyer after the order was placed completes it outright; otherwise unreserved stock on hand, or the soonest industry job producing the item, whose completion date becomes the order's estimated date. Stock and jobs are reserved as they are claimed, so two orders never count the same units, and a contract already linked to one order is never reused for another.</value>
+    <comment>Note in BackgroundProcessesView.</comment>
+  </data>
+  <data name="TabStructures" xml:space="preserve">
+    <value>Structures</value>
+    <comment>Tab in BackgroundProcessesView.</comment>
+  </data>
+  <data name="ColSweep" xml:space="preserve">
+    <value>Sweep</value>
+    <comment>Column header in BackgroundProcessesView.</comment>
+  </data>
+  <data name="ColLastRun" xml:space="preserve">
+    <value>Last run</value>
+    <comment>Column header in BackgroundProcessesView.</comment>
+  </data>
+  <data name="ColNextRun" xml:space="preserve">
+    <value>Next run</value>
+    <comment>Column header in BackgroundProcessesView.</comment>
+  </data>
+  <data name="ColResult" xml:space="preserve">
+    <value>Result</value>
+    <comment>Column header in BackgroundProcessesView.</comment>
+  </data>
+  <data name="SweepNow" xml:space="preserve">
+    <value>Sweep now</value>
+    <comment>Button or option in BackgroundProcessesView.</comment>
+  </data>
+  <data name="CollectsPlayerStructureIdsNote" xml:space="preserve">
+    <value>Collects player-structure IDs from assets, contracts, industry jobs, market orders and wallet entries, then resolves each one's name, type, owner and position. Sweeps hourly; the public structure list is walked once a day for structures nobody here has visited. Rows our own assets identify as ships, containers or asset-safety wraps are removed rather than kept as unknown structures. Resolving needs esi-universe.read_structures.v1 and docking access, so a private structure stays unresolved — those are the ones worth describing by hand in the Structure Browser.</value>
+    <comment>Note in BackgroundProcessesView.</comment>
+  </data>
+  <data name="TabNameCache" xml:space="preserve">
+    <value>Name Cache</value>
+    <comment>Tab in BackgroundProcessesView.</comment>
+  </data>
+  <data name="CachedNames" xml:space="preserve">
+    <value>Cached names</value>
+    <comment>Text in BackgroundProcessesView.</comment>
+  </data>
+  <data name="WhatThisDoes" xml:space="preserve">
+    <value>What this does</value>
+    <comment>Text in BackgroundProcessesView.</comment>
+  </data>
+  <data name="ResolvesCharacterCorporationAndNote" xml:space="preserve">
+    <value>Resolves character, corporation and alliance IDs found anywhere in the database to names, ahead of any screen needing them. Sweeps hourly. EVE entity names cannot be changed, so each name is fetched once and kept permanently.</value>
+    <comment>Note in BackgroundProcessesView.</comment>
+  </data>
+  <data name="ChatLog" xml:space="preserve">
+    <value>Chat Log</value>
+    <comment>Text in ChatLogViewerView.</comment>
+  </data>
+  <data name="HintNow" xml:space="preserve">
+    <value>(now)</value>
+    <comment>Hint in an empty box in ChatLogViewerView.</comment>
+  </data>
+  <data name="Find" xml:space="preserve">
+    <value>Find</value>
+    <comment>Text in ChatLogViewerView.</comment>
+  </data>
+  <data name="HintSenderOrText" xml:space="preserve">
+    <value>sender or text…</value>
+    <comment>Hint in an empty box in ChatLogViewerView.</comment>
+  </data>
+  <data name="HideSystem" xml:space="preserve">
+    <value>Hide system</value>
+    <comment>Button or option in ChatLogViewerView.</comment>
+  </data>
+  <data name="ColSender" xml:space="preserve">
+    <value>Sender</value>
+    <comment>Column header in ChatLogViewerView.</comment>
+  </data>
+  <data name="ColMessage" xml:space="preserve">
+    <value>Message</value>
+    <comment>Column header in ChatLogViewerView.</comment>
+  </data>
+  <data name="ColListener" xml:space="preserve">
+    <value>Listener</value>
+    <comment>Column header in ChatLogViewerView.</comment>
+  </data>
+  <data name="ErrorLog" xml:space="preserve">
+    <value>Error Log</value>
+    <comment>Text in ErrorLogView.</comment>
+  </data>
+  <data name="ColClient" xml:space="preserve">
+    <value>Client</value>
+    <comment>Column header in ErrorLogView.</comment>
+  </data>
+  <data name="ColContext" xml:space="preserve">
+    <value>Context</value>
+    <comment>Column header in ErrorLogView.</comment>
+  </data>
+  <data name="ColInner" xml:space="preserve">
+    <value>Inner</value>
+    <comment>Column header in ErrorLogView.</comment>
+  </data>
+  <data name="SelectAnErrorToNote" xml:space="preserve">
+    <value>Select an error to view its details.</value>
+    <comment>Note in ErrorLogView.</comment>
+  </data>
+  <data name="EsiTables" xml:space="preserve">
+    <value>ESI Tables</value>
+    <comment>Text in EsiExplorerView.</comment>
+  </data>
+  <data name="Apply" xml:space="preserve">
+    <value>Apply</value>
+    <comment>Button or option in EsiExplorerView.</comment>
+  </data>
+  <data name="Filter" xml:space="preserve">
+    <value>+ Filter</value>
+    <comment>Button or option in EsiExplorerView.</comment>
+  </data>
+  <data name="TipWriteEveryRowThat" xml:space="preserve">
+    <value>Write every row that matches the filters, in this order, to a CSV file — all of them, not only the rows loaded here. Ctrl+C on selected rows copies them with a header row.</value>
+    <comment>Tooltip in EsiExplorerView.</comment>
+  </data>
+  <data name="LoadMore" xml:space="preserve">
+    <value>Load More</value>
+    <comment>Button or option in EsiExplorerView.</comment>
+  </data>
+  <data name="TitleEsiDataExplorer" xml:space="preserve">
+    <value>ESI Data Explorer</value>
+    <comment>Window title in EsiExplorerWindow.</comment>
+  </data>
+  <data name="GameLog" xml:space="preserve">
+    <value>Game Log</value>
+    <comment>Text in GameLogViewerView.</comment>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>Type</value>
+    <comment>Text in GameLogViewerView.</comment>
+  </data>
+  <data name="HintNameOrText" xml:space="preserve">
+    <value>name or text…</value>
+    <comment>Hint in an empty box in GameLogViewerView.</comment>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>Type</value>
+    <comment>Column header in GameLogViewerView.</comment>
+  </data>
+  <data name="ColCharacter" xml:space="preserve">
+    <value>Character</value>
+    <comment>Column header in GameLogViewerView.</comment>
+  </data>
+  <data name="ColAmount" xml:space="preserve">
+    <value>Amount</value>
+    <comment>Column header in GameLogViewerView.</comment>
+  </data>
+  <data name="ColTarget" xml:space="preserve">
+    <value>Target</value>
+    <comment>Column header in GameLogViewerView.</comment>
+  </data>
+  <data name="SelectAnEntryToNote" xml:space="preserve">
+    <value>Select an entry to view its full detail.</value>
+    <comment>Note in GameLogViewerView.</comment>
+  </data>
+</root>

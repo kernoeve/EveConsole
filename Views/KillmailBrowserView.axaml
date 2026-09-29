@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              x:Class="EveConsole.Views.KillmailBrowserView"
              x:DataType="vm:KillmailBrowserViewModel"
@@ -18,16 +19,16 @@
           <Grid ColumnDefinitions="*,4,*,8,Auto">
             <TextBox Grid.Column="0"
                      Text="{Binding FilterChar, Mode=TwoWay}"
-                     Watermark="Character…" FontSize="11" Height="22"
+                     Watermark="{x:Static loc:CorpText.HintCharacter}" FontSize="11" Height="22"
                      Background="{DynamicResource SurfaceBaseBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
                      BorderBrush="{DynamicResource BorderDefaultBrush}" Padding="5 2" />
             <TextBox Grid.Column="2"
                      Text="{Binding FilterCorp, Mode=TwoWay}"
-                     Watermark="Corp…" FontSize="11" Height="22"
+                     Watermark="{x:Static loc:CorpText.HintCorp}" FontSize="11" Height="22"
                      Background="{DynamicResource SurfaceBaseBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
                      BorderBrush="{DynamicResource BorderDefaultBrush}" Padding="5 2" />
             <Button Grid.Column="4"
-                    Content="Refresh" Command="{Binding RefreshCommand}"
+                    Content="{x:Static loc:CorpText.Refresh}" Command="{Binding RefreshCommand}"
                     FontSize="10" Padding="8 2" Height="22"
                     Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource GoodBrush}"
                     BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
@@ -36,12 +37,12 @@
 
           <!-- Date range -->
           <Grid ColumnDefinitions="Auto,*,8,Auto,*">
-            <TextBlock Grid.Column="0" Text="From:" FontSize="11" Foreground="{DynamicResource TextFaintBrush}"
+            <TextBlock Grid.Column="0" Text="{x:Static loc:CorpText.FromLabel}" FontSize="11" Foreground="{DynamicResource TextFaintBrush}"
                        VerticalAlignment="Center" Margin="0 0 4 0" />
             <CalendarDatePicker Grid.Column="1"
                                 SelectedDate="{Binding FilterFrom, Mode=TwoWay}"
                                 FontSize="11" Height="22" />
-            <TextBlock Grid.Column="3" Text="Thru:" FontSize="11" Foreground="{DynamicResource TextFaintBrush}"
+            <TextBlock Grid.Column="3" Text="{x:Static loc:CorpText.ThruLabel}" FontSize="11" Foreground="{DynamicResource TextFaintBrush}"
                        VerticalAlignment="Center" Margin="0 0 4 0" />
             <CalendarDatePicker Grid.Column="4"
                                 SelectedDate="{Binding FilterThru, Mode=TwoWay}"
@@ -52,16 +53,16 @@
           <Grid ColumnDefinitions="*,4,*,8,Auto">
             <TextBox Grid.Column="0"
                      Text="{Binding FilterShip, Mode=TwoWay}"
-                     Watermark="Ship…" FontSize="11" Height="22"
+                     Watermark="{x:Static loc:CorpText.HintShip}" FontSize="11" Height="22"
                      Background="{DynamicResource SurfaceBaseBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
                      BorderBrush="{DynamicResource BorderDefaultBrush}" Padding="5 2" />
             <TextBox Grid.Column="2"
                      Text="{Binding FilterSystem, Mode=TwoWay}"
-                     Watermark="System/Region…" FontSize="11" Height="22"
+                     Watermark="{x:Static loc:CorpText.HintSystemRegion}" FontSize="11" Height="22"
                      Background="{DynamicResource SurfaceBaseBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
                      BorderBrush="{DynamicResource BorderDefaultBrush}" Padding="5 2" />
             <Button Grid.Column="4"
-                    Content="Clear" Command="{Binding ClearFiltersCommand}"
+                    Content="{x:Static loc:CorpText.Clear}" Command="{Binding ClearFiltersCommand}"
                     FontSize="10" Padding="8 2" Height="22"
                     Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
                     BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
@@ -98,7 +99,7 @@
       <!-- Load more (paged — the underlying table can hold 100K+ rows now) -->
       <Border Grid.Row="2" Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 0"
               Padding="8 6" IsVisible="{Binding HasMore}">
-        <Button Content="Load More"
+        <Button Content="{x:Static loc:CorpText.LoadMore}"
                 Command="{Binding LoadMoreCommand}"
                 IsEnabled="{Binding !IsLoadingMore}"
                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
@@ -124,7 +125,7 @@
 
       <!-- Empty state -->
       <TextBlock IsVisible="{Binding Detail, Converter={x:Static ObjectConverters.IsNull}}"
-                 Text="Select a killmail to view details."
+                 Text="{x:Static loc:CorpText.SelectAKillmailToView}"
                  FontSize="12" Foreground="{DynamicResource TextFaintBrush}"
                  HorizontalAlignment="Center" VerticalAlignment="Center" />
 
@@ -164,7 +165,7 @@
                         CommandParameter="{Binding Detail.VictimShipTypeId}"
                         Background="Transparent" BorderThickness="0" Padding="0"
                         HorizontalContentAlignment="Left" Cursor="Hand"
-                        ToolTip.Tip="Open in Item Browser">
+                        ToolTip.Tip="{x:Static loc:CorpText.TipOpenInItemBrowser}">
                   <TextBlock Text="{Binding Detail.ShipName}"
                              FontSize="15" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"
                              TextDecorations="Underline" />
@@ -189,7 +190,7 @@
                           CommandParameter="{Binding Detail.SystemId}"
                           Background="Transparent" BorderThickness="0" Padding="0"
                           HorizontalContentAlignment="Left" Cursor="Hand"
-                          ToolTip.Tip="Open on the Universe map">
+                          ToolTip.Tip="{x:Static loc:CorpText.TipOpenOnTheUniverseMap}">
                     <TextBlock Text="{Binding Detail.SystemText}" FontSize="10"
                                Foreground="{DynamicResource TextDimBrush}" TextDecorations="Underline" />
                   </Button>
@@ -204,15 +205,15 @@
             <StackPanel Grid.Column="1" Spacing="4" HorizontalAlignment="Right" VerticalAlignment="Center"
                         Margin="16 0 0 0">
               <StackPanel Spacing="1" HorizontalAlignment="Right">
-                <TextBlock Text="DESTROYED" FontSize="9" Foreground="{DynamicResource TextFaintBrush}" FontWeight="SemiBold" HorizontalAlignment="Right" />
+                <TextBlock Text="{x:Static loc:CorpText.DestroyedLabel}" FontSize="9" Foreground="{DynamicResource TextFaintBrush}" FontWeight="SemiBold" HorizontalAlignment="Right" />
                 <TextBlock Text="{Binding Detail.DestroyedText}" FontSize="12" Foreground="{DynamicResource BadBrush}" FontWeight="SemiBold" HorizontalAlignment="Right" />
               </StackPanel>
               <StackPanel Spacing="1" HorizontalAlignment="Right">
-                <TextBlock Text="DROPPED" FontSize="9" Foreground="{DynamicResource TextFaintBrush}" FontWeight="SemiBold" HorizontalAlignment="Right" />
+                <TextBlock Text="{x:Static loc:CorpText.DroppedLabel}" FontSize="9" Foreground="{DynamicResource TextFaintBrush}" FontWeight="SemiBold" HorizontalAlignment="Right" />
                 <TextBlock Text="{Binding Detail.DroppedText}" FontSize="12" Foreground="{DynamicResource GoodBrush}" FontWeight="SemiBold" HorizontalAlignment="Right" />
               </StackPanel>
               <StackPanel Spacing="1" HorizontalAlignment="Right">
-                <TextBlock Text="TOTAL" FontSize="9" Foreground="{DynamicResource TextFaintBrush}" FontWeight="SemiBold" HorizontalAlignment="Right" />
+                <TextBlock Text="{x:Static loc:CorpText.TotalLabel}" FontSize="9" Foreground="{DynamicResource TextFaintBrush}" FontWeight="SemiBold" HorizontalAlignment="Right" />
                 <TextBlock Text="{Binding Detail.TotalIskText}" FontSize="12" Foreground="{DynamicResource AccentBrush}" FontWeight="SemiBold" HorizontalAlignment="Right" />
               </StackPanel>
             </StackPanel>
@@ -263,7 +264,7 @@
                                               CommandParameter="{Binding TypeId}"
                                               Background="Transparent" BorderThickness="0" Padding="0"
                                               HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
-                                              Cursor="Hand" ToolTip.Tip="Open in Item Browser">
+                                              Cursor="Hand" ToolTip.Tip="{x:Static loc:CorpText.TipOpenInItemBrowser}">
                                         <TextBlock Text="{Binding TypeName}"
                                                    FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}"
                                                    VerticalAlignment="Center"
@@ -304,7 +305,7 @@
           <Grid Grid.Column="2" RowDefinitions="Auto,*">
             <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 0 0 1"
                     Padding="8 4">
-              <TextBlock Text="ATTACKERS" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource InfoBrush}" />
+              <TextBlock Text="{x:Static loc:CorpText.AttackersLabel}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource InfoBrush}" />
             </Border>
             <ScrollViewer Grid.Row="1"
                           HorizontalScrollBarVisibility="Disabled"
@@ -383,7 +384,7 @@
       <!-- Loading overlay -->
       <Border IsVisible="{Binding IsLoading}"
               Background="#99000000">
-        <TextBlock Text="Loading…" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}"
+        <TextBlock Text="{x:Static loc:CorpText.Loading}" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}"
                    HorizontalAlignment="Center" VerticalAlignment="Center" />
       </Border>
 

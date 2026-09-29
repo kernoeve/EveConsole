@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              x:Class="EveConsole.Views.OrderTrackerView"
              x:DataType="vm:OrderTrackerViewModel"
@@ -50,35 +51,35 @@
 
         <!-- Title + actions -->
         <Grid ColumnDefinitions="Auto,*,Auto">
-          <TextBlock Grid.Column="0" Text="Order Tracker" FontSize="13" FontWeight="SemiBold"
+          <TextBlock Grid.Column="0" Text="{x:Static loc:SalesText.OrderTracker}" FontSize="13" FontWeight="SemiBold"
                      Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
           <TextBlock Grid.Column="1" Text="{Binding StatusText}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
                      VerticalAlignment="Center" Margin="12 0 0 0" />
           <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6">
             <!-- The grid loads on startup and after an edit; the fulfilment pass changes rows
                  behind it every half minute, so there has to be a way to pick that up. -->
-            <Button Content="Refresh" Command="{Binding RefreshCommand}" Padding="12 4" />
-            <Button Content="Add Order" Command="{Binding AddCommand}" Padding="12 4"
+            <Button Content="{x:Static loc:SalesText.Refresh}" Command="{Binding RefreshCommand}" Padding="12 4" />
+            <Button Content="{x:Static loc:SalesText.AddOrder}" Command="{Binding AddCommand}" Padding="12 4"
                     Background="{DynamicResource SurfaceSelectedBrush}" Foreground="{DynamicResource AccentBrush}" BorderBrush="{DynamicResource AccentSurfaceBrush}" BorderThickness="1" />
-            <Button Content="Edit"   Command="{Binding EditCommand}"   Padding="12 4"
+            <Button Content="{x:Static loc:SalesText.Edit}"   Command="{Binding EditCommand}"   Padding="12 4"
                     IsEnabled="{Binding Selected, Converter={x:Static ObjectConverters.IsNotNull}}" />
-            <Button Content="Delete" Command="{Binding DeleteCommand}" Padding="12 4"
+            <Button Content="{x:Static loc:SalesText.Delete}" Command="{Binding DeleteCommand}" Padding="12 4"
                     IsEnabled="{Binding Selected, Converter={x:Static ObjectConverters.IsNotNull}}" />
           </StackPanel>
         </Grid>
 
         <!-- Filters -->
         <StackPanel Orientation="Horizontal" Spacing="8">
-          <TextBlock Classes="fl" Text="Status" />
+          <TextBlock Classes="fl" Text="{x:Static loc:SalesText.Status}" />
           <ComboBox ItemsSource="{Binding StatusFilters}" SelectedItem="{Binding StatusFilter}" MinWidth="110" />
-          <TextBlock Classes="fl" Text="Created" Margin="8 0 0 0" />
-          <TextBox Text="{Binding CreatedFrom}" Watermark="from yyyy-MM-dd" Width="115" />
-          <TextBox Text="{Binding CreatedThru}" Watermark="thru yyyy-MM-dd" Width="115" />
-          <TextBlock Classes="fl" Text="Type" Margin="8 0 0 0" />
-          <TextBox Text="{Binding TypeFilter}" Watermark="item name" Width="150" />
-          <TextBlock Classes="fl" Text="Buyer" Margin="8 0 0 0" />
-          <TextBox Text="{Binding BuyerFilter}" Watermark="buyer" Width="130" />
-          <TextBlock Classes="fl" Text="Label" Margin="8 0 0 0" />
+          <TextBlock Classes="fl" Text="{x:Static loc:SalesText.Created}" Margin="8 0 0 0" />
+          <TextBox Text="{Binding CreatedFrom}" Watermark="{x:Static loc:SalesText.HintFromYyyyMmDd}" Width="115" />
+          <TextBox Text="{Binding CreatedThru}" Watermark="{x:Static loc:SalesText.HintThruYyyyMmDd}" Width="115" />
+          <TextBlock Classes="fl" Text="{x:Static loc:SalesText.Type}" Margin="8 0 0 0" />
+          <TextBox Text="{Binding TypeFilter}" Watermark="{x:Static loc:SalesText.HintItemName}" Width="150" />
+          <TextBlock Classes="fl" Text="{x:Static loc:SalesText.Buyer}" Margin="8 0 0 0" />
+          <TextBox Text="{Binding BuyerFilter}" Watermark="{x:Static loc:SalesText.HintBuyer}" Width="130" />
+          <TextBlock Classes="fl" Text="{x:Static loc:SalesText.Label}" Margin="8 0 0 0" />
           <!-- "(any)" is no filter at all; "(labelled)" is anything tagged, whatever the tag —
                the two questions people actually ask, alongside picking one label. -->
           <ComboBox ItemsSource="{Binding LabelOptions}" SelectedItem="{Binding LabelFilter}"
@@ -98,8 +99,8 @@
               Background="{DynamicResource SurfaceBaseBrush}" DoubleTapped="OnRowDoubleTapped">
       <DataGrid.ContextMenu>
         <ContextMenu>
-          <MenuItem x:Name="AddLabelMenu"    Header="Add label" />
-          <MenuItem x:Name="RemoveLabelMenu" Header="Remove label" />
+          <MenuItem x:Name="AddLabelMenu"    Header="{x:Static loc:SalesText.MenuAddLabel}" />
+          <MenuItem x:Name="RemoveLabelMenu" Header="{x:Static loc:SalesText.MenuRemoveLabel}" />
         </ContextMenu>
       </DataGrid.ContextMenu>
       <DataGrid.Columns>
@@ -110,12 +111,12 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
-        <DataGridTextColumn Header="Created"        Binding="{Binding CreatedText}" SortMemberPath="CreatedSort" Width="100" />
-        <DataGridTemplateColumn Header="Type" SortMemberPath="Type" Width="230" ClipboardContentBinding="{Binding Type}">
+        <DataGridTextColumn Header="{x:Static loc:SalesText.ColCreated}"        Binding="{Binding CreatedText}" SortMemberPath="CreatedSort" Width="100" />
+        <DataGridTemplateColumn Header="{x:Static loc:SalesText.ColType}" SortMemberPath="Type" Width="230" ClipboardContentBinding="{Binding Type}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:TrackedOrderRowVm">
               <Panel>
-                <Button Classes="link" Click="OnOpenRowType" IsVisible="{Binding HasTypeLink}" ToolTip.Tip="Open in the Item Browser">
+                <Button Classes="link" Click="OnOpenRowType" IsVisible="{Binding HasTypeLink}" ToolTip.Tip="{x:Static loc:SalesText.TipOpenInTheItemBrowser}">
                   <TextBlock Text="{Binding Type}" Classes="linktext"
                              VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                 </Button>
@@ -125,12 +126,12 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
-        <DataGridTextColumn Header="Units"          Binding="{Binding UnitsText}"   SortMemberPath="Units"       Width="90"  CellStyleClasses="num" />
-        <DataGridTemplateColumn Header="Buyer" SortMemberPath="Buyer" Width="150" ClipboardContentBinding="{Binding Buyer}">
+        <DataGridTextColumn Header="{x:Static loc:SalesText.ColUnits}"          Binding="{Binding UnitsText}"   SortMemberPath="Units"       Width="90"  CellStyleClasses="num" />
+        <DataGridTemplateColumn Header="{x:Static loc:SalesText.ColBuyer}" SortMemberPath="Buyer" Width="150" ClipboardContentBinding="{Binding Buyer}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:TrackedOrderRowVm">
               <Panel>
-                <Button Classes="link" Click="OnOpenRowBuyer" IsVisible="{Binding HasBuyerLink}" ToolTip.Tip="Open in the entity browser">
+                <Button Classes="link" Click="OnOpenRowBuyer" IsVisible="{Binding HasBuyerLink}" ToolTip.Tip="{x:Static loc:SalesText.TipOpenInTheEntityBrowser}">
                   <TextBlock Text="{Binding Buyer}" Classes="linktext"
                              VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                 </Button>
@@ -142,11 +143,11 @@
         </DataGridTemplateColumn>
         <!-- Shared by every row of one order, so several rows repeating a code is a multi-item
              order rather than a duplicate. -->
-        <DataGridTextColumn Header="Order #" Binding="{Binding OrderRef}" Width="90" />
+        <DataGridTextColumn Header="{x:Static loc:SalesText.ColOrder}" Binding="{Binding OrderRef}" Width="90" />
         <!-- Chips rather than a comma-separated string: colour is what makes a column of tags
              readable at a glance, which is the only reason to have the column at all. Read-only
              here — labels are added by right-click or in the edit window. -->
-        <DataGridTemplateColumn Header="Labels" Width="180" ClipboardContentBinding="{Binding Labels}">
+        <DataGridTemplateColumn Header="{x:Static loc:SalesText.ColLabels}" Width="180" ClipboardContentBinding="{Binding Labels}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <ItemsControl ItemsSource="{Binding LabelChips}" Margin="0 2" VerticalAlignment="Center">
@@ -167,14 +168,14 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
         <!-- Blank means entered by hand rather than taken by mail. -->
-        <DataGridTextColumn Header="Store" Binding="{Binding Store}" Width="130" />
+        <DataGridTextColumn Header="{x:Static loc:SalesText.ColStore}" Binding="{Binding Store}" Width="130" />
         <!-- Blank means the buyer, not "unknown": a contract with nobody named goes to whoever
              ordered. Only orders where someone said otherwise carry a name here. -->
-        <DataGridTemplateColumn Header="Contract To" SortMemberPath="ContractTo" Width="150" ClipboardContentBinding="{Binding ContractTo}">
+        <DataGridTemplateColumn Header="{x:Static loc:SalesText.ColContractTo}" SortMemberPath="ContractTo" Width="150" ClipboardContentBinding="{Binding ContractTo}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:TrackedOrderRowVm">
               <Panel>
-                <Button Classes="link" Click="OnOpenRowContractTo" IsVisible="{Binding HasContractToLink}" ToolTip.Tip="Open in the entity browser">
+                <Button Classes="link" Click="OnOpenRowContractTo" IsVisible="{Binding HasContractToLink}" ToolTip.Tip="{x:Static loc:SalesText.TipOpenInTheEntityBrowser}">
                   <TextBlock Text="{Binding ContractTo}" Classes="linktext"
                              VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                 </Button>
@@ -187,20 +188,20 @@
         <!-- Three separate facts, deliberately not one "source" field: what is on the shelf, what
              is making it, and what delivered it. Folding them together meant linking a contract
              erased the job that built the thing. -->
-        <DataGridTextColumn Header="Stock" Binding="{Binding FromStock}" Width="55"
+        <DataGridTextColumn Header="{x:Static loc:SalesText.ColStock}" Binding="{Binding FromStock}" Width="55"
                             SortMemberPath="FromStock" />
 
         <!-- The tick is all-or-nothing and stays that way; this is what it cannot say. Sorted on
              the number so 9 of 50 does not outrank 19 of 50. -->
-        <DataGridTextColumn Header="On hand" Binding="{Binding StockText}" Width="80"
+        <DataGridTextColumn Header="{x:Static loc:SalesText.ColOnHand}" Binding="{Binding StockText}" Width="80"
                             SortMemberPath="StockOnHand" CellStyleClasses="num" />
 
-        <DataGridTextColumn Header="Indy Job" Binding="{Binding IndyJob}" Width="110"
+        <DataGridTextColumn Header="{x:Static loc:SalesText.ColIndyJob}" Binding="{Binding IndyJob}" Width="110"
                             SortMemberPath="UnitsInBuild" />
 
         <!-- What is still unaccounted for once the shelf and the jobs are counted. Red only when
              there is something to show: a column of zeroes in red trains the eye to ignore it. -->
-        <DataGridTemplateColumn Header="Short" Width="80" SortMemberPath="Shortfall" ClipboardContentBinding="{Binding ShortfallText}">
+        <DataGridTemplateColumn Header="{x:Static loc:SalesText.ColShort}" Width="80" SortMemberPath="Shortfall" ClipboardContentBinding="{Binding ShortfallText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:TrackedOrderRowVm">
               <TextBlock Text="{Binding ShortfallText}"
@@ -213,12 +214,12 @@
         <!-- What contracts say about the order, apart from what the shelf and the jobs say: units
              made out and waiting on the buyer, and units they have accepted, of all ordered. An
              order can go out over several contracts, and these are what it has come to. -->
-        <DataGridTextColumn Header="On contract" Binding="{Binding OnContractText}" Width="95"
+        <DataGridTextColumn Header="{x:Static loc:SalesText.ColOnContract}" Binding="{Binding OnContractText}" Width="95"
                             SortMemberPath="OnContract" CellStyleClasses="num" />
-        <DataGridTextColumn Header="Delivered" Binding="{Binding DeliveredText}" Width="85"
+        <DataGridTextColumn Header="{x:Static loc:SalesText.ColDelivered}" Binding="{Binding DeliveredText}" Width="85"
                             SortMemberPath="Delivered" CellStyleClasses="num" />
 
-        <DataGridTemplateColumn Header="Contract" Width="220" SortMemberPath="Contract" ClipboardContentBinding="{Binding Contract}">
+        <DataGridTemplateColumn Header="{x:Static loc:SalesText.ColContract}" Width="220" SortMemberPath="Contract" ClipboardContentBinding="{Binding Contract}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:TrackedOrderRowVm">
               <Panel>
@@ -233,14 +234,14 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
-        <DataGridTextColumn Header="Est. Date"      Binding="{Binding EstDate}"     Width="100" />
-        <DataGridTextColumn Header="Pri"            Binding="{Binding PriorityMark}" SortMemberPath="IsPriority" Width="44" />
-        <DataGridTextColumn Header="Purchase Price" Binding="{Binding Purchase}"    SortMemberPath="PurchaseRaw" Width="120" CellStyleClasses="num" />
-        <DataGridTextColumn Header="Status"         Binding="{Binding Status}"      Width="100" />
-        <DataGridTextColumn Header="Completed"      Binding="{Binding CompletedOn}" Width="100" />
-        <DataGridTextColumn Header="Build Cost"     Binding="{Binding Build}"       SortMemberPath="BuildRaw"    Width="120" CellStyleClasses="num build" />
-        <DataGridTextColumn Header="Profit"         Binding="{Binding Profit}"      SortMemberPath="ProfitRaw"   Width="120" CellStyleClasses="num" />
-        <DataGridTextColumn Header="Profit %"       Binding="{Binding ProfitPct}"   SortMemberPath="ProfitPctRaw" Width="90" CellStyleClasses="num" />
+        <DataGridTextColumn Header="{x:Static loc:SalesText.ColEstDate}"      Binding="{Binding EstDate}"     Width="100" />
+        <DataGridTextColumn Header="{x:Static loc:SalesText.ColPri}"            Binding="{Binding PriorityMark}" SortMemberPath="IsPriority" Width="44" />
+        <DataGridTextColumn Header="{x:Static loc:SalesText.ColPurchasePrice}" Binding="{Binding Purchase}"    SortMemberPath="PurchaseRaw" Width="120" CellStyleClasses="num" />
+        <DataGridTextColumn Header="{x:Static loc:SalesText.ColStatus}"         Binding="{Binding Status}"      Width="100" />
+        <DataGridTextColumn Header="{x:Static loc:SalesText.ColCompleted}"      Binding="{Binding CompletedOn}" Width="100" />
+        <DataGridTextColumn Header="{x:Static loc:SalesText.ColBuildCost}"     Binding="{Binding Build}"       SortMemberPath="BuildRaw"    Width="120" CellStyleClasses="num build" />
+        <DataGridTextColumn Header="{x:Static loc:SalesText.ColProfit}"         Binding="{Binding Profit}"      SortMemberPath="ProfitRaw"   Width="120" CellStyleClasses="num" />
+        <DataGridTextColumn Header="{x:Static loc:SalesText.ColProfit2}"       Binding="{Binding ProfitPct}"   SortMemberPath="ProfitPctRaw" Width="90" CellStyleClasses="num" />
       </DataGrid.Columns>
     </DataGrid>
 

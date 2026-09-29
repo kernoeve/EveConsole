@@ -1,7 +1,8 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:EveConsole.Localization"
         x:Class="EveConsole.Views.ComposeMailDialog"
-        Title="Compose Mail"
+        Title="{x:Static loc:CommsText.TitleComposeMail}"
         Width="620" Height="540"
         MinWidth="480" MinHeight="380"
         WindowStartupLocation="CenterOwner"
@@ -12,7 +13,7 @@
     <!-- Header fields -->
     <StackPanel Grid.Row="0" Spacing="8">
 
-      <TextBlock Text="FROM" FontSize="9" FontWeight="SemiBold"
+      <TextBlock Text="{x:Static loc:CommsText.FromLabel}" FontSize="9" FontWeight="SemiBold"
                  Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1.2" />
       <ComboBox x:Name="FromCombo"
                 Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
@@ -20,16 +21,16 @@
                 HorizontalAlignment="Stretch" Padding="6 3" Margin="0 0 0 4"
                 SelectionChanged="OnFromCharacterChanged" />
 
-      <TextBlock Text="TO  (search name, press Enter to add)" FontSize="9" FontWeight="SemiBold"
+      <TextBlock Text="{x:Static loc:CommsText.ToSearchNamePressNote}" FontSize="9" FontWeight="SemiBold"
                  Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1.2" />
       <Grid ColumnDefinitions="*,Auto">
         <TextBox Grid.Column="0" x:Name="RecipientSearchBox"
                  Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                  CornerRadius="3" Foreground="{DynamicResource TextBrightBrush}" CaretBrush="{DynamicResource AccentBrush}"
                  FontSize="12" Padding="8 4"
-                 Watermark="Character name…"
+                 Watermark="{x:Static loc:CommsText.HintCharacterName}"
                  KeyDown="OnRecipientKeyDown" />
-        <Button Grid.Column="1" Content="Add"
+        <Button Grid.Column="1" Content="{x:Static loc:CommsText.Add}"
                 Background="{DynamicResource SurfaceBaseBrush}" Foreground="{DynamicResource InfoBrush}"
                 BorderBrush="{DynamicResource SurfaceSelectedBrush}" BorderThickness="1"
                 Padding="10 4" Margin="6 0 0 0" FontSize="11"
@@ -63,7 +64,7 @@
         </ItemsControl.ItemTemplate>
       </ItemsControl>
 
-      <TextBlock Text="SUBJECT" FontSize="9" FontWeight="SemiBold"
+      <TextBlock Text="{x:Static loc:CommsText.SubjectLabel}" FontSize="9" FontWeight="SemiBold"
                  Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1.2" Margin="0 4 0 0" />
       <TextBox x:Name="SubjectBox"
                Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
@@ -73,7 +74,7 @@
 
     <!-- Body -->
     <Grid Grid.Row="1" RowDefinitions="Auto,*" Margin="0 10 0 0">
-      <TextBlock Grid.Row="0" Text="BODY" FontSize="9" FontWeight="SemiBold"
+      <TextBlock Grid.Row="0" Text="{x:Static loc:CommsText.BodyLabel}" FontSize="9" FontWeight="SemiBold"
                  Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1.2" Margin="0 0 0 4" />
       <TextBox Grid.Row="1" x:Name="BodyBox"
                AcceptsReturn="True" TextWrapping="Wrap"
@@ -86,12 +87,12 @@
     <Grid Grid.Row="2" ColumnDefinitions="*,Auto,Auto" Margin="0 10 0 0">
       <TextBlock Grid.Column="0" x:Name="StatusLabel"
                  FontSize="11" Foreground="{DynamicResource InfoBrush}" VerticalAlignment="Center" />
-      <Button Grid.Column="1" Content="Cancel"
+      <Button Grid.Column="1" Content="{x:Static loc:CommsText.Cancel}"
               Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
               BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
               Padding="14 6" Margin="0 0 8 0"
               Click="OnCancelClick" />
-      <Button Grid.Column="2" Content="Send"
+      <Button Grid.Column="2" Content="{x:Static loc:CommsText.Send}"
               Background="{DynamicResource SurfaceSelectedBrush}" Foreground="{DynamicResource AccentBrush}"
               BorderBrush="{DynamicResource AccentSurfaceBrush}" BorderThickness="1"
               Padding="14 6"

@@ -51,11 +51,13 @@ static Dictionary<string, (string Value, string? Comment)> Load(string file, Lis
     return entries;
 }
 
-// The placeholders a format string uses, "{0}" and "{1:N0}" alike, as their indices — or null
-// when the string is not a valid format string at all.
-static SortedSet<int>? Placeholders(string s)
+// The placeholders a string uses — "{0}" and "{1:N0}" as their indices, and the app's own
+// template tokens such as "{alarm}" by name, which a user types into a message and the app
+// fills in, so a translation must keep them word for word — or null when the braces do not
+// parse at all.
+static SortedSet<string>? Placeholders(string s)
 {
-    var found = new SortedSet<int>();
+    var found = new SortedSet<string>(StringComparer.Ordinal);
     for (var i = 0; i < s.Length; i++)
     {
         if (s[i] == '{')
@@ -65,8 +67,9 @@ static SortedSet<int>? Placeholders(string s)
             if (end < 0) return null;
             var body = s[(i + 1)..end];
             var m = Regex.Match(body, @"^\s*(\d+)\s*(,\s*-?\d+\s*)?(:[^{}]*)?$");
-            if (!m.Success) return null;
-            found.Add(int.Parse(m.Groups[1].Value));
+            if (m.Success) found.Add(m.Groups[1].Value);
+            else if (Regex.IsMatch(body, @"^[A-Za-z_][A-Za-z0-9_]*$")) found.Add(body);
+            else return null;
             i = end;
         }
         else if (s[i] == '}')

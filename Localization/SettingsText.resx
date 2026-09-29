@@ -142,4 +142,1740 @@
     <value>Clicking the Tranquility indicator beside the clock opens CCP's official service status page. Not configurable — no other site carries the same information.</value>
     <comment>Tranquility is the name of EVE's main server.</comment>
   </data>
+  <data name="ABrowserTabWillNote" xml:space="preserve">
+    <value>A browser tab will open for you to log in and authorize access. Review the scopes below and uncheck any you do not want to grant. These choices apply to this authentication only.</value>
+    <comment>Note in ScopeSelectionDialog.</comment>
+  </data>
+  <data name="SelectAll" xml:space="preserve">
+    <value>Select All</value>
+    <comment>Button or option in ScopeSelectionDialog.</comment>
+  </data>
+  <data name="ClearAll" xml:space="preserve">
+    <value>Clear All</value>
+    <comment>Button or option in ScopeSelectionDialog.</comment>
+  </data>
+  <data name="RemovingScopesWillDisableNote" xml:space="preserve">
+    <value>Removing scopes will disable related features in this application. They can be re-granted at any time by running Update.</value>
+    <comment>Note in ScopeSelectionDialog.</comment>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+    <comment>Button or option in ScopeSelectionDialog.</comment>
+  </data>
+  <data name="ContinueToBrowser" xml:space="preserve">
+    <value>Continue to Browser</value>
+    <comment>Button or option in ScopeSelectionDialog.</comment>
+  </data>
+  <data name="TitleEveStaticDataUpdate" xml:space="preserve">
+    <value>Eve Static Data Update</value>
+    <comment>Window title in SdeUpdateDialog.</comment>
+  </data>
+  <data name="ANewerEveStaticNote" xml:space="preserve">
+    <value>A newer Eve static data build is available.</value>
+    <comment>Note in SdeUpdateDialog.</comment>
+  </data>
+  <data name="LoadedLabel" xml:space="preserve">
+    <value>Loaded:</value>
+    <comment>Label in SdeUpdateDialog.</comment>
+  </data>
+  <data name="LatestLabel" xml:space="preserve">
+    <value>Latest:</value>
+    <comment>Label in SdeUpdateDialog.</comment>
+  </data>
+  <data name="UpdateNow" xml:space="preserve">
+    <value>Update Now</value>
+    <comment>Button or option in SdeUpdateDialog.</comment>
+  </data>
+  <data name="Later" xml:space="preserve">
+    <value>Later</value>
+    <comment>Button or option in SdeUpdateDialog.</comment>
+  </data>
+  <data name="UpdatingEveStaticData" xml:space="preserve">
+    <value>Updating Eve static data…</value>
+    <comment>Text in SdeUpdateDialog.</comment>
+  </data>
+  <data name="SdeUpdateComplete" xml:space="preserve">
+    <value>SDE update complete.</value>
+    <comment>Text in SdeUpdateDialog.</comment>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Close</value>
+    <comment>Button or option in SdeUpdateDialog.</comment>
+  </data>
+  <data name="HoboleaksComplement" xml:space="preserve">
+    <value>Hoboleaks Complement</value>
+    <comment>Text in SdeUpdateDialog.</comment>
+  </data>
+  <data name="BlueprintsReprocessingCompressionAndNote" xml:space="preserve">
+    <value>Blueprints, reprocessing, compression, and repackaged volumes updated shortly after each TQ patch — often ahead of the official SDE.</value>
+    <comment>Note in SdeUpdateDialog.</comment>
+  </data>
+  <data name="ImportFromHoboleaks" xml:space="preserve">
+    <value>Import from Hoboleaks</value>
+    <comment>Button or option in SdeUpdateDialog.</comment>
+  </data>
+  <data name="Characters" xml:space="preserve">
+    <value>Characters</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Add</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="Update" xml:space="preserve">
+    <value>Update</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>Remove</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="GrantedScopesLabel" xml:space="preserve">
+    <value>Granted Scopes:</value>
+    <comment>Label in SettingsWindow.</comment>
+  </data>
+  <data name="Corporations" xml:space="preserve">
+    <value>Corporations</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="TipPersonalCorporation" xml:space="preserve">
+    <value>Personal Corporation</value>
+    <comment>Tooltip in SettingsWindow.</comment>
+  </data>
+  <data name="PersonalCorporation" xml:space="preserve">
+    <value>Personal Corporation</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="TipPersonalCorpsCountToward" xml:space="preserve">
+    <value>Personal corps count toward your individual net worth. Alliance or employer corps are treated as separate entities.</value>
+    <comment>Tooltip in SettingsWindow.</comment>
+  </data>
+  <data name="AuthCharacterScopesLabel" xml:space="preserve">
+    <value>Auth Character Scopes:</value>
+    <comment>Label in SettingsWindow.</comment>
+  </data>
+  <data name="WhichCharactersMayBeNote" xml:space="preserve">
+    <value>Which characters may be given industry jobs, and on what. Every authorised character is listed automatically with all three activities on — clear the ones a character should not be given, which is how an alt is taken out of consideration. Jobs go to the least capable character who can run them, keeping the high-skill alts free for the work only they can do. Clear Skill queue for a character whose queue is empty on purpose, and it raises no skill queue alerts.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="ColCharacter" xml:space="preserve">
+    <value>Character</value>
+    <comment>Column header in SettingsWindow.</comment>
+  </data>
+  <data name="ColSlotsUsedFor" xml:space="preserve">
+    <value>Slots used for</value>
+    <comment>Column header in SettingsWindow.</comment>
+  </data>
+  <data name="Mfg" xml:space="preserve">
+    <value>Mfg</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="TipManufacturing" xml:space="preserve">
+    <value>Manufacturing</value>
+    <comment>Tooltip in SettingsWindow.</comment>
+  </data>
+  <data name="Rxn" xml:space="preserve">
+    <value>Rxn</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="TipReactions" xml:space="preserve">
+    <value>Reactions</value>
+    <comment>Tooltip in SettingsWindow.</comment>
+  </data>
+  <data name="Sci" xml:space="preserve">
+    <value>Sci</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="TipScienceCopyingResearchInvention" xml:space="preserve">
+    <value>Science — copying, research, invention</value>
+    <comment>Tooltip in SettingsWindow.</comment>
+  </data>
+  <data name="ColFreeTotal" xml:space="preserve">
+    <value>Free / total</value>
+    <comment>Column header in SettingsWindow.</comment>
+  </data>
+  <data name="ColSkillQueue" xml:space="preserve">
+    <value>Skill queue</value>
+    <comment>Column header in SettingsWindow.</comment>
+  </data>
+  <data name="TipCharacterSkillQueueShould" xml:space="preserve">
+    <value>Character skill queue should be kept running. Clear it for an alt whose queue is deliberately empty, and neither the Overview alerts nor the worklist will report it.</value>
+    <comment>Tooltip in SettingsWindow.</comment>
+  </data>
+  <data name="EveStaticData" xml:space="preserve">
+    <value>Eve Static Data</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="UpdateSde" xml:space="preserve">
+    <value>Update SDE</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="TipDownloadAndImportThe" xml:space="preserve">
+    <value>Download and import the latest Eve static data. Can be run even if already up to date.</value>
+    <comment>Tooltip in SettingsWindow.</comment>
+  </data>
+  <data name="BlueprintsReprocessingCompressionAndNote2" xml:space="preserve">
+    <value>Blueprints, reprocessing, compression, and repackaged volumes — updated shortly after each TQ patch, often ahead of the official SDE.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="TipDownloadBlueprintReprocessingCompression" xml:space="preserve">
+    <value>Download blueprint, reprocessing, compression, and repackaged-volume data from sde.hoboleaks.space.</value>
+    <comment>Tooltip in SettingsWindow.</comment>
+  </data>
+  <data name="PriceSources" xml:space="preserve">
+    <value>Price Sources</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="Method" xml:space="preserve">
+    <value>Method</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="FuzzworkFetchesPreComputedNote" xml:space="preserve">
+    <value>Fuzzwork: fetches pre-computed percentile prices from fuzzwork.co.uk. Fast, requires no auth, and stores very little data locally (one price row per item). Does not store individual orders — the Market Orders tab in the Item Browser requires ESI Region or ESI Structure.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="EsiRegionFetchesAllNote" xml:space="preserve">
+    <value>ESI Region: fetches all public orders for an entire region from ESI. Use this for NPC trade hubs (e.g. Jita → The Forge). Note: orders posted inside player-owned structures are not included — only regional buy orders placed in structures appear.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="PlayerStructureFetchesAllNote" xml:space="preserve">
+    <value>Player Structure: fetches all orders within a specific player-owned structure (citadel, engineering complex, etc.). Requires an auth character with docking access. Use this for null-sec staging keeps and other private markets.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="LocationName" xml:space="preserve">
+    <value>Location Name</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="HintEGJita44" xml:space="preserve">
+    <value>e.g. Jita 4-4</value>
+    <comment>Hint in an empty box in SettingsWindow.</comment>
+  </data>
+  <data name="Region" xml:space="preserve">
+    <value>Region</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="LocationId" xml:space="preserve">
+    <value>Location ID</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="HintStationOrStructureId" xml:space="preserve">
+    <value>Station or Structure ID</value>
+    <comment>Hint in an empty box in SettingsWindow.</comment>
+  </data>
+  <data name="SectionFindLocationByName" xml:space="preserve">
+    <value>Find Location by Name…</value>
+    <comment>Section header in SettingsWindow.</comment>
+  </data>
+  <data name="SearchForAStationNote" xml:space="preserve">
+    <value>Search for a station or structure by name. Results populate the Location ID above.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="HintStationOrStructureName" xml:space="preserve">
+    <value>Station or structure name…</value>
+    <comment>Hint in an empty box in SettingsWindow.</comment>
+  </data>
+  <data name="Search" xml:space="preserve">
+    <value>Search</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="UseSelected" xml:space="preserve">
+    <value>Use Selected</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="StationFilter" xml:space="preserve">
+    <value>Station Filter</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="RestrictPricesToANote" xml:space="preserve">
+    <value>Restrict prices to a single station (e.g. Jita 4-4). Refresh the source first to populate the list.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="AuthCharacter" xml:space="preserve">
+    <value>Auth Character</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="FilterHighLowOrders" xml:space="preserve">
+    <value>Filter High/Low Orders</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="RemovesAnomaliesCausedByNote" xml:space="preserve">
+    <value>Removes anomalies caused by small-volume orders at the extremes of the order book. Sell = Nth-percentile cheapest; Buy = (100-N)th-percentile highest.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="Filter" xml:space="preserve">
+    <value>Filter %</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="Enabled" xml:space="preserve">
+    <value>Enabled</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="LastRefreshLabel" xml:space="preserve">
+    <value>Last refresh:</value>
+    <comment>Label in SettingsWindow.</comment>
+  </data>
+  <data name="StatusLabel" xml:space="preserve">
+    <value>Status:</value>
+    <comment>Label in SettingsWindow.</comment>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Save</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="RefreshThis" xml:space="preserve">
+    <value>Refresh This</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="DefaultPricing" xml:space="preserve">
+    <value>Default Pricing</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="AssetValueLabel" xml:space="preserve">
+    <value>Asset Value:</value>
+    <comment>Label in SettingsWindow.</comment>
+  </data>
+  <data name="ManufacturingCostLabel" xml:space="preserve">
+    <value>Manufacturing Cost:</value>
+    <comment>Label in SettingsWindow.</comment>
+  </data>
+  <data name="MissingPriceMarkupLabel" xml:space="preserve">
+    <value>Missing Price Markup:</value>
+    <comment>Label in SettingsWindow.</comment>
+  </data>
+  <data name="AppliedWhenTheMarketNote" xml:space="preserve">
+    <value>Applied when the market has no sell orders for an item. Price = build cost × (1 + markup%). If no buy orders, buy defaults to sell.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="FilterLowballBuyOrdersBelow" xml:space="preserve">
+    <value>Filter lowball buy orders below</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="OfBuildCost" xml:space="preserve">
+    <value>% of build cost</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="AppliesToEsiRegionNote" xml:space="preserve">
+    <value>Applies to ESI region / structure markets only. Orders visible in the market UI but excluded from buy price calculation.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="SaveDefaults" xml:space="preserve">
+    <value>Save Defaults</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="RefreshAll" xml:space="preserve">
+    <value>Refresh All</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="PriceHistoryRegions" xml:space="preserve">
+    <value>Price History Regions</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="ABackgroundJobRefreshesNote" xml:space="preserve">
+    <value>A background job refreshes 30-day market history for every traded item in these regions, once per 24 hours per item, so the opportunity tools and item details read it straight from the DB. It paces itself against ESI's error limit, so it will never push the app over. Large regions (e.g. The Forge) fill in gradually across sessions.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="ColRegionId" xml:space="preserve">
+    <value>Region ID</value>
+    <comment>Column header in SettingsWindow.</comment>
+  </data>
+  <data name="ColRegionName" xml:space="preserve">
+    <value>Region Name</value>
+    <comment>Column header in SettingsWindow.</comment>
+  </data>
+  <data name="HintSelectARegionToAdd" xml:space="preserve">
+    <value>Select a region to add…</value>
+    <comment>Hint in an empty box in SettingsWindow.</comment>
+  </data>
+  <data name="AddRegion" xml:space="preserve">
+    <value>Add Region</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="TipWatchLivePerNote" xml:space="preserve">
+    <value>Tip: watch live per-region sweep progress (refreshed vs queued, and whether it's running) on the Background Processes → Price History tab.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="BuildCosts" xml:space="preserve">
+    <value>Build Costs</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="RecalculateStoredBuildCostsNote" xml:space="preserve">
+    <value>Recalculate stored build costs for every manufacturable item. Runs automatically after a market refresh; use this to force an update after changing pricing or overrides.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="RecalculateBuildCosts" xml:space="preserve">
+    <value>Recalculate Build Costs</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="ProductionCalculator" xml:space="preserve">
+    <value>Production Calculator</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="PurchaseAComponentInstead" xml:space="preserve">
+    <value>Purchase a component instead of building when its market value is ≤</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="OfBuildValue" xml:space="preserve">
+    <value>% of build value</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="OffByDefaultComponentNote" xml:space="preserve">
+    <value>Off by default. Component markets bounce around, and a few units listed cheap don't guarantee the quantity you need is available at that price — nor that it's worth tracking down and hauling. When off, the calculators build every component they can (items that genuinely can't be costed are still bought). Turn it on to let cheaper-of-build-vs-buy decide.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="AdjustHowOftenEachNote" xml:space="preserve">
+    <value>Adjust how often each endpoint is polled. Changes take effect on the next poll cycle.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="CharacterEndpoints" xml:space="preserve">
+    <value>Character Endpoints</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="ForceNow" xml:space="preserve">
+    <value>Force Now</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="TipResetTheInMemory" xml:space="preserve">
+    <value>Reset the in-memory timer so this endpoint fires on the next poll cycle (within ~10 seconds).</value>
+    <comment>Tooltip in SettingsWindow.</comment>
+  </data>
+  <data name="CorporationEndpoints" xml:space="preserve">
+    <value>Corporation Endpoints</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="Other" xml:space="preserve">
+    <value>Other</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="SaveTimers" xml:space="preserve">
+    <value>Save Timers</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="StructureNameResolution" xml:space="preserve">
+    <value>Structure Name Resolution</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="WhenResolvingUnknownStructureNote" xml:space="preserve">
+    <value>When resolving unknown structure names, EVE Console tries each authenticated character in turn until one succeeds. If most structures deny access to your characters, choosing a single character here prevents unnecessary failed calls and avoids burning your ESI error budget.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="CharacterLabel" xml:space="preserve">
+    <value>Character:</value>
+    <comment>Label in SettingsWindow.</comment>
+  </data>
+  <data name="SelectNoneTryAllNote" xml:space="preserve">
+    <value>Select '(none — try all)' to fall back to the original behaviour of trying every character. The choice takes effect immediately — no restart required.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="ABackgroundServiceIsNote" xml:space="preserve">
+    <value>A background service is installed while this client is on SQLite. Only one process may hold a SQLite file, so whichever starts first locks the other out. Stop and remove it, or switch this client to PostgreSQL.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="DatabaseLabel" xml:space="preserve">
+    <value>Database:</value>
+    <comment>Label in SettingsWindow.</comment>
+  </data>
+  <data name="Start" xml:space="preserve">
+    <value>Start</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="Stop" xml:space="preserve">
+    <value>Stop</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="NotificationAreaIcon" xml:space="preserve">
+    <value>Notification Area Icon</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="ASmallSeparateProcessNote" xml:space="preserve">
+    <value>A small separate process that shows which client is doing the background work, and opens the Background Processes window or a new EVE Console from its menu. It never does the background work itself, and it never handles alarms — closing EVE Console is how you stop those.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="GameLogImport" xml:space="preserve">
+    <value>Game Log Import</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="ReadsEvesOwnGameNote" xml:space="preserve">
+    <value>Reads EVE's own game logs and stores what it finds — combat, mining, bounties, jumps, undocking — so other tools can query it. Logs are opened read-only; nothing is ever written back and nothing is sent to the game client.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="ImportGameLogsOnBy" xml:space="preserve">
+    <value>Import game logs (on by default)</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="ThisCapturesActivityFromNote" xml:space="preserve">
+    <value>This captures activity from now on. Logs EVE has already written are only loaded if you run an import below.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="ParsePositionIsRememberedNote" xml:space="preserve">
+    <value>Parse position is remembered per file, so anything logged while EVE Console was closed is picked up the next time it starts.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="LogFolders" xml:space="preserve">
+    <value>Log Folders</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="LeaveTheListEmptyNote" xml:space="preserve">
+    <value>Leave the list empty to use the local folder automatically. Add a network path (\\MACHINE\share\Gamelogs) to import logs from EVE clients running on other computers — nothing needs to be installed on them.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="Detect" xml:space="preserve">
+    <value>Detect</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="Open" xml:space="preserve">
+    <value>Open</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="CurrentlyReadingLabel" xml:space="preserve">
+    <value>Currently reading:</value>
+    <comment>Label in SettingsWindow.</comment>
+  </data>
+  <data name="ImportPastLogs" xml:space="preserve">
+    <value>Import Past Logs</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="TurningTheImporterOnNote" xml:space="preserve">
+    <value>Turning the importer on only picks up new activity from that point. To also load what EVE has already logged, choose how far back to go and start the import. This runs once — afterwards new activity is picked up automatically.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="ImportLogsFromTheLastLabel" xml:space="preserve">
+    <value>Import logs from the last (days):</value>
+    <comment>Label in SettingsWindow.</comment>
+  </data>
+  <data name="N0AllHistory" xml:space="preserve">
+    <value>0 = all history</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="StartImport" xml:space="preserve">
+    <value>Start Import</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="Recount" xml:space="preserve">
+    <value>Recount</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="Options" xml:space="preserve">
+    <value>Options</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="CheckForNewLinesEveryLabel" xml:space="preserve">
+    <value>Check for new lines every (s):</value>
+    <comment>Label in SettingsWindow.</comment>
+  </data>
+  <data name="KeepLinesThatNoRule" xml:space="preserve">
+    <value>Keep lines that no rule recognised</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="RecommendedEvesLogFormatNote" xml:space="preserve">
+    <value>Recommended. EVE's log format is undocumented and varies by client version, and recognition rules can only cover activity someone has actually done. Keeping unrecognised lines (as kind 'unmatched') means missing coverage shows up in your own data instead of going unnoticed.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="ChatLogImport" xml:space="preserve">
+    <value>Chat Log Import</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="UnlikeGameLogsChatNote" xml:space="preserve">
+    <value>Unlike game logs, chat logs contain what other people wrote. Nothing is stored unless you both enable this and tick specific channels below.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="NotePrivateConversationsAppearNote" xml:space="preserve">
+    <value>Note: private conversations appear as "Private Chat (2)", "Private Chat (3)" and so on. EVE reuses those names for different people over time, so ticking one can capture direct messages with many different players.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="ImportChatLogs" xml:space="preserve">
+    <value>Import chat logs</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="LeaveTheListEmptyNote2" xml:space="preserve">
+    <value>Leave the list empty to use the local folder automatically. Add a network path (\\MACHINE\share\Chatlogs) to import logs from EVE clients running on other computers — nothing needs to be installed on them. Channel discovery below only sees channels from the folder(s) configured here.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="ChannelsToStore" xml:space="preserve">
+    <value>Channels to Store</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="OnlyTickedChannelsAreNote" xml:space="preserve">
+    <value>Only ticked channels are read at all — files for other channels are never opened. Discovery reads filenames only; it can take a moment as these folders hold tens of thousands of files.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="DiscoverChannels" xml:space="preserve">
+    <value>Discover Channels</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="UntickAll" xml:space="preserve">
+    <value>Untick All</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="ChannelLabel" xml:space="preserve">
+    <value>CHANNEL</value>
+    <comment>Label in SettingsWindow.</comment>
+  </data>
+  <data name="IntelLabel" xml:space="preserve">
+    <value>INTEL</value>
+    <comment>Label in SettingsWindow.</comment>
+  </data>
+  <data name="TipParseThisChannelForSightings" xml:space="preserve">
+    <value>Parse this channel for sightings</value>
+    <comment>Tooltip in SettingsWindow.</comment>
+  </data>
+  <data name="ParseStoredHistory" xml:space="preserve">
+    <value>Parse Stored History</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="ImportPastChat" xml:space="preserve">
+    <value>Import Past Chat</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="AsWithGameLogsNote" xml:space="preserve">
+    <value>As with game logs, enabling only captures new messages. Use this to also load past chat for the selected channels.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="ImportChatFromTheLastLabel" xml:space="preserve">
+    <value>Import chat from the last (days):</value>
+    <comment>Label in SettingsWindow.</comment>
+  </data>
+  <data name="MapStatistics" xml:space="preserve">
+    <value>Map statistics</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="JumpsKillsSovereigntyIndustryNote" xml:space="preserve">
+    <value>Jumps, kills, sovereignty, industry indices, faction warfare and incursions, used by the Universe map overlays. ESI serves only the current hour, so history comes from the EVE Ref archive — which means closing the app does not leave permanent gaps.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="CollectMapStatistics" xml:space="preserve">
+    <value>Collect map statistics</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="BackfillDays" xml:space="preserve">
+    <value>Backfill days</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="KeepHourlyDetailDays" xml:space="preserve">
+    <value>Keep hourly detail (days)</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="PastTheHourlyWindowNote" xml:space="preserve">
+    <value>Past the hourly window, jumps and kills are totalled per day, and sovereignty, industry and structure data keep one snapshot a day. Industry indices are still refreshed every hour, so the current value stays current — only the older hours are thinned.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="History" xml:space="preserve">
+    <value>History</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="BackfillNow" xml:space="preserve">
+    <value>Backfill now</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="RefreshCurrentHour" xml:space="preserve">
+    <value>Refresh current hour</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="Coverage" xml:space="preserve">
+    <value>Coverage</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="ZkillboardKillImport" xml:space="preserve">
+    <value>zKillboard Kill Import</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="EsiOnlyReturnsANote" xml:space="preserve">
+    <value>ESI only returns a killmail when you were the victim or got the final blow — participating in a kill without the final blow is invisible to it. zKillboard tracks every participant, so merging it in fills that gap. On by default, for your own characters and their corporations; untick it to turn it off. Merges into the same Kills data used everywhere else, never duplicates or overwrites what ESI already provided.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="EnableZkillboardKillImport" xml:space="preserve">
+    <value>Enable zKillboard kill import</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="Scope" xml:space="preserve">
+    <value>Scope</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="MyCharactersCorpOnly" xml:space="preserve">
+    <value>My characters &amp; corp only</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="LiveCapturePollsZkillboardNote" xml:space="preserve">
+    <value>Live capture polls zKillboard for just the characters and corps already tracked in this app, at the interval below.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="CaptureAllKills" xml:space="preserve">
+    <value>Capture all kills</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="LiveCaptureSwitchesToNote" xml:space="preserve">
+    <value>Live capture switches to zKillboard's real-time firehose, which has no interval to set — it streams continuously. Database size will grow substantially faster than Mine+Corp mode, since every kill in New Eden is stored, not just your own.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="LivePollInterval" xml:space="preserve">
+    <value>Live Poll Interval</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="CheckZkillboardForNewNote" xml:space="preserve">
+    <value>Check zKillboard for new kills every (s):</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="NotUsedInAllNote" xml:space="preserve">
+    <value>Not used in All-kills scope — the firehose paces itself instead.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="BackfillHistory" xml:space="preserve">
+    <value>Backfill History</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="PullsZkillboardsDailyKillNote" xml:space="preserve">
+    <value>Pulls zKillboard's daily kill dumps for the chosen range and merges in anything matching the scope above. Also runs automatically once an hour to catch up on any gap since the app was last running — this button is mainly for pulling in history from before tracking started.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="BackfillTheLastDaysLabel" xml:space="preserve">
+    <value>Backfill the last (days):</value>
+    <comment>Label in SettingsWindow.</comment>
+  </data>
+  <data name="StartBackfill" xml:space="preserve">
+    <value>Start Backfill</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="PostKillsToZkillboard" xml:space="preserve">
+    <value>Post Kills to zKillboard</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="SubmitsKillmailsThisAppNote" xml:space="preserve">
+    <value>Submits killmails this app has that zKillboard is missing — typically ESI kills that nobody else uploaded. Only kills from the covered date range below are considered, and only once they are a few hours old, so a kill still working its way through zKillboard is never submitted needlessly. Nothing is ever submitted twice.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="PostKillmailsToZkillboard" xml:space="preserve">
+    <value>Post killmails to zKillboard</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="ThatIsTheOldestNote" xml:space="preserve">
+    <value>That is the oldest kill confirmed present on zKillboard. Anything older predates everything zKillboard has shown us, so it can't be judged missing and is left alone — backfill further back to widen the range.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="Top10ListTitles" xml:space="preserve">
+    <value>Top 10 List Titles</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="TheHeadingEachSectionNote" xml:space="preserve">
+    <value>The heading each section is posted under. Leave one empty to use the built-in name. Every Top 10 heading carries the month it covers, so a list read on its own still says which month it is.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="SummaryTitles" xml:space="preserve">
+    <value>Summary Titles</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="SummaryHeaderPrefixLabel" xml:space="preserve">
+    <value>SUMMARY HEADER PREFIX</value>
+    <comment>Label in SettingsWindow.</comment>
+  </data>
+  <data name="HintPutInFrontOf" xml:space="preserve">
+    <value>Put in front of the summary's first line</value>
+    <comment>Hint in an empty box in SettingsWindow.</comment>
+  </data>
+  <data name="SaveTitles" xml:space="preserve">
+    <value>Save Titles</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="Top10ExcludeList" xml:space="preserve">
+    <value>Top 10 Exclude List</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="AnyoneHereIsLeftNote" xml:space="preserve">
+    <value>Anyone here is left out of every Top 10 list, on this tab and in scheduled posts.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="HintTypeTwoLettersOfThe" xml:space="preserve">
+    <value>Type two letters of the name…</value>
+    <comment>Hint in an empty box in SettingsWindow.</comment>
+  </data>
+  <data name="Models" xml:space="preserve">
+    <value>Models</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="EveryModelTheAgentNote" xml:space="preserve">
+    <value>Every model the agent can think with: a server of your own such as Ollama, which is free, or a paid service. Which one does what is set under Roles below.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="TipAtLeastOneModelStays" xml:space="preserve">
+    <value>At least one model stays</value>
+    <comment>Tooltip in SettingsWindow.</comment>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Name</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="Service" xml:space="preserve">
+    <value>Service</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="ClaudeAnthropicApiKey" xml:space="preserve">
+    <value>Claude (Anthropic) API key</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="HintSkAnt" xml:space="preserve">
+    <value>sk-ant-…</value>
+    <comment>Hint in an empty box in SettingsWindow.</comment>
+  </data>
+  <data name="OneKeyForEveryNote" xml:space="preserve">
+    <value>One key for every Claude model in the list.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="GetYourAnthropicApi" xml:space="preserve">
+    <value>Get your Anthropic API key at console.anthropic.com</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="OpenaiApiKey" xml:space="preserve">
+    <value>OpenAI API key</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="HintSk" xml:space="preserve">
+    <value>sk-…</value>
+    <comment>Hint in an empty box in SettingsWindow.</comment>
+  </data>
+  <data name="OneKeyForEveryNote2" xml:space="preserve">
+    <value>One key for every OpenAI model in the list, and for OpenAI's voices and speech input.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="GetYourOpenaiApi" xml:space="preserve">
+    <value>Get your OpenAI API key at platform.openai.com</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="ServerAddress" xml:space="preserve">
+    <value>Server address</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="Model" xml:space="preserve">
+    <value>Model</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="TipAskTheServiceFor" xml:space="preserve">
+    <value>Ask the service for its list of models again</value>
+    <comment>Tooltip in SettingsWindow.</comment>
+  </data>
+  <data name="LetItThinkBeforeAnswering" xml:space="preserve">
+    <value>Let it think before answering (slower)</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="ForModelsThatThinkNote" xml:space="preserve">
+    <value>For models that think before they answer, such as Qwen3. The thinking is never shown, but every answer waits for it. Untick for quicker replies: the model is told not to think, at some cost in care — most of all in choosing a tool. Models that do not think ignore it.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="PromptCacheLifetime" xml:space="preserve">
+    <value>Prompt cache lifetime</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="AnthropicKeepsTheInstructionsNote" xml:space="preserve">
+    <value>Anthropic keeps the instructions, tools and conversation cached between messages, and reading the cache costs a tenth of sending it again. The entry lives 5 minutes from the last message; every message renews it. If your messages are usually 5–60 minutes apart, the 1-hour option saves money — but writing the cache then costs 2× instead of 1.25×, so it costs more if they are closer together. The AI Usage tool shows cache reads and writes per message. For every Claude model in the list.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="TestThisModel" xml:space="preserve">
+    <value>Test This Model</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="TipAsksItForOne" xml:space="preserve">
+    <value>Asks it for one sentence, as set here, before saving. Free on a server of your own; a few tokens on a paid service.</value>
+    <comment>Tooltip in SettingsWindow.</comment>
+  </data>
+  <data name="Roles" xml:space="preserve">
+    <value>Roles</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="Conversation" xml:space="preserve">
+    <value>Conversation</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="TalksWithYouAndNote" xml:space="preserve">
+    <value>Talks with you and works the app — opens and arranges its tools, sets alarms and destinations, remembers your standing instructions.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="IfItStopsAnsweringNote" xml:space="preserve">
+    <value>If it stops answering, fall over to</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="SaySoWhenIt" xml:space="preserve">
+    <value>Say so when it falls over, and when it comes back — in the chat, and aloud when speaking</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="QuestionsAboutYourData" xml:space="preserve">
+    <value>Questions about your data</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="AnythingThatNeedsYourNote" xml:space="preserve">
+    <value>Anything that needs your database or ESI — what you have, own, are doing or have done. The model here gets the whole prompt and every tool.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="SendAMessageToNote" xml:space="preserve">
+    <value>Send a message to this model when…</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="ResetToTheDefault" xml:space="preserve">
+    <value>Reset to the default</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="Summaries" xml:space="preserve">
+    <value>Summaries</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="CompactsOlderMessagesWhenNote" xml:space="preserve">
+    <value>Compacts older messages when the conversation grows long (see Context Management). A small free model does this well.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="WhenAModelChanges" xml:space="preserve">
+    <value>When a model changes</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="SaidForARoleNote" xml:space="preserve">
+    <value>Said for a role that says so (above) when its model stops answering and the fallback takes over, and again when its own model is back. {user} is your name from Personalisation, {purpose} is "our conversation" or "data access", {primary} and {fallback} are the two models' names. Nothing is switched silently at start: if a role's own model is not there, the first message finds out, and says so.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="FallingOver" xml:space="preserve">
+    <value>Falling over</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="ComingBack" xml:space="preserve">
+    <value>Coming back</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="AtLeast" xml:space="preserve">
+    <value>At least</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="MinutesBetweenOneChangeNote" xml:space="preserve">
+    <value>minutes between one change and the next switch back</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="UpFor" xml:space="preserve">
+    <value>Up for</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="MinutesWithoutABreakNote" xml:space="preserve">
+    <value>minutes without a break before a role's own model returns</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="AModelThatStopsNote" xml:space="preserve">
+    <value>A model that stops answering is replaced at once, before a word of the answer — these only govern coming back, so a server that keeps dropping out cannot make the agent flip back and forth. A switch back waits for your next message, and for one real word from the returning model.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="ContextManagement" xml:space="preserve">
+    <value>Context Management</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="PersistConversationHistoryAcrossSessions" xml:space="preserve">
+    <value>Persist conversation history across sessions</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="SummarizationThresholdEstimatedTokens" xml:space="preserve">
+    <value>Summarization threshold (estimated tokens)</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="Tokens" xml:space="preserve">
+    <value>tokens</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="Personalisation" xml:space="preserve">
+    <value>Personalisation</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="EverythingOnThisTabNote" xml:space="preserve">
+    <value>Everything on this tab is about you rather than this PC, so it is kept in the database and shared by every client that opens it. The other tabs — provider, keys, voice, microphone — are this machine's own.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="AgentName" xml:space="preserve">
+    <value>Agent Name</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="ResponseVerbosity" xml:space="preserve">
+    <value>Response Verbosity</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="ConciseShortDirectAnswersNote" xml:space="preserve">
+    <value>Concise: short, direct answers (1-3 sentences). Balanced: complete but not padded. Detailed: thorough with context and reasoning. This is injected into the system prompt every time you send a message.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="YourName" xml:space="preserve">
+    <value>Your Name</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="StandingInstructions" xml:space="preserve">
+    <value>Standing Instructions</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="Voices" xml:space="preserve">
+    <value>Voices</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="SpeakTheAgentsReplies" xml:space="preserve">
+    <value>Speak the agent's replies</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="InOrderOfPreferenceNote" xml:space="preserve">
+    <value>In order of preference. The first voice that can speak is used; if it fails, the next takes over at once and, when the first is back and has stayed up, it returns. A voice can have a name of its own — the voice is part of who you are talking to — and while it speaks it is the agent's name, in the panel and in the conversation. A voice with no name goes by the agent's name from Personalisation.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="Up" xml:space="preserve">
+    <value>▲ Up</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="TipPreferThisVoiceOver" xml:space="preserve">
+    <value>Prefer this voice over the one above it</value>
+    <comment>Tooltip in SettingsWindow.</comment>
+  </data>
+  <data name="Down" xml:space="preserve">
+    <value>▼ Down</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="Engine" xml:space="preserve">
+    <value>Engine</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="Kokoro82mRunsFullyNote" xml:space="preserve">
+    <value>Kokoro 82M runs fully offline on this PC. Its voices ship with the application; its model is downloaded once.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="Voice" xml:space="preserve">
+    <value>Voice</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="LoadModel" xml:space="preserve">
+    <value>Load Model</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="ModelLoaded" xml:space="preserve">
+    <value>✔ Model loaded</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="OneModelServesEveryNote" xml:space="preserve">
+    <value>One model serves every Kokoro voice. It is downloaded once (~320 MB, only the neural network weights — no executable code) into this PC's data folder, where updates leave it alone.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="AnyServerThatSpeaksNote" xml:space="preserve">
+    <value>Any server that speaks OpenAI's speech API — Kokoro-FastAPI, Chatterbox-TTS-Server (full or Turbo), Orpheus-FastAPI — usually on another machine's GPU. Free to use; if the server cannot speak, the next voice in the list takes over.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="ServerAddressUpToNote" xml:space="preserve">
+    <value>Server address (up to and including /v1)</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="HintAsTheServerNames" xml:space="preserve">
+    <value>as the server names it — kokoro, chatterbox, orpheus…</value>
+    <comment>Hint in an empty box in SettingsWindow.</comment>
+  </data>
+  <data name="HintAsTheServerNames2" xml:space="preserve">
+    <value>as the server names it — af_heart, tara…</value>
+    <comment>Hint in an empty box in SettingsWindow.</comment>
+  </data>
+  <data name="ChatterboxAFileFromNote" xml:space="preserve">
+    <value>Chatterbox: a file from its voices folder, with .wav — Emily.wav (it ignores the model). Orpheus: tara, leah, jess, leo, dan, mia, zac or zoe (model orpheus). Kokoro-FastAPI: af_heart, bf_emma… (model kokoro).</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="Speed" xml:space="preserve">
+    <value>Speed</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="ApiKeyOnlyIfNote" xml:space="preserve">
+    <value>API key (only if the server asks for one)</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="PiperIsAFastNote" xml:space="preserve">
+    <value>Piper is a fast offline engine. Its runtime ships with the application; only the voice model is downloaded.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="RuntimeLabel" xml:space="preserve">
+    <value>Runtime:</value>
+    <comment>Label in SettingsWindow.</comment>
+  </data>
+  <data name="Bundled" xml:space="preserve">
+    <value>✔ Bundled</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="NotFoundInAppDirectory" xml:space="preserve">
+    <value>⚠ Not found in app directory</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="DownloadVoiceModel" xml:space="preserve">
+    <value>Download Voice Model</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="VoiceReady" xml:space="preserve">
+    <value>✔ Voice ready</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="OpenaisVoicesBilledPerCharacter" xml:space="preserve">
+    <value>OpenAI's voices, billed per character.</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="OneKeyForEveryNote3" xml:space="preserve">
+    <value>One key for every OpenAI voice, and for the Agent tab's OpenAI models and speech input.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="HintAsOpenaiNamesIt" xml:space="preserve">
+    <value>as OpenAI names it</value>
+    <comment>Hint in an empty box in SettingsWindow.</comment>
+  </data>
+  <data name="TipAskOpenaiForIts" xml:space="preserve">
+    <value>Ask OpenAI for its list of speech models again</value>
+    <comment>Tooltip in SettingsWindow.</comment>
+  </data>
+  <data name="ElevenlabsVoicesBilledPerCharacter" xml:space="preserve">
+    <value>ElevenLabs' voices, billed per character.</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="ElevenlabsApiKey" xml:space="preserve">
+    <value>ElevenLabs API key</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="OneKeyForEveryElevenlabs" xml:space="preserve">
+    <value>One key for every ElevenLabs voice.</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="GetYourElevenlabsApi" xml:space="preserve">
+    <value>Get your ElevenLabs API key at elevenlabs.io</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="HintTheVoicesId" xml:space="preserve">
+    <value>the voice's ID</value>
+    <comment>Hint in an empty box in SettingsWindow.</comment>
+  </data>
+  <data name="TipAskElevenlabsForYour" xml:space="preserve">
+    <value>Ask ElevenLabs for your voices again — after adding one there, say</value>
+    <comment>Tooltip in SettingsWindow.</comment>
+  </data>
+  <data name="HintTheModelsId" xml:space="preserve">
+    <value>the model's ID</value>
+    <comment>Hint in an empty box in SettingsWindow.</comment>
+  </data>
+  <data name="TipAskElevenlabsForIts" xml:space="preserve">
+    <value>Ask ElevenLabs for its list of models again</value>
+    <comment>Tooltip in SettingsWindow.</comment>
+  </data>
+  <data name="TestThisVoice" xml:space="preserve">
+    <value>Test This Voice</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="TipSpeaksWithThisVoice" xml:space="preserve">
+    <value>Speaks with this voice as set here, before saving — on its own, not through the list</value>
+    <comment>Tooltip in SettingsWindow.</comment>
+  </data>
+  <data name="WhenTheVoiceChanges" xml:space="preserve">
+    <value>When the voice changes</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="AnnounceItInTheNew" xml:space="preserve">
+    <value>Announce it, in the new voice</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="SaidByTheVoiceNote" xml:space="preserve">
+    <value>Said by the voice taking over, and kept in the conversation so the agent knows who it is now. Only when the name changes — give each voice its own name for a change to be announced. Nothing is said when the app starts: you simply hear whoever is speaking. {previous} and {current} stand for the two names.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="TakingOver" xml:space="preserve">
+    <value>Taking over</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="MinutesWithoutABreakNote2" xml:space="preserve">
+    <value>minutes without a break before a preferred voice returns</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="AVoiceThatFailsNote" xml:space="preserve">
+    <value>A voice that fails is replaced at once — these only govern coming back, so a server that keeps dropping out cannot make the voice flip back and forth. A switch back waits for the end of the current answer.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="SpeechInputPushToTalk" xml:space="preserve">
+    <value>Speech Input (Push-to-Talk)</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="Provider" xml:space="preserve">
+    <value>Provider</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="MicrophoneDevice" xml:space="preserve">
+    <value>Microphone Device</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="HintSystemDefault" xml:space="preserve">
+    <value>(system default)</value>
+    <comment>Hint in an empty box in SettingsWindow.</comment>
+  </data>
+  <data name="TipRefreshTheListOfInput" xml:space="preserve">
+    <value>Refresh the list of input devices</value>
+    <comment>Tooltip in SettingsWindow.</comment>
+  </data>
+  <data name="SystemDefaultFollowsWhateverNote" xml:space="preserve">
+    <value>System default follows whatever the operating system has as its input device, so a headset plugged in later is used without coming back here. Pick a device to pin it. Works on both Windows and Linux (PortAudio); if the list is empty, click ↺ to refresh after your audio driver initialises.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="GlobalPushToTalkKey" xml:space="preserve">
+    <value>Global Push-to-Talk Key</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="ApiKey" xml:space="preserve">
+    <value>API Key</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="TheSameOpenaiKeyNote" xml:space="preserve">
+    <value>The same OpenAI key as the Agent tab's OpenAI models and OpenAI's voices.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="TipAskOpenaiForIts2" xml:space="preserve">
+    <value>Ask OpenAI for its list of transcription models again</value>
+    <comment>Tooltip in SettingsWindow.</comment>
+  </data>
+  <data name="SentToOpenaiToNote" xml:space="preserve">
+    <value>Sent to OpenAI to be written down. Works on Windows and Linux.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="RunsWhisperNetLocallyNote" xml:space="preserve">
+    <value>Runs Whisper.net locally on this machine (Windows only). No API key required. A model file must be downloaded before first use.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="Language" xml:space="preserve">
+    <value>Language</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="HintEn" xml:space="preserve">
+    <value>en</value>
+    <comment>Hint in an empty box in SettingsWindow.</comment>
+  </data>
+  <data name="ATwoLetterCodeNote" xml:space="preserve">
+    <value>A two-letter code such as en, or auto to let the model guess. A guess on a two-second clip is often wrong, and it costs an extra pass; name the language you speak.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="DownloadModel" xml:space="preserve">
+    <value>Download Model</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="Downloaded" xml:space="preserve">
+    <value>✔ Downloaded</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="SaveAgentSettings" xml:space="preserve">
+    <value>Save Agent Settings</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="SlackIntegration" xml:space="preserve">
+    <value>Slack Integration</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="PostFromEveConsoleNote" xml:space="preserve">
+    <value>Post from EVE Console straight into Slack. Posts are made with your own user token, so they appear as you — not as a bot. Nothing is posted automatically; you choose when to send.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="ConnectingOpensSlackInNote" xml:space="preserve">
+    <value>Connecting opens Slack in your browser. Choose the workspace, approve access, and you're done — EVE Console never sees your Slack password, and you can revoke it any time from your Slack account settings.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="ConnectToSlack" xml:space="preserve">
+    <value>Connect to Slack</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="Disconnect" xml:space="preserve">
+    <value>Disconnect</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="ReloadChannels" xml:space="preserve">
+    <value>Reload Channels</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="ManualSetup" xml:space="preserve">
+    <value>Manual setup</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="N1OpenApiSlackNote" xml:space="preserve">
+    <value>1.  Open api.slack.com/apps and choose Create New App → From scratch. Name it (e.g. EVE Console) and pick your workspace.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="N2GoToOauthNote" xml:space="preserve">
+    <value>2.  Go to OAuth &amp; Permissions and add these under User Token Scopes (not Bot Token Scopes):</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="ChatWriteChannelsReadNote" xml:space="preserve">
+    <value>chat:write     channels:read     groups:read     im:read     mpim:read</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="N3ClickInstallToNote" xml:space="preserve">
+    <value>3.  Click Install to Workspace and approve, then copy the User OAuth Token (it starts with xoxp-).</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="OpenApiSlackComApps" xml:space="preserve">
+    <value>Open api.slack.com/apps</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="UserOauthToken" xml:space="preserve">
+    <value>User OAuth Token</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="HintXoxp" xml:space="preserve">
+    <value>xoxp-…</value>
+    <comment>Hint in an empty box in SettingsWindow.</comment>
+  </data>
+  <data name="StoredLocallyInYourNote" xml:space="preserve">
+    <value>Stored locally in your EVE Console database. Treat it like a password — it can post as you in any channel you can reach.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="SaveTest" xml:space="preserve">
+    <value>Save &amp; Test</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="Webhooks" xml:space="preserve">
+    <value>Webhooks</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="ForWorkspacesYouCannotNote" xml:space="preserve">
+    <value>For workspaces you cannot connect to as yourself — an alliance Slack, typically, which will hand out a webhook where it would never hand out a token. Name one here and it appears in every destination list below.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="AWebhookCannotThreadNote" xml:space="preserve">
+    <value>⚠ A webhook cannot thread. Nothing posted through one returns a message id, so a sale posting's detail arrives as a second message instead of a reply under the first. Posts also arrive as the webhook's own app rather than as you.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="ColName" xml:space="preserve">
+    <value>Name</value>
+    <comment>Column header in SettingsWindow.</comment>
+  </data>
+  <data name="HintName" xml:space="preserve">
+    <value>Name</value>
+    <comment>Hint in an empty box in SettingsWindow.</comment>
+  </data>
+  <data name="Channels" xml:space="preserve">
+    <value>Channels</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="PickWhichChannelEachNote" xml:space="preserve">
+    <value>Pick which channel each part of EVE Console posts to. A section's post button only appears once its channel is set.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="CorpActivityTop10" xml:space="preserve">
+    <value>Corp Activity — Top 10</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="HintSelectAChannel" xml:space="preserve">
+    <value>Select a channel…</value>
+    <comment>Hint in an empty box in SettingsWindow.</comment>
+  </data>
+  <data name="CorpActivityMonthlySummary" xml:space="preserve">
+    <value>Corp Activity — Monthly Summary</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="SalePosting" xml:space="preserve">
+    <value>Sale Posting</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="PrivateChannelsOnlyAppearNote" xml:space="preserve">
+    <value>Private channels only appear if you are a member of them. If a channel is missing, use Reload Channels.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="AlertRules" xml:space="preserve">
+    <value>Alert Rules</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="ConfigureWhichConditionsTriggerNote" xml:space="preserve">
+    <value>Configure which conditions trigger alerts on the Overview tab. Alerts are re-evaluated each time the Overview is refreshed.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="SkillQueue" xml:space="preserve">
+    <value>Skill Queue</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="CharacterSkillQueueIsEmpty" xml:space="preserve">
+    <value>Character skill queue is empty</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="CharacterSkillQueueIs" xml:space="preserve">
+    <value>Character skill queue is paused (has entries but nothing training)</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="SkillQueueWillBeEmpty" xml:space="preserve">
+    <value>Skill queue will be empty within</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="Days" xml:space="preserve">
+    <value>days</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="SaveAlerts" xml:space="preserve">
+    <value>Save Alerts</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="AssetSafety" xml:space="preserve">
+    <value>Asset Safety</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="AlertWhenItemsAre" xml:space="preserve">
+    <value>Alert when items are moved into Asset Safety</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="TriggersWhenAStructureitemsmovedintosafetyNote" xml:space="preserve">
+    <value>Triggers when a StructureItemsMovedIntoSafety notification is received for any authenticated character. The alert persists until you manually dismiss it.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="StandingProjects" xml:space="preserve">
+    <value>Standing Projects</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="AlertWhenStandingProjects" xml:space="preserve">
+    <value>Alert when standing projects are not currently active</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="TriggersWhenOneOrNote" xml:space="preserve">
+    <value>Triggers when one or more standing projects (Corp Activity → Projects → Standing Projects) have no matching active ESI corp project. Re-evaluated each time the Overview refreshes.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="StandingBuyOrders" xml:space="preserve">
+    <value>Standing Buy Orders</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="AlertWhenStandingBuy" xml:space="preserve">
+    <value>Alert when standing buy orders need attention</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="TriggersWhenAStandingNote" xml:space="preserve">
+    <value>Triggers when a standing buy order (Market / Trade → Standing Buy Orders) has no matching live order, has been outbid at that station, has fallen below 10% of its original volume, or has under 20% of its duration left. The alert says which, since placing an order, raising a price, topping one up and renewing one are different jobs. Re-evaluated each time the Overview refreshes.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="OutbidDetectionComparesAgainstNote" xml:space="preserve">
+    <value>Outbid detection compares against the public order book, which only covers stations and structures configured as market sources under Settings → Market. Anywhere else shows a dash rather than claiming there is no competition.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="IndustryFacilities" xml:space="preserve">
+    <value>Industry Facilities</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="AlertWhenRunningJobs" xml:space="preserve">
+    <value>Alert when running jobs are in a facility not rigged for them</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="CountsActiveManufacturingAndNote" xml:space="preserve">
+    <value>Counts active manufacturing and reaction jobs whose facility has no rig bonusing that kind of work. Research, copying and invention are not counted — they use rigs this check does not model.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="OnlyFacilitiesLinkedToNote" xml:space="preserve">
+    <value>Only facilities linked to an Indy Parks structure can be judged: ESI cannot report what rigs a structure has fitted, so the rigs are whatever you described in Indy Parks. Link a structure to a real facility there to include it. Unlinked facilities are ignored rather than reported as unrigged.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="AlertWhenIndustryJobs" xml:space="preserve">
+    <value>Alert when industry jobs are ready to deliver</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="CountsJobsPastTheirNote" xml:space="preserve">
+    <value>Counts jobs past their end date, or marked ready, that nobody has delivered yet — the output is waiting and the slot is held until someone collects it. Covers every character and corporation the app polls jobs for; jobs are polled every 15 minutes by default (Timers), so a job that just finished may take that long to show.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="AlertAboutOutstandingContracts" xml:space="preserve">
+    <value>Alert about outstanding contracts issued to you</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="CountsActiveContractsAssignedNote" xml:space="preserve">
+    <value>Counts active contracts assigned to one of your characters or personal corporations — the ones waiting on you. The alert opens the Contracts tool on them, soonest to expire first.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="AlertAboutContractsAboutTo" xml:space="preserve">
+    <value>Alert about contracts about to expire</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="CountsActiveContractsYouNote" xml:space="preserve">
+    <value>Counts active contracts you issued, or that are assigned to you, that are in the last 15% of their life: a two-week contract from its twelfth day. Personal corporations count as you.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="DatabaseType" xml:space="preserve">
+    <value>Database Type</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="TypeLabel" xml:space="preserve">
+    <value>Type:</value>
+    <comment>Label in SettingsWindow.</comment>
+  </data>
+  <data name="ThisIsNotTheNote" xml:space="preserve">
+    <value>This is not the database currently open. Save the choice and restart EVE Console for it to take effect.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="SaveAndRestart" xml:space="preserve">
+    <value>Save and Restart</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="PostgresPostgresqlAndTheNote" xml:space="preserve">
+    <value>Postgres, PostgreSQL and the Slonik Logo are trademarks or registered trademarks of the PostgreSQL Community Association of Canada, and used with their permission.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="PostgresqlServer" xml:space="preserve">
+    <value>PostgreSQL Server</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="EveConsoleNeedsToNote" xml:space="preserve">
+    <value>EVE Console needs to connect to this database and create tables in it. The simplest arrangement is a database owned by this user — CREATE DATABASE eveconsole OWNER myuser — which grants what is needed without any further permissions.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="HostLabel" xml:space="preserve">
+    <value>Host:</value>
+    <comment>Label in SettingsWindow.</comment>
+  </data>
+  <data name="PortLabel" xml:space="preserve">
+    <value>Port:</value>
+    <comment>Label in SettingsWindow.</comment>
+  </data>
+  <data name="UsernameLabel" xml:space="preserve">
+    <value>Username:</value>
+    <comment>Label in SettingsWindow.</comment>
+  </data>
+  <data name="PasswordLabel" xml:space="preserve">
+    <value>Password:</value>
+    <comment>Label in SettingsWindow.</comment>
+  </data>
+  <data name="TestConnection" xml:space="preserve">
+    <value>Test Connection</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="BringYourExistingDataAcross" xml:space="preserve">
+    <value>Bring your existing data across</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="ReplaceWhatIsOnThe" xml:space="preserve">
+    <value>Replace what is on the server</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="CopyDataToPostgresql" xml:space="preserve">
+    <value>Copy Data to PostgreSQL</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="EraseServerDataAndCopy" xml:space="preserve">
+    <value>Erase Server Data and Copy</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="SqliteDatabase" xml:space="preserve">
+    <value>SQLite Database</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="MovingShrinkingAndBackingNote" xml:space="preserve">
+    <value>Moving, shrinking and backing up act on the database FILE, so they apply to SQLite only. A PostgreSQL server is backed up with its own tools.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="PathLabel" xml:space="preserve">
+    <value>Path:</value>
+    <comment>Label in SettingsWindow.</comment>
+  </data>
+  <data name="SizeLabel" xml:space="preserve">
+    <value>Size:</value>
+    <comment>Label in SettingsWindow.</comment>
+  </data>
+  <data name="MoveRenameDatabase" xml:space="preserve">
+    <value>Move / Rename Database…</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="TipMoveTheDatabaseTo" xml:space="preserve">
+    <value>Move the database to another folder or drive, or give it a different name. The application restarts to do it.</value>
+    <comment>Tooltip in SettingsWindow.</comment>
+  </data>
+  <data name="PointToExistingDb" xml:space="preserve">
+    <value>Point to Existing DB…</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="ShrinkDatabase" xml:space="preserve">
+    <value>Shrink Database…</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="TipRebuildTheDatabaseFile" xml:space="preserve">
+    <value>Rebuild the database file so space freed by deleted data is returned to your drive. Restarts the application.</value>
+    <comment>Tooltip in SettingsWindow.</comment>
+  </data>
+  <data name="TheseOperationsCopyOrNote" xml:space="preserve">
+    <value>These operations copy or move the database file and restart the application.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="AutomaticallyBackUpDatabase" xml:space="preserve">
+    <value>Automatically back up database</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="IntervalLabel" xml:space="preserve">
+    <value>Interval:</value>
+    <comment>Label in SettingsWindow.</comment>
+  </data>
+  <data name="KeepLabel" xml:space="preserve">
+    <value>Keep:</value>
+    <comment>Label in SettingsWindow.</comment>
+  </data>
+  <data name="LastBackupLabel" xml:space="preserve">
+    <value>Last backup:</value>
+    <comment>Label in SettingsWindow.</comment>
+  </data>
+  <data name="BackUpNow" xml:space="preserve">
+    <value>Back Up Now</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="PostgresqlBackups" xml:space="preserve">
+    <value>PostgreSQL Backups</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="AServersDatabaseCannotNote" xml:space="preserve">
+    <value>A server's database cannot be backed up by copying a file — the file belongs to the server and may not even be on this machine — so EVE Console runs pg_dump, which asks the server for a consistent snapshot. Dumps are written in the custom format, which is compressed and can be restored whole or table by table with pg_restore.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="CheckForPgDump" xml:space="preserve">
+    <value>Check for pg_dump</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="RestoreFromABackup" xml:space="preserve">
+    <value>Restore from a backup</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="ReplacesEverythingInTheNote" xml:space="preserve">
+    <value>Replaces everything in the database with the contents of a .dump file. Anything polled since that backup was taken is lost. EVE Console restarts to do it, because the restore drops every table and cannot run while the app is holding them.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="RestoreFromDump" xml:space="preserve">
+    <value>Restore From Dump…</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="StorageBreakdown" xml:space="preserve">
+    <value>Storage Breakdown</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="WhatTheDatabaseIsNote" xml:space="preserve">
+    <value>What the database is spent on, table data and indexes separately. On SQLite the figures are measured from the data and scaled to the file's used pages, with large tables sampled rather than read in full. On PostgreSQL the sizes are exact and the row counts are the server's estimates. Either way it is for deciding what is worth keeping, not a byte-level audit.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="Load" xml:space="preserve">
+    <value>Load</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="ColTable" xml:space="preserve">
+    <value>Table</value>
+    <comment>Column header in SettingsWindow.</comment>
+  </data>
+  <data name="ColRows" xml:space="preserve">
+    <value>Rows</value>
+    <comment>Column header in SettingsWindow.</comment>
+  </data>
+  <data name="ColData" xml:space="preserve">
+    <value>Data</value>
+    <comment>Column header in SettingsWindow.</comment>
+  </data>
+  <data name="ColIndexes" xml:space="preserve">
+    <value>Indexes</value>
+    <comment>Column header in SettingsWindow.</comment>
+  </data>
+  <data name="ColTotal" xml:space="preserve">
+    <value>Total</value>
+    <comment>Column header in SettingsWindow.</comment>
+  </data>
+  <data name="ColShare" xml:space="preserve">
+    <value>Share</value>
+    <comment>Column header in SettingsWindow.</comment>
+  </data>
+  <data name="ColMethod" xml:space="preserve">
+    <value>Method</value>
+    <comment>Column header in SettingsWindow.</comment>
+  </data>
+  <data name="HowLongEveConsoleNote" xml:space="preserve">
+    <value>How long EVE Console keeps data it can afford to forget. Every rule here is off until you turn it on, and each runs once at startup. Purging removes rows, but SQLite reuses the freed pages rather than returning them, so the file itself only gets smaller after a compaction — see Database → Shrink Database. Database → Storage Breakdown shows where the space actually went.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="ErrorLog" xml:space="preserve">
+    <value>Error Log</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="TheErrorLogIsNote" xml:space="preserve">
+    <value>The error log is for reading the last few hours, not for keeping history. Left unattended it grows past a hundred thousand entries, at which point nobody looks at it. Under 1% of a measured 4 GB database, so this keeps the log readable rather than reclaiming space.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="PurgeEntriesOlderThan" xml:space="preserve">
+    <value>Purge entries older than</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="PurgeNow" xml:space="preserve">
+    <value>Purge Now</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="KillMails" xml:space="preserve">
+    <value>Kill Mails</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="RemovesTheKillAndNote" xml:space="preserve">
+    <value>Removes the kill and everything attached to it — attackers, items, references and zKillboard flags. Kill mails and their indexes are the largest thing in a typical database (61% of a measured 4 GB file), so this is the rule that actually reclaims space. ⚠️ Deleted kills are gone locally; getting them back means re-fetching from ESI or zKillboard, and ESI only serves recent ones.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="PurgeKillMailsOlderThan" xml:space="preserve">
+    <value>Purge kill mails older than</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="PriceHistory" xml:space="preserve">
+    <value>Price History</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="RemovesDailyMarketHistoryNote" xml:space="preserve">
+    <value>Removes daily market history per region and type, together with the derived per-type price snapshots built from it — both together, because keeping one without the other leaves a history that disagrees with itself. About 15% of a measured 4 GB file. ESI serves roughly a year of history, so recent rows can be re-fetched.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="PurgePriceHistoryOlderThan" xml:space="preserve">
+    <value>Purge price history older than</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="GameLog" xml:space="preserve">
+    <value>Game Log</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="RemovesParsedGameLogNote" xml:space="preserve">
+    <value>Removes parsed game-log events — ratting, mining and industry activity read from your EVE client logs. The .log files on disk are left alone, so anything purged here can be re-imported with Game Logs → Import Past Logs for as long as those files survive.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="PurgeGameLogEventsOlder" xml:space="preserve">
+    <value>Purge game log events older than</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="ChatMessages" xml:space="preserve">
+    <value>Chat Messages</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="RemovesStoredChatMessagesNote" xml:space="preserve">
+    <value>Removes stored chat messages. Intel reports already parsed from them are kept — reports older than the oldest surviving message are treated as history that cannot be rebuilt, both by the startup cleanup and by Chat Logs → parse stored history, which rebuilds only the period it can actually reproduce. The .log files on disk are untouched, so a re-import stays possible while they exist.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="PurgeChatMessagesOlderThan" xml:space="preserve">
+    <value>Purge chat messages older than</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="AgentActivity" xml:space="preserve">
+    <value>Agent Activity</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="RemovesTheRecordOfNote" xml:space="preserve">
+    <value>Removes the record of past AI Agent exchanges — what each one asked for, which tools it used, and the tokens it consumed. This is what the usage and cost figures are calculated from, so purging it shortens the history those can cover. It is the app's own diagnostic record rather than your data, so unlike the sections above this one is on by default; untick it to keep everything.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="PurgeAgentActivityOlderThan" xml:space="preserve">
+    <value>Purge agent activity older than</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="AutomaticallyCheckForUpdates" xml:space="preserve">
+    <value>Automatically check for updates</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="ChecksOnStartupAndNote" xml:space="preserve">
+    <value>Checks on startup and once an hour. When a new version is found you'll be prompted; declining won't ask again until the next version.</value>
+    <comment>Note in SettingsWindow.</comment>
+  </data>
+  <data name="CurrentVersion" xml:space="preserve">
+    <value>Current version</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="LatestVersion" xml:space="preserve">
+    <value>Latest version</value>
+    <comment>Text in SettingsWindow.</comment>
+  </data>
+  <data name="CheckNow" xml:space="preserve">
+    <value>Check Now</value>
+    <comment>Button or option in SettingsWindow.</comment>
+  </data>
+  <data name="FmtLastAuthenticated" xml:space="preserve">
+    <value>Last authenticated: {0:g}</value>
+    <comment>Formatted text ({0} is filled in) in SettingsWindow.</comment>
+  </data>
+  <data name="FmtLastFullDay" xml:space="preserve">
+    <value>last full day: {0}</value>
+    <comment>Formatted text ({0} is filled in) in SettingsWindow.</comment>
+  </data>
+  <data name="FmtCoveredFrom" xml:space="preserve">
+    <value>Covered from: {0}</value>
+    <comment>Formatted text ({0} is filled in) in SettingsWindow.</comment>
+  </data>
+  <data name="FmtTheModelRunsOn" xml:space="preserve">
+    <value>The model runs on: {0}</value>
+    <comment>Formatted text ({0} is filled in) in SettingsWindow.</comment>
+  </data>
 </root>

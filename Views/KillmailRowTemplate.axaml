@@ -1,5 +1,6 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:loc="using:EveConsole.Localization"
                     xmlns:vm="clr-namespace:EveConsole.ViewModels">
 
   <!-- The killmail list row. Lives here rather than inside the Killmail Browser so
@@ -44,7 +45,7 @@
                               CommandParameter="{Binding SystemId}"
                               Background="Transparent" BorderThickness="0" Padding="0"
                               HorizontalContentAlignment="Left" Cursor="Hand"
-                              ToolTip.Tip="Open on the Universe map">
+                              ToolTip.Tip="{x:Static loc:CorpText.TipOpenOnTheUniverseMap}">
                         <TextBlock Text="{Binding SystemName}"
                                    FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold"
                                    TextDecorations="Underline"

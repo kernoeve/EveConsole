@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              xmlns:views="clr-namespace:EveConsole.Views"
              x:Class="EveConsole.Views.AlarmsView"
@@ -48,7 +49,7 @@
                       </DataTemplate>
                     </ComboBox.ItemTemplate>
                   </ComboBox>
-                  <Button Grid.Column="2" Content="Remove" FontSize="10.5"
+                  <Button Grid.Column="2" Content="{x:Static loc:AlarmsText.Remove}" FontSize="10.5"
                           Background="Transparent" BorderThickness="0" Foreground="{DynamicResource WarnBrush}"
                           Command="{Binding RemoveCommand}" />
                 </Grid>
@@ -57,48 +58,48 @@
                 <StackPanel IsVisible="{Binding IsSound}" Spacing="3">
                   <Grid ColumnDefinitions="*,80,Auto,Auto">
                     <StackPanel Grid.Column="0" Margin="0 0 8 0">
-                      <TextBlock Classes="flabel" Text="SOUND" />
+                      <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.SoundLabel}" />
                       <ComboBox ItemsSource="{Binding AvailableSounds}" SelectedItem="{Binding Sound}"
                                 HorizontalAlignment="Stretch" FontSize="11" />
                     </StackPanel>
                     <StackPanel Grid.Column="1" Margin="0 0 8 0">
-                      <TextBlock Classes="flabel" Text="VOLUME" />
+                      <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.VolumeLabel}" />
                       <TextBox Text="{Binding Volume}" />
                     </StackPanel>
-                    <Button Grid.Column="2" Classes="tool" Content="▶ Preview"
+                    <Button Grid.Column="2" Classes="tool" Content="{x:Static loc:AlarmsText.Preview}"
                             Command="{Binding PreviewCommand}" VerticalAlignment="Bottom" />
-                    <Button Grid.Column="3" Classes="tool" Content="Add Sound…"
+                    <Button Grid.Column="3" Classes="tool" Content="{x:Static loc:AlarmsText.AddSound}"
                             Command="{Binding AddSoundCommand}" VerticalAlignment="Bottom"
                             Margin="6 0 0 0" />
                   </Grid>
                   <TextBlock Text="{Binding ImportError}" FontSize="9.5" Foreground="{DynamicResource BadBrush}" />
                   <CheckBox IsChecked="{Binding Loop}" IsVisible="{Binding HasStages}"
-                            Content="Repeat until acknowledged, or until the situation ends on its own"
+                            Content="{x:Static loc:AlarmsText.RepeatUntilAcknowledgedOr}"
                             FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
                 </StackPanel>
 
                 <!-- TTS direct: the check's own words, or the user's, straight to the voice -->
                 <StackPanel IsVisible="{Binding IsTts}">
-                  <TextBlock Classes="flabel" Text="WORDS TO SAY (OPTIONAL)" />
+                  <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.WordsToSayOptionalLabel}" />
                   <TextBox Text="{Binding Body}" AcceptsReturn="True" MinHeight="40"
-                           Watermark="leave empty to say what the check composed" />
+                           Watermark="{x:Static loc:AlarmsText.HintLeaveEmptyToSay}" />
                   <TextBlock FontSize="9.5" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap" Margin="2 3 0 0"
-                             Text="Spoken at once by text-to-speech, no agent involved — needs a voice under Settings → Agent, not a model, and works with the agent switched off. Shows in the agent window as the application's own line. Placeholders: {alarm} {summary} {count} {time} {date}" />
+                             Text="{x:Static loc:AlarmsText.SpokenAtOnceByNote}" />
                 </StackPanel>
 
                 <!-- Agent -->
                 <StackPanel IsVisible="{Binding IsAgent}">
-                  <TextBlock Classes="flabel" Text="EXTRA INSTRUCTION FOR THE AGENT (OPTIONAL)" />
+                  <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.ExtraInstructionForTheAgent}" />
                   <TextBox Text="{Binding Instruction}"
-                           Watermark="e.g. mention which system, and keep it short" />
+                           Watermark="{x:Static loc:AlarmsText.HintEGMentionWhich}" />
                   <TextBlock FontSize="9.5" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap" Margin="2 3 0 0"
-                             Text="The agent is told what fired and phrases it itself. It will speak aloud if you have text-to-speech configured; if the agent is not set up, this is recorded as an alert instead." />
+                             Text="{x:Static loc:AlarmsText.TheAgentIsToldNote}" />
                 </StackPanel>
 
                 <!-- Alert / Dialog -->
                 <StackPanel Spacing="6" IsVisible="{Binding HasText}">
                   <CheckBox IsChecked="{Binding UseDefaultText}"
-                            Content="Use the default wording for this check"
+                            Content="{x:Static loc:AlarmsText.UseTheDefaultWording}"
                             FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
                   <TextBlock FontSize="9.5" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
                              IsVisible="{Binding UseDefaultText}"
@@ -106,16 +107,16 @@
 
                   <StackPanel Spacing="6" IsVisible="{Binding !UseDefaultText}">
                     <StackPanel>
-                      <TextBlock Classes="flabel" Text="TITLE" />
+                      <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.TitleLabel}" />
                       <TextBox Text="{Binding Title}" Watermark="{}{alarm}" />
                     </StackPanel>
                     <StackPanel>
-                      <TextBlock Classes="flabel" Text="MESSAGE" />
+                      <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.MessageLabel}" />
                       <TextBox Text="{Binding Body}" AcceptsReturn="True" MinHeight="54"
                                Watermark="{}{summary}" />
                     </StackPanel>
                     <TextBlock FontSize="9.5" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
-                               Text="Placeholders: {alarm} {summary} {count} {time} {date}" />
+                               Text="{x:Static loc:AlarmsText.Placeholders}" />
                   </StackPanel>
                 </StackPanel>
 
@@ -131,9 +132,9 @@
             BorderThickness="0 0 0 1" BorderBrush="{DynamicResource BorderSubtleBrush}">
       <StackPanel Spacing="5">
       <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto,Auto">
-        <Button Grid.Column="0" Classes="tool" Command="{Binding NewCommand}" Content="New Alarm" />
+        <Button Grid.Column="0" Classes="tool" Command="{Binding NewCommand}" Content="{x:Static loc:AlarmsText.NewAlarm}" />
         <Button Grid.Column="1" Classes="tool" Command="{Binding RefreshCommand}"
-                Content="Refresh" Margin="8 0 0 0" />
+                Content="{x:Static loc:AlarmsText.Refresh}" Margin="8 0 0 0" />
         <TextBlock Grid.Column="3" Text="{Binding StatusText}" FontSize="11" Foreground="{DynamicResource TextDimBrush}"
                    VerticalAlignment="Center" Margin="16 0 0 0" TextTrimming="CharacterEllipsis" />
         <TextBlock Grid.Column="4" Text="{Binding Service.StatusText}" FontSize="10.5"
@@ -147,9 +148,9 @@
                 Click="OnMuteClick"
                 Foreground="{Binding AlarmsMuted,
                              Converter={x:Static views:AlarmMuteBrushConverter.Instance}}"
-                ToolTip.Tip="Sound, dialogs and agent notifications on this machine only. Alerts go on being recorded either way, and other clients are unaffected." />
+                ToolTip.Tip="{x:Static loc:AlarmsText.TipSoundDialogsAndAgent}" />
       </Grid>
-        <TextBlock Text="Early development — this tool is still taking shape, and its behaviour, layout and stored settings are all subject to change."
+        <TextBlock Text="{x:Static loc:AlarmsText.EarlyDevelopmentThisToolNote}"
                    FontSize="10.5" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap" Margin="1 0 0 0" />
       </StackPanel>
     </Border>
@@ -175,7 +176,7 @@
                                FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
                     <Border Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="2" Padding="4 0"
                             IsVisible="{Binding IsAgentCreated}" VerticalAlignment="Center">
-                      <TextBlock Text="agent" FontSize="8.5" Foreground="{DynamicResource InfoBrush}" />
+                      <TextBlock Text="{x:Static loc:AlarmsText.Agent}" FontSize="8.5" Foreground="{DynamicResource InfoBrush}" />
                     </Border>
                   </StackPanel>
                   <TextBlock Text="{Binding Condition}" FontSize="10.5" Foreground="{DynamicResource TextDimBrush}"
@@ -194,7 +195,7 @@
                 Padding="10 8" MaxHeight="260"
                 IsVisible="{Binding HasAlerts}">
           <StackPanel Spacing="6">
-            <TextBlock Classes="section" Text="OPEN ALERTS" />
+            <TextBlock Classes="section" Text="{x:Static loc:AlarmsText.OpenAlertsLabel}" />
             <ItemsControl ItemsSource="{Binding Alerts}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:AlarmAlertVm">
@@ -233,10 +234,10 @@
             <!-- Name / enabled -->
             <Grid ColumnDefinitions="*,Auto">
               <StackPanel Grid.Column="0">
-                <TextBlock Classes="flabel" Text="NAME" />
-                <TextBox Text="{Binding Name}" Watermark="What is this alarm for?" />
+                <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.NameLabel}" />
+                <TextBox Text="{Binding Name}" Watermark="{x:Static loc:AlarmsText.HintWhatIsThisAlarmFor}" />
               </StackPanel>
-              <CheckBox Grid.Column="1" IsChecked="{Binding Enabled}" Content="Enabled"
+              <CheckBox Grid.Column="1" IsChecked="{Binding Enabled}" Content="{x:Static loc:AlarmsText.Enabled}"
                         FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Bottom"
                         Margin="14 0 0 4" />
             </Grid>
@@ -244,24 +245,24 @@
             <!-- The hours it is on -->
             <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*">
               <StackPanel Grid.Column="0">
-                <TextBlock Classes="flabel" Text="ACTIVE FROM" />
-                <TextBox Text="{Binding ActiveFrom}" Width="80" Watermark="always" />
+                <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.ActiveFromLabel}" />
+                <TextBox Text="{Binding ActiveFrom}" Width="80" Watermark="{x:Static loc:AlarmsText.HintAlways}" />
               </StackPanel>
               <StackPanel Grid.Column="1" Margin="8 0 0 0">
-                <TextBlock Classes="flabel" Text="THRU" />
-                <TextBox Text="{Binding ActiveThru}" Width="80" Watermark="always" />
+                <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.ThruLabel}" />
+                <TextBox Text="{Binding ActiveThru}" Width="80" Watermark="{x:Static loc:AlarmsText.HintAlways}" />
               </StackPanel>
               <TextBlock Grid.Column="2" Margin="10 0 0 6" VerticalAlignment="Bottom" FontSize="9.5"
                          Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
-                         Text="Hours on this machine's clock, e.g. 18:00 thru 02:00. Blank means always. Outside them the alarm is not checked at all." />
+                         Text="{x:Static loc:AlarmsText.HoursOnThisMachinesNote}" />
             </Grid>
 
             <!-- Condition -->
             <StackPanel Spacing="8">
-              <TextBlock Classes="section" Text="WHEN" />
+              <TextBlock Classes="section" Text="{x:Static loc:AlarmsText.WhenLabel}" />
 
               <StackPanel>
-                <TextBlock Classes="flabel" Text="CHECK" />
+                <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.CheckLabel}" />
                 <ComboBox ItemsSource="{Binding Conditions}"
                           SelectedItem="{Binding SelectedCondition}"
                           HorizontalAlignment="Stretch" FontSize="11">
@@ -294,7 +295,7 @@
                                        MinimumPopulateDelay="0:0:0.2"
                                        MaxDropDownHeight="260"
                                        FontSize="11"
-                                       Watermark="start typing an item name…" />
+                                       Watermark="{x:Static loc:AlarmsText.HintStartTypingAnItemName}" />
 
                       <CheckBox IsChecked="{Binding Flag}" IsVisible="{Binding IsBoolean}"
                                 FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
@@ -310,12 +311,12 @@
                                            MinimumPopulateDelay="0:0:0.2"
                                            MaxDropDownHeight="260"
                                            FontSize="11"
-                                           Watermark="start typing a name, then Add…">
+                                           Watermark="{x:Static loc:AlarmsText.HintStartTypingANameThen}">
                             <AutoCompleteBox.KeyBindings>
                               <KeyBinding Gesture="Enter" Command="{Binding AddCommand}" />
                             </AutoCompleteBox.KeyBindings>
                           </AutoCompleteBox>
-                          <Button Grid.Column="1" Classes="tool" Content="Add" Margin="6 0 0 0"
+                          <Button Grid.Column="1" Classes="tool" Content="{x:Static loc:AlarmsText.Add}" Margin="6 0 0 0"
                                   Command="{Binding AddCommand}" />
                         </Grid>
                         <TextBlock Text="{Binding Error}" IsVisible="{Binding HasError}"
@@ -386,29 +387,29 @@
 
               <Grid ColumnDefinitions="*,*,*">
                 <StackPanel Grid.Column="0" Margin="0 0 5 0" IsVisible="{Binding !IsStaged}">
-                  <TextBlock Classes="flabel" Text="AFTER FIRING" />
+                  <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.AfterFiringLabel}" />
                   <ComboBox ItemsSource="{Binding RepeatModes}" SelectedItem="{Binding Repeat}"
                             HorizontalAlignment="Stretch" FontSize="11" />
                 </StackPanel>
                 <StackPanel Grid.Column="1" Margin="5 0">
-                  <TextBlock Classes="flabel" Text="CHECK EVERY (SEC)" />
+                  <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.CheckEverySecLabel}" />
                   <TextBox Text="{Binding PollSeconds}" />
                 </StackPanel>
                 <StackPanel Grid.Column="2" Margin="5 0 0 0" IsVisible="{Binding !IsStaged}">
-                  <TextBlock Classes="flabel" Text="COOLDOWN (SEC)" />
+                  <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.CooldownSecLabel}" />
                   <TextBox Text="{Binding CooldownSeconds}" />
                 </StackPanel>
               </Grid>
 
               <TextBlock FontSize="9.5" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
-                         Text="An alarm only announces things it has not announced before, so a condition that stays true does not repeat. Continuous stays armed until you disable it; One shot disables itself after firing once. Cooldown adds a minimum gap on top." />
+                         Text="{x:Static loc:AlarmsText.AnAlarmOnlyAnnouncesNote}" />
             </StackPanel>
 
             <!-- Actions: one flat list for an ordinary check … -->
             <StackPanel Spacing="8" IsVisible="{Binding !IsStaged}">
               <Grid ColumnDefinitions="*,Auto">
-                <TextBlock Grid.Column="0" Classes="section" Text="THEN" VerticalAlignment="Center" />
-                <Button Grid.Column="1" Classes="tool" Content="Add Action"
+                <TextBlock Grid.Column="0" Classes="section" Text="{x:Static loc:AlarmsText.ThenLabel}" VerticalAlignment="Center" />
+                <Button Grid.Column="1" Classes="tool" Content="{x:Static loc:AlarmsText.AddAction}"
                         Command="{Binding AddActionCommand}" />
               </Grid>
               <ItemsControl ItemsSource="{Binding Actions}" ItemTemplate="{StaticResource ActionTemplate}" />
@@ -425,17 +426,17 @@
                                   VerticalAlignment="Center" IsVisible="{Binding HasField}">
                         <CheckBox IsChecked="{Binding Field.Flag}" FontSize="11"
                                   Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
-                        <TextBlock Text="after" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+                        <TextBlock Text="{x:Static loc:AlarmsText.After}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
                         <TextBox Text="{Binding Field.Text}" Width="80" IsEnabled="{Binding Field.Flag}" />
                         <TextBlock Text="{Binding Field.Suffix}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" />
                       </StackPanel>
-                      <Button Grid.Column="2" Classes="tool" Content="Add Action"
+                      <Button Grid.Column="2" Classes="tool" Content="{x:Static loc:AlarmsText.AddAction}"
                               Command="{Binding AddActionCommand}" />
                     </Grid>
                     <TextBlock Text="{Binding Field.Description}" IsVisible="{Binding HasField}"
                                FontSize="9.5" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap" Margin="2 0 0 2" />
                     <ItemsControl ItemsSource="{Binding Actions}" ItemTemplate="{StaticResource ActionTemplate}" />
-                    <TextBlock Text="No actions at this stage — add one, or leave the stage unticked."
+                    <TextBlock Text="{x:Static loc:AlarmsText.NoActionsAtThisNote}"
                                IsVisible="{Binding IsEmpty}"
                                FontSize="9.5" Foreground="{DynamicResource TextFaintBrush}" Margin="2 0 0 0" />
                   </StackPanel>
@@ -447,7 +448,7 @@
         </ScrollViewer>
 
         <TextBlock Grid.Row="0" IsVisible="{Binding !HasEditor}"
-                   Text="Select an alarm, or create one."
+                   Text="{x:Static loc:AlarmsText.SelectAnAlarmOrCreate}"
                    HorizontalAlignment="Center" VerticalAlignment="Center"
                    FontSize="12" Foreground="{DynamicResource TextFaintBrush}" />
 
@@ -457,13 +458,13 @@
                 Background="{DynamicResource SurfaceBaseBrush}" Padding="16 8"
                 BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 0">
           <StackPanel Orientation="Horizontal" Spacing="10">
-            <Button Classes="tool" Content="Save" Command="{Binding SaveCommand}" />
-            <Button Classes="tool" Content="Test Sounds" Command="{Binding TestFireCommand}" />
+            <Button Classes="tool" Content="{x:Static loc:AlarmsText.Save}" Command="{Binding SaveCommand}" />
+            <Button Classes="tool" Content="{x:Static loc:AlarmsText.TestSounds}" Command="{Binding TestFireCommand}" />
             <TextBlock Text="{Binding AudioUnavailableText}"
                        IsVisible="{Binding AudioUnavailable}"
                        Foreground="{DynamicResource WarnBrush}" FontSize="11" TextWrapping="Wrap"
                        VerticalAlignment="Center" Margin="12 0 0 0" />
-            <Button Content="Delete" Command="{Binding DeleteCommand}"
+            <Button Content="{x:Static loc:AlarmsText.Delete}" Command="{Binding DeleteCommand}"
                     Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource BadBrush}" BorderBrush="{DynamicResource BadSurfaceBrush}"
                     BorderThickness="1" Padding="12 4" FontSize="11" />
           </StackPanel>
@@ -474,7 +475,7 @@
         <!-- History -->
         <Border Grid.Row="3" Background="{DynamicResource SurfaceBaseBrush}" Padding="12 10" MaxHeight="200">
           <StackPanel Spacing="6">
-            <TextBlock Classes="section" Text="RECENT FIRINGS (EVE TIME)" />
+            <TextBlock Classes="section" Text="{x:Static loc:AlarmsText.RecentFiringsEveTimeLabel}" />
             <ScrollViewer MaxHeight="150">
               <ItemsControl ItemsSource="{Binding History}">
                 <ItemsControl.ItemTemplate>

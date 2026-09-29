@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base"
              x:Class="EveConsole.Views.NotificationsView"
@@ -92,10 +93,10 @@
     <!-- Filter bar -->
     <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 0 0 1" Padding="12 8">
       <StackPanel Orientation="Horizontal" Spacing="8">
-        <TextBlock Classes="flabel" Text="Character:" />
+        <TextBlock Classes="flabel" Text="{x:Static loc:CommsText.CharacterLabel2}" />
         <ComboBox ItemsSource="{Binding Characters}" SelectedItem="{Binding SelectedCharacter}"
                   MinWidth="150" FontSize="11" VerticalAlignment="Center" />
-        <TextBlock Classes="flabel" Text="Type:" />
+        <TextBlock Classes="flabel" Text="{x:Static loc:CommsText.TypeLabel}" />
         <ComboBox ItemsSource="{Binding Types}" SelectedItem="{Binding SelectedType}"
                   MinWidth="220" FontSize="11" VerticalAlignment="Center">
           <ComboBox.ItemTemplate>
@@ -104,19 +105,19 @@
             </DataTemplate>
           </ComboBox.ItemTemplate>
         </ComboBox>
-        <TextBlock Classes="flabel" Text="Sender:" />
+        <TextBlock Classes="flabel" Text="{x:Static loc:CommsText.SenderLabel}" />
         <ComboBox ItemsSource="{Binding SenderTypes}" SelectedItem="{Binding SelectedSenderType}"
                   MinWidth="120" FontSize="11" VerticalAlignment="Center" />
-        <TextBlock Classes="flabel" Text="From:" />
+        <TextBlock Classes="flabel" Text="{x:Static loc:CommsText.FromLabel2}" />
         <CalendarDatePicker SelectedDate="{Binding FromDate, Mode=TwoWay}" FontSize="11" Width="120" Height="24" />
-        <TextBlock Classes="flabel" Text="Thru:" />
+        <TextBlock Classes="flabel" Text="{x:Static loc:CommsText.ThruLabel}" />
         <CalendarDatePicker SelectedDate="{Binding ThruDate, Mode=TwoWay}" FontSize="11" Width="120" Height="24" />
-        <TextBlock Classes="flabel" Text="Sort:" />
+        <TextBlock Classes="flabel" Text="{x:Static loc:CommsText.SortLabel}" />
         <ComboBox ItemsSource="{Binding SortOptions}" SelectedItem="{Binding SelectedSort}"
                   MinWidth="150" FontSize="11" VerticalAlignment="Center" />
-        <CheckBox IsChecked="{Binding ShowUnreadOnly}" Content="Unread only"
+        <CheckBox IsChecked="{Binding ShowUnreadOnly}" Content="{x:Static loc:CommsText.UnreadOnly}"
                   FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" />
-        <Button Command="{Binding ClearFiltersCommand}" Content="Clear" FontSize="10" Padding="8 2" Height="24"
+        <Button Command="{Binding ClearFiltersCommand}" Content="{x:Static loc:CommsText.Clear}" FontSize="10" Padding="8 2" Height="24"
                 Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                 VerticalAlignment="Center" />
         <TextBlock Text="{Binding UnreadText}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"
@@ -132,14 +133,14 @@
               CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="False"
               Background="{DynamicResource SurfaceBaseBrush}">
       <DataGrid.Columns>
-        <DataGridTextColumn Header="Date"        Binding="{Binding DateText}"   Width="130" />
-        <DataGridTextColumn Header="Type"        Binding="{Binding TypeLabel}"  Width="220" />
-        <DataGridTemplateColumn Header="Character" Width="150" SortMemberPath="Character" ClipboardContentBinding="{Binding Character}">
+        <DataGridTextColumn Header="{x:Static loc:CommsText.ColDate}"        Binding="{Binding DateText}"   Width="130" />
+        <DataGridTextColumn Header="{x:Static loc:CommsText.ColType}"        Binding="{Binding TypeLabel}"  Width="220" />
+        <DataGridTemplateColumn Header="{x:Static loc:CommsText.ColCharacter}" Width="150" SortMemberPath="Character" ClipboardContentBinding="{Binding Character}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:NotificationRowVm">
               <Panel>
                 <Button Classes="link" Click="OnOpenNotifCharacter" IsVisible="{Binding HasCharacterLink}"
-                        ToolTip.Tip="Open in the entity browser">
+                        ToolTip.Tip="{x:Static loc:CommsText.TipOpenInTheEntityBrowser}">
                   <TextBlock Text="{Binding Character}" Classes="linktext"
                              TextTrimming="CharacterEllipsis" />
                 </Button>
@@ -149,12 +150,12 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
-        <DataGridTemplateColumn Header="Sender" Width="160" SortMemberPath="Sender" ClipboardContentBinding="{Binding Sender}">
+        <DataGridTemplateColumn Header="{x:Static loc:CommsText.ColSender}" Width="160" SortMemberPath="Sender" ClipboardContentBinding="{Binding Sender}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:NotificationRowVm">
               <Panel>
                 <Button Classes="link" Click="OnOpenNotifSender" IsVisible="{Binding HasSenderLink}"
-                        ToolTip.Tip="Open in the entity browser">
+                        ToolTip.Tip="{x:Static loc:CommsText.TipOpenInTheEntityBrowser}">
                   <TextBlock Text="{Binding Sender}" Classes="linktext"
                              TextTrimming="CharacterEllipsis" />
                 </Button>
@@ -164,8 +165,8 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
-        <DataGridTextColumn Header="Sender Type" Binding="{Binding SenderType}" Width="100" />
-        <DataGridTextColumn Header="Read"        Binding="{Binding ReadText}"   Width="70" />
+        <DataGridTextColumn Header="{x:Static loc:CommsText.ColSenderType}" Binding="{Binding SenderType}" Width="100" />
+        <DataGridTextColumn Header="{x:Static loc:CommsText.ColRead}"        Binding="{Binding ReadText}"   Width="70" />
       </DataGrid.Columns>
     </DataGrid>
 
@@ -197,7 +198,7 @@
               <TextBlock Grid.Column="1" Grid.ColumnSpan="4" Text="{Binding Title}" Margin="0 0 0 4"
                          FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextBrightBrush}" />
 
-              <TextBlock Grid.Row="1" Grid.Column="1" Classes="dhdr" Text="Sender" Margin="0 0 10 0" />
+              <TextBlock Grid.Row="1" Grid.Column="1" Classes="dhdr" Text="{x:Static loc:CommsText.Sender}" Margin="0 0 10 0" />
               <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal" Spacing="6"
                           MinWidth="340" Margin="0 0 28 0">
                 <ContentControl Content="{Binding Sender}" VerticalAlignment="Center" />
@@ -206,12 +207,12 @@
               </StackPanel>
               <!-- Row 2 hangs from the top: a long list of characters wraps downwards without
                    dragging the date and its label into the middle of it. -->
-              <TextBlock Grid.Row="2" Grid.Column="1" Classes="dhdr" Text="Date" Margin="0 3 10 0" VerticalAlignment="Top" />
+              <TextBlock Grid.Row="2" Grid.Column="1" Classes="dhdr" Text="{x:Static loc:CommsText.Date}" Margin="0 3 10 0" VerticalAlignment="Top" />
               <TextBlock Grid.Row="2" Grid.Column="2" Classes="val" Text="{Binding DateText}" VerticalAlignment="Top" />
 
-              <TextBlock Grid.Row="1" Grid.Column="3" Classes="dhdr" Text="Read" Margin="0 0 10 0" />
+              <TextBlock Grid.Row="1" Grid.Column="3" Classes="dhdr" Text="{x:Static loc:CommsText.Read}" Margin="0 0 10 0" />
               <TextBlock Grid.Row="1" Grid.Column="4" Classes="val" Text="{Binding ReadText}" />
-              <TextBlock Grid.Row="2" Grid.Column="3" Classes="dhdr" Text="Character" Margin="0 3 10 0" VerticalAlignment="Top" />
+              <TextBlock Grid.Row="2" Grid.Column="3" Classes="dhdr" Text="{x:Static loc:CommsText.Character}" Margin="0 3 10 0" VerticalAlignment="Top" />
               <ItemsControl Grid.Row="2" Grid.Column="4" ItemsSource="{Binding Recipients}"
                             MaxWidth="420" VerticalAlignment="Top">
                 <ItemsControl.ItemsPanel>
@@ -336,12 +337,12 @@
               </ItemsControl.ItemTemplate>
             </ItemsControl>
 
-            <TextBlock Text="No further details." IsVisible="{Binding NoBody}"
+            <TextBlock Text="{x:Static loc:CommsText.NoFurtherDetails}" IsVisible="{Binding NoBody}"
                        FontSize="12" Foreground="{DynamicResource TextFaintBrush}" />
 
             <!-- The notification as ESI sent it, for checking a translation against the source. -->
             <StackPanel Spacing="4" IsVisible="{Binding HasRawText}">
-              <CheckBox x:Name="RawToggle" Content="Show the original text" FontSize="11"
+              <CheckBox x:Name="RawToggle" Content="{x:Static loc:CommsText.ShowTheOriginalText}" FontSize="11"
                         Foreground="{DynamicResource TextFaintBrush}" />
               <SelectableTextBlock Text="{Binding RawText}" IsVisible="{Binding #RawToggle.IsChecked}"
                                    FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"
@@ -349,7 +350,7 @@
             </StackPanel>
           </StackPanel>
         </ScrollViewer>
-        <TextBlock Text="Select a notification to view its details."
+        <TextBlock Text="{x:Static loc:CommsText.SelectANotificationToNote}"
                    IsVisible="{Binding Detail, Converter={x:Static conv:ObjectConverters.IsNull}}"
                    FontSize="12" Foreground="{DynamicResource BorderStrongBrush}"
                    HorizontalAlignment="Center" VerticalAlignment="Center" />
@@ -359,11 +360,11 @@
     <!-- Pager -->
     <Border Grid.Row="4" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 0" Padding="12 6">
       <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
-        <Button Command="{Binding Pager.FirstPageCommand}" IsEnabled="{Binding Pager.CanPrev}" Content="⏮ First" FontSize="11" Padding="8 2" />
-        <Button Command="{Binding Pager.PrevPageCommand}"  IsEnabled="{Binding Pager.CanPrev}" Content="◀ Prev"  FontSize="11" Padding="8 2" />
+        <Button Command="{Binding Pager.FirstPageCommand}" IsEnabled="{Binding Pager.CanPrev}" Content="{x:Static loc:CommsText.First}" FontSize="11" Padding="8 2" />
+        <Button Command="{Binding Pager.PrevPageCommand}"  IsEnabled="{Binding Pager.CanPrev}" Content="{x:Static loc:CommsText.Prev}"  FontSize="11" Padding="8 2" />
         <TextBlock Text="{Binding Pager.PageInfo}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="12 0" MinWidth="220" TextAlignment="Center" />
-        <Button Command="{Binding Pager.NextPageCommand}"  IsEnabled="{Binding Pager.CanNext}" Content="Next ▶"  FontSize="11" Padding="8 2" />
-        <Button Command="{Binding Pager.LastPageCommand}"  IsEnabled="{Binding Pager.CanNext}" Content="Last ⏭"  FontSize="11" Padding="8 2" />
+        <Button Command="{Binding Pager.NextPageCommand}"  IsEnabled="{Binding Pager.CanNext}" Content="{x:Static loc:CommsText.Next}"  FontSize="11" Padding="8 2" />
+        <Button Command="{Binding Pager.LastPageCommand}"  IsEnabled="{Binding Pager.CanNext}" Content="{x:Static loc:CommsText.Last}"  FontSize="11" Padding="8 2" />
       </StackPanel>
     </Border>
 

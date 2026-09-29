@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:EveConsole.Localization"
         x:Class="EveConsole.Views.TextPromptDialog"
         Width="420" SizeToContent="Height"
         CanResize="False"
@@ -14,10 +15,10 @@
              CornerRadius="3" Foreground="{DynamicResource TextBrightBrush}" CaretBrush="{DynamicResource AccentBrush}"
              FontSize="13" Padding="8 5" />
     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
-      <Button x:Name="CancelButton" Content="Cancel" Padding="18 5"
+      <Button x:Name="CancelButton" Content="{x:Static loc:CommonText.Cancel}" Padding="18 5"
               Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
               BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" FontSize="12" />
-      <Button x:Name="OkButton" Content="OK" Padding="24 5"
+      <Button x:Name="OkButton" Content="{x:Static loc:CommonText.Ok}" Padding="24 5"
               Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource AccentBrush}"
               BorderBrush="{DynamicResource AccentSurfaceBrush}" BorderThickness="1" FontSize="12" />
     </StackPanel>

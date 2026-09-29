@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="IncomeExpense" xml:space="preserve">
+    <value>Income &amp; Expense</value>
+    <comment>Text in IncomeExpenseView.</comment>
+  </data>
+  <data name="IncomeLabel" xml:space="preserve">
+    <value>INCOME</value>
+    <comment>Label in IncomeExpenseView.</comment>
+  </data>
+  <data name="ExpensesLabel" xml:space="preserve">
+    <value>EXPENSES</value>
+    <comment>Label in IncomeExpenseView.</comment>
+  </data>
+  <data name="DailyIncomeExpenseCashflow" xml:space="preserve">
+    <value>Daily Income · Expense · Cashflow</value>
+    <comment>Text in IncomeExpenseView.</comment>
+  </data>
+  <data name="FmtNet" xml:space="preserve">
+    <value>Net: {0}</value>
+    <comment>Formatted text ({0} is filled in) in IncomeExpenseView.</comment>
+  </data>
+  <data name="AutoRange" xml:space="preserve">
+    <value>Auto Range</value>
+    <comment>Button or option in NetWorthView.</comment>
+  </data>
+  <data name="LogScale" xml:space="preserve">
+    <value>Log Scale</value>
+    <comment>Button or option in NetWorthView.</comment>
+  </data>
+  <data name="From" xml:space="preserve">
+    <value>From</value>
+    <comment>Text in NetWorthView.</comment>
+  </data>
+  <data name="To" xml:space="preserve">
+    <value>To</value>
+    <comment>Text in NetWorthView.</comment>
+  </data>
+  <data name="NetWorthLabel" xml:space="preserve">
+    <value>NET WORTH</value>
+    <comment>Label in NetWorthView.</comment>
+  </data>
+  <data name="AssetsLabel" xml:space="preserve">
+    <value>ASSETS</value>
+    <comment>Label in NetWorthView.</comment>
+  </data>
+  <data name="WalletLabel" xml:space="preserve">
+    <value>WALLET</value>
+    <comment>Label in NetWorthView.</comment>
+  </data>
+  <data name="IndustryLabel" xml:space="preserve">
+    <value>INDUSTRY</value>
+    <comment>Label in NetWorthView.</comment>
+  </data>
+  <data name="SellOrdersLabel" xml:space="preserve">
+    <value>SELL ORDERS</value>
+    <comment>Label in NetWorthView.</comment>
+  </data>
+  <data name="BuyEscrowLabel" xml:space="preserve">
+    <value>BUY ESCROW</value>
+    <comment>Label in NetWorthView.</comment>
+  </data>
+  <data name="ContractCollatLabel" xml:space="preserve">
+    <value>CONTRACT COLLAT.</value>
+    <comment>Label in NetWorthView.</comment>
+  </data>
+  <data name="ContractValueLabel" xml:space="preserve">
+    <value>CONTRACT VALUE</value>
+    <comment>Label in NetWorthView.</comment>
+  </data>
+  <data name="NoNetWorthDataNote" xml:space="preserve">
+    <value>No net worth data for this period.</value>
+    <comment>Note in NetWorthView.</comment>
+  </data>
+  <data name="DataIsRecordedAutomaticallyNote" xml:space="preserve">
+    <value>Data is recorded automatically each time ESI polling refreshes assets, wallet, orders, or contracts.</value>
+    <comment>Note in NetWorthView.</comment>
+  </data>
+  <data name="TitleNetWorth" xml:space="preserve">
+    <value>Net Worth</value>
+    <comment>Window title in NetWorthWindow.</comment>
+  </data>
+  <data name="OwnerLabel" xml:space="preserve">
+    <value>Owner:</value>
+    <comment>Label in WalletView.</comment>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>↻ Refresh</value>
+    <comment>Button or option in WalletView.</comment>
+  </data>
+  <data name="BalanceLabel" xml:space="preserve">
+    <value>Balance:</value>
+    <comment>Label in WalletView.</comment>
+  </data>
+  <data name="TabOverview" xml:space="preserve">
+    <value>Overview</value>
+    <comment>Tab in WalletView.</comment>
+  </data>
+  <data name="Income" xml:space="preserve">
+    <value>Income</value>
+    <comment>Text in WalletView.</comment>
+  </data>
+  <data name="NoIncomeDataForThis" xml:space="preserve">
+    <value>No income data for this period.</value>
+    <comment>Text in WalletView.</comment>
+  </data>
+  <data name="Expenses" xml:space="preserve">
+    <value>Expenses</value>
+    <comment>Text in WalletView.</comment>
+  </data>
+  <data name="NoExpenseDataForThis" xml:space="preserve">
+    <value>No expense data for this period.</value>
+    <comment>Text in WalletView.</comment>
+  </data>
+  <data name="TabJournal" xml:space="preserve">
+    <value>Journal</value>
+    <comment>Tab in WalletView.</comment>
+  </data>
+  <data name="TypeLabel" xml:space="preserve">
+    <value>Type:</value>
+    <comment>Label in WalletView.</comment>
+  </data>
+  <data name="HintFilter" xml:space="preserve">
+    <value>filter…</value>
+    <comment>Hint in an empty box in WalletView.</comment>
+  </data>
+  <data name="DivLabel" xml:space="preserve">
+    <value>Div:</value>
+    <comment>Label in WalletView.</comment>
+  </data>
+  <data name="FromLabel" xml:space="preserve">
+    <value>From:</value>
+    <comment>Label in WalletView.</comment>
+  </data>
+  <data name="ThruLabel" xml:space="preserve">
+    <value>Thru:</value>
+    <comment>Label in WalletView.</comment>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>Clear</value>
+    <comment>Button or option in WalletView.</comment>
+  </data>
+  <data name="SortLabel" xml:space="preserve">
+    <value>Sort:</value>
+    <comment>Label in WalletView.</comment>
+  </data>
+  <data name="ColDate" xml:space="preserve">
+    <value>Date</value>
+    <comment>Column header in WalletView.</comment>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>Type</value>
+    <comment>Column header in WalletView.</comment>
+  </data>
+  <data name="ColAmount" xml:space="preserve">
+    <value>Amount</value>
+    <comment>Column header in WalletView.</comment>
+  </data>
+  <data name="ColBalance" xml:space="preserve">
+    <value>Balance</value>
+    <comment>Column header in WalletView.</comment>
+  </data>
+  <data name="ColOwner" xml:space="preserve">
+    <value>Owner</value>
+    <comment>Column header in WalletView.</comment>
+  </data>
+  <data name="TipOpenInTheEntityBrowser" xml:space="preserve">
+    <value>Open in the entity browser</value>
+    <comment>Tooltip in WalletView.</comment>
+  </data>
+  <data name="ColDiv" xml:space="preserve">
+    <value>Div</value>
+    <comment>Column header in WalletView.</comment>
+  </data>
+  <data name="ColDescription" xml:space="preserve">
+    <value>Description</value>
+    <comment>Column header in WalletView.</comment>
+  </data>
+  <data name="First" xml:space="preserve">
+    <value>⏮ First</value>
+    <comment>Button or option in WalletView.</comment>
+  </data>
+  <data name="Prev" xml:space="preserve">
+    <value>◀ Prev</value>
+    <comment>Button or option in WalletView.</comment>
+  </data>
+  <data name="Next" xml:space="preserve">
+    <value>Next ▶</value>
+    <comment>Button or option in WalletView.</comment>
+  </data>
+  <data name="Last" xml:space="preserve">
+    <value>Last ⏭</value>
+    <comment>Button or option in WalletView.</comment>
+  </data>
+  <data name="TabMarketTransactions" xml:space="preserve">
+    <value>Market Transactions</value>
+    <comment>Tab in WalletView.</comment>
+  </data>
+  <data name="ItemLabel" xml:space="preserve">
+    <value>Item:</value>
+    <comment>Label in WalletView.</comment>
+  </data>
+  <data name="LocationLabel" xml:space="preserve">
+    <value>Location:</value>
+    <comment>Label in WalletView.</comment>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>Item</value>
+    <comment>Column header in WalletView.</comment>
+  </data>
+  <data name="TipOpenInTheItemBrowser" xml:space="preserve">
+    <value>Open in the Item Browser</value>
+    <comment>Tooltip in WalletView.</comment>
+  </data>
+  <data name="ColQty" xml:space="preserve">
+    <value>Qty</value>
+    <comment>Column header in WalletView.</comment>
+  </data>
+  <data name="ColUnitPrice" xml:space="preserve">
+    <value>Unit Price</value>
+    <comment>Column header in WalletView.</comment>
+  </data>
+  <data name="ColTotal" xml:space="preserve">
+    <value>Total</value>
+    <comment>Column header in WalletView.</comment>
+  </data>
+  <data name="ColLocation" xml:space="preserve">
+    <value>Location</value>
+    <comment>Column header in WalletView.</comment>
+  </data>
+  <data name="TipOpenThisStationOrStructure" xml:space="preserve">
+    <value>Open this station or structure</value>
+    <comment>Tooltip in WalletView.</comment>
+  </data>
+  <data name="TabDivisions" xml:space="preserve">
+    <value>Divisions</value>
+    <comment>Tab in WalletView.</comment>
+  </data>
+  <data name="ColName" xml:space="preserve">
+    <value>Name</value>
+    <comment>Column header in WalletView.</comment>
+  </data>
+  <data name="TitleWallet" xml:space="preserve">
+    <value>Wallet</value>
+    <comment>Window title in WalletWindow.</comment>
+  </data>
+  <data name="BuySellLabel" xml:space="preserve">
+    <value>B/S:</value>
+    <comment>Buy or sell, abbreviated, before a filter. Keep short.</comment>
+  </data>
+  <data name="ColBuySell" xml:space="preserve">
+    <value>B/S</value>
+    <comment>Column header: whether a transaction was a buy or a sell, abbreviated. Keep short.</comment>
+  </data>
+</root>

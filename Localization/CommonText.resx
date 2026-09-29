@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TitleAddItem" xml:space="preserve">
+    <value>Add Item</value>
+    <comment>Window title in AddItemDialog.</comment>
+  </data>
+  <data name="SearchForItemLabel" xml:space="preserve">
+    <value>SEARCH FOR ITEM</value>
+    <comment>Label in AddItemDialog.</comment>
+  </data>
+  <data name="HintStartTypingItemName" xml:space="preserve">
+    <value>Start typing item name…</value>
+    <comment>Hint in an empty box in AddItemDialog.</comment>
+  </data>
+  <data name="Change" xml:space="preserve">
+    <value>Change</value>
+    <comment>Button or option in AddItemDialog.</comment>
+  </data>
+  <data name="TargetQuantityLabel" xml:space="preserve">
+    <value>TARGET QUANTITY</value>
+    <comment>Label in AddItemDialog.</comment>
+  </data>
+  <data name="SelectAnItemFromNote" xml:space="preserve">
+    <value>Select an item from the list above.</value>
+    <comment>Note in AddItemDialog.</comment>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+    <comment>Button or option in AddItemDialog.</comment>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Add</value>
+    <comment>Button or option in AddItemDialog.</comment>
+  </data>
+  <data name="TitleAddItemsFromBlueprint" xml:space="preserve">
+    <value>Add Items From Blueprint</value>
+    <comment>Window title in BlueprintPickerDialog.</comment>
+  </data>
+  <data name="BlueprintSearchByProductName" xml:space="preserve">
+    <value>BLUEPRINT (search by product name)</value>
+    <comment>Text in BlueprintPickerDialog.</comment>
+  </data>
+  <data name="HintTypeToSearch" xml:space="preserve">
+    <value>Type to search…</value>
+    <comment>Hint in an empty box in BlueprintPickerDialog.</comment>
+  </data>
+  <data name="MeLevelLabel" xml:space="preserve">
+    <value>ME LEVEL</value>
+    <comment>Label in BlueprintPickerDialog.</comment>
+  </data>
+  <data name="RunsLabel" xml:space="preserve">
+    <value>RUNS</value>
+    <comment>Label in BlueprintPickerDialog.</comment>
+  </data>
+  <data name="MaterialsFromLabel" xml:space="preserve">
+    <value>MATERIALS FROM</value>
+    <comment>Label in BlueprintPickerDialog.</comment>
+  </data>
+  <data name="ThisBlueprint" xml:space="preserve">
+    <value>This Blueprint</value>
+    <comment>Button or option in BlueprintPickerDialog.</comment>
+  </data>
+  <data name="WholeChain" xml:space="preserve">
+    <value>Whole Chain</value>
+    <comment>Button or option in BlueprintPickerDialog.</comment>
+  </data>
+  <data name="IndyParkWholeChain" xml:space="preserve">
+    <value>INDY PARK (whole chain)</value>
+    <comment>Text in BlueprintPickerDialog.</comment>
+  </data>
+  <data name="AddItems" xml:space="preserve">
+    <value>ADD ITEMS</value>
+    <comment>Button or option in BlueprintPickerDialog.</comment>
+  </data>
+  <data name="Cancel2" xml:space="preserve">
+    <value>CANCEL</value>
+    <comment>Button or option in BlueprintPickerDialog.</comment>
+  </data>
+  <data name="TitleCustomColour" xml:space="preserve">
+    <value>Custom colour</value>
+    <comment>Window title in ColorPickerDialog.</comment>
+  </data>
+  <data name="EveMailIsDrawnNote" xml:space="preserve">
+    <value>EVE mail is drawn on a near-black background, so very dark colours all but disappear in it. The swatch below is on that background rather than on this dialog's.</value>
+    <comment>Note in ColorPickerDialog.</comment>
+  </data>
+  <data name="Archon10002" xml:space="preserve">
+    <value>Archon  (10,0,0) - 2.12B</value>
+    <comment>Text in ColorPickerDialog.</comment>
+  </data>
+  <data name="UseThisColour" xml:space="preserve">
+    <value>Use this colour</value>
+    <comment>Button or option in ColorPickerDialog.</comment>
+  </data>
+  <data name="TitleConfirm" xml:space="preserve">
+    <value>Confirm</value>
+    <comment>Window title in ConfirmDialog.</comment>
+  </data>
+  <data name="No" xml:space="preserve">
+    <value>No</value>
+    <comment>Button or option in ConfirmDialog.</comment>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>Yes</value>
+    <comment>Button or option in ConfirmDialog.</comment>
+  </data>
+  <data name="TitleOpenInBrowser" xml:space="preserve">
+    <value>Open in browser?</value>
+    <comment>Window title in ExternalLinkDialog.</comment>
+  </data>
+  <data name="ThisLinkOpensANote" xml:space="preserve">
+    <value>This link opens a website in your browser.</value>
+    <comment>Note in ExternalLinkDialog.</comment>
+  </data>
+  <data name="DontAskMeAgain" xml:space="preserve">
+    <value>Don't ask me again</value>
+    <comment>Button or option in ExternalLinkDialog.</comment>
+  </data>
+  <data name="Open" xml:space="preserve">
+    <value>Open</value>
+    <comment>Button or option in ExternalLinkDialog.</comment>
+  </data>
+  <data name="TitleAddItemsFromFit" xml:space="preserve">
+    <value>Add Items From Fit</value>
+    <comment>Window title in FitSelectorWindow.</comment>
+  </data>
+  <data name="AddToGroupLabel" xml:space="preserve">
+    <value>ADD TO GROUP:</value>
+    <comment>Label in FitSelectorWindow.</comment>
+  </data>
+  <data name="FitsLabel" xml:space="preserve">
+    <value>FITS</value>
+    <comment>Label in FitSelectorWindow.</comment>
+  </data>
+  <data name="FitContentsLabel" xml:space="preserve">
+    <value>FIT CONTENTS</value>
+    <comment>Label in FitSelectorWindow.</comment>
+  </data>
+  <data name="AddItems2" xml:space="preserve">
+    <value>Add Items</value>
+    <comment>Button or option in FitSelectorWindow.</comment>
+  </data>
+  <data name="TitleAddItemsFromMarketGroup" xml:space="preserve">
+    <value>Add Items From Market Group</value>
+    <comment>Window title in MarketGroupPickerWindow.</comment>
+  </data>
+  <data name="TargetQtyPerItemLabel" xml:space="preserve">
+    <value>TARGET QTY PER ITEM</value>
+    <comment>Label in MarketGroupPickerWindow.</comment>
+  </data>
+  <data name="Ok" xml:space="preserve">
+    <value>OK</value>
+    <comment>Button or option in NameDialog.</comment>
+  </data>
+  <data name="HintRrggbb" xml:space="preserve">
+    <value>#rrggbb</value>
+    <comment>Hint in an empty box in ColorField.</comment>
+  </data>
+  <data name="TipPickAColour" xml:space="preserve">
+    <value>Pick a colour</value>
+    <comment>Tooltip in ColorField.</comment>
+  </data>
+  <data name="EveMailColoursLabel" xml:space="preserve">
+    <value>EVE MAIL COLOURS</value>
+    <comment>Label in ColorField.</comment>
+  </data>
+  <data name="Custom" xml:space="preserve">
+    <value>Custom…</value>
+    <comment>Button or option in ColorField.</comment>
+  </data>
+  <data name="NoColour" xml:space="preserve">
+    <value>No colour</value>
+    <comment>Button or option in ColorField.</comment>
+  </data>
+  <data name="TipShowEveryLabelAlreadyIn" xml:space="preserve">
+    <value>Show every label already in use</value>
+    <comment>Tooltip in LabelsBox.</comment>
+  </data>
+  <data name="NoMatchesPressEnterNote" xml:space="preserve">
+    <value>No matches — press Enter to create it.</value>
+    <comment>Note in LabelsBox.</comment>
+  </data>
+</root>

@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TitleComposeMail" xml:space="preserve">
+    <value>Compose Mail</value>
+    <comment>Window title in ComposeMailDialog.</comment>
+  </data>
+  <data name="FromLabel" xml:space="preserve">
+    <value>FROM</value>
+    <comment>Label in ComposeMailDialog.</comment>
+  </data>
+  <data name="ToSearchNamePressNote" xml:space="preserve">
+    <value>TO  (search name, press Enter to add)</value>
+    <comment>Note in ComposeMailDialog.</comment>
+  </data>
+  <data name="HintCharacterName" xml:space="preserve">
+    <value>Character name…</value>
+    <comment>Hint in an empty box in ComposeMailDialog.</comment>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Add</value>
+    <comment>Button or option in ComposeMailDialog.</comment>
+  </data>
+  <data name="SubjectLabel" xml:space="preserve">
+    <value>SUBJECT</value>
+    <comment>Label in ComposeMailDialog.</comment>
+  </data>
+  <data name="BodyLabel" xml:space="preserve">
+    <value>BODY</value>
+    <comment>Label in ComposeMailDialog.</comment>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+    <comment>Button or option in ComposeMailDialog.</comment>
+  </data>
+  <data name="Send" xml:space="preserve">
+    <value>Send</value>
+    <comment>Button or option in ComposeMailDialog.</comment>
+  </data>
+  <data name="CharacterLabel" xml:space="preserve">
+    <value>CHARACTER</value>
+    <comment>Label in EveMailView.</comment>
+  </data>
+  <data name="Reply" xml:space="preserve">
+    <value>Reply</value>
+    <comment>Button or option in EveMailView.</comment>
+  </data>
+  <data name="Forward" xml:space="preserve">
+    <value>Forward</value>
+    <comment>Button or option in EveMailView.</comment>
+  </data>
+  <data name="Compose" xml:space="preserve">
+    <value>+ Compose</value>
+    <comment>Button or option in EveMailView.</comment>
+  </data>
+  <data name="FromLabel2" xml:space="preserve">
+    <value>From:</value>
+    <comment>Label in EveMailView.</comment>
+  </data>
+  <data name="TipOpenInTheEntityBrowser" xml:space="preserve">
+    <value>Open in the entity browser</value>
+    <comment>Tooltip in EveMailView.</comment>
+  </data>
+  <data name="ToLabel" xml:space="preserve">
+    <value>To:</value>
+    <comment>Label in EveMailView.</comment>
+  </data>
+  <data name="DateLabel" xml:space="preserve">
+    <value>Date:</value>
+    <comment>Label in EveMailView.</comment>
+  </data>
+  <data name="SelectAMessageToRead" xml:space="preserve">
+    <value>Select a message to read it.</value>
+    <comment>Text in EveMailView.</comment>
+  </data>
+  <data name="TitleEveMail" xml:space="preserve">
+    <value>Eve Mail</value>
+    <comment>Window title in EveMailWindow.</comment>
+  </data>
+  <data name="CharacterLabel2" xml:space="preserve">
+    <value>Character:</value>
+    <comment>Label in NotificationsView.</comment>
+  </data>
+  <data name="TypeLabel" xml:space="preserve">
+    <value>Type:</value>
+    <comment>Label in NotificationsView.</comment>
+  </data>
+  <data name="SenderLabel" xml:space="preserve">
+    <value>Sender:</value>
+    <comment>Label in NotificationsView.</comment>
+  </data>
+  <data name="ThruLabel" xml:space="preserve">
+    <value>Thru:</value>
+    <comment>Label in NotificationsView.</comment>
+  </data>
+  <data name="SortLabel" xml:space="preserve">
+    <value>Sort:</value>
+    <comment>Label in NotificationsView.</comment>
+  </data>
+  <data name="UnreadOnly" xml:space="preserve">
+    <value>Unread only</value>
+    <comment>Button or option in NotificationsView.</comment>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>Clear</value>
+    <comment>Button or option in NotificationsView.</comment>
+  </data>
+  <data name="ColDate" xml:space="preserve">
+    <value>Date</value>
+    <comment>Column header in NotificationsView.</comment>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>Type</value>
+    <comment>Column header in NotificationsView.</comment>
+  </data>
+  <data name="ColCharacter" xml:space="preserve">
+    <value>Character</value>
+    <comment>Column header in NotificationsView.</comment>
+  </data>
+  <data name="ColSender" xml:space="preserve">
+    <value>Sender</value>
+    <comment>Column header in NotificationsView.</comment>
+  </data>
+  <data name="ColSenderType" xml:space="preserve">
+    <value>Sender Type</value>
+    <comment>Column header in NotificationsView.</comment>
+  </data>
+  <data name="ColRead" xml:space="preserve">
+    <value>Read</value>
+    <comment>Column header in NotificationsView.</comment>
+  </data>
+  <data name="Sender" xml:space="preserve">
+    <value>Sender</value>
+    <comment>Text in NotificationsView.</comment>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Date</value>
+    <comment>Text in NotificationsView.</comment>
+  </data>
+  <data name="Read" xml:space="preserve">
+    <value>Read</value>
+    <comment>Text in NotificationsView.</comment>
+  </data>
+  <data name="Character" xml:space="preserve">
+    <value>Character</value>
+    <comment>Text in NotificationsView.</comment>
+  </data>
+  <data name="NoFurtherDetails" xml:space="preserve">
+    <value>No further details.</value>
+    <comment>Text in NotificationsView.</comment>
+  </data>
+  <data name="ShowTheOriginalText" xml:space="preserve">
+    <value>Show the original text</value>
+    <comment>Button or option in NotificationsView.</comment>
+  </data>
+  <data name="SelectANotificationToNote" xml:space="preserve">
+    <value>Select a notification to view its details.</value>
+    <comment>Note in NotificationsView.</comment>
+  </data>
+  <data name="First" xml:space="preserve">
+    <value>⏮ First</value>
+    <comment>Button or option in NotificationsView.</comment>
+  </data>
+  <data name="Prev" xml:space="preserve">
+    <value>◀ Prev</value>
+    <comment>Button or option in NotificationsView.</comment>
+  </data>
+  <data name="Next" xml:space="preserve">
+    <value>Next ▶</value>
+    <comment>Button or option in NotificationsView.</comment>
+  </data>
+  <data name="Last" xml:space="preserve">
+    <value>Last ⏭</value>
+    <comment>Button or option in NotificationsView.</comment>
+  </data>
+</root>

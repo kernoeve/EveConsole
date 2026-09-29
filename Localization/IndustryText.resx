@@ -1,0 +1,763 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="OwnerType" xml:space="preserve">
+    <value>Owner Type</value>
+    <comment>Text in IndustryBrowserView.</comment>
+  </data>
+  <data name="Owner" xml:space="preserve">
+    <value>Owner</value>
+    <comment>Text in IndustryBrowserView.</comment>
+  </data>
+  <data name="Installer" xml:space="preserve">
+    <value>Installer</value>
+    <comment>Text in IndustryBrowserView.</comment>
+  </data>
+  <data name="StartDate" xml:space="preserve">
+    <value>Start Date</value>
+    <comment>Text in IndustryBrowserView.</comment>
+  </data>
+  <data name="EndDate" xml:space="preserve">
+    <value>End Date</value>
+    <comment>Text in IndustryBrowserView.</comment>
+  </data>
+  <data name="CompletedBy" xml:space="preserve">
+    <value>Completed By</value>
+    <comment>Text in IndustryBrowserView.</comment>
+  </data>
+  <data name="Activity" xml:space="preserve">
+    <value>Activity</value>
+    <comment>Text in IndustryBrowserView.</comment>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Status</value>
+    <comment>Text in IndustryBrowserView.</comment>
+  </data>
+  <data name="Runs" xml:space="preserve">
+    <value>Runs</value>
+    <comment>Text in IndustryBrowserView.</comment>
+  </data>
+  <data name="Items" xml:space="preserve">
+    <value>Items</value>
+    <comment>Text in IndustryBrowserView.</comment>
+  </data>
+  <data name="SuccessChance" xml:space="preserve">
+    <value>Success Chance</value>
+    <comment>Text in IndustryBrowserView.</comment>
+  </data>
+  <data name="TimeLeft" xml:space="preserve">
+    <value>Time Left</value>
+    <comment>Text in IndustryBrowserView.</comment>
+  </data>
+  <data name="Cost" xml:space="preserve">
+    <value>Cost</value>
+    <comment>Text in IndustryBrowserView.</comment>
+  </data>
+  <data name="OwnerLabel" xml:space="preserve">
+    <value>Owner:</value>
+    <comment>Label in IndustryBrowserView.</comment>
+  </data>
+  <data name="ActivityLabel" xml:space="preserve">
+    <value>Activity:</value>
+    <comment>Label in IndustryBrowserView.</comment>
+  </data>
+  <data name="StatusLabel" xml:space="preserve">
+    <value>Status:</value>
+    <comment>Label in IndustryBrowserView.</comment>
+  </data>
+  <data name="StartedLabel" xml:space="preserve">
+    <value>Started:</value>
+    <comment>Label in IndustryBrowserView.</comment>
+  </data>
+  <data name="HintFrom" xml:space="preserve">
+    <value>From…</value>
+    <comment>Hint in an empty box in IndustryBrowserView.</comment>
+  </data>
+  <data name="HintThru" xml:space="preserve">
+    <value>Thru…</value>
+    <comment>Hint in an empty box in IndustryBrowserView.</comment>
+  </data>
+  <data name="SearchLabel" xml:space="preserve">
+    <value>Search:</value>
+    <comment>Label in IndustryBrowserView.</comment>
+  </data>
+  <data name="HintBlueprintOrProduct" xml:space="preserve">
+    <value>blueprint or product…</value>
+    <comment>Hint in an empty box in IndustryBrowserView.</comment>
+  </data>
+  <data name="Apply" xml:space="preserve">
+    <value>Apply</value>
+    <comment>Button or option in IndustryBrowserView.</comment>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>Clear</value>
+    <comment>Button or option in IndustryBrowserView.</comment>
+  </data>
+  <data name="TitleIndustryJobs" xml:space="preserve">
+    <value>Industry Jobs</value>
+    <comment>Window title in IndustryBrowserWindow.</comment>
+  </data>
+  <data name="Calculate" xml:space="preserve">
+    <value>Calculate</value>
+    <comment>Button or option in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="PriceAt" xml:space="preserve">
+    <value>Price at</value>
+    <comment>Text in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="Min30dIskVol" xml:space="preserve">
+    <value>Min 30d ISK Vol</value>
+    <comment>Text in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="HintNoFilter" xml:space="preserve">
+    <value>No filter</value>
+    <comment>Hint in an empty box in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="Min30dUnitVol" xml:space="preserve">
+    <value>Min 30d Unit Vol</value>
+    <comment>Text in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="SkipFaction" xml:space="preserve">
+    <value>Skip faction</value>
+    <comment>Button or option in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="SkipNonBpoTraceableItems" xml:space="preserve">
+    <value>Skip Non BPO traceable Items</value>
+    <comment>Button or option in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="TipOnlyItemsWhoseBlueprint" xml:space="preserve">
+    <value>Only items whose blueprint is a buyable BPO, or is invented from one (e.g. T2 from a T1 BPO). Excludes faction/limited-run BPC items with no obtainable BPO, storyline, officer and deadspace items, and 'Limited Time' event items whose BPO can no longer be bought in game.</value>
+    <comment>Tooltip in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="ExcludeGroups" xml:space="preserve">
+    <value>Exclude Groups</value>
+    <comment>Text in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="TipRemoveThisExclusion" xml:space="preserve">
+    <value>Remove this exclusion</value>
+    <comment>Tooltip in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="AddGroup" xml:space="preserve">
+    <value>+ Add Group</value>
+    <comment>Button or option in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>Item</value>
+    <comment>Column header in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="TipOpenInTheItemBrowser" xml:space="preserve">
+    <value>Open in the Item Browser</value>
+    <comment>Tooltip in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="ColBuildCost" xml:space="preserve">
+    <value>Build Cost</value>
+    <comment>Column header in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="ColSellPrice" xml:space="preserve">
+    <value>Sell Price</value>
+    <comment>Column header in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="ColProfitUnit" xml:space="preserve">
+    <value>Profit / Unit</value>
+    <comment>Column header in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="ColMargin" xml:space="preserve">
+    <value>Margin</value>
+    <comment>Column header in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="ColBuildTime" xml:space="preserve">
+    <value>Build Time</value>
+    <comment>Column header in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="ColSlotDays" xml:space="preserve">
+    <value>Slot Days</value>
+    <comment>Column header in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="ColProfitSlotDay" xml:space="preserve">
+    <value>Profit / Slot Day</value>
+    <comment>Column header in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="ColUnitsSold30d" xml:space="preserve">
+    <value>Units Sold 30d</value>
+    <comment>Column header in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="ColIskSold30d" xml:space="preserve">
+    <value>ISK Sold 30d</value>
+    <comment>Column header in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="ScanningForIndustryOpportunities" xml:space="preserve">
+    <value>Scanning for industry opportunities…</value>
+    <comment>Text in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="TitleIndustryOpportunities" xml:space="preserve">
+    <value>Industry Opportunities</value>
+    <comment>Window title in IndustryOpportunitiesWindow.</comment>
+  </data>
+  <data name="IndyParksLabel" xml:space="preserve">
+    <value>INDY PARKS</value>
+    <comment>Label in IndyParksView.</comment>
+  </data>
+  <data name="NewPark" xml:space="preserve">
+    <value>+ New Park</value>
+    <comment>Button or option in IndyParksView.</comment>
+  </data>
+  <data name="Import" xml:space="preserve">
+    <value>Import</value>
+    <comment>Button or option in IndyParksView.</comment>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Delete</value>
+    <comment>Button or option in IndyParksView.</comment>
+  </data>
+  <data name="CreateOrSelectAnNote" xml:space="preserve">
+    <value>Create or select an Indy Park from the list.</value>
+    <comment>Note in IndyParksView.</comment>
+  </data>
+  <data name="ParkNameLabel" xml:space="preserve">
+    <value>PARK NAME</value>
+    <comment>Label in IndyParksView.</comment>
+  </data>
+  <data name="SetDefault" xml:space="preserve">
+    <value>★ Set Default</value>
+    <comment>Button or option in IndyParksView.</comment>
+  </data>
+  <data name="ExportPark" xml:space="preserve">
+    <value>Export Park</value>
+    <comment>Button or option in IndyParksView.</comment>
+  </data>
+  <data name="StructuresLabel" xml:space="preserve">
+    <value>STRUCTURES</value>
+    <comment>Label in IndyParksView.</comment>
+  </data>
+  <data name="HintSystem" xml:space="preserve">
+    <value>System…</value>
+    <comment>Hint in an empty box in IndyParksView.</comment>
+  </data>
+  <data name="SkipMoonRefineries" xml:space="preserve">
+    <value>Skip moon refineries</value>
+    <comment>Button or option in IndyParksView.</comment>
+  </data>
+  <data name="TipAthanorsAndTatarasAnchored" xml:space="preserve">
+    <value>Athanors and Tataras anchored to a moon are usually moon mining, not industry</value>
+    <comment>Tooltip in IndyParksView.</comment>
+  </data>
+  <data name="AddMissingInSystem" xml:space="preserve">
+    <value>+ Add Missing In System</value>
+    <comment>Button or option in IndyParksView.</comment>
+  </data>
+  <data name="TipAddsTheIndustrialStructures" xml:space="preserve">
+    <value>Adds the industrial structures in that system this park does not already have. Structures already linked here are counted and left alone, so pressing it again after adding one by hand creates no duplicates.</value>
+    <comment>Tooltip in IndyParksView.</comment>
+  </data>
+  <data name="AddStructure" xml:space="preserve">
+    <value>+ Add Structure</value>
+    <comment>Button or option in IndyParksView.</comment>
+  </data>
+  <data name="HintStructureName" xml:space="preserve">
+    <value>Structure name…</value>
+    <comment>Hint in an empty box in IndyParksView.</comment>
+  </data>
+  <data name="Default" xml:space="preserve">
+    <value>Default</value>
+    <comment>Button or option in IndyParksView.</comment>
+  </data>
+  <data name="TipCatchAllFacilityItems" xml:space="preserve">
+    <value>Catch-all facility. Items no category assignment covers are planned here with no rig bonus, so the calculation completes instead of failing. Only one facility per park.</value>
+    <comment>Tooltip in IndyParksView.</comment>
+  </data>
+  <data name="HintSolarSystem" xml:space="preserve">
+    <value>Solar system…</value>
+    <comment>Hint in an empty box in IndyParksView.</comment>
+  </data>
+  <data name="TaxPercentageLabel" xml:space="preserve">
+    <value>Tax Percentage:</value>
+    <comment>Label in IndyParksView.</comment>
+  </data>
+  <data name="ActualFacilityLabel" xml:space="preserve">
+    <value>ACTUAL FACILITY</value>
+    <comment>Label in IndyParksView.</comment>
+  </data>
+  <data name="TipOpenThisStationOrStructure" xml:space="preserve">
+    <value>Open this station or structure</value>
+    <comment>Tooltip in IndyParksView.</comment>
+  </data>
+  <data name="Unlink" xml:space="preserve">
+    <value>Unlink</value>
+    <comment>Button or option in IndyParksView.</comment>
+  </data>
+  <data name="HintSearchStationOrStructureTo" xml:space="preserve">
+    <value>Search station or structure to link…</value>
+    <comment>Hint in an empty box in IndyParksView.</comment>
+  </data>
+  <data name="Search" xml:space="preserve">
+    <value>Search</value>
+    <comment>Button or option in IndyParksView.</comment>
+  </data>
+  <data name="RigsLabel" xml:space="preserve">
+    <value>RIGS</value>
+    <comment>Label in IndyParksView.</comment>
+  </data>
+  <data name="HintEmpty" xml:space="preserve">
+    <value>— empty —</value>
+    <comment>Hint in an empty box in IndyParksView.</comment>
+  </data>
+  <data name="ServiceModulesLabel" xml:space="preserve">
+    <value>SERVICE MODULES</value>
+    <comment>Label in IndyParksView.</comment>
+  </data>
+  <data name="HintAddAServiceModule" xml:space="preserve">
+    <value>— add a service module —</value>
+    <comment>Hint in an empty box in IndyParksView.</comment>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Add</value>
+    <comment>Button or option in IndyParksView.</comment>
+  </data>
+  <data name="ProductionAssignmentsLabel" xml:space="preserve">
+    <value>PRODUCTION ASSIGNMENTS</value>
+    <comment>Label in IndyParksView.</comment>
+  </data>
+  <data name="AutoAssignFromRigs" xml:space="preserve">
+    <value>Auto-assign from rigs</value>
+    <comment>Button or option in IndyParksView.</comment>
+  </data>
+  <data name="TipFillsEmptyCategoriesFrom" xml:space="preserve">
+    <value>Fills empty categories from each structure's rigs. Existing choices are left alone.</value>
+    <comment>Tooltip in IndyParksView.</comment>
+  </data>
+  <data name="AssignWhichStructureHandlesNote" xml:space="preserve">
+    <value>Assign which structure handles each production category.</value>
+    <comment>Note in IndyParksView.</comment>
+  </data>
+  <data name="HintNotAssigned" xml:space="preserve">
+    <value>— not assigned —</value>
+    <comment>Hint in an empty box in IndyParksView.</comment>
+  </data>
+  <data name="ItemExceptionsLabel" xml:space="preserve">
+    <value>ITEM EXCEPTIONS</value>
+    <comment>Label in IndyParksView.</comment>
+  </data>
+  <data name="OverrideTheCategoryAssignmentNote" xml:space="preserve">
+    <value>Override the category assignment for a specific item.</value>
+    <comment>Note in IndyParksView.</comment>
+  </data>
+  <data name="HintSearchForAnItem" xml:space="preserve">
+    <value>Search for an item to add exception…</value>
+    <comment>Hint in an empty box in IndyParksView.</comment>
+  </data>
+  <data name="FmtSlot" xml:space="preserve">
+    <value>Slot {0}:</value>
+    <comment>Formatted text ({0} is filled in) in IndyParksView.</comment>
+  </data>
+  <data name="TitleIndyParks" xml:space="preserve">
+    <value>Indy Parks</value>
+    <comment>Window title in IndyParksWindow.</comment>
+  </data>
+  <data name="AddType" xml:space="preserve">
+    <value>+ Add Type</value>
+    <comment>Button or option in PriceOverrideView.</comment>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>Remove</value>
+    <comment>Button or option in PriceOverrideView.</comment>
+  </data>
+  <data name="SaveRecalculate" xml:space="preserve">
+    <value>Save &amp; Recalculate</value>
+    <comment>Button or option in PriceOverrideView.</comment>
+  </data>
+  <data name="LeaveACellBlankNote" xml:space="preserve">
+    <value>Leave a cell blank to leave that value computed. A set value REPLACES the computed value everywhere it is used. Contract Value on a blueprint is the PER-RUN BPC price. Values are in ISK; commas are ignored.</value>
+    <comment>Note in PriceOverrideView.</comment>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>Type</value>
+    <comment>Column header in PriceOverrideView.</comment>
+  </data>
+  <data name="ColTypeId" xml:space="preserve">
+    <value>Type ID</value>
+    <comment>Column header in PriceOverrideView.</comment>
+  </data>
+  <data name="ColMarketValue" xml:space="preserve">
+    <value>Market Value</value>
+    <comment>Column header in PriceOverrideView.</comment>
+  </data>
+  <data name="ColContractValuePerRunFor" xml:space="preserve">
+    <value>Contract Value (per-run for BPCs)</value>
+    <comment>Column header in PriceOverrideView.</comment>
+  </data>
+  <data name="ProductionQueue" xml:space="preserve">
+    <value>Production Queue</value>
+    <comment>Text in ProductionCalculatorView.</comment>
+  </data>
+  <data name="IndyPark" xml:space="preserve">
+    <value>Indy Park</value>
+    <comment>Text in ProductionCalculatorView.</comment>
+  </data>
+  <data name="AddItem" xml:space="preserve">
+    <value>Add Item</value>
+    <comment>Text in ProductionCalculatorView.</comment>
+  </data>
+  <data name="HintTypeToSearchItems" xml:space="preserve">
+    <value>Type to search items...</value>
+    <comment>Hint in an empty box in ProductionCalculatorView.</comment>
+  </data>
+  <data name="Quantity" xml:space="preserve">
+    <value>Quantity</value>
+    <comment>Text in ProductionCalculatorView.</comment>
+  </data>
+  <data name="MeLevel" xml:space="preserve">
+    <value>ME Level</value>
+    <comment>Text in ProductionCalculatorView.</comment>
+  </data>
+  <data name="AddToQueue" xml:space="preserve">
+    <value>Add to Queue</value>
+    <comment>Button or option in ProductionCalculatorView.</comment>
+  </data>
+  <data name="IncludeFinalBpcCost" xml:space="preserve">
+    <value>Include final BPC cost</value>
+    <comment>Button or option in ProductionCalculatorView.</comment>
+  </data>
+  <data name="TipAddTheFinalProducts" xml:space="preserve">
+    <value>Add the final product's blueprint copy (contract price) as an input. Always included for faction / BPC-only items; optional for standard BPO items.</value>
+    <comment>Tooltip in ProductionCalculatorView.</comment>
+  </data>
+  <data name="TipOpenInItemBrowser" xml:space="preserve">
+    <value>Open in Item Browser</value>
+    <comment>Tooltip in ProductionCalculatorView.</comment>
+  </data>
+  <data name="AddItemsToTheNote" xml:space="preserve">
+    <value>Add items to the queue and click Calculate to see results.</value>
+    <comment>Note in ProductionCalculatorView.</comment>
+  </data>
+  <data name="TabSummary" xml:space="preserve">
+    <value>Summary</value>
+    <comment>Tab in ProductionCalculatorView.</comment>
+  </data>
+  <data name="PlannedInTheParksNote" xml:space="preserve">
+    <value>Planned in the park's default facility with no rig bonus, so these costs may be overstated.</value>
+    <comment>Note in ProductionCalculatorView.</comment>
+  </data>
+  <data name="BlueprintCopiesTradeOnlyNote" xml:space="preserve">
+    <value>Blueprint copies trade only by contract, so a quiet month leaves no current price. The most recent one on record is used; where there is none the blueprint counts as 0 ISK and the build cost is understated by that much.</value>
+    <comment>Note in ProductionCalculatorView.</comment>
+  </data>
+  <data name="CostSummary" xml:space="preserve">
+    <value>Cost Summary</value>
+    <comment>Text in ProductionCalculatorView.</comment>
+  </data>
+  <data name="RawMaterialsLabel" xml:space="preserve">
+    <value>Raw Materials:</value>
+    <comment>Label in ProductionCalculatorView.</comment>
+  </data>
+  <data name="JobCostsLabel" xml:space="preserve">
+    <value>Job Costs:</value>
+    <comment>Label in ProductionCalculatorView.</comment>
+  </data>
+  <data name="LeftoverValueLabel" xml:space="preserve">
+    <value>Leftover Value:</value>
+    <comment>Label in ProductionCalculatorView.</comment>
+  </data>
+  <data name="NetCostLabel" xml:space="preserve">
+    <value>Net Cost:</value>
+    <comment>Label in ProductionCalculatorView.</comment>
+  </data>
+  <data name="RawMaterialVolumeLabel" xml:space="preserve">
+    <value>Raw Material Volume:</value>
+    <comment>Label in ProductionCalculatorView.</comment>
+  </data>
+  <data name="TipPackedVolumeOfThe" xml:space="preserve">
+    <value>Packed volume of the shopping list. Intermediates are excluded — they are built on site rather than hauled in.</value>
+    <comment>Tooltip in ProductionCalculatorView.</comment>
+  </data>
+  <data name="FinalProducts" xml:space="preserve">
+    <value>Final Products</value>
+    <comment>Text in ProductionCalculatorView.</comment>
+  </data>
+  <data name="BuildMarket" xml:space="preserve">
+    <value>build / market</value>
+    <comment>Text in ProductionCalculatorView.</comment>
+  </data>
+  <data name="TabRawMaterials" xml:space="preserve">
+    <value>Raw Materials</value>
+    <comment>Tab in ProductionCalculatorView.</comment>
+  </data>
+  <data name="MissingVsLabel" xml:space="preserve">
+    <value>Missing vs:</value>
+    <comment>Label in ProductionCalculatorView.</comment>
+  </data>
+  <data name="Station" xml:space="preserve">
+    <value>Station</value>
+    <comment>Button or option in ProductionCalculatorView.</comment>
+  </data>
+  <data name="TipCompareAgainstStockAt" xml:space="preserve">
+    <value>Compare against stock at each job's linked facility, summing the demand of every job sharing that structure</value>
+    <comment>Tooltip in ProductionCalculatorView.</comment>
+  </data>
+  <data name="AllAssets" xml:space="preserve">
+    <value>All assets</value>
+    <comment>Button or option in ProductionCalculatorView.</comment>
+  </data>
+  <data name="TipCompareAgainstEverythingYou" xml:space="preserve">
+    <value>Compare against everything you own, wherever it sits</value>
+    <comment>Tooltip in ProductionCalculatorView.</comment>
+  </data>
+  <data name="ShoppingList" xml:space="preserve">
+    <value>Shopping List</value>
+    <comment>Button or option in ProductionCalculatorView.</comment>
+  </data>
+  <data name="TipCopyItemNameAnd" xml:space="preserve">
+    <value>Copy item name and quantity (tab-separated) to clipboard</value>
+    <comment>Tooltip in ProductionCalculatorView.</comment>
+  </data>
+  <data name="ShoppingListMissing" xml:space="preserve">
+    <value>Shopping List (Missing)</value>
+    <comment>Button or option in ProductionCalculatorView.</comment>
+  </data>
+  <data name="TipCopyOnlyTheItems" xml:space="preserve">
+    <value>Copy only the items short of the plan's needs, at the quantity short</value>
+    <comment>Tooltip in ProductionCalculatorView.</comment>
+  </data>
+  <data name="Export" xml:space="preserve">
+    <value>Export</value>
+    <comment>Button or option in ProductionCalculatorView.</comment>
+  </data>
+  <data name="TipExportAllColumnsTo" xml:space="preserve">
+    <value>Export all columns to clipboard or file</value>
+    <comment>Tooltip in ProductionCalculatorView.</comment>
+  </data>
+  <data name="MenuCopyToClipboard" xml:space="preserve">
+    <value>Copy to Clipboard</value>
+    <comment>Menu item in ProductionCalculatorView.</comment>
+  </data>
+  <data name="MenuExportAsCsv" xml:space="preserve">
+    <value>Export as CSV</value>
+    <comment>Menu item in ProductionCalculatorView.</comment>
+  </data>
+  <data name="MenuTabDelimited" xml:space="preserve">
+    <value>Tab-delimited</value>
+    <comment>Menu item in ProductionCalculatorView.</comment>
+  </data>
+  <data name="ColMaterial" xml:space="preserve">
+    <value>Material</value>
+    <comment>Column header in ProductionCalculatorView.</comment>
+  </data>
+  <data name="ColQuantity" xml:space="preserve">
+    <value>Quantity</value>
+    <comment>Column header in ProductionCalculatorView.</comment>
+  </data>
+  <data name="ColMissing" xml:space="preserve">
+    <value>Missing</value>
+    <comment>Column header in ProductionCalculatorView.</comment>
+  </data>
+  <data name="ColUnitPrice" xml:space="preserve">
+    <value>Unit Price</value>
+    <comment>Column header in ProductionCalculatorView.</comment>
+  </data>
+  <data name="ColTotalCost" xml:space="preserve">
+    <value>Total Cost</value>
+    <comment>Column header in ProductionCalculatorView.</comment>
+  </data>
+  <data name="TabIntermediates" xml:space="preserve">
+    <value>Intermediates</value>
+    <comment>Tab in ProductionCalculatorView.</comment>
+  </data>
+  <data name="DoubleClickRowToNote" xml:space="preserve">
+    <value>Double-click row to open in Item Browser</value>
+    <comment>Note in ProductionCalculatorView.</comment>
+  </data>
+  <data name="ColNeeded" xml:space="preserve">
+    <value>Needed</value>
+    <comment>Column header in ProductionCalculatorView.</comment>
+  </data>
+  <data name="ColProduced" xml:space="preserve">
+    <value>Produced</value>
+    <comment>Column header in ProductionCalculatorView.</comment>
+  </data>
+  <data name="ColLeftover" xml:space="preserve">
+    <value>Leftover</value>
+    <comment>Column header in ProductionCalculatorView.</comment>
+  </data>
+  <data name="ColBuildValue" xml:space="preserve">
+    <value>Build Value</value>
+    <comment>Column header in ProductionCalculatorView.</comment>
+  </data>
+  <data name="ColLeftoverValue" xml:space="preserve">
+    <value>Leftover Value</value>
+    <comment>Column header in ProductionCalculatorView.</comment>
+  </data>
+  <data name="TabLeftovers" xml:space="preserve">
+    <value>Leftovers</value>
+    <comment>Tab in ProductionCalculatorView.</comment>
+  </data>
+  <data name="ColSource" xml:space="preserve">
+    <value>Source</value>
+    <comment>Column header in ProductionCalculatorView.</comment>
+  </data>
+  <data name="ColTotalValue" xml:space="preserve">
+    <value>Total Value</value>
+    <comment>Column header in ProductionCalculatorView.</comment>
+  </data>
+  <data name="TabFinalProducts" xml:space="preserve">
+    <value>Final Products</value>
+    <comment>Tab in ProductionCalculatorView.</comment>
+  </data>
+  <data name="ColReq" xml:space="preserve">
+    <value>Req</value>
+    <comment>Column header in ProductionCalculatorView.</comment>
+  </data>
+  <data name="ColMatCost" xml:space="preserve">
+    <value>Mat Cost</value>
+    <comment>Column header in ProductionCalculatorView.</comment>
+  </data>
+  <data name="ColJobCost" xml:space="preserve">
+    <value>Job Cost</value>
+    <comment>Column header in ProductionCalculatorView.</comment>
+  </data>
+  <data name="ColUnitCost" xml:space="preserve">
+    <value>Unit Cost</value>
+    <comment>Column header in ProductionCalculatorView.</comment>
+  </data>
+  <data name="ColMarketUnit" xml:space="preserve">
+    <value>Market/Unit</value>
+    <comment>Column header in ProductionCalculatorView.</comment>
+  </data>
+  <data name="ColProfit" xml:space="preserve">
+    <value>Profit</value>
+    <comment>Column header in ProductionCalculatorView.</comment>
+  </data>
+  <data name="TabJobs" xml:space="preserve">
+    <value>Jobs</value>
+    <comment>Tab in ProductionCalculatorView.</comment>
+  </data>
+  <data name="TipPackedVolumeThisJob" xml:space="preserve">
+    <value>Packed volume this job consumes — what has to reach the facility.</value>
+    <comment>Tooltip in ProductionCalculatorView.</comment>
+  </data>
+  <data name="TipPackedVolumeThisJob2" xml:space="preserve">
+    <value>Packed volume this job produces — what leaves it.</value>
+    <comment>Tooltip in ProductionCalculatorView.</comment>
+  </data>
+  <data name="TipOpenInTheStructureBrowser" xml:space="preserve">
+    <value>Open in the Structure Browser</value>
+    <comment>Tooltip in ProductionCalculatorView.</comment>
+  </data>
+  <data name="TipOpenOnTheMap" xml:space="preserve">
+    <value>Open on the map</value>
+    <comment>Tooltip in ProductionCalculatorView.</comment>
+  </data>
+  <data name="Materials" xml:space="preserve">
+    <value>Materials</value>
+    <comment>Button or option in ProductionCalculatorView.</comment>
+  </data>
+  <data name="TipCopyEveryBoughtMaterial" xml:space="preserve">
+    <value>Copy every bought material for this job (name and quantity, tab-separated)</value>
+    <comment>Tooltip in ProductionCalculatorView.</comment>
+  </data>
+  <data name="TipCopyOnlyTheBought" xml:space="preserve">
+    <value>Copy only the bought materials short at this job's linked facility</value>
+    <comment>Tooltip in ProductionCalculatorView.</comment>
+  </data>
+  <data name="Material" xml:space="preserve">
+    <value>Material</value>
+    <comment>Text in ProductionCalculatorView.</comment>
+  </data>
+  <data name="BaseRun" xml:space="preserve">
+    <value>Base/Run</value>
+    <comment>Text in ProductionCalculatorView.</comment>
+  </data>
+  <data name="EffRun" xml:space="preserve">
+    <value>Eff/Run</value>
+    <comment>Text in ProductionCalculatorView.</comment>
+  </data>
+  <data name="Total" xml:space="preserve">
+    <value>Total</value>
+    <comment>Text in ProductionCalculatorView.</comment>
+  </data>
+  <data name="Missing" xml:space="preserve">
+    <value>Missing</value>
+    <comment>Text in ProductionCalculatorView.</comment>
+  </data>
+  <data name="TipShortfallAgainstStockAt" xml:space="preserve">
+    <value>Shortfall against stock at this job's linked facility. Em dash means the park structure has no facility linked.</value>
+    <comment>Tooltip in ProductionCalculatorView.</comment>
+  </data>
+  <data name="Source" xml:space="preserve">
+    <value>Source</value>
+    <comment>Text in ProductionCalculatorView.</comment>
+  </data>
+  <data name="FormulaSdeBaseResult" xml:space="preserve">
+    <value>Formula (SDE base → result)</value>
+    <comment>Text in ProductionCalculatorView.</comment>
+  </data>
+  <data name="FmtRequested" xml:space="preserve">
+    <value>Requested: {0:N0}</value>
+    <comment>Formatted text ({0} is filled in) in ProductionCalculatorView.</comment>
+  </data>
+  <data name="FmtProduced" xml:space="preserve">
+    <value>Produced: {0:N0}</value>
+    <comment>Formatted text ({0} is filled in) in ProductionCalculatorView.</comment>
+  </data>
+  <data name="FmtMatIsk" xml:space="preserve">
+    <value>Mat: {0:N0} ISK</value>
+    <comment>Formatted text ({0} is filled in) in ProductionCalculatorView.</comment>
+  </data>
+  <data name="FmtJobsIsk" xml:space="preserve">
+    <value>Jobs: {0:N0} ISK</value>
+    <comment>Formatted text ({0} is filled in) in ProductionCalculatorView.</comment>
+  </data>
+  <data name="FmtUnitCostIsk" xml:space="preserve">
+    <value>Unit cost: {0:N2} ISK</value>
+    <comment>Formatted text ({0} is filled in) in ProductionCalculatorView.</comment>
+  </data>
+  <data name="FmtMarketUnit" xml:space="preserve">
+    <value>Market: {0:N2}/unit</value>
+    <comment>Formatted text ({0} is filled in) in ProductionCalculatorView.</comment>
+  </data>
+  <data name="FmtProfitIsk" xml:space="preserve">
+    <value>Profit: {0:N0} ISK</value>
+    <comment>Formatted text ({0} is filled in) in ProductionCalculatorView.</comment>
+  </data>
+  <data name="FmtMargin" xml:space="preserve">
+    <value>Margin: {0:F1}%</value>
+    <comment>Formatted text ({0} is filled in) in ProductionCalculatorView.</comment>
+  </data>
+  <data name="FmtItemsToPurchaseDouble" xml:space="preserve">
+    <value>{0} items to purchase — double-click row to open in Item Browser</value>
+    <comment>Formatted text ({0} is filled in) in ProductionCalculatorView.</comment>
+  </data>
+  <data name="FmtLeftoverItemsValuedAt" xml:space="preserve">
+    <value>{0} leftover items valued at build cost — double-click to open in Item Browser</value>
+    <comment>Formatted text ({0} is filled in) in ProductionCalculatorView.</comment>
+  </data>
+  <data name="FmtRuns" xml:space="preserve">
+    <value>Runs: {0}</value>
+    <comment>Formatted text ({0} is filled in) in ProductionCalculatorView.</comment>
+  </data>
+  <data name="FmtOut" xml:space="preserve">
+    <value>Out: {0:N0}</value>
+    <comment>Formatted text ({0} is filled in) in ProductionCalculatorView.</comment>
+  </data>
+  <data name="FmtLeftover" xml:space="preserve">
+    <value>Leftover: {0:N0}</value>
+    <comment>Formatted text ({0} is filled in) in ProductionCalculatorView.</comment>
+  </data>
+  <data name="FmtInM" xml:space="preserve">
+    <value>In: {0:N0} m³</value>
+    <comment>Formatted text ({0} is filled in) in ProductionCalculatorView.</comment>
+  </data>
+  <data name="FmtOutM" xml:space="preserve">
+    <value>Out: {0:N0} m³</value>
+    <comment>Formatted text ({0} is filled in) in ProductionCalculatorView.</comment>
+  </data>
+  <data name="FmtJobIsk" xml:space="preserve">
+    <value>Job: {0:N0} ISK</value>
+    <comment>Formatted text ({0} is filled in) in ProductionCalculatorView.</comment>
+  </data>
+  <data name="TitleProductionCalculator" xml:space="preserve">
+    <value>Production Calculator</value>
+    <comment>Window title in ProductionCalculatorWindow.</comment>
+  </data>
+</root>

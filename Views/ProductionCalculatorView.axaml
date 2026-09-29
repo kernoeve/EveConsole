@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="using:EveConsole.ViewModels"
              xmlns:views="using:EveConsole.Views"
              xmlns:models="using:EveConsole.Models"
@@ -38,18 +39,18 @@
     <Border Grid.Column="0" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="0 0 1 0" Padding="12">
       <DockPanel>
 
-        <TextBlock DockPanel.Dock="Top" Text="Production Queue"
+        <TextBlock DockPanel.Dock="Top" Text="{x:Static loc:IndustryText.ProductionQueue}"
                    FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource AccentBrush}" Margin="0 0 0 10"/>
 
         <StackPanel DockPanel.Dock="Top" Spacing="4" Margin="0 0 0 8">
-          <TextBlock Text="Indy Park" FontSize="11" Foreground="{DynamicResource TextDimBrush}"/>
+          <TextBlock Text="{x:Static loc:IndustryText.IndyPark}" FontSize="11" Foreground="{DynamicResource TextDimBrush}"/>
           <ComboBox ItemsSource="{Binding Parks}" SelectedItem="{Binding SelectedPark}"
                     HorizontalAlignment="Stretch"/>
         </StackPanel>
 
         <StackPanel DockPanel.Dock="Top" Spacing="0" Margin="0 0 0 4">
-          <TextBlock Text="Add Item" FontSize="11" Foreground="{DynamicResource TextDimBrush}" Margin="0 0 0 4"/>
-          <TextBox Text="{Binding SearchText}" Watermark="Type to search items..."
+          <TextBlock Text="{x:Static loc:IndustryText.AddItem}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" Margin="0 0 0 4"/>
+          <TextBox Text="{Binding SearchText}" Watermark="{x:Static loc:IndustryText.HintTypeToSearchItems}"
                    HorizontalAlignment="Stretch"/>
           <Border IsVisible="{Binding ShowResults}"
                   Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
@@ -68,18 +69,18 @@
 
         <Grid DockPanel.Dock="Top" ColumnDefinitions="*,8,*" Margin="0 4 0 6">
           <StackPanel Grid.Column="0" Spacing="3">
-            <TextBlock Text="Quantity" FontSize="11" Foreground="{DynamicResource TextDimBrush}"/>
+            <TextBlock Text="{x:Static loc:IndustryText.Quantity}" FontSize="11" Foreground="{DynamicResource TextDimBrush}"/>
             <NumericUpDown Value="{Binding NewQuantity}" Minimum="1" Maximum="9999999"
                            FormatString="N0" HorizontalAlignment="Stretch"/>
           </StackPanel>
           <StackPanel Grid.Column="2" Spacing="3">
-            <TextBlock Text="ME Level" FontSize="11" Foreground="{DynamicResource TextDimBrush}"/>
+            <TextBlock Text="{x:Static loc:IndustryText.MeLevel}" FontSize="11" Foreground="{DynamicResource TextDimBrush}"/>
             <NumericUpDown Value="{Binding NewMeLevel}" Minimum="0" Maximum="10"
                            Increment="1" FormatString="0" HorizontalAlignment="Stretch"/>
           </StackPanel>
         </Grid>
 
-        <Button DockPanel.Dock="Top" Content="Add to Queue"
+        <Button DockPanel.Dock="Top" Content="{x:Static loc:IndustryText.AddToQueue}"
                 Command="{Binding AddToQueueCommand}"
                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
                 Margin="0 0 0 10" Padding="0 6"/>
@@ -87,11 +88,11 @@
         <Separator DockPanel.Dock="Top" Margin="0 2 0 8" Background="{DynamicResource BorderDefaultBrush}"/>
 
         <StackPanel DockPanel.Dock="Bottom" Spacing="6" Margin="0 8 0 0">
-          <CheckBox IsChecked="{Binding IncludeBpcCost}" Content="Include final BPC cost"
+          <CheckBox IsChecked="{Binding IncludeBpcCost}" Content="{x:Static loc:IndustryText.IncludeFinalBpcCost}"
                     Foreground="{DynamicResource TextPrimaryBrush}" FontSize="11"
-                    ToolTip.Tip="Add the final product's blueprint copy (contract price) as an input. Always included for faction / BPC-only items; optional for standard BPO items." />
+                    ToolTip.Tip="{x:Static loc:IndustryText.TipAddTheFinalProducts}" />
           <Separator Background="{DynamicResource BorderDefaultBrush}"/>
-          <Button Content="Calculate" Command="{Binding CalculateCommand}"
+          <Button Content="{x:Static loc:IndustryText.Calculate}" Command="{Binding CalculateCommand}"
                   HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
                   Padding="0 8" FontSize="13" FontWeight="SemiBold"/>
           <ProgressBar IsIndeterminate="True" Height="3" IsVisible="{Binding IsBusy}"/>
@@ -113,7 +114,7 @@
                               Background="Transparent" BorderThickness="0" Padding="0"
                               FontSize="12" Foreground="{DynamicResource AccentBrush}" Cursor="Hand"
                               HorizontalContentAlignment="Left"
-                              ToolTip.Tip="Open in Item Browser"/>
+                              ToolTip.Tip="{x:Static loc:IndustryText.TipOpenInItemBrowser}"/>
                       <StackPanel Orientation="Horizontal" Spacing="6">
                         <TextBlock Text="{Binding QtyDisplay}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
                         <TextBlock Text="{Binding MeBadge}"    FontSize="11" Foreground="{DynamicResource AccentBrush}"/>
@@ -136,14 +137,14 @@
     <!-- ══ Right: Results ═════════════════════════════════════════════════ -->
     <Grid Grid.Column="2">
       <TextBlock IsVisible="{Binding !HasResults}"
-                 Text="Add items to the queue and click Calculate to see results."
+                 Text="{x:Static loc:IndustryText.AddItemsToTheNote}"
                  HorizontalAlignment="Center" VerticalAlignment="Center"
                  Foreground="{DynamicResource TextFaintBrush}" FontSize="14"/>
 
       <TabControl IsVisible="{Binding HasResults}" Padding="0">
 
         <!-- ── Summary ────────────────────────────────────────────────────── -->
-        <TabItem Header="Summary">
+        <TabItem Header="{x:Static loc:IndustryText.TabSummary}">
           <ScrollViewer Padding="16">
             <StackPanel Spacing="12" Margin="0 0 0 16">
 
@@ -156,7 +157,7 @@
                 <StackPanel Spacing="4">
                   <TextBlock Text="{Binding PlanWarningHeader}"
                              Foreground="{DynamicResource WarnBrush}" FontSize="12" FontWeight="SemiBold"/>
-                  <TextBlock Text="Planned in the park's default facility with no rig bonus, so these costs may be overstated."
+                  <TextBlock Text="{x:Static loc:IndustryText.PlannedInTheParksNote}"
                              Foreground="{DynamicResource WarnBrush}" FontSize="11" TextWrapping="Wrap"/>
                   <ItemsControl ItemsSource="{Binding Plan.Warnings}" Margin="0 2 0 0">
                     <ItemsControl.ItemTemplate>
@@ -178,7 +179,7 @@
                 <StackPanel Spacing="4">
                   <TextBlock Text="{Binding PricingWarningHeader}"
                              Foreground="{DynamicResource WarnBrush}" FontSize="12" FontWeight="SemiBold"/>
-                  <TextBlock Text="Blueprint copies trade only by contract, so a quiet month leaves no current price. The most recent one on record is used; where there is none the blueprint counts as 0 ISK and the build cost is understated by that much."
+                  <TextBlock Text="{x:Static loc:IndustryText.BlueprintCopiesTradeOnlyNote}"
                              Foreground="{DynamicResource WarnBrush}" FontSize="11" TextWrapping="Wrap"/>
                   <ItemsControl ItemsSource="{Binding Plan.PricingWarnings}" Margin="0 2 0 0">
                     <ItemsControl.ItemTemplate>
@@ -191,29 +192,29 @@
                 </StackPanel>
               </Border>
 
-              <TextBlock Text="Cost Summary" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" FontSize="13"/>
+              <TextBlock Text="{x:Static loc:IndustryText.CostSummary}" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" FontSize="13"/>
               <Grid ColumnDefinitions="200,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="Raw Materials:"  Foreground="{DynamicResource TextMutedBrush}" FontSize="12"/>
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static loc:IndustryText.RawMaterialsLabel}"  Foreground="{DynamicResource TextMutedBrush}" FontSize="12"/>
                 <TextBlock Grid.Row="0" Grid.Column="1" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12"
                            Text="{Binding Plan.TotalRawMaterialCost, StringFormat='{}{0:N0} ISK'}"/>
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="Job Costs:"      Foreground="{DynamicResource TextMutedBrush}" FontSize="12"/>
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="{x:Static loc:IndustryText.JobCostsLabel}"      Foreground="{DynamicResource TextMutedBrush}" FontSize="12"/>
                 <TextBlock Grid.Row="1" Grid.Column="1" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12"
                            Text="{Binding Plan.TotalJobCost, StringFormat='{}{0:N0} ISK'}"/>
-                <TextBlock Grid.Row="2" Grid.Column="0" Text="Leftover Value:" Foreground="{DynamicResource TextMutedBrush}" FontSize="12"/>
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="{x:Static loc:IndustryText.LeftoverValueLabel}" Foreground="{DynamicResource TextMutedBrush}" FontSize="12"/>
                 <TextBlock Grid.Row="2" Grid.Column="1" Foreground="{DynamicResource GoodBrush}" FontSize="12"
                            Text="{Binding Plan.TotalLeftoverValue, StringFormat='{}{0:N0} ISK'}"/>
                 <Separator Grid.Row="3" Grid.ColumnSpan="2" Margin="0 4" Background="{DynamicResource BorderDefaultBrush}"/>
-                <TextBlock Grid.Row="4" Grid.Column="0" Text="Net Cost:" Foreground="{DynamicResource AccentBrush}" FontWeight="SemiBold" FontSize="13"/>
+                <TextBlock Grid.Row="4" Grid.Column="0" Text="{x:Static loc:IndustryText.NetCostLabel}" Foreground="{DynamicResource AccentBrush}" FontWeight="SemiBold" FontSize="13"/>
                 <TextBlock Grid.Row="4" Grid.Column="1" Foreground="{DynamicResource AccentBrush}" FontWeight="SemiBold" FontSize="13"
                            Text="{Binding Plan.NetCost, StringFormat='{}{0:N0} ISK'}"/>
 
-                <TextBlock Grid.Row="5" Grid.Column="0" Text="Raw Material Volume:" Foreground="{DynamicResource TextMutedBrush}" FontSize="12" Margin="0 8 0 0"/>
+                <TextBlock Grid.Row="5" Grid.Column="0" Text="{x:Static loc:IndustryText.RawMaterialVolumeLabel}" Foreground="{DynamicResource TextMutedBrush}" FontSize="12" Margin="0 8 0 0"/>
                 <TextBlock Grid.Row="5" Grid.Column="1" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" Margin="0 8 0 0"
-                           ToolTip.Tip="Packed volume of the shopping list. Intermediates are excluded — they are built on site rather than hauled in."
+                           ToolTip.Tip="{x:Static loc:IndustryText.TipPackedVolumeOfThe}"
                            Text="{Binding Plan.TotalRawMaterialVolume, StringFormat='{}{0:N0} m³'}"/>
               </Grid>
 
-              <TextBlock Text="Final Products" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" FontSize="13" Margin="0 8 0 0"/>
+              <TextBlock Text="{x:Static loc:IndustryText.FinalProducts}" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" FontSize="13" Margin="0 8 0 0"/>
               <!-- No x:DataType — reflection binding needed for parent navigate command -->
               <ItemsControl ItemsSource="{Binding Plan.FinalProducts}">
                 <ItemsControl.ItemTemplate>
@@ -229,23 +230,23 @@
                                     Background="Transparent" BorderThickness="0"
                                     Padding="0" FontSize="13" FontWeight="SemiBold"
                                     Foreground="{DynamicResource AccentBrush}" Cursor="Hand"
-                                    ToolTip.Tip="Open in Item Browser"/>
+                                    ToolTip.Tip="{x:Static loc:IndustryText.TipOpenInItemBrowser}"/>
                             <TextBlock Text="{Binding MeLevel, StringFormat='ME{0}'}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
                           </StackPanel>
                           <StackPanel Orientation="Horizontal" Spacing="12">
-                            <TextBlock Text="{Binding QuantityRequested, StringFormat='Requested: {0:N0}'}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
-                            <TextBlock Text="{Binding QuantityProduced,  StringFormat='Produced: {0:N0}'}"  FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
+                            <TextBlock Text="{Binding QuantityRequested, StringFormat={x:Static loc:IndustryText.FmtRequested}}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
+                            <TextBlock Text="{Binding QuantityProduced,  StringFormat={x:Static loc:IndustryText.FmtProduced}}"  FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
                           </StackPanel>
                           <StackPanel Orientation="Horizontal" Spacing="12">
-                            <TextBlock Text="{Binding TotalMaterialCost, StringFormat='Mat: {0:N0} ISK'}"   FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                            <TextBlock Text="{Binding TotalJobCost,      StringFormat='Jobs: {0:N0} ISK'}"  FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                            <TextBlock Text="{Binding UnitCost,          StringFormat='Unit cost: {0:N2} ISK'}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <TextBlock Text="{Binding TotalMaterialCost, StringFormat={x:Static loc:IndustryText.FmtMatIsk}}"   FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            <TextBlock Text="{Binding TotalJobCost,      StringFormat={x:Static loc:IndustryText.FmtJobsIsk}}"  FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            <TextBlock Text="{Binding UnitCost,          StringFormat={x:Static loc:IndustryText.FmtUnitCostIsk}}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"/>
                           </StackPanel>
                           <StackPanel Orientation="Horizontal" Spacing="12">
-                            <TextBlock Text="{Binding MarketUnitPrice,  StringFormat='Market: {0:N2}/unit'}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
-                            <TextBlock Text="{Binding Profit,           StringFormat='Profit: {0:N0} ISK'}"  FontSize="11"
+                            <TextBlock Text="{Binding MarketUnitPrice,  StringFormat={x:Static loc:IndustryText.FmtMarketUnit}}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
+                            <TextBlock Text="{Binding Profit,           StringFormat={x:Static loc:IndustryText.FmtProfitIsk}}"  FontSize="11"
                                        Foreground="{Binding Profit, Converter={x:Static views:ProfitColorConverter.Instance}}"/>
-                            <TextBlock Text="{Binding ProfitMargin,     StringFormat='Margin: {0:F1}%'}"     FontSize="11"
+                            <TextBlock Text="{Binding ProfitMargin,     StringFormat={x:Static loc:IndustryText.FmtMargin}}"     FontSize="11"
                                        Foreground="{Binding Profit, Converter={x:Static views:ProfitColorConverter.Instance}}"/>
                           </StackPanel>
                         </StackPanel>
@@ -254,7 +255,7 @@
                                      FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Right"/>
                           <TextBlock Text="{Binding MarketTotalValue, StringFormat='{}{0:N0} ISK'}"
                                      FontSize="12" Foreground="{DynamicResource GoodBrush}" HorizontalAlignment="Right"/>
-                          <TextBlock Text="build / market" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" HorizontalAlignment="Right"/>
+                          <TextBlock Text="{x:Static loc:IndustryText.BuildMarket}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" HorizontalAlignment="Right"/>
                         </StackPanel>
                       </Grid>
                     </Border>
@@ -266,34 +267,34 @@
         </TabItem>
 
         <!-- ── Raw Materials ──────────────────────────────────────────────── -->
-        <TabItem Header="Raw Materials">
+        <TabItem Header="{x:Static loc:IndustryText.TabRawMaterials}">
           <Grid RowDefinitions="Auto,*" Margin="8">
             <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 4">
               <TextBlock Grid.Column="0" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center"
-                         Text="{Binding Plan.RawMaterials.Count, StringFormat='{}{0} items to purchase — double-click row to open in Item Browser'}"/>
+                         Text="{Binding Plan.RawMaterials.Count, StringFormat={x:Static loc:IndustryText.FmtItemsToPurchaseDouble}}"/>
               <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
                 <!-- Station vs assets changes what Missing means, so the choice sits beside
                      the column it governs rather than in settings. It is remembered. -->
-                <TextBlock Text="Missing vs:" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center"/>
-                <RadioButton Content="Station" GroupName="MissingMode" FontSize="11" VerticalAlignment="Center"
+                <TextBlock Text="{x:Static loc:IndustryText.MissingVsLabel}" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center"/>
+                <RadioButton Content="{x:Static loc:IndustryText.Station}" GroupName="MissingMode" FontSize="11" VerticalAlignment="Center"
                              IsChecked="{Binding RawMissingByStation}"
-                             ToolTip.Tip="Compare against stock at each job's linked facility, summing the demand of every job sharing that structure"/>
-                <RadioButton Content="All assets" GroupName="MissingMode" FontSize="11" VerticalAlignment="Center"
+                             ToolTip.Tip="{x:Static loc:IndustryText.TipCompareAgainstStockAt}"/>
+                <RadioButton Content="{x:Static loc:IndustryText.AllAssets}" GroupName="MissingMode" FontSize="11" VerticalAlignment="Center"
                              IsChecked="{Binding !RawMissingByStation}"
-                             ToolTip.Tip="Compare against everything you own, wherever it sits"/>
-                <Button Content="Shopping List" Click="OnShoppingListClick"
+                             ToolTip.Tip="{x:Static loc:IndustryText.TipCompareAgainstEverythingYou}"/>
+                <Button Content="{x:Static loc:IndustryText.ShoppingList}" Click="OnShoppingListClick"
                         Padding="8 3" FontSize="11"
-                        ToolTip.Tip="Copy item name and quantity (tab-separated) to clipboard"/>
-                <Button Content="Shopping List (Missing)" Click="OnShoppingListMissingClick"
+                        ToolTip.Tip="{x:Static loc:IndustryText.TipCopyItemNameAnd}"/>
+                <Button Content="{x:Static loc:IndustryText.ShoppingListMissing}" Click="OnShoppingListMissingClick"
                         Padding="8 3" FontSize="11"
-                        ToolTip.Tip="Copy only the items short of the plan's needs, at the quantity short"/>
-                <DropDownButton Content="Export" Padding="8 3" FontSize="11"
-                                ToolTip.Tip="Export all columns to clipboard or file">
+                        ToolTip.Tip="{x:Static loc:IndustryText.TipCopyOnlyTheItems}"/>
+                <DropDownButton Content="{x:Static loc:IndustryText.Export}" Padding="8 3" FontSize="11"
+                                ToolTip.Tip="{x:Static loc:IndustryText.TipExportAllColumnsTo}">
                   <DropDownButton.Flyout>
                     <MenuFlyout>
-                      <MenuItem Header="Copy to Clipboard" Click="OnExportClipboardClick"/>
-                      <MenuItem Header="Export as CSV"     Click="OnExportCsvClick"/>
-                      <MenuItem Header="Tab-delimited"     Click="OnExportTabClick"/>
+                      <MenuItem Header="{x:Static loc:IndustryText.MenuCopyToClipboard}" Click="OnExportClipboardClick"/>
+                      <MenuItem Header="{x:Static loc:IndustryText.MenuExportAsCsv}"     Click="OnExportCsvClick"/>
+                      <MenuItem Header="{x:Static loc:IndustryText.MenuTabDelimited}"     Click="OnExportTabClick"/>
                     </MenuFlyout>
                   </DropDownButton.Flyout>
                 </DropDownButton>
@@ -305,12 +306,12 @@
                       Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
                       DoubleTapped="OnDataGridDoubleTapped">
               <DataGrid.Columns>
-                <DataGridTemplateColumn Header="Material" SortMemberPath="TypeName" Width="*" ClipboardContentBinding="{Binding TypeName}">
+                <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColMaterial}" SortMemberPath="TypeName" Width="*" ClipboardContentBinding="{Binding TypeName}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanRawMaterial">
                       <Panel>
                         <Button Classes="link" Click="OnOpenPlanItem" IsVisible="{Binding HasItemLink}"
-                                ToolTip.Tip="Open in the Item Browser">
+                                ToolTip.Tip="{x:Static loc:IndustryText.TipOpenInTheItemBrowser}">
                           <TextBlock Text="{Binding TypeName}" Classes="linktext" FontSize="10"
                                      VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                         </Button>
@@ -320,7 +321,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Quantity" Width="90" SortMemberPath="Quantity" ClipboardContentBinding="{Binding Quantity, StringFormat=N0}">
+                <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColQuantity}" Width="90" SortMemberPath="Quantity" ClipboardContentBinding="{Binding Quantity, StringFormat=N0}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanRawMaterial">
                       <TextBlock Text="{Binding Quantity, StringFormat=N0}" FontSize="10"
@@ -328,7 +329,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Missing" Width="90" SortMemberPath="Missing" ClipboardContentBinding="{Binding MissingDisplay}">
+                <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColMissing}" Width="90" SortMemberPath="Missing" ClipboardContentBinding="{Binding MissingDisplay}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanRawMaterial">
                       <TextBlock Text="{Binding MissingDisplay}" FontSize="10"
@@ -337,7 +338,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Unit Price" Width="100" SortMemberPath="UnitPrice" ClipboardContentBinding="{Binding UnitPrice, StringFormat=N2}">
+                <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColUnitPrice}" Width="100" SortMemberPath="UnitPrice" ClipboardContentBinding="{Binding UnitPrice, StringFormat=N2}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanRawMaterial">
                       <TextBlock Text="{Binding UnitPrice, StringFormat=N2}" FontSize="10"
@@ -345,7 +346,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Total Cost" Width="110" SortMemberPath="TotalCost" ClipboardContentBinding="{Binding TotalCost, StringFormat=N0}">
+                <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColTotalCost}" Width="110" SortMemberPath="TotalCost" ClipboardContentBinding="{Binding TotalCost, StringFormat=N0}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanRawMaterial">
                       <TextBlock Text="{Binding TotalCost, StringFormat=N0}" FontSize="10"
@@ -358,22 +359,22 @@
           </Grid>
         </TabItem>
         <!-- ── Intermediates ──────────────────────────────────────────────── -->
-        <TabItem Header="Intermediates">
+        <TabItem Header="{x:Static loc:IndustryText.TabIntermediates}">
           <Grid RowDefinitions="Auto,*" Margin="8">
             <TextBlock Grid.Row="0" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" Margin="0 0 0 4"
-                       Text="Double-click row to open in Item Browser"/>
+                       Text="{x:Static loc:IndustryText.DoubleClickRowToNote}"/>
             <DataGrid Grid.Row="1" x:Name="IntermediatesGrid"
                       ItemsSource="{Binding Plan.Intermediates}"
                       IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
                       Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
                       DoubleTapped="OnDataGridDoubleTapped">
               <DataGrid.Columns>
-                <DataGridTemplateColumn Header="Item" SortMemberPath="TypeName" Width="*" ClipboardContentBinding="{Binding TypeName}">
+                <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColItem}" SortMemberPath="TypeName" Width="*" ClipboardContentBinding="{Binding TypeName}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanIntermediate">
                       <Panel>
                         <Button Classes="link" Click="OnOpenPlanItem" IsVisible="{Binding HasItemLink}"
-                                ToolTip.Tip="Open in the Item Browser">
+                                ToolTip.Tip="{x:Static loc:IndustryText.TipOpenInTheItemBrowser}">
                           <TextBlock Text="{Binding TypeName}" Classes="linktext" FontSize="10"
                                      VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                         </Button>
@@ -383,7 +384,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Needed" Width="80" SortMemberPath="QuantityNeeded" ClipboardContentBinding="{Binding QuantityNeeded, StringFormat=N0}">
+                <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColNeeded}" Width="80" SortMemberPath="QuantityNeeded" ClipboardContentBinding="{Binding QuantityNeeded, StringFormat=N0}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanIntermediate">
                       <TextBlock Text="{Binding QuantityNeeded, StringFormat=N0}" FontSize="10"
@@ -391,7 +392,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Produced" Width="80" SortMemberPath="QuantityProduced" ClipboardContentBinding="{Binding QuantityProduced, StringFormat=N0}">
+                <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColProduced}" Width="80" SortMemberPath="QuantityProduced" ClipboardContentBinding="{Binding QuantityProduced, StringFormat=N0}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanIntermediate">
                       <TextBlock Text="{Binding QuantityProduced, StringFormat=N0}" FontSize="10"
@@ -399,7 +400,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Leftover" Width="80" SortMemberPath="Leftover" ClipboardContentBinding="{Binding Leftover, StringFormat=N0}">
+                <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColLeftover}" Width="80" SortMemberPath="Leftover" ClipboardContentBinding="{Binding Leftover, StringFormat=N0}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanIntermediate">
                       <TextBlock Text="{Binding Leftover, StringFormat=N0}" FontSize="10"
@@ -407,7 +408,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Build Value" Width="90" SortMemberPath="MarketUnitPrice" ClipboardContentBinding="{Binding MarketUnitPrice, StringFormat=N2}">
+                <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColBuildValue}" Width="90" SortMemberPath="MarketUnitPrice" ClipboardContentBinding="{Binding MarketUnitPrice, StringFormat=N2}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanIntermediate">
                       <TextBlock Text="{Binding MarketUnitPrice, StringFormat=N2}" FontSize="10"
@@ -415,7 +416,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Leftover Value" Width="110" SortMemberPath="LeftoverValue" ClipboardContentBinding="{Binding LeftoverValue, StringFormat=N0}">
+                <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColLeftoverValue}" Width="110" SortMemberPath="LeftoverValue" ClipboardContentBinding="{Binding LeftoverValue, StringFormat=N0}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanIntermediate">
                       <TextBlock Text="{Binding LeftoverValue, StringFormat=N0}" FontSize="10"
@@ -429,22 +430,22 @@
         </TabItem>
 
         <!-- ── Leftovers ──────────────────────────────────────────────────── -->
-        <TabItem Header="Leftovers">
+        <TabItem Header="{x:Static loc:IndustryText.TabLeftovers}">
           <Grid RowDefinitions="Auto,*" Margin="8">
             <TextBlock Grid.Row="0" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" Margin="0 0 0 4"
-                       Text="{Binding Plan.Leftovers.Count, StringFormat='{}{0} leftover items valued at build cost — double-click to open in Item Browser'}"/>
+                       Text="{Binding Plan.Leftovers.Count, StringFormat={x:Static loc:IndustryText.FmtLeftoverItemsValuedAt}}"/>
             <DataGrid Grid.Row="1" x:Name="LeftoversGrid"
                       ItemsSource="{Binding Plan.Leftovers}"
                       IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
                       Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
                       DoubleTapped="OnDataGridDoubleTapped">
               <DataGrid.Columns>
-                <DataGridTemplateColumn Header="Item" SortMemberPath="TypeName" Width="*" ClipboardContentBinding="{Binding TypeName}">
+                <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColItem}" SortMemberPath="TypeName" Width="*" ClipboardContentBinding="{Binding TypeName}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanLeftoverItem">
                       <Panel>
                         <Button Classes="link" Click="OnOpenPlanItem" IsVisible="{Binding HasItemLink}"
-                                ToolTip.Tip="Open in the Item Browser">
+                                ToolTip.Tip="{x:Static loc:IndustryText.TipOpenInTheItemBrowser}">
                           <TextBlock Text="{Binding TypeName}" Classes="linktext" FontSize="10"
                                      VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                         </Button>
@@ -454,8 +455,8 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTextColumn Header="Source" Binding="{Binding Source}"   Width="110"/>
-                <DataGridTemplateColumn Header="Quantity" Width="80" SortMemberPath="Quantity" ClipboardContentBinding="{Binding Quantity, StringFormat=N0}">
+                <DataGridTextColumn Header="{x:Static loc:IndustryText.ColSource}" Binding="{Binding Source}"   Width="110"/>
+                <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColQuantity}" Width="80" SortMemberPath="Quantity" ClipboardContentBinding="{Binding Quantity, StringFormat=N0}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanLeftoverItem">
                       <TextBlock Text="{Binding Quantity, StringFormat=N0}" FontSize="10"
@@ -463,7 +464,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Build Value" Width="100" SortMemberPath="UnitPrice" ClipboardContentBinding="{Binding UnitPrice, StringFormat=N2}">
+                <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColBuildValue}" Width="100" SortMemberPath="UnitPrice" ClipboardContentBinding="{Binding UnitPrice, StringFormat=N2}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanLeftoverItem">
                       <TextBlock Text="{Binding UnitPrice, StringFormat=N2}" FontSize="10"
@@ -471,7 +472,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Total Value" Width="100" SortMemberPath="TotalValue" ClipboardContentBinding="{Binding TotalValue, StringFormat=N0}">
+                <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColTotalValue}" Width="100" SortMemberPath="TotalValue" ClipboardContentBinding="{Binding TotalValue, StringFormat=N0}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanLeftoverItem">
                       <TextBlock Text="{Binding TotalValue, StringFormat=N0}" FontSize="10"
@@ -486,22 +487,22 @@
 
 
         <!-- ── Final Products ─────────────────────────────────────────────── -->
-        <TabItem Header="Final Products">
+        <TabItem Header="{x:Static loc:IndustryText.TabFinalProducts}">
           <Grid RowDefinitions="Auto,*" Margin="8">
             <TextBlock Grid.Row="0" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" Margin="0 0 0 4"
-                       Text="Double-click row to open in Item Browser"/>
+                       Text="{x:Static loc:IndustryText.DoubleClickRowToNote}"/>
             <DataGrid Grid.Row="1" x:Name="FinalProductsGrid"
                       ItemsSource="{Binding Plan.FinalProducts}"
                       IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
                       Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
                       DoubleTapped="OnDataGridDoubleTapped">
               <DataGrid.Columns>
-                <DataGridTemplateColumn Header="Item" SortMemberPath="TypeName" Width="*" ClipboardContentBinding="{Binding TypeName}">
+                <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColItem}" SortMemberPath="TypeName" Width="*" ClipboardContentBinding="{Binding TypeName}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanFinalProduct">
                       <Panel>
                         <Button Classes="link" Click="OnOpenPlanItem" IsVisible="{Binding HasItemLink}"
-                                ToolTip.Tip="Open in the Item Browser">
+                                ToolTip.Tip="{x:Static loc:IndustryText.TipOpenInTheItemBrowser}">
                           <TextBlock Text="{Binding TypeName}" Classes="linktext" FontSize="10"
                                      VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                         </Button>
@@ -511,7 +512,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Req" Width="70" SortMemberPath="QuantityRequested" ClipboardContentBinding="{Binding QuantityRequested, StringFormat=N0}">
+                <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColReq}" Width="70" SortMemberPath="QuantityRequested" ClipboardContentBinding="{Binding QuantityRequested, StringFormat=N0}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanFinalProduct">
                       <TextBlock Text="{Binding QuantityRequested, StringFormat=N0}" FontSize="10"
@@ -519,7 +520,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Produced" Width="70" SortMemberPath="QuantityProduced" ClipboardContentBinding="{Binding QuantityProduced, StringFormat=N0}">
+                <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColProduced}" Width="70" SortMemberPath="QuantityProduced" ClipboardContentBinding="{Binding QuantityProduced, StringFormat=N0}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanFinalProduct">
                       <TextBlock Text="{Binding QuantityProduced, StringFormat=N0}" FontSize="10"
@@ -535,7 +536,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Mat Cost" Width="100" SortMemberPath="TotalMaterialCost" ClipboardContentBinding="{Binding TotalMaterialCost, StringFormat=N0}">
+                <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColMatCost}" Width="100" SortMemberPath="TotalMaterialCost" ClipboardContentBinding="{Binding TotalMaterialCost, StringFormat=N0}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanFinalProduct">
                       <TextBlock Text="{Binding TotalMaterialCost, StringFormat=N0}" FontSize="10"
@@ -543,7 +544,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Job Cost" Width="90" SortMemberPath="TotalJobCost" ClipboardContentBinding="{Binding TotalJobCost, StringFormat=N0}">
+                <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColJobCost}" Width="90" SortMemberPath="TotalJobCost" ClipboardContentBinding="{Binding TotalJobCost, StringFormat=N0}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanFinalProduct">
                       <TextBlock Text="{Binding TotalJobCost, StringFormat=N0}" FontSize="10"
@@ -551,7 +552,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Unit Cost" Width="100" SortMemberPath="UnitCost" ClipboardContentBinding="{Binding UnitCost, StringFormat=N2}">
+                <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColUnitCost}" Width="100" SortMemberPath="UnitCost" ClipboardContentBinding="{Binding UnitCost, StringFormat=N2}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanFinalProduct">
                       <TextBlock Text="{Binding UnitCost, StringFormat=N2}" FontSize="10"
@@ -559,7 +560,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Total Cost" Width="100" SortMemberPath="TotalCost" ClipboardContentBinding="{Binding TotalCost, StringFormat=N0}">
+                <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColTotalCost}" Width="100" SortMemberPath="TotalCost" ClipboardContentBinding="{Binding TotalCost, StringFormat=N0}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanFinalProduct">
                       <TextBlock Text="{Binding TotalCost, StringFormat=N0}" FontSize="10"
@@ -567,7 +568,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Market/Unit" Width="100" SortMemberPath="MarketUnitPrice" ClipboardContentBinding="{Binding MarketUnitPrice, StringFormat=N2}">
+                <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColMarketUnit}" Width="100" SortMemberPath="MarketUnitPrice" ClipboardContentBinding="{Binding MarketUnitPrice, StringFormat=N2}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanFinalProduct">
                       <TextBlock Text="{Binding MarketUnitPrice, StringFormat=N2}" FontSize="10"
@@ -575,7 +576,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Profit" Width="90" SortMemberPath="Profit" ClipboardContentBinding="{Binding Profit, StringFormat=N0}">
+                <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColProfit}" Width="90" SortMemberPath="Profit" ClipboardContentBinding="{Binding Profit, StringFormat=N0}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanFinalProduct">
                       <TextBlock Text="{Binding Profit, StringFormat=N0}" FontSize="10"
@@ -583,7 +584,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Margin" Width="70" SortMemberPath="ProfitMargin" ClipboardContentBinding="{Binding ProfitMargin, StringFormat='{}{0:F1}%'}">
+                <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColMargin}" Width="70" SortMemberPath="ProfitMargin" ClipboardContentBinding="{Binding ProfitMargin, StringFormat='{}{0:F1}%'}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanFinalProduct">
                       <TextBlock Text="{Binding ProfitMargin, StringFormat='{}{0:F1}%'}" FontSize="10"
@@ -597,7 +598,7 @@
         </TabItem>
 
         <!-- ── Jobs (Tree) ────────────────────────────────────────────────── -->
-        <TabItem Header="Jobs">
+        <TabItem Header="{x:Static loc:IndustryText.TabJobs}">
           <!-- ⚠️ No ScrollViewer around this. A TreeView scrolls itself, and nesting it in
                another scroller gives it unbounded height to measure against, so the extent
                stops short and the last job sits under the status bar with nothing left to
@@ -618,21 +619,21 @@
                                     Padding="0" FontSize="12" FontWeight="SemiBold"
                                     Foreground="{DynamicResource AccentBrush}" Cursor="Hand"
                                     HorizontalContentAlignment="Left"
-                                    ToolTip.Tip="Open in Item Browser"/>
+                                    ToolTip.Tip="{x:Static loc:IndustryText.TipOpenInItemBrowser}"/>
                             <TextBlock Text="{Binding Job.MeLevel, StringFormat='ME{0}'}" FontSize="11" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
                           </StackPanel>
                           <StackPanel Orientation="Horizontal" Spacing="10">
-                            <TextBlock Text="{Binding Job.Runs,            StringFormat='Runs: {0}'}"         FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
-                            <TextBlock Text="{Binding Job.QuantityProduced, StringFormat='Out: {0:N0}'}"      FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
-                            <TextBlock Text="{Binding Job.Leftover,         StringFormat='Leftover: {0:N0}'}" FontSize="11" Foreground="{DynamicResource GoodBrush}"/>
-                            <TextBlock Text="{Binding Job.InputVolume,  StringFormat='In: {0:N0} m³'}"  FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
-                                       ToolTip.Tip="Packed volume this job consumes — what has to reach the facility."/>
-                            <TextBlock Text="{Binding Job.OutputVolume, StringFormat='Out: {0:N0} m³'}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
-                                       ToolTip.Tip="Packed volume this job produces — what leaves it."/>
+                            <TextBlock Text="{Binding Job.Runs,            StringFormat={x:Static loc:IndustryText.FmtRuns}}"         FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
+                            <TextBlock Text="{Binding Job.QuantityProduced, StringFormat={x:Static loc:IndustryText.FmtOut}}"      FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
+                            <TextBlock Text="{Binding Job.Leftover,         StringFormat={x:Static loc:IndustryText.FmtLeftover}}" FontSize="11" Foreground="{DynamicResource GoodBrush}"/>
+                            <TextBlock Text="{Binding Job.InputVolume,  StringFormat={x:Static loc:IndustryText.FmtInM}}"  FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                                       ToolTip.Tip="{x:Static loc:IndustryText.TipPackedVolumeThisJob}"/>
+                            <TextBlock Text="{Binding Job.OutputVolume, StringFormat={x:Static loc:IndustryText.FmtOutM}}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                                       ToolTip.Tip="{x:Static loc:IndustryText.TipPackedVolumeThisJob2}"/>
                           </StackPanel>
                           <StackPanel Orientation="Horizontal" Spacing="10">
-                            <TextBlock Text="{Binding Job.MaterialCost, StringFormat='Mat: {0:N0} ISK'}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                            <TextBlock Text="{Binding Job.JobCost,      StringFormat='Job: {0:N0} ISK'}" FontSize="11" Foreground="{DynamicResource AccentBrush}"/>
+                            <TextBlock Text="{Binding Job.MaterialCost, StringFormat={x:Static loc:IndustryText.FmtMatIsk}}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            <TextBlock Text="{Binding Job.JobCost,      StringFormat={x:Static loc:IndustryText.FmtJobIsk}}" FontSize="11" Foreground="{DynamicResource AccentBrush}"/>
                             <!-- StructureDisplay's two halves, split so each can link: the
                                  facility to the Structure Browser, the system to the map. The
                                  "@" shows only when both are present, so a job with one of them
@@ -640,7 +641,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="3">
                               <Button Classes="link" Click="OnOpenJobStation"
                                       IsVisible="{Binding Job.HasStationLink}"
-                                      ToolTip.Tip="Open in the Structure Browser">
+                                      ToolTip.Tip="{x:Static loc:IndustryText.TipOpenInTheStructureBrowser}">
                                 <TextBlock Text="{Binding Job.StructureName}" Classes="linktext"
                                            FontSize="11" Foreground="{DynamicResource TextFaintBrush}"/>
                               </Button>
@@ -651,7 +652,7 @@
                                          FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center"/>
                               <Button Classes="link" Click="OnOpenJobSystem"
                                       IsVisible="{Binding Job.HasSystemLink}"
-                                      ToolTip.Tip="Open on the map">
+                                      ToolTip.Tip="{x:Static loc:IndustryText.TipOpenOnTheMap}">
                                 <TextBlock Text="{Binding Job.SystemName}" Classes="linktext"
                                            FontSize="11" Foreground="{DynamicResource TextFaintBrush}"/>
                               </Button>
@@ -664,14 +665,14 @@
                         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4"
                                     VerticalAlignment="Top" Margin="8 0 0 0">
                           <ToggleButton IsChecked="{Binding ShowMaterials}"
-                                        Content="Materials"
+                                        Content="{x:Static loc:IndustryText.Materials}"
                                         Padding="6 3" FontSize="11"/>
-                          <Button Content="Shopping List" Click="OnJobShoppingListClick"
+                          <Button Content="{x:Static loc:IndustryText.ShoppingList}" Click="OnJobShoppingListClick"
                                   Padding="6 3" FontSize="11"
-                                  ToolTip.Tip="Copy every bought material for this job (name and quantity, tab-separated)"/>
-                          <Button Content="Shopping List (Missing)" Click="OnJobShoppingListMissingClick"
+                                  ToolTip.Tip="{x:Static loc:IndustryText.TipCopyEveryBoughtMaterial}"/>
+                          <Button Content="{x:Static loc:IndustryText.ShoppingListMissing}" Click="OnJobShoppingListMissingClick"
                                   Padding="6 3" FontSize="11"
-                                  ToolTip.Tip="Copy only the bought materials short at this job's linked facility"/>
+                                  ToolTip.Tip="{x:Static loc:IndustryText.TipCopyOnlyTheBought}"/>
                         </StackPanel>
                       </Grid>
 
@@ -684,15 +685,15 @@
                                      FontSize="10" Foreground="{DynamicResource TextMutedBrush}" Margin="0 0 0 4"
                                      FontStyle="Italic"/>
                           <Grid ColumnDefinitions="*,110,110,140,140,170,70,*">
-                            <TextBlock Grid.Column="0" Text="Material"   FontSize="10" Foreground="{DynamicResource TextFaintBrush}"/>
-                            <TextBlock Grid.Column="1" Text="Base/Run"   FontSize="10" Foreground="{DynamicResource TextFaintBrush}" HorizontalAlignment="Right" Margin="0 0 8 0"/>
-                            <TextBlock Grid.Column="2" Text="Eff/Run"    FontSize="10" Foreground="{DynamicResource TextFaintBrush}" HorizontalAlignment="Right" Margin="0 0 8 0"/>
-                            <TextBlock Grid.Column="3" Text="Total"      FontSize="10" Foreground="{DynamicResource TextFaintBrush}" HorizontalAlignment="Right" Margin="0 0 8 0"/>
-                            <TextBlock Grid.Column="4" Text="Missing"    FontSize="10" Foreground="{DynamicResource TextFaintBrush}" HorizontalAlignment="Right"
-                                       ToolTip.Tip="Shortfall against stock at this job's linked facility. Em dash means the park structure has no facility linked."/>
-                            <TextBlock Grid.Column="5" Text="Cost"       FontSize="10" Foreground="{DynamicResource TextFaintBrush}" HorizontalAlignment="Right" Margin="0 0 8 0"/>
-                            <TextBlock Grid.Column="6" Text="Source"     FontSize="10" Foreground="{DynamicResource TextFaintBrush}" HorizontalAlignment="Right"/>
-                            <TextBlock Grid.Column="7" Text="Formula (SDE base → result)" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" Margin="8 0 0 0"/>
+                            <TextBlock Grid.Column="0" Text="{x:Static loc:IndustryText.Material}"   FontSize="10" Foreground="{DynamicResource TextFaintBrush}"/>
+                            <TextBlock Grid.Column="1" Text="{x:Static loc:IndustryText.BaseRun}"   FontSize="10" Foreground="{DynamicResource TextFaintBrush}" HorizontalAlignment="Right" Margin="0 0 8 0"/>
+                            <TextBlock Grid.Column="2" Text="{x:Static loc:IndustryText.EffRun}"    FontSize="10" Foreground="{DynamicResource TextFaintBrush}" HorizontalAlignment="Right" Margin="0 0 8 0"/>
+                            <TextBlock Grid.Column="3" Text="{x:Static loc:IndustryText.Total}"      FontSize="10" Foreground="{DynamicResource TextFaintBrush}" HorizontalAlignment="Right" Margin="0 0 8 0"/>
+                            <TextBlock Grid.Column="4" Text="{x:Static loc:IndustryText.Missing}"    FontSize="10" Foreground="{DynamicResource TextFaintBrush}" HorizontalAlignment="Right"
+                                       ToolTip.Tip="{x:Static loc:IndustryText.TipShortfallAgainstStockAt}"/>
+                            <TextBlock Grid.Column="5" Text="{x:Static loc:IndustryText.Cost}"       FontSize="10" Foreground="{DynamicResource TextFaintBrush}" HorizontalAlignment="Right" Margin="0 0 8 0"/>
+                            <TextBlock Grid.Column="6" Text="{x:Static loc:IndustryText.Source}"     FontSize="10" Foreground="{DynamicResource TextFaintBrush}" HorizontalAlignment="Right"/>
+                            <TextBlock Grid.Column="7" Text="{x:Static loc:IndustryText.FormulaSdeBaseResult}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" Margin="8 0 0 0"/>
                           </Grid>
                           <ItemsControl ItemsSource="{Binding Job.Materials}">
                             <ItemsControl.ItemTemplate>
@@ -704,7 +705,7 @@
                                           Background="Transparent" BorderThickness="0" Padding="0"
                                           FontSize="11" Foreground="{DynamicResource AccentBrush}" Cursor="Hand"
                                           HorizontalContentAlignment="Left"
-                                          ToolTip.Tip="Open in Item Browser"/>
+                                          ToolTip.Tip="{x:Static loc:IndustryText.TipOpenInItemBrowser}"/>
                                   <TextBlock Grid.Column="1" Text="{Binding BaseQtyPerRun, StringFormat=N0}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Right" Margin="0 0 8 0"/>
                                   <TextBlock Grid.Column="2" Text="{Binding EffQtyPerRun,  StringFormat=N0}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"  HorizontalAlignment="Right" Margin="0 0 8 0"/>
                                   <TextBlock Grid.Column="3" Text="{Binding TotalQty,      StringFormat=N0}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"  HorizontalAlignment="Right" Margin="0 0 8 0"/>

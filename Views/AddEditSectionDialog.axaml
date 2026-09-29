@@ -1,9 +1,10 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:EveConsole.Localization"
         xmlns:views="clr-namespace:EveConsole.Views"
         xmlns:controls="using:EveConsole.Controls"
         x:Class="EveConsole.Views.AddEditSectionDialog"
-        Title="Section"
+        Title="{x:Static loc:SalesText.TitleSection}"
         Width="540" Height="660"
         CanResize="False"
         WindowStartupLocation="CenterOwner"
@@ -18,7 +19,7 @@
 
         <!-- Section name -->
         <StackPanel Spacing="5">
-          <TextBlock Text="SECTION NAME" FontSize="10" FontWeight="SemiBold"
+          <TextBlock Text="{x:Static loc:SalesText.SectionNameLabel}" FontSize="10" FontWeight="SemiBold"
                      Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" />
           <TextBox x:Name="NameBox"
                    Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
@@ -28,49 +29,49 @@
 
         <!-- Prefix (output only) -->
         <StackPanel Spacing="5">
-          <TextBlock Text="SECTION PREFIX  (output only — e.g. Slack :macro:)" FontSize="10" FontWeight="SemiBold"
+          <TextBlock Text="{x:Static loc:SalesText.SectionPrefixOutputOnlyNote}" FontSize="10" FontWeight="SemiBold"
                      Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" />
-          <TextBox x:Name="PrefixBox" Watermark="e.g. :ships:"
+          <TextBox x:Name="PrefixBox" Watermark="{x:Static loc:SalesText.HintEGShips}"
                    Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                    CornerRadius="3" Foreground="{DynamicResource TextBrightBrush}" CaretBrush="{DynamicResource AccentBrush}" FontSize="12" Padding="8 5" />
         </StackPanel>
 
         <!-- Colour (EVE mail only) -->
         <StackPanel Spacing="5">
-          <TextBlock Text="SECTION HEADER COLOUR  (EVE mail only)" FontSize="10" FontWeight="SemiBold"
+          <TextBlock Text="{x:Static loc:SalesText.SectionHeaderColourEveMail}" FontSize="10" FontWeight="SemiBold"
                      Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" />
           <controls:ColorField x:Name="HeaderColorField" />
 
-          <TextBlock Text="SECTION ROW COLOUR" FontSize="10" FontWeight="SemiBold"
+          <TextBlock Text="{x:Static loc:SalesText.SectionRowColourLabel}" FontSize="10" FontWeight="SemiBold"
                      Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" Margin="0 6 0 0" />
           <controls:ColorField x:Name="RowColorField" />
           <TextBlock TextWrapping="Wrap" FontSize="10" Foreground="{DynamicResource WarnBrush}"
-                     Text="⚠ Only used when the posting is NOT colouring by state. That setting is per line and takes precedence, so with it on this has no effect. An item's own colour beats both." />
+                     Text="{x:Static loc:SalesText.OnlyUsedWhenTheNote}" />
         </StackPanel>
 
         <Rectangle Height="1" Fill="{DynamicResource BorderSubtleBrush}" />
 
         <!-- Scope override -->
-        <CheckBox x:Name="OverrideScopeBox" Content="Override inventory scope for this section"
+        <CheckBox x:Name="OverrideScopeBox" Content="{x:Static loc:SalesText.OverrideInventoryScopeForThis}"
                   Foreground="{DynamicResource AccentBrush}" FontSize="12" />
         <StackPanel x:Name="ScopePanel" Spacing="10" IsVisible="False" Margin="12 0 0 0">
           <StackPanel Spacing="5">
-            <TextBlock Text="SCOPE" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" />
+            <TextBlock Text="{x:Static loc:SalesText.ScopeLabel}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" />
             <WrapPanel>
-              <RadioButton x:Name="ScopeStation"    Content="Station"    GroupName="SecScope"
+              <RadioButton x:Name="ScopeStation"    Content="{x:Static loc:SalesText.Station}"    GroupName="SecScope"
                            Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" Margin="0 0 16 4" />
-              <RadioButton x:Name="ScopeSystem"     Content="System"     GroupName="SecScope"
+              <RadioButton x:Name="ScopeSystem"     Content="{x:Static loc:SalesText.System}"     GroupName="SecScope"
                            Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" Margin="0 0 16 4" />
-              <RadioButton x:Name="ScopeRegion"     Content="Region"     GroupName="SecScope"
+              <RadioButton x:Name="ScopeRegion"     Content="{x:Static loc:SalesText.Region}"     GroupName="SecScope"
                            Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" Margin="0 0 16 4" />
-              <RadioButton x:Name="ScopeEverywhere" Content="Everywhere" GroupName="SecScope"
+              <RadioButton x:Name="ScopeEverywhere" Content="{x:Static loc:SalesText.Everywhere}" GroupName="SecScope"
                            Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" IsChecked="True" />
             </WrapPanel>
           </StackPanel>
           <StackPanel x:Name="LocationPanel" Spacing="5" IsVisible="False">
-            <TextBlock x:Name="LocationLabel" Text="LOCATION" FontSize="10" FontWeight="SemiBold"
+            <TextBlock x:Name="LocationLabel" Text="{x:Static loc:SalesText.LocationLabel}" FontSize="10" FontWeight="SemiBold"
                        Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" />
-            <TextBox x:Name="LocationSearchBox" Watermark="Type to search…"
+            <TextBox x:Name="LocationSearchBox" Watermark="{x:Static loc:SalesText.HintTypeToSearch}"
                      Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                      CornerRadius="3" Foreground="{DynamicResource TextBrightBrush}" CaretBrush="{DynamicResource AccentBrush}" FontSize="12" Padding="8 5" />
             <Border x:Name="LocationResultsBorder" Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
@@ -85,23 +86,23 @@
         <Rectangle Height="1" Fill="{DynamicResource BorderSubtleBrush}" />
 
         <!-- Pricing override -->
-        <CheckBox x:Name="OverridePricingBox" Content="Override sale price basis for this section"
+        <CheckBox x:Name="OverridePricingBox" Content="{x:Static loc:SalesText.OverrideSalePriceBasis}"
                   Foreground="{DynamicResource AccentBrush}" FontSize="12" />
         <StackPanel x:Name="PricingPanel" Spacing="10" IsVisible="False" Margin="12 0 0 0">
           <StackPanel Spacing="5">
-            <TextBlock Text="SALE PRICE BASIS" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" />
+            <TextBlock Text="{x:Static loc:SalesText.SalePriceBasisLabel}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" />
             <WrapPanel>
-              <RadioButton x:Name="BasisBuild"    Content="Build Cost"      GroupName="SecBasis"
+              <RadioButton x:Name="BasisBuild"    Content="{x:Static loc:SalesText.BuildCost}"      GroupName="SecBasis"
                            Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" Margin="0 0 16 4" IsChecked="True" />
-              <RadioButton x:Name="BasisContract" Content="Contract Cost"   GroupName="SecBasis"
+              <RadioButton x:Name="BasisContract" Content="{x:Static loc:SalesText.ContractCost}"   GroupName="SecBasis"
                            Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" Margin="0 0 16 4" />
-              <RadioButton x:Name="BasisMarket"   Content="Specific Market" GroupName="SecBasis"
+              <RadioButton x:Name="BasisMarket"   Content="{x:Static loc:SalesText.SpecificMarket}" GroupName="SecBasis"
                            Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" />
             </WrapPanel>
           </StackPanel>
 
           <StackPanel x:Name="MarketPanel" Spacing="5" IsVisible="False">
-            <TextBlock Text="MARKET (current orders)" FontSize="10" FontWeight="SemiBold"
+            <TextBlock Text="{x:Static loc:SalesText.MarketCurrentOrders}" FontSize="10" FontWeight="SemiBold"
                        Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" />
             <ComboBox x:Name="MarketStationBox" Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
                       FontSize="12" HorizontalAlignment="Stretch">
@@ -110,9 +111,9 @@
               </ComboBox.ItemTemplate>
             </ComboBox>
             <TextBlock x:Name="NoStationsText"
-                       Text="No polled markets yet — add a Market config under Market Overview first."
+                       Text="{x:Static loc:SalesText.NoPolledMarketsYetNote}"
                        FontSize="11" Foreground="{DynamicResource WarnBrush}" IsVisible="False" TextWrapping="Wrap" />
-            <TextBlock Text="PRICE TYPE" FontSize="10" FontWeight="SemiBold"
+            <TextBlock Text="{x:Static loc:SalesText.PriceTypeLabel}" FontSize="10" FontWeight="SemiBold"
                        Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" Margin="0 6 0 0" />
             <ComboBox x:Name="PriceTypeBox" Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
                       FontSize="12" HorizontalAlignment="Stretch">
@@ -126,13 +127,13 @@
           </StackPanel>
 
           <StackPanel Spacing="5">
-            <TextBlock Text="SALE PRICE = BASIS ×  %" FontSize="10" FontWeight="SemiBold"
+            <TextBlock Text="{x:Static loc:SalesText.SalePriceBasisLabel2}" FontSize="10" FontWeight="SemiBold"
                        Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" />
             <StackPanel Orientation="Horizontal" Spacing="8">
               <NumericUpDown x:Name="PercentBox" Value="110" Minimum="0" Maximum="100000"
                              Increment="5" ShowButtonSpinner="True" Width="120" FontSize="12"
                              Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextPrimaryBrush}" />
-              <TextBlock Text="%  (Build 110%, Contract/Market 100%)"
+              <TextBlock Text="{x:Static loc:SalesText.Build110ContractMarket100}"
                          FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
             </StackPanel>
           </StackPanel>
@@ -141,10 +142,10 @@
         <Rectangle Height="1" Fill="{DynamicResource BorderSubtleBrush}" />
 
         <!-- Packaged-only override -->
-        <CheckBox x:Name="OverrideOnlyPackagedBox" Content="Override packaged-only setting for this section"
+        <CheckBox x:Name="OverrideOnlyPackagedBox" Content="{x:Static loc:SalesText.OverridePackagedOnlySetting}"
                   Foreground="{DynamicResource AccentBrush}" FontSize="12" />
         <StackPanel x:Name="OnlyPackagedPanel" IsVisible="False" Margin="12 0 0 0">
-          <CheckBox x:Name="OnlyPackagedBox" Content="Only include packaged items (skip assembled / fitted hulls)"
+          <CheckBox x:Name="OnlyPackagedBox" Content="{x:Static loc:SalesText.OnlyIncludePackagedItems}"
                     Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" />
         </StackPanel>
 
@@ -154,9 +155,9 @@
     <Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto" Margin="0 16 0 0">
       <TextBlock Grid.Column="0" x:Name="ErrorText" Foreground="{DynamicResource BadBrush}" FontSize="11"
                  VerticalAlignment="Center" TextWrapping="Wrap" />
-      <Button Grid.Column="1" Content="Cancel" Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
+      <Button Grid.Column="1" Content="{x:Static loc:SalesText.Cancel}" Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
               BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" Padding="14 6" Margin="0 0 8 0" Click="OnCancelClick" />
-      <Button Grid.Column="2" Content="OK" Background="{DynamicResource SurfaceSelectedBrush}" Foreground="{DynamicResource AccentBrush}"
+      <Button Grid.Column="2" Content="{x:Static loc:SalesText.Ok}" Background="{DynamicResource SurfaceSelectedBrush}" Foreground="{DynamicResource AccentBrush}"
               BorderBrush="{DynamicResource AccentSurfaceBrush}" BorderThickness="1" Padding="14 6" Click="OnOkClick" />
     </Grid>
 

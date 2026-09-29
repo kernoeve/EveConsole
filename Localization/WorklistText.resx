@@ -1,0 +1,1027 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TabWorklist" xml:space="preserve">
+    <value>Worklist</value>
+    <comment>Tab in WorklistView.</comment>
+  </data>
+  <data name="Worklist" xml:space="preserve">
+    <value>Worklist</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Refresh</value>
+    <comment>Button or option in WorklistView.</comment>
+  </data>
+  <data name="ReadyNow" xml:space="preserve">
+    <value>ready now</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="TipIncludeWorkThatCannot" xml:space="preserve">
+    <value>Include work that cannot be started yet, with the reason.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="TipIncludeItemsHiddenBy" xml:space="preserve">
+    <value>Include items hidden by the snooze button until their snooze expires.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="HintState" xml:space="preserve">
+    <value>State</value>
+    <comment>Hint in an empty box in WorklistView.</comment>
+  </data>
+  <data name="TipReadyBlockedOrWaiting" xml:space="preserve">
+    <value>Ready, blocked or waiting</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="HintType" xml:space="preserve">
+    <value>Type</value>
+    <comment>Hint in an empty box in WorklistView.</comment>
+  </data>
+  <data name="TipBuyHaulJobAndThe" xml:space="preserve">
+    <value>Buy, haul, job and the rest</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="HintSearchTask" xml:space="preserve">
+    <value>Search task…</value>
+    <comment>Hint in an empty box in WorklistView.</comment>
+  </data>
+  <data name="HintCharacter" xml:space="preserve">
+    <value>Character</value>
+    <comment>Hint in an empty box in WorklistView.</comment>
+  </data>
+  <data name="HintSource" xml:space="preserve">
+    <value>Source</value>
+    <comment>Hint in an empty box in WorklistView.</comment>
+  </data>
+  <data name="HintDestination" xml:space="preserve">
+    <value>Destination</value>
+    <comment>Hint in an empty box in WorklistView.</comment>
+  </data>
+  <data name="HintSearchNote" xml:space="preserve">
+    <value>Search note…</value>
+    <comment>Hint in an empty box in WorklistView.</comment>
+  </data>
+  <data name="TipSearchesTheDetailThe" xml:space="preserve">
+    <value>Searches the detail, the blocked reason and the snooze line together — everything behind the row-s information marker.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>Clear</value>
+    <comment>Button or option in WorklistView.</comment>
+  </data>
+  <data name="TipShowWhatThisTask" xml:space="preserve">
+    <value>Show what this task carries, and what is waiting on it</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="WaitingOnThisLabel" xml:space="preserve">
+    <value>WAITING ON THIS</value>
+    <comment>Label in WorklistView.</comment>
+  </data>
+  <data name="TipOpenInTheItemBrowser" xml:space="preserve">
+    <value>Open in the Item Browser</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="ManifestLabel" xml:space="preserve">
+    <value>MANIFEST</value>
+    <comment>Label in WorklistView.</comment>
+  </data>
+  <data name="ColTask" xml:space="preserve">
+    <value>Task</value>
+    <comment>Column header in WorklistView.</comment>
+  </data>
+  <data name="TipOpenThisItem" xml:space="preserve">
+    <value>Open this item</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="TipMaterialAndTimeEfficiency" xml:space="preserve">
+    <value>Material and time efficiency of the blueprint this job would use</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="TipOpenThisStationOrStructure" xml:space="preserve">
+    <value>Open this station or structure</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="TipOpenInTheEntityBrowser" xml:space="preserve">
+    <value>Open in the entity browser</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="ColPrio" xml:space="preserve">
+    <value>prio</value>
+    <comment>Column header in WorklistView.</comment>
+  </data>
+  <data name="ColFin" xml:space="preserve">
+    <value>fin</value>
+    <comment>Column header in WorklistView.</comment>
+  </data>
+  <data name="ColBlkd" xml:space="preserve">
+    <value>blkd</value>
+    <comment>Column header in WorklistView.</comment>
+  </data>
+  <data name="ColCover" xml:space="preserve">
+    <value>cover</value>
+    <comment>Column header in WorklistView.</comment>
+  </data>
+  <data name="ColSeq" xml:space="preserve">
+    <value>seq</value>
+    <comment>Column header in WorklistView.</comment>
+  </data>
+  <data name="ColFrees" xml:space="preserve">
+    <value>frees</value>
+    <comment>Column header in WorklistView.</comment>
+  </data>
+  <data name="Value" xml:space="preserve">
+    <value>Value</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="Volume" xml:space="preserve">
+    <value>Volume</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="Snooze" xml:space="preserve">
+    <value>Snooze</value>
+    <comment>Button or option in WorklistView.</comment>
+  </data>
+  <data name="TipHideThisItemFor8" xml:space="preserve">
+    <value>Hide this item for 8 hours</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="TabStationNeeds" xml:space="preserve">
+    <value>Station Needs</value>
+    <comment>Tab in WorklistView.</comment>
+  </data>
+  <data name="StationNeeds" xml:space="preserve">
+    <value>Station Needs</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="ColWhy" xml:space="preserve">
+    <value>Why</value>
+    <comment>Column header in WorklistView.</comment>
+  </data>
+  <data name="TipWhatIsAskingForThis" xml:space="preserve">
+    <value>What is asking for this</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="AskedForByLabel" xml:space="preserve">
+    <value>ASKED FOR BY</value>
+    <comment>Label in WorklistView.</comment>
+  </data>
+  <data name="TipNothingItemisedThisNeed" xml:space="preserve">
+    <value>Nothing itemised this need</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="ColStation" xml:space="preserve">
+    <value>Station</value>
+    <comment>Column header in WorklistView.</comment>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>Item</value>
+    <comment>Column header in WorklistView.</comment>
+  </data>
+  <data name="ColTotal" xml:space="preserve">
+    <value>Total</value>
+    <comment>Column header in WorklistView.</comment>
+  </data>
+  <data name="ColOnHand" xml:space="preserve">
+    <value>On hand</value>
+    <comment>Column header in WorklistView.</comment>
+  </data>
+  <data name="ColShort" xml:space="preserve">
+    <value>Short</value>
+    <comment>Column header in WorklistView.</comment>
+  </data>
+  <data name="ColShortValue" xml:space="preserve">
+    <value>Short value</value>
+    <comment>Column header in WorklistView.</comment>
+  </data>
+  <data name="ColShortVolume" xml:space="preserve">
+    <value>Short volume</value>
+    <comment>Column header in WorklistView.</comment>
+  </data>
+  <data name="ColOrderJobs" xml:space="preserve">
+    <value>Order jobs</value>
+    <comment>Column header in WorklistView.</comment>
+  </data>
+  <data name="ColJobs" xml:space="preserve">
+    <value>Jobs</value>
+    <comment>Column header in WorklistView.</comment>
+  </data>
+  <data name="ColInventoryLevels" xml:space="preserve">
+    <value>Inventory levels</value>
+    <comment>Column header in WorklistView.</comment>
+  </data>
+  <data name="ColStationLevels" xml:space="preserve">
+    <value>Station levels</value>
+    <comment>Column header in WorklistView.</comment>
+  </data>
+  <data name="TabItemNeeds" xml:space="preserve">
+    <value>Item Needs</value>
+    <comment>Tab in WorklistView.</comment>
+  </data>
+  <data name="ItemNeeds" xml:space="preserve">
+    <value>Item Needs</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="ColInBuild" xml:space="preserve">
+    <value>In build</value>
+    <comment>Column header in WorklistView.</comment>
+  </data>
+  <data name="TabBottlenecks" xml:space="preserve">
+    <value>Bottlenecks</value>
+    <comment>Tab in WorklistView.</comment>
+  </data>
+  <data name="Bottlenecks" xml:space="preserve">
+    <value>Bottlenecks</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="TabSummary" xml:space="preserve">
+    <value>Summary</value>
+    <comment>Tab in WorklistView.</comment>
+  </data>
+  <data name="WhatToDoInNote" xml:space="preserve">
+    <value>What to do, in the order worth doing it. Ranked by how much work each one is holding up, across every tab. The supporting figures are on the tabs themselves.</value>
+    <comment>Note in WorklistView.</comment>
+  </data>
+  <data name="TipOpenThisItemIn" xml:space="preserve">
+    <value>Open this item in the Item Browser</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="NothingIsHoldingTheNote" xml:space="preserve">
+    <value>Nothing is holding the pipeline up: no pool has a queue worth the name, no blueprint has work waiting on it, nothing is short of material, and nothing is waiting on a delivery.</value>
+    <comment>Note in WorklistView.</comment>
+  </data>
+  <data name="TabSlots" xml:space="preserve">
+    <value>Slots</value>
+    <comment>Tab in WorklistView.</comment>
+  </data>
+  <data name="SlotsLabel" xml:space="preserve">
+    <value>SLOTS</value>
+    <comment>Label in WorklistView.</comment>
+  </data>
+  <data name="SlotsAreBandwidthNotNote" xml:space="preserve">
+    <value>Slots are bandwidth, not a shopping list. A queue is work that piled up while throughput sat under demand, so each remedy is measured by what it does to the time needed to catch up. Rates come from the last 90 days of job history, so they already carry the structures and skills in use.</value>
+    <comment>Note in WorklistView.</comment>
+  </data>
+  <data name="Capacity" xml:space="preserve">
+    <value>Capacity</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="InUse" xml:space="preserve">
+    <value>In use</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="Free" xml:space="preserve">
+    <value>Free</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="WaitingOnASlot" xml:space="preserve">
+    <value>Waiting on a slot</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="Blocked" xml:space="preserve">
+    <value>Blocked</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="DaysToCatchUp" xml:space="preserve">
+    <value>Days to catch up</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="TabItemContention" xml:space="preserve">
+    <value>Item Contention</value>
+    <comment>Tab in WorklistView.</comment>
+  </data>
+  <data name="MaterialsLabel" xml:space="preserve">
+    <value>MATERIALS</value>
+    <comment>Label in WorklistView.</comment>
+  </data>
+  <data name="MaterialsThePipelineRunsNote" xml:space="preserve">
+    <value>Materials the pipeline runs out of — the ones nothing owns, not the ones sitting at the wrong station, which is a hauling problem and belongs elsewhere. Ranked by the work each one is holding up. Hover a column heading for what it means. ⚠ Every rate here is a floor: nothing consumed what could not be made, so an item that has been blocking work was used at the rate the blockage allowed rather than the rate that was wanted.</value>
+    <comment>Note in WorklistView.</comment>
+  </data>
+  <data name="TipShowTheTasksBehindThese" xml:space="preserve">
+    <value>Show the tasks behind these counts</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="Material" xml:space="preserve">
+    <value>Material</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="TipTheItemThatRan" xml:space="preserve">
+    <value>The item that ran short. Click it to open the Item Browser.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="Used" xml:space="preserve">
+    <value>Used</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="TipConsumedPerDayOver" xml:space="preserve">
+    <value>Consumed per day over the last 90 days, summed across every blueprint that eats it. An item drawn on by four parents is short four times over.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="Made" xml:space="preserve">
+    <value>Made</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="TipProducedPerDayOver" xml:space="preserve">
+    <value>Produced per day over the same window. A dash means nothing here makes it at all, so the only way to refill it is to buy it.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="Balance" xml:space="preserve">
+    <value>Balance</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="TipMadePerUnitConsumed" xml:space="preserve">
+    <value>Made per unit consumed. Under 1.00 the shelf is draining however full it looks, and no size of buffer survives that. Amber rather than red during a demand spike, since absorbing exactly that is what a buffer is for.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="Level" xml:space="preserve">
+    <value>Level</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="TipWhatTheInventoryLevels" xml:space="preserve">
+    <value>What the inventory levels ask to keep on the shelf. Blank means no level is set for this at all, which is a finding in its own right.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="OnHand" xml:space="preserve">
+    <value>On hand</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="TipUnitsTheIndustryScope" xml:space="preserve">
+    <value>Units the industry scope can actually reach. Stock outside the scope is not counted, because the plan cannot spend it.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="Need" xml:space="preserve">
+    <value>Need</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="TipWhatTheWorkOn" xml:space="preserve">
+    <value>What the work on the list wants: what is here plus what it fell short by. Red once that exceeds what exists, which can happen with the level fully met.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="Cover" xml:space="preserve">
+    <value>Cover</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="TipTheLevelMeasuredIn" xml:space="preserve">
+    <value>The level measured in days at the current draw. A buffer is a length of time, not a quantity: 200 of something eaten twice a day is 100 days, and 200 of something eaten 200 times a day is one.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="Surge" xml:space="preserve">
+    <value>Surge</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="TipHowMuchHarderThis" xml:space="preserve">
+    <value>How much harder this is being drawn on now than across the whole window. Blank under 1.2x. This is what separates a build wave from a standing shortage.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="Blocking" xml:space="preserve">
+    <value>Blocking</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="TipTasksThisShortageIs" xml:space="preserve">
+    <value>Tasks this shortage is holding up: the ones directly short of it, plus the ones stopped for want of what those would have made, and so on up the chain. Tasks, not item types.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="Running" xml:space="preserve">
+    <value>Running</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="TipJobsMakingThisItem" xml:space="preserve">
+    <value>Jobs making this item that are installed and running in game right now. Not a task, so nothing on the list asks for it.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="Ready" xml:space="preserve">
+    <value>Ready</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="TipTasksToMakeThis" xml:space="preserve">
+    <value>Tasks to make this item that could be started today.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="Waiting" xml:space="preserve">
+    <value>Waiting</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="TipTasksToMakeThis2" xml:space="preserve">
+    <value>Tasks to make this item held up only by a busy slot.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="Stuck" xml:space="preserve">
+    <value>Stuck</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="TipTasksToMakeThis3" xml:space="preserve">
+    <value>Tasks to make this item that are blocked in their own right. Red when nothing is running or ready either, which is the shape that does not resolve on its own.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="Verdict" xml:space="preserve">
+    <value>Verdict</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="TipWhatTheRowAmounts" xml:space="preserve">
+    <value>What the row amounts to, in a couple of words.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="Suggestion" xml:space="preserve">
+    <value>Suggestion</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="TipWhatIsHappeningAnd" xml:space="preserve">
+    <value>What is happening and what would change it, using the figures on this row rather than telling you where to look.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="TabBpoFormula" xml:space="preserve">
+    <value>BPO / Formula</value>
+    <comment>Tab in WorklistView.</comment>
+  </data>
+  <data name="BlueprintsLabel" xml:space="preserve">
+    <value>BLUEPRINTS</value>
+    <comment>Label in WorklistView.</comment>
+  </data>
+  <data name="ABlueprintBottleneckIsNote" xml:space="preserve">
+    <value>A blueprint bottleneck is having to WAIT for an original to free up — not running one a lot. Ranking on use ranks the fix above the problem: a formula run flat out across eight originals has never blocked anything, and buying the eighth is what settled it. Listed from 5% all-busy up, or 15% for single-BPO items, where the measure degenerates into plain use. Hover a column heading for what it means.</value>
+    <comment>Note in WorklistView.</comment>
+  </data>
+  <data name="Product" xml:space="preserve">
+    <value>Product</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="TipWhatThisBlueprintOr" xml:space="preserve">
+    <value>What this blueprint or formula makes. Click it to open the Item Browser.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="Cycle" xml:space="preserve">
+    <value>Cycle</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="TipHowLongOneRun" xml:space="preserve">
+    <value>How long one run takes, averaged over the jobs actually run rather than from the blueprint.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="TipOriginalsOwnedCopiesAre" xml:space="preserve">
+    <value>Originals OWNED. Copies are deliberately not counted: contention is about whether one of yours was free.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="Installed" xml:space="preserve">
+    <value>Installed</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="TipHowManyOfThose" xml:space="preserve">
+    <value>How many of those originals are sitting inside a job at this moment.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="Ceiling" xml:space="preserve">
+    <value>Ceiling</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="TipUnitsADayThe" xml:space="preserve">
+    <value>Units a day the originals on hand could turn out between them, running without a pause.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="TipUnitsADayActually" xml:space="preserve">
+    <value>Units a day actually produced over the last 90 days. It can never exceed the ceiling, which is why it cannot be used to measure demand.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="TipShareOfEachOriginals" xml:space="preserve">
+    <value>Share of each original's time spent inside a job. Context only: it does not identify bottlenecks, and ranking on it ranks heavy use above real constraints.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="AllBusy" xml:space="preserve">
+    <value>All busy</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="TipShareOfTheLast" xml:space="preserve">
+    <value>Share of the last 90 days when EVERY original was occupied at once, counting research and copying as well as building. This is the figure that says whether wanting another job meant waiting.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="Rank" xml:space="preserve">
+    <value>Rank</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="TipWhereThisSitsAmong" xml:space="preserve">
+    <value>Where this sits among all your own blueprints. Nothing here uses a fixed cut-off, so the flag is drawn against your own spread.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="TipTheSameAllBusy" xml:space="preserve">
+    <value>The same all-busy figure over the last 30 days, so a busy month is not hidden inside a quiet quarter.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="Trend" xml:space="preserve">
+    <value>Trend</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="TipWhetherTheRecentSqueeze" xml:space="preserve">
+    <value>Whether the recent squeeze is rising, easing or steady against the full window.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="N1Print" xml:space="preserve">
+    <value>+1 print</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="TipWhatTheCeilingBecomes" xml:space="preserve">
+    <value>What the ceiling becomes with one more original. The answer to whether buying one is worth it.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="Queued" xml:space="preserve">
+    <value>Queued</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="TipJobsForThisProduct" xml:space="preserve">
+    <value>Jobs for this product on the worklist right now. Current demand, which history cannot supply.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="BlockedNow" xml:space="preserve">
+    <value>Blocked now</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="TipJobsHeldUpBy" xml:space="preserve">
+    <value>Jobs held up by the blueprint ALONE. If the product is also short of material, more prints would change nothing, so this counts zero.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="TipTasksWaitingOnWhat" xml:space="preserve">
+    <value>Tasks waiting on what this makes: directly, and behind those up the chain. A blueprint can be entirely uncontended and still have a queue piled up behind its output.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="TipWhatTheRowAmounts2" xml:space="preserve">
+    <value>What the row amounts to, in a word.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="TipWhatIsHappeningAnd2" xml:space="preserve">
+    <value>What is happening and what would change it.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="TabHauling" xml:space="preserve">
+    <value>Hauling</value>
+    <comment>Tab in WorklistView.</comment>
+  </data>
+  <data name="TripsLabel" xml:space="preserve">
+    <value>TRIPS</value>
+    <comment>Label in WorklistView.</comment>
+  </data>
+  <data name="JobsStoppedForWantNote" xml:space="preserve">
+    <value>Jobs stopped for want of material that is already owned and sitting somewhere else — the other half of Item Contention, where the fix is a trip rather than a purchase. Every row is a job that could run the moment its material arrives. Hover a column heading for what it means.</value>
+    <comment>Note in WorklistView.</comment>
+  </data>
+  <data name="OneTripSeveralJobsLabel" xml:space="preserve">
+    <value>ONE TRIP, SEVERAL JOBS</value>
+    <comment>Label in WorklistView.</comment>
+  </data>
+  <data name="Job" xml:space="preserve">
+    <value>Job</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="TipTheStoppedJobIt" xml:space="preserve">
+    <value>The stopped job. It is short of nothing but material already owned, so it runs as soon as that material reaches it.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="TipOpenWhatThisJobMakes" xml:space="preserve">
+    <value>Open what this job makes</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="WaitingAt" xml:space="preserve">
+    <value>Waiting at</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="TipWhereTheJobWould" xml:space="preserve">
+    <value>Where the job would run, and so where the material has to arrive.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="TipOpenThisStation" xml:space="preserve">
+    <value>Open this station</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="TipJobsStoppedBehindThis" xml:space="preserve">
+    <value>Jobs stopped behind this one: those short of what it would have made, and those behind them up the chain. What starts moving again once this job can run.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="Items" xml:space="preserve">
+    <value>Items</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="TipDistinctItemTypesThis" xml:space="preserve">
+    <value>Distinct item types this job is waiting on.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="TipCubicMetresThisJob" xml:space="preserve">
+    <value>Cubic metres this job is short of, so the trip can be sized before it is planned.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="Stops" xml:space="preserve">
+    <value>Stops</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="TipStopsAHaulerWould" xml:space="preserve">
+    <value>Stops a hauler would have to make to cover what is short, largest source first. NOT the number of hangars holding the item: Tritanium sits in thirteen of them and one covers the job.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="Hauls" xml:space="preserve">
+    <value>Hauls</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="TipHaulsAlreadyOnThe" xml:space="preserve">
+    <value>Hauls already on the worklist bringing any of this job's missing material to it. Blank is the finding: the material exists, the job is stopped, and nothing is moving it.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="TabFinalProducts" xml:space="preserve">
+    <value>Final Products</value>
+    <comment>Tab in WorklistView.</comment>
+  </data>
+  <data name="Completed" xml:space="preserve">
+    <value>Completed</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="HintFromYyyyMmDd" xml:space="preserve">
+    <value>from yyyy-MM-dd</value>
+    <comment>Hint in an empty box in WorklistView.</comment>
+  </data>
+  <data name="HintThruYyyyMmDd" xml:space="preserve">
+    <value>thru yyyy-MM-dd</value>
+    <comment>Hint in an empty box in WorklistView.</comment>
+  </data>
+  <data name="ValueAt" xml:space="preserve">
+    <value>Value at</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="ChartBy" xml:space="preserve">
+    <value>Chart by</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>Status</value>
+    <comment>Column header in WorklistView.</comment>
+  </data>
+  <data name="ColUnits" xml:space="preserve">
+    <value>Units</value>
+    <comment>Column header in WorklistView.</comment>
+  </data>
+  <data name="ColStarted" xml:space="preserve">
+    <value>Started</value>
+    <comment>Column header in WorklistView.</comment>
+  </data>
+  <data name="ColCompleted" xml:space="preserve">
+    <value>Completed</value>
+    <comment>Column header in WorklistView.</comment>
+  </data>
+  <data name="ColBuildCost" xml:space="preserve">
+    <value>Build Cost</value>
+    <comment>Column header in WorklistView.</comment>
+  </data>
+  <data name="ColMarketValue" xml:space="preserve">
+    <value>Market Value</value>
+    <comment>Column header in WorklistView.</comment>
+  </data>
+  <data name="ColPotentialProfit" xml:space="preserve">
+    <value>Potential Profit</value>
+    <comment>Column header in WorklistView.</comment>
+  </data>
+  <data name="ColPotential" xml:space="preserve">
+    <value>Potential %</value>
+    <comment>Column header in WorklistView.</comment>
+  </data>
+  <data name="MarketValue" xml:space="preserve">
+    <value>Market value</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="PotentialProfit" xml:space="preserve">
+    <value>Potential profit</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="TabConfig" xml:space="preserve">
+    <value>Config</value>
+    <comment>Tab in WorklistView.</comment>
+  </data>
+  <data name="TabSources" xml:space="preserve">
+    <value>Sources</value>
+    <comment>Tab in WorklistView.</comment>
+  </data>
+  <data name="Sources" xml:space="preserve">
+    <value>Sources</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="ASourceThatIsNote" xml:space="preserve">
+    <value>A source that is off is skipped entirely — it costs no queries rather than running and having its output discarded.</value>
+    <comment>Note in WorklistView.</comment>
+  </data>
+  <data name="StandingBuyOrdersWhatTo" xml:space="preserve">
+    <value>Standing buy orders — what to raise</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="WhichConditionsBecomeTasksNote" xml:space="preserve">
+    <value>Which conditions become tasks. Each is a different job, so they switch independently.</value>
+    <comment>Note in WorklistView.</comment>
+  </data>
+  <data name="TabMarket" xml:space="preserve">
+    <value>Market</value>
+    <comment>Tab in WorklistView.</comment>
+  </data>
+  <data name="WhereShortfallsAreBoughtNote" xml:space="preserve">
+    <value>Where shortfalls are bought, and which character maintains orders at each station. Items route through these, so a station with no alt assigned produces blocked items that name no owner.</value>
+    <comment>Note in WorklistView.</comment>
+  </data>
+  <data name="BuyShortfallsAt" xml:space="preserve">
+    <value>Buy shortfalls at</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="HintTradeHub" xml:space="preserve">
+    <value>Trade hub…</value>
+    <comment>Hint in an empty box in WorklistView.</comment>
+  </data>
+  <data name="TipWherePurchasesAreRaised" xml:space="preserve">
+    <value>Where purchases are raised, and whose market alt gets them. Blueprints are left unassigned — a BPO or BPC comes from contracts, not a market order.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="StationOrStructure" xml:space="preserve">
+    <value>Station or structure</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="Character" xml:space="preserve">
+    <value>Character</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="Note" xml:space="preserve">
+    <value>Note</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="HintStationOrStructure" xml:space="preserve">
+    <value>Station or structure…</value>
+    <comment>Hint in an empty box in WorklistView.</comment>
+  </data>
+  <data name="HintCharacter2" xml:space="preserve">
+    <value>Character…</value>
+    <comment>Hint in an empty box in WorklistView.</comment>
+  </data>
+  <data name="HintOptional" xml:space="preserve">
+    <value>optional</value>
+    <comment>Hint in an empty box in WorklistView.</comment>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Add</value>
+    <comment>Button or option in WorklistView.</comment>
+  </data>
+  <data name="ColLocation" xml:space="preserve">
+    <value>Location</value>
+    <comment>Column header in WorklistView.</comment>
+  </data>
+  <data name="ColCharacter" xml:space="preserve">
+    <value>Character</value>
+    <comment>Column header in WorklistView.</comment>
+  </data>
+  <data name="ColNote" xml:space="preserve">
+    <value>Note</value>
+    <comment>Column header in WorklistView.</comment>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>Remove</value>
+    <comment>Button or option in WorklistView.</comment>
+  </data>
+  <data name="TabInventoryRules" xml:space="preserve">
+    <value>Inventory Rules</value>
+    <comment>Tab in WorklistView.</comment>
+  </data>
+  <data name="WhenAGroupDropsNote" xml:space="preserve">
+    <value>When a group drops below the threshold, there should be a buy order at that station. Several rules can point at one group — below 100% order locally, below 75% also order at the hub — and they stack rather than replace each other. Who places the order comes from the station's market alt.</value>
+    <comment>Note in WorklistView.</comment>
+  </data>
+  <data name="InventoryGroup" xml:space="preserve">
+    <value>Inventory group</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="Site" xml:space="preserve">
+    <value>Site</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="Action" xml:space="preserve">
+    <value>Action</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="TriggerBelow" xml:space="preserve">
+    <value>Trigger below (%)</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="FillUpTo" xml:space="preserve">
+    <value>Fill up to (%)</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="HintPickAGroup" xml:space="preserve">
+    <value>Pick a group…</value>
+    <comment>Hint in an empty box in WorklistView.</comment>
+  </data>
+  <data name="HintTypeTwoCharacters" xml:space="preserve">
+    <value>Type two characters…</value>
+    <comment>Hint in an empty box in WorklistView.</comment>
+  </data>
+  <data name="DecidedByTheIndyNote" xml:space="preserve">
+    <value>Decided by the Indy Park on the Industry tab</value>
+    <comment>Note in WorklistView.</comment>
+  </data>
+  <data name="TipBuyPlacesAMarket" xml:space="preserve">
+    <value>Buy places a market order for the shortfall; Build starts a job for it</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="TipRaiseATaskWhen" xml:space="preserve">
+    <value>Raise a task when stock falls below this share of the group target</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="TipFillBackUpTo" xml:space="preserve">
+    <value>Fill back up to this share of the group target</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="AddRule" xml:space="preserve">
+    <value>Add rule</value>
+    <comment>Button or option in WorklistView.</comment>
+  </data>
+  <data name="ColGroup" xml:space="preserve">
+    <value>Group</value>
+    <comment>Column header in WorklistView.</comment>
+  </data>
+  <data name="ColAction" xml:space="preserve">
+    <value>Action</value>
+    <comment>Column header in WorklistView.</comment>
+  </data>
+  <data name="ColTriggerBelow" xml:space="preserve">
+    <value>Trigger below (%)</value>
+    <comment>Column header in WorklistView.</comment>
+  </data>
+  <data name="ColFillTo" xml:space="preserve">
+    <value>Fill to (%)</value>
+    <comment>Column header in WorklistView.</comment>
+  </data>
+  <data name="ColFinal" xml:space="preserve">
+    <value>Final</value>
+    <comment>Column header in WorklistView.</comment>
+  </data>
+  <data name="TipThisGroupIsSold" xml:space="preserve">
+    <value>This group is sold or flown, not an input. Work that unblocks it is ranked above work that only refills a buffer.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="TipDoubleClickToChangeThe" xml:space="preserve">
+    <value>Double-click to change the station</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="TabStationLevels" xml:space="preserve">
+    <value>Station Levels</value>
+    <comment>Tab in WorklistView.</comment>
+  </data>
+  <data name="WhereEachGroupsStockNote" xml:space="preserve">
+    <value>Where each group's stock should live. This distributes material rather than demanding more of it — the Inventory Rules already set the quantity — so it raises hauling only, never a buy or a build. Tick Accepts surplus for the station spare stock should collect at when nothing else needs it.</value>
+    <comment>Note in WorklistView.</comment>
+  </data>
+  <data name="HintGroup" xml:space="preserve">
+    <value>Group…</value>
+    <comment>Hint in an empty box in WorklistView.</comment>
+  </data>
+  <data name="HintNeedNotBeInThe" xml:space="preserve">
+    <value>Need not be in the park…</value>
+    <comment>Hint in an empty box in WorklistView.</comment>
+  </data>
+  <data name="AcceptsSurplus" xml:space="preserve">
+    <value>Accepts surplus</value>
+    <comment>Button or option in WorklistView.</comment>
+  </data>
+  <data name="TipSpareStockOfThis" xml:space="preserve">
+    <value>Spare stock of this group collects here when no station needs it.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="RestockWhenBelowLevelBy" xml:space="preserve">
+    <value>Restock when below level by (%)</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="TipAStationIsLeft" xml:space="preserve">
+    <value>A station is left alone until it falls this far under its level, then is filled all the way back up. Zero restocks on any shortfall at all.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="SweepSurplusWhenAboveLevel" xml:space="preserve">
+    <value>Sweep surplus when above level by (%)</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="TipExcessIsLeftWhere" xml:space="preserve">
+    <value>Excess is left where it is until a station is this far over its level, then drained back down to it. Zero sweeps any excess at all.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="ColInventoryGroup" xml:space="preserve">
+    <value>Inventory group</value>
+    <comment>Column header in WorklistView.</comment>
+  </data>
+  <data name="ColAcceptsSurplus" xml:space="preserve">
+    <value>Accepts surplus</value>
+    <comment>Column header in WorklistView.</comment>
+  </data>
+  <data name="TabOther" xml:space="preserve">
+    <value>Other</value>
+    <comment>Tab in WorklistView.</comment>
+  </data>
+  <data name="WhereIndustryWorkIsNote" xml:space="preserve">
+    <value>Where industry work is planned, where its materials are counted, and where what is missing gets bought.</value>
+    <comment>Note in WorklistView.</comment>
+  </data>
+  <data name="Industry" xml:space="preserve">
+    <value>Industry</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="PlanAgainstPark" xml:space="preserve">
+    <value>Plan against park</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="MaxJobLengthManufacturing" xml:space="preserve">
+    <value>Max job length — manufacturing</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="Reactions" xml:space="preserve">
+    <value>reactions</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="Science" xml:space="preserve">
+    <value>science</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="TipDefaultFollowsWhicheverPark" xml:space="preserve">
+    <value>&lt;Default&gt; follows whichever park is starred in Indy Parks, resolved each time work is planned — so moving the star moves the planning with it.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="TipDaysAShortfallNeeding" xml:space="preserve">
+    <value>Days. A shortfall needing longer is split into several jobs, which can run on different slots and characters. Blank for no limit — only the blueprint's own run cap then applies.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="TipDaysReactionsAreSet" xml:space="preserve">
+    <value>Days. Reactions are set apart from manufacturing because they are usually run in shorter, continuous cycles.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="TipDaysCoveringCopyingAnd" xml:space="preserve">
+    <value>Days, covering copying and invention. This is what decides when one multi-run invention batch becomes two: a batch yields nothing until it ends, and a single attempt on a capital blueprint is already about eight days, so a manufacturing-sized limit would force one attempt per job and spend a science slot on each.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="Days" xml:space="preserve">
+    <value>days</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="AssetScope" xml:space="preserve">
+    <value>Asset Scope</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="CountMaterial" xml:space="preserve">
+    <value>Count material</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="RegionSystem" xml:space="preserve">
+    <value>Region / system</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="TipHowFarToLook" xml:space="preserve">
+    <value>How far to look when deciding a job is short of something. Stock outside this counts as not owned, so it raises a purchase rather than a haul.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="IncludeNonPersonalCorpAssets" xml:space="preserve">
+    <value>Include Non Personal Corp Assets</value>
+    <comment>Button or option in WorklistView.</comment>
+  </data>
+  <data name="TipOffByDefaultOnly" xml:space="preserve">
+    <value>Off by default. Only corporations flagged personal on the Corporations tab count as material — authorising a character in a large alliance corp otherwise hands the tool that corp's entire hangar, none of which is yours.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="AlsoCountTheseStations" xml:space="preserve">
+    <value>Also count these stations</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="HintJitaAmarr" xml:space="preserve">
+    <value>Jita, Amarr…</value>
+    <comment>Hint in an empty box in WorklistView.</comment>
+  </data>
+  <data name="TipTradeHubsYouImport" xml:space="preserve">
+    <value>Trade hubs you import through. Stock waiting in one of these is stock you have, so it should not raise a second purchase.</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="TipClickToRemoveFromThe" xml:space="preserve">
+    <value>Click to remove from the scope</value>
+    <comment>Tooltip in WorklistView.</comment>
+  </data>
+  <data name="CorpProjects" xml:space="preserve">
+    <value>Corp Projects</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="StandingProjectsAreDefinedNote" xml:space="preserve">
+    <value>Standing projects are defined in Corp Activity; the only thing the worklist needs is who maintains them. Projects belong to a corporation, so this routes by corporation rather than by station. Only corporations that actually have standing projects are listed.</value>
+    <comment>Note in WorklistView.</comment>
+  </data>
+  <data name="Corporation" xml:space="preserve">
+    <value>Corporation</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="MaintainedBy" xml:space="preserve">
+    <value>Maintained by</value>
+    <comment>Text in WorklistView.</comment>
+  </data>
+  <data name="HintPickACorporation" xml:space="preserve">
+    <value>Pick a corporation…</value>
+    <comment>Hint in an empty box in WorklistView.</comment>
+  </data>
+  <data name="ColCorporation" xml:space="preserve">
+    <value>Corporation</value>
+    <comment>Column header in WorklistView.</comment>
+  </data>
+  <data name="ColRecent30d" xml:space="preserve">
+    <value>30d</value>
+    <comment>Column header: the last 30 days, abbreviated. Keep short.</comment>
+  </data>
+</root>

@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              x:Class="EveConsole.Views.ChatLogViewerView"
              x:DataType="vm:ChatLogViewerViewModel"
@@ -29,21 +30,21 @@
     <Border Grid.Row="0" Background="{DynamicResource SurfaceBaseBrush}" Padding="10 6" BorderBrush="{DynamicResource SurfaceRaisedBrush}" BorderThickness="0 0 0 1">
       <StackPanel Spacing="7">
         <Grid ColumnDefinitions="*,Auto">
-          <TextBlock Text="Chat Log" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"
+          <TextBlock Text="{x:Static loc:DataText.ChatLog}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"
                      VerticalAlignment="Center" />
           <TextBlock Grid.Column="1" Text="{Binding StatusText}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
                      VerticalAlignment="Center" />
         </Grid>
         <StackPanel Orientation="Horizontal" Spacing="8">
-          <TextBlock Classes="fl" Text="From" />
+          <TextBlock Classes="fl" Text="{x:Static loc:DataText.From}" />
           <TextBox Text="{Binding DateFrom}" Watermark="yyyy-MM-dd" Width="120" />
-          <TextBlock Classes="fl" Text="Thru" />
-          <TextBox Text="{Binding DateThru}" Watermark="(now)" Width="120" />
-          <TextBlock Classes="fl" Text="Find" />
-          <TextBox Text="{Binding Search}" Watermark="sender or text…" Width="190" />
-          <CheckBox IsChecked="{Binding HideSystemMessages}" Content="Hide system" FontSize="11"
+          <TextBlock Classes="fl" Text="{x:Static loc:DataText.Thru}" />
+          <TextBox Text="{Binding DateThru}" Watermark="{x:Static loc:DataText.HintNow}" Width="120" />
+          <TextBlock Classes="fl" Text="{x:Static loc:DataText.Find}" />
+          <TextBox Text="{Binding Search}" Watermark="{x:Static loc:DataText.HintSenderOrText}" Width="190" />
+          <CheckBox IsChecked="{Binding HideSystemMessages}" Content="{x:Static loc:DataText.HideSystem}" FontSize="11"
                     Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
-          <Button Command="{Binding RefreshCommand}" Content="Refresh" FontSize="10" Padding="8 2"
+          <Button Command="{Binding RefreshCommand}" Content="{x:Static loc:DataText.Refresh}" FontSize="10" Padding="8 2"
                   Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                   VerticalAlignment="Center" />
         </StackPanel>
@@ -77,10 +78,10 @@
                 CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
                 Background="{DynamicResource SurfaceBaseBrush}">
         <DataGrid.Columns>
-          <DataGridTextColumn Header="Time"     Binding="{Binding Time}"     Width="145" />
-          <DataGridTextColumn Header="Sender"   Binding="{Binding Sender}"   Width="170" />
-          <DataGridTextColumn Header="Message"  Binding="{Binding Message}"  Width="*"   />
-          <DataGridTextColumn Header="Listener" Binding="{Binding Listener}" Width="140" />
+          <DataGridTextColumn Header="{x:Static loc:DataText.ColTime}"     Binding="{Binding Time}"     Width="145" />
+          <DataGridTextColumn Header="{x:Static loc:DataText.ColSender}"   Binding="{Binding Sender}"   Width="170" />
+          <DataGridTextColumn Header="{x:Static loc:DataText.ColMessage}"  Binding="{Binding Message}"  Width="*"   />
+          <DataGridTextColumn Header="{x:Static loc:DataText.ColListener}" Binding="{Binding Listener}" Width="140" />
         </DataGrid.Columns>
       </DataGrid>
 
