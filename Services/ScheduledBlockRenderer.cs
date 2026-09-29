@@ -444,9 +444,11 @@ public class ScheduledBlockRenderer(
         var summary = await corp.GetMonthSummaryAsync(b.CorpId, year, month, ct);
         var lines   = MonthlySummaryReport.Build(summary, titles);
 
+        // The month in the interface language, as the screen's own export names it: the header
+        // around it is the interface's, and an English month read "월간 요약 — 2026년 September".
         var header = MonthlySummaryReport.Header(
             await CorpNameAsync(b.CorpId, ct),
-            System.Globalization.CultureInfo.InvariantCulture.DateTimeFormat.GetMonthName(month),
+            new DateTime(year, month, 1).ToString("MMMM", System.Globalization.CultureInfo.CurrentCulture),
             year,
             titles.HeaderPrefix);
 
