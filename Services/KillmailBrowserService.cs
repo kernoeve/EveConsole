@@ -290,7 +290,8 @@ public class KillmailBrowserService(
     /// <param name="Stored">How many of them were not in the database until now.</param>
     /// <param name="Oldest">The oldest kill on the page — everything since is now complete.</param>
     /// <param name="Reached">False when zKillboard could not be reached, or answered with an error.</param>
-    public sealed record ZkbEntityPage(int Kills, int Stored, DateTimeOffset? Oldest, bool Reached);
+    /// <param name="Problem">Why not, in words, when it was not reached.</param>
+    public sealed record ZkbEntityPage(int Kills, int Stored, DateTimeOffset? Oldest, bool Reached, string? Problem = null);
 
     /// <summary>
     /// Pulls page <paramref name="page"/> of an entity's kills and losses from zKillboard,
@@ -318,9 +319,9 @@ public class KillmailBrowserService(
         };
         if (type is null || entityId <= 0) return new ZkbEntityPage(0, 0, null, Reached: false);
 
-        var kills = await zkb.GetEntityPageAsync(type, entityId, page, ct);
-        if (kills is null)      return new ZkbEntityPage(0, 0, null, Reached: false);
-        if (kills.Count == 0)   return new ZkbEntityPage(0, 0, null, Reached: true);
+        var answer = await zkb.GetEntityPageAsync(type, entityId, page, ct);
+        if (answer.Kills is not { } kills) return new ZkbEntityPage(0, 0, null, Reached: false, answer.Problem);
+        if (kills.Count == 0)              return new ZkbEntityPage(0, 0, null, Reached: true);
 
         var ids = kills.Select(k => k.Kill.KillMailId).ToList();
 

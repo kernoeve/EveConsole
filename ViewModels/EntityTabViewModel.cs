@@ -661,7 +661,8 @@ public class EntityTabViewModel : ReactiveObject
         CanLoadMoreKills = false;
         KillsStatus      = page == 1
             ? "Asking zKillboard for the kills not stored here…"
-            : $"{Kills.Count:N0} shown — loading page {page} from zKillboard…";
+            : $"{Kills.Count:N0} shown — loading page {page} from zKillboard. A page it has not served "
+            + "lately can take a minute.";
 
         // Where the last page stopped; page one runs to the present.
         var previous = _zkbOldest;
@@ -689,8 +690,9 @@ public class EntityTabViewModel : ReactiveObject
 
                 if (!result.Reached)
                 {
-                    KillsStatus = $"zKillboard could not be reached, so {(page == 1 ? "these are" : "the rest are")} "
-                                + "only the kills stored here.";
+                    KillsStatus = $"{result.Problem ?? "zKillboard could not be reached"} — "
+                                + (page == 1 ? "so these are only the kills stored here."
+                                             : $"{Kills.Count:N0} shown, page {page} not loaded.");
                     LoadMoreKillsText = RetryKillsText;
                     CanLoadMoreKills  = true;
                     return;
@@ -719,12 +721,16 @@ public class EntityTabViewModel : ReactiveObject
                 foreach (var r in added) Kills.Add(r);
                 _ = Task.WhenAll(added.Select(r => r.LoadImagesAsync()));
 
-                CanLoadMoreKills = true;
+                // ⚠️ zKillboard refuses page 101, so the button stops at 100 — saying so, rather
+                // than leaving a reader to wonder where it went.
+                var last = page >= ZkillboardApiClient.MaxEntityPage;
+                CanLoadMoreKills = !last;
                 KillsStatus = $"{Kills.Count:N0} kills and losses back to {result.Oldest!.Value.ToLocalTime():yyyy-MM-dd HH:mm} — "
-                            + $"complete from zKillboard, {_zkbStored:N0} fetched that were not stored here.";
+                            + $"complete from zKillboard, {_zkbStored:N0} fetched that were not stored here."
+                            + (last ? $" zKillboard serves no further back than this: its page limit is {ZkillboardApiClient.MaxEntityPage}." : "");
             });
         }
-        catch (OperationCanceledException) { }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested) { }
         catch (Exception ex)
         {
             await Dispatcher.UIThread.InvokeAsync(() =>

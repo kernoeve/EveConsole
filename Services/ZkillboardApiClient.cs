@@ -34,7 +34,10 @@ namespace EveConsole.Services;
 /// </summary>
 public class ZkillboardApiClient(IHttpClientFactory httpClientFactory, AppErrorLogger errorLogger)
 {
-    private readonly HttpClient _http = httpClientFactory.CreateClient("zkillboard");
+    private readonly HttpClient _http  = httpClientFactory.CreateClient("zkillboard");
+
+    /// <summary>Entity pages only, for a longer timeout — see its registration.</summary>
+    private readonly HttpClient _pages = httpClientFactory.CreateClient("zkillboard-pages");
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -106,19 +109,32 @@ public class ZkillboardApiClient(IHttpClientFactory httpClientFactory, AppErrorL
     }
 
     /// <summary>
+    /// The deepest entity page zKillboard serves. Page 101 is answered with
+    /// <c>{"error":"page value > 100 not allowed"}</c> (measured 2026-09-28), so an entity's
+    /// most recent 20,000 kills and losses are all this API reaches — five weeks back for a
+    /// large alliance.
+    /// </summary>
+    public const int MaxEntityPage = 100;
+
+    /// <summary>A page of kills, or why there is none.</summary>
+    /// <param name="Kills">The page; empty when it is past the end. Null with a <paramref name="Problem"/>.</param>
+    public sealed record EntityPage(List<ZkbFullKill>? Kills, string? Problem);
+
+    /// <summary>
     /// One page of an entity's killmails — kills and losses together, newest first — from
     /// <c>/api/{character|corporation|alliance}ID/{id}/page/{n}/</c>.
     ///
     /// <para>Each entry is the full ESI body with a "zkb" sibling at its root (hash, values), so
-    /// a page stores without one ESI call per kill. Checked against the live API on a large
-    /// alliance (2026-09-28): pages hold up to 200 (the first held 198), strictly newest first,
-    /// items included, and page 26 still answered.</para>
+    /// a page stores without one ESI call per kill. Checked against the live API on large
+    /// alliances (2026-09-28): pages hold up to 200 (the first held 198), strictly newest first,
+    /// items included, up to <see cref="MaxEntityPage"/>.</para>
     ///
-    /// <para>Null when zKillboard could not be reached or answered with anything but a list —
-    /// its errors come back as an object. An empty list means the page is past the end.</para>
+    /// <para>⚠️ Slow on a page nobody has asked for lately: 36.7s for page 10 of a large alliance,
+    /// against 0.14s for page 1. On its own client with a two-minute timeout, and a timeout is
+    /// reported as one — as a cancellation it read as the list having ended.</para>
     /// </summary>
     /// <param name="entityType">"character", "corporation" or "alliance".</param>
-    public async Task<List<ZkbFullKill>?> GetEntityPageAsync(
+    public async Task<EntityPage> GetEntityPageAsync(
         string entityType, long entityId, int page, CancellationToken ct = default)
     {
         var path = entityType switch
@@ -128,20 +144,32 @@ public class ZkillboardApiClient(IHttpClientFactory httpClientFactory, AppErrorL
             "alliance"    => "allianceID",
             _ => throw new ArgumentOutOfRangeException(nameof(entityType), entityType, "must be character, corporation or alliance"),
         };
+        if (page > MaxEntityPage)
+            return new EntityPage(null, $"zKillboard serves no further back than page {MaxEntityPage}");
+
         var url = $"https://zkillboard.com/api/{path}/{entityId}/page/{page}/";
+        var context = $"GetEntityPageAsync {entityType}:{entityId} page {page}";
 
         try
         {
-            using var response = await _http.GetAsync(url, ct);
+            using var response = await _pages.GetAsync(url, ct);
             if (!response.IsSuccessStatusCode)
             {
-                errorLogger.Log(nameof(ZkillboardApiClient), $"GetEntityPageAsync {entityType}:{entityId} page {page}",
+                errorLogger.Log(nameof(ZkillboardApiClient), context,
                     new HttpRequestException($"zKillboard answered HTTP {(int)response.StatusCode}"));
-                return null;
+                return new EntityPage(null, $"zKillboard answered HTTP {(int)response.StatusCode}");
             }
 
             using var doc = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync(ct), cancellationToken: ct);
-            if (doc.RootElement.ValueKind != JsonValueKind.Array) return null;
+
+            // Its errors come back as an object with a message, and the message is the answer.
+            if (doc.RootElement.ValueKind != JsonValueKind.Array)
+            {
+                var said = doc.RootElement.ValueKind == JsonValueKind.Object
+                        && doc.RootElement.TryGetProperty("error", out var e) ? e.ToString() : "an unexpected answer";
+                errorLogger.Log(nameof(ZkillboardApiClient), context, new InvalidOperationException($"zKillboard: {said}"));
+                return new EntityPage(null, $"zKillboard said: {said}");
+            }
 
             var kills = new List<ZkbFullKill>();
             foreach (var entry in doc.RootElement.EnumerateArray())
@@ -153,12 +181,19 @@ public class ZkillboardApiClient(IHttpClientFactory httpClientFactory, AppErrorL
                 var kill = entry.Deserialize<EsiKillMailFull>(JsonOptions);
                 if (kill is not null && kill.KillMailId > 0) kills.Add(new ZkbFullKill(kill, hash));
             }
-            return kills;
+            return new EntityPage(kills, null);
+        }
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+        {
+            // The client's timeout, not the caller: HttpClient reports both the same way.
+            errorLogger.Log(nameof(ZkillboardApiClient), context,
+                new TimeoutException("zKillboard did not answer within two minutes"));
+            return new EntityPage(null, "zKillboard did not answer within two minutes");
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            errorLogger.Log(nameof(ZkillboardApiClient), $"GetEntityPageAsync {entityType}:{entityId} page {page}", ex);
-            return null;
+            errorLogger.Log(nameof(ZkillboardApiClient), context, ex);
+            return new EntityPage(null, "zKillboard could not be reached");
         }
     }
 
