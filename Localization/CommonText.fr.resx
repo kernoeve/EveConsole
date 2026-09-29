@@ -1,0 +1,316 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TitleAddItem" xml:space="preserve">
+    <value>Ajouter un objet</value>
+  </data>
+  <data name="TypeNumbered" xml:space="preserve">
+    <value>Type {0}</value>
+  </data>
+  <data name="SearchForItemLabel" xml:space="preserve">
+    <value>Rechercher un objet</value>
+  </data>
+  <data name="HintStartTypingItemName" xml:space="preserve">
+    <value>Saisissez le nom d'un objet…</value>
+  </data>
+  <data name="Change" xml:space="preserve">
+    <value>Changer</value>
+  </data>
+  <data name="TargetQuantityLabel" xml:space="preserve">
+    <value>Quantité cible</value>
+  </data>
+  <data name="SelectAnItemFromNote" xml:space="preserve">
+    <value>Sélectionnez un objet dans la liste ci-dessus.</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Annuler</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Ajouter</value>
+  </data>
+  <data name="TitleAddItemsFromBlueprint" xml:space="preserve">
+    <value>Ajouter des objets depuis un plan de construction</value>
+  </data>
+  <data name="BlueprintSearchByProductName" xml:space="preserve">
+    <value>Plan de construction (recherche par nom de produit)</value>
+  </data>
+  <data name="HintTypeToSearch" xml:space="preserve">
+    <value>Tapez pour rechercher…</value>
+  </data>
+  <data name="MeLevelLabel" xml:space="preserve">
+    <value>Niveau ME</value>
+  </data>
+  <data name="RunsLabel" xml:space="preserve">
+    <value>Cycles</value>
+  </data>
+  <data name="MaterialsFromLabel" xml:space="preserve">
+    <value>Matériaux issus de</value>
+  </data>
+  <data name="ThisBlueprint" xml:space="preserve">
+    <value>Ce plan</value>
+  </data>
+  <data name="WholeChain" xml:space="preserve">
+    <value>Toute la chaîne</value>
+  </data>
+  <data name="IndyParkWholeChain" xml:space="preserve">
+    <value>Parc industriel (toute la chaîne)</value>
+  </data>
+  <data name="AddItems" xml:space="preserve">
+    <value>Ajouter les objets</value>
+  </data>
+  <data name="Cancel2" xml:space="preserve">
+    <value>Annuler</value>
+  </data>
+  <data name="TitleCustomColour" xml:space="preserve">
+    <value>Couleur personnalisée</value>
+  </data>
+  <data name="EveMailIsDrawnNote" xml:space="preserve">
+    <value>Les courriers EVE s'affichent sur un fond presque noir : les couleurs très sombres y deviennent presque invisibles. L'échantillon ci-dessous est présenté sur ce fond plutôt que sur celui de cette boîte de dialogue.</value>
+  </data>
+  <data name="Archon10002" xml:space="preserve">
+    <value>Archon  (10,0,0) - 2.12B</value>
+  </data>
+  <data name="UseThisColour" xml:space="preserve">
+    <value>Utiliser cette couleur</value>
+  </data>
+  <data name="TitleConfirm" xml:space="preserve">
+    <value>Confirmation</value>
+  </data>
+  <data name="No" xml:space="preserve">
+    <value>Non</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>Oui</value>
+  </data>
+  <data name="TitleOpenInBrowser" xml:space="preserve">
+    <value>Ouvrir dans le navigateur ?</value>
+  </data>
+  <data name="ThisLinkOpensANote" xml:space="preserve">
+    <value>Ce lien ouvre un site web dans votre navigateur.</value>
+  </data>
+  <data name="DontAskMeAgain" xml:space="preserve">
+    <value>Ne plus me demander</value>
+  </data>
+  <data name="Open" xml:space="preserve">
+    <value>Ouvrir</value>
+  </data>
+  <data name="TitleAddItemsFromFit" xml:space="preserve">
+    <value>Ajouter des objets depuis un montage</value>
+  </data>
+  <data name="AddToGroupLabel" xml:space="preserve">
+    <value>Ajouter au groupe :</value>
+  </data>
+  <data name="FitsLabel" xml:space="preserve">
+    <value>Montages</value>
+  </data>
+  <data name="FitContentsLabel" xml:space="preserve">
+    <value>Contenu du montage</value>
+  </data>
+  <data name="AddItems2" xml:space="preserve">
+    <value>Ajouter les objets</value>
+  </data>
+  <data name="TitleAddItemsFromMarketGroup" xml:space="preserve">
+    <value>Ajouter des objets depuis un groupe de marché</value>
+  </data>
+  <data name="TargetQtyPerItemLabel" xml:space="preserve">
+    <value>Qté cible par objet</value>
+  </data>
+  <data name="Ok" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="HintRrggbb" xml:space="preserve">
+    <value>#rrggbb</value>
+  </data>
+  <data name="TipPickAColour" xml:space="preserve">
+    <value>Choisir une couleur</value>
+  </data>
+  <data name="EveMailColoursLabel" xml:space="preserve">
+    <value>Couleurs du courrier EVE</value>
+  </data>
+  <data name="Custom" xml:space="preserve">
+    <value>Personnalisée…</value>
+  </data>
+  <data name="NoColour" xml:space="preserve">
+    <value>Aucune couleur</value>
+  </data>
+  <data name="TipShowEveryLabelAlreadyIn" xml:space="preserve">
+    <value>Afficher toutes les étiquettes déjà utilisées</value>
+  </data>
+  <data name="NoMatchesPressEnterNote" xml:space="preserve">
+    <value>Aucune correspondance — appuyez sur Enter pour la créer.</value>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>Chargement…</value>
+  </data>
+  <data name="Checking" xml:space="preserve">
+    <value>Vérification…</value>
+  </data>
+  <data name="ErrorWithMessage" xml:space="preserve">
+    <value>Erreur : {0}</value>
+  </data>
+  <data name="PriceTypeBuy" xml:space="preserve">
+    <value>Achat</value>
+  </data>
+  <data name="PriceTypeSell" xml:space="preserve">
+    <value>Vente</value>
+  </data>
+  <data name="PriceTypeSplit" xml:space="preserve">
+    <value>Médian</value>
+  </data>
+  <data name="JobReady" xml:space="preserve">
+    <value>Prêt</value>
+  </data>
+  <data name="DurationDaysHoursMinutes" xml:space="preserve">
+    <value>{0} j {1} h {2} min</value>
+  </data>
+  <data name="DurationHoursMinutes" xml:space="preserve">
+    <value>{0} h {1} min</value>
+  </data>
+  <data name="DurationMinutesSeconds" xml:space="preserve">
+    <value>{0} min {1} s</value>
+  </data>
+  <data name="DurationSeconds" xml:space="preserve">
+    <value>{0} s</value>
+  </data>
+  <data name="AlarmActionSound" xml:space="preserve">
+    <value>Son</value>
+  </data>
+  <data name="AlarmActionTtsDirect" xml:space="preserve">
+    <value>TTS direct (sans l'assistant IA)</value>
+  </data>
+  <data name="AlarmActionAgentNotify" xml:space="preserve">
+    <value>Notifier l'assistant IA</value>
+  </data>
+  <data name="AlarmActionAlert" xml:space="preserve">
+    <value>Alerte</value>
+  </data>
+  <data name="AlarmActionDialog" xml:space="preserve">
+    <value>Boîte de dialogue</value>
+  </data>
+  <data name="PagerNoResults" xml:space="preserve">
+    <value>Aucun résultat</value>
+  </data>
+  <data name="PagerPageOf" xml:space="preserve">
+    <value>Page {0:N0} sur {1:N0}  ·  {2:N0}</value>
+  </data>
+  <data name="NoPark" xml:space="preserve">
+    <value>— Aucun parc —</value>
+  </data>
+  <data name="SelectBlueprintFirst" xml:space="preserve">
+    <value>Sélectionnez d'abord un plan de construction.</value>
+  </data>
+  <data name="TypeToConfirm" xml:space="preserve">
+    <value>Tapez {0} pour confirmer :</value>
+  </data>
+  <data name="NameRequired" xml:space="preserve">
+    <value>Le nom est obligatoire.</value>
+  </data>
+  <data name="LoadingMarketGroups" xml:space="preserve">
+    <value>Chargement des groupes de marché…</value>
+  </data>
+  <data name="SelectMarketGroup" xml:space="preserve">
+    <value>Sélectionnez un groupe de marché pour ajouter ses objets.</value>
+  </data>
+  <data name="FitBadgePersonal" xml:space="preserve">
+    <value>P</value>
+  </data>
+  <data name="FitBadgeCorp" xml:space="preserve">
+    <value>C</value>
+  </data>
+  <data name="FetchingFits" xml:space="preserve">
+    <value>Récupération des montages depuis ESI…</value>
+  </data>
+  <data name="BuildingFitTree" xml:space="preserve">
+    <value>Construction de l'arborescence…</value>
+  </data>
+  <data name="NoFitsFound" xml:space="preserve">
+    <value>Aucun montage trouvé. Vérifiez que les personnages disposent de l'autorisation esi-fittings.read_fittings.v1.</value>
+  </data>
+  <data name="TypeIdWithId" xml:space="preserve">
+    <value>ID de type {0}</value>
+  </data>
+  <data name="FitsSummary" xml:space="preserve">
+    <value>{0} montage(s) pour {1} type(s) de vaisseau</value>
+  </data>
+  <data name="FitSectionHigh" xml:space="preserve">
+    <value>Emplacements haute puissance</value>
+  </data>
+  <data name="FitSectionMed" xml:space="preserve">
+    <value>Emplacements intermédiaires</value>
+  </data>
+  <data name="FitSectionLow" xml:space="preserve">
+    <value>Emplacements basse puissance</value>
+  </data>
+  <data name="FitSectionRigs" xml:space="preserve">
+    <value>Modules d'optimisation</value>
+  </data>
+  <data name="FitSectionSubsystems" xml:space="preserve">
+    <value>Sous-systèmes</value>
+  </data>
+  <data name="FitSectionDrones" xml:space="preserve">
+    <value>Drones</value>
+  </data>
+  <data name="FitSectionFighters" xml:space="preserve">
+    <value>Chasseurs</value>
+  </data>
+  <data name="FitSectionCargo" xml:space="preserve">
+    <value>Cargaison</value>
+  </data>
+  <data name="FitSectionFleetHangar" xml:space="preserve">
+    <value>Hangar de flotte</value>
+  </data>
+  <data name="FitSectionOther" xml:space="preserve">
+    <value>Autre</value>
+  </data>
+  <data name="FitSectionHull" xml:space="preserve">
+    <value>Coque</value>
+  </data>
+  <data name="ListSeparator" xml:space="preserve">
+    <value>, </value>
+  </data>
+  <data name="DateMonthDay" xml:space="preserve">
+    <value>d MMM</value>
+  </data>
+  <data name="DateMonthDayTime" xml:space="preserve">
+    <value>d MMM HH:mm</value>
+  </data>
+  <data name="DateMonthDayTime12" xml:space="preserve">
+    <value>d MMM HH:mm</value>
+  </data>
+  <data name="DateMonthDayYear" xml:space="preserve">
+    <value>d MMM yyyy</value>
+  </data>
+  <data name="DateMonthDayYearTime" xml:space="preserve">
+    <value>d MMM yyyy HH:mm</value>
+  </data>
+  <data name="DateMonthYear" xml:space="preserve">
+    <value>MMMM yyyy</value>
+  </data>
+  <data name="DateMonthYearShort" xml:space="preserve">
+    <value>MMM yy</value>
+  </data>
+  <data name="DateDayTime" xml:space="preserve">
+    <value>d MMM HH:mm</value>
+  </data>
+  <data name="DateDayTimeSeconds" xml:space="preserve">
+    <value>d MMM HH:mm:ss</value>
+  </data>
+  <data name="DateFull" xml:space="preserve">
+    <value>d MMM yyyy</value>
+  </data>
+  <data name="DateTimeFull" xml:space="preserve">
+    <value>d MMM yyyy HH:mm</value>
+  </data>
+  <data name="DateTimeLong" xml:space="preserve">
+    <value>d MMMM yyyy à HH:mm</value>
+  </data>
+  <data name="DateWeekdayTime" xml:space="preserve">
+    <value>dddd d MMM yyyy  HH:mm</value>
+  </data>
+  <data name="DateFullBinding" xml:space="preserve">
+    <value>{0:dd MMM yyyy}</value>
+  </data>
+</root>

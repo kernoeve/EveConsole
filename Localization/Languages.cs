@@ -37,10 +37,11 @@ public sealed record LanguageChoice(string Code, string Name)
 /// ever showing half one language and half another. A language picked in Settings is stored at
 /// once and offers a restart.</para>
 ///
-/// <para>⚠️ The interface language only. Numbers and dates keep following the machine's own
-/// regional format (CultureInfo.CurrentCulture), exactly as Windows keeps its display language
-/// and its regional format apart: a German-speaking player who reads the app in English still
-/// writes 1.234,56.</para>
+/// <para>⚠️ Numbers and dates follow the machine's regional format (CultureInfo.CurrentCulture)
+/// while that format is in the interface's language — English on a UK region keeps the UK's own
+/// dates — and the interface language's own formats when it is not (decided 2026-09-28): a
+/// Chinese interface on an English-region PC put "Sep 28" among the Chinese. See
+/// <see cref="ApplyAtStartup"/>.</para>
 /// </summary>
 public static class Languages
 {
@@ -69,6 +70,13 @@ public static class Languages
         [
             "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB",
             "Noto Sans CJK SC", "Noto Sans SC", "Source Han Sans SC", "WenQuanYi Micro Hei",
+        ]),
+        // Latin, which the bundled Inter covers: no fallback list needed.
+        new("fr", "Français", "French", Preview: true, []),
+        new("ja", "日本語", "Japanese", Preview: true,
+        [
+            "Yu Gothic UI", "Meiryo UI", "Meiryo", "Hiragino Sans", "Hiragino Kaku Gothic ProN",
+            "Noto Sans CJK JP", "Noto Sans JP", "Source Han Sans JP", "IPAexGothic",
         ]),
     ];
 
