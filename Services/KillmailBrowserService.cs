@@ -285,6 +285,38 @@ public class KillmailBrowserService(
         return new KillmailListPage(rows, hasMore);
     }
 
+    /// <summary>zKillboard's name for an entity kind, or null for one it is not asked about.</summary>
+    private static string? ZkbType(EntityKind kind) => kind switch
+    {
+        EntityKind.Pilot      => "character",
+        EntityKind.PlayerCorp => "corporation",
+        EntityKind.Alliance   => "alliance",
+        _                     => null,
+    };
+
+    /// <summary>Stats answered in the last few minutes, so going back and forth between two
+    /// entities asks once. Failures are not kept: the next look asks again.</summary>
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<(string, long), (DateTimeOffset At, ZkillboardApiClient.EntityStats Stats)>
+        _statsCache = new();
+    private static readonly TimeSpan StatsKeep = TimeSpan.FromMinutes(10);
+
+    /// <summary>
+    /// The summary zKillboard shows above an entity's kill list — see
+    /// <see cref="ZkillboardApiClient.GetEntityStatsAsync"/>. For the entity viewer's header,
+    /// which cannot count kills itself: the database holds only a sample of anyone else's.
+    /// </summary>
+    public async Task<ZkillboardApiClient.EntityStats> ZkbStatsAsync(EntityKind kind, long entityId, CancellationToken ct = default)
+    {
+        if (ZkbType(kind) is not { } type || entityId <= 0) return new ZkillboardApiClient.EntityStats(null, null);
+
+        if (_statsCache.TryGetValue((type, entityId), out var hit) && DateTimeOffset.UtcNow - hit.At < StatsKeep)
+            return hit.Stats;
+
+        var stats = await zkb.GetEntityStatsAsync(type, entityId, ct);
+        if (stats.Problem is null) _statsCache[(type, entityId)] = (DateTimeOffset.UtcNow, stats);
+        return stats;
+    }
+
     /// <summary>What one zKillboard page for an entity brought in.</summary>
     /// <param name="Kills">Kills on the page; zero means it was past the end.</param>
     /// <param name="Stored">How many of them were not in the database until now.</param>
@@ -310,13 +342,7 @@ public class KillmailBrowserService(
     public async Task<ZkbEntityPage> PullEntityPageAsync(
         EntityKind kind, long entityId, int page, CancellationToken ct = default)
     {
-        var type = kind switch
-        {
-            EntityKind.Pilot      => "character",
-            EntityKind.PlayerCorp => "corporation",
-            EntityKind.Alliance   => "alliance",
-            _                     => null,
-        };
+        var type = ZkbType(kind);
         if (type is null || entityId <= 0) return new ZkbEntityPage(0, 0, null, Reached: false);
 
         var answer = await zkb.GetEntityPageAsync(type, entityId, page, ct);

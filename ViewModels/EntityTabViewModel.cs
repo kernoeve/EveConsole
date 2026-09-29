@@ -397,12 +397,16 @@ public class EntityTabViewModel : ReactiveObject
                 CanLoadMoreKills  = false;
                 LoadMoreKillsText = MoreKillsText;
                 StartZkbIfWanted();
+
+                ZkbStats       = null;
+                ZkbStatsStatus = HasKills ? "Loading zKillboard stats…" : "";
             });
 
             // Everything below is optional detail — the About pane is already usable, so
             // none of it blocks the others.
             if (detail.ImageUrl is { } url) _ = LoadImageAsync(url, ct);
             _ = EnrichAsync(id, ct);
+            if (HasKills) _ = LoadZkbStatsAsync(id, ct);
             if (HasKills) _ = LoadKillsAsync(id, ct);
             if (HasIntel)   _ = LoadIntelAsync(id, ct);
             if (HasMembers) _ = LoadMembersAsync(id, ct);
@@ -581,6 +585,69 @@ public class EntityTabViewModel : ReactiveObject
         catch (OperationCanceledException) { }
         catch (Exception ex) { KillsStatus = $"Error: {ex.Message}"; }
     }
+
+    // ── zKillboard stats, in the header ───────────────────────────────────────
+
+    /// <summary>The panel, once zKillboard has answered for the entity on screen.</summary>
+    private ZkbStatsVm? _zkbStats;
+    public ZkbStatsVm? ZkbStats
+    {
+        get => _zkbStats;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _zkbStats, value);
+            this.RaisePropertyChanged(nameof(HasZkbStats));
+        }
+    }
+    public bool HasZkbStats => ZkbStats is not null;
+
+    /// <summary>Loading, why there are none, or "" once the panel is filled.</summary>
+    private string _zkbStatsStatus = "";
+    public string ZkbStatsStatus { get => _zkbStatsStatus; private set => this.RaiseAndSetIfChanged(ref _zkbStatsStatus, value); }
+
+    /// <summary>
+    /// The entity's summary from zKillboard, asked for as it is picked — the header shows on
+    /// every tab, so unlike the kill pages this is not left until a tab opens. One request, kept
+    /// ten minutes by the service. On the entity's token, like everything else it loads.
+    /// </summary>
+    private async Task LoadZkbStatsAsync(long id, CancellationToken ct)
+    {
+        try
+        {
+            var answer = await Task.Run(() => _killmails.ZkbStatsAsync(Kind, id, ct), ct);
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (ct.IsCancellationRequested || _loadedId != id) return;
+                if (answer.Problem is { } problem)
+                {
+                    ZkbStatsStatus = $"{problem}, so there are no stats to show.";
+                    return;
+                }
+                if (answer.Stats is not { } stats)
+                {
+                    ZkbStatsStatus = "zKillboard has no kills or losses for this entity.";
+                    return;
+                }
+                ZkbStats       = new ZkbStatsVm(stats, ZkbUrl(Kind, id));
+                ZkbStatsStatus = "";
+            });
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested) { }
+        catch (Exception ex)
+        {
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (_loadedId == id) ZkbStatsStatus = $"zKillboard stats failed: {ex.Message}";
+            });
+        }
+    }
+
+    private static string ZkbUrl(EntityKind kind, long id) => kind switch
+    {
+        EntityKind.Pilot      => $"https://zkillboard.com/character/{id}/",
+        EntityKind.PlayerCorp => $"https://zkillboard.com/corporation/{id}/",
+        _                     => $"https://zkillboard.com/alliance/{id}/",
+    };
 
     // ── Kills: everything zKillboard has, a page at a time ────────────────────
     //

@@ -59,7 +59,7 @@
     <Border Grid.Row="2" IsVisible="{Binding HasSelection}"
             Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="4"
             Padding="12 10" Margin="0 8 0 0">
-      <Grid ColumnDefinitions="Auto,*">
+      <Grid ColumnDefinitions="Auto,*,Auto">
 
         <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="0 0 14 0" VerticalAlignment="Top">
           <Border Width="96" Height="96"
@@ -111,6 +111,119 @@
             </ItemsControl.ItemTemplate>
           </ItemsControl>
         </StackPanel>
+
+        <!-- zKillboard's summary, as it shows it above an entity's kills. Its figures, never a
+             count of the kills stored here — for anyone but our own those are a sample. -->
+        <Border Grid.Column="2" IsVisible="{Binding HasKills}" Width="450" Margin="14 0 0 0" Padding="10 8"
+                VerticalAlignment="Top"
+                Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}"
+                BorderThickness="1" CornerRadius="3">
+          <StackPanel Spacing="6">
+            <TextBlock Text="{Binding ZkbStatsStatus}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
+                       TextWrapping="Wrap"
+                       IsVisible="{Binding ZkbStatsStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+
+            <StackPanel IsVisible="{Binding HasZkbStats}">
+              <StackPanel Spacing="7" DataContext="{Binding ZkbStats}" x:DataType="vm:ZkbStatsVm">
+                <StackPanel.Styles>
+                  <Style Selector="TextBlock.head">
+                    <Setter Property="FontSize" Value="10" />
+                    <Setter Property="Foreground" Value="{DynamicResource TextDimBrush}" />
+                    <Setter Property="HorizontalAlignment" Value="Right" />
+                  </Style>
+                  <Style Selector="TextBlock.label">
+                    <Setter Property="FontSize" Value="10" />
+                    <Setter Property="FontWeight" Value="SemiBold" />
+                    <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+                  </Style>
+                  <Style Selector="TextBlock.num">
+                    <Setter Property="FontSize" Value="10.5" />
+                    <Setter Property="HorizontalAlignment" Value="Right" />
+                    <Setter Property="Margin" Value="0 1" />
+                  </Style>
+                  <Style Selector="TextBlock.destroyed"><Setter Property="Foreground" Value="{DynamicResource GoodBrush}" /></Style>
+                  <Style Selector="TextBlock.lost"><Setter Property="Foreground" Value="{DynamicResource BadBrush}" /></Style>
+                  <Style Selector="TextBlock.rank"><Setter Property="Foreground" Value="{DynamicResource TextDimBrush}" /></Style>
+                  <Style Selector="TextBlock.eff"><Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" /></Style>
+                  <Style Selector="RadioButton">
+                    <Setter Property="FontSize" Value="10" />
+                    <Setter Property="MinHeight" Value="0" />
+                  </Style>
+                </StackPanel.Styles>
+
+                <!-- The source, as a link to its page; the overall rank; and the period. The
+                     buttons carry no group name: each entity tab has its own copy of this view,
+                     and a shared name would tie one tab's choice to the others'. -->
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                  <Button Grid.Column="0" Content="zKillboard" Command="{Binding OpenCommand}"
+                          ToolTip.Tip="{Binding Url}"
+                          Background="Transparent" BorderThickness="0" Padding="0"
+                          FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" Cursor="Hand"/>
+                  <TextBlock Grid.Column="1" Text="{Binding RankText}" FontSize="10" Foreground="{DynamicResource TextDimBrush}"
+                             Margin="8 0 0 0" VerticalAlignment="Center"/>
+                  <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4">
+                    <RadioButton Content="All time" IsChecked="{Binding IsAllTime}"/>
+                    <RadioButton Content="90 days"  IsChecked="{Binding IsRecent}"/>
+                    <RadioButton Content="7 days"   IsChecked="{Binding IsWeekly}"/>
+                  </StackPanel>
+                </Grid>
+
+                <TextBlock Text="{Binding EmptyText}" IsVisible="{Binding !HasFigures}"
+                           FontSize="10" Foreground="{DynamicResource TextDimBrush}"/>
+
+                <Grid IsVisible="{Binding HasFigures}" ColumnDefinitions="52,*,*,*,*,64" RowDefinitions="Auto,Auto,Auto,Auto">
+                  <TextBlock Grid.Row="0" Grid.Column="1" Classes="head" Text="Destroyed"/>
+                  <TextBlock Grid.Row="0" Grid.Column="2" Classes="head" Text="Rank"/>
+                  <TextBlock Grid.Row="0" Grid.Column="3" Classes="head" Text="Lost"/>
+                  <TextBlock Grid.Row="0" Grid.Column="4" Classes="head" Text="Rank"/>
+                  <TextBlock Grid.Row="0" Grid.Column="5" Classes="head" Text="Eff."/>
+
+                  <TextBlock Grid.Row="1" Grid.Column="0" Classes="label" Text="Ships"  VerticalAlignment="Center"/>
+                  <TextBlock Grid.Row="1" Grid.Column="1" Classes="num destroyed" Text="{Binding Ships.Destroyed}"/>
+                  <TextBlock Grid.Row="1" Grid.Column="2" Classes="num rank"      Text="{Binding Ships.DestroyedRank}"/>
+                  <TextBlock Grid.Row="1" Grid.Column="3" Classes="num lost"      Text="{Binding Ships.Lost}"/>
+                  <TextBlock Grid.Row="1" Grid.Column="4" Classes="num rank"      Text="{Binding Ships.LostRank}"/>
+                  <TextBlock Grid.Row="1" Grid.Column="5" Classes="num eff"       Text="{Binding Ships.Efficiency}"/>
+
+                  <TextBlock Grid.Row="2" Grid.Column="0" Classes="label" Text="Points" VerticalAlignment="Center"/>
+                  <TextBlock Grid.Row="2" Grid.Column="1" Classes="num destroyed" Text="{Binding Points.Destroyed}"/>
+                  <TextBlock Grid.Row="2" Grid.Column="2" Classes="num rank"      Text="{Binding Points.DestroyedRank}"/>
+                  <TextBlock Grid.Row="2" Grid.Column="3" Classes="num lost"      Text="{Binding Points.Lost}"/>
+                  <TextBlock Grid.Row="2" Grid.Column="4" Classes="num rank"      Text="{Binding Points.LostRank}"/>
+                  <TextBlock Grid.Row="2" Grid.Column="5" Classes="num eff"       Text="{Binding Points.Efficiency}"/>
+
+                  <TextBlock Grid.Row="3" Grid.Column="0" Classes="label" Text="ISK"    VerticalAlignment="Center"/>
+                  <TextBlock Grid.Row="3" Grid.Column="1" Classes="num destroyed" Text="{Binding Isk.Destroyed}"/>
+                  <TextBlock Grid.Row="3" Grid.Column="2" Classes="num rank"      Text="{Binding Isk.DestroyedRank}"/>
+                  <TextBlock Grid.Row="3" Grid.Column="3" Classes="num lost"      Text="{Binding Isk.Lost}"/>
+                  <TextBlock Grid.Row="3" Grid.Column="4" Classes="num rank"      Text="{Binding Isk.LostRank}"/>
+                  <TextBlock Grid.Row="3" Grid.Column="5" Classes="num eff"       Text="{Binding Isk.Efficiency}"/>
+                </Grid>
+
+                <!-- All time only: zKillboard gives the ratios for nothing narrower. -->
+                <Grid ColumnDefinitions="92,*,80" IsVisible="{Binding HasDanger}">
+                  <TextBlock Grid.Column="0" Text="{Binding DangerText}" FontSize="10" Foreground="{DynamicResource BadBrush}"
+                             VerticalAlignment="Center"/>
+                  <ProgressBar Grid.Column="1" Minimum="0" Maximum="100" Value="{Binding DangerValue}"
+                               Height="6" MinHeight="6" Margin="6 0" VerticalAlignment="Center"
+                               Foreground="{DynamicResource BadBrush}" Background="{DynamicResource GoodSurfaceBrush}"/>
+                  <TextBlock Grid.Column="2" Text="{Binding SnugglyText}" FontSize="10" Foreground="{DynamicResource GoodBrush}"
+                             HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                </Grid>
+                <Grid ColumnDefinitions="92,*,80" IsVisible="{Binding HasGang}">
+                  <TextBlock Grid.Column="0" Text="{Binding GangText}" FontSize="10" Foreground="{DynamicResource InfoBrush}"
+                             VerticalAlignment="Center"/>
+                  <ProgressBar Grid.Column="1" Minimum="0" Maximum="100" Value="{Binding GangValue}"
+                               Height="6" MinHeight="6" Margin="6 0" VerticalAlignment="Center"
+                               Foreground="{DynamicResource InfoBrush}" Background="{DynamicResource InfoSurfaceBrush}"/>
+                  <TextBlock Grid.Column="2" Text="{Binding SoloText}" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"
+                             HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                </Grid>
+                <TextBlock Text="{Binding GangDetail}" FontSize="10" Foreground="{DynamicResource TextDimBrush}"/>
+              </StackPanel>
+            </StackPanel>
+          </StackPanel>
+        </Border>
       </Grid>
     </Border>
 

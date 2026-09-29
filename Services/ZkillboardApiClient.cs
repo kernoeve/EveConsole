@@ -197,6 +197,121 @@ public class ZkillboardApiClient(IHttpClientFactory httpClientFactory, AppErrorL
         }
     }
 
+    /// <summary>Where an entity ranks among all others on zKillboard, overall and by figure.
+    /// Null where zKillboard gives no rank — an entity with little activity is unranked.</summary>
+    public sealed record ZkbRanks(long? Overall, long? ShipsDestroyed, long? ShipsLost,
+        long? PointsDestroyed, long? PointsLost, long? IskDestroyed, long? IskLost);
+
+    /// <summary>One period's figures: all time, the last 90 days, or the last 7.</summary>
+    public sealed record ZkbPeriod(long ShipsDestroyed, long ShipsLost, long PointsDestroyed, long PointsLost,
+        double IskDestroyed, double IskLost, ZkbRanks? Ranks)
+    {
+        public static readonly ZkbPeriod None = new(0, 0, 0, 0, 0, 0, null);
+        public bool IsEmpty => ShipsDestroyed == 0 && ShipsLost == 0;
+    }
+
+    /// <summary>The summary zKillboard shows above an entity's kill list.</summary>
+    /// <param name="DangerRatio">Percent of its fights it was the killer rather than the killed —
+    /// zKillboard's "Dangerous" against "Snuggly".</param>
+    /// <param name="GangRatio">Percent of its kills made with others rather than solo.</param>
+    public sealed record ZkbStats(ZkbPeriod AllTime, ZkbPeriod Recent, ZkbPeriod Weekly,
+        int? DangerRatio, int? GangRatio, double? AvgGangSize, long SoloKills, long SoloLosses);
+
+    /// <summary>An entity's zKillboard stats, or why there are none.</summary>
+    /// <param name="Stats">Null with no <paramref name="Problem"/>: zKillboard has no record of it.</param>
+    public sealed record EntityStats(ZkbStats? Stats, string? Problem);
+
+    /// <summary>
+    /// An entity's summary from <c>/api/stats/{character|corporation|alliance}ID/{id}/</c>: kills,
+    /// losses, points and ISK for all time, the last 90 days and the last 7, with ranks, and the
+    /// danger and gang ratios — what zKillboard shows above an entity's kill list.
+    ///
+    /// <para>Shapes measured 2026-09-28. It answers with a 302 to <c>…/kills/</c>, which the
+    /// client follows. The periods are <c>rankings.{alltime,recent,weekly}.all</c>, each with
+    /// <c>metrics</c> and usually <c>ranks</c> — but a quiet entity's period can have metrics and
+    /// no ranks, or be an empty list, or be missing. An id it has no record of is answered, with a
+    /// 200, as <c>{"error":"Invalid type or id"}</c>.</para>
+    /// </summary>
+    public async Task<EntityStats> GetEntityStatsAsync(
+        string entityType, long entityId, CancellationToken ct = default)
+    {
+        var path = entityType switch
+        {
+            "character"   => "characterID",
+            "corporation" => "corporationID",
+            "alliance"    => "allianceID",
+            _ => throw new ArgumentOutOfRangeException(nameof(entityType), entityType, "must be character, corporation or alliance"),
+        };
+        var context = $"GetEntityStatsAsync {entityType}:{entityId}";
+
+        try
+        {
+            using var response = await _pages.GetAsync($"https://zkillboard.com/api/stats/{path}/{entityId}/", ct);
+            if (!response.IsSuccessStatusCode)
+                return new EntityStats(null, $"zKillboard answered HTTP {(int)response.StatusCode}");
+
+            using var doc = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync(ct), cancellationToken: ct);
+            var root = doc.RootElement;
+            if (root.ValueKind != JsonValueKind.Object) return new EntityStats(null, "zKillboard sent an unexpected answer");
+
+            // No record is not a failure: most entities someone looks up have none.
+            if (root.TryGetProperty("error", out _) || !root.TryGetProperty("id", out _))
+                return new EntityStats(null, null);
+
+            static JsonElement Obj(JsonElement e, string name) =>
+                e.ValueKind == JsonValueKind.Object && e.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.Object
+                    ? v : default;
+            static long L(JsonElement e, string name) =>
+                e.ValueKind == JsonValueKind.Object && e.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.Number
+                    ? (v.TryGetInt64(out var n) ? n : (long)v.GetDouble()) : 0;
+            static long? Rank(JsonElement e, string name) =>
+                e.ValueKind == JsonValueKind.Object && e.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.Number
+                    ? (v.TryGetInt64(out var n) ? n : (long)v.GetDouble()) : null;
+            static double D(JsonElement e, string name) =>
+                e.ValueKind == JsonValueKind.Object && e.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.Number
+                    ? v.GetDouble() : 0;
+
+            static ZkbPeriod From(JsonElement metrics, JsonElement ranks) => new(
+                L(metrics, "shipsDestroyed"), L(metrics, "shipsLost"),
+                L(metrics, "pointsDestroyed"), L(metrics, "pointsLost"),
+                D(metrics, "iskDestroyed"), D(metrics, "iskLost"),
+                ranks.ValueKind == JsonValueKind.Object
+                    ? new ZkbRanks(Rank(ranks, "overall"), Rank(ranks, "shipsDestroyed"), Rank(ranks, "shipsLost"),
+                                   Rank(ranks, "pointsDestroyed"), Rank(ranks, "pointsLost"),
+                                   Rank(ranks, "iskDestroyed"), Rank(ranks, "iskLost"))
+                    : null);
+
+            ZkbPeriod? Period(string key)
+            {
+                var all = Obj(Obj(Obj(root, "rankings"), key), "all");
+                return all.ValueKind == JsonValueKind.Object ? From(Obj(all, "metrics"), Obj(all, "ranks")) : null;
+            }
+
+            // All time from the rankings, which carry the ranks; failing that, the totals at the
+            // root, which every entity with a record has.
+            var allTime = Period("alltime") ?? From(root, default);
+
+            return new EntityStats(new ZkbStats(
+                allTime,
+                Period("recent") ?? ZkbPeriod.None,
+                Period("weekly") ?? ZkbPeriod.None,
+                root.TryGetProperty("dangerRatio", out var dr) && dr.ValueKind == JsonValueKind.Number ? (int)Math.Round(dr.GetDouble()) : null,
+                root.TryGetProperty("gangRatio",   out var gr) && gr.ValueKind == JsonValueKind.Number ? (int)Math.Round(gr.GetDouble()) : null,
+                root.TryGetProperty("avgGangSize", out var ag) && ag.ValueKind == JsonValueKind.Number ? ag.GetDouble() : null,
+                L(root, "soloKills"), L(root, "soloLosses")), null);
+        }
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+        {
+            errorLogger.Log(nameof(ZkillboardApiClient), context, new TimeoutException("zKillboard did not answer within two minutes"));
+            return new EntityStats(null, "zKillboard did not answer within two minutes");
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            errorLogger.Log(nameof(ZkillboardApiClient), context, ex);
+            return new EntityStats(null, "zKillboard could not be reached");
+        }
+    }
+
     /// <summary>
     /// The full killmail dump for one calendar day (universe-wide). The root is a JSON
     /// OBJECT keyed by killmail id — e.g. <c>{"137236407": {ESI killmail body}, ...}</c>
