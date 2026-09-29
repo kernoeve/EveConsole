@@ -268,4 +268,7 @@
   <data name="FitSectionHull" xml:space="preserve">
     <value>船体</value>
   </data>
+  <data name="ListSeparator" xml:space="preserve">
+    <value>、</value>
+  </data>
 </root>

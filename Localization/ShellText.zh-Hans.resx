@@ -543,4 +543,10 @@ PID：{2}
   <data name="SplashReady" xml:space="preserve">
     <value>就绪。</value>
   </data>
+  <data name="TrayOpenApp" xml:space="preserve">
+    <value>打开 EVE Console</value>
+  </data>
+  <data name="TrayExit" xml:space="preserve">
+    <value>退出</value>
+  </data>
 </root>

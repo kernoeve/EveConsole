@@ -779,4 +779,12 @@ Update the client running the background processes to {1}, or close it and start
     <value>Ready.</value>
     <comment>Splash screen, startup finished.</comment>
   </data>
+  <data name="TrayOpenApp" xml:space="preserve">
+    <value>Open EVE Console</value>
+    <comment>Tray icon menu item: brings the window back.</comment>
+  </data>
+  <data name="TrayExit" xml:space="preserve">
+    <value>Exit</value>
+    <comment>Tray icon menu item: closes the app. Settings quotes this word.</comment>
+  </data>
 </root>

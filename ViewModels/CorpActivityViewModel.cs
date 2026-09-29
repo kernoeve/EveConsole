@@ -1676,7 +1676,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     private string LoadedStatus(string corpName) =>
         _stepFailures.Count == 0
             ? string.Format(CorpText.StatusLoaded, corpName)
-            : string.Format(CorpText.StatusLoadedWithFailures, corpName, string.Join(", ", _stepFailures));
+            : string.Format(CorpText.StatusLoadedWithFailures, corpName, string.Join(CommonText.ListSeparator, _stepFailures));
 
     /// <remarks><paramref name="name"/> for the error log, <paramref name="label"/> for the status
     /// line — see RunStep.</remarks>

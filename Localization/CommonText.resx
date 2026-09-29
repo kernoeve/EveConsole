@@ -356,4 +356,8 @@
     <value>HULL</value>
     <comment>Heading in a fitting's contents: the ship itself. Upper case in English.</comment>
   </data>
+  <data name="ListSeparator" xml:space="preserve">
+    <value>, </value>
+    <comment>Between the items of a list joined in code ("3 missing, 2 outbid"). A comma and a space in English; your language's list separator.</comment>
+  </data>
 </root>

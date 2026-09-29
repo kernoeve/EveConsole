@@ -1808,10 +1808,10 @@ SQLite 数据库只会被读取，不会被修改。大型数据库需要一些�
     <value>正在运行，并将随桌面会话启动。</value>
   </data>
   <data name="SvcTrayOffWindows" xml:space="preserve">
-    <value>不会随 Windows 启动。已显示的图标会一直保留，直到你在其菜单中选择“Exit”或注销。</value>
+    <value>不会随 Windows 启动。已显示的图标会一直保留，直到你在其菜单中选择“{0}”或注销。</value>
   </data>
   <data name="SvcTrayOffLinux" xml:space="preserve">
-    <value>不会随桌面会话启动。已显示的图标会一直保留，直到你在其菜单中选择“Exit”或注销。</value>
+    <value>不会随桌面会话启动。已显示的图标会一直保留，直到你在其菜单中选择“{0}”或注销。</value>
   </data>
   <data name="SvcTrayChangeFailed" xml:space="preserve">
     <value>无法更改——{0}</value>
@@ -2517,5 +2517,23 @@ SQLite 数据库只会被读取，不会被修改。大型数据库需要一些�
   </data>
   <data name="DbRestartFailed" xml:space="preserve">
     <value>无法重启（{0}）。请关闭 EVE Console 并重新打开以完成操作。</value>
+  </data>
+  <data name="ImportStageRestoring" xml:space="preserve">
+    <value>恢复中</value>
+  </data>
+  <data name="ImportCopyingAside" xml:space="preserve">
+    <value>正在备份当前数据… {0}/{1}</value>
+  </data>
+  <data name="ImportPuttingBack" xml:space="preserve">
+    <value>正在恢复之前的数据… {0}/{1}</value>
+  </data>
+  <data name="ImportLostTablesOther" xml:space="preserve">
+    <value>{1} 数据读取无误，但有 {0} 个此前有数据的表变为空——这正是文件格式改变的迹象：{2} 导入已回滚，你现有的 {1} 数据未被更改。</value>
+  </data>
+  <data name="PurposeDataAccess" xml:space="preserve">
+    <value>数据查询</value>
+  </data>
+  <data name="PurposeConversation" xml:space="preserve">
+    <value>我们的对话</value>
   </data>
 </root>

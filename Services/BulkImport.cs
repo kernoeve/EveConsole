@@ -1,5 +1,6 @@
 using EveConsole.Data;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -27,11 +28,10 @@ public class ImportVerificationException(string dataset, IReadOnlyList<string> l
     public string Dataset { get; } = dataset;
     public IReadOnlyList<string> LostTables { get; } = lost;
 
+    // Shown to the person after "Import rolled back", so in the interface language.
     private static string BuildMessage(string dataset, IReadOnlyList<string> lost) =>
-        $"The {dataset} data was read without error, but {lost.Count} table(s) that held data " +
-        $"beforehand came back empty, which is what a changed file format looks like: " +
-        $"{string.Join(" ", lost)} " +
-        $"The import was rolled back and your existing {dataset} data has NOT been changed.";
+        Plurals.Format(SettingsText.ResourceManager, nameof(SettingsText.ImportLostTablesOther),
+                       lost.Count, dataset, string.Join(" ", lost));
 }
 
 /// <summary>

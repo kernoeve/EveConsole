@@ -1584,7 +1584,7 @@ public class OverviewViewModel : ReactiveObject
                 if (reasons.Count > 0)
                     newAlerts.Add(new AlertRowVm
                     {
-                        Message = string.Format(OverviewText.AlertStandingBuyOrders, string.Join(", ", reasons)),
+                        Message = string.Format(OverviewText.AlertStandingBuyOrders, string.Join(CommonText.ListSeparator, reasons)),
                         NavigateCommand = NavigateToStandingBuyOrders is not null
                             ? ReactiveCommand.Create(NavigateToStandingBuyOrders)
                             : null

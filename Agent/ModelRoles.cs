@@ -1,4 +1,5 @@
 using System.Text.Json;
+using EveConsole.Localization;
 
 namespace EveConsole.Agent;
 
@@ -285,7 +286,7 @@ public sealed class ModelRoles : IDisposable
 
     private string Format(string template, Seat seat) =>
         (template ?? "").Replace("{user}",     _userName, StringComparison.OrdinalIgnoreCase)
-                        .Replace("{purpose}",  seat.Kind == ModelRoleKind.Analyst ? "data access" : "our conversation",
+                        .Replace("{purpose}",  seat.Kind == ModelRoleKind.Analyst ? SettingsText.PurposeDataAccess : SettingsText.PurposeConversation,
                                  StringComparison.OrdinalIgnoreCase)
                         .Replace("{primary}",  seat.Primary.Label, StringComparison.OrdinalIgnoreCase)
                         .Replace("{fallback}", seat.Fallback?.Label ?? "", StringComparison.OrdinalIgnoreCase)

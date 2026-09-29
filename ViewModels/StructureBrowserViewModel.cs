@@ -1439,7 +1439,7 @@ public class StructureBrowserViewModel : ReactiveObject
 
         if (fields.Count == 0) return "";
 
-        var list = string.Join(", ", fields);
+        var list = string.Join(CommonText.ListSeparator, fields);
         return t.FetchedAt == default
             ? string.Format(MapText.EveRefNote, list)
             : string.Format(MapText.EveRefNoteRead, list, t.FetchedAt.ToLocalTime());

@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using LibVLCSharp.Shared;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -196,7 +197,7 @@ public sealed class ElevenLabsTtsService : IDisposable
     /// </summary>
     public async Task<Func<CancellationToken, Task>> PrepareAsync(string text, CancellationToken ct = default)
     {
-        var vlc = GetVlc() ?? throw new InvalidOperationException("Audio playback (VLC) is not available.");
+        var vlc = GetVlc() ?? throw new InvalidOperationException(SettingsText.PiperNoVlc);
         if (string.IsNullOrEmpty(_apiKey)) throw new InvalidOperationException("No ElevenLabs API key is set.");
         if (_voiceId.Length == 0 || _model.Length == 0)
             throw new InvalidOperationException("No ElevenLabs voice or model is chosen for this voice — choose them in Settings.");
@@ -265,7 +266,7 @@ public sealed class ElevenLabsTtsService : IDisposable
             using var reg = ct.Register(() => tcs.TrySetCanceled(ct));
 
             void OnEnd(object? s, EventArgs e) => tcs.TrySetResult(true);
-            void OnError(object? s, EventArgs e) => tcs.TrySetException(new InvalidOperationException("The audio could not be played."));
+            void OnError(object? s, EventArgs e) => tcs.TrySetException(new InvalidOperationException(SettingsText.PiperPlaybackFailed));
             player.EndReached      += OnEnd;
             player.EncounteredError += OnError;
 

@@ -356,7 +356,7 @@
                       </StackPanel>
 
                       <Grid ColumnDefinitions="*,Auto,Auto" IsVisible="{Binding IsEnum}">
-                        <ComboBox Grid.Column="0" ItemsSource="{Binding Options}" SelectedItem="{Binding Text}"
+                        <ComboBox Grid.Column="0" ItemsSource="{Binding OptionChoices}" SelectedItem="{Binding SelectedOption}"
                                   HorizontalAlignment="Stretch" FontSize="11" />
                         <!-- A choice that carries a number: "Lower than [5,000] units" -->
                         <TextBox Grid.Column="1" Text="{Binding UnitsText}" Width="100" Margin="6 0 0 0"

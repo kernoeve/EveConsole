@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Platform;
 using Avalonia.Threading;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -152,13 +153,13 @@ public sealed class TrayIconController
     /// </summary>
     private NativeMenu BuildMenu()
     {
-        var monitor = new NativeMenuItem("Background Processes");
+        var monitor = new NativeMenuItem(ShellText.NavBackgroundProcesses);
         monitor.Click += (_, _) => ShowBackgroundProcesses?.Invoke();
 
-        var open = new NativeMenuItem("Open EVE Console");
+        var open = new NativeMenuItem(ShellText.TrayOpenApp);
         open.Click += (_, _) => ShowWindow?.Invoke();
 
-        var quit = new NativeMenuItem("Exit");
+        var quit = new NativeMenuItem(ShellText.TrayExit);
         quit.Click += (_, _) => Quit?.Invoke();
 
         // ⚠️ No mute here, and no alarms anywhere in this process. Closing the desktop client is

@@ -229,9 +229,8 @@ public class PollingSettingsViewModel : ReactiveObject
                         : windows
                             ? SettingsText.SvcTrayRunningWindows
                             : SettingsText.SvcTrayRunningLinux
-                    : windows
-                        ? SettingsText.SvcTrayOffWindows
-                        : SettingsText.SvcTrayOffLinux;
+                    : string.Format(windows ? SettingsText.SvcTrayOffWindows : SettingsText.SvcTrayOffLinux,
+                                    ShellText.TrayExit);
             }
             catch (Exception ex) { TrayStatus = string.Format(SettingsText.SvcTrayChangeFailed, ex.Message.Split('\n')[0]); }
         }

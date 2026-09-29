@@ -611,7 +611,7 @@ public class ApiActivityViewModel : ReactiveObject
 
         AlarmMonitorRowVm Filled(AlarmMonitorRowVm row, Alarm a)
         {
-            row.Set(_conditions.Find(a.ConditionType)?.DisplayName ?? a.ConditionType, a.Enabled, a.PollSeconds,
+            row.Set(_conditions.Find(a.ConditionType)?.ScreenName ?? a.ConditionType, a.Enabled, a.PollSeconds,
                     a.LastCheckedAt, a.LastFiredAt, a.FireCount, a.LastError);
             return row;
         }

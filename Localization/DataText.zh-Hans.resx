@@ -1090,4 +1090,7 @@
   <data name="GameLogEntriesOther" xml:space="preserve">
     <value>{0:N0} 个条目</value>
   </data>
+  <data name="CallsNotRelayedOther" xml:space="preserve">
+    <value>（另有 {0} 次调用未转发）</value>
+  </data>
 </root>

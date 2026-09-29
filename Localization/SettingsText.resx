@@ -2364,12 +2364,12 @@ The application will restart.</value>
     <comment>Notification-area icon status.</comment>
   </data>
   <data name="SvcTrayOffWindows" xml:space="preserve">
-    <value>Will not start with Windows. Any icon already showing stays until you choose Exit on it, or log off.</value>
-    <comment>Notification-area icon status. Exit is the icon's menu item.</comment>
+    <value>Will not start with Windows. Any icon already showing stays until you choose {0} on it, or log off.</value>
+    <comment>Status of the tray icon's startup setting. {0} is the tray menu's Exit item.</comment>
   </data>
   <data name="SvcTrayOffLinux" xml:space="preserve">
-    <value>Will not start with your desktop session. Any icon already showing stays until you choose Exit on it, or log off.</value>
-    <comment>Notification-area icon status. Exit is the icon's menu item.</comment>
+    <value>Will not start with your desktop session. Any icon already showing stays until you choose {0} on it, or log off.</value>
+    <comment>Status of the tray icon's startup setting. {0} is the tray menu's Exit item.</comment>
   </data>
   <data name="SvcTrayChangeFailed" xml:space="preserve">
     <value>Could not change it — {0}</value>
@@ -4242,5 +4242,33 @@ The application will restart.</value>
   <data name="WhisperModelNotDownloaded" xml:space="preserve">
     <value>The local speech model '{0}' has not been downloaded yet. Settings → AI Agent → Speech Input → Download Model.</value>
     <comment>Agent panel, after "Transcription failed: ": the chosen local speech model has not been downloaded. {0} is the model's id (tiny, base…). The path at the end names the settings where it is downloaded; use the translated names of that tab and button.</comment>
+  </data>
+  <data name="ImportStageRestoring" xml:space="preserve">
+    <value>Restoring</value>
+    <comment>SDE/Hoboleaks import stage: after a failed import, the previous data is put back.</comment>
+  </data>
+  <data name="ImportCopyingAside" xml:space="preserve">
+    <value>Copying the current data aside… {0}/{1}</value>
+    <comment>Import progress. {0} is the table being copied, {1} how many there are.</comment>
+  </data>
+  <data name="ImportPuttingBack" xml:space="preserve">
+    <value>Putting the previous data back… {0}/{1}</value>
+    <comment>Import progress after a failure. {0} is the table being restored, {1} how many there are.</comment>
+  </data>
+  <data name="ImportLostTablesOne" xml:space="preserve">
+    <value>The {1} data was read without error, but {0} table that held data beforehand came back empty, which is what a changed file format looks like: {2} The import was rolled back and your existing {1} data has NOT been changed.</value>
+    <comment>Shown after "Import rolled back". {0} is how many tables (one), {1} the data set (SDE or Hoboleaks), {2} the tables' names.</comment>
+  </data>
+  <data name="ImportLostTablesOther" xml:space="preserve">
+    <value>The {1} data was read without error, but {0} tables that held data beforehand came back empty, which is what a changed file format looks like: {2} The import was rolled back and your existing {1} data has NOT been changed.</value>
+    <comment>Shown after "Import rolled back". {0} is how many tables, {1} the data set (SDE or Hoboleaks), {2} the tables' names.</comment>
+  </data>
+  <data name="PurposeDataAccess" xml:space="preserve">
+    <value>data access</value>
+    <comment>Fills {purpose} in the spoken failover messages: what the data model is for.</comment>
+  </data>
+  <data name="PurposeConversation" xml:space="preserve">
+    <value>our conversation</value>
+    <comment>Fills {purpose} in the spoken failover messages: what the conversation model is for.</comment>
   </data>
 </root>
