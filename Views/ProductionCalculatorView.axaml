@@ -60,7 +60,7 @@
                      Background="Transparent" BorderThickness="0" SelectionMode="Single">
               <ListBox.ItemTemplate>
                 <DataTemplate x:DataType="vm:ProdTypeSearchResult">
-                  <TextBlock Text="{Binding TypeName}" Foreground="{DynamicResource TextPrimaryBrush}" Padding="8 4" FontSize="12"/>
+                  <TextBlock Text="{Binding DisplayName}" Foreground="{DynamicResource TextPrimaryBrush}" Padding="8 4" FontSize="12"/>
                 </DataTemplate>
               </ListBox.ItemTemplate>
             </ListBox>
@@ -108,7 +108,7 @@
                   <Grid ColumnDefinitions="36,8,*,Auto,Auto">
                     <Image Grid.Column="0" Source="{Binding Icon}" Width="32" Height="32" VerticalAlignment="Center"/>
                     <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="2">
-                      <Button Content="{Binding TypeName}"
+                      <Button Content="{Binding DisplayName}"
                               Command="{Binding NavigateCommand}"
                               CommandParameter="{Binding TypeId}"
                               Background="Transparent" BorderThickness="0" Padding="0"
@@ -159,7 +159,7 @@
                              Foreground="{DynamicResource WarnBrush}" FontSize="12" FontWeight="SemiBold"/>
                   <TextBlock Text="{x:Static loc:IndustryText.PlannedInTheParksNote}"
                              Foreground="{DynamicResource WarnBrush}" FontSize="11" TextWrapping="Wrap"/>
-                  <ItemsControl ItemsSource="{Binding Plan.Warnings}" Margin="0 2 0 0">
+                  <ItemsControl ItemsSource="{Binding PlanWarningLines}" Margin="0 2 0 0">
                     <ItemsControl.ItemTemplate>
                       <DataTemplate>
                         <TextBlock Text="{Binding}" Foreground="{DynamicResource WarnBrush}" FontSize="11"
@@ -181,7 +181,7 @@
                              Foreground="{DynamicResource WarnBrush}" FontSize="12" FontWeight="SemiBold"/>
                   <TextBlock Text="{x:Static loc:IndustryText.BlueprintCopiesTradeOnlyNote}"
                              Foreground="{DynamicResource WarnBrush}" FontSize="11" TextWrapping="Wrap"/>
-                  <ItemsControl ItemsSource="{Binding Plan.PricingWarnings}" Margin="0 2 0 0">
+                  <ItemsControl ItemsSource="{Binding PricingWarningLines}" Margin="0 2 0 0">
                     <ItemsControl.ItemTemplate>
                       <DataTemplate>
                         <TextBlock Text="{Binding}" Foreground="{DynamicResource WarnBrush}" FontSize="11"
@@ -224,7 +224,7 @@
                       <Grid ColumnDefinitions="*,Auto">
                         <StackPanel Grid.Column="0" Spacing="4">
                           <StackPanel Orientation="Horizontal" Spacing="8">
-                            <Button Content="{Binding TypeName}"
+                            <Button Content="{Binding DisplayName}"
                                     Command="{Binding $parent[UserControl].DataContext.OpenInItemBrowserCommand}"
                                     CommandParameter="{Binding TypeId}"
                                     Background="Transparent" BorderThickness="0"
@@ -306,16 +306,16 @@
                       Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
                       DoubleTapped="OnDataGridDoubleTapped">
               <DataGrid.Columns>
-                <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColMaterial}" SortMemberPath="TypeName" Width="*" ClipboardContentBinding="{Binding TypeName}">
+                <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColMaterial}" SortMemberPath="DisplayName" Width="*" ClipboardContentBinding="{Binding DisplayName}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanRawMaterial">
                       <Panel>
                         <Button Classes="link" Click="OnOpenPlanItem" IsVisible="{Binding HasItemLink}"
                                 ToolTip.Tip="{x:Static loc:IndustryText.TipOpenInTheItemBrowser}">
-                          <TextBlock Text="{Binding TypeName}" Classes="linktext" FontSize="10"
+                          <TextBlock Text="{Binding DisplayName}" Classes="linktext" FontSize="10"
                                      VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                         </Button>
-                        <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}" FontSize="10"
+                        <TextBlock Text="{Binding DisplayName}" IsVisible="{Binding !HasItemLink}" FontSize="10"
                                    VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                       </Panel>
                     </DataTemplate>
@@ -369,16 +369,16 @@
                       Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
                       DoubleTapped="OnDataGridDoubleTapped">
               <DataGrid.Columns>
-                <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColItem}" SortMemberPath="TypeName" Width="*" ClipboardContentBinding="{Binding TypeName}">
+                <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColItem}" SortMemberPath="DisplayName" Width="*" ClipboardContentBinding="{Binding DisplayName}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanIntermediate">
                       <Panel>
                         <Button Classes="link" Click="OnOpenPlanItem" IsVisible="{Binding HasItemLink}"
                                 ToolTip.Tip="{x:Static loc:IndustryText.TipOpenInTheItemBrowser}">
-                          <TextBlock Text="{Binding TypeName}" Classes="linktext" FontSize="10"
+                          <TextBlock Text="{Binding DisplayName}" Classes="linktext" FontSize="10"
                                      VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                         </Button>
-                        <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}" FontSize="10"
+                        <TextBlock Text="{Binding DisplayName}" IsVisible="{Binding !HasItemLink}" FontSize="10"
                                    VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                       </Panel>
                     </DataTemplate>
@@ -440,16 +440,16 @@
                       Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
                       DoubleTapped="OnDataGridDoubleTapped">
               <DataGrid.Columns>
-                <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColItem}" SortMemberPath="TypeName" Width="*" ClipboardContentBinding="{Binding TypeName}">
+                <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColItem}" SortMemberPath="DisplayName" Width="*" ClipboardContentBinding="{Binding DisplayName}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanLeftoverItem">
                       <Panel>
                         <Button Classes="link" Click="OnOpenPlanItem" IsVisible="{Binding HasItemLink}"
                                 ToolTip.Tip="{x:Static loc:IndustryText.TipOpenInTheItemBrowser}">
-                          <TextBlock Text="{Binding TypeName}" Classes="linktext" FontSize="10"
+                          <TextBlock Text="{Binding DisplayName}" Classes="linktext" FontSize="10"
                                      VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                         </Button>
-                        <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}" FontSize="10"
+                        <TextBlock Text="{Binding DisplayName}" IsVisible="{Binding !HasItemLink}" FontSize="10"
                                    VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                       </Panel>
                     </DataTemplate>
@@ -497,16 +497,16 @@
                       Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
                       DoubleTapped="OnDataGridDoubleTapped">
               <DataGrid.Columns>
-                <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColItem}" SortMemberPath="TypeName" Width="*" ClipboardContentBinding="{Binding TypeName}">
+                <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColItem}" SortMemberPath="DisplayName" Width="*" ClipboardContentBinding="{Binding DisplayName}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanFinalProduct">
                       <Panel>
                         <Button Classes="link" Click="OnOpenPlanItem" IsVisible="{Binding HasItemLink}"
                                 ToolTip.Tip="{x:Static loc:IndustryText.TipOpenInTheItemBrowser}">
-                          <TextBlock Text="{Binding TypeName}" Classes="linktext" FontSize="10"
+                          <TextBlock Text="{Binding DisplayName}" Classes="linktext" FontSize="10"
                                      VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                         </Button>
-                        <TextBlock Text="{Binding TypeName}" IsVisible="{Binding !HasItemLink}" FontSize="10"
+                        <TextBlock Text="{Binding DisplayName}" IsVisible="{Binding !HasItemLink}" FontSize="10"
                                    VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                       </Panel>
                     </DataTemplate>
@@ -612,7 +612,7 @@
                       <Grid ColumnDefinitions="*,Auto" Margin="8 6 8 4">
                         <StackPanel Grid.Column="0" Spacing="3">
                           <StackPanel Orientation="Horizontal" Spacing="8">
-                            <Button Content="{Binding Job.OutputTypeName}"
+                            <Button Content="{Binding Job.OutputDisplayName}"
                                     Command="{Binding NavigateCommand}"
                                     CommandParameter="{Binding Job.OutputTypeId}"
                                     Background="Transparent" BorderThickness="0"
@@ -653,10 +653,10 @@
                               <Button Classes="link" Click="OnOpenJobSystem"
                                       IsVisible="{Binding Job.HasSystemLink}"
                                       ToolTip.Tip="{x:Static loc:IndustryText.TipOpenOnTheMap}">
-                                <TextBlock Text="{Binding Job.SystemName}" Classes="linktext"
+                                <TextBlock Text="{Binding Job.SystemDisplayName}" Classes="linktext"
                                            FontSize="11" Foreground="{DynamicResource TextFaintBrush}"/>
                               </Button>
-                              <TextBlock Text="{Binding Job.SystemName}"
+                              <TextBlock Text="{Binding Job.SystemDisplayName}"
                                          IsVisible="{Binding Job.ShowSystemPlain}"
                                          FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center"/>
                             </StackPanel>
@@ -699,7 +699,7 @@
                             <ItemsControl.ItemTemplate>
                               <DataTemplate>
                                 <Grid ColumnDefinitions="*,110,110,140,140,170,70,*" Margin="0 1">
-                                  <Button Grid.Column="0" Content="{Binding TypeName}"
+                                  <Button Grid.Column="0" Content="{Binding DisplayName}"
                                           Command="{Binding $parent[UserControl].DataContext.OpenInItemBrowserCommand}"
                                           CommandParameter="{Binding MaterialTypeId}"
                                           Background="Transparent" BorderThickness="0" Padding="0"

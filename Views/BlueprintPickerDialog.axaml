@@ -27,7 +27,7 @@
                  SelectionChanged="OnResultSelected">
           <ListBox.ItemTemplate>
             <DataTemplate>
-              <TextBlock Text="{Binding ProductName}"
+              <TextBlock Text="{Binding DisplayName}"
                          FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" Padding="4 2" />
             </DataTemplate>
           </ListBox.ItemTemplate>

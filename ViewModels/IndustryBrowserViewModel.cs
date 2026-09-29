@@ -245,6 +245,10 @@ public class IndustryBrowserViewModel : ReactiveObject
 
         try
         {
+            // The rows carry their SDE names in the interface language, and the search finds
+            // those as well as the English, so both wait for the names — once, the first time.
+            await SdeNames.EnsureLoadedAsync(ct);
+
             var (rows, unresolvedIds) = await Task.Run(
                 () => RunQuery(activity, status, search, startedFrom, startedThru, owner, ct), ct);
 
@@ -330,6 +334,7 @@ public class IndustryBrowserViewModel : ReactiveObject
         if (!string.IsNullOrEmpty(status) && status != "All Statuses")
             conds.Add("\"Status\" = @status");
         if (!string.IsNullOrEmpty(search))
+        {
             // ⚠️ QUOTED, like every other condition here. These are quoted aliases in the select
             // list, and PostgreSQL folds an unquoted Blueprint to "blueprint", which does not
             // exist — the query threw and the grid kept whatever it was already showing, which
@@ -338,7 +343,17 @@ public class IndustryBrowserViewModel : ReactiveObject
             //
             // ⚠️ LOWER on both sides too: PostgreSQL LIKE is case-SENSITIVE where SQLite is not,
             // so "isotropic" would still have missed "Isotropic Neofullerene".
-            conds.Add("(LOWER(\"Blueprint\") LIKE LOWER(@search) OR LOWER(\"Product\") LIKE LOWER(@search))");
+            //
+            // The columns are English. A name typed as the grid shows it, in the interface
+            // language, finds its types by id instead — written into the statement, as they are
+            // numbers the app produced rather than anything typed.
+            var shown = SdeNames.Find(Models.SdeNameKind.Type, search);
+            var ids   = string.Join(",", shown.Select(id => id.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+            var byId  = shown.Count > 0
+                ? $" OR \"Blueprint Type Id\" IN ({ids}) OR \"Product Type Id\" IN ({ids})"
+                : "";
+            conds.Add($"(LOWER(\"Blueprint\") LIKE LOWER(@search) OR LOWER(\"Product\") LIKE LOWER(@search){byId})");
+        }
         if (startedFrom.HasValue)
             conds.Add("\"Start Date\" >= @startedFrom");
         if (startedThru.HasValue)
@@ -412,10 +427,32 @@ public class IndustryBrowserViewModel : ReactiveObject
             if (long.TryParse(productVal.Replace(",", ""), out var prodTypeId))
                 unresolvedIds.Add(prodTypeId);
 
+            // The SDE names a person reads, in the interface language, relabelled in place like
+            // Activity: after the ids above were collected from the query's own values, and after
+            // the filter compared the English in SQL. Nothing reads these back but the grid, its
+            // sort and copy, and the detail panel.
+            ShowSdeName(dict, "Product",      ColProductTypeId,   SdeNames.Type);
+            ShowSdeName(dict, "Blueprint",    ColBlueprintTypeId, SdeNames.Type);
+            ShowSdeName(dict, "Solar System", ColSolarSystemId,   SdeNames.SolarSystem);
+            ShowSdeName(dict, "Region",       ColRegionId,        SdeNames.Region);
+
             rows.Add(new GridRow(dict));
         }
 
         return (rows, unresolvedIds.Distinct().ToList());
+    }
+
+    /// <summary>A row's English SDE name replaced by the name in the interface language, found by
+    /// the id in its hidden column. A row with no name or no id keeps what it has.</summary>
+    private static void ShowSdeName(Dictionary<string, string> row, string nameCol, string idCol,
+                                    Func<long, string, string> shown)
+    {
+        var english = row.GetValueOrDefault(nameCol, "");
+        if (english.Length > 0
+            && long.TryParse(row.GetValueOrDefault(idCol, ""), System.Globalization.NumberStyles.None,
+                             System.Globalization.CultureInfo.InvariantCulture, out var id)
+            && id > 0)
+            row[nameCol] = shown(id, english);
     }
 
     // ── Sorting ───────────────────────────────────────────────────────────────

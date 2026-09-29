@@ -37,6 +37,9 @@ public partial class ProductionCalculatorView : UserControl
     }
 
     // ── Raw Materials toolbar ─────────────────────────────────────────────
+    //
+    // The shopping lists and the exports copy TypeName, the English, not the name the grid shows:
+    // they are pasted into the game's multibuy and into appraisal tools and spreadsheets.
 
     private async void OnShoppingListClick(object? sender, RoutedEventArgs e)
     {

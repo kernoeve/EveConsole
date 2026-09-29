@@ -3,12 +3,18 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EveConsole.Data;
+using EveConsole.Localization;
 using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace EveConsole.Services;
 
-public record BlueprintSearchResult(int BlueprintTypeId, int ProductTypeId, string ProductName);
+public record BlueprintSearchResult(int BlueprintTypeId, int ProductTypeId, string ProductName)
+{
+    /// <summary>The product as the picker shows it, in the interface language. ProductName stays
+    /// English: it is what the picked result hands on.</summary>
+    public string DisplayName => SdeNames.Type(ProductTypeId, ProductName);
+}
 
 public class BatchAddService(IDbContextFactory<AppDbContext> dbFactory)
 {
@@ -64,6 +70,12 @@ public class BatchAddService(IDbContextFactory<AppDbContext> dbFactory)
         string text, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(text)) return [];
+
+        // The names are English; a product named as the picker shows it, in the interface
+        // language, is found by the ids of the types it names.
+        await SdeNames.EnsureLoadedAsync(ct);
+        var shownIds = SdeNames.Find(SdeNameKind.Type, text).Select(id => (int)id).ToList();
+
         await using var db = dbFactory.CreateDbContext();
 
         // Join blueprint products → product SdeType by product name
@@ -72,7 +84,7 @@ public class BatchAddService(IDbContextFactory<AppDbContext> dbFactory)
             .Join(db.SdeTypes,
                   bp => bp.ProductTypeId, t => t.TypeId,
                   (bp, t) => new { bp.TypeId, bp.ProductTypeId, t.Name, t.Published })
-            .Where(x => x.Published && EF.Functions.Like(x.Name, $"%{text}%"))
+            .Where(x => x.Published && (EF.Functions.Like(x.Name, $"%{text}%") || shownIds.Contains(x.ProductTypeId)))
             .OrderBy(x => x.Name)
             .Take(40)
             .Select(x => new BlueprintSearchResult(x.TypeId, x.ProductTypeId, x.Name))

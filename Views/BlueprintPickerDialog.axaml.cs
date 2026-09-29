@@ -47,7 +47,8 @@ public partial class BlueprintPickerDialog : Window
             return;
         }
 
-        _currentResults            = await _searchFn(text);
+        // Listed by the name shown. The search takes the first forty in English order.
+        _currentResults            = [.. (await _searchFn(text)).OrderBy(r => r.DisplayName, StringComparer.CurrentCulture)];
         ResultsListBox.ItemsSource = _currentResults;
         ResultsBorder.IsVisible    = _currentResults.Count > 0;
     }
@@ -61,13 +62,13 @@ public partial class BlueprintPickerDialog : Window
 
         // Show selection in the search box without re-triggering search
         _ignoreSearch  = true;
-        SearchBox.Text = _selected.ProductName;
+        SearchBox.Text = _selected.DisplayName;
         _ignoreSearch  = false;
 
         ResultsBorder.IsVisible      = false;
         ResultsListBox.SelectedIndex = -1;
 
-        SelectedBlueprintText.Text      = _selected.ProductName;
+        SelectedBlueprintText.Text      = _selected.DisplayName;
         SelectedBlueprintText.IsVisible = true;
     }
 
@@ -93,7 +94,7 @@ public partial class BlueprintPickerDialog : Window
         Close(new BlueprintPickerResult(
             _selected.BlueprintTypeId,
             _selected.ProductTypeId,
-            _selected.ProductName,
+            _selected.ProductName,   // English: the caller keeps it
             me, runs, wholeChain, parkId));
     }
 

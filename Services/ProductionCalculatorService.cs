@@ -579,11 +579,16 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         var finalMeLevels = requests.ToDictionary(r => r.TypeId, r => r.MeLevel);
 
         // Tracks items whose category could not be determined or is not assigned in this park.
-        var unmappedItems = new SortedSet<string>();
+        // Keyed by the sentence with its English name, which sorts and de-duplicates them as the
+        // sentences themselves always were.
+        var unmappedItems = new SortedDictionary<string, PlanItemNote>();
 
         // Blueprint copies the plan could not price, or could only price from an ended contract.
         // Sorted and de-duplicated the same way, since one BPC can be reached many times.
-        var bpcPriceNotes = new SortedSet<string>();
+        var bpcPriceNotes = new SortedDictionary<string, PlanItemNote>();
+
+        static void Note(SortedDictionary<string, PlanItemNote> notes, PlanItemNote note) =>
+            notes.TryAdd(note.Text, note);
 
         // Items currently being expanded — the ancestor chain, not a visited set. See the guard
         // inside ExpandItem for why the distinction matters.
@@ -646,16 +651,16 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                 if (string.IsNullOrEmpty(catKey))
                 {
                     var name = typeNames.GetValueOrDefault(typeId, string.Format(IndustryText.TypeIdNumbered, typeId));
-                    unmappedItems.Add(fb is not null
-                        ? string.Format(IndustryText.WarnUnrecognizedPlannedIn, name, fb.DisplayName)
-                        : string.Format(IndustryText.WarnUnrecognizedUnplanned, name));
+                    Note(unmappedItems, fb is not null
+                        ? new PlanItemNote(IndustryText.WarnUnrecognizedPlannedIn, typeId, name, fb.DisplayName)
+                        : new PlanItemNote(IndustryText.WarnUnrecognizedUnplanned, typeId, name));
                 }
                 else if (!structByCategory.ContainsKey(catKey))
                 {
                     var name = typeNames.GetValueOrDefault(typeId, string.Format(IndustryText.TypeIdNumbered, typeId));
-                    unmappedItems.Add(fb is not null
-                        ? string.Format(IndustryText.WarnUnassignedPlannedIn, name, catKey, fb.DisplayName)
-                        : string.Format(IndustryText.WarnUnassignedUnplanned, name, catKey));
+                    Note(unmappedItems, fb is not null
+                        ? new PlanItemNote(IndustryText.WarnUnassignedPlannedIn, typeId, name, catKey, fb.DisplayName)
+                        : new PlanItemNote(IndustryText.WarnUnassignedUnplanned, typeId, name, catKey));
                 }
             }
 
@@ -789,16 +794,16 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                     // tive. Say which figure is soft rather than leaving the user to notice.
                     var bpcName = typeNames.GetValueOrDefault(bpProd.TypeId, string.Format(CommonText.TypeNumbered, bpProd.TypeId));
                     if (bpcPerRunPrice <= 0m)
-                        bpcPriceNotes.Add(string.Format(IndustryText.BpcPriceNeverSeen, bpcName));
+                        Note(bpcPriceNotes, new PlanItemNote(IndustryText.BpcPriceNeverSeen, bpProd.TypeId, bpcName));
                     else if (ctx.StaleBpcTypes.TryGetValue(bpProd.TypeId, out var lastSeen))
-                        bpcPriceNotes.Add(lastSeen is { } ls
-                            ? string.Format(IndustryText.BpcPriceStale, bpcName, bpcPerRunPrice, ls.UtcDateTime)
-                            : string.Format(IndustryText.BpcPriceStaleUndated, bpcName, bpcPerRunPrice));
+                        Note(bpcPriceNotes, lastSeen is { } ls
+                            ? new PlanItemNote(IndustryText.BpcPriceStale, bpProd.TypeId, bpcName, bpcPerRunPrice, ls.UtcDateTime)
+                            : new PlanItemNote(IndustryText.BpcPriceStaleUndated, bpProd.TypeId, bpcName, bpcPerRunPrice));
                     job.Materials.Add(new PlanJobMaterial
                     {
                         MaterialTypeId = bpProd.TypeId,
-                        TypeName       = string.Format(IndustryText.BpcTypeName,
-                                             typeNames.GetValueOrDefault(bpProd.TypeId, string.Format(CommonText.TypeNumbered, bpProd.TypeId))),
+                        TypeName       = string.Format(IndustryText.BpcTypeName, bpcName),
+                        BlueprintName  = bpcName,
                         BaseQtyPerRun  = 1,
                         EffQtyPerRun   = 1,
                         TotalQty       = runs,
@@ -820,7 +825,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         // not a reason to refuse the other several hundred jobs in the plan — and throwing
         // is what left BuildCostService falling back to stale estimates for 446 types.
         // These jobs were planned against the park's catch-all facility with no rig bonus.
-        var planWarnings = unmappedItems.ToList();
+        var planWarnings = unmappedItems.Values.ToList();
 
         // ── Wire parent/child relationships ────────────────────────────────
         foreach (var job in jobPool.Values)
@@ -1009,7 +1014,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
             AllJobs              = jobPool.Values.OrderByDescending(j => j.IsFinalProduct).ThenBy(j => j.OutputTypeName).ToList(),
             RootTypeIds          = requests.Where(r => jobPool.ContainsKey(r.TypeId)).Select(r => r.TypeId).ToList(),
             Warnings             = planWarnings,
-            PricingWarnings      = bpcPriceNotes.ToList(),
+            PricingWarnings      = bpcPriceNotes.Values.ToList(),
             RawMaterials         = rawMaterials,
             Intermediates        = intermediates,
             FinalProducts        = finalProducts,

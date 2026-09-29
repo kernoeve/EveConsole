@@ -17,13 +17,17 @@ public class ProdTypeSearchResult
 {
     public int    TypeId   { get; set; }
     public string TypeName { get; set; } = "";
-    public override string ToString() => TypeName;
+
+    /// <summary>The name the list shows, in the interface language; TypeName stays English.</summary>
+    public string DisplayName => SdeNames.Type(TypeId, TypeName);
+    public override string ToString() => DisplayName;
 }
 
 public class ProductionQueueVm : ReactiveObject
 {
     public int    TypeId   { get; set; }
     public string TypeName { get; set; } = "";
+    public string DisplayName => SdeNames.Type(TypeId, TypeName);
 
     private int _quantity = 1;
     public int Quantity { get => _quantity; set => this.RaiseAndSetIfChanged(ref _quantity, value); }
@@ -189,8 +193,10 @@ public class ProductionCalculatorViewModel : ReactiveObject
             this.RaisePropertyChanged(nameof(JobTreeRoots));
             this.RaisePropertyChanged(nameof(HasPlanWarnings));
             this.RaisePropertyChanged(nameof(PlanWarningHeader));
+            this.RaisePropertyChanged(nameof(PlanWarningLines));
             this.RaisePropertyChanged(nameof(HasPricingWarnings));
             this.RaisePropertyChanged(nameof(PricingWarningHeader));
+            this.RaisePropertyChanged(nameof(PricingWarningLines));
         }
     }
 
@@ -200,11 +206,20 @@ public class ProductionCalculatorViewModel : ReactiveObject
         ? ""
         : string.Format(IndustryText.CalcWarnNoAssignment, _plan.Warnings.Count);
 
+    /// <summary>The warnings as the Summary tab lists them: item names in the interface language,
+    /// in the order they then read.</summary>
+    public List<string> PlanWarningLines => ShownLines(_plan?.Warnings);
+
     public bool HasPricingWarnings => _plan?.PricingWarnings.Count > 0;
 
     public string PricingWarningHeader => _plan is null || _plan.PricingWarnings.Count == 0
         ? ""
         : string.Format(IndustryText.CalcWarnBlueprintPrices, _plan.PricingWarnings.Count);
+
+    public List<string> PricingWarningLines => ShownLines(_plan?.PricingWarnings);
+
+    private static List<string> ShownLines(List<PlanItemNote>? notes) =>
+        notes is null ? [] : [.. notes.Select(n => n.DisplayText).Order(StringComparer.CurrentCulture)];
 
     public bool HasResults => _plan is not null;
 
@@ -237,7 +252,7 @@ public class ProductionCalculatorViewModel : ReactiveObject
                 .Select(BuildNode)
                 .ToList();
 
-            // Append shared multi-parent jobs at root level, sorted by name.
+            // Append shared multi-parent jobs at root level, sorted by the name shown.
             //
             // Through BuildNode, not as a bare node: a shared job has its own sub-jobs, and
             // creating the node directly left them rendered nowhere at all. Their single
@@ -245,7 +260,7 @@ public class ProductionCalculatorViewModel : ReactiveObject
             // a reaction like Pressurized Oxidizers appeared with its materials marked
             // "Build" and no job anywhere that built them. They were always in the plan and
             // in the cost totals; only the tree dropped them.
-            foreach (var id in sharedIds.OrderBy(id => jobIndex[id].OutputTypeName))
+            foreach (var id in sharedIds.OrderBy(id => jobIndex[id].OutputDisplayName, StringComparer.CurrentCulture))
                 roots.Add(BuildNode(id));
 
             // Safety net. The tree is walked over ChildTypeIds from RootTypeIds, so a job
@@ -261,7 +276,7 @@ public class ProductionCalculatorViewModel : ReactiveObject
 
             foreach (var job in _plan.AllJobs
                          .Where(j => !rendered.Contains(j.OutputTypeId))
-                         .OrderBy(j => j.OutputTypeName))
+                         .OrderBy(j => j.OutputDisplayName, StringComparer.CurrentCulture))
                 roots.Add(new JobTreeNode { Job = job, NavigateCommand = OpenInItemBrowserCommand });
 
             return roots;
@@ -356,11 +371,17 @@ public class ProductionCalculatorViewModel : ReactiveObject
         PendingType = null;
         if (text.Length < 2) { ShowResults = false; return; }
 
+        // The English name or the one shown: a name typed in the interface language matches by
+        // the ids of the types it names.
+        await SdeNames.EnsureLoadedAsync();
+        var shownIds = SdeNames.Find(SdeNameKind.Type, text).Select(id => (int)id).ToList();
+
         await using var db = await _dbFactory.CreateDbContextAsync();
         // Only offer items that can actually be produced — i.e. types that are the output of a
         // manufacturing or reaction blueprint. This excludes BPOs, raw materials, etc.
         var matches = await db.SdeTypes.AsNoTracking()
-            .Where(t => t.Published && EF.Functions.Like(t.Name, $"%{text}%")
+            .Where(t => t.Published
+                     && (EF.Functions.Like(t.Name, $"%{text}%") || shownIds.Contains(t.TypeId))
                      && db.SdeBlueprintProducts.Any(p => p.ProductTypeId == t.TypeId
                             && (p.Activity == "manufacturing" || p.Activity == "reaction")))
             .OrderBy(t => t.Name)
@@ -368,8 +389,10 @@ public class ProductionCalculatorViewModel : ReactiveObject
             .Select(t => new { t.TypeId, t.Name })
             .ToListAsync();
 
-        foreach (var m in matches)
-            SearchResults.Add(new ProdTypeSearchResult { TypeId = m.TypeId, TypeName = m.Name });
+        // Listed by the name shown. The hundred are still the first hundred in English order.
+        foreach (var r in matches.Select(m => new ProdTypeSearchResult { TypeId = m.TypeId, TypeName = m.Name })
+                                 .OrderBy(r => r.DisplayName, StringComparer.CurrentCulture))
+            SearchResults.Add(r);
         ShowResults = SearchResults.Count > 0;
     }
 
@@ -377,7 +400,7 @@ public class ProductionCalculatorViewModel : ReactiveObject
     {
         _suppressSearchCount++;          // block the debounced search that this assignment triggers
         PendingType           = result;
-        SearchText            = result.TypeName;
+        SearchText            = result.DisplayName;
         ShowResults           = false;
         SearchResults.Clear();
         _selectedSearchResult = null;
@@ -454,6 +477,13 @@ public class ProductionCalculatorViewModel : ReactiveObject
             // Before assigning, so the job rows arrive with their Missing values already
             // filled — PlanJobMaterial has no change notification.
             await _service.ApplyAvailabilityAsync(plan, CurrentMissingMode);
+
+            // The rows show their names in the interface language, looked up as they are drawn,
+            // so the names are waited for once rather than shown in English first. The
+            // intermediates come sorted by their English names; this list is for reading, so it
+            // is sorted by the name shown.
+            await SdeNames.EnsureLoadedAsync();
+            plan.Intermediates = [.. plan.Intermediates.OrderBy(i => i.DisplayName, StringComparer.CurrentCulture)];
             Plan   = plan;
             Status = string.Format(IndustryText.CalcStatusDone, plan.AllJobs.Count, plan.RawMaterials.Count);
         }

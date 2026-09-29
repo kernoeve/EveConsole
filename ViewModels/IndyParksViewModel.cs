@@ -28,7 +28,11 @@ public record SdeRigOption(int TypeId, string Name)
     /// </summary>
     public static readonly SdeRigOption None = new(0, IndustryText.HintEmpty);
 
-    public override string ToString() => Name;
+    /// <summary>The name the dropdown shows, in the interface language. Name stays English: which
+    /// categories a rig bonuses is read from its English name (IndyRigMatching).</summary>
+    public string DisplayName => SdeNames.Type(TypeId, Name);
+
+    public override string ToString() => DisplayName;
 }
 
 // ── Rig slot (one of three per structure) ─────────────────────────────────────
@@ -105,6 +109,7 @@ public class ServiceModuleVm(StructureVm owner, int typeId, string name) : React
     public StructureVm Owner  { get; } = owner;
     public int         TypeId { get; } = typeId;
     public string      Name   { get; } = name;
+    public string      DisplayName => SdeNames.Type(TypeId, Name);
 
     public bool HasItemLink => TypeId > 0 && Name.Length > 0;
     public void OpenItem() => EntityNavigator.Instance.Item(TypeId);
@@ -180,15 +185,26 @@ public class StructureVm : ReactiveObject
     public string? TypeLockTip => TypeEditable ? null : IndustryText.TipTypeFromLink;
 
     /// <summary>
-    /// The type picker's choice, one of <see cref="IndyParksViewModel.StructureTypeLabels"/>;
-    /// choosing one sets <see cref="StructureTypeKey"/>. Null for a key the list does not have.
+    /// The type picker's entries: this card's own list, from
+    /// <see cref="IndyParksViewModel.StructureTypeChoices"/>.
+    ///
+    /// <para>⚠️ One list per card, kept for the card's life, and the only one its picker and
+    /// <see cref="StructureTypeLabel"/> read. The labels are the hulls' names in the interface
+    /// language; a list built again once those had loaded would no longer equal the one the
+    /// picker holds, and the picker would show nothing chosen.</para>
+    /// </summary>
+    public IReadOnlyList<Choice<string>> StructureTypeOptions { get; } = IndyParksViewModel.StructureTypeChoices();
+
+    /// <summary>
+    /// The type picker's choice, one of <see cref="StructureTypeOptions"/>; choosing one sets
+    /// <see cref="StructureTypeKey"/>. Null for a key the list does not have.
     ///
     /// <para>⚠️ A choice, not the words shown. The picker used to hand back the displayed name
     /// and have it looked up again among the names — which a translated name need not match.</para>
     /// </summary>
     public Choice<string>? StructureTypeLabel
     {
-        get => IndyParksViewModel.StructureTypeLabels.FirstOrDefault(o => o.Value == _structureTypeKey);
+        get => StructureTypeOptions.FirstOrDefault(o => o.Value == _structureTypeKey);
         set
         {
             // A detaching ComboBox sets null; that is not a choice.
@@ -459,6 +475,7 @@ public class ItemExceptionVm : ReactiveObject
     public int    Id       { get; }
     public int    TypeId   { get; }
     public string TypeName { get; }
+    public string DisplayName => SdeNames.Type(TypeId, TypeName);
 
     private IReadOnlyList<StructureVm?> _structureOptions = [];
     public IReadOnlyList<StructureVm?> StructureOptions
@@ -486,7 +503,11 @@ public class ItemExceptionVm : ReactiveObject
 
 public record ItemSearchResult(int TypeId, string Name)
 {
-    public override string ToString() => Name;
+    /// <summary>The name the results show, in the interface language. Name stays English: it is
+    /// what an item exception stores.</summary>
+    public string DisplayName => SdeNames.Type(TypeId, Name);
+
+    public override string ToString() => DisplayName;
 }
 
 // ── Park list entry ───────────────────────────────────────────────────────────
@@ -549,17 +570,26 @@ public class IndyParksViewModel : ReactiveObject
         (StationServiceIds.JumpCloneFacility, 35894),
     ];
 
-    /// <summary>The structure type picker: the key a park structure saves, and the name shown.
-    /// The hulls go by their names in the game, which are never translated.</summary>
-    public static readonly IReadOnlyList<Choice<string>> StructureTypeLabels =
+    /// <summary>
+    /// The structure type picker: the key a park structure saves, and the name shown — a hull by
+    /// its name in the game, in the interface language.
+    ///
+    /// <para>Built fresh for each structure card (<see cref="StructureVm.StructureTypeOptions"/>)
+    /// rather than held once: a list made at start would be made before the names had loaded, and
+    /// show English for the rest of the run.</para>
+    /// </summary>
+    public static IReadOnlyList<Choice<string>> StructureTypeChoices() =>
     [
-        new("raitaru",     "Raitaru"),
-        new("azbel",       "Azbel"),
-        new("sotiyo",      "Sotiyo"),
-        new("athanor",     "Athanor"),
-        new("tatara",      "Tatara"),
+        Hull("raitaru", "Raitaru"),
+        Hull("azbel",   "Azbel"),
+        Hull("sotiyo",  "Sotiyo"),
+        Hull("athanor", "Athanor"),
+        Hull("tatara",  "Tatara"),
         new(NpcStationKey, IndustryText.StructureTypeNpcStation),
     ];
+
+    private static Choice<string> Hull(string key, string english) =>
+        new(key, SdeNames.Type(IndyBulkAddService.TypeIdForKey(key), english));
 
     /// <summary>The security picker: the class a park structure saves, which sets its rig
     /// strength, and the words shown.</summary>
@@ -828,8 +858,13 @@ public class IndyParksViewModel : ReactiveObject
 
     private readonly Dictionary<string, IReadOnlyList<SdeRigOption>> _servicesByType = new();
 
+    /// <summary>The service modules a hull can take, by the name shown. Sorted when asked for
+    /// rather than when loaded, which is at start, before the names have.</summary>
     public IReadOnlyList<SdeRigOption> GetServicesForType(string structureTypeKey)
-        => _servicesByType.TryGetValue(structureTypeKey, out var s) ? s : [];
+        => _servicesByType.TryGetValue(structureTypeKey, out var s) ? ByShownName(s) : [];
+
+    private static List<SdeRigOption> ByShownName(IEnumerable<SdeRigOption> options)
+        => [.. options.OrderBy(o => o.DisplayName, StringComparer.CurrentCulture)];
 
     private static IReadOnlyList<SdeRigOption> LoadRigs(AppDbContext db, int sizeAttrId, double sizeValue, int[] bonusAttrIds)
     {
@@ -846,10 +881,11 @@ public class IndyParksViewModel : ReactiveObject
     }
 
     /// <summary>The rigs a hull can fit, led by <see cref="SdeRigOption.None"/> so that a fitted
-    /// slot can be emptied again. A hull that fits no rigs gets no list at all.</summary>
+    /// slot can be emptied again, then by the name shown. A hull that fits no rigs gets no list at
+    /// all.</summary>
     public IReadOnlyList<SdeRigOption> GetRigsForType(string structureTypeKey)
         => _rigsByType.TryGetValue(structureTypeKey, out var rigs) && rigs.Count > 0
-            ? [SdeRigOption.None, .. rigs]
+            ? [SdeRigOption.None, .. ByShownName(rigs)]
             : [];
 
     // ── Park list ─────────────────────────────────────────────────────────
@@ -1029,6 +1065,11 @@ public class IndyParksViewModel : ReactiveObject
 
         var id = parkId.Value;
 
+        // The first park loads as the app starts. Its rigs, services, hulls and item exceptions
+        // show their names in the interface language, and the hull pickers are built with theirs,
+        // so the names are waited for — once — rather than shown in English.
+        await SdeNames.EnsureLoadedAsync();
+
         await using var db = await _dbFactory.CreateDbContextAsync();
         var park = await db.IndyParks.AsNoTracking().FirstOrDefaultAsync(p => p.Id == id);
         if (park is null) return;
@@ -1097,10 +1138,11 @@ public class IndyParksViewModel : ReactiveObject
                 }
 
                 vm.AvailableServices = GetServicesForType(s.StructureTypeKey);
-                foreach (var svc in services.Where(x => x.StructureId == s.Id)
-                                            .OrderBy(x => serviceNames.GetValueOrDefault(x.TypeId, "")))
-                    vm.Services.Add(new ServiceModuleVm(
-                        vm, svc.TypeId, serviceNames.GetValueOrDefault(svc.TypeId, string.Format(IndustryText.ServiceTypeNumbered, svc.TypeId))));
+                foreach (var module in services.Where(x => x.StructureId == s.Id)
+                             .Select(x => new ServiceModuleVm(
+                                 vm, x.TypeId, serviceNames.GetValueOrDefault(x.TypeId, string.Format(IndustryText.ServiceTypeNumbered, x.TypeId))))
+                             .OrderBy(m => m.DisplayName, StringComparer.CurrentCulture))
+                    vm.Services.Add(module);
 
                 vm.FittingFromAssets =
                     s.RealStructureId is { } realId && assetFed.Contains(realId);
@@ -1669,7 +1711,7 @@ public class IndyParksViewModel : ReactiveObject
         {
             // "— empty —" is a choice in the list now, and names no rig.
             if (slot.Selected is not { TypeId: > 0 } rig) continue;
-            var name = rig.Name;
+            var name = rig.Name;   // English: the rig rules match on it
             if (string.IsNullOrEmpty(name)) continue;
 
             var rigCategory = IndyRigMatching.RigCategoryFromName(name);
@@ -1749,11 +1791,14 @@ public class IndyParksViewModel : ReactiveObject
             .Where(c => !c.AlreadyInPark && !(SkipMoonRefineries && c.OnMoon))
             .ToList();
 
+        // The status line names the system as the screen does; the structures store its English.
+        var shownSystem = SdeNames.SolarSystem(sys.SystemId, sys.Name);
+
         if (toAdd.Count == 0)
         {
-            BulkStatus = candidates.Count == 0 ? string.Format(IndustryText.BulkNoneKnown, sys.Name)
-                       : skipped > 0 ? string.Format(IndustryText.BulkNothingNewSkipped, sys.Name, already, skipped)
-                       : string.Format(IndustryText.BulkNothingNew, sys.Name, already);
+            BulkStatus = candidates.Count == 0 ? string.Format(IndustryText.BulkNoneKnown, shownSystem)
+                       : skipped > 0 ? string.Format(IndustryText.BulkNothingNewSkipped, shownSystem, already, skipped)
+                       : string.Format(IndustryText.BulkNothingNew, shownSystem, already);
             return;
         }
 
@@ -1798,10 +1843,10 @@ public class IndyParksViewModel : ReactiveObject
         // A whole sentence for each combination of the two optional counts.
         BulkStatus = (already > 0, skipped > 0) switch
         {
-            (true,  true)  => string.Format(IndustryText.BulkAddedAlreadySkipped, toAdd.Count, sys.Name, already, skipped),
-            (true,  false) => string.Format(IndustryText.BulkAddedAlready,        toAdd.Count, sys.Name, already),
-            (false, true)  => string.Format(IndustryText.BulkAddedSkipped,        toAdd.Count, sys.Name, skipped),
-            (false, false) => string.Format(IndustryText.BulkAdded,               toAdd.Count, sys.Name),
+            (true,  true)  => string.Format(IndustryText.BulkAddedAlreadySkipped, toAdd.Count, shownSystem, already, skipped),
+            (true,  false) => string.Format(IndustryText.BulkAddedAlready,        toAdd.Count, shownSystem, already),
+            (false, true)  => string.Format(IndustryText.BulkAddedSkipped,        toAdd.Count, shownSystem, skipped),
+            (false, false) => string.Format(IndustryText.BulkAdded,               toAdd.Count, shownSystem),
         };
     }
 
@@ -2055,7 +2100,8 @@ public class IndyParksViewModel : ReactiveObject
     {
         ItemExceptions.Clear();
         IReadOnlyList<StructureVm?> options = [null, .. Structures.Cast<StructureVm?>()];
-        foreach (var exc in saved)
+        // Listed by the name shown; the query sorted them by the English.
+        foreach (var exc in saved.OrderBy(e => SdeNames.Type(e.TypeId, e.TypeName), StringComparer.CurrentCulture))
         {
             var vm = new ItemExceptionVm(exc.Id, exc.TypeId, exc.TypeName) { StructureOptions = options };
             if (exc.StructureId is int sid)
@@ -2073,6 +2119,11 @@ public class IndyParksViewModel : ReactiveObject
             await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => ItemSearchResults.Clear());
             return;
         }
+        // The names are English. What is typed may be the name shown, in the interface language,
+        // which finds the types it names by id.
+        await SdeNames.EnsureLoadedAsync();
+        var shownIds = SdeNames.Find(SdeNameKind.Type, text).Select(id => (int)id).ToList();
+
         await using var db = await _dbFactory.CreateDbContextAsync();
         var lower = text.ToLower();
         // Ranked, not just alphabetical. A plain A-Z ordering buries the thing being
@@ -2081,7 +2132,7 @@ public class IndyParksViewModel : ReactiveObject
         // with the term, then the rest; shorter names win ties, so "Hel" beats
         // "Hel Blueprint".
         var results = await db.SdeTypes
-            .Where(t => t.Published && t.Name.ToLower().Contains(lower))
+            .Where(t => t.Published && (t.Name.ToLower().Contains(lower) || shownIds.Contains(t.TypeId)))
             .OrderBy(t => t.Name.ToLower() == lower            ? 0
                         : t.Name.ToLower().StartsWith(lower)   ? 1
                         : 2)
@@ -2090,6 +2141,20 @@ public class IndyParksViewModel : ReactiveObject
             .Take(200)
             .Select(t => new ItemSearchResult(t.TypeId, t.Name))
             .ToListAsync();
+
+        // The SQL can rank only the English. Where the text may be the name shown, each result is
+        // ranked again by the same rule, on whichever of its two names holds the text.
+        if (shownIds.Count > 0)
+            results = [.. results
+                .Select(r => (Result: r,
+                              Name: r.Name.Contains(text, StringComparison.OrdinalIgnoreCase) ? r.Name : r.DisplayName))
+                .OrderBy(x => x.Name.Equals(text, StringComparison.OrdinalIgnoreCase)     ? 0
+                            : x.Name.StartsWith(text, StringComparison.OrdinalIgnoreCase) ? 1
+                            : 2)
+                .ThenBy(x => x.Name.Length)
+                .ThenBy(x => x.Name, StringComparer.CurrentCulture)
+                .Select(x => x.Result)];
+
         await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
         {
             ItemSearchResults.Clear();

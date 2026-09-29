@@ -194,7 +194,7 @@
                                  FontSize="13" FontWeight="SemiBold" Padding="8 4" />
                         <ComboBox Grid.Column="1"
                                   SelectedItem="{Binding StructureTypeLabel}"
-                                  ItemsSource="{x:Static vm:IndyParksViewModel.StructureTypeLabels}"
+                                  ItemsSource="{Binding StructureTypeOptions}"
                                   IsEnabled="{Binding TypeEditable}"
                                   ToolTip.ShowOnDisabled="True"
                                   ToolTip.Tip="{Binding TypeLockTip}"
@@ -215,10 +215,14 @@
                       <!-- Row 1: System + Security.
                            The system is picked from the SDE by partial name; a known system sets
                            High / Low / Null itself and locks it, and a linked facility sets and
-                           locks both. Only with neither is the class chosen by hand. -->
+                           locks both. Only with neither is the class chosen by hand.
+                           ⚠️ The box's text is the system name the park saves, and structures are
+                           matched to systems and cost indices by it, so a pick puts the ENGLISH name
+                           in the box (ValueMemberBinding), whatever the list shows. -->
                       <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="0 0 0 10">
                         <AutoCompleteBox Grid.Column="0" x:CompileBindings="False"
                                          Text="{Binding SystemName}"
+                                         ValueMemberBinding="{Binding Name}"
                                          AsyncPopulator="{Binding $parent[UserControl].DataContext.ParkSystemPopulator}"
                                          FilterMode="None" MinimumPrefixLength="2"
                                          MinimumPopulateDelay="0:0:0.3" MaxDropDownHeight="300"
@@ -359,7 +363,7 @@
                                           Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextSecondaryBrush}">
                                   <ComboBox.ItemTemplate>
                                     <DataTemplate x:DataType="vm:SdeRigOption">
-                                      <TextBlock Text="{Binding Name}" FontSize="11" />
+                                      <TextBlock Text="{Binding DisplayName}" FontSize="11" />
                                     </DataTemplate>
                                   </ComboBox.ItemTemplate>
                                 </ComboBox>
@@ -394,10 +398,10 @@
                                   <Button Classes="link" Click="OnOpenServiceModule"
                                           IsVisible="{Binding HasItemLink}"
                                           ToolTip.Tip="{x:Static loc:IndustryText.TipOpenInTheItemBrowser}">
-                                    <TextBlock Text="{Binding Name}" Classes="linktext" FontSize="11"
+                                    <TextBlock Text="{Binding DisplayName}" Classes="linktext" FontSize="11"
                                                Foreground="{DynamicResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" />
                                   </Button>
-                                  <TextBlock Text="{Binding Name}" IsVisible="{Binding !HasItemLink}"
+                                  <TextBlock Text="{Binding DisplayName}" IsVisible="{Binding !HasItemLink}"
                                              FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
                                              VerticalAlignment="Center"
                                              TextTrimming="CharacterEllipsis" />
@@ -417,7 +421,7 @@
                                     Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextSecondaryBrush}">
                             <ComboBox.ItemTemplate>
                               <DataTemplate x:DataType="vm:SdeRigOption">
-                                <TextBlock Text="{Binding Name}" FontSize="11" />
+                                <TextBlock Text="{Binding DisplayName}" FontSize="11" />
                               </DataTemplate>
                             </ComboBox.ItemTemplate>
                           </ComboBox>
@@ -518,7 +522,7 @@
                               Background="Transparent" BorderThickness="0"
                               HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
                               Padding="12 6" Cursor="Hand">
-                        <TextBlock Text="{Binding Name}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <TextBlock Text="{Binding DisplayName}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
                       </Button>
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>
@@ -534,7 +538,7 @@
                   <DataTemplate x:CompileBindings="False" x:DataType="vm:ItemExceptionVm">
                     <Border BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 0 0 1" Padding="14 8">
                       <Grid ColumnDefinitions="220,*,Auto">
-                        <TextBlock Grid.Column="0" Text="{Binding TypeName}"
+                        <TextBlock Grid.Column="0" Text="{Binding DisplayName}"
                                    FontSize="12" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
                         <ComboBox Grid.Column="1"
                                   ItemsSource="{Binding StructureOptions}"
