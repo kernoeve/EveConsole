@@ -55,10 +55,18 @@ public sealed class StatusBarItem(string name, string tab) : ReactiveObject
 // Live per-region row for the price-history sweep monitor.
 public class HistoryRegionRowVm : ReactiveObject
 {
-    public int    RegionId   { get; }
-    public string RegionName { get; }
+    private readonly string _englishName;
 
-    public HistoryRegionRowVm(int regionId, string name) { RegionId = regionId; RegionName = name; }
+    public int    RegionId   { get; }
+
+    /// <summary>Display only, in the interface language, looked up as it is drawn: the row is kept
+    /// for as long as the region is swept, and is often made before the names have loaded.</summary>
+    public string RegionName => SdeNames.Region(RegionId, _englishName);
+
+    public HistoryRegionRowVm(int regionId, string name) { RegionId = regionId; _englishName = name; }
+
+    /// <summary>Draws the name again, once names in the interface language have (re)loaded.</summary>
+    public void NamesChanged() => this.RaisePropertyChanged(nameof(RegionName));
 
     private int _refreshed;
     public int Refreshed
@@ -413,6 +421,15 @@ public class ApiActivityViewModel : ReactiveObject
             SyncStatusBar();
             SyncBackgroundProcesses();
             SyncHistorySweep();
+        });
+
+        // The price-history regions and the LP store's NPC corporations keep their rows, so names
+        // in the interface language that load after a row was made — the first load, an SDE
+        // import — are drawn again in place. Raised on a background thread.
+        SdeNames.Changed += () => Dispatcher.UIThread.Post(() =>
+        {
+            foreach (var r in HistoryRegions) r.NamesChanged();
+            foreach (var r in LpStoreCorps)   r.NamesChanged();
         });
 
         // And read once, because a window opened after the last change has no signal coming: the
@@ -888,12 +905,18 @@ public class ApiActivityViewModel : ReactiveObject
         {
             using var scope = _scopeFactory.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            corps = (await db.EsiLpStoreCorps.AsNoTracking()
-                    .Join(db.SdeNpcCorporations.AsNoTracking(), c => c.CorporationId, n => n.CorporationId,
-                          (c, n) => new { c.CorporationId, n.Name, c.HasStore, c.OfferCount, c.LastCheckedAt })
-                    .ToListAsync())
+            var read = await db.EsiLpStoreCorps.AsNoTracking()
+                .Join(db.SdeNpcCorporations.AsNoTracking(), c => c.CorporationId, n => n.CorporationId,
+                      (c, n) => new { c.CorporationId, n.Name, c.HasStore, c.OfferCount, c.LastCheckedAt })
+                .ToListAsync();
+
+            // Ordered by the name the grid shows, so the names are waited for once first. The rows
+            // keep the English: they look up the shown name themselves (LpStoreCorpRowVm.Name).
+            await SdeNames.EnsureLoadedAsync();
+            corps = read
                 .Select(x => (x.CorporationId, x.Name, x.HasStore, x.OfferCount, x.LastCheckedAt))
-                .OrderByDescending(x => x.HasStore).ThenBy(x => x.Name)
+                .OrderByDescending(x => x.HasStore)
+                .ThenBy(x => SdeNames.NpcCorporation(x.CorporationId, x.Name), StringComparer.CurrentCulture)
                 .ToList();
         }
         catch { return; /* best-effort monitor */ }
@@ -928,7 +951,8 @@ public class ApiActivityViewModel : ReactiveObject
     {
         var snap = _history.SweepStatuses;
 
-        foreach (var s in snap)
+        // New rows join in the order of the names they show (the sweep lists them by English).
+        foreach (var s in snap.OrderBy(x => SdeNames.Region(x.RegionId, x.RegionName), StringComparer.CurrentCulture))
         {
             var row = HistoryRegions.FirstOrDefault(r => r.RegionId == s.RegionId);
             if (row is null)

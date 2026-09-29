@@ -61,8 +61,12 @@ public class NotificationRowVm
         TypeLabel      = NotificationTitles.For(n.Type);
         Recipients     = recipients;
         Character      = recipients.Count > 0 ? string.Join(", ", recipients.Select(x => x.Name)) : $"ID {n.CharacterId}";
+        // Display only. An NPC sender — a faction, an NPC corporation, an agent — in the interface
+        // language, by the sender type ESI gives; a player as named.
         Sender         = n.SenderId > 0
-            ? (names.TryGetValue(n.SenderId, out var sn) && sn.Length > 0 ? sn : $"ID {n.SenderId}")
+            ? (names.TryGetValue(n.SenderId, out var sn) && sn.Length > 0
+                ? SdeNames.ForEsiCategory(n.SenderType, n.SenderId, sn)
+                : $"ID {n.SenderId}")
             : "—";
         SenderType     = n.SenderType.Length > 0
             ? char.ToUpperInvariant(n.SenderType[0]) + n.SenderType[1..] : "";
@@ -529,6 +533,10 @@ public class NotificationsViewModel : ReactiveObject
 
             var names = await _names.ResolveAsync(
                 rows.Select(r => r.SenderId).Concat(recipients.Select(x => x.CharacterId)));
+
+            // The first page is built at start-up: wait once for the NPC senders' names in the
+            // interface language rather than show them in English until the next page.
+            await SdeNames.EnsureLoadedAsync();
 
             Rows.Clear();
             foreach (var r in rows)

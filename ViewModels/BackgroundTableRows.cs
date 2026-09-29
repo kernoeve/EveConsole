@@ -69,7 +69,13 @@ public sealed class ContractSourceRowVm(string source) : ReactiveObject
 public sealed class LpStoreCorpRowVm(int corporationId, string name) : ReactiveObject
 {
     public int    CorporationId { get; } = corporationId;
-    public string Name          { get; } = name;
+
+    /// <summary>Display only, in the interface language, looked up as it is drawn: the row is kept
+    /// across refreshes, so a name fixed when it was made would stay English if made first.</summary>
+    public string Name => SdeNames.NpcCorporation(CorporationId, name);
+
+    /// <summary>Draws the name again, once names in the interface language have (re)loaded.</summary>
+    public void NamesChanged() => this.RaisePropertyChanged(nameof(Name));
 
     private string _store = "";
     public string StoreText { get => _store; private set => this.RaiseAndSetIfChanged(ref _store, value); }

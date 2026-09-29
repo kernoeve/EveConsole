@@ -123,6 +123,17 @@
               </StackPanel>
             </Border>
           </DataTemplate>
+
+          <!-- A type-ahead suggestion: the name in the interface language, and the English the
+               alarm stores beside it when the two differ. Picking one puts the English in the box. -->
+          <DataTemplate x:Key="NameSuggestionTemplate" x:DataType="vm:AlarmNameSuggestion">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Grid.Column="0" Text="{Binding Shown}" />
+              <TextBlock Grid.Column="1" Text="{Binding English}" IsVisible="{Binding IsTranslated}"
+                         FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
+                         Margin="12 0 0 0" VerticalAlignment="Center" />
+            </Grid>
+          </DataTemplate>
   </UserControl.Resources>
 
   <Grid RowDefinitions="Auto,1,*">
@@ -290,6 +301,7 @@
                       <AutoCompleteBox IsVisible="{Binding IsItem}"
                                        Text="{Binding Text}"
                                        AsyncPopulator="{Binding Populator}"
+                                       ItemTemplate="{StaticResource NameSuggestionTemplate}"
                                        FilterMode="None"
                                        MinimumPrefixLength="2"
                                        MinimumPopulateDelay="0:0:0.2"
@@ -306,6 +318,7 @@
                           <AutoCompleteBox Grid.Column="0"
                                            Text="{Binding Text}"
                                            AsyncPopulator="{Binding Populator}"
+                                           ItemTemplate="{StaticResource NameSuggestionTemplate}"
                                            FilterMode="None"
                                            MinimumPrefixLength="2"
                                            MinimumPopulateDelay="0:0:0.2"

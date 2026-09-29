@@ -294,6 +294,21 @@ public sealed class AlarmFieldVm : ReactiveObject
     public double MinHeight => IsMultiline ? 96 : 0;
 }
 
+/// <summary>
+/// One type-ahead suggestion: the name the list shows, in the interface language, and the English
+/// the alarm stores.
+///
+/// <para>⚠️ The box takes <see cref="ToString"/> — the English — when one is picked, so the saved
+/// config keeps the name the checks match on, whatever language the list was read in.</para>
+/// </summary>
+public sealed record AlarmNameSuggestion(string English, string Shown)
+{
+    /// <summary>The English, beside the shown name, when the two differ.</summary>
+    public bool IsTranslated => !string.Equals(English, Shown, StringComparison.Ordinal);
+
+    public override string ToString() => English;
+}
+
 /// <summary>One action attached to the alarm being edited.</summary>
 public sealed class AlarmActionVm : ReactiveObject
 {
@@ -1080,6 +1095,7 @@ public sealed class AlarmsViewModel : ReactiveObject
     /// <summary>
     /// Type-ahead over published item names. Exact matches first, then names starting with what
     /// was typed, then the rest — so "Sigil" leads with the Sigil rather than the Sigil Blueprint.
+    /// Finds a name typed in English or as the list shows it; the one picked goes in as English.
     /// </summary>
     private async Task<IEnumerable<object>> SearchItemNamesAsync(string? text, CancellationToken ct)
     {
@@ -1088,29 +1104,43 @@ public sealed class AlarmsViewModel : ReactiveObject
 
         return await Task.Run(async () =>
         {
+            await SdeNames.EnsureLoadedAsync(ct);
+            var shownIds = ShownMatches(SdeNameKind.Type, term);
             await using var db = await _dbFactory.CreateDbContextAsync(ct);
 
             var hits = await db.SdeTypes.AsNoTracking()
-                .Where(t => t.Published && t.Name.Contains(term))
-                .Select(t => t.Name)
+                .Where(t => t.Published && (t.Name.Contains(term) || shownIds.Contains(t.TypeId)))
+                .Select(t => new { t.TypeId, t.Name })
                 .Take(200)
                 .ToListAsync(ct);
 
-            return Rank(hits, term);
+            return Rank(hits.Select(t => new AlarmNameSuggestion(t.Name, SdeNames.Type(t.TypeId, t.Name))), term);
         }, ct);
     }
 
-    /// <summary>Exact match, then names starting with the term, then the rest; short before long.</summary>
-    private static List<object> Rank(IEnumerable<string> names, string term) =>
+    /// <summary>The ids of one kind whose name in the interface language contains the term: the
+    /// matches a search of the English column misses. Empty in English.</summary>
+    private static List<int> ShownMatches(SdeNameKind kind, string term) =>
+        [.. SdeNames.Find(kind, term).Select(id => (int)id)];
+
+    /// <summary>A name with nothing to translate — a player structure, an NPC station, "Pod".</summary>
+    private static AlarmNameSuggestion AsIs(string name) => new(name, name);
+
+    /// <summary>Exact match, then names starting with the term, then the rest; short before long.
+    /// Judged on the English and the shown name alike, so a name typed either way leads.</summary>
+    private static List<object> Rank(IEnumerable<AlarmNameSuggestion> names, string term) =>
         names
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .OrderBy(n => string.Equals(n, term, StringComparison.OrdinalIgnoreCase) ? 0
-                        : n.StartsWith(term, StringComparison.OrdinalIgnoreCase) ? 1 : 2)
-            .ThenBy(n => n.Length)
-            .ThenBy(n => n)
+            .DistinctBy(n => n.English, StringComparer.OrdinalIgnoreCase)
+            .OrderBy(n => Math.Min(Closeness(n.English, term), Closeness(n.Shown, term)))
+            .ThenBy(n => n.Shown.Length)
+            .ThenBy(n => n.Shown, StringComparer.CurrentCulture)
             .Take(50)
             .Cast<object>()
             .ToList();
+
+    private static int Closeness(string name, string term) =>
+        string.Equals(name, term, StringComparison.OrdinalIgnoreCase) ? 0
+        : name.StartsWith(term, StringComparison.OrdinalIgnoreCase) ? 1 : 2;
 
     private Task<bool> IsKnownItemAsync(string name, CancellationToken ct) => Task.Run(async () =>
     {
@@ -1122,7 +1152,8 @@ public sealed class AlarmsViewModel : ReactiveObject
     /// <summary>
     /// Places an undock can be from: regions and systems from the SDE, NPC stations from the
     /// SDE, player structures from every table that names one. Lower-cased on both sides
-    /// because a server's LIKE is case-sensitive and SQLite's is not.
+    /// because a server's LIKE is case-sensitive and SQLite's is not. Regions and systems are
+    /// also found and listed in the interface language; the one picked goes in as English.
     /// </summary>
     private async Task<IEnumerable<object>> SearchPlaceNamesAsync(string? text, CancellationToken ct)
     {
@@ -1132,20 +1163,27 @@ public sealed class AlarmsViewModel : ReactiveObject
 
         return await Task.Run(async () =>
         {
+            await SdeNames.EnsureLoadedAsync(ct);
+            var regionIds = ShownMatches(SdeNameKind.Region, term);
+            var systemIds = ShownMatches(SdeNameKind.SolarSystem, term);
             await using var db = await _dbFactory.CreateDbContextAsync(ct);
-            var hits = new List<string>();
-            hits.AddRange(await db.SdeRegions.AsNoTracking()
-                .Where(r => r.Name.ToLower().Contains(lower)).Select(r => r.Name).Take(20).ToListAsync(ct));
-            hits.AddRange(await db.SdeSolarSystems.AsNoTracking()
-                .Where(s => s.Name.ToLower().Contains(lower)).Select(s => s.Name).Take(50).ToListAsync(ct));
-            hits.AddRange(await db.Structures.AsNoTracking()
-                .Where(s => s.Name.ToLower().Contains(lower)).Select(s => s.Name).Take(50).ToListAsync(ct));
-            hits.AddRange(await db.EsiStructureNames.AsNoTracking()
-                .Where(s => s.Name.ToLower().Contains(lower)).Select(s => s.Name).Take(50).ToListAsync(ct));
-            hits.AddRange(await db.EsiCorpStructures.AsNoTracking()
-                .Where(s => s.Name.ToLower().Contains(lower)).Select(s => s.Name).Take(50).ToListAsync(ct));
-            hits.AddRange(await db.SdeStations.AsNoTracking()
-                .Where(s => s.Name.ToLower().Contains(lower)).Select(s => s.Name).Take(50).ToListAsync(ct));
+            var hits = new List<AlarmNameSuggestion>();
+            hits.AddRange((await db.SdeRegions.AsNoTracking()
+                    .Where(r => r.Name.ToLower().Contains(lower) || regionIds.Contains(r.RegionId))
+                    .Select(r => new { r.RegionId, r.Name }).Take(20).ToListAsync(ct))
+                .Select(r => new AlarmNameSuggestion(r.Name, SdeNames.Region(r.RegionId, r.Name))));
+            hits.AddRange((await db.SdeSolarSystems.AsNoTracking()
+                    .Where(s => s.Name.ToLower().Contains(lower) || systemIds.Contains(s.SolarSystemId))
+                    .Select(s => new { s.SolarSystemId, s.Name }).Take(50).ToListAsync(ct))
+                .Select(s => new AlarmNameSuggestion(s.Name, SdeNames.SolarSystem(s.SolarSystemId, s.Name))));
+            hits.AddRange((await db.Structures.AsNoTracking()
+                .Where(s => s.Name.ToLower().Contains(lower)).Select(s => s.Name).Take(50).ToListAsync(ct)).Select(AsIs));
+            hits.AddRange((await db.EsiStructureNames.AsNoTracking()
+                .Where(s => s.Name.ToLower().Contains(lower)).Select(s => s.Name).Take(50).ToListAsync(ct)).Select(AsIs));
+            hits.AddRange((await db.EsiCorpStructures.AsNoTracking()
+                .Where(s => s.Name.ToLower().Contains(lower)).Select(s => s.Name).Take(50).ToListAsync(ct)).Select(AsIs));
+            hits.AddRange((await db.SdeStations.AsNoTracking()
+                .Where(s => s.Name.ToLower().Contains(lower)).Select(s => s.Name).Take(50).ToListAsync(ct)).Select(AsIs));
             return Rank(hits, term);
         }, ct);
     }
@@ -1164,7 +1202,8 @@ public sealed class AlarmsViewModel : ReactiveObject
 
     /// <summary>
     /// Hulls and ship classes: every published type in the Ship category and every group in it
-    /// ("Cruiser", "Titan"), plus "Pod", which is what everyone calls the Capsule group.
+    /// ("Cruiser", "Titan"), plus "Pod", which is what everyone calls the Capsule group. Also
+    /// found and listed in the interface language; the one picked goes in as English.
     /// </summary>
     private async Task<IEnumerable<object>> SearchShipNamesAsync(string? text, CancellationToken ct)
     {
@@ -1174,16 +1213,23 @@ public sealed class AlarmsViewModel : ReactiveObject
 
         return await Task.Run(async () =>
         {
+            await SdeNames.EnsureLoadedAsync(ct);
+            var groupIds = ShownMatches(SdeNameKind.Group, term);
+            var typeIds  = ShownMatches(SdeNameKind.Type, term);
             await using var db = await _dbFactory.CreateDbContextAsync(ct);
-            var hits = new List<string>();
-            if ("pod".StartsWith(lower)) hits.Add("Pod");
-            hits.AddRange(await db.SdeGroups.AsNoTracking()
-                .Where(g => g.CategoryId == ShipCategoryId && g.Published && g.Name.ToLower().Contains(lower))
-                .Select(g => g.Name).Take(30).ToListAsync(ct));
-            hits.AddRange(await (from t in db.SdeTypes.AsNoTracking()
-                                 join g in db.SdeGroups.AsNoTracking() on t.GroupId equals g.GroupId
-                                 where g.CategoryId == ShipCategoryId && t.Published && t.Name.ToLower().Contains(lower)
-                                 select t.Name).Take(100).ToListAsync(ct));
+            var hits = new List<AlarmNameSuggestion>();
+            if ("pod".StartsWith(lower)) hits.Add(AsIs("Pod"));
+            hits.AddRange((await db.SdeGroups.AsNoTracking()
+                    .Where(g => g.CategoryId == ShipCategoryId && g.Published
+                             && (g.Name.ToLower().Contains(lower) || groupIds.Contains(g.GroupId)))
+                    .Select(g => new { g.GroupId, g.Name }).Take(30).ToListAsync(ct))
+                .Select(g => new AlarmNameSuggestion(g.Name, SdeNames.Group(g.GroupId, g.Name))));
+            hits.AddRange((await (from t in db.SdeTypes.AsNoTracking()
+                                  join g in db.SdeGroups.AsNoTracking() on t.GroupId equals g.GroupId
+                                  where g.CategoryId == ShipCategoryId && t.Published
+                                        && (t.Name.ToLower().Contains(lower) || typeIds.Contains(t.TypeId))
+                                  select new { t.TypeId, t.Name }).Take(100).ToListAsync(ct))
+                .Select(t => new AlarmNameSuggestion(t.Name, SdeNames.Type(t.TypeId, t.Name))));
             return Rank(hits, term);
         }, ct);
     }

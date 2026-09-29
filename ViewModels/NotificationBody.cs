@@ -386,6 +386,10 @@ public static class NotificationBody
         var r        = new Resolution();
         var prepared = notifications.Select(n => Prepare(n.Type, n.Text, r)).ToList();
         await r.ResolveAsync(names, dbFactory);
+
+        // Items, systems and NPCs are named in the interface language as each value is built.
+        // Waited for once, so a list laid out right after start does not show English and keep it.
+        await SdeNames.EnsureLoadedAsync();
         return [.. prepared.Select(p => p.Finish(r))];
     }
 
@@ -850,8 +854,21 @@ public static class NotificationBody
             if (typeId > 0) _types.Add(typeId);
         }
 
-        public string EntityName(long id) =>
-            _entityNames.TryGetValue(id, out var n) && n.Length > 0 ? n : $"#{id}";
+        public string EntityName(long id) => ShownName(id, EntityKindOf(id, K.Entity));
+
+        /// <summary>An entity's name as the screen shows it: a faction, an NPC corporation or an
+        /// agent in the interface language; a player, their corporation and alliance as named.</summary>
+        private string ShownName(long id, EntityKind kind)
+        {
+            if (!_entityNames.TryGetValue(id, out var n) || n.Length == 0) return $"#{id}";
+            return kind switch
+            {
+                EntityKind.Faction => SdeNames.Faction(id, n),
+                EntityKind.NpcCorp => SdeNames.NpcCorporation(id, n),
+                EntityKind.Agent   => SdeNames.Agent(id, n),
+                _                  => n,
+            };
+        }
 
         public async Task ResolveAsync(ContractNameResolver names, IDbContextFactory<AppDbContext> dbFactory)
         {
@@ -924,7 +941,7 @@ public static class NotificationBody
                     var id = (int)x.Id;
                     return new NotifValueVm
                     {
-                        Text    = _typeNames.TryGetValue(id, out var n) ? n : string.Format(CommsText.NotifTypeNumbered, id),
+                        Text    = _typeNames.TryGetValue(id, out var n) ? SdeNames.Type(id, n) : string.Format(CommsText.NotifTypeNumbered, id),
                         IconUrl = $"types/{id}/icon?size=32",
                         Tip     = CommsText.NotifTipItemBrowser,
                         Open    = () => EntityNavigator.Instance.Item(id),
@@ -936,7 +953,7 @@ public static class NotificationBody
                     var known = _systemInfo.TryGetValue(id, out var s);
                     return new NotifValueVm
                     {
-                        Text    = known ? $"{s.Name} ({SecurityColors.Text(s.Sec)})" : string.Format(CommsText.NotifSystemNumbered, id),
+                        Text    = known ? $"{SdeNames.SolarSystem(id, s.Name)} ({SecurityColors.Text(s.Sec)})" : string.Format(CommsText.NotifSystemNumbered, id),
                         IconUrl = "",
                         Tip     = known ? string.Format(CommsText.NotifTipSecOpenMap, SecurityColors.Tip(s.Sec)) : CommsText.NotifTipOpenMap,
                         Open    = () => EntityNavigator.Instance.System(id),
@@ -954,6 +971,7 @@ public static class NotificationBody
                     var known = _stationInfo.TryGetValue(id, out var st);
                     return new NotifValueVm
                     {
+                        // English, like a moon's: built from celestial names not translated yet.
                         Text    = known ? st.Name : string.Format(CommsText.NotifStationNumbered, id),
                         IconUrl = known && st.TypeId > 0 ? $"types/{st.TypeId}/icon?size=32" : null,
                         Tip     = CommsText.NotifTipNpcEntities,
@@ -968,7 +986,7 @@ public static class NotificationBody
                     var typeId = x.IconTypeId > 0 ? x.IconTypeId : st.TypeId > 0 ? st.TypeId : hint.TypeId;
                     var name   = st.Name is { Length: > 0 } ? st.Name : hint.Name;
                     // A structure nobody has named to us: its type says more than its id would.
-                    var unknown = typeId > 0 && _typeNames.TryGetValue(typeId, out var tn) ? string.Format(CommsText.NotifNameUnknown, tn)
+                    var unknown = typeId > 0 && _typeNames.TryGetValue(typeId, out var tn) ? string.Format(CommsText.NotifNameUnknown, SdeNames.Type(typeId, tn))
                                                                                            : CommsText.NotifStructureNameUnknown;
                     return new NotifValueVm
                     {
@@ -984,7 +1002,7 @@ public static class NotificationBody
                     var kind = EntityKindOf(id, x.Kind);
                     return new NotifValueVm
                     {
-                        Text    = EntityName(id),
+                        Text    = ShownName(id, kind),
                         IconUrl = kind switch
                         {
                             EntityKind.Pilot or EntityKind.Agent => $"characters/{id}/portrait?size=32",

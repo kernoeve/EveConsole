@@ -521,6 +521,11 @@ public class OverviewViewModel : ReactiveObject
         Observable.Interval(TimeSpan.FromSeconds(60))
             .ObserveOnUi("Overview.AutoRefresh")
             .Subscribe(n => _ = LoadAsync());
+
+        // Names in the interface language that arrive after the cards were built — a first load
+        // slower than the wait for it, an SDE import — reach them on the next refresh: forgetting
+        // the signature makes that refresh build the cards again rather than keep them.
+        SdeNames.Changed += () => _notificationSignature = "";
     }
 
 
@@ -1278,11 +1283,15 @@ public class OverviewViewModel : ReactiveObject
                     .Where(t => typeIds.Contains(t.TypeId))
                     .ToDictionaryAsync(t => t.TypeId, t => t.Name);
 
+                // The item in the interface language: the row only shows it (sort and copy
+                // follow the shown name), and the order itself keys on TypeId.
+                await SdeNames.EnsureLoadedAsync();
+
                 // Newest first. Ordered on the tick count rather than the displayed date, which
                 // is day-resolution only and would leave same-day orders in whatever sequence
                 // the query happened to return them.
                 return open
-                    .Select(o => new OrderSummaryRowVm(o, names.GetValueOrDefault(o.TypeId, "")))
+                    .Select(o => new OrderSummaryRowVm(o, names.TryGetValue(o.TypeId, out var n) ? SdeNames.Type(o.TypeId, n) : ""))
                     .OrderByDescending(v => v.CreatedSort)
                     .ToList();
             });

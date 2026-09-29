@@ -485,11 +485,13 @@ public class MainWindowViewModel : ReactiveObject
                         c.Name,
                         s.Online,
                         Docked   = s.StationId != null || s.StructureId != null,
+                        s.SolarSystemId,
                         System   = sys != null ? sys.Name : null,
                         Place    = sta  != null ? sta.Name
                                  : str  != null ? str.Name
                                  : strn != null ? strn.Name
                                  : cstr != null ? cstr.Name : null,
+                        s.ShipTypeId,
                         Hull     = ship != null ? ship.Name : null,
                         s.ShipName,
                     }).ToListAsync();
@@ -501,7 +503,10 @@ public class MainWindowViewModel : ReactiveObject
 
             var list = online.Select(r =>
             {
-                var system = string.IsNullOrWhiteSpace(r.System) ? ShellText.LocationUnknown : r.System;
+                // The system and the hull in the interface language. Docked places stay as
+                // named: NPC station names are not translated, player structures never are.
+                var system = string.IsNullOrWhiteSpace(r.System) ? ShellText.LocationUnknown
+                           : SdeNames.SolarSystem(r.SolarSystemId ?? 0, r.System);
 
                 // Docked: the station or structure, which says more than its system does. In
                 // space: the system, which is all there is to say.
@@ -510,11 +515,13 @@ public class MainWindowViewModel : ReactiveObject
                           :                                          string.Format(ShellText.StructureInSystem, system);
 
                 // The hull is what the ship IS; ShipName is what the pilot called it. Show
-                // both only when the pilot bothered to rename it.
-                var ship = string.IsNullOrWhiteSpace(r.Hull) ? ShellText.ShipUnknown : r.Hull;
+                // both only when the pilot bothered to rename it — judged on the English hull,
+                // never on the translated one shown.
+                var hull = string.IsNullOrWhiteSpace(r.Hull) ? r.Hull : SdeNames.Type(r.ShipTypeId ?? 0, r.Hull);
+                var ship = string.IsNullOrWhiteSpace(hull) ? ShellText.ShipUnknown : hull;
                 if (!string.IsNullOrWhiteSpace(r.ShipName)
                     && !string.Equals(r.ShipName, r.Hull, StringComparison.OrdinalIgnoreCase))
-                    ship = $"{r.Hull} \"{r.ShipName}\"";
+                    ship = $"{hull} \"{r.ShipName}\"";
 
                 return new OnlineCharacterVm(r.Name, where, ship, r.Docked);
             }).ToList();
