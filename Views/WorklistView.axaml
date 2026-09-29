@@ -127,8 +127,11 @@
 
       <!-- ⚠️ One row, with each control naming itself. Labels above doubled the height of the
            filter band, and two adjacent controls were both labelled "Task" — one narrows the kind,
-           the other searches the text. They are now Type and Search. -->
-      <Grid ColumnDefinitions="80,90,230,150,190,190,230,Auto,*">
+           the other searches the text. They are now Type and Search.
+           ⚠️ The State and Type boxes are sized for their values in every language, measured: a
+           closed ComboBox cuts its value off without an ellipsis, and at 80 and 90 it cut even
+           English "Blocked" and "Decompress". The two search boxes gave up the width. -->
+      <Grid ColumnDefinitions="110,160,180,150,190,190,180,Auto,*">
         <ComboBox Grid.Column="0" ItemsSource="{Binding StateOptions}"
                   SelectedItem="{Binding StateFilter}" FontSize="11"
                   PlaceholderText="{x:Static loc:WorklistText.HintState}" HorizontalAlignment="Stretch" Margin="0 0 2 0"
@@ -733,7 +736,7 @@
           <DataGrid.Columns>
             <!-- ⚠️ A dash rather than an empty cell when nothing itemised the need. Blank reads
                  as "the feature is broken"; a dash says "asked, and there is nothing to show". -->
-            <DataGridTemplateColumn Header="{x:Static loc:WorklistText.ColWhy}" Width="46" MinWidth="34" CanUserSort="False" ClipboardContentBinding="{Binding Glyph}">
+            <DataGridTemplateColumn Header="{x:Static loc:WorklistText.ColWhy}" Width="58" MinWidth="34" CanUserSort="False" ClipboardContentBinding="{Binding Glyph}">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:StationNeedRowVm">
                   <Panel>
@@ -933,7 +936,7 @@
           <DataGrid.Columns>
             <!-- ⚠️ A dash rather than an empty cell when nothing itemised the need. Blank reads
                  as "the feature is broken"; a dash says "asked, and there is nothing to show". -->
-            <DataGridTemplateColumn Header="{x:Static loc:WorklistText.ColWhy}" Width="46" MinWidth="34" CanUserSort="False" ClipboardContentBinding="{Binding Glyph}">
+            <DataGridTemplateColumn Header="{x:Static loc:WorklistText.ColWhy}" Width="58" MinWidth="34" CanUserSort="False" ClipboardContentBinding="{Binding Glyph}">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:StationNeedRowVm">
                   <Panel>

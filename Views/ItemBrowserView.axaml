@@ -835,7 +835,7 @@
                         </DataTemplate>
                       </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="{x:Static loc:AssetsText.ColSec}" Width="46" SortMemberPath="Security" ClipboardContentBinding="{Binding SecurityText}">
+                    <DataGridTemplateColumn Header="{x:Static loc:AssetsText.ColSec}" Width="50" SortMemberPath="Security" ClipboardContentBinding="{Binding SecurityText}">
                       <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate x:DataType="vm:ItemAssetRowVm">
                           <TextBlock Text="{Binding SecurityText}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
