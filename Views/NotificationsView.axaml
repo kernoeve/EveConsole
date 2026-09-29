@@ -108,7 +108,7 @@
         <TextBlock Classes="flabel" Text="{x:Static loc:CommsText.SenderLabel}" />
         <ComboBox ItemsSource="{Binding SenderTypes}" SelectedItem="{Binding SelectedSenderType}"
                   MinWidth="120" FontSize="11" VerticalAlignment="Center" />
-        <TextBlock Classes="flabel" Text="{x:Static loc:CommsText.FromLabel2}" />
+        <TextBlock Classes="flabel" Text="{x:Static loc:CommsText.DateFromLabel}" />
         <CalendarDatePicker SelectedDate="{Binding FromDate, Mode=TwoWay}" FontSize="11" Width="120" Height="24" />
         <TextBlock Classes="flabel" Text="{x:Static loc:CommsText.ThruLabel}" />
         <CalendarDatePicker SelectedDate="{Binding ThruDate, Mode=TwoWay}" FontSize="11" Width="120" Height="24" />

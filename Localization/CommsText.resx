@@ -58,7 +58,11 @@
   </data>
   <data name="FromLabel2" xml:space="preserve">
     <value>From:</value>
-    <comment>Label in EveMailView.</comment>
+    <comment>EVE mail → a message's header: who sent it. Not a date — the notifications filter's "From:" is DateFromLabel.</comment>
+  </data>
+  <data name="DateFromLabel" xml:space="preserve">
+    <value>From:</value>
+    <comment>Notifications → filter row: the first date of the range, before a date picker (then "Thru:"). Not a sender — that is FromLabel2.</comment>
   </data>
   <data name="TipOpenInTheEntityBrowser" xml:space="preserve">
     <value>Open in the entity browser</value>

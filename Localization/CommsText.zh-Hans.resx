@@ -44,6 +44,9 @@
     <value>+ 撰写</value>
   </data>
   <data name="FromLabel2" xml:space="preserve">
+    <value>发件人：</value>
+  </data>
+  <data name="DateFromLabel" xml:space="preserve">
     <value>从：</value>
   </data>
   <data name="TipOpenInTheEntityBrowser" xml:space="preserve">
