@@ -49,7 +49,9 @@ public sealed record KillmailListPage(List<KillmailListRow> Rows, bool HasMore);
 public class KillmailBrowserService(
     IDbContextFactory<AppDbContext> dbFactory,
     CorpActivityService corpActivityService,
-    EsiClient esi)
+    EsiClient esi,
+    ZkillboardApiClient zkb,
+    ZkillboardKillImportService zkbImport)
 {
     public const int PageSize = 500;
 
@@ -98,7 +100,8 @@ public class KillmailBrowserService(
         string? characterFilter = null, string? corporationFilter = null,
         string? shipFilter = null, string? systemFilter = null,
         EntityKind? entityKind = null, long entityId = 0,
-        CancellationToken ct = default)
+        CancellationToken ct = default,
+        DateTimeOffset? since = null, DateTimeOffset? before = null)
     {
         using var db = dbFactory.CreateDbContext();
 
@@ -127,6 +130,12 @@ public class KillmailBrowserService(
             conditions.Add($"""d."KillMailTime" >= {P(new DateTimeOffset(fd.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero))}""");
         if (thruDate is { } td)
             conditions.Add($"""d."KillMailTime" <= {P(new DateTimeOffset(td.ToDateTime(TimeOnly.MaxValue), TimeSpan.Zero))}""");
+        // Exact instants rather than whole days, for the entity viewer's zKillboard pages: a page
+        // ends at a kill, not at midnight.
+        if (since is { } from)
+            conditions.Add($"""d."KillMailTime" >= {P(from.ToUniversalTime())}""");
+        if (before is { } until)
+            conditions.Add($"""d."KillMailTime" < {P(until.ToUniversalTime())}""");
         if (!string.IsNullOrWhiteSpace(shipFilter))
             conditions.Add($"""st."Name" LIKE {P($"%{shipFilter.Trim()}%")}""");
         if (!string.IsNullOrWhiteSpace(systemFilter))
@@ -274,6 +283,94 @@ public class KillmailBrowserService(
         }).ToList();
 
         return new KillmailListPage(rows, hasMore);
+    }
+
+    /// <summary>zKillboard's name for an entity kind, or null for one it is not asked about.</summary>
+    private static string? ZkbType(EntityKind kind) => kind switch
+    {
+        EntityKind.Pilot      => "character",
+        EntityKind.PlayerCorp => "corporation",
+        EntityKind.Alliance   => "alliance",
+        _                     => null,
+    };
+
+    /// <summary>Stats answered in the last few minutes, so going back and forth between two
+    /// entities asks once. Failures are not kept: the next look asks again.</summary>
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<(string, long), (DateTimeOffset At, ZkillboardApiClient.EntityStats Stats)>
+        _statsCache = new();
+    private static readonly TimeSpan StatsKeep = TimeSpan.FromMinutes(10);
+
+    /// <summary>
+    /// The summary zKillboard shows above an entity's kill list — see
+    /// <see cref="ZkillboardApiClient.GetEntityStatsAsync"/>. For the entity viewer's header,
+    /// which cannot count kills itself: the database holds only a sample of anyone else's.
+    /// </summary>
+    public async Task<ZkillboardApiClient.EntityStats> ZkbStatsAsync(EntityKind kind, long entityId, CancellationToken ct = default)
+    {
+        if (ZkbType(kind) is not { } type || entityId <= 0) return new ZkillboardApiClient.EntityStats(null, null);
+
+        if (_statsCache.TryGetValue((type, entityId), out var hit) && DateTimeOffset.UtcNow - hit.At < StatsKeep)
+            return hit.Stats;
+
+        var stats = await zkb.GetEntityStatsAsync(type, entityId, ct);
+        if (stats.Problem is null) _statsCache[(type, entityId)] = (DateTimeOffset.UtcNow, stats);
+        return stats;
+    }
+
+    /// <summary>What one zKillboard page for an entity brought in.</summary>
+    /// <param name="Kills">Kills on the page; zero means it was past the end.</param>
+    /// <param name="Stored">How many of them were not in the database until now.</param>
+    /// <param name="Oldest">The oldest kill on the page — everything since is now complete.</param>
+    /// <param name="Reached">False when zKillboard could not be reached, or answered with an error.</param>
+    /// <param name="Problem">Why not, in words, when it was not reached.</param>
+    public sealed record ZkbEntityPage(int Kills, int Stored, DateTimeOffset? Oldest, bool Reached, string? Problem = null);
+
+    /// <summary>
+    /// Pulls page <paramref name="page"/> of an entity's kills and losses from zKillboard,
+    /// newest first, and stores whichever of them the database does not hold yet.
+    ///
+    /// <para>For the entity viewer. The database only holds the kills something brought in — our
+    /// own, a feed, a backfill — so for anyone else it is a sample; zKillboard has them all. A
+    /// page at a time, on request, rather than an entity's whole history: a large alliance runs
+    /// to millions.</para>
+    ///
+    /// <para>⚠️ Stored, not just shown: a row opens its killmail from the database. Added the way
+    /// every zKillboard import adds — never updating a kill already held, references only for our
+    /// own characters and corporations — so what is fetched here is an ordinary kill of someone
+    /// else's, and the Others retention rule trims it like any other.</para>
+    /// </summary>
+    public async Task<ZkbEntityPage> PullEntityPageAsync(
+        EntityKind kind, long entityId, int page, CancellationToken ct = default)
+    {
+        var type = ZkbType(kind);
+        if (type is null || entityId <= 0) return new ZkbEntityPage(0, 0, null, Reached: false);
+
+        var answer = await zkb.GetEntityPageAsync(type, entityId, page, ct);
+        if (answer.Kills is not { } kills) return new ZkbEntityPage(0, 0, null, Reached: false, answer.Problem);
+        if (kills.Count == 0)              return new ZkbEntityPage(0, 0, null, Reached: true);
+
+        var ids = kills.Select(k => k.Kill.KillMailId).ToList();
+
+        // ⚠️ Once more on a conflict. The firehose and the pollers store kills in the background,
+        // and one of them can land a kill from this page between the check and the save — which
+        // fails the whole save on its key. The second pass sees it and skips it.
+        for (var attempt = 1; ; attempt++)
+        {
+            await using var db = await dbFactory.CreateDbContextAsync(ct);
+            var known = await ZkillboardKillImportService.KnownIds.LoadForAsync(db, ids, ct);
+            var (chars, corps) = await ZkillboardKillImportService.GetTrackedIdsAsync(db, ct);
+
+            var stored = 0;
+            foreach (var k in kills)
+                if (await zkbImport.ImportAsync(db, k.Kill, k.Hash, chars, corps, ct, known)) stored++;
+
+            try
+            {
+                await db.SaveChangesAsync(ct);
+                return new ZkbEntityPage(kills.Count, stored, kills.Min(k => k.Kill.KillMailTime), Reached: true);
+            }
+            catch (DbUpdateException) when (attempt < 2) { }
+        }
     }
 
     /// <summary>Character-name fragment → matching character ids, same pattern as

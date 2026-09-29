@@ -939,12 +939,12 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
         {
             case EntityKind.Pilot:
             {
+                // ⚠️ No kill or loss count. It could only count the kills stored here — a sample for
+                // anyone but our own — and a header reading "12 kills" for a pilot with thousands
+                // looked like their record. The Kills / Losses tab pages in zKillboard's.
                 var r = (await db.Database.SqlQueryRaw<PilotDetailRaw>("""
                     SELECT COALESCE(u."Name", 'Unknown ' || @id) AS "Name",
-                           (SELECT COUNT(*) FROM "KillMailAttackers" a WHERE a."CharacterId" = @id)  AS "Kills",
-                           (SELECT COUNT(*) FROM "KillMailDetails"   d WHERE d."VictimCharId" = @id) AS "Losses",
                            (SELECT COUNT(*) FROM "Characters" c WHERE c."Id" = @id)                  AS "IsOurs",
-                           COALESCE((SELECT MAX(a."SecurityStatus") FROM "KillMailAttackers" a WHERE a."CharacterId" = @id), 0) AS "SecStatus",
                            -- ⚠️ Cast to TEXT before the COALESCE. KillMailTime is a timestamptz on a
                            -- server, so COALESCE cannot match it with '', and the row reads LastSeen
                            -- into a string, which it also cannot do. Both ends want text. This is the
@@ -963,7 +963,6 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                     "",
                     [
                         new("Character ID",   id.ToString("N0")),
-                        new("Killmails on",   $"{r.Kills:N0} kill(s), {r.Losses:N0} loss(es)"),
                         new("Last seen",      Pretty(r.LastSeen)),
                     ], url);
             }
@@ -972,20 +971,18 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
             case EntityKind.Alliance:
             {
                 bool corp = kind == EntityKind.PlayerCorp;
+
+                // ⚠️ No counts from the killmails here, for the pilot's reason above: kills and
+                // losses, and the pilots or corporations "seen" on them, are only what happens to
+                // be stored — and for a large alliance each was a count over millions of rows.
                 var sql = corp
                     ? """
                       SELECT COALESCE(u."Name", 'Unknown ' || @id) AS "Name",
-                             (SELECT COUNT(DISTINCT a."CharacterId") FROM "KillMailAttackers" a WHERE a."CorporationId" = @id) AS "Members",
-                             (SELECT COUNT(*) FROM "KillMailAttackers" a WHERE a."CorporationId" = @id) AS "Kills",
-                             (SELECT COUNT(*) FROM "KillMailDetails"   d WHERE d."VictimCorpId"  = @id) AS "Losses",
-                             (SELECT COUNT(*) FROM "Corporations" c WHERE c."Id" = @id)                 AS "IsOurs"
+                             (SELECT COUNT(*) FROM "Corporations" c WHERE c."Id" = @id) AS "IsOurs"
                       FROM (SELECT 1) x LEFT JOIN "UniverseNames" u ON u."EntityId" = @id
                       """
                     : """
                       SELECT COALESCE(u."Name", 'Unknown ' || @id) AS "Name",
-                             (SELECT COUNT(DISTINCT a."CorporationId") FROM "KillMailAttackers" a WHERE a."AllianceId" = @id) AS "Members",
-                             (SELECT COUNT(*) FROM "KillMailAttackers" a WHERE a."AllianceId"       = @id) AS "Kills",
-                             (SELECT COUNT(*) FROM "KillMailDetails"   d WHERE d."VictimAllianceId" = @id) AS "Losses",
                              0 AS "IsOurs"
                       FROM (SELECT 1) x LEFT JOIN "UniverseNames" u ON u."EntityId" = @id
                       """;
@@ -1000,8 +997,6 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                     "",
                     [
                         new(corp ? "Corporation ID" : "Alliance ID", id.ToString("N0")),
-                        new(corp ? "Pilots seen"    : "Corporations seen", $"{r.Members:N0}"),
-                        new("Killmails on", $"{r.Kills:N0} kill(s), {r.Losses:N0} loss(es)"),
                     ], url);
             }
 
@@ -1261,8 +1256,8 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
     }
 
     // Raw row shapes — property names match the SELECT aliases.
-    private record PilotDetailRaw(string Name, int Kills, int Losses, int IsOurs, double SecStatus, string LastSeen);
-    private record GroupDetailRaw(string Name, int Members, int Kills, int Losses, int IsOurs);
+    private record PilotDetailRaw(string Name, int IsOurs, string LastSeen);
+    private record GroupDetailRaw(string Name, int IsOurs);
     private record AgentDetailRaw(string Name, int Level, bool IsLocator, string AgentType,
                                   string Division, string Corporation, string Station, string Faction,
                                   long CorporationId, long FactionId, long StationId);

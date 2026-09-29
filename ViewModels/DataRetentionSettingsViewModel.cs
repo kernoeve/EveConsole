@@ -13,12 +13,17 @@ namespace EveConsole.ViewModels;
 public class RetentionSectionVm : ReactiveObject
 {
     private readonly RetentionRule _rule;
-    private readonly Func<int, Task<int>> _purge;
+    private readonly Func<int, IProgress<(int Done, int Total)>, Task<int>> _purge;
     private readonly string _noun;
     private readonly bool _loading;
 
     /// <param name="noun">Plural, lower case — used in "Removed 1,234 killmails older than…".</param>
     public RetentionSectionVm(RetentionRule rule, Func<int, Task<int>> purge, string noun)
+        : this(rule, (days, _) => purge(days), noun) { }
+
+    /// <summary>For a purge that reports how far it has got — one that can run for minutes.</summary>
+    public RetentionSectionVm(
+        RetentionRule rule, Func<int, IProgress<(int Done, int Total)>, Task<int>> purge, string noun)
     {
         _loading = true;
         _rule    = rule;
@@ -104,7 +109,12 @@ public class RetentionSectionVm : ReactiveObject
         Status = "Purging…";
         try
         {
-            var removed = await _purge(Days);
+            // Raised on this (the UI) thread, whichever thread the purge reports from.
+            var progress = new Progress<(int Done, int Total)>(p =>
+            {
+                if (IsPurging) Status = $"Purging… {p.Done:N0} of {p.Total:N0} {_noun} removed";
+            });
+            var removed = await _purge(Days, progress);
 
             // A manual purge satisfies the daily window as much as a scheduled one does — not
             // stamping it would have the background sweep repeat the same work minutes later.
@@ -140,8 +150,11 @@ public class DataRetentionSettingsViewModel : ReactiveObject
         ErrorLog = new RetentionSectionVm(
             retention.ErrorLog, d => retention.PurgeErrorLogAsync(d), "entries");
 
-        Killmails = new RetentionSectionVm(
-            retention.Killmails, d => retention.PurgeKillmailsAsync(d), "killmails");
+        OurKillmails = new RetentionSectionVm(
+            retention.OurKillmails, (d, p) => retention.PurgeOurKillmailsAsync(d, p), "killmails");
+
+        OtherKillmails = new RetentionSectionVm(
+            retention.OtherKillmails, (d, p) => retention.PurgeOtherKillmailsAsync(d, p), "killmails");
 
         PriceHistory = new RetentionSectionVm(
             retention.PriceHistory, d => retention.PurgePriceHistoryAsync(d), "rows");
@@ -157,7 +170,8 @@ public class DataRetentionSettingsViewModel : ReactiveObject
     }
 
     public RetentionSectionVm ErrorLog       { get; }
-    public RetentionSectionVm Killmails      { get; }
+    public RetentionSectionVm OurKillmails   { get; }
+    public RetentionSectionVm OtherKillmails { get; }
     public RetentionSectionVm PriceHistory   { get; }
     public RetentionSectionVm GameLog        { get; }
     public RetentionSectionVm ChatMessages   { get; }
