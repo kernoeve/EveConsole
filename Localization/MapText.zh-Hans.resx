@@ -703,7 +703,7 @@
   <data name="ProductionMagmaticGas" xml:space="preserve">
     <value>岩浆气体 {0:N0}/小时</value>
   </data>
-  <data name="ProductionSublimatedIce" xml:space="preserve">
+  <data name="ProductionSuperionicIce" xml:space="preserve">
     <value>超离子冰 {0:N0}/小时</value>
   </data>
   <data name="SovUnclaimed" xml:space="preserve">

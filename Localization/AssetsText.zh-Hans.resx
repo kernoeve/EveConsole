@@ -1183,4 +1183,7 @@ Warrior II 5
   <data name="ErrSelectRegion" xml:space="preserve">
     <value>请选择一个星域，或选择“{0}”。</value>
   </data>
+  <data name="ColItemVolume" xml:space="preserve">
+    <value>体积</value>
+  </data>
 </root>
