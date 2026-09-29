@@ -745,4 +745,7 @@
   <data name="ContractStatusReversed" xml:space="preserve">
     <value>已撤销</value>
   </data>
+  <data name="StationUnknown" xml:space="preserve">
+    <value>未知（{0}）</value>
+  </data>
 </root>

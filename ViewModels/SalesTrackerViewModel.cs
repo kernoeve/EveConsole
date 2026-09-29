@@ -35,6 +35,12 @@ internal static class ProfitBrushes
 // ReactiveObject so the main grid's Profit columns refresh live when the cost basis changes.
 public class SaleRowVm : ReactiveObject
 {
+    /// <summary>A sale of several items: the first item's name and how many more there are, so
+    /// a screen can make the name a link and the rest plain. ⚠️ Not found by splitting Items: its
+    /// words and their order are the translation's.</summary>
+    public string ItemHead { get; init; } = "";
+    public int    ItemMore { get; init; }
+
     private Bitmap? _icon;
     /// <summary>The named item's picture, once the batch that fetches them has it.</summary>
     public Bitmap? Icon { get => _icon; private set => this.RaiseAndSetIfChanged(ref _icon, value); }
@@ -423,7 +429,7 @@ public class SalesTrackerViewModel : ReactiveObject
     // ── Filters ───────────────────────────────────────────────────────────────
     public ObservableCollection<SalesOwnerOption> OwnerOptions { get; } =
     [
-        new(SalesText.FilterAll,                             OwnerScope.All),
+        new(SalesText.OwnerAll,                              OwnerScope.All),
         new(SalesText.OwnerCharsAndPersonalCorps, OwnerScope.CharsAndPersonalCorps),
     ];
     private SalesOwnerOption _selectedOwner;

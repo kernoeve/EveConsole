@@ -1364,4 +1364,8 @@
     <value>{0} item types  ·  {1:N1} m³ loaded</value>
     <comment>Trade Opportunities status line after a run, several item types. {0} is how many item types are in the shopping list, {1} the cargo volume they fill.</comment>
   </data>
+  <data name="StationUnknown" xml:space="preserve">
+    <value>Unknown ({0})</value>
+    <comment>A market location whose name is not known. {0} is its id.</comment>
+  </data>
 </root>

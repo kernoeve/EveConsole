@@ -257,14 +257,18 @@ public class TradeOpportunitiesViewModel : ReactiveObject
 
         using var cmd = conn.Command(StationsSql);
 
-        Stations.Clear();
+        // A location with no name is named here, not in the SQL, so the words can be translated;
+        // and sorted here, so it sorts by the words shown.
+        var found = new List<StationOption>();
         using var reader = await cmd.ExecuteReaderAsync();
         while (await reader.ReadAsync())
         {
-            Stations.Add(new StationOption(
-                reader.GetInt64(0),
-                reader.GetString(1)));
+            var id = reader.GetInt64(0);
+            found.Add(new StationOption(id,
+                reader.IsDBNull(1) ? string.Format(MarketText.StationUnknown, id) : reader.GetString(1)));
         }
+        Stations.Clear();
+        foreach (var s in found.OrderBy(s => s.Name, StringComparer.CurrentCultureIgnoreCase)) Stations.Add(s);
     }
 
     // ── Calculate ─────────────────────────────────────────────────────────────
@@ -547,13 +551,12 @@ public class TradeOpportunitiesViewModel : ReactiveObject
 
     private const string StationsSql = """
         SELECT o."LocationId",
-               COALESCE(s."Name", sn."Name", 'Unknown (' || o."LocationId" || ')') AS "StationName"
+               COALESCE(s."Name", sn."Name") AS "StationName"
         FROM (
             SELECT DISTINCT "LocationId" FROM "MarketRawOrders"
         ) o
         LEFT JOIN "SdeStations"       s  ON s."StationId"   = CAST(o."LocationId" AS BIGINT)
         LEFT JOIN "EsiStructureNames" sn ON sn."StructureId" = o."LocationId"
-        ORDER BY "StationName"
         """;
 
     // ⚠️ A property, not a const: it interpolates the engine-correct scalar-min function.

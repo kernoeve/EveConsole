@@ -191,7 +191,7 @@ internal static class SalesQuery
             string namesText, units;
             if (its.Count == 0)      { namesText = SalesText.NoItems; units = ""; }
             else if (its.Count == 1) { namesText = TypeName(its[0].TypeId); units = its[0].Quantity.ToString("N0"); }
-            else                     { namesText = string.Format(SalesText.MoreItems, TypeName(its[0].TypeId), its.Count - 1); units = SalesText.UnitsMultiple; }
+            else                     { namesText = Plurals.Format(SalesText.ResourceManager, nameof(SalesText.ItemsAndMoreOther), its.Count - 1, TypeName(its[0].TypeId)); units = SalesText.UnitsMultiple; }
             var build = SumOrNull(its.Select(i => Snap(i.TypeId, when).Build is double b ? b * i.Quantity : (double?)null));
             var mkt   = SumOrNull(its.Select(i => Snap(i.TypeId, when).Market is double m ? m * i.Quantity : (double?)null));
             var firstType = its.Count > 0 ? its[0].TypeId : 0;
@@ -200,7 +200,11 @@ internal static class SalesQuery
                 OwnerName(c.OwnerId, c.OwnerType), c.Location ?? "", BuyerName(c.BuyerId),
                 namesText, units, c.Price, build, mkt,
                 firstType, firstType > 0 ? GroupTwoUp(firstType) : "—", c.SaleId,
-                c.LocationId, c.IsStation > 0, c.BuyerId, BuyerKind(c.BuyerId), c.Title ?? ""));
+                c.LocationId, c.IsStation > 0, c.BuyerId, BuyerKind(c.BuyerId), c.Title ?? "")
+            {
+                ItemHead = its.Count > 1 ? TypeName(its[0].TypeId) : "",
+                ItemMore = Math.Max(0, its.Count - 1),
+            });
         }
 
         // Rows the user has marked as not for profit. Loaded as a flag rather than filtered out

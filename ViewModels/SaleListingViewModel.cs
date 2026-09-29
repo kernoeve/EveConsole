@@ -85,12 +85,12 @@ public class SaleListingRowVm : ReactiveObject
         LocationId = s.LocationId; LocationIsStation = s.LocationIsStation;
         BuyerId = s.BuyerId; BuyerKind = s.BuyerKind; TypeId = s.TypeId;
 
-        // "Revelation +3 more items" splits into a link and a plain tail. Only the named type has
-        // an id behind it; the rest of the contract is not on this row, so making the whole cell a
-        // link would promise a page for items it cannot identify.
-        var plus  = Item.IndexOf(" +", StringComparison.Ordinal);
-        ItemName  = plus > 0 ? Item[..plus]  : Item;
-        ItemExtra = plus > 0 ? Item[plus..] : "";
+        // "Revelation +3 more items" is a link and a plain tail. Only the named type has an id
+        // behind it; the rest of the contract is not on this row, so making the whole cell a link
+        // would promise a page for items it cannot identify.
+        var several = s.ItemMore > 0 && s.ItemHead.Length > 0;
+        ItemName  = several ? s.ItemHead : Item;
+        ItemExtra = several ? " " + Plurals.Format(SalesText.ResourceManager, nameof(SalesText.MoreItemsTailOther), s.ItemMore) : "";
         AmountRaw = s.TotalRaw; Amount = MarketFmt.Isk(s.TotalRaw);
 
         // Same fallback as the Sales Tracker: a mineral or a meta module has no build cost, and
@@ -143,7 +143,13 @@ public class SaleListingViewModel : ReactiveObject
     public SalesOwnerOption SelectedOwner
     {
         get => _selectedOwner;
-        set { this.RaiseAndSetIfChanged(ref _selectedOwner, value ?? OwnerOptions[1]); ApplyFilters(); }
+        set
+        {
+            // A detaching ComboBox sets null; that is not a choice, and must not reset the filter.
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            this.RaiseAndSetIfChanged(ref _selectedOwner, value);
+            ApplyFilters();
+        }
     }
 
     public IReadOnlyList<SalesTypeOption> SaleTypeOptions { get; } =
@@ -156,7 +162,12 @@ public class SaleListingViewModel : ReactiveObject
     public SalesTypeOption SelectedType
     {
         get => _selectedType;
-        set { this.RaiseAndSetIfChanged(ref _selectedType, value ?? SaleTypeOptions[0]); ApplyFilters(); }
+        set
+        {
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            this.RaiseAndSetIfChanged(ref _selectedType, value);
+            ApplyFilters();
+        }
     }
 
     private string _dateFrom;
@@ -246,7 +257,7 @@ public class SaleListingViewModel : ReactiveObject
         Rows.Clear();
         foreach (var r in list) Rows.Add(r);
         _ = Task.WhenAll(list.Select(r => r.LoadIconAsync()));   // one batch, off the cache after the first time
-        StatusText = list.Count == 0 ? SalesText.NoSalesMatch : string.Format(SalesText.StatusSaleCount, list.Count);
+        StatusText = list.Count == 0 ? SalesText.NoSalesMatch : Plurals.Format(SalesText.ResourceManager, nameof(SalesText.SalesCountOther), list.Count);
     }
 
     private static bool TryDate(string s, out DateTime date)

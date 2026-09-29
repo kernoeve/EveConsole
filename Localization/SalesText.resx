@@ -1939,10 +1939,6 @@ Nothing is destroyed: its orders stay in the Order Tracker, and its settings, al
     <value>(no items)</value>
     <comment>A sale with no items.</comment>
   </data>
-  <data name="MoreItems" xml:space="preserve">
-    <value>{0} +{1} more items</value>
-    <comment>A sale of several items. {0} is the first item, {1} how many more.</comment>
-  </data>
   <data name="UnitsMultiple" xml:space="preserve">
     <value>Multiple</value>
     <comment>Units column for a sale of several items.</comment>
@@ -2059,10 +2055,6 @@ Nothing is destroyed: its orders stay in the Order Tracker, and its settings, al
     <value>Sale Listing — Market Value</value>
     <comment>Header of the Sale Listing tool that measures profit against market value.</comment>
   </data>
-  <data name="StatusSaleCount" xml:space="preserve">
-    <value>{0:N0} sale(s)</value>
-    <comment>Status line. {0} is how many sales are listed.</comment>
-  </data>
   <data name="PostTypeSummary" xml:space="preserve">
     <value>Summary</value>
     <comment>A post block's type: a summary rendered from the posting's items.</comment>
@@ -2098,5 +2090,21 @@ Nothing is destroyed: its orders stay in the Order Tracker, and its settings, al
   <data name="SourceUnsourced" xml:space="preserve">
     <value>Unsourced</value>
     <comment>Where an open order's units are coming from: nothing yet.</comment>
+  </data>
+  <data name="ItemsAndMoreOne" xml:space="preserve">
+    <value>{1} +{0} more item</value>
+    <comment>A sale of several items: the first item's name, then how many more. {1} is the name, {0} the number of other items (one).</comment>
+  </data>
+  <data name="ItemsAndMoreOther" xml:space="preserve">
+    <value>{1} +{0} more items</value>
+    <comment>A sale of several items: the first item's name, then how many more. {1} is the name, {0} the number of other items.</comment>
+  </data>
+  <data name="MoreItemsTailOne" xml:space="preserve">
+    <value>+{0} more item</value>
+    <comment>Shown after the first item's name (a link) in a sale of several items. {0} is the number of other items (one).</comment>
+  </data>
+  <data name="MoreItemsTailOther" xml:space="preserve">
+    <value>+{0} more items</value>
+    <comment>Shown after the first item's name (a link) in a sale of several items. {0} is the number of other items.</comment>
   </data>
 </root>

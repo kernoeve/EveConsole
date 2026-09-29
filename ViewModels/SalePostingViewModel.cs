@@ -1173,7 +1173,7 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
             var clipboardText = _selectedFormat == "Slack"
                 ? Regex.Replace(clip, "</?u>", "", RegexOptions.IgnoreCase)
                 : clip;
-            RenderedBlocks.Add(new RenderedBlock($"{post.Name}  ·  {post.PostType}", clipboardText, segs));
+            RenderedBlocks.Add(new RenderedBlock($"{post.Name}  ·  {PostBlockRow.TypeLabel(post.PostType)}", clipboardText, segs));
         }
     }
 

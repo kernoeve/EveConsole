@@ -15,11 +15,16 @@ public class PostBlockRow : ReactiveObject
     // The value is the key the block is saved under and the renderer switches on; only the
     // label is translated.
     public IReadOnlyList<Choice<string>> PostTypeOptions { get; } =
-    [
-        new("Summary", SalesText.PostTypeSummary),
-        new("Detail",  SalesText.PostTypeDetail),
-        new("Static",  SalesText.PostTypeStatic),
-    ];
+        [.. new[] { "Summary", "Detail", "Static" }.Select(k => new Choice<string>(k, TypeLabel(k)))];
+
+    /// <summary>A block type's name as the interface shows it; the key itself for one it does not know.</summary>
+    public static string TypeLabel(string key) => key switch
+    {
+        "Summary" => SalesText.PostTypeSummary,
+        "Detail"  => SalesText.PostTypeDetail,
+        "Static"  => SalesText.PostTypeStatic,
+        _         => key,
+    };
 
     private string _postType;
 

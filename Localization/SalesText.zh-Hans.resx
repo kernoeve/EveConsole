@@ -1454,9 +1454,6 @@
   <data name="NoItems" xml:space="preserve">
     <value>（无物品）</value>
   </data>
-  <data name="MoreItems" xml:space="preserve">
-    <value>{0} 及另外 {1} 项物品</value>
-  </data>
   <data name="UnitsMultiple" xml:space="preserve">
     <value>多种</value>
   </data>
@@ -1531,5 +1528,11 @@
   </data>
   <data name="ScopePickRegion" xml:space="preserve">
     <value>请选择一个星域，或选择“所有位置”。</value>
+  </data>
+  <data name="ItemsAndMoreOther" xml:space="preserve">
+    <value>{1} 及另外 {0} 项物品</value>
+  </data>
+  <data name="MoreItemsTailOther" xml:space="preserve">
+    <value>及另外 {0} 项物品</value>
   </data>
 </root>
