@@ -611,7 +611,7 @@
     <value>输入两个字符…</value>
   </data>
   <data name="DecidedByTheIndyNote" xml:space="preserve">
-    <value>由“工业”标签页上的工业园区决定</value>
+    <value>由“其他”标签页上的工业园区决定</value>
   </data>
   <data name="TipBuyPlacesAMarket" xml:space="preserve">
     <value>购买（Buy）：为缺口挂出市场订单；制造（Build）：为其启动一个任务</value>

@@ -150,7 +150,12 @@ public sealed class JumpPlannerViewModel : ReactiveObject
     public MidpointOption? SelectedMidpoints
     {
         get => _selectedMidpoints;
-        set => this.RaiseAndSetIfChanged(ref _selectedMidpoints, value);
+        set
+        {
+            // A detaching ComboBox sets null; that is not a choice, and must not reset it to Any.
+            if (value is null && _selectedMidpoints is not null) { this.RaisePropertyChanged(); return; }
+            this.RaiseAndSetIfChanged(ref _selectedMidpoints, value);
+        }
     }
 
     /// <summary>What the picked hull and skill actually reach, so the number is visible before planning.</summary>

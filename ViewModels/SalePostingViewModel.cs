@@ -358,6 +358,20 @@ internal sealed class OutputFormat
 
     public static OutputFormat ByName(string? name) => All.FirstOrDefault(f => f.Name == name) ?? All[0];
 
+    /// <summary>The words a format goes by in the interface. Only these two have any to
+    /// translate; the others are the names of Slack, Discord, Markdown, HTML and BBCode.</summary>
+    public static string Label(string name) => name switch
+    {
+        "Plain Text" => CorpText.FormatPlainText,
+        "EVE Mail"   => CorpText.FormatEveMail,
+        _            => name,
+    };
+
+    /// <summary>Every format as a pick list. ⚠️ The Name is what is saved (one setting shared by
+    /// Sale Posting, Top 10 and Monthly Summary) and compared, in every language.</summary>
+    public static IReadOnlyList<Choice<string>> Choices { get; } =
+        All.Select(f => new Choice<string>(f.Name, Label(f.Name))).ToList();
+
     // ── Slack rich_text (real posting, not the preview/clipboard markup above) ─────────────
     // Slack's legacy mrkdwn `text` field has no underline token at all, but Slack's Block Kit
     // rich_text format DOES support it (confirmed live against Slack's API: an unlisted-in-docs
@@ -917,16 +931,19 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
         set { this.RaiseAndSetIfChanged(ref _selectedPostingForTab, value); _ = RenderSelectedAsync(); }
     }
 
-    public IReadOnlyList<string> FormatOptions { get; } = OutputFormat.All.Select(f => f.Name).ToList();
+    public IReadOnlyList<Choice<string>> FormatOptions { get; } = OutputFormat.Choices;
     // Shared with Corp Activity's Top 10 and Monthly Summary, and remembered across
     // sessions — see ExportFormatSettings for why it is one setting rather than three.
     private string _selectedFormat = ExportFormatSettings.Default;
-    public string SelectedFormat
+    public Choice<string> SelectedFormat
     {
-        get => _selectedFormat;
+        get => FormatOptions.FirstOrDefault(o => o.Value == _selectedFormat) ?? FormatOptions[0];
         set
         {
-            this.RaiseAndSetIfChanged(ref _selectedFormat, value ?? ExportFormatSettings.Default);
+            // A detaching ComboBox sets null; that is not a choice, and must not be saved as one.
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            _selectedFormat = value.Value;
+            this.RaisePropertyChanged();
             if (_exportFormat is not null) _exportFormat.Format = _selectedFormat;
             _ = RenderSelectedAsync();
         }

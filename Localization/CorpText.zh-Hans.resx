@@ -625,4 +625,13 @@
   <data name="Save" xml:space="preserve">
     <value>保存</value>
   </data>
+  <data name="SlackDestinationWebhook" xml:space="preserve">
+    <value>Slack（webhook）</value>
+  </data>
+  <data name="SlackDestinationSlack" xml:space="preserve">
+    <value>Slack</value>
+  </data>
+  <data name="NoCorpHistory" xml:space="preserve">
+    <value>没有此角色的军团履历记录。</value>
+  </data>
 </root>

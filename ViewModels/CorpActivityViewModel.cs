@@ -244,7 +244,7 @@ public sealed class CorpProjectRowVm
         CreatorId  = p.CreatorId ?? 0;
         Name       = p.Name;
         State      = p.State;
-        ConfigType = p.ConfigType ?? "—";
+        ConfigType = CorpActivityViewModel.FormatConfigType(p.ConfigType);
         Career     = p.Career ?? "";
 
         double pct = p.ProgressDesired > 0
@@ -1339,17 +1339,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     ///
     /// <para>⚠️ The format's name is what is saved and compared, in every language; only the
     /// label is looked up.</para></summary>
-    public IReadOnlyList<Choice<string>> ExportFormats { get; } =
-        OutputFormat.All.Select(f => new Choice<string>(f.Name, ExportFormatLabel(f.Name))).ToList();
-
-    /// <summary>The words a format goes by. Only these two have any to translate; the others are
-    /// the names of Slack, Discord, Markdown, HTML and BBCode.</summary>
-    private static string ExportFormatLabel(string name) => name switch
-    {
-        "Plain Text" => CorpText.FormatPlainText,
-        "EVE Mail"   => CorpText.FormatEveMail,
-        _            => name,
-    };
+    public IReadOnlyList<Choice<string>> ExportFormats { get; } = OutputFormat.Choices;
 
     private string _selectedExportFormat = ExportFormatSettings.Default;
     public Choice<string> SelectedExportFormat
@@ -1808,6 +1798,14 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
             ? CorpText.SlackViaWebhook
             : _slack?.ChannelName(SlackService.AreaCorpMonthly) is { Length: > 0 } m ? $"#{m}" : "";
 
+    /// <summary>Where a post went, as the status line names it: "#channel", or Slack itself
+    /// when a webhook (which names no channel) or an unknown channel took it. Not the tooltip's
+    /// "via webhook", which does not fit "Posted to …".</summary>
+    private string SlackDestination(string area) =>
+        _slack?.UsesWebhook(area) == true ? CorpText.SlackDestinationWebhook
+        : _slack?.ChannelName(area) is { Length: > 0 } n ? $"#{n}"
+        : CorpText.SlackDestinationSlack;
+
     public void RefreshSlackState()
     {
         this.RaisePropertyChanged(nameof(IsSlackTop10Configured));
@@ -1851,7 +1849,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         var sent  = await SlackMessageSplitter.PostAsync(plain ? $"```\n{body}\n```" : body,
             (part, ct) => _slack.PostAreaAsync(SlackService.AreaCorpTop10, part, ct: ct));
         if (sent.Posted > 0) await _slack.SetLastPostAsync(SlackService.AreaCorpTop10, DateTimeOffset.UtcNow);
-        SlackStatus = SlackPostStatus(sent, SlackTop10ChannelText);
+        SlackStatus = SlackPostStatus(sent, SlackDestination(SlackService.AreaCorpTop10));
     }
 
     /// <summary>
@@ -1901,7 +1899,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         var sent  = await SlackMessageSplitter.PostAsync(plain ? $"```\n{body}\n```" : body,
             (part, ct) => _slack.PostAreaAsync(SlackService.AreaCorpMonthly, part, ct: ct));
         if (sent.Posted > 0) await _slack.SetLastPostAsync(SlackService.AreaCorpMonthly, DateTimeOffset.UtcNow);
-        SlackStatus = SlackPostStatus(sent, SlackMonthlyChannelText);
+        SlackStatus = SlackPostStatus(sent, SlackDestination(SlackService.AreaCorpMonthly));
     }
 
     // ── Monthly Summary ───────────────────────────────────────────────────────
@@ -2690,7 +2688,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         }
     }
 
-    private static string FormatConfigType(string? type) => type switch
+    internal static string FormatConfigType(string? type) => type switch
     {
         "capture_fw_complex"  => CorpText.ProjectTypeCaptureFwComplex,
         "damage_ship"         => CorpText.ProjectTypeDamageShip,

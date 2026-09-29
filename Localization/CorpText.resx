@@ -1018,7 +1018,7 @@
   </data>
   <data name="SlackPosted" xml:space="preserve">
     <value>Posted to {0} — {1:t}</value>
-    <comment>Status line after posting to Slack. {0} is the channel ("#name", or the words for a webhook), {1} the time.</comment>
+    <comment>Status line after posting to Slack. {0} is where: "#channel", or "Slack (webhook)", or "Slack". {1} is the time.</comment>
   </data>
   <data name="SlackPostFailed" xml:space="preserve">
     <value>Slack post failed: {0}</value>
@@ -1603,5 +1603,17 @@
   <data name="IntelSightingsCount" xml:space="preserve">
     <value>{0:N0} sighting(s)</value>
     <comment>Entity browser, Intel Reports tab. {0} is the number of sightings.</comment>
+  </data>
+  <data name="SlackDestinationWebhook" xml:space="preserve">
+    <value>Slack (webhook)</value>
+    <comment>Where a report was posted, when Slack is reached through a webhook, which names no channel. Fills {0} of "Posted to {0}".</comment>
+  </data>
+  <data name="SlackDestinationSlack" xml:space="preserve">
+    <value>Slack</value>
+    <comment>Where a report was posted, when the channel's name is not known. Fills {0} of "Posted to {0}".</comment>
+  </data>
+  <data name="NoCorpHistory" xml:space="preserve">
+    <value>No corporation history recorded for this character.</value>
+    <comment>Entity tab of a character, when ESI lists no corporations it has been in.</comment>
   </data>
 </root>

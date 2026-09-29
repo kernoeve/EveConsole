@@ -311,7 +311,7 @@
     <value>下载完成后，请重启 EVE Console。部分工具会在首次打开时加载参考数据，因此重启可以确保所有功能都能读取刚导入的数据。</value>
   </data>
   <data name="ToPullInYourNote" xml:space="preserve">
-    <value>要导入你自己的角色和军团数据，请添加角色的 ESI 令牌。接下来会打开设置窗口的“ESI 令牌”标签页——在那里点击添加角色，即可通过 EVE 的 SSO 登录。</value>
+    <value>要导入你自己的角色和军团数据，请添加角色的 ESI 令牌。接下来会打开设置窗口的“ESI 令牌”标签页——在那里点击“角色”下的“添加”，即可通过 EVE 的 SSO 登录。</value>
   </data>
   <data name="GetStarted" xml:space="preserve">
     <value>开始使用</value>

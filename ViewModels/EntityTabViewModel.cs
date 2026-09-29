@@ -529,7 +529,7 @@ public class EntityTabViewModel : ReactiveObject
                 History.Clear();
                 foreach (var r in rows) History.Add(r);
                 HistoryStatus = rows.Count == 0
-                    ? CorpText.NoAllianceHistory
+                    ? Kind is EntityKind.Pilot ? CorpText.NoCorpHistory : CorpText.NoAllianceHistory
                     : string.Format(CorpText.HistoryPeriodsCount, rows.Count);
             });
         }

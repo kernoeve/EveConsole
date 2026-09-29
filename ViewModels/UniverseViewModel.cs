@@ -304,7 +304,12 @@ public class UniverseViewModel : ReactiveObject
     public OverlayModeVm SelectedOverlay
     {
         get => _selectedOverlay;
-        set => this.RaiseAndSetIfChanged(ref _selectedOverlay, value);
+        set
+        {
+            // A detaching ComboBox sets null; that is not a choice (and .Key would throw).
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            this.RaiseAndSetIfChanged(ref _selectedOverlay, value);
+        }
     }
 
     /// <summary>Suggestions for the jump box — regions and systems together.</summary>
