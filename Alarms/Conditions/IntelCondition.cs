@@ -381,9 +381,12 @@ public sealed class IntelCondition : IAlarmCondition
         return ids;
     }
 
+    // A full-width comma and 、 separate names too: typed in Chinese, "Jita，Amarr" was one name.
+    private static readonly char[] ListSeparators = [',', '，', '、'];
+
     private static List<string> ReadCsv(JsonElement config, string name) =>
         ReadString(config, name) is { } s && !string.IsNullOrWhiteSpace(s)
-            ? [.. s.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)]
+            ? [.. s.Split(ListSeparators, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)]
             : [];
 
     private static string? ReadString(JsonElement e, string name) =>

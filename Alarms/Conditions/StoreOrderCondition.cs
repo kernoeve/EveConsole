@@ -343,14 +343,22 @@ public sealed class StoreOrderCondition : IAlarmCondition
         _      => $"{isk:N0} ISK",
     };
 
-    /// <summary>The same, in the interface language.</summary>
-    private static string SpokenIsk(double isk) => Math.Abs(isk) switch
-    {
-        >= 1e9 => string.Format(AlarmsText.IskBillions,  isk / 1e9),
-        >= 1e6 => string.Format(AlarmsText.IskMillions,  isk / 1e6),
-        >= 1e3 => string.Format(AlarmsText.IskThousands, isk / 1e3),
-        _      => $"{isk:N0} ISK",
-    };
+    /// <summary>The same, in the interface language — counted in 10,000s where the language
+    /// counts that way (Languages.CountsInMyriads).</summary>
+    private static string SpokenIsk(double isk) => Languages.CountsInMyriads
+        ? Math.Abs(isk) switch
+        {
+            >= 1e8 => string.Format(AlarmsText.IskHundredMillions, isk / 1e8),
+            >= 1e4 => string.Format(AlarmsText.IskTenThousands,    isk / 1e4),
+            _      => $"{isk:N0} ISK",
+        }
+        : Math.Abs(isk) switch
+        {
+            >= 1e9 => string.Format(AlarmsText.IskBillions,  isk / 1e9),
+            >= 1e6 => string.Format(AlarmsText.IskMillions,  isk / 1e6),
+            >= 1e3 => string.Format(AlarmsText.IskThousands, isk / 1e3),
+            _      => $"{isk:N0} ISK",
+        };
 
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
 

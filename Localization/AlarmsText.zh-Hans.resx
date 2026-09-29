@@ -712,4 +712,634 @@
   <data name="DialogDefaultTitle" xml:space="preserve">
     <value>警报</value>
   </data>
+  <data name="CheckTimer" xml:space="preserve">
+    <value>日期 / 时间</value>
+  </data>
+  <data name="CheckTimerNote" xml:space="preserve">
+    <value>在指定的日期和时间触发，之后还可以按固定间隔重复。适用于提醒以及任何定时事项。应用关闭期间到期的触发不会被跳过，而是在下次启动时触发。</value>
+  </data>
+  <data name="CheckIntel" xml:space="preserve">
+    <value>情报报告</value>
+  </data>
+  <data name="CheckIntelNote" xml:space="preserve">
+    <value>当有人报告你所监视的星系中出现飞行员时触发。可以给出一组星系，也可以给出一个星系和跳数范围，以覆盖其周边的所有星系。读取的是已在“设置 → 聊天日志”中解析的情报频道。</value>
+  </data>
+  <data name="CheckShipUndock" xml:space="preserve">
+    <value>舰船出站</value>
+  </data>
+  <data name="CheckShipUndockNote" xml:space="preserve">
+    <value>当你的某个角色出站时触发。可选择只针对从指定空间站、建筑、星系或星域的出站，只针对指定的船体或舰船类别，以及只针对特定状态——已装配或未装配、跳跃燃料是否低于某个数量、弹药是否低于某个数量。每个筛选条件都会缩小范围，因此可以设置两个警报分别覆盖不同的出站，而不会让同一次出站被报两次。位置轮询会在约十秒内发现出站；船上装载了什么则根据最近一次资产快照判断，ESI 每小时刷新一次该快照，每条匹配都会注明快照距今多久。</value>
+  </data>
+  <data name="CheckUndockedTooLong" xml:space="preserve">
+    <value>出站过久（叫醒服务）</value>
+  </data>
+  <data name="CheckUndockedTooLongNote" xml:space="preserve">
+    <value>用来叫醒你。当你的某个角色驾驶指定的船体或舰船类别出站，并在若干秒后仍停留在同一星系时，最多分三个阶段触发——比如货舰或战略货舰处于系留状态，驾驶员却打起了瞌睡。或者，在勾选“跳跃抵达”时，当可跳跃的船体通过跳跃引擎或跳桥抵达、且仍在太空中时触发——也就是跳跃后的那三十秒。进站、离开该星系或下线都会使其结束。点击对话框中的按钮，或对 AI 助手做出任何回复，都会让它暂时安静下来；静默期结束后如果舰船仍在原处，各阶段将重新开始。每个阶段都有自己的操作——通过“TTS 直接朗读”或 AI 助手说出该阶段的台词、弹出对话框、播放一直重复直到被确认的声音。重复和冷却时间设置不适用。</value>
+  </data>
+  <data name="CheckStoreOrder" xml:space="preserve">
+    <value>商店订单事件</value>
+  </data>
+  <data name="CheckStoreOrderNote" xml:space="preserve">
+    <value>在 EVE 邮件商店的订单发生以下变化时触发：收到新订单（附带商店、买家、物品、价格，以及是有现货还是需要制造）、订单转为可用现货交付或转为制造中、为订单发出了合同、合同被接受（订单完成），或订单被取消。勾选你需要的事件类型。在“订单跟踪”中手动添加的订单不会被报告。商店一登记或更新订单就会立即运行。</value>
+  </data>
+  <data name="CheckMarketContract" xml:space="preserve">
+    <value>市场 / 合同价格</value>
+  </data>
+  <data name="CheckMarketContractNote" xml:space="preserve">
+    <value>当某物品以等于或低于你指定的价格挂出时触发——可以是市场、公开合同，或两者皆可。读取的是“设置 → 市场”中配置的市场以及已在扫描的公开合同，因此只能看到这些范围内的内容。</value>
+  </data>
+  <data name="CheckSql" xml:space="preserve">
+    <value>数据库查询</value>
+  </data>
+  <data name="CheckSqlNote" xml:space="preserve">
+    <value>按设定的间隔对本地 EVE Console 数据库运行一条 SELECT 查询，并在返回行时触发，或在没有返回任何行时触发。在没有合适的专用检查项时使用。只允许 SELECT。</value>
+  </data>
+  <data name="TimerAtLabel" xml:space="preserve">
+    <value>触发时间</value>
+  </data>
+  <data name="TimerAtNote" xml:space="preserve">
+    <value>触发时间，采用 ISO 8601 格式。请包含时区偏移（例如 2026-08-04T18:00:00-05:00），或在末尾加 Z 表示 UTC；不带偏移的时间按本机的本地时间理解。</value>
+  </data>
+  <data name="TimerRepeatLabel" xml:space="preserve">
+    <value>重复间隔（秒）</value>
+  </data>
+  <data name="TimerRepeatNote" xml:space="preserve">
+    <value>可选。首次触发后按此间隔重复。留空或填 0 表示一次性定时器。</value>
+  </data>
+  <data name="IntelSystemsLabel" xml:space="preserve">
+    <value>星系</value>
+  </data>
+  <data name="IntelSystemsNote" xml:space="preserve">
+    <value>要监视的星系名称，用逗号分隔，例如“Jita, Amarr”。如果改为给出跳数范围，此处可以留空。</value>
+  </data>
+  <data name="IntelWithinJumpsLabel" xml:space="preserve">
+    <value>中心星系</value>
+  </data>
+  <data name="IntelWithinJumpsNote" xml:space="preserve">
+    <value>可选。一个星系名称；距其在下方跳数范围内的所有星系都会被监视。与上方的列表合并，而不是取代它。</value>
+  </data>
+  <data name="IntelJumpsLabel" xml:space="preserve">
+    <value>跳数</value>
+  </data>
+  <data name="IntelJumpsNote" xml:space="preserve">
+    <value>从“中心星系”向外经星门监视的跳数。0 表示只监视该星系本身。上限为 15——再远就不算周边了。</value>
+  </data>
+  <data name="IntelMinPlayersLabel" xml:space="preserve">
+    <value>最少人数</value>
+  </data>
+  <data name="IntelMinPlayersNote" xml:space="preserve">
+    <value>仅当报告中的飞行员人数不少于此值时才触发。默认为 1。</value>
+  </data>
+  <data name="IntelIgnoreNvLabel" xml:space="preserve">
+    <value>忽略无目视</value>
+  </data>
+  <data name="IntelIgnoreNvNote" xml:space="preserve">
+    <value>跳过标记为 NV（无目视）的报告——即报告者只是转述了一个自己实际上看不到的目标。</value>
+  </data>
+  <data name="UndockFromLabel" xml:space="preserve">
+    <value>出站地点</value>
+  </data>
+  <data name="UndockFromNote" xml:space="preserve">
+    <value>可选。空间站、建筑、星系或星域的名称，可任意混合。从其中任意一处出站即匹配；留空表示任何地点。</value>
+  </data>
+  <data name="FlyingLabel" xml:space="preserve">
+    <value>驾驶舰船</value>
+  </data>
+  <data name="UndockShipsNote" xml:space="preserve">
+    <value>可选。船体名称（“Rifter”）、舰船类别（“Cruiser”、“Titan”）或“Pod”（太空舱），可任意混合。匹配其中任意一项；留空表示任何舰船。</value>
+  </data>
+  <data name="UndockFitLabel" xml:space="preserve">
+    <value>装配</value>
+  </data>
+  <data name="UndockFitNote" xml:space="preserve">
+    <value>“未装配”：所有槽位都是空的。“已装配”：至少有一个槽位装有东西。太空舱和穿梭机没有槽位，两者都不匹配。根据最近一次资产快照判断，而 ESI 每小时才刷新一次该快照——它可能比船上当前的实际情况落后最多一小时。</value>
+  </data>
+  <data name="UndockFuelLabel" xml:space="preserve">
+    <value>跳跃燃料</value>
+  </data>
+  <data name="UndockFuelNote" xml:space="preserve">
+    <value>仅适用于可跳跃的船体；其他船体两者都不匹配。数量按该船体跳跃引擎所消耗的同位素计算，燃料舱和货舱合计——以最近一次资产快照为准，而 ESI 每小时才刷新一次该快照，因此最近一小时内装载的燃料可能尚未计入。</value>
+  </data>
+  <data name="UndockAmmoLabel" xml:space="preserve">
+    <value>弹药</value>
+  </data>
+  <data name="UndockAmmoNote" xml:space="preserve">
+    <value>按每个已装配的炮台或发射器计算：船上可供其装填的弹药数量——已装填的加上货舱中的，所有兼容类型合计。“低于”：任意一件武器的弹药不足。“不低于”：装有武器且没有一件不足。能量炮台只需一枚晶体。没有武器的舰船两者都不匹配。以最近一次资产快照为准，而 ESI 每小时才刷新一次该快照——最近一小时内装载的弹药可能尚未计入。</value>
+  </data>
+  <data name="SuffixUnits" xml:space="preserve">
+    <value>个单位</value>
+  </data>
+  <data name="OptionAny" xml:space="preserve">
+    <value>任意</value>
+  </data>
+  <data name="OptionNotFit" xml:space="preserve">
+    <value>未装配</value>
+  </data>
+  <data name="OptionFit" xml:space="preserve">
+    <value>已装配</value>
+  </data>
+  <data name="OptionLowerThan" xml:space="preserve">
+    <value>低于</value>
+  </data>
+  <data name="OptionNotLowerThan" xml:space="preserve">
+    <value>不低于</value>
+  </data>
+  <data name="AdriftArrivalsLabel" xml:space="preserve">
+    <value>跳跃抵达，而非出站</value>
+  </data>
+  <data name="AdriftArrivalsNote" xml:space="preserve">
+    <value>勾选时：当可跳跃的船体抵达一个无法从原所在星系经星门直达的星系（即通过跳跃引擎或跳桥抵达），且仍在太空中时开始计时；只监视装有跳跃引擎的船体，“驾驶舰船”列表为空表示监视所有此类船体。不勾选时：在出站时开始计时，适用于任何船体，且必须在“驾驶舰船”中指定要监视的舰船。</value>
+  </data>
+  <data name="AdriftShipsNote" xml:space="preserve">
+    <value>船体名称（“Rhea”）或舰船类别（“Freighter”、“Jump Freighter”、“Hauler”），可任意混合。只监视列出的这些——若是跳跃抵达，也可以留空，以监视所有可跳跃的船体。</value>
+  </data>
+  <data name="AdriftStageLabel" xml:space="preserve">
+    <value>第 {0} 阶段：经过</value>
+  </data>
+  <data name="AdriftStage1Note" xml:space="preserve">
+    <value>第一个阶段，较为温和。取消勾选即可跳过。</value>
+  </data>
+  <data name="AdriftStage2Note" xml:space="preserve">
+    <value>取消勾选即可跳过。</value>
+  </data>
+  <data name="AdriftStage3Note" xml:space="preserve">
+    <value>最后的手段——请搭配一个设为重复播放直到被确认的“声音”操作。取消勾选即可跳过。</value>
+  </data>
+  <data name="SuffixSecondsUndocked" xml:space="preserve">
+    <value>秒后仍未进站</value>
+  </data>
+  <data name="AdriftSnoozeLabel" xml:space="preserve">
+    <value>确认后静默</value>
+  </data>
+  <data name="AdriftSnoozeNote" xml:space="preserve">
+    <value>舰船仍在站外时，一次回复或点击对话框按钮能让此警报安静多久——应足以等待泰坦开桥。之后各阶段将重新开始。</value>
+  </data>
+  <data name="SuffixMinutes" xml:space="preserve">
+    <value>分钟</value>
+  </data>
+  <data name="StoreNewOrdersLabel" xml:space="preserve">
+    <value>收到新订单</value>
+  </data>
+  <data name="StoreNewOrdersNote" xml:space="preserve">
+    <value>附带商店、买家、物品、价格，以及订单到达时的状态。</value>
+  </data>
+  <data name="StoreInStockLabel" xml:space="preserve">
+    <value>转为可用现货交付</value>
+  </data>
+  <data name="StoreInStockNote" xml:space="preserve">
+    <value>订单履行流程现在能在库存中找到该订单的物品——可以为它发合同了。</value>
+  </data>
+  <data name="StoreInBuildLabel" xml:space="preserve">
+    <value>转为制造中</value>
+  </data>
+  <data name="StoreInBuildNote" xml:space="preserve">
+    <value>现已有一个工业任务被分配给该订单。</value>
+  </data>
+  <data name="StoreContractedLabel" xml:space="preserve">
+    <value>已发出合同</value>
+  </data>
+  <data name="StoreContractedNote" xml:space="preserve">
+    <value>已向买家发出装有该订单物品的合同，正在等待接受。</value>
+  </data>
+  <data name="StoreAcceptedLabel" xml:space="preserve">
+    <value>合同已接受——订单完成</value>
+  </data>
+  <data name="StoreCanceledLabel" xml:space="preserve">
+    <value>订单已取消</value>
+  </data>
+  <data name="StoreCanceledNote" xml:space="preserve">
+    <value>通过买家的邮件、合同被拒绝，或手动取消。</value>
+  </data>
+  <data name="StoreStoreLabel" xml:space="preserve">
+    <value>商店</value>
+  </data>
+  <data name="StoreStoreNote" xml:space="preserve">
+    <value>可选：按名称只监视此商店。留空表示所有商店。</value>
+  </data>
+  <data name="MarketItemLabel" xml:space="preserve">
+    <value>物品</value>
+  </data>
+  <data name="MarketItemNote" xml:space="preserve">
+    <value>准确的物品名称，例如“Sigil”或“Imperial Navy Slicer”。必须与类型名称完全一致；无法识别的名称不会匹配任何物品。</value>
+  </data>
+  <data name="MarketMaxPriceLabel" xml:space="preserve">
+    <value>最高单价</value>
+  </data>
+  <data name="MarketMaxPriceNote" xml:space="preserve">
+    <value>当单价等于或低于此值时触发，单位为 ISK。</value>
+  </data>
+  <data name="MarketMinQtyLabel" xml:space="preserve">
+    <value>最少数量</value>
+  </data>
+  <data name="MarketMinQtyNote" xml:space="preserve">
+    <value>仅当单个挂单中至少有这么多数量在售时才触发。默认为 1。</value>
+  </data>
+  <data name="MarketSourceLabel" xml:space="preserve">
+    <value>来源</value>
+  </data>
+  <data name="MarketSourceNote" xml:space="preserve">
+    <value>在哪里查找。默认为“两者”。</value>
+  </data>
+  <data name="MarketMarketLabel" xml:space="preserve">
+    <value>市场</value>
+  </data>
+  <data name="MarketMarketNote" xml:space="preserve">
+    <value>可选。按名称将市场部分限定为某一个已配置的市场，例如“Jita”。留空则监视所有市场。</value>
+  </data>
+  <data name="MarketBundledLabel" xml:space="preserve">
+    <value>捆绑合同</value>
+  </data>
+  <data name="MarketBundledNote" xml:space="preserve">
+    <value>包括除此物品外还含有其他物品的合同。默认关闭，因为此时要价还涵盖了其他内容，由此算出的单价并不真实。</value>
+  </data>
+  <data name="OptionBoth" xml:space="preserve">
+    <value>两者</value>
+  </data>
+  <data name="OptionMarket" xml:space="preserve">
+    <value>市场</value>
+  </data>
+  <data name="OptionContracts" xml:space="preserve">
+    <value>合同</value>
+  </data>
+  <data name="SqlQueryLabel" xml:space="preserve">
+    <value>SQL</value>
+  </data>
+  <data name="SqlQueryNote" xml:space="preserve">
+    <value>要运行的 SELECT 语句。只允许 SELECT（或 WITH…SELECT）。请保持查询精简并加上 LIMIT——每次检查都会运行它。请包含一个稳定的标识列，并在 key_column（键列）中填写该列名。</value>
+  </data>
+  <data name="SqlKeyColumnLabel" xml:space="preserve">
+    <value>键列</value>
+  </data>
+  <data name="SqlKeyColumnNote" xml:space="preserve">
+    <value>存放每行稳定且唯一标识的列——例如 Id 之类的列。正是它防止同一行被通报两次。切勿指定在两次运行之间会发生变化的列，否则每次检查都会触发警报。如果查询中有名为 Id 的列，则默认使用该列；否则将整行本身作为键。</value>
+  </data>
+  <data name="SqlLabelColumnLabel" xml:space="preserve">
+    <value>标签列</value>
+  </data>
+  <data name="SqlLabelColumnNote" xml:space="preserve">
+    <value>可选，用作提醒文本的列。默认为整行。</value>
+  </data>
+  <data name="SqlModeLabel" xml:space="preserve">
+    <value>模式</value>
+  </data>
+  <data name="SqlModeNote" xml:space="preserve">
+    <value>“有结果”（默认）在查询返回行时触发。“无结果”在查询完全没有返回任何行时触发，并在再次返回行后重新待命——用于监视某件预期中的事情是否已停止发生。</value>
+  </data>
+  <data name="OptionPresent" xml:space="preserve">
+    <value>有结果</value>
+  </data>
+  <data name="OptionAbsent" xml:space="preserve">
+    <value>无结果</value>
+  </data>
+  <data name="MatchesAndMore" xml:space="preserve">
+    <value>…另有 {0} 项</value>
+  </data>
+  <data name="IntelHostileReported" xml:space="preserve">
+    <value>发现敌对</value>
+  </data>
+  <data name="IntelHostileReportsOther" xml:space="preserve">
+    <value>{0} 条敌对报告</value>
+  </data>
+  <data name="IntelSaidReportedOther" xml:space="preserve">
+    <value>在 {1} 发现 {0} 名敌对飞行员。</value>
+  </data>
+  <data name="IntelSaidReportedAtOther" xml:space="preserve">
+    <value>在 {1} 发现 {0} 名敌对飞行员，{2}。</value>
+  </data>
+  <data name="IntelSaidHere" xml:space="preserve">
+    <value>就在这里</value>
+  </data>
+  <data name="IntelSaidJumpsOutOther" xml:space="preserve">
+    <value>距离 {0} 跳</value>
+  </data>
+  <data name="IntelSaidFlying" xml:space="preserve">
+    <value>驾驶 {0}。</value>
+  </data>
+  <data name="IntelSaidPilotsAndMore" xml:space="preserve">
+    <value>{0}，另外还有 {1} 人。</value>
+  </data>
+  <data name="SaidSentence" xml:space="preserve">
+    <value>{0}。</value>
+  </data>
+  <data name="UnknownSystem" xml:space="preserve">
+    <value>未知星系</value>
+  </data>
+  <data name="HullA" xml:space="preserve">
+    <value>{0}</value>
+  </data>
+  <data name="HullAn" xml:space="preserve">
+    <value>{0}</value>
+  </data>
+  <data name="HullPod" xml:space="preserve">
+    <value>太空舱</value>
+  </data>
+  <data name="HullShip" xml:space="preserve">
+    <value>未知舰船</value>
+  </data>
+  <data name="ListAnd" xml:space="preserve">
+    <value>{0} 和 {1}</value>
+  </data>
+  <data name="ListAndMore" xml:space="preserve">
+    <value>{0} 等</value>
+  </data>
+  <data name="SaidAndMore" xml:space="preserve">
+    <value>另外还有 {0} 项。</value>
+  </data>
+  <data name="UndockTitle" xml:space="preserve">
+    <value>{0} 驾驶 {1} 出站</value>
+  </data>
+  <data name="UndocksOther" xml:space="preserve">
+    <value>{0} 次出站</value>
+  </data>
+  <data name="UndockSaid" xml:space="preserve">
+    <value>{0} 在 {1} 驾驶 {2} 出站。</value>
+  </data>
+  <data name="UndockSaidProblems" xml:space="preserve">
+    <value>{0} 在 {1} 驾驶 {2} 出站——{3}。</value>
+  </data>
+  <data name="UndockNothingFitted" xml:space="preserve">
+    <value>未装配任何装备</value>
+  </data>
+  <data name="UndockNoFuel" xml:space="preserve">
+    <value>没有燃料</value>
+  </data>
+  <data name="UndockLowFuel" xml:space="preserve">
+    <value>燃料不足</value>
+  </data>
+  <data name="UndockNoAmmo" xml:space="preserve">
+    <value>没有弹药</value>
+  </data>
+  <data name="UndockLowAmmo" xml:space="preserve">
+    <value>弹药不足</value>
+  </data>
+  <data name="AdriftTitle" xml:space="preserve">
+    <value>醒醒，{0}</value>
+  </data>
+  <data name="AdriftBodyLanded" xml:space="preserve">
+    <value>{0} 的 {1} 在 {3}前抵达 {2}，至今仍未进站。点击“我醒了”，舰船留在站外期间，此警报将安静 {4} 分钟。</value>
+  </data>
+  <data name="AdriftBodyUndocked" xml:space="preserve">
+    <value>{0} 的 {1} 在 {2} 出站已有 {3}，至今仍未进站。点击“我醒了”，舰船留在站外期间，此警报将安静 {4} 分钟。</value>
+  </data>
+  <data name="AdriftLandedStage1" xml:space="preserve">
+    <value>{0}，{1} 的 {2} 在 {4}前抵达 {3}，现在还没有进站。一切还好吗？</value>
+  </data>
+  <data name="AdriftLandedStage2" xml:space="preserve">
+    <value>醒醒，{0}。{1} 的 {2} 抵达 {3} 已经 {4}，还停在太空中。马上进站。</value>
+  </data>
+  <data name="AdriftLandedStage3" xml:space="preserve">
+    <value>{0}！{1} 的 {2} 抵达后已经在 {3} 停了 {4}。立刻进站！</value>
+  </data>
+  <data name="AdriftUndockedStage1" xml:space="preserve">
+    <value>{0}，{1} 的 {2} 在 {3} 出站已经 {4} 了。一切还好吗？</value>
+  </data>
+  <data name="AdriftUndockedStage2" xml:space="preserve">
+    <value>醒醒，{0}。{1} 的 {2} 在 {4}前从 {3} 出站，到现在还没有进站。快进站，或者回答我。</value>
+  </data>
+  <data name="AdriftUndockedStage3" xml:space="preserve">
+    <value>{0}！{1} 的 {2} 在 {3} 出站 {4} 了，还没有进站。快醒醒，马上进站。</value>
+  </data>
+  <data name="AdriftPod" xml:space="preserve">
+    <value>太空舱</value>
+  </data>
+  <data name="AdriftCapsuleer" xml:space="preserve">
+    <value>克隆飞行员</value>
+  </data>
+  <data name="SpanSecondsOther" xml:space="preserve">
+    <value>{0} 秒</value>
+  </data>
+  <data name="SpanMinutesOther" xml:space="preserve">
+    <value>{0} 分钟</value>
+  </data>
+  <data name="StoreEventsOther" xml:space="preserve">
+    <value>{0} 个商店订单事件</value>
+  </data>
+  <data name="StoreHeadNew" xml:space="preserve">
+    <value>新订单：{1} 订购 {0}</value>
+  </data>
+  <data name="StoreHeadInStock" xml:space="preserve">
+    <value>订单 {0}：现在可以用现货交付</value>
+  </data>
+  <data name="StoreHeadInBuild" xml:space="preserve">
+    <value>订单 {0}：已进入制造</value>
+  </data>
+  <data name="StoreHeadContracted" xml:space="preserve">
+    <value>订单 {0} 已发出合同</value>
+  </data>
+  <data name="StoreHeadDelivered" xml:space="preserve">
+    <value>订单 {0}：已交付 {1:N0} / {2:N0}</value>
+  </data>
+  <data name="StoreHeadComplete" xml:space="preserve">
+    <value>订单 {0} 已完成</value>
+  </data>
+  <data name="StoreHeadCanceled" xml:space="preserve">
+    <value>订单 {0} 已取消</value>
+  </data>
+  <data name="StoreSaidNewInStock" xml:space="preserve">
+    <value>{0} 收到新订单：{2} 订购 {1}，价格 {3}。有现货——请发合同。</value>
+  </data>
+  <data name="StoreSaidNewInBuild" xml:space="preserve">
+    <value>{0} 收到新订单：{2} 订购 {1}，价格 {3}。正在制造中。</value>
+  </data>
+  <data name="StoreSaidNewContracted" xml:space="preserve">
+    <value>{0} 收到新订单：{2} 订购 {1}，价格 {3}。已发出合同。</value>
+  </data>
+  <data name="StoreSaidNewToBuild" xml:space="preserve">
+    <value>{0} 收到新订单：{2} 订购 {1}，价格 {3}。没有现货，也不在制造中——需要新开制造。</value>
+  </data>
+  <data name="StoreSaidInStock" xml:space="preserve">
+    <value>{1} 订购 {0} 的订单现在可以用现货交付了。</value>
+  </data>
+  <data name="StoreSaidInBuild" xml:space="preserve">
+    <value>{1} 订购 {0} 的订单已进入制造。</value>
+  </data>
+  <data name="StoreSaidContracted" xml:space="preserve">
+    <value>{1} 订购 {0} 的订单：已发出合同，等待接受。</value>
+  </data>
+  <data name="StoreSaidContractedPart" xml:space="preserve">
+    <value>{1} 订购 {0} 的订单：{3:N0} 个中已有 {2:N0} 个发出合同，等待接受。</value>
+  </data>
+  <data name="StoreSaidDelivered" xml:space="preserve">
+    <value>{0} 接受了 {1} 其中一部分的合同：{3:N0} 个中已交付 {2:N0} 个。</value>
+  </data>
+  <data name="StoreSaidComplete" xml:space="preserve">
+    <value>{0} 接受了 {1} 的合同。订单完成。</value>
+  </data>
+  <data name="StoreSaidCanceled" xml:space="preserve">
+    <value>{1} 订购 {0} 的订单已取消。</value>
+  </data>
+  <data name="IskBillions" xml:space="preserve">
+    <value>{0:0.##} 十亿 ISK</value>
+  </data>
+  <data name="IskMillions" xml:space="preserve">
+    <value>{0:0.##} 百万 ISK</value>
+  </data>
+  <data name="IskThousands" xml:space="preserve">
+    <value>{0:0.##} 千 ISK</value>
+  </data>
+  <data name="MarketTitleFrom" xml:space="preserve">
+    <value>{0}：{1:N0} ISK 起</value>
+  </data>
+  <data name="MarketTitleAvailable" xml:space="preserve">
+    <value>{0} 有售</value>
+  </data>
+  <data name="MarketItemFallback" xml:space="preserve">
+    <value>物品</value>
+  </data>
+  <data name="MuteAlarms" xml:space="preserve">
+    <value>静音警报</value>
+  </data>
+  <data name="UnmuteAlarms" xml:space="preserve">
+    <value>解除警报静音</value>
+  </data>
+  <data name="AudioUnavailableLinux" xml:space="preserve">
+    <value>音频不可用：无法加载 libvlc。请安装 VLC 及其插件（Arch 和 Fedora 上为“vlc”软件包；Debian 和 Ubuntu 上为“vlc”或“libvlc-dev”），然后重启。[{0}]</value>
+  </data>
+  <data name="AudioUnavailable" xml:space="preserve">
+    <value>音频不可用：{0}</value>
+  </data>
+  <data name="SoundChimeSoft" xml:space="preserve">
+    <value>钟声——柔和</value>
+  </data>
+  <data name="SoundChimeTriad" xml:space="preserve">
+    <value>钟声——三和弦</value>
+  </data>
+  <data name="SoundPingGlass" xml:space="preserve">
+    <value>叮声——玻璃</value>
+  </data>
+  <data name="SoundBellBrass" xml:space="preserve">
+    <value>铃声——黄铜</value>
+  </data>
+  <data name="SoundBellDeep" xml:space="preserve">
+    <value>铃声——浑厚</value>
+  </data>
+  <data name="SoundGongLow" xml:space="preserve">
+    <value>锣声——低沉</value>
+  </data>
+  <data name="SoundAlertDouble" xml:space="preserve">
+    <value>提示音——双响</value>
+  </data>
+  <data name="SoundAlarmUrgent" xml:space="preserve">
+    <value>警报——紧急</value>
+  </data>
+  <data name="SoundWarningTwoTone" xml:space="preserve">
+    <value>警告——双音</value>
+  </data>
+  <data name="SoundWarningKlaxon" xml:space="preserve">
+    <value>警告——电笛</value>
+  </data>
+  <data name="SoundWarningBuzzer" xml:space="preserve">
+    <value>警告——蜂鸣器</value>
+  </data>
+  <data name="SoundWarningSiren" xml:space="preserve">
+    <value>警告——警笛</value>
+  </data>
+  <data name="SoundWarningHorn" xml:space="preserve">
+    <value>警告——号角</value>
+  </data>
+  <data name="SoundNoneSelected" xml:space="preserve">
+    <value>未选择声音。</value>
+  </data>
+  <data name="SoundFileNotFound" xml:space="preserve">
+    <value>找不到自定义声音文件：{0}</value>
+  </data>
+  <data name="SoundBundledMissing" xml:space="preserve">
+    <value>缺少内置声音：{0}</value>
+  </data>
+  <data name="SoundUnpackFailed" xml:space="preserve">
+    <value>无法将 {0} 解压到 {1}：{2}</value>
+  </data>
+  <data name="SoundVlcFailed" xml:space="preserve">
+    <value>VLC 无法播放 {0}。在 Linux 上，这通常是因为缺少插件软件包或没有音频输出（请检查其他应用程序能否正常播放声音）。</value>
+  </data>
+  <data name="SoundPlaybackFailed" xml:space="preserve">
+    <value>播放失败：{0}</value>
+  </data>
+  <data name="ButtonImAwake" xml:space="preserve">
+    <value>我醒了</value>
+  </data>
+  <data name="AgentNotConfiguredNote" xml:space="preserve">
+    <value>（尚未设置 AI 助手，因此已改为记录一条提醒。）</value>
+  </data>
+  <data name="ScheduleEveryHours" xml:space="preserve">
+    <value>每 {0} 小时</value>
+  </data>
+  <data name="ScheduleEveryMinutes" xml:space="preserve">
+    <value>每 {0} 分钟</value>
+  </data>
+  <data name="ScheduleWeeklyAt" xml:space="preserve">
+    <value>{0} {1}</value>
+  </data>
+  <data name="ScheduleMonthlyAt" xml:space="preserve">
+    <value>每月 {0} 日 {1}</value>
+  </data>
+  <data name="ScheduleYearlyAt" xml:space="preserve">
+    <value>每年{0} {1} 日 {2}</value>
+  </data>
+  <data name="ScheduleEveryDay" xml:space="preserve">
+    <value>每天</value>
+  </data>
+  <data name="ScheduleNoDays" xml:space="preserve">
+    <value>未选日期</value>
+  </data>
+  <data name="RunUnknownType" xml:space="preserve">
+    <value>未知的任务类型“{0}”。</value>
+  </data>
+  <data name="RunFailed" xml:space="preserve">
+    <value>失败：{0}</value>
+  </data>
+  <data name="RunNoSections" xml:space="preserve">
+    <value>没有可发布的内容：未配置任何区块。</value>
+  </data>
+  <data name="RunRenderedEmpty" xml:space="preserve">
+    <value>没有可发布的内容：各区块渲染后为空。</value>
+  </data>
+  <data name="RunNothingDynamic" xml:space="preserve">
+    <value>没有可发布的内容：没有任何动态区块有内容。</value>
+  </data>
+  <data name="RunPosted" xml:space="preserve">
+    <value>已发布。</value>
+  </data>
+  <data name="RunSlackRefused" xml:space="preserve">
+    <value>Slack 拒绝了发布：{0}</value>
+  </data>
+  <data name="RunPostedPart" xml:space="preserve">
+    <value>已发布 {1} 条消息中的 {0} 条（{2:N0} 个字符）；Slack 拒绝了下一条：{3}。</value>
+  </data>
+  <data name="RunPostedMessages" xml:space="preserve">
+    <value>已分 {1} 条消息发布 {0:N0} 个字符。</value>
+  </data>
+  <data name="RunPostedCharacters" xml:space="preserve">
+    <value>已发布 {0:N0} 个字符。</value>
+  </data>
+  <data name="RunChartsUploaded" xml:space="preserve">
+    <value>已上传 {0} 张图表。</value>
+  </data>
+  <data name="RunChartsFailed" xml:space="preserve">
+    <value>{0} 张图表失败：{1}。</value>
+  </data>
+  <data name="RunChartsSkipped" xml:space="preserve">
+    <value>已跳过 {0} 个图表区块：Webhook 无法附带图片。</value>
+  </data>
+  <data name="RunNoAlertText" xml:space="preserve">
+    <value>没有可发出的提醒：提醒没有内容。</value>
+  </data>
+  <data name="RunAlertTitle" xml:space="preserve">
+    <value>计划提醒</value>
+  </data>
+  <data name="RunAlertRaised" xml:space="preserve">
+    <value>已发出提醒。</value>
+  </data>
+  <data name="RunNoWebhook" xml:space="preserve">
+    <value>未选择 Webhook。</value>
+  </data>
+  <data name="RunWebhookDeleted" xml:space="preserve">
+    <value>该 Webhook 已被删除。</value>
+  </data>
+  <data name="IskHundredMillions" xml:space="preserve">
+    <value>{0:0.##} 亿 ISK</value>
+  </data>
+  <data name="IskTenThousands" xml:space="preserve">
+    <value>{0:0.##} 万 ISK</value>
+  </data>
 </root>

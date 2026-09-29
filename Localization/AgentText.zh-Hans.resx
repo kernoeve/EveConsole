@@ -139,4 +139,19 @@
   <data name="GridRowsOther" xml:space="preserve">
     <value>{0:N0} 行</value>
   </data>
+  <data name="ToolCallsNone" xml:space="preserve">
+    <value>无工具调用</value>
+  </data>
+  <data name="ToolCallsOther" xml:space="preserve">
+    <value>{0} 次工具调用：{1}</value>
+  </data>
+  <data name="MetaAlarm" xml:space="preserve">
+    <value>警报</value>
+  </data>
+  <data name="MetaVoiceChange" xml:space="preserve">
+    <value>语音切换</value>
+  </data>
+  <data name="MetaModelChange" xml:space="preserve">
+    <value>模型切换</value>
+  </data>
 </root>

@@ -188,7 +188,7 @@ internal static class AlarmWords
     {
         0    => "",
         1    => items[0],
-        <= 3 => string.Format(AlarmsText.ListAnd, string.Join(", ", items.Take(items.Count - 1)), items[^1]),
-        _    => string.Format(AlarmsText.ListAndMore, string.Join(", ", items.Take(3))),
+        <= 3 => string.Format(AlarmsText.ListAnd, string.Join(CommonText.ListSeparator, items.Take(items.Count - 1)), items[^1]),
+        _    => string.Format(AlarmsText.ListAndMore, string.Join(CommonText.ListSeparator, items.Take(3))),
     };
 }

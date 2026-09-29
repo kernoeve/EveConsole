@@ -495,6 +495,74 @@ PID：{2}
   <data name="RecoveryRestoreFailed" xml:space="preserve">
     <value>恢复失败：{0}</value>
   </data>
+  <data name="ServerOffline" xml:space="preserve">
+    <value>离线</value>
+  </data>
+  <data name="ServerPlayersOnline" xml:space="preserve">
+    <value>{0:N0} 人在线</value>
+  </data>
+  <data name="ThemeDark" xml:space="preserve">
+    <value>深色</value>
+  </data>
+  <data name="ThemeLight" xml:space="preserve">
+    <value>浅色</value>
+  </data>
+  <data name="ThemeBlueDark" xml:space="preserve">
+    <value>蓝色（深色）</value>
+  </data>
+  <data name="ThemeBlueLight" xml:space="preserve">
+    <value>蓝色（浅色）</value>
+  </data>
+  <data name="ThemePinkDark" xml:space="preserve">
+    <value>粉色（深色）</value>
+  </data>
+  <data name="ThemePinkLight" xml:space="preserve">
+    <value>粉色（浅色）</value>
+  </data>
+  <data name="ThemeBeigeDark" xml:space="preserve">
+    <value>米色（深色）</value>
+  </data>
+  <data name="ThemeBeigeLight" xml:space="preserve">
+    <value>米色（浅色）</value>
+  </data>
+  <data name="UpdateAheadNotInstalled" xml:space="preserve">
+    <value>此副本不是通过安装程序安装的，因此无法自行更新。请从发布页面安装 {0} 或更高版本。</value>
+  </data>
+  <data name="UpdateAheadCheckFailed" xml:space="preserve">
+    <value>无法检查更新：{0}。请从发布页面获取 {1} 或更高版本。</value>
+  </data>
+  <data name="UpdateAheadCheckFailedNoReason" xml:space="preserve">
+    <value>无法检查更新：未给出原因。请从发布页面获取 {0} 或更高版本。</value>
+  </data>
+  <data name="UpdateAheadNoRelease" xml:space="preserve">
+    <value>目前还没有更新的发布版本。{0} 尚未发布：此数据库曾被开发版打开过，或者该版本仍在发布中。</value>
+  </data>
+  <data name="UpdateAheadReleaseTooOld" xml:space="preserve">
+    <value>最新发布版本 {0} 仍比此数据库（{1}）旧——该数据库曾被一个尚未发布的版本打开过。</value>
+  </data>
+  <data name="UpdateAheadAvailable" xml:space="preserve">
+    <value>版本 {0} 已可用。更新将安装此版本，并在此数据库上重启 EVE Console。</value>
+  </data>
+  <data name="RecoveryReasonUnknown" xml:space="preserve">
+    <value>未知</value>
+  </data>
+  <data name="VersionMismatchDatabaseAhead" xml:space="preserve">
+    <value>此数据库的版本为 {0}，而此客户端的版本为 {1}。
+
+一个更新的版本已经以本版本无法识别的方式更改了此数据库，而数据库结构的变更只会向前推进。
+
+请将此客户端更新到 {0} 或更高版本。</value>
+  </data>
+  <data name="VersionMismatchWorkerBehind" xml:space="preserve">
+    <value>此数据库的版本为 {0}，而此客户端的版本为 {1}。
+
+另一个客户端正以 {0} 版本运行后台进程，只有该客户端可以更改数据库结构。本版本所需的变更尚未执行，因此它的许多功能将无法正常工作。
+
+请将运行后台进程的客户端更新到 {1}，或者关闭它并先启动此客户端，由此客户端接管后台进程并执行这些变更。</value>
+  </data>
+  <data name="VersionMismatchHeading" xml:space="preserve">
+    <value>此版本与数据库不匹配</value>
+  </data>
   <data name="SplashShrinking" xml:space="preserve">
     <value>正在压缩数据库——已用时 {0}。请保持应用程序打开。</value>
   </data>

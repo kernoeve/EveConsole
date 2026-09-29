@@ -1029,7 +1029,7 @@
     <comment>Alarm editor, Intel report check: label of the solar systems to watch.</comment>
   </data>
   <data name="IntelSystemsNote" xml:space="preserve">
-    <value>Comma-separated system names to watch, e.g. "C-FD0D, Y-ORBJ". May be left empty if a jump range is given instead.</value>
+    <value>Comma-separated system names to watch, e.g. "Jita, Amarr". May be left empty if a jump range is given instead.</value>
     <comment>Alarm editor, Intel report check, under Systems. The two system names are examples from the game; keep them.</comment>
   </data>
   <data name="IntelWithinJumpsLabel" xml:space="preserve">
@@ -1815,5 +1815,13 @@
   <data name="RunWebhookDeleted" xml:space="preserve">
     <value>That webhook has been deleted.</value>
     <comment>Scheduler, in RunSlackRefused: the task's webhook no longer exists.</comment>
+  </data>
+  <data name="IskHundredMillions" xml:space="preserve">
+    <value>{0:0.##} hundred million ISK</value>
+    <comment>Only for languages that count in 10,000s (Chinese, Japanese, Korean): a price read out when a store order arrives, in units of 100,000,000. {0} is the amount, e.g. 124. English uses the billion/million/thousand entries instead.</comment>
+  </data>
+  <data name="IskTenThousands" xml:space="preserve">
+    <value>{0:0.##} ten thousand ISK</value>
+    <comment>Only for languages that count in 10,000s (Chinese, Japanese, Korean): a price read out when a store order arrives, in units of 10,000. {0} is the amount, e.g. 350. English uses the billion/million/thousand entries instead.</comment>
   </data>
 </root>

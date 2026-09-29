@@ -81,6 +81,12 @@ public static class Languages
     /// <summary>True when this run shows pseudo-localised text.</summary>
     public static bool Pseudo { get; private set; }
 
+    /// <summary>Whether the interface language counts large numbers in 10,000s — 万 and 亿 in
+    /// Chinese, 万/億 in Japanese, 만/억 in Korean — rather than in thousands. "12.4 十亿" is how a
+    /// thousands-based amount reads in Chinese; "124 亿" is how anyone would say it.</summary>
+    public static bool CountsInMyriads =>
+        CultureInfo.CurrentUICulture.TwoLetterISOLanguageName is "zh" or "ja" or "ko";
+
     /// <summary>What the user chose, as stored for this machine: a language's code, or empty for
     /// the system's language.</summary>
     public static string Chosen => UiState.Get(UiState.Language) ?? "";
