@@ -125,6 +125,10 @@ public sealed class FittingSlotGroupVm(string title, IReadOnlyList<FittingModule
     public bool Over { get; } = over;
 }
 
+/// <summary>
+/// A drone stack — how many are in the bay and how many launched — or a fighter squadron: its
+/// size, whether it is in a launch tube, and which of its abilities are switched on.
+/// </summary>
 public sealed class FittingDroneRowVm : ReactiveObject
 {
     public int    TypeId { get; }
@@ -135,16 +139,33 @@ public sealed class FittingDroneRowVm : ReactiveObject
         get => _count;
         set
         {
-            this.RaiseAndSetIfChanged(ref _count, Math.Max(1, value));
+            this.RaiseAndSetIfChanged(ref _count, Math.Clamp(value, 1, IsFighter ? MaxSquadron : int.MaxValue));
             this.RaisePropertyChanged(nameof(CountValue));
-            if (_active > _count) Active = _count;
+            // A squadron in a tube flies at its full size; a drone stack cannot launch more than it holds.
+            if (IsFighter ? _active > 0 : _active > _count) Active = _count;
         }
     }
     public int Active
     {
         get => _active;
-        set { this.RaiseAndSetIfChanged(ref _active, Math.Clamp(value, 0, _count)); this.RaisePropertyChanged(nameof(ActiveValue)); }
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _active, Math.Clamp(value, 0, _count));
+            this.RaisePropertyChanged(nameof(ActiveValue));
+            this.RaisePropertyChanged(nameof(Launched));
+        }
     }
+    /// <summary>For a squadron: in a launch tube.</summary>
+    public bool Launched { get => _active > 0; set => Active = value ? _count : 0; }
+    /// <summary>For a squadron: the most fighters it holds.</summary>
+    public int MaxSquadron { get; init; } = int.MaxValue;
+    /// <summary>For a squadron: its launch slot class ("Light", "Support", "Heavy").</summary>
+    public string ClassLabel { get; init; } = "";
+    public string SquadronTip => $"{ClassLabel} squadron of up to {MaxSquadron}";
+    public ObservableCollection<FighterAbilityToggleVm> Abilities { get; } = [];
+    private string _detail = "";
+    /// <summary>What the stack or squadron does once launched — its DPS, per ability for a squadron.</summary>
+    public string Detail { get => _detail; set => this.RaiseAndSetIfChanged(ref _detail, value); }
     // The spinners bind decimals.
     public decimal? CountValue  { get => _count;  set => Count  = (int)(value ?? 1); }
     public decimal? ActiveValue { get => _active; set => Active = (int)(value ?? 0); }
@@ -158,6 +179,19 @@ public sealed class FittingDroneRowVm : ReactiveObject
 }
 
 /// <summary>A stack in the cargo hold: anything at all, fuel and ammunition as much as modules.</summary>
+/// <summary>One of a squadron's abilities, switched on or off. Only damage abilities change the numbers.</summary>
+public sealed class FighterAbilityToggleVm(FighterAbility ability, bool on) : ReactiveObject
+{
+    public FighterAbility Ability { get; } = ability;
+    public string Label => Ability.Label;
+    public bool DealsDamage => Ability.DealsDamage;
+    public string Tip => Ability.DealsDamage
+        ? $"{Ability.Label}: counted in the DPS while on"
+        : $"{Ability.Label}: no effect on the fit's numbers";
+    private bool _isOn = on;
+    public bool IsOn { get => _isOn; set => this.RaiseAndSetIfChanged(ref _isOn, value); }
+}
+
 public sealed class FittingCargoRowVm : ReactiveObject
 {
     public int    TypeId { get; }
@@ -224,11 +258,15 @@ public sealed class FitSnapshot
     public double Cpu, CpuOut, Power, PowerOut, Calib, CalibOut;
     public int Turrets, TurretsOut, Launchers, LaunchersOut;
     public double DroneBay, DroneBayOut, Bandwidth, BandwidthOut;
+    public double FighterBay, FighterBayOut; public int Tubes, TubesOut;
+    /// <summary>Launch slots per squadron class the hull has, or is using: (class, in tubes, slots).</summary>
+    public List<(string Class, int Used, int Out)> FighterSlots = [];
     public Dictionary<FitSlot, int> Slots = new();
     public List<TankLayerRow> Tank = [];
     public double Ehp;
     public CapacitorResult? Cap;
-    public DamageBreakdown WeaponDps = DamageBreakdown.Zero, DroneDps = DamageBreakdown.Zero, Volley = DamageBreakdown.Zero;
+    public DamageBreakdown WeaponDps = DamageBreakdown.Zero, DroneDps = DamageBreakdown.Zero, FighterDps = DamageBreakdown.Zero, Volley = DamageBreakdown.Zero;
+    public Dictionary<int, string> DroneDetail = new();    // by drone/squadron index
     public double Speed, Align, Signature, Warp, Mass, Agility;
     public double Range, ScanRes, MaxTargets, Sensor; public string SensorType = "";
     public Dictionary<int, string> ModuleDetail = new();   // by module index
@@ -898,10 +936,17 @@ public class FitTabViewModel : ReactiveObject
                 await LoadChargeAsync(entry);
                 break;
 
-            case CatalogKind.Drone or CatalogKind.Fighter:
+            case CatalogKind.Drone:
                 if (Drones.FirstOrDefault(d => d.TypeId == entry.TypeId) is { } existing) existing.Count++;
                 else AddDrone(entry.TypeId, entry.Name, 1, 1);
                 Status = $"Added {entry.Name}.";
+                break;
+
+            // A full squadron each time, into a tube if one is free.
+            case CatalogKind.Fighter:
+                var size = FighterAbilities.MaxSquadron(_data, _data.Type(entry.TypeId));
+                _droneEdited = AddDrone(entry.TypeId, entry.Name, size, size);
+                Status = $"Added a squadron of {size} {entry.Name}.";
                 break;
 
             case CatalogKind.Implant or CatalogKind.Booster:
@@ -1002,12 +1047,23 @@ public class FitTabViewModel : ReactiveObject
         _ = Task.Run(async () => { var b = await TypeIcons.GetAsync(typeId); Dispatcher.UIThread.Post(() => row.Icon = b); });
     }
 
-    private void AddDrone(int typeId, string name, int count, int active)
+    private FittingDroneRowVm AddDrone(int typeId, string name, int count, int active, IReadOnlyList<int>? abilities = null)
     {
+        var fighter = _data is not null && _data.TryType(typeId, out var t) && t.CategoryId == DogmaData.CategoryFighter;
+        var type = fighter ? _data!.Type(typeId) : null;
         var row = new FittingDroneRowVm(typeId, name, count, active)
         {
-            IsFighter = _data is not null && _data.TryType(typeId, out var t) && t.CategoryId == DogmaData.CategoryFighter,
+            IsFighter   = fighter,
+            MaxSquadron = type is null ? int.MaxValue : FighterAbilities.MaxSquadron(_data!, type),
+            ClassLabel  = type is not null && FighterAbilities.ClassOf(_data!, type) is { } c ? FighterAbilities.ClassName(c) : "",
         };
+        if (type is not null)
+            foreach (var a in FighterAbilities.Of(_data!, type))
+            {
+                var toggle = new FighterAbilityToggleVm(a, abilities?.Contains(a.EffectId) ?? a.OnByDefault);
+                toggle.WhenAnyValue(x => x.IsOn).Skip(1).Subscribe(_ => ScheduleRecalc());
+                row.Abilities.Add(toggle);
+            }
         row.RemoveCommand = ReactiveCommand.Create(() => { Drones.Remove(row); ScheduleRecalc(); });
         row.WhenAnyValue(r => r.Count, r => r.Active).Skip(1).Subscribe(_ =>
         {
@@ -1017,6 +1073,7 @@ public class FitTabViewModel : ReactiveObject
         });
         Drones.Add(row);
         _ = Task.Run(async () => { var b = await TypeIcons.GetAsync(typeId); Dispatcher.UIThread.Post(() => row.Icon = b); });
+        return row;
     }
 
     private void AddImplant(int typeId, string name, bool booster)
@@ -1437,7 +1494,8 @@ public class FitTabViewModel : ReactiveObject
     {
         var fit = new FitDefinition { ShipTypeId = _shipTypeId, Name = FitName };
         fit.Modules.AddRange(_modules.Select(m => new FitModule(m.TypeId, m.State, m.Charge?.TypeId)));
-        fit.Drones.AddRange(Drones.Select(d => new FitDrone(d.TypeId, d.Count, d.Active)));
+        fit.Drones.AddRange(Drones.Select(d => new FitDrone(d.TypeId, d.Count, d.Active,
+            d.IsFighter ? d.Abilities.Where(a => a.IsOn).Select(a => a.Ability.EffectId).ToList() : null)));
         fit.Implants.AddRange(Implants.Where(i => !i.IsBooster).Select(i => i.TypeId));
         fit.Boosters.AddRange(Implants.Where(i => i.IsBooster).Select(i => i.TypeId));
         fit.Cargo.AddRange(Cargo.Select(c => (c.TypeId, c.Quantity)));
@@ -1474,6 +1532,8 @@ public class FitTabViewModel : ReactiveObject
             Stats = snap;
             for (var i = 0; i < _modules.Count; i++)
                 _modules[i].Detail = snap.ModuleDetail.GetValueOrDefault(i, "");
+            for (var i = 0; i < Drones.Count; i++)
+                Drones[i].Detail = snap.DroneDetail.GetValueOrDefault(i, "");
             // Slot counts can change with the fit (subsystems add slots), so the sections are
             // laid out again each time; the module rows themselves are the same objects.
             RebuildSlots();
@@ -1499,15 +1559,57 @@ public class FitTabViewModel : ReactiveObject
     /// </summary>
     private bool TrimLaunchedDrones(DogmaEngine e)
     {
-        var rows = Drones.Where(d => !d.IsFighter).ToList();
-        if (rows.Count == 0) return false;
-        if (_droneEdited is { } edited && rows.Remove(edited)) rows.Add(edited);
+        var edited = _droneEdited;
         _droneEdited = null;
+        var changed = TrimDrones(e, edited) | TrimFighters(e, edited);
+        if (changed) Status = "Launched drones and fighters cut back to what the pilot can control and the hull can launch.";
+        return changed;
+    }
+
+    /// <summary>Rows in fit order, but the one changed by hand last — it is the one to give way.</summary>
+    private List<FittingDroneRowVm> InOrder(bool fighters, FittingDroneRowVm? edited)
+    {
+        var rows = Drones.Where(d => d.IsFighter == fighters).ToList();
+        if (edited is not null && rows.Remove(edited)) rows.Add(edited);
+        return rows;
+    }
+
+    /// <summary>
+    /// Squadrons in tubes: no more than the hull has tubes, and no more of each class (light,
+    /// support, heavy — or their structure versions) than it has launch slots for it.
+    /// </summary>
+    private bool TrimFighters(DogmaEngine e, FittingDroneRowVm? edited)
+    {
+        var rows = InOrder(true, edited);
+        if (rows.Count == 0) return false;
+        var s = new FitStats(e);
+        var tubes = s.FighterTubes;
+        var slots = Enum.GetValues<FighterClass>().ToDictionary(c => c, s.FighterSlots);
+        var changed = false;
+        _trimmingDrones = true;
+        try
+        {
+            foreach (var row in rows.Where(r => r.Launched))
+            {
+                var cls = FighterAbilities.ClassOf(_data!, _data!.Type(row.TypeId));
+                if (tubes > 0 && cls is { } c && slots[c] > 0) { tubes--; slots[c]--; continue; }
+                row.Launched = false;
+                changed = true;
+            }
+        }
+        finally { _trimmingDrones = false; }
+        return changed;
+    }
+
+    private bool TrimDrones(DogmaEngine e, FittingDroneRowVm? edited)
+    {
+        var rows = InOrder(false, edited);
+        if (rows.Count == 0) return false;
 
         var roomCount = (int)Math.Round(e.Value(e.Character, "maxActiveDrones"));
         var roomBw    = new FitStats(e).DroneBandwidth;
         double BandwidthOf(int typeId) =>
-            e.Drones.FirstOrDefault(d => d.Type.Id == typeId) is { } d ? e.Value(d, "droneBandwidthUsed")
+            e.DroneStacks.FirstOrDefault(d => d.Type.Id == typeId) is { } d ? e.Value(d, "droneBandwidthUsed")
             : _data!.Attribute("droneBandwidthUsed")?.Id is { } a ? _data.Type(typeId).Attr(a) ?? 0 : 0;
 
         var changed = false;
@@ -1525,7 +1627,6 @@ public class FitTabViewModel : ReactiveObject
             }
         }
         finally { _trimmingDrones = false; }
-        if (changed) Status = "Launched drones cut back to what the pilot can control and the hull's bandwidth carries.";
         return changed;
     }
 
@@ -1560,13 +1661,28 @@ public class FitTabViewModel : ReactiveObject
         snap.ShieldTaken = Taken(s.Shield); snap.ArmorTaken = Taken(s.Armor); snap.HullTaken = Taken(s.Hull);
         snap.Cap = s.Capacitor();
         var weapons = s.Weapons();
-        snap.WeaponDps = s.WeaponDps(weapons); snap.DroneDps = s.DroneDps(weapons); snap.Volley = s.Volley(weapons);
+        snap.WeaponDps = s.WeaponDps(weapons); snap.DroneDps = s.DroneDps(weapons); snap.FighterDps = s.FighterDps(weapons);
+        snap.Volley = s.Volley(weapons);
+
+        snap.FighterBay = s.FighterBayUsed; snap.FighterBayOut = s.FighterBay;
+        snap.Tubes = s.FighterTubesUsed; snap.TubesOut = s.FighterTubes;
+        foreach (var c in Enum.GetValues<FighterClass>())
+            if (s.FighterSlots(c) is var n && s.FighterSlotsUsed(c) is var used && (n > 0 || used > 0))
+                snap.FighterSlots.Add((FighterAbilities.ClassName(c), used, n));
+        for (var i = 0; i < e.Drones.Count; i++)
+        {
+            var d = e.Drones[i];
+            var mine = weapons.Where(w => w.Item == d).ToList();
+            snap.DroneDetail[i] = d.Kind == DogmaItemKind.Fighter
+                ? string.Join(" · ", mine.Select(w => w.CycleSeconds > 0 ? $"{w.Label} {w.Dps.Total:N0} DPS" : $"{w.Label} {w.Volley.Total:N0} alpha"))
+                : mine.Sum(w => w.Dps.Total) is var dps and > 0 ? $"{dps:N1} DPS" : "";
+        }
 
         var sensors = new[] { ("Radar", "scanRadarStrength"), ("Ladar", "scanLadarStrength"), ("Magnetometric", "scanMagnetometricStrength"), ("Gravimetric", "scanGravimetricStrength") }
             .Select(x => (x.Item1, Value: e.Value(e.Ship, x.Item2))).OrderByDescending(x => x.Value).First();
         snap.Sensor = sensors.Value; snap.SensorType = sensors.Item1;
 
-        var byModule = weapons.Where(w => w.Kind != WeaponKind.Drone).ToDictionary(w => w.Item, w => w);
+        var byModule = weapons.Where(w => w.Kind is not (WeaponKind.Drone or WeaponKind.Fighter)).ToDictionary(w => w.Item, w => w);
         for (var i = 0; i < e.Modules.Count; i++)
         {
             var m = e.Modules[i];
@@ -1600,6 +1716,14 @@ public class FitTabViewModel : ReactiveObject
     public bool   CargoOver       => Stats is { } s && s.Cargo > s.CargoOut + 1e-9;
     public string DroneText       => Stats is { } s ? $"Drone bay {s.DroneBay:0} / {s.DroneBayOut:0} m³    Bandwidth {s.Bandwidth:0} / {s.BandwidthOut:0} Mbit/s" : "";
     public bool   DroneOver       => Stats is { } s && (s.DroneBay > s.DroneBayOut + 1e-9 || s.Bandwidth > s.BandwidthOut + 1e-9);
+    /// <summary>A carrier has no drone bay; the drone line shows only where there is one, or drones in it.</summary>
+    public bool   HasDroneBay     => Stats is { } s && (s.DroneBayOut > 0 || s.BandwidthOut > 0 || s.DroneBay > 0);
+    public bool   HasFighterBay   => Stats is { } s && (s.FighterBayOut > 0 || s.TubesOut > 0 || s.FighterBay > 0);
+    public string FighterText     => Stats is { } s
+        ? $"Fighter bay {s.FighterBay:N0} / {s.FighterBayOut:N0} m³    Tubes {s.Tubes} / {s.TubesOut}"
+          + string.Concat(s.FighterSlots.Select(c => $"    {c.Class} {c.Used} / {c.Out}")) : "";
+    public bool   FighterOver     => Stats is { } s && (s.FighterBay > s.FighterBayOut + 1e-9 || s.Tubes > s.TubesOut
+                                        || s.FighterSlots.Any(c => c.Used > c.Out));
     public IReadOnlyList<TankLayerRow> TankRows => Stats?.Tank ?? [];
     public string EhpText         => Stats is { } s ? $"{s.Ehp:N0} EHP" : "";
     /// <summary>Peak shield regeneration and recharge time — what a passive shield tank lives on.</summary>
@@ -1621,10 +1745,13 @@ public class FitTabViewModel : ReactiveObject
     public bool   CapStable       => Stats?.Cap?.Stable ?? true;
     public string CapFlowText     => Stats?.Cap is { } c
         ? $"Use {c.Drain:0.0} GJ/s    Peak recharge {c.PeakRecharge:0.0} GJ/s" + (c.Injection > 0 ? $"    Boosters +{c.Injection:0.0} GJ/s" : "") : "";
-    public string DpsText         => Stats is { } s ? $"{(s.WeaponDps.Total + s.DroneDps.Total):N0} DPS" : "";
-    public string DpsSplitText    => Stats is { } s ? $"Weapons {s.WeaponDps.Total:N1}    Drones {s.DroneDps.Total:N1}    Volley {s.Volley.Total:N0}" : "";
-    public string DamageTypesText => Stats is { } s && s.WeaponDps.Total + s.DroneDps.Total > 0
-        ? DamageMix(s.WeaponDps + s.DroneDps) : "";
+    public string DpsText         => Stats is { } s ? $"{(s.WeaponDps.Total + s.DroneDps.Total + s.FighterDps.Total):N0} DPS" : "";
+    public string DpsSplitText    => Stats is { } s
+        ? $"Weapons {s.WeaponDps.Total:N1}    Drones {s.DroneDps.Total:N1}"
+          + (s.FighterDps.Total > 0 || s.TubesOut > 0 ? $"    Fighters {s.FighterDps.Total:N1}" : "")
+          + $"    Volley {s.Volley.Total:N0}" : "";
+    public string DamageTypesText => Stats is { } s && s.WeaponDps.Total + s.DroneDps.Total + s.FighterDps.Total > 0
+        ? DamageMix(s.WeaponDps + s.DroneDps + s.FighterDps) : "";
     public string SpeedText       => Stats is { } s ? $"{s.Speed:N0} m/s" : "";
     public string NavText         => Stats is { } s ? $"Align {s.Align:0.00} s    Signature {s.Signature:N0} m    Warp {s.Warp:0.##} AU/s" : "";
     public string MassText        => Stats is { } s ? $"Mass {s.Mass:N0} kg    Inertia {s.Agility:0.###}" : "";
@@ -1642,7 +1769,7 @@ public class FitTabViewModel : ReactiveObject
     private void RaiseStatText()
     {
         foreach (var p in new[] { nameof(CpuText), nameof(CpuFraction), nameof(CpuOver), nameof(PowerText), nameof(PowerFraction), nameof(PowerOver),
-                     nameof(CalibText), nameof(CalibFraction), nameof(CalibOver), nameof(HardpointsText), nameof(HardpointsOver), nameof(DroneText), nameof(DroneOver), nameof(CargoText), nameof(CargoOver),
+                     nameof(CalibText), nameof(CalibFraction), nameof(CalibOver), nameof(HardpointsText), nameof(HardpointsOver), nameof(DroneText), nameof(DroneOver), nameof(HasDroneBay), nameof(HasFighterBay), nameof(FighterText), nameof(FighterOver), nameof(CargoText), nameof(CargoOver),
                      nameof(TankRows), nameof(EhpText), nameof(RegenText), nameof(RepairText), nameof(HasRepairs), nameof(CapText), nameof(CapStateText), nameof(CapStable), nameof(CapFlowText),
                      nameof(DpsText), nameof(DpsSplitText), nameof(DamageTypesText), nameof(SpeedText), nameof(NavText), nameof(MassText),
                      nameof(TargetingText), nameof(SensorText) })
@@ -1667,7 +1794,12 @@ public class FitTabViewModel : ReactiveObject
         SetShip(fit.ShipTypeId);
         FitName = fit.Name;
         foreach (var m in fit.Modules) await AddModuleAsync(m.TypeId, m.State, m.ChargeTypeId);
-        foreach (var d in fit.Drones) AddDrone(d.TypeId, _data.Type(d.TypeId).Name, d.Count, Math.Min(d.Count, d.Active > 0 ? d.Active : 5));
+        // Launched counts are a starting point; the first calculation trims them to what the pilot
+        // and hull allow. Squadrons start in their tubes.
+        foreach (var d in fit.Drones)
+            AddDrone(d.TypeId, _data.Type(d.TypeId).Name, d.Count,
+                _data.Type(d.TypeId).CategoryId == DogmaData.CategoryFighter ? d.Count : Math.Min(d.Count, d.Active > 0 ? d.Active : 5),
+                d.Abilities);
         foreach (var i in fit.Implants) AddImplant(i, _data.Type(i).Name, false);
         foreach (var b in fit.Boosters) AddImplant(b, _data.Type(b).Name, true);
         foreach (var (id, qty) in fit.Cargo) AddCargo(id, _data.Type(id).Name, qty);

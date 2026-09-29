@@ -1,6 +1,6 @@
 namespace EveConsole.Services.Fitting;
 
-public enum DogmaItemKind { Character, Skill, Ship, Module, Rig, Subsystem, Charge, Drone, Implant, Booster }
+public enum DogmaItemKind { Character, Skill, Ship, Module, Rig, Subsystem, Charge, Drone, Fighter, Implant, Booster }
 
 /// <summary>One item taking part in a calculation: the ship, a module, a skill, a drone stack…</summary>
 public sealed class DogmaItem
@@ -13,9 +13,13 @@ public sealed class DogmaItem
     public DogmaItem?  Charge { get; set; }
     /// <summary>For a charge: the module it is loaded in.</summary>
     public DogmaItem?  Holder { get; init; }
-    /// <summary>Drone stack size, and how many of them are launched.</summary>
+    /// <summary>Drone stack size, and how many of them are launched. For a fighter squadron: its
+    /// size, and the same again when it is in a launch tube.</summary>
     public int Count       { get; init; } = 1;
     public int ActiveCount { get; init; }
+    /// <summary>For a fighter squadron: the effect ids of the abilities switched on.</summary>
+    public IReadOnlySet<int> Abilities { get; init; } = EmptyAbilities;
+    internal static readonly IReadOnlySet<int> EmptyAbilities = new HashSet<int>();
     /// <summary>Position in the fit's module or drone list, for reporting.</summary>
     public int Index       { get; init; }
 
@@ -88,7 +92,11 @@ public sealed class DogmaEngine
     public IReadOnlyList<DogmaItem> Skills   { get; }
     public IReadOnlyList<DogmaItem> Modules  { get; }   // incl. rigs and subsystems, fit order
     public IReadOnlyList<DogmaItem> Charges  { get; }
+    /// <summary>Drone stacks and fighter squadrons: what the pilot flies, where drone and fighter
+    /// skills and hull bonuses land.</summary>
     public IReadOnlyList<DogmaItem> Drones   { get; }
+    public IEnumerable<DogmaItem> DroneStacks => Drones.Where(d => d.Kind == DogmaItemKind.Drone);
+    public IEnumerable<DogmaItem> Fighters    => Drones.Where(d => d.Kind == DogmaItemKind.Fighter);
     public IReadOnlyList<DogmaItem> Implants { get; }
     public IReadOnlyList<DogmaItem> Boosters { get; }
     /// <summary>What the fit carries in its hold. Cargo takes no part in the calculation; it is here so
@@ -142,11 +150,18 @@ public sealed class DogmaEngine
         Modules = modules;
         Charges = charges;
 
-        Drones = fit.Drones.Select((d, i) => new DogmaItem
+        Drones = fit.Drones.Select((d, i) =>
         {
-            Kind = DogmaItemKind.Drone, Type = data.Type(d.TypeId), Index = i,
-            Count = d.Count, ActiveCount = Math.Min(d.Active, d.Count),
-            State = d.Active > 0 ? ModuleState.Active : ModuleState.Offline,
+            var type = data.Type(d.TypeId);
+            var fighter = type.CategoryId == DogmaData.CategoryFighter;
+            return new DogmaItem
+            {
+                Kind = fighter ? DogmaItemKind.Fighter : DogmaItemKind.Drone, Type = type, Index = i,
+                Count = d.Count,
+                ActiveCount = fighter ? (d.Active > 0 ? d.Count : 0) : Math.Min(d.Active, d.Count),
+                State = d.Active > 0 ? ModuleState.Active : ModuleState.Offline,
+                Abilities = fighter ? (d.Abilities ?? FighterAbilities.Defaults(data, type)).ToHashSet() : DogmaItem.EmptyAbilities,
+            };
         }).ToList();
         Implants = fit.Implants.Select(id => new DogmaItem { Kind = DogmaItemKind.Implant, Type = data.Type(id) }).ToList();
         Boosters = fit.Boosters.Select(id => new DogmaItem { Kind = DogmaItemKind.Booster, Type = data.Type(id) }).ToList();
@@ -165,6 +180,13 @@ public sealed class DogmaEngine
         DamageProfile? profile = null, CancellationToken ct = default)
     {
         await data.LoadTypesAsync(fit.AllTypeIds().Append(CharacterTypeId).Concat(skills.Levels.Keys), ct);
+        // A heavy fighter's bomb is a type of its own, whose damage the bomb ability delivers.
+        if (data.Attribute("fighterAbilityLaunchBombType")?.Id is { } bombAttr)
+        {
+            var bombs = fit.Drones.Select(d => data.TryType(d.TypeId, out var t) ? t.Attr(bombAttr) : null)
+                .OfType<double>().Where(b => b > 0).Select(b => (int)b).ToList();
+            if (bombs.Count > 0) await data.LoadTypesAsync(bombs, ct);
+        }
         return new DogmaEngine(data, fit, skills, profile);
     }
 

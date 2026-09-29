@@ -104,23 +104,54 @@
           <TextBlock Text="DRONES AND FIGHTERS" Classes="section" IsVisible="{Binding HasShip}" />
           <ItemsControl ItemsSource="{Binding Drones}">
             <ItemsControl.ItemTemplate>
+              <!-- A drone stack (in the bay, launched), or a fighter squadron (its size, whether it
+                   is in a tube, and its abilities underneath). -->
               <DataTemplate x:DataType="vm:FittingDroneRowVm">
                 <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="0 0 0 1" Padding="2 3">
-                  <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto,70,Auto">
-                    <Image Grid.Column="0" Source="{Binding Icon}" Width="32" Height="32" Margin="78 0 6 0" />
-                    <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="12" VerticalAlignment="Center"
-                               Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" />
-                    <TextBlock Grid.Column="2" Text="in bay" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" Margin="6 0 4 0" />
-                    <NumericUpDown Grid.Column="3" Value="{Binding CountValue}" Minimum="1" Maximum="500" Increment="1"
-                                   FormatString="0" Width="100" FontSize="11" />
-                    <TextBlock Grid.Column="4" Text="launched" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" Margin="8 0 4 0" />
-                    <NumericUpDown Grid.Column="5" Value="{Binding ActiveValue}" Minimum="0" Maximum="500" Increment="1"
-                                   FormatString="0" Width="100" FontSize="11" />
-                    <TextBlock Grid.Column="6" Text="{Binding Price}" FontSize="11" HorizontalAlignment="Right"
-                               VerticalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}"
-                               ToolTip.Tip="Market value of the whole stack" />
-                    <Button Grid.Column="7" Classes="remove" Content="✕" Command="{Binding RemoveCommand}" ToolTip.Tip="Remove" />
-                  </Grid>
+                  <StackPanel>
+                    <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto,70,Auto">
+                      <Image Grid.Column="0" Source="{Binding Icon}" Width="32" Height="32" Margin="78 0 6 0" />
+                      <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Name}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="{Binding Detail}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextTrimming="CharacterEllipsis"
+                                   IsVisible="{Binding Detail, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                      </StackPanel>
+
+                      <TextBlock Grid.Column="2" Text="in bay" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" Margin="6 0 4 0"
+                                 IsVisible="{Binding !IsFighter}" />
+                      <NumericUpDown Grid.Column="3" Value="{Binding CountValue}" Minimum="1" Maximum="500" Increment="1"
+                                     FormatString="0" Width="56" FontSize="11" IsVisible="{Binding !IsFighter}" />
+                      <TextBlock Grid.Column="4" Text="launched" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" Margin="8 0 4 0"
+                                 IsVisible="{Binding !IsFighter}" />
+                      <NumericUpDown Grid.Column="5" Value="{Binding ActiveValue}" Minimum="0" Maximum="500" Increment="1"
+                                     FormatString="0" Width="56" FontSize="11" IsVisible="{Binding !IsFighter}" />
+
+                      <TextBlock Grid.Column="2" Text="{Binding ClassLabel}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" Margin="6 0 4 0"
+                                 IsVisible="{Binding IsFighter}" />
+                      <NumericUpDown Grid.Column="3" Value="{Binding CountValue}" Minimum="1" Maximum="{Binding MaxSquadron}" Increment="1"
+                                     FormatString="0" Width="56" FontSize="11" IsVisible="{Binding IsFighter}"
+                                     ToolTip.Tip="{Binding SquadronTip}" />
+                      <CheckBox Grid.Column="5" IsChecked="{Binding Launched}" Content="in tube" FontSize="10" Margin="8 0 0 0"
+                                Foreground="{DynamicResource TextMutedBrush}" IsVisible="{Binding IsFighter}"
+                                ToolTip.Tip="Launched — squadrons in tubes are the ones counted in the fit's damage" />
+
+                      <TextBlock Grid.Column="6" Text="{Binding Price}" FontSize="11" HorizontalAlignment="Right"
+                                 VerticalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}"
+                                 ToolTip.Tip="Market value of the whole stack" />
+                      <Button Grid.Column="7" Classes="remove" Content="✕" Command="{Binding RemoveCommand}" ToolTip.Tip="Remove" />
+                    </Grid>
+                    <ItemsControl ItemsSource="{Binding Abilities}" IsVisible="{Binding IsFighter}" Margin="116 2 0 1">
+                      <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate><WrapPanel Orientation="Horizontal" /></ItemsPanelTemplate>
+                      </ItemsControl.ItemsPanel>
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:FighterAbilityToggleVm">
+                          <ToggleButton Classes="ability" Classes.damage="{Binding DealsDamage}" Content="{Binding Label}"
+                                        IsChecked="{Binding IsOn}" ToolTip.Tip="{Binding Tip}" Margin="0 0 4 2" />
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </StackPanel>
                 </Border>
               </DataTemplate>
             </ItemsControl.ItemTemplate>
@@ -183,7 +214,8 @@
             <ProgressBar Grid.Row="5" Grid.ColumnSpan="2" Value="{Binding CalibFraction}" Classes.over="{Binding CalibOver}" Margin="0 1 0 5" />
           </Grid>
           <TextBlock Text="{Binding HardpointsText}" Classes="line" Classes.over="{Binding HardpointsOver}" />
-          <TextBlock Text="{Binding DroneText}" Classes="line" Classes.over="{Binding DroneOver}" />
+          <TextBlock Text="{Binding DroneText}" Classes="line" Classes.over="{Binding DroneOver}" IsVisible="{Binding HasDroneBay}" />
+          <TextBlock Text="{Binding FighterText}" Classes="line" Classes.over="{Binding FighterOver}" IsVisible="{Binding HasFighterBay}" />
           <TextBlock Text="{Binding CargoText}" Classes="line" Classes.over="{Binding CargoOver}" />
 
           <TextBlock Text="VALUE" Classes="section" />

@@ -55,10 +55,12 @@ public static class GameFittings
             items.Add(new EsiFittingItem(m.TypeId, $"{prefix}{n}", 1));
         }
 
-        foreach (var d in fit.Drones)
+        // One entry per type in each bay: the game keeps fighters by type and count, and splits
+        // them into squadrons itself.
+        foreach (var g in fit.Drones.GroupBy(d => d.TypeId))
         {
-            var bay = data.TryType(d.TypeId, out var t) && t.CategoryId == DogmaData.CategoryFighter ? "FighterBay" : "DroneBay";
-            items.Add(new EsiFittingItem(d.TypeId, bay, d.Count));
+            var bay = data.TryType(g.Key, out var t) && t.CategoryId == DogmaData.CategoryFighter ? "FighterBay" : "DroneBay";
+            items.Add(new EsiFittingItem(g.Key, bay, g.Sum(d => d.Count)));
         }
 
         var cargo = fit.Cargo.GroupBy(c => c.TypeId).ToDictionary(g => g.Key, g => g.Sum(c => c.Quantity));

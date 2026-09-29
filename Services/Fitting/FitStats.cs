@@ -27,10 +27,12 @@ public sealed record DamageBreakdown(double Em, double Thermal, double Kinetic, 
         new(a.Em * k, a.Thermal * k, a.Kinetic * k, a.Explosive * k);
 }
 
-public enum WeaponKind { Turret, Missile, Smartbomb, Drone }
+public enum WeaponKind { Turret, Missile, Smartbomb, Drone, Fighter }
 
-/// <summary>One weapon (or drone stack): what one volley does and how often it fires.</summary>
-public sealed record WeaponDamage(DogmaItem Item, WeaponKind Kind, DamageBreakdown Volley, double CycleSeconds)
+/// <summary>One weapon, drone stack or fighter ability: what one volley does and how often it
+/// fires. A fighter squadron has one per damaging ability switched on, named by <paramref name="Label"/>;
+/// a one-off strike (kamikaze) has no cycle, and counts in the volley but not the DPS.</summary>
+public sealed record WeaponDamage(DogmaItem Item, WeaponKind Kind, DamageBreakdown Volley, double CycleSeconds, string? Label = null)
 {
     public DamageBreakdown Dps => CycleSeconds > 0 ? Volley * (1 / CycleSeconds) : DamageBreakdown.Zero;
 }
@@ -66,12 +68,22 @@ public sealed class FitStats
     public double PowerUsed  => Math.Round(OnlineModules.Sum(m => _e.Value(m, "power")), 2);
     public double CalibrationUsed => _e.Modules.Where(m => m.Kind == DogmaItemKind.Rig).Sum(m => _e.Value(m, "upgradeCost"));
     public double DroneBay   => Ship("droneCapacity");
-    public double DroneBayUsed => _e.Drones.Sum(d => _e.Value(d, DogmaData.AttrVolume) * d.Count);
+    public double DroneBayUsed => _e.DroneStacks.Sum(d => _e.Value(d, DogmaData.AttrVolume) * d.Count);
     public double DroneBandwidth => Ship("droneBandwidth");
     public double CargoCapacity => _e.Value(_e.Ship, DogmaData.AttrCapacity);
     /// <summary>What the cargo list takes up, at each item's own volume.</summary>
     public double CargoUsed => _e.Cargo.Sum(c => (_e.Data.TryType(c.TypeId, out var t) ? t.Attr(DogmaData.AttrVolume) ?? 0 : 0) * c.Quantity);
-    public double DroneBandwidthUsed => _e.Drones.Sum(d => _e.Value(d, "droneBandwidthUsed") * d.ActiveCount);
+    public double DroneBandwidthUsed => _e.DroneStacks.Sum(d => _e.Value(d, "droneBandwidthUsed") * d.ActiveCount);
+
+    /// <summary>The fighter bay: every squadron counts, in a tube or not.</summary>
+    public double FighterBay     => Ship("fighterCapacity");
+    public double FighterBayUsed => _e.Fighters.Sum(f => _e.Value(f, DogmaData.AttrVolume) * f.Count);
+    public int FighterTubes      => (int)Ship("fighterTubes");
+    public int FighterTubesUsed  => _e.Fighters.Count(f => f.ActiveCount > 0);
+    /// <summary>Launch slots for squadrons of <paramref name="c"/>, and how many are in tubes.</summary>
+    public int FighterSlots(FighterClass c) => (int)Ship(FighterAbilities.SlotAttribute(c));
+    public int FighterSlotsUsed(FighterClass c) =>
+        _e.Fighters.Count(f => f.ActiveCount > 0 && FighterAbilities.ClassOf(_e.Data, f.Type) == c);
 
     public int Slots(FitSlot slot) => (int)Ship(slot switch
     {
@@ -199,13 +211,53 @@ public sealed class FitStats
                     break;
             }
         }
-        foreach (var d in _e.Drones.Where(d => d.ActiveCount > 0))
+        foreach (var d in _e.DroneStacks.Where(d => d.ActiveCount > 0))
         {
             if (CyclingEffect(d) is not { Name: "targetAttack" } fx) continue;
             list.Add(new WeaponDamage(d, WeaponKind.Drone,
                 DamageOf(d) * (_e.Value(d, "damageMultiplier") * d.ActiveCount), CycleSeconds(d, fx)));
         }
+        foreach (var f in _e.Fighters.Where(f => f.ActiveCount > 0))
+            list.AddRange(FighterDamage(f));
         return list;
+    }
+
+    /// <summary>
+    /// A squadron in a tube, one entry per damaging ability switched on. Every fighter in the
+    /// squadron fires: an ability's volley is one fighter's damage, times its damage multiplier
+    /// (where fighter skills, hull bonuses and drone damage amplifiers act), times the squadron's
+    /// size. The standing attack and the secondary missiles keep their own damage attributes and
+    /// durations; a bomb does its bomb type's damage; a kamikaze strike is a single blow.
+    /// </summary>
+    private IEnumerable<WeaponDamage> FighterDamage(DogmaItem f)
+    {
+        DamageBreakdown Named(string prefix) => new(
+            _e.Value(f, prefix + "DamageEM"), _e.Value(f, prefix + "DamageTherm"),
+            _e.Value(f, prefix + "DamageKin"), _e.Value(f, prefix + "DamageExp"));
+
+        foreach (var a in FighterAbilities.Of(_e.Data, f.Type))
+        {
+            if (!a.DealsDamage || !f.Abilities.Contains(a.EffectId)) continue;
+            var fx    = _e.Data.Effects[a.EffectId];
+            var cycle = fx.DurationAttributeId is { } d ? _e.Value(f, d) / 1000 : 0;
+            var one = a.Kind switch
+            {
+                FighterAbilityKind.Attack   => Named("fighterAbilityAttackMissile") * _e.Value(f, "fighterAbilityAttackMissileDamageMultiplier"),
+                FighterAbilityKind.Missiles => Named("fighterAbilityMissiles") * _e.Value(f, "fighterAbilityMissilesDamageMultiplier"),
+                FighterAbilityKind.Bomb     => BombDamage(f),
+                _                           => Named("fighterAbilityKamikaze"),
+            };
+            if (a.Kind == FighterAbilityKind.Kamikaze) cycle = 0;
+            yield return new WeaponDamage(f, WeaponKind.Fighter, one * f.ActiveCount, cycle, a.Label);
+        }
+    }
+
+    private DamageBreakdown BombDamage(DogmaItem f)
+    {
+        var id = (int)_e.Value(f, "fighterAbilityLaunchBombType");
+        if (id <= 0 || !_e.Data.TryType(id, out var bomb)) return DamageBreakdown.Zero;
+        double Of(string attr) => bomb.Attr(_e.Data.AttrId(attr)) ?? 0;
+        return new(Of("emDamage"), Of("thermalDamage"), Of("kineticDamage"), Of("explosiveDamage"));
     }
 
     // ── Repair and regeneration ─────────────────────────────────────────────────
@@ -261,7 +313,9 @@ public sealed class FitStats
     }
 
     public DamageBreakdown WeaponDps(IReadOnlyList<WeaponDamage>? weapons = null) =>
-        (weapons ?? Weapons()).Where(w => w.Kind != WeaponKind.Drone).Aggregate(DamageBreakdown.Zero, (a, w) => a + w.Dps);
+        (weapons ?? Weapons()).Where(w => w.Kind is not (WeaponKind.Drone or WeaponKind.Fighter)).Aggregate(DamageBreakdown.Zero, (a, w) => a + w.Dps);
+    public DamageBreakdown FighterDps(IReadOnlyList<WeaponDamage>? weapons = null) =>
+        (weapons ?? Weapons()).Where(w => w.Kind == WeaponKind.Fighter).Aggregate(DamageBreakdown.Zero, (a, w) => a + w.Dps);
     public DamageBreakdown DroneDps(IReadOnlyList<WeaponDamage>? weapons = null) =>
         (weapons ?? Weapons()).Where(w => w.Kind == WeaponKind.Drone).Aggregate(DamageBreakdown.Zero, (a, w) => a + w.Dps);
     public DamageBreakdown Volley(IReadOnlyList<WeaponDamage>? weapons = null) =>

@@ -86,6 +86,25 @@
     <Style Selector="NumericUpDown">
       <Setter Property="ShowButtonSpinner" Value="False" />
     </Style>
+    <!-- A fighter ability: lit when on. Damage abilities in the accent, the rest plainer. -->
+    <Style Selector="ToggleButton.ability">
+      <Setter Property="Padding" Value="7 1" />
+      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="FontSize" Value="10" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderDefaultBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
+    </Style>
+    <Style Selector="ToggleButton.ability:checked /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SurfaceRaisedBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource TextMutedBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+    </Style>
+    <Style Selector="ToggleButton.ability.damage:checked /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+    </Style>
     <Style Selector="Button.remove">
       <Setter Property="Background" Value="Transparent" />
       <Setter Property="BorderThickness" Value="0" />

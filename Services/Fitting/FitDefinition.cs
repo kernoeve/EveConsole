@@ -6,7 +6,13 @@ public enum FitSlot { High, Mid, Low, Rig, Subsystem, Service, None }
 
 public sealed record FitModule(int TypeId, ModuleState State, int? ChargeTypeId = null);
 
-public sealed record FitDrone(int TypeId, int Count, int Active);
+/// <summary>
+/// A drone stack, or a fighter squadron. For drones, <paramref name="Active"/> is how many are
+/// launched. For a squadron, <paramref name="Count"/> is its size and any <paramref name="Active"/>
+/// above zero means it is in a launch tube; <paramref name="Abilities"/> are the effect ids of the
+/// abilities switched on, or null for the defaults (see <see cref="FighterAbilities"/>).
+/// </summary>
+public sealed record FitDrone(int TypeId, int Count, int Active, IReadOnlyList<int>? Abilities = null);
 
 /// <summary>What a fit is made of, by type id. Everything the engine needs and nothing it computes.</summary>
 public sealed class FitDefinition

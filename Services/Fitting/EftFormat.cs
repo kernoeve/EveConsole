@@ -61,8 +61,13 @@ public static class EftFormat
             var type = data.Type(id);
             switch (type.CategoryId)
             {
-                case DogmaData.CategoryDrone or DogmaData.CategoryFighter when e.Stack:
+                case DogmaData.CategoryDrone when e.Stack:
                     fit.Drones.Add(new FitDrone(id, e.Qty, 0));
+                    break;
+                // A fighter line is a count, which may be more than one squadron holds.
+                case DogmaData.CategoryFighter when e.Stack:
+                    foreach (var size in FighterAbilities.Squadrons(data, id, e.Qty))
+                        fit.Drones.Add(new FitDrone(id, size, size));
                     break;
                 case DogmaData.CategoryImplant:
                     if (IsBooster(data, type)) fit.Boosters.Add(id); else fit.Implants.Add(id);
@@ -107,10 +112,13 @@ public static class EftFormat
                 sb.Append('\n');
             }
         }
-        if (fit.Drones.Count > 0)
+        // Drones, then fighters, each a block of "name xN" — a fighter line per squadron.
+        bool IsFighter(FitDrone d) => data.TryType(d.TypeId, out var t) && t.CategoryId == DogmaData.CategoryFighter;
+        foreach (var block in new[] { fit.Drones.Where(d => !IsFighter(d)).ToList(), fit.Drones.Where(IsFighter).ToList() })
         {
+            if (block.Count == 0) continue;
             sb.Append('\n');
-            foreach (var d in fit.Drones) sb.Append(Name(d.TypeId)).Append(" x").Append(d.Count).Append('\n');
+            foreach (var d in block) sb.Append(Name(d.TypeId)).Append(" x").Append(d.Count).Append('\n');
         }
         if (fit.Implants.Count + fit.Boosters.Count > 0)
         {
@@ -156,8 +164,12 @@ public static class EftFormat
                 || flag.StartsWith("SubSystemSlot") || flag.StartsWith("ServiceSlot"))
                 for (var n = 0; n < Math.Max(1, item.Quantity); n++)
                     fit.Modules.Add(new FitModule(item.TypeId, DefaultState(data, type)));
-            else if (flag is "DroneBay" or "FighterBay")
+            else if (flag is "DroneBay")
                 fit.Drones.Add(new FitDrone(item.TypeId, item.Quantity, 0));
+            // The game lists the fighter bay by type and count, not by squadron.
+            else if (flag is "FighterBay")
+                foreach (var size in FighterAbilities.Squadrons(data, item.TypeId, item.Quantity))
+                    fit.Drones.Add(new FitDrone(item.TypeId, size, size));
             else if (type.CategoryId == DogmaData.CategoryImplant)
                 (IsBooster(data, type) ? fit.Boosters : fit.Implants).Add(item.TypeId);
             else
