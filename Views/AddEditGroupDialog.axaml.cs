@@ -9,15 +9,6 @@ namespace EveConsole.Views;
 
 public partial class AddEditGroupDialog : Window
 {
-    /// <summary>
-    /// A station as the box lists it: named as the screen names it, which the item template binds,
-    /// over the station. ⚠️ The station keeps the English, and that is what the group saves.
-    /// </summary>
-    private sealed record ShownStation(MarketLevelStation Station, string Name)
-    {
-        public string Kind => Station.Kind;
-    }
-
     public AddEditGroupDialog(
         string?                              existingName,
         long?                                existingStationId,
@@ -31,20 +22,17 @@ public partial class AddEditGroupDialog : Window
     {
         InitializeComponent();
 
-        var shown = stations
-            .Select(s => new ShownStation(s, SdeNames.Location(s.Id, s.Name)))
-            .OrderBy(s => s.Name, StringComparer.CurrentCulture)
-            .ToList();
-
-        StationBox.ItemsSource    = shown;
+        // Listed by the name shown (MarketLevelStation.DisplayName, which the item template binds);
+        // the station picked keeps the English, and that is what the group saves.
+        StationBox.ItemsSource    = stations.OrderBy(s => s.DisplayName, StringComparer.CurrentCulture).ToList();
         SourceBox.ItemsSource     = sources;
         CollectionBox.ItemsSource = collections;
 
         if (existingName != null) NameBox.Text = existingName;
 
         if (existingStationId.HasValue)
-            foreach (var s in shown)
-                if (s.Station.Id == existingStationId)
+            foreach (var s in stations)
+                if (s.Id == existingStationId)
                     { StationBox.SelectedItem = s; break; }
 
         foreach (var src in sources)
@@ -77,7 +65,7 @@ public partial class AddEditGroupDialog : Window
             return;
         }
 
-        var station    = (StationBox.SelectedItem as ShownStation)?.Station;
+        var station    = StationBox.SelectedItem as MarketLevelStation;
         var source     = SourceBox.SelectedItem as MarketSourceOptionVm;
         var collection = CollectionBox.SelectedItem as CollectionOption;
         double? maxPct = double.TryParse(MaxPctBox.Text, out var p) ? p : null;
