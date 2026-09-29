@@ -5,6 +5,7 @@ using Microsoft.Data.Sqlite;
 using ReactiveUI;
 using EveConsole.Data;
 using EveConsole.Services;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -32,8 +33,8 @@ public class AssetBrowserViewModel : ReactiveObject
 
     public static readonly IReadOnlyList<ScopeOption> AllScopes =
     [
-        new("all",      "Everything"),
-        new("personal", "Characters and personal corps"),
+        new("all",      AssetsText.ScopeEverything),
+        new("personal", AssetsText.ScopePersonal),
     ];
 
     public IReadOnlyList<ScopeOption> ScopeOptions => AllScopes;
@@ -104,6 +105,56 @@ public class AssetBrowserViewModel : ReactiveObject
         "Solar System Id", "Region Id", "Is Station",
     ];
 
+    /// <summary>
+    /// The words shown for each column, in the interface language.
+    ///
+    /// <para>⚠️ A column's NAME is its SQL alias and stays English in every language: the filters,
+    /// the sort, the links, the alignment above and the agent's filters all go by it. Only what a
+    /// header, the column picker or a copied header row shows is looked up here.</para>
+    /// </summary>
+    private static readonly Dictionary<string, string> ColumnLabels = new()
+    {
+        ["Item Id"]           = AssetsText.AssetColItemId,
+        ["Type Id"]           = AssetsText.AssetColTypeId,
+        ["Type Name"]         = AssetsText.AssetColTypeName,
+        ["Group"]             = AssetsText.AssetColGroup,
+        ["Category"]          = AssetsText.AssetColCategory,
+        ["Quantity"]          = AssetsText.AssetColQuantity,
+        ["Owner Type"]        = AssetsText.AssetColOwnerType,
+        ["Owner Name"]        = AssetsText.AssetColOwnerName,
+        ["Owner Id"]          = AssetsText.AssetColOwnerId,
+        ["Location Id"]       = AssetsText.AssetColLocationId,
+        ["Location Name"]     = AssetsText.AssetColLocationName,
+        ["Location Type"]     = AssetsText.AssetColLocationType,
+        ["Root Location Id"]  = AssetsText.AssetColRootLocationId,
+        ["Container"]         = AssetsText.ColContainer,
+        ["Flag"]              = AssetsText.ColFlag,
+        ["Solar System"]      = AssetsText.AssetColSolarSystem,
+        ["Solar System Id"]   = AssetsText.AssetColSolarSystemId,
+        ["Region Name"]       = AssetsText.AssetColRegionName,
+        ["Region Id"]         = AssetsText.AssetColRegionId,
+        ["Security"]          = AssetsText.AssetColSecurity,
+        ["Is Station"]        = AssetsText.AssetColIsStation,
+        ["Volume"]            = AssetsText.AssetColVolume,
+        ["Total Volume"]      = AssetsText.AssetColTotalVolume,
+        ["Value Per Unit"]    = AssetsText.AssetColValuePerUnit,
+        ["Value"]             = AssetsText.ColValue,
+        ["Total Value"]       = AssetsText.AssetColTotalValue,
+        ["ISK/m³"]            = AssetsText.AssetColIskPerM3,
+        ["Build Cost"]        = AssetsText.AssetColBuildCost,
+        ["Item Count"]        = AssetsText.AssetColItemCount,
+        ["Is Singleton"]      = AssetsText.AssetColIsSingleton,
+        ["Is Blueprint Copy"] = AssetsText.AssetColIsBlueprintCopy,
+    };
+
+    /// <summary>What a column is called on screen; a column with no label of its own shows its name.</summary>
+    public static string ColumnLabel(string column) =>
+        ColumnLabels.TryGetValue(column, out var label) ? label : column;
+
+    /// <summary>The filter row's column picker: the alias as the value, its label as the words.</summary>
+    public static readonly IReadOnlyList<Choice<string>> FilterableColumnChoices =
+        FilterableColumns.Select(c => new Choice<string>(c, ColumnLabel(c))).ToList();
+
     public string? SortColumn    => _sortColumn;
     public bool    SortDescending => _sortDescending;
 
@@ -118,7 +169,7 @@ public class AssetBrowserViewModel : ReactiveObject
         private set => this.RaiseAndSetIfChanged(ref _columns, value);
     }
 
-    private string _statusText = "Loading…";
+    private string _statusText = CommonText.Loading;
     public string StatusText
     {
         get => _statusText;
@@ -235,7 +286,7 @@ public class AssetBrowserViewModel : ReactiveObject
         catch (OperationCanceledException) { }
         catch (Exception ex)
         {
-            await Dispatcher.UIThread.InvokeAsync(() => StatusText = $"Error: {ex.Message}");
+            await Dispatcher.UIThread.InvokeAsync(() => StatusText = string.Format(CommonText.ErrorWithMessage, ex.Message));
         }
     }
 
@@ -250,7 +301,7 @@ public class AssetBrowserViewModel : ReactiveObject
             Rows.Clear();
             Columns    = [];
             HasMore    = false;
-            StatusText = "Loading…";
+            StatusText = CommonText.Loading;
             LocationRows.Clear(); LocationColumns = [];
             SystemRows.Clear();   SystemColumns   = [];
             RegionRows.Clear();   RegionColumns   = [];
@@ -266,7 +317,7 @@ public class AssetBrowserViewModel : ReactiveObject
         catch (OperationCanceledException) { }
         catch (Exception ex)
         {
-            await Dispatcher.UIThread.InvokeAsync(() => StatusText = $"Error: {ex.Message}");
+            await Dispatcher.UIThread.InvokeAsync(() => StatusText = string.Format(CommonText.ErrorWithMessage, ex.Message));
         }
     }
 
@@ -357,9 +408,9 @@ public class AssetBrowserViewModel : ReactiveObject
                 Columns = newColumns;
 
             HasMore    = loadedCount < total;
-            StatusText = total == 0         ? "No assets."
-                : loadedCount < total ? $"Showing {loadedCount:N0} of {total:N0} assets"
-                                      : $"{total:N0} assets total";
+            StatusText = total == 0         ? AssetsText.StatusNoAssets
+                : loadedCount < total ? Plurals.Format(AssetsText.ResourceManager, nameof(AssetsText.StatusShowingAssetsOther), total, loadedCount)
+                                      : Plurals.Format(AssetsText.ResourceManager, nameof(AssetsText.StatusAssetsTotalOther), total);
         });
     }
 

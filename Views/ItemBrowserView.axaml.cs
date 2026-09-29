@@ -6,6 +6,7 @@ using Avalonia.ReactiveUI;
 using Avalonia.Threading;
 using EveConsole.ViewModels;
 using Avalonia.Interactivity;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -70,8 +71,11 @@ public partial class ItemBrowserView : ReactiveUserControl<ItemBrowserViewModel>
 
     private void OnDetailTabChanged(object? sender, SelectionChangedEventArgs e)
     {
+        // ⚠️ Against the same resource the tab's header is built from, not the English words:
+        // the header follows the interface language.
         if (sender is TabControl tc &&
-            tc.SelectedItem is TabItem { Header: "Price History" } &&
+            tc.SelectedItem is TabItem { Header: string header } &&
+            header == AssetsText.TabPriceHistory &&
             DataContext is ItemBrowserViewModel vm)
         {
             _ = vm.LoadPriceHistoryAsync();

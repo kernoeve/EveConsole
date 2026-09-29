@@ -22,19 +22,19 @@
   </data>
   <data name="Station" xml:space="preserve">
     <value>Station</value>
-    <comment>Button or option in AddEditInvGroupDialog.</comment>
+    <comment>Inventory Levels: a scope, as an option in AddEditInvGroupDialog and after the location on a group's line.</comment>
   </data>
   <data name="System" xml:space="preserve">
     <value>System</value>
-    <comment>Button or option in AddEditInvGroupDialog.</comment>
+    <comment>Inventory Levels: a scope, as an option in AddEditInvGroupDialog and after the location on a group's line.</comment>
   </data>
   <data name="Region" xml:space="preserve">
     <value>Region</value>
-    <comment>Button or option in AddEditInvGroupDialog.</comment>
+    <comment>Inventory Levels: a scope, as an option in AddEditInvGroupDialog and after the location on a group's line.</comment>
   </data>
   <data name="Everywhere" xml:space="preserve">
     <value>Everywhere</value>
-    <comment>Button or option in AddEditInvGroupDialog.</comment>
+    <comment>Inventory Levels: a scope, as an option in AddEditInvGroupDialog and on a group's line; also named in the dialog's error (ErrSelectStation…).</comment>
   </data>
   <data name="LocationLabel" xml:space="preserve">
     <value>LOCATION</value>
@@ -50,7 +50,7 @@
   </data>
   <data name="Assets" xml:space="preserve">
     <value>Assets</value>
-    <comment>Button or option in AddEditInvGroupDialog.</comment>
+    <comment>Inventory Levels: what a group counts, as an option in AddEditInvGroupDialog and in a group's summary line.</comment>
   </data>
   <data name="IndustryJobsProducts" xml:space="preserve">
     <value>Industry Jobs (products)</value>
@@ -142,7 +142,7 @@
   </data>
   <data name="ImportCollection" xml:space="preserve">
     <value>Import Collection</value>
-    <comment>Button or option in InvLevelView.</comment>
+    <comment>Inventory Levels: the import button, and the title of its file dialog.</comment>
   </data>
   <data name="TipReadACollectionFrom" xml:space="preserve">
     <value>Read a collection from a file. It always comes in as a new collection, never merged into an existing one.</value>
@@ -154,7 +154,7 @@
   </data>
   <data name="MenuOpenInItemBrowser" xml:space="preserve">
     <value>Open in Item Browser</value>
-    <comment>Menu item in InvLevelView.</comment>
+    <comment>Right-click menu item in InvLevelView and the Asset Browser.</comment>
   </data>
   <data name="MenuAddItemsFromFit" xml:space="preserve">
     <value>Add Items From Fit</value>
@@ -390,11 +390,11 @@
   </data>
   <data name="ColLocation" xml:space="preserve">
     <value>Location</value>
-    <comment>Column header in ItemBrowserView.</comment>
+    <comment>Column header in ItemBrowserView's Assets tab; also a choice in its Group by picker.</comment>
   </data>
   <data name="ColOwner" xml:space="preserve">
     <value>Owner</value>
-    <comment>Column header in ItemBrowserView.</comment>
+    <comment>Column header in ItemBrowserView's Assets tab; also a choice in its Group by picker.</comment>
   </data>
   <data name="TipOpenInTheEntityBrowser" xml:space="preserve">
     <value>Open in the entity browser</value>
@@ -406,15 +406,15 @@
   </data>
   <data name="ColContainer" xml:space="preserve">
     <value>Container</value>
-    <comment>Column header in ItemBrowserView.</comment>
+    <comment>Column header in ItemBrowserView's Assets tab and the Asset Browser: the containers the item is inside.</comment>
   </data>
   <data name="ColFlag" xml:space="preserve">
     <value>Flag</value>
-    <comment>Column header in ItemBrowserView.</comment>
+    <comment>Column header in ItemBrowserView's Assets tab and the Asset Browser: the game's slot or hangar flag for the item.</comment>
   </data>
   <data name="ColValue" xml:space="preserve">
     <value>Value</value>
-    <comment>Column header in ItemBrowserView.</comment>
+    <comment>Column header in ItemBrowserView's Assets tab and the Asset Browser: what the stack is worth, in ISK.</comment>
   </data>
   <data name="ColSystem" xml:space="preserve">
     <value>System</value>
@@ -550,11 +550,11 @@
   </data>
   <data name="ColHigh" xml:space="preserve">
     <value>High</value>
-    <comment>Column header in ItemBrowserView.</comment>
+    <comment>Item Browser price history: the day's highest price, as a column header and as the chart line's name.</comment>
   </data>
   <data name="ColLow" xml:space="preserve">
     <value>Low</value>
-    <comment>Column header in ItemBrowserView.</comment>
+    <comment>Item Browser price history: the day's lowest price, as a column header and as the chart line's name.</comment>
   </data>
   <data name="ColOrders" xml:space="preserve">
     <value>Orders</value>
@@ -622,7 +622,7 @@
   </data>
   <data name="Copy" xml:space="preserve">
     <value>Copy</value>
-    <comment>Button or option in ItemValuationView.</comment>
+    <comment>Copy to the clipboard (verb): button in ItemValuationView, and the Asset Browser's right-click menu.</comment>
   </data>
   <data name="TipCopyBothTablesAnd" xml:space="preserve">
     <value>Copy both tables and the totals as tab-separated text, for a spreadsheet or a chat.</value>
@@ -667,7 +667,7 @@ away: Edit list brings it back.</value>
   </data>
   <data name="ColItem" xml:space="preserve">
     <value>Item</value>
-    <comment>Column header in ItemValuationView.</comment>
+    <comment>Column header in ItemValuationView, and in the header rows of the result it copies.</comment>
   </data>
   <data name="TipOpenInItemBrowser" xml:space="preserve">
     <value>Open in Item Browser</value>
@@ -704,5 +704,957 @@ away: Edit list brings it back.</value>
   <data name="Add" xml:space="preserve">
     <value>Add</value>
     <comment>Button or option in ItemValuationView.</comment>
+  </data>
+  <data name="ScopeEverything" xml:space="preserve">
+    <value>Everything</value>
+    <comment>Asset Browser scope picker: every asset the app holds, whoever owns it.</comment>
+  </data>
+  <data name="ScopePersonal" xml:space="preserve">
+    <value>Characters and personal corps</value>
+    <comment>Scope picker in the Asset Browser and the Item Browser's Assets tab: the user's own characters and the corporations marked personal.</comment>
+  </data>
+  <data name="MenuCopyWithHeaders" xml:space="preserve">
+    <value>Copy w/Headers</value>
+    <comment>Asset Browser right-click menu: copy the selected cells with the column headers as the first line.</comment>
+  </data>
+  <data name="HintColumn" xml:space="preserve">
+    <value>column…</value>
+    <comment>Asset Browser filter row: hint in the empty column picker.</comment>
+  </data>
+  <data name="HintValue" xml:space="preserve">
+    <value>value…</value>
+    <comment>Asset Browser filter row: hint in the empty box for the value to filter on.</comment>
+  </data>
+  <data name="LpHeldNone" xml:space="preserve">
+    <value>none</value>
+    <comment>Item Browser, LP Store tab, "Your LP" column: no character holds LP with this corporation.</comment>
+  </data>
+  <data name="BatchPerPortion" xml:space="preserve">
+    <value>per {0:N0}</value>
+    <comment>Item Browser, reprocessing sources: the yield is for a batch of this many units. {0} is the batch size.</comment>
+  </data>
+  <data name="BatchPerUnit" xml:space="preserve">
+    <value>per unit</value>
+    <comment>Item Browser, reprocessing sources: the yield is for one unit.</comment>
+  </data>
+  <data name="OrderExpired" xml:space="preserve">
+    <value>Expired</value>
+    <comment>Item Browser, market orders, Expires column: the order has expired.</comment>
+  </data>
+  <data name="ExpiresDaysHours" xml:space="preserve">
+    <value>{0}d {1}h</value>
+    <comment>Item Browser, market orders, Expires column: time left. {0} is days, {1} hours (d and h are abbreviations).</comment>
+  </data>
+  <data name="ExpiresHoursMinutes" xml:space="preserve">
+    <value>{0}h {1}m</value>
+    <comment>Item Browser, market orders, Expires column: time left. {0} is hours, {1} minutes (h and m are abbreviations).</comment>
+  </data>
+  <data name="RangeStation" xml:space="preserve">
+    <value>Station</value>
+    <comment>Item Browser, market orders, Range column: the buy order only buys at its own station.</comment>
+  </data>
+  <data name="RangeSolarSystem" xml:space="preserve">
+    <value>Solar System</value>
+    <comment>Item Browser, market orders, Range column: the buy order buys anywhere in its solar system.</comment>
+  </data>
+  <data name="RangeRegion" xml:space="preserve">
+    <value>Region</value>
+    <comment>Item Browser, market orders, Range column: the buy order buys anywhere in its region.</comment>
+  </data>
+  <data name="MarketValueLabel" xml:space="preserve">
+    <value>Market Value</value>
+    <comment>Item Browser, item header: label for the item's market value.</comment>
+  </data>
+  <data name="FallbackCorpName" xml:space="preserve">
+    <value>Corp {0}</value>
+    <comment>Shown in place of an NPC corporation's name when it is not known. {0} is the corporation's id.</comment>
+  </data>
+  <data name="ErrLpStore" xml:space="preserve">
+    <value>LP store: {0}</value>
+    <comment>Item Browser status line when the LP store offers could not be read. {0} is the error.</comment>
+  </data>
+  <data name="AssetScopeAllOwners" xml:space="preserve">
+    <value>All owners</value>
+    <comment>Item Browser, Assets tab, scope picker: stacks held by anyone the app can see.</comment>
+  </data>
+  <data name="AssetsNoneHeldPersonal" xml:space="preserve">
+    <value>None held by your characters or personal corporations. All owners includes every corporation the app can see.</value>
+    <comment>Item Browser, Assets tab, when the item is not held in the personal scope. "All owners" is the other choice in the scope picker.</comment>
+  </data>
+  <data name="AssetsNoneHeldAnywhere" xml:space="preserve">
+    <value>None held anywhere the app can see.</value>
+    <comment>Item Browser, Assets tab, when nobody the app can see holds the item.</comment>
+  </data>
+  <data name="StatusLoadingItems" xml:space="preserve">
+    <value>Loading items…</value>
+    <comment>Item Browser status line while the item list loads.</comment>
+  </data>
+  <data name="PeriodAllTime" xml:space="preserve">
+    <value>All Time</value>
+    <comment>Item Browser price history, period picker: every day on record.</comment>
+  </data>
+  <data name="PeriodLast30Days" xml:space="preserve">
+    <value>Last 30 Days</value>
+    <comment>Item Browser price history, period picker.</comment>
+  </data>
+  <data name="PeriodLast90Days" xml:space="preserve">
+    <value>Last 90 Days</value>
+    <comment>Item Browser price history, period picker.</comment>
+  </data>
+  <data name="PeriodLast365Days" xml:space="preserve">
+    <value>Last 365 Days</value>
+    <comment>Item Browser price history, period picker.</comment>
+  </data>
+  <data name="FallbackGroupName" xml:space="preserve">
+    <value>Group #{0}</value>
+    <comment>Item Browser tree: a market group with no name. {0} is its id.</comment>
+  </data>
+  <data name="ErrLoadingTree" xml:space="preserve">
+    <value>Error loading tree: {0}</value>
+    <comment>Item Browser status line when the item tree could not be loaded. {0} is the error.</comment>
+  </data>
+  <data name="SeriesAvg" xml:space="preserve">
+    <value>Avg</value>
+    <comment>Item Browser price history chart: the line for the average price of each day (short).</comment>
+  </data>
+  <data name="TipChartAvg" xml:space="preserve">
+    <value>Avg: {0:N2}</value>
+    <comment>Item Browser price history chart, tooltip. {0} is the day's average price.</comment>
+  </data>
+  <data name="TipChartHigh" xml:space="preserve">
+    <value>High: {0:N2}</value>
+    <comment>Item Browser price history chart, tooltip. {0} is the day's highest price.</comment>
+  </data>
+  <data name="TipChartLow" xml:space="preserve">
+    <value>Low: {0:N2}</value>
+    <comment>Item Browser price history chart, tooltip. {0} is the day's lowest price.</comment>
+  </data>
+  <data name="SeriesVolume" xml:space="preserve">
+    <value>Volume</value>
+    <comment>Item Browser price history chart: the bars for the number of units traded each day.</comment>
+  </data>
+  <data name="TipChartVolume" xml:space="preserve">
+    <value>Vol: {0:N0}</value>
+    <comment>Item Browser price history chart, tooltip. {0} is the number of units traded that day (Vol is short for volume).</comment>
+  </data>
+  <data name="TipChartSeriesIsk" xml:space="preserve">
+    <value>{0}: {1:N2} ISK</value>
+    <comment>Item Browser derived history chart, tooltip. {0} is the line's name (Market, Build…), {1} the value in ISK.</comment>
+  </data>
+  <data name="SeriesMarket" xml:space="preserve">
+    <value>Market</value>
+    <comment>Item Browser derived history chart: the line for the item's market value.</comment>
+  </data>
+  <data name="SeriesBuild" xml:space="preserve">
+    <value>Build</value>
+    <comment>Item Browser derived history chart: the line for the item's build cost.</comment>
+  </data>
+  <data name="SeriesContract" xml:space="preserve">
+    <value>Contract</value>
+    <comment>Item Browser derived history chart: the line for the item's contract price.</comment>
+  </data>
+  <data name="SeriesReprocessed" xml:space="preserve">
+    <value>Reprocessed</value>
+    <comment>Item Browser derived history chart: the line for the value of what the item reprocesses into.</comment>
+  </data>
+  <data name="MarketValueWithPriceType" xml:space="preserve">
+    <value>Market Value ({0})</value>
+    <comment>Item Browser, item header: label for the item's market value. {0} is the price type (Buy, Sell or Split).</comment>
+  </data>
+  <data name="LocPrivateStructure" xml:space="preserve">
+    <value>Private Structure</value>
+    <comment>Item Browser, market orders: a structure whose name cannot be read because we may not dock there. May follow a system name and " - ".</comment>
+  </data>
+  <data name="LocUnanchoredStructure" xml:space="preserve">
+    <value>Unanchored Structure</value>
+    <comment>Item Browser, market orders: a structure that no longer exists. May follow a system name and " - ".</comment>
+  </data>
+  <data name="LocPlayerStructure" xml:space="preserve">
+    <value>Player Structure</value>
+    <comment>Item Browser, market orders: a player structure whose name is not known. May follow a system name and " - ".</comment>
+  </data>
+  <data name="FallbackStationName" xml:space="preserve">
+    <value>Station {0}</value>
+    <comment>Item Browser, market orders: a station whose name is not known. {0} is its id.</comment>
+  </data>
+  <data name="ErrOrders" xml:space="preserve">
+    <value>Orders error: {0}</value>
+    <comment>Item Browser status line when the market orders could not be read. {0} is the error.</comment>
+  </data>
+  <data name="StatVolume" xml:space="preserve">
+    <value>Volume</value>
+    <comment>Item Browser, Attributes tab: the space one unit takes.</comment>
+  </data>
+  <data name="StatMass" xml:space="preserve">
+    <value>Mass</value>
+    <comment>Item Browser, Attributes tab: the item's mass.</comment>
+  </data>
+  <data name="StatCapacity" xml:space="preserve">
+    <value>Capacity</value>
+    <comment>Item Browser, Attributes tab: how much the item can hold.</comment>
+  </data>
+  <data name="StatPortionSize" xml:space="preserve">
+    <value>Portion Size</value>
+    <comment>Item Browser, Attributes tab: how many units make one batch (for manufacturing and reprocessing).</comment>
+  </data>
+  <data name="StatBasePrice" xml:space="preserve">
+    <value>Base Price</value>
+    <comment>Item Browser, Attributes tab: the item's base price set by CCP.</comment>
+  </data>
+  <data name="FallbackBlueprintName" xml:space="preserve">
+    <value>Blueprint #{0}</value>
+    <comment>Item Browser, Industry tab: a blueprint whose name is not known. {0} is its id.</comment>
+  </data>
+  <data name="ActivityManufacturing" xml:space="preserve">
+    <value>Manufacturing</value>
+    <comment>An industry activity: building items from a blueprint.</comment>
+  </data>
+  <data name="ActivityReaction" xml:space="preserve">
+    <value>Reaction</value>
+    <comment>Item Browser, blueprint activity list: running a reaction formula.</comment>
+  </data>
+  <data name="ActivityInvention" xml:space="preserve">
+    <value>Invention</value>
+    <comment>An industry activity: inventing a Tech II blueprint copy.</comment>
+  </data>
+  <data name="ActivityCopying" xml:space="preserve">
+    <value>Copying</value>
+    <comment>An industry activity: copying a blueprint.</comment>
+  </data>
+  <data name="ActivityMeResearch" xml:space="preserve">
+    <value>ME Research</value>
+    <comment>Item Browser, blueprint activity list: material efficiency research.</comment>
+  </data>
+  <data name="ActivityTeResearch" xml:space="preserve">
+    <value>TE Research</value>
+    <comment>Item Browser, blueprint activity list: time efficiency research.</comment>
+  </data>
+  <data name="FallbackSkillName" xml:space="preserve">
+    <value>Skill #{0}</value>
+    <comment>Item Browser, Requirements tab: a skill whose name is not known. {0} is its id.</comment>
+  </data>
+  <data name="ActivityMaterialResearch" xml:space="preserve">
+    <value>Material Research</value>
+    <comment>Item Browser, Required For tab: heading over the blueprints that need this skill for material efficiency research.</comment>
+  </data>
+  <data name="ActivityTimeResearch" xml:space="preserve">
+    <value>Time Research</value>
+    <comment>Item Browser, Required For tab: heading over the blueprints that need this skill for time efficiency research.</comment>
+  </data>
+  <data name="ActivityReactions" xml:space="preserve">
+    <value>Reactions</value>
+    <comment>Item Browser, Required For tab: heading over the reaction formulas that need this skill.</comment>
+  </data>
+  <data name="ActivityIndustryFallback" xml:space="preserve">
+    <value>Industry</value>
+    <comment>Item Browser, Required For tab: heading for blueprints whose activity is not named.</comment>
+  </data>
+  <data name="NoPrice" xml:space="preserve">
+    <value>no price</value>
+    <comment>Item Valuation, tooltip on an empty value cell: no price could be found.</comment>
+  </data>
+  <data name="Best" xml:space="preserve">
+    <value>best</value>
+    <comment>Item Valuation: this value is the best of those compared (shown in place of a percentage).</comment>
+  </data>
+  <data name="NoteContract" xml:space="preserve">
+    <value>contract</value>
+    <comment>Item Valuation, note beside an item: its market value came from contracts, not orders.</comment>
+  </data>
+  <data name="TargetTheItems" xml:space="preserve">
+    <value>The items</value>
+    <comment>Item Valuation, Value picker: value the items as they were pasted.</comment>
+  </data>
+  <data name="TargetReprocessedOutput" xml:space="preserve">
+    <value>Reprocessed output</value>
+    <comment>Item Valuation, Value picker: value what the items become when reprocessed.</comment>
+  </data>
+  <data name="StatusPasteList" xml:space="preserve">
+    <value>Paste a list of items and press Appraise.</value>
+    <comment>Item Valuation status line before anything is valued. Appraise is the button's name.</comment>
+  </data>
+  <data name="StatusNoOrdersHeld" xml:space="preserve">
+    <value>No orders are held yet. Add a market source under Settings &gt; Market and let it fetch first.</value>
+    <comment>Item Valuation status line when no market orders have been fetched yet.</comment>
+  </data>
+  <data name="ErrLoadStations" xml:space="preserve">
+    <value>Could not load the stations: {0}</value>
+    <comment>Item Valuation status line when the stations could not be read. {0} is the error.</comment>
+  </data>
+  <data name="StatusPickStation" xml:space="preserve">
+    <value>Pick a station first.</value>
+    <comment>Item Valuation status line: no station is chosen.</comment>
+  </data>
+  <data name="StatusNothingToAppraise" xml:space="preserve">
+    <value>Nothing to appraise: paste a list of items first.</value>
+    <comment>Item Valuation status line: the list is empty.</comment>
+  </data>
+  <data name="StatusAppraising" xml:space="preserve">
+    <value>Appraising…</value>
+    <comment>Item Valuation status line while the list is being valued.</comment>
+  </data>
+  <data name="ErrAppraisalFailed" xml:space="preserve">
+    <value>Appraisal failed: {0}</value>
+    <comment>Item Valuation status line when valuing failed. {0} is the error.</comment>
+  </data>
+  <data name="StatusCopied" xml:space="preserve">
+    <value>Copied to the clipboard.</value>
+    <comment>Item Valuation status line after Copy.</comment>
+  </data>
+  <data name="AgeNoOrdersHeld" xml:space="preserve">
+    <value>no orders held</value>
+    <comment>Item Valuation: the station has no market orders on record, so its prices have no age.</comment>
+  </data>
+  <data name="NoPrices" xml:space="preserve">
+    <value>no prices</value>
+    <comment>Item Valuation, compare tab: this station could price nothing on the list.</comment>
+  </data>
+  <data name="CoveragePriced" xml:space="preserve">
+    <value>{0:N0} of {1:N0} priced</value>
+    <comment>Item Valuation: how much of the list could be priced. {0} is the number of items priced, {1} the number on the list.</comment>
+  </data>
+  <data name="NotRead" xml:space="preserve">
+    <value>Not read: {0}</value>
+    <comment>Item Valuation: pasted lines that could not be read. {0} is the lines, separated by " | ".</comment>
+  </data>
+  <data name="NothingToValue" xml:space="preserve">
+    <value>nothing to value this way</value>
+    <comment>Item Valuation, tooltip on a total: nothing on the list could be valued this way.</comment>
+  </data>
+  <data name="AgeJustNow" xml:space="preserve">
+    <value>fetched just now</value>
+    <comment>Item Valuation: how old the station's prices are.</comment>
+  </data>
+  <data name="AgeMinutes" xml:space="preserve">
+    <value>fetched {0:0} min ago</value>
+    <comment>Item Valuation: how old the station's prices are. {0} is minutes (min is the abbreviation).</comment>
+  </data>
+  <data name="AgeHours" xml:space="preserve">
+    <value>fetched {0:0} h ago</value>
+    <comment>Item Valuation: how old the station's prices are. {0} is hours (h is the abbreviation).</comment>
+  </data>
+  <data name="GroupMarketValue" xml:space="preserve">
+    <value>Market value</value>
+    <comment>Item Valuation, heading over the market columns.</comment>
+  </data>
+  <data name="GroupBuildValue" xml:space="preserve">
+    <value>Build value</value>
+    <comment>Item Valuation, heading over the build columns.</comment>
+  </data>
+  <data name="GroupReprocessedValue" xml:space="preserve">
+    <value>Reprocessed value</value>
+    <comment>Item Valuation, heading over the reprocessed columns.</comment>
+  </data>
+  <data name="StatusClipboardNoItem" xml:space="preserve">
+    <value>The clipboard names no item, so the list was left as it was. Edit list takes any text.</value>
+    <comment>Item Valuation status line after a paste that names no item. Edit list is the button's name.</comment>
+  </data>
+  <data name="TipRemoveCompareStation" xml:space="preserve">
+    <value>Take this station out of the comparison</value>
+    <comment>Item Valuation, tooltip on the × beside a compared station.</comment>
+  </data>
+  <data name="EditList" xml:space="preserve">
+    <value>Edit list</value>
+    <comment>Item Valuation button: open the pasted list again to change it.</comment>
+  </data>
+  <data name="TipEditList" xml:space="preserve">
+    <value>Bring the list back to change it. While it is folded away, a paste anywhere on the tool values a new list.</value>
+    <comment>Item Valuation, tooltip on the Edit list button.</comment>
+  </data>
+  <data name="TipHideList" xml:space="preserve">
+    <value>Fold the list away to give the tables the whole width. It folds on its own once valued.</value>
+    <comment>Item Valuation, tooltip on the Hide list button.</comment>
+  </data>
+  <data name="IncludeIjShort" xml:space="preserve">
+    <value>IJ</value>
+    <comment>Inventory Levels, a group's summary of what it counts: industry jobs (abbreviation of Industry Jobs, keep short).</comment>
+  </data>
+  <data name="IncludeOrdersShort" xml:space="preserve">
+    <value>Orders</value>
+    <comment>Inventory Levels, a group's summary of what it counts: market buy orders (keep short).</comment>
+  </data>
+  <data name="IncludeContractsShort" xml:space="preserve">
+    <value>Contracts</value>
+    <comment>Inventory Levels, a group's summary of what it counts: contracts buying (keep short).</comment>
+  </data>
+  <data name="IncludePackagedOnly" xml:space="preserve">
+    <value>packaged only</value>
+    <comment>Inventory Levels, a group's summary of what it counts: only packaged items count.</comment>
+  </data>
+  <data name="IncludeNone" xml:space="preserve">
+    <value>None</value>
+    <comment>Inventory Levels, a group's summary of what it counts: nothing is counted.</comment>
+  </data>
+  <data name="ErrImportFailed" xml:space="preserve">
+    <value>Import failed: {0}</value>
+    <comment>Inventory Levels status line when a collection could not be imported. {0} is the error.</comment>
+  </data>
+  <data name="DefaultCollection" xml:space="preserve">
+    <value>Default</value>
+    <comment>Inventory Levels: the built-in collection that holds the groups not in any other.</comment>
+  </data>
+  <data name="StatusLoadingAvailability" xml:space="preserve">
+    <value>Loading availability data…</value>
+    <comment>Inventory Levels status line while the quantities on hand load.</comment>
+  </data>
+  <data name="StatusLoadingItemsIn" xml:space="preserve">
+    <value>Loading items in '{0}'…</value>
+    <comment>Inventory Levels status line. {0} is a market group's name.</comment>
+  </data>
+  <data name="StatusNoPublishedItems" xml:space="preserve">
+    <value>No published items found under '{0}'.</value>
+    <comment>Inventory Levels status line. {0} is a market group's name.</comment>
+  </data>
+  <data name="StatusCancelled" xml:space="preserve">
+    <value>Cancelled.</value>
+    <comment>Inventory Levels status line after the user said no.</comment>
+  </data>
+  <data name="StatusNoGroupSelected" xml:space="preserve">
+    <value>No group selected.</value>
+    <comment>Inventory Levels status line: items cannot be added because no group is chosen.</comment>
+  </data>
+  <data name="StatusCalculatingMaterials" xml:space="preserve">
+    <value>Calculating materials…</value>
+    <comment>Inventory Levels status line while a blueprint's materials are worked out.</comment>
+  </data>
+  <data name="ErrCalculation" xml:space="preserve">
+    <value>Calculation error: {0}</value>
+    <comment>Inventory Levels status line when the materials could not be worked out. {0} is the error.</comment>
+  </data>
+  <data name="StatusNoMaterials" xml:space="preserve">
+    <value>No materials found for that blueprint.</value>
+    <comment>Inventory Levels status line.</comment>
+  </data>
+  <data name="StatusAllItemsAlreadyIn" xml:space="preserve">
+    <value>All items from '{0}' are already in the group.</value>
+    <comment>Inventory Levels status line. {0} is where the items came from: a fit, market group or blueprint name.</comment>
+  </data>
+  <data name="FallbackTypeName" xml:space="preserve">
+    <value>Type {0}</value>
+    <comment>Shown in place of an item's name when it is not known. {0} is the item's type id.</comment>
+  </data>
+  <data name="DefaultCollectionOption" xml:space="preserve">
+    <value>— Default —</value>
+    <comment>Inventory Levels group dialog, collection picker: the built-in Default collection.</comment>
+  </data>
+  <data name="StatusGroupAdded" xml:space="preserve">
+    <value>Group '{0}' added.</value>
+    <comment>Inventory Levels status line. {0} is the group's name.</comment>
+  </data>
+  <data name="StatusGroupDeleted" xml:space="preserve">
+    <value>Group '{0}' deleted.</value>
+    <comment>Inventory Levels status line. {0} is the group's name.</comment>
+  </data>
+  <data name="StatusAlreadyInGroup" xml:space="preserve">
+    <value>{0} is already in the group.</value>
+    <comment>Inventory Levels status line. {0} is an item's name.</comment>
+  </data>
+  <data name="StatusCollectionDeleted" xml:space="preserve">
+    <value>Collection '{0}' deleted.</value>
+    <comment>Inventory Levels status line. {0} is the collection's name.</comment>
+  </data>
+  <data name="StatusCollectionAdded" xml:space="preserve">
+    <value>Collection '{0}' added.</value>
+    <comment>Inventory Levels status line. {0} is the collection's name.</comment>
+  </data>
+  <data name="TitleAddCollection" xml:space="preserve">
+    <value>Add Collection</value>
+    <comment>Inventory Levels: title of the dialog that names a new collection.</comment>
+  </data>
+  <data name="CollectionNameLabel" xml:space="preserve">
+    <value>COLLECTION NAME</value>
+    <comment>Inventory Levels, collection name dialog: label over the name box.</comment>
+  </data>
+  <data name="TitleRenameCollection" xml:space="preserve">
+    <value>Rename Collection</value>
+    <comment>Inventory Levels: title of the dialog that renames a collection.</comment>
+  </data>
+  <data name="TitleExportCollection" xml:space="preserve">
+    <value>Export Collection</value>
+    <comment>Inventory Levels: title of the save dialog for exporting a collection.</comment>
+  </data>
+  <data name="TitleAddGroup" xml:space="preserve">
+    <value>Add Group</value>
+    <comment>Inventory Levels: title of the group dialog when adding a group.</comment>
+  </data>
+  <data name="TitleEditGroup" xml:space="preserve">
+    <value>Edit Group</value>
+    <comment>Inventory Levels: title of the group dialog when editing a group.</comment>
+  </data>
+  <data name="LocationLabelStation" xml:space="preserve">
+    <value>STATION</value>
+    <comment>Inventory Levels group dialog: label over the location search when the scope is a station.</comment>
+  </data>
+  <data name="LocationLabelSolarSystem" xml:space="preserve">
+    <value>SOLAR SYSTEM</value>
+    <comment>Inventory Levels group dialog: label over the location search when the scope is a solar system.</comment>
+  </data>
+  <data name="LocationLabelRegion" xml:space="preserve">
+    <value>REGION</value>
+    <comment>Inventory Levels group dialog: label over the location search when the scope is a region.</comment>
+  </data>
+  <data name="ErrGroupNameRequired" xml:space="preserve">
+    <value>Group name is required.</value>
+    <comment>Inventory Levels group dialog: the name box is empty.</comment>
+  </data>
+  <data name="AssetColItemId" xml:space="preserve">
+    <value>Item Id</value>
+    <comment>Asset Browser column header: the item's own id.</comment>
+  </data>
+  <data name="AssetColTypeId" xml:space="preserve">
+    <value>Type Id</value>
+    <comment>Asset Browser column header: the id of the item's type.</comment>
+  </data>
+  <data name="AssetColTypeName" xml:space="preserve">
+    <value>Type Name</value>
+    <comment>Asset Browser column header: the item's name.</comment>
+  </data>
+  <data name="AssetColGroup" xml:space="preserve">
+    <value>Group</value>
+    <comment>Asset Browser column header: the item's group, as the game groups items (Frigate, Mineral…).</comment>
+  </data>
+  <data name="AssetColCategory" xml:space="preserve">
+    <value>Category</value>
+    <comment>Asset Browser column header: the item's category, as the game sorts items (Ship, Material…).</comment>
+  </data>
+  <data name="AssetColQuantity" xml:space="preserve">
+    <value>Quantity</value>
+    <comment>Column header: the number of units. Asset Browser, and the header row Item Valuation copies.</comment>
+  </data>
+  <data name="AssetColOwnerType" xml:space="preserve">
+    <value>Owner Type</value>
+    <comment>Asset Browser column header: whether a character or a corporation owns the item.</comment>
+  </data>
+  <data name="AssetColOwnerName" xml:space="preserve">
+    <value>Owner Name</value>
+    <comment>Asset Browser column header: the character or corporation that owns the item.</comment>
+  </data>
+  <data name="AssetColOwnerId" xml:space="preserve">
+    <value>Owner Id</value>
+    <comment>Asset Browser column header: the owner's id.</comment>
+  </data>
+  <data name="AssetColLocationId" xml:space="preserve">
+    <value>Location Id</value>
+    <comment>Asset Browser column header: the id of the place or container the item is in.</comment>
+  </data>
+  <data name="AssetColLocationName" xml:space="preserve">
+    <value>Location Name</value>
+    <comment>Asset Browser column header: the station, structure or solar system the item is in.</comment>
+  </data>
+  <data name="AssetColLocationType" xml:space="preserve">
+    <value>Location Type</value>
+    <comment>Asset Browser column header: what the item sits in directly — a station, a solar system or another item.</comment>
+  </data>
+  <data name="AssetColRootLocationId" xml:space="preserve">
+    <value>Root Location Id</value>
+    <comment>Asset Browser column header: the id of the station, structure or system, however deep in containers the item is.</comment>
+  </data>
+  <data name="AssetColSolarSystem" xml:space="preserve">
+    <value>Solar System</value>
+    <comment>Asset Browser column header: the solar system the item is in.</comment>
+  </data>
+  <data name="AssetColSolarSystemId" xml:space="preserve">
+    <value>Solar System Id</value>
+    <comment>Asset Browser column header: the solar system's id.</comment>
+  </data>
+  <data name="AssetColRegionName" xml:space="preserve">
+    <value>Region Name</value>
+    <comment>Asset Browser column header: the region the item is in.</comment>
+  </data>
+  <data name="AssetColRegionId" xml:space="preserve">
+    <value>Region Id</value>
+    <comment>Asset Browser column header: the region's id.</comment>
+  </data>
+  <data name="AssetColSecurity" xml:space="preserve">
+    <value>Security</value>
+    <comment>Asset Browser column header: the solar system's security status.</comment>
+  </data>
+  <data name="AssetColIsStation" xml:space="preserve">
+    <value>Is Station</value>
+    <comment>Asset Browser column header: 1 when the location is an NPC station, 0 for a player structure.</comment>
+  </data>
+  <data name="AssetColVolume" xml:space="preserve">
+    <value>Volume</value>
+    <comment>Asset Browser column header: the space one unit takes, in m³.</comment>
+  </data>
+  <data name="AssetColTotalVolume" xml:space="preserve">
+    <value>Total Volume</value>
+    <comment>Asset Browser column header: the space the whole stack takes, in m³.</comment>
+  </data>
+  <data name="AssetColValuePerUnit" xml:space="preserve">
+    <value>Value Per Unit</value>
+    <comment>Asset Browser column header: what one unit is worth, in ISK.</comment>
+  </data>
+  <data name="AssetColTotalValue" xml:space="preserve">
+    <value>Total Value</value>
+    <comment>Asset Browser column header (By Location, By System, By Region): what everything there is worth, in ISK.</comment>
+  </data>
+  <data name="AssetColIskPerM3" xml:space="preserve">
+    <value>ISK/m³</value>
+    <comment>Asset Browser column header: value per cubic metre of space taken.</comment>
+  </data>
+  <data name="AssetColBuildCost" xml:space="preserve">
+    <value>Build Cost</value>
+    <comment>Asset Browser column header: what one unit costs to build, in ISK.</comment>
+  </data>
+  <data name="AssetColItemCount" xml:space="preserve">
+    <value>Item Count</value>
+    <comment>Asset Browser column header (By Location, By System, By Region): the number of units there.</comment>
+  </data>
+  <data name="AssetColIsSingleton" xml:space="preserve">
+    <value>Is Singleton</value>
+    <comment>Asset Browser column header: 1 when the item is assembled, and so does not stack.</comment>
+  </data>
+  <data name="AssetColIsBlueprintCopy" xml:space="preserve">
+    <value>Is Blueprint Copy</value>
+    <comment>Asset Browser column header: 1 for a blueprint copy.</comment>
+  </data>
+  <data name="StatusNoAssets" xml:space="preserve">
+    <value>No assets.</value>
+    <comment>Asset Browser status line: nothing matches the scope and filters.</comment>
+  </data>
+  <data name="StatusShowingAssetsOne" xml:space="preserve">
+    <value>Showing {1:N0} of {0:N0} asset</value>
+    <comment>Asset Browser status line while more rows can be loaded. {0} is the number of assets in all, {1} how many are shown.</comment>
+  </data>
+  <data name="StatusShowingAssetsOther" xml:space="preserve">
+    <value>Showing {1:N0} of {0:N0} assets</value>
+    <comment>Asset Browser status line while more rows can be loaded. {0} is the number of assets in all, {1} how many are shown.</comment>
+  </data>
+  <data name="StatusAssetsTotalOne" xml:space="preserve">
+    <value>{0:N0} asset total</value>
+    <comment>Asset Browser status line when every row is shown. {0} is the number of assets.</comment>
+  </data>
+  <data name="StatusAssetsTotalOther" xml:space="preserve">
+    <value>{0:N0} assets total</value>
+    <comment>Asset Browser status line when every row is shown. {0} is the number of assets.</comment>
+  </data>
+  <data name="RangeJumpsOne" xml:space="preserve">
+    <value>{0} Jump</value>
+    <comment>Item Browser, market orders, Range column: the buy order buys within this many jumps of its station. {0} is the number.</comment>
+  </data>
+  <data name="RangeJumpsOther" xml:space="preserve">
+    <value>{0} Jumps</value>
+    <comment>Item Browser, market orders, Range column: the buy order buys within this many jumps of its station. {0} is the number.</comment>
+  </data>
+  <data name="ReprocessFilterAll" xml:space="preserve">
+    <value>All</value>
+    <comment>Item Browser, Produced By Reprocessing, Show picker: every source.</comment>
+  </data>
+  <data name="ReprocessFilterOre" xml:space="preserve">
+    <value>Ore</value>
+    <comment>Item Browser, Produced By Reprocessing, Show picker: only ore, ice and moon ore.</comment>
+  </data>
+  <data name="ReprocessFilterNonOre" xml:space="preserve">
+    <value>Non Ore</value>
+    <comment>Item Browser, Produced By Reprocessing, Show picker: everything that is not ore (modules, ships, salvage…).</comment>
+  </data>
+  <data name="AssetGroupNone" xml:space="preserve">
+    <value>None</value>
+    <comment>Item Browser, Assets tab, Group by picker: no grouping.</comment>
+  </data>
+  <data name="AssetsSummaryUnitsStacksPlaces" xml:space="preserve">
+    <value>{0} in {1} across {2}</value>
+    <comment>Item Browser, Assets tab summary. {0} is the units phrase ("1,250 units"), {1} the stacks phrase ("3 stacks"), {2} the locations phrase ("2 locations").</comment>
+  </data>
+  <data name="AssetsUnitsOne" xml:space="preserve">
+    <value>{0:N0} unit</value>
+    <comment>Item Browser, Assets tab: a count of units, in the summary and on a group's header. {0} is the number.</comment>
+  </data>
+  <data name="AssetsUnitsOther" xml:space="preserve">
+    <value>{0:N0} units</value>
+    <comment>Item Browser, Assets tab: a count of units, in the summary and on a group's header. {0} is the number.</comment>
+  </data>
+  <data name="AssetsStacksOne" xml:space="preserve">
+    <value>{0:N0} stack</value>
+    <comment>Item Browser, Assets tab: a count of stacks (separate piles of the item), in the summary and on a group's header. {0} is the number.</comment>
+  </data>
+  <data name="AssetsStacksOther" xml:space="preserve">
+    <value>{0:N0} stacks</value>
+    <comment>Item Browser, Assets tab: a count of stacks (separate piles of the item), in the summary and on a group's header. {0} is the number.</comment>
+  </data>
+  <data name="AssetsLocationsOne" xml:space="preserve">
+    <value>{0:N0} location</value>
+    <comment>Item Browser, Assets tab summary: a count of places the item is held. {0} is the number.</comment>
+  </data>
+  <data name="AssetsLocationsOther" xml:space="preserve">
+    <value>{0:N0} locations</value>
+    <comment>Item Browser, Assets tab summary: a count of places the item is held. {0} is the number.</comment>
+  </data>
+  <data name="AssetsSummaryWorth" xml:space="preserve">
+    <value>worth {0}</value>
+    <comment>Item Browser, Assets tab summary, after " · ". {0} is an amount of ISK.</comment>
+  </data>
+  <data name="AssetsSummaryInJobs" xml:space="preserve">
+    <value>{0:N0} still in industry jobs</value>
+    <comment>Item Browser, Assets tab summary, after " · ": units a running industry job has not delivered yet. {0} is the number.</comment>
+  </data>
+  <data name="AllSources" xml:space="preserve">
+    <value>All Sources</value>
+    <comment>Item Browser, Market Orders tab, source picker: every configured market source at once.</comment>
+  </data>
+  <data name="StatusItemsAcrossCategories" xml:space="preserve">
+    <value>{0} across {1}</value>
+    <comment>Item Browser status line once the item tree has loaded. {0} is the items phrase ("45,012 items"), {1} the categories phrase ("2,103 categories").</comment>
+  </data>
+  <data name="TreeItemsOne" xml:space="preserve">
+    <value>{0:N0} item</value>
+    <comment>Item Browser status line: a count of items in the tree. {0} is the number.</comment>
+  </data>
+  <data name="TreeItemsOther" xml:space="preserve">
+    <value>{0:N0} items</value>
+    <comment>Item Browser status line: a count of items in the tree. {0} is the number.</comment>
+  </data>
+  <data name="TreeCategoriesOne" xml:space="preserve">
+    <value>{0:N0} category</value>
+    <comment>Item Browser status line: a count of market groups in the tree. {0} is the number.</comment>
+  </data>
+  <data name="TreeCategoriesOther" xml:space="preserve">
+    <value>{0:N0} categories</value>
+    <comment>Item Browser status line: a count of market groups in the tree. {0} is the number.</comment>
+  </data>
+  <data name="CopyBasisSell" xml:space="preserve">
+    <value>sell basis</value>
+    <comment>Item Valuation, first line of the copied result, in CopyValuedAt: valued at the lowest sell order.</comment>
+  </data>
+  <data name="CopyBasisBuy" xml:space="preserve">
+    <value>buy basis</value>
+    <comment>Item Valuation, first line of the copied result, in CopyValuedAt: valued at the highest buy order.</comment>
+  </data>
+  <data name="CopyBasisSplit" xml:space="preserve">
+    <value>split basis</value>
+    <comment>Item Valuation, first line of the copied result, in CopyValuedAt: valued halfway between the best buy and sell.</comment>
+  </data>
+  <data name="CopyValuedAt" xml:space="preserve">
+    <value>Valued at {0}, {1}, {2:0.#}% of market</value>
+    <comment>Item Valuation, first line of the copied result. {0} is the station, {1} the basis (CopyBasisSell…), {2} the share of the price used.</comment>
+  </data>
+  <data name="CopyValuedAtReprocessed" xml:space="preserve">
+    <value>Valued at {0}, {1}, {2:0.#}% of market, as reprocessed</value>
+    <comment>Item Valuation, first line of the copied result when the reprocessed output was valued. {0} is the station, {1} the basis (CopyBasisSell…), {2} the share of the price used.</comment>
+  </data>
+  <data name="CopyColVolumeM3" xml:space="preserve">
+    <value>Volume m3</value>
+    <comment>Item Valuation, header of a column in the copied result: the space taken, in cubic metres (m3 is the unit).</comment>
+  </data>
+  <data name="CopyColMarketUnit" xml:space="preserve">
+    <value>Market unit</value>
+    <comment>Item Valuation, header of a column in the copied result: the market value of one unit.</comment>
+  </data>
+  <data name="CopyColMarketTotal" xml:space="preserve">
+    <value>Market total</value>
+    <comment>Item Valuation, header of a column in the copied result: the market value of the whole quantity.</comment>
+  </data>
+  <data name="CopyColMarketPct" xml:space="preserve">
+    <value>Market %</value>
+    <comment>Item Valuation, header of a column in the copied result: the market value against the best of the three values.</comment>
+  </data>
+  <data name="CopyColBuildUnit" xml:space="preserve">
+    <value>Build unit</value>
+    <comment>Item Valuation, header of a column in the copied result: the build cost of one unit.</comment>
+  </data>
+  <data name="CopyColBuildTotal" xml:space="preserve">
+    <value>Build total</value>
+    <comment>Item Valuation, header of a column in the copied result: the build cost of the whole quantity.</comment>
+  </data>
+  <data name="CopyColBuildPct" xml:space="preserve">
+    <value>Build %</value>
+    <comment>Item Valuation, header of a column in the copied result: the build cost against the best of the three values.</comment>
+  </data>
+  <data name="CopyColReprocessUnit" xml:space="preserve">
+    <value>Reprocess unit</value>
+    <comment>Item Valuation, header of a column in the copied result: the reprocessed value of one unit.</comment>
+  </data>
+  <data name="CopyColReprocessTotal" xml:space="preserve">
+    <value>Reprocess total</value>
+    <comment>Item Valuation, header of a column in the copied result: the reprocessed value of the whole quantity.</comment>
+  </data>
+  <data name="CopyColReprocessPct" xml:space="preserve">
+    <value>Reprocess %</value>
+    <comment>Item Valuation, header of a column in the copied result: the reprocessed value against the best of the three values.</comment>
+  </data>
+  <data name="CopyColNote" xml:space="preserve">
+    <value>Note</value>
+    <comment>Item Valuation, header of a column in the copied result: remarks on the row (noun).</comment>
+  </data>
+  <data name="CopyTotalMarket" xml:space="preserve">
+    <value>Total market</value>
+    <comment>Item Valuation, a line of the copied result: the market value of the whole list.</comment>
+  </data>
+  <data name="CopyTotalBuild" xml:space="preserve">
+    <value>Total build</value>
+    <comment>Item Valuation, a line of the copied result: the build cost of the whole list.</comment>
+  </data>
+  <data name="CopyTotalReprocessed" xml:space="preserve">
+    <value>Total reprocessed</value>
+    <comment>Item Valuation, a line of the copied result: the reprocessed value of the whole list.</comment>
+  </data>
+  <data name="CopyTotalVolumeM3" xml:space="preserve">
+    <value>Total volume m3</value>
+    <comment>Item Valuation, a line of the copied result: the space the whole list takes, in cubic metres (m3 is the unit).</comment>
+  </data>
+  <data name="CopyColStationUnit" xml:space="preserve">
+    <value>{0} unit</value>
+    <comment>Item Valuation, header of a column in the copied compare table: the price of one unit at a station. {0} is the station.</comment>
+  </data>
+  <data name="CopyColStationTotal" xml:space="preserve">
+    <value>{0} total</value>
+    <comment>Item Valuation, header of a column in the copied compare table: the price of the whole quantity at a station. {0} is the station.</comment>
+  </data>
+  <data name="CopyColStationPct" xml:space="preserve">
+    <value>{0} %</value>
+    <comment>Item Valuation, header of a column in the copied compare table: a station's price against the best station. {0} is the station.</comment>
+  </data>
+  <data name="StatusPricesSell" xml:space="preserve">
+    <value>sell prices</value>
+    <comment>Item Valuation status line, in StatusValuedItems and StatusValuedRows: valued at the lowest sell orders.</comment>
+  </data>
+  <data name="StatusPricesBuy" xml:space="preserve">
+    <value>buy prices</value>
+    <comment>Item Valuation status line, in StatusValuedItems and StatusValuedRows: valued at the highest buy orders.</comment>
+  </data>
+  <data name="StatusPricesSplit" xml:space="preserve">
+    <value>split prices</value>
+    <comment>Item Valuation status line, in StatusValuedItems and StatusValuedRows: valued halfway between the best buy and sell.</comment>
+  </data>
+  <data name="StatusValuedItemsOne" xml:space="preserve">
+    <value>{0:N0} item at {1}, {2} {3}</value>
+    <comment>Item Valuation status line after valuing. {0} is the number of items, {1} the station, {2} the prices used (StatusPricesSell…), {3} how old they are ("fetched 5 min ago").</comment>
+  </data>
+  <data name="StatusValuedItemsOther" xml:space="preserve">
+    <value>{0:N0} items at {1}, {2} {3}</value>
+    <comment>Item Valuation status line after valuing. {0} is the number of items, {1} the station, {2} the prices used (StatusPricesSell…), {3} how old they are ("fetched 5 min ago").</comment>
+  </data>
+  <data name="StatusValuedRowsOne" xml:space="preserve">
+    <value>{0:N0} row after reprocessing at {1}, {2} {3}</value>
+    <comment>Item Valuation status line after valuing the reprocessed output. {0} is the number of rows, {1} the station, {2} the prices used (StatusPricesSell…), {3} how old they are ("fetched 5 min ago").</comment>
+  </data>
+  <data name="StatusValuedRowsOther" xml:space="preserve">
+    <value>{0:N0} rows after reprocessing at {1}, {2} {3}</value>
+    <comment>Item Valuation status line after valuing the reprocessed output. {0} is the number of rows, {1} the station, {2} the prices used (StatusPricesSell…), {3} how old they are ("fetched 5 min ago").</comment>
+  </data>
+  <data name="StatusValued" xml:space="preserve">
+    <value>{0}.</value>
+    <comment>Item Valuation status line: ends the sentence. {0} is StatusValuedItems or StatusValuedRows.</comment>
+  </data>
+  <data name="StatusValuedUnpriced" xml:space="preserve">
+    <value>{0}; {1} could not be valued.</value>
+    <comment>Item Valuation status line when some items have no value. {0} is StatusValuedItems or StatusValuedRows, {1} the number of items that could not be valued.</comment>
+  </data>
+  <data name="AgeDaysOne" xml:space="preserve">
+    <value>fetched {0} day ago</value>
+    <comment>Item Valuation: how old the station's prices are. {0} is the number of days.</comment>
+  </data>
+  <data name="AgeDaysOther" xml:space="preserve">
+    <value>fetched {0} days ago</value>
+    <comment>Item Valuation: how old the station's prices are. {0} is the number of days.</comment>
+  </data>
+  <data name="InvGroupsOne" xml:space="preserve">
+    <value>{0} group</value>
+    <comment>Inventory Levels status line after an import, in StatusImported: a count of groups. {0} is the number.</comment>
+  </data>
+  <data name="InvGroupsOther" xml:space="preserve">
+    <value>{0} groups</value>
+    <comment>Inventory Levels status line after an import, in StatusImported: a count of groups. {0} is the number.</comment>
+  </data>
+  <data name="InvItemsOne" xml:space="preserve">
+    <value>{0} item</value>
+    <comment>Inventory Levels status line after an import, in StatusImported: a count of items. {0} is the number.</comment>
+  </data>
+  <data name="InvItemsOther" xml:space="preserve">
+    <value>{0} items</value>
+    <comment>Inventory Levels status line after an import, in StatusImported: a count of items. {0} is the number.</comment>
+  </data>
+  <data name="StatusImported" xml:space="preserve">
+    <value>Imported '{0}' — {1}, {2}.</value>
+    <comment>Inventory Levels status line after an import. {0} is the collection's name, {1} the groups phrase ("3 groups"), {2} the items phrase ("40 items").</comment>
+  </data>
+  <data name="StatusImportedSkipped" xml:space="preserve">
+    <value>Imported '{0}' — {1}, {2}. {3}</value>
+    <comment>Inventory Levels status line after an import that skipped items. {0} is the collection's name, {1} the groups phrase ("3 groups"), {2} the items phrase ("40 items"), {3} the sentence saying how many were skipped (ImportSkippedItems).</comment>
+  </data>
+  <data name="ImportSkippedItemsOne" xml:space="preserve">
+    <value>{0} item skipped: this install's SDE does not have it.</value>
+    <comment>Inventory Levels status line after an import: items the game data here does not know. {0} is the number.</comment>
+  </data>
+  <data name="ImportSkippedItemsOther" xml:space="preserve">
+    <value>{0} items skipped: this install's SDE does not have them.</value>
+    <comment>Inventory Levels status line after an import: items the game data here does not know. {0} is the number.</comment>
+  </data>
+  <data name="StatusGroupsLoadedOne" xml:space="preserve">
+    <value>{0} group loaded. Hit Refresh to load availability.</value>
+    <comment>Inventory Levels status line after the groups load. {0} is the number of groups; Refresh is the button's name.</comment>
+  </data>
+  <data name="StatusGroupsLoadedOther" xml:space="preserve">
+    <value>{0} groups loaded. Hit Refresh to load availability.</value>
+    <comment>Inventory Levels status line after the groups load. {0} is the number of groups; Refresh is the button's name.</comment>
+  </data>
+  <data name="StatusItemsUpdatedOne" xml:space="preserve">
+    <value>Updated {0} item at {1:HH:mm:ss}.</value>
+    <comment>Inventory Levels status line after a refresh. {0} is the number of items, {1} the time.</comment>
+  </data>
+  <data name="StatusItemsUpdatedOther" xml:space="preserve">
+    <value>Updated {0} items at {1:HH:mm:ss}.</value>
+    <comment>Inventory Levels status line after a refresh. {0} is the number of items, {1} the time.</comment>
+  </data>
+  <data name="StatusItemsAddedOne" xml:space="preserve">
+    <value>Added {0} item from '{1}'.</value>
+    <comment>Inventory Levels status line. {0} is the number of items added, {1} where they came from: a fit, market group or blueprint name.</comment>
+  </data>
+  <data name="StatusItemsAddedOther" xml:space="preserve">
+    <value>Added {0} items from '{1}'.</value>
+    <comment>Inventory Levels status line. {0} is the number of items added, {1} where they came from: a fit, market group or blueprint name.</comment>
+  </data>
+  <data name="StatusItemsAddedSkippedOne" xml:space="preserve">
+    <value>Added {0} item from '{1}'; {2} already present, skipped.</value>
+    <comment>Inventory Levels status line. {0} is the number of items added, {1} where they came from (a fit, market group or blueprint name), {2} the number already in the group.</comment>
+  </data>
+  <data name="StatusItemsAddedSkippedOther" xml:space="preserve">
+    <value>Added {0} items from '{1}'; {2} already present, skipped.</value>
+    <comment>Inventory Levels status line. {0} is the number of items added, {1} where they came from (a fit, market group or blueprint name), {2} the number already in the group.</comment>
+  </data>
+  <data name="ConfirmDeleteGroup" xml:space="preserve">
+    <value>Delete the group '{0}'? This cannot be undone.</value>
+    <comment>Inventory Levels, asked before deleting an empty group. {0} is the group's name.</comment>
+  </data>
+  <data name="ConfirmDeleteGroupItemsOne" xml:space="preserve">
+    <value>Delete the group '{1}' and its {0:N0} item? This cannot be undone.</value>
+    <comment>Inventory Levels, asked before deleting a group. {0} is the number of items in it, {1} the group's name.</comment>
+  </data>
+  <data name="ConfirmDeleteGroupItemsOther" xml:space="preserve">
+    <value>Delete the group '{1}' and its {0:N0} items? This cannot be undone.</value>
+    <comment>Inventory Levels, asked before deleting a group. {0} is the number of items in it, {1} the group's name.</comment>
+  </data>
+  <data name="ConfirmDeleteCollection" xml:space="preserve">
+    <value>Delete the collection '{0}'?</value>
+    <comment>Inventory Levels, asked before deleting an empty collection. {0} is the collection's name.</comment>
+  </data>
+  <data name="ConfirmDeleteCollectionGroupsOne" xml:space="preserve">
+    <value>Delete the collection '{1}'? Its {0:N0} group moves to {2} and is not deleted.</value>
+    <comment>Inventory Levels, asked before deleting a collection. {0} is the number of groups in it, {1} the collection's name, {2} the name of the built-in Default collection.</comment>
+  </data>
+  <data name="ConfirmDeleteCollectionGroupsOther" xml:space="preserve">
+    <value>Delete the collection '{1}'? Its {0:N0} groups move to {2} and are not deleted.</value>
+    <comment>Inventory Levels, asked before deleting a collection. {0} is the number of groups in it, {1} the collection's name, {2} the name of the built-in Default collection.</comment>
+  </data>
+  <data name="ConfirmAddLargeGroupOne" xml:space="preserve">
+    <value>The selected group contains {0} item. Are you sure you want to add it?</value>
+    <comment>Inventory Levels, asked before adding every item of a large market group. {0} is the number of items.</comment>
+  </data>
+  <data name="ConfirmAddLargeGroupOther" xml:space="preserve">
+    <value>The selected group contains {0} items. Are you sure you want to add them all?</value>
+    <comment>Inventory Levels, asked before adding every item of a large market group. {0} is the number of items.</comment>
+  </data>
+  <data name="ErrSelectStation" xml:space="preserve">
+    <value>Select a station or choose {0}.</value>
+    <comment>Inventory Levels group dialog: the scope is a station but none is chosen. {0} is the name of the Everywhere scope option.</comment>
+  </data>
+  <data name="ErrSelectSystem" xml:space="preserve">
+    <value>Select a system or choose {0}.</value>
+    <comment>Inventory Levels group dialog: the scope is a solar system but none is chosen. {0} is the name of the Everywhere scope option.</comment>
+  </data>
+  <data name="ErrSelectRegion" xml:space="preserve">
+    <value>Select a region or choose {0}.</value>
+    <comment>Inventory Levels group dialog: the scope is a region but none is chosen. {0} is the name of the Everywhere scope option.</comment>
   </data>
 </root>

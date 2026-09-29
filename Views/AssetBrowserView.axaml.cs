@@ -16,6 +16,7 @@ using Avalonia.VisualTree;
 using EveConsole.ViewModels;
 using EveConsole.Services;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -25,6 +26,11 @@ public partial class AssetBrowserView : ReactiveUserControl<AssetBrowserViewMode
 
     /// <summary>What the first filter row starts on. Must be a value from FilterableColumns.</summary>
     private const string DefaultFilterColumn = "Type Name";
+
+    /// <summary>The column picker's entry for <see cref="DefaultFilterColumn"/>. ⚠️ Picked by the
+    /// column's name, never by its label, which follows the interface language.</summary>
+    private static Choice<string> DefaultFilterChoice =>
+        AssetBrowserViewModel.FilterableColumnChoices.First(c => c.Value == DefaultFilterColumn);
     private readonly List<FilterRowUi> _filterControls = [];
 
     private bool _handlersAdded;
@@ -212,9 +218,11 @@ public partial class AssetBrowserView : ReactiveUserControl<AssetBrowserViewMode
                 _               => null,
             };
 
+            // The header shows the column's label; the Tag keeps its name, which the sort, the
+            // selection and the copy go by.
             grid.Columns.Add(new DataGridTemplateColumn
             {
-                Header      = captured,
+                Header      = AssetBrowserViewModel.ColumnLabel(captured),
                 Tag         = captured,
                 IsReadOnly  = true,
                 CanUserSort = true,
@@ -234,17 +242,17 @@ public partial class AssetBrowserView : ReactiveUserControl<AssetBrowserViewMode
 
     private void AttachContextMenu(DataGrid grid, bool withItemBrowser = false)
     {
-        var copy = new MenuItem { Header = "Copy" };
+        var copy = new MenuItem { Header = AssetsText.Copy };
         copy.Click += (_, _) => ExecuteCopy(grid, includeHeaders: false);
 
-        var copyH = new MenuItem { Header = "Copy w/Headers" };
+        var copyH = new MenuItem { Header = AssetsText.MenuCopyWithHeaders };
         copyH.Click += (_, _) => ExecuteCopy(grid, includeHeaders: true);
 
         var menu = new ContextMenu { Items = { copy, copyH } };
 
         if (withItemBrowser)
         {
-            var openItem = new MenuItem { Header = "Open in Item Browser" };
+            var openItem = new MenuItem { Header = AssetsText.MenuOpenInItemBrowser };
             openItem.Click += (_, _) =>
             {
                 if (ViewModel?.OpenInItemBrowser is null || _anchorRow is null) return;
@@ -312,7 +320,8 @@ public partial class AssetBrowserView : ReactiveUserControl<AssetBrowserViewMode
         {
             var tag = c.Tag as string ?? "";
             if (tag == RowSelectorTag) continue;
-            c.Header = tag == colName ? $"{tag} {(desc ? '▼' : '▲')}" : tag;
+            var label = AssetBrowserViewModel.ColumnLabel(tag);
+            c.Header = tag == colName ? $"{label} {(desc ? '▼' : '▲')}" : label;
         }
     }
 
@@ -326,9 +335,10 @@ public partial class AssetBrowserView : ReactiveUserControl<AssetBrowserViewMode
         {
             var name = c.Tag as string ?? "";
             if (name == RowSelectorTag) continue;
+            var label = AssetBrowserViewModel.ColumnLabel(name);
             c.Header = ViewModel.SortColumn == name
-                ? $"{name} {(ViewModel.SortDescending ? '▼' : '▲')}"
-                : name;
+                ? $"{label} {(ViewModel.SortDescending ? '▼' : '▲')}"
+                : label;
         }
     }
 
@@ -503,7 +513,7 @@ public partial class AssetBrowserView : ReactiveUserControl<AssetBrowserViewMode
         {
             int r0 = Math.Min(ar, cr), r1 = Math.Max(ar, cr);
             var sb = new StringBuilder();
-            if (includeHeaders) sb.AppendLine(string.Join("\t", colRange));
+            if (includeHeaders) sb.AppendLine(string.Join("\t", colRange.Select(AssetBrowserViewModel.ColumnLabel)));
             for (int r = r0; r <= r1; r++)
                 sb.AppendLine(string.Join("\t", colRange.Select(c => allRows[r][c])));
             text = sb.ToString().TrimEnd();
@@ -519,14 +529,14 @@ public partial class AssetBrowserView : ReactiveUserControl<AssetBrowserViewMode
         {
             Width             = 155,
             FontSize          = 11,
-            ItemsSource       = AssetBrowserViewModel.FilterableColumns,
-            PlaceholderText   = "column…",
+            ItemsSource       = AssetBrowserViewModel.FilterableColumnChoices,
+            PlaceholderText   = AssetsText.HintColumn,
             MaxDropDownHeight = 300,
 
             // The first row starts on Type Name — searching for an item is what this tool is
             // opened for. Added rows start empty instead: they exist to narrow a search that is
             // already running, so repeating the first row's column would only be in the way.
-            SelectedItem      = withRemove ? null : DefaultFilterColumn,
+            SelectedItem      = withRemove ? null : DefaultFilterChoice,
         };
 
         var opPicker = new ComboBox
@@ -540,7 +550,7 @@ public partial class AssetBrowserView : ReactiveUserControl<AssetBrowserViewMode
 
         var valBox = new TextBox
         {
-            Watermark = "value…",
+            Watermark = AssetsText.HintValue,
             Width     = 200,
             FontSize  = 11,
         };
@@ -597,7 +607,7 @@ public partial class AssetBrowserView : ReactiveUserControl<AssetBrowserViewMode
         {
             // Back to the starting state, which includes the default column — clearing to an
             // empty picker would leave the tool needing one more click than a fresh open.
-            _filterControls[0].ColPicker.SelectedItem = DefaultFilterColumn;
+            _filterControls[0].ColPicker.SelectedItem = DefaultFilterChoice;
             _filterControls[0].OpPicker.SelectedIndex  = 0;
             _filterControls[0].ValBox.Text              = "";
         }
@@ -609,7 +619,8 @@ public partial class AssetBrowserView : ReactiveUserControl<AssetBrowserViewMode
         if (ViewModel is null) return;
         var filters = _filterControls
             .Select(fc => (
-                Column: fc.ColPicker.SelectedItem as string,
+                // The column's name, not the label the picker shows: it goes into the SQL.
+                Column: (fc.ColPicker.SelectedItem as Choice<string>)?.Value,
                 Op:     fc.OpPicker.SelectedItem as FilterOp,
                 Value:  fc.ValBox.Text))
             .ToList();
