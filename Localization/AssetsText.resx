@@ -1133,6 +1133,38 @@ away: Edit list brings it back.</value>
     <value>Type {0}</value>
     <comment>Shown in place of an item's name when it is not known — also written into an exported Inventory Levels collection. {0} is the item's type id.</comment>
   </data>
+  <data name="AttrSizeSmall" xml:space="preserve">
+    <value>Small</value>
+    <comment>Item Browser → Attributes: a size class value (rig size, charge size).</comment>
+  </data>
+  <data name="AttrSizeMedium" xml:space="preserve">
+    <value>Medium</value>
+    <comment>Item Browser → Attributes: a size class value (rig size, charge size).</comment>
+  </data>
+  <data name="AttrSizeLarge" xml:space="preserve">
+    <value>Large</value>
+    <comment>Item Browser → Attributes: a size class value (rig size, charge size).</comment>
+  </data>
+  <data name="AttrSizeExtraLarge" xml:space="preserve">
+    <value>Extra Large</value>
+    <comment>Item Browser → Attributes: the largest size class value (capital rigs and charges).</comment>
+  </data>
+  <data name="AttrSexMale" xml:space="preserve">
+    <value>Male</value>
+    <comment>Item Browser → Attributes: who a clothing item is for.</comment>
+  </data>
+  <data name="AttrSexUnisex" xml:space="preserve">
+    <value>Unisex</value>
+    <comment>Item Browser → Attributes: who a clothing item is for — anyone.</comment>
+  </data>
+  <data name="AttrSexFemale" xml:space="preserve">
+    <value>Female</value>
+    <comment>Item Browser → Attributes: who a clothing item is for.</comment>
+  </data>
+  <data name="AttrHours" xml:space="preserve">
+    <value>{0} h</value>
+    <comment>Item Browser → Attributes: a value in hours, e.g. a booster's maximum pilot age. {0} is the number; h is short for hours.</comment>
+  </data>
   <data name="DefaultCollectionOption" xml:space="preserve">
     <value>— Default —</value>
     <comment>Inventory Levels group dialog, collection picker: the built-in Default collection.</comment>

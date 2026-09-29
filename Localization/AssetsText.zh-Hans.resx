@@ -853,6 +853,30 @@ Warrior II 5
   <data name="FallbackTypeName" xml:space="preserve">
     <value>类型 {0}</value>
   </data>
+  <data name="AttrSizeSmall" xml:space="preserve">
+    <value>小型</value>
+  </data>
+  <data name="AttrSizeMedium" xml:space="preserve">
+    <value>中型</value>
+  </data>
+  <data name="AttrSizeLarge" xml:space="preserve">
+    <value>大型</value>
+  </data>
+  <data name="AttrSizeExtraLarge" xml:space="preserve">
+    <value>超大型</value>
+  </data>
+  <data name="AttrSexMale" xml:space="preserve">
+    <value>男性</value>
+  </data>
+  <data name="AttrSexUnisex" xml:space="preserve">
+    <value>通用</value>
+  </data>
+  <data name="AttrSexFemale" xml:space="preserve">
+    <value>女性</value>
+  </data>
+  <data name="AttrHours" xml:space="preserve">
+    <value>{0} 小时</value>
+  </data>
   <data name="DefaultCollectionOption" xml:space="preserve">
     <value>— 默认 —</value>
   </data>
