@@ -329,13 +329,13 @@
     <value>物品商人付款</value>
   </data>
   <data name="JumpCloneActivationFee" xml:space="preserve">
-    <value>跳跃克隆激活费</value>
+    <value>远距克隆激活费用</value>
   </data>
   <data name="JumpCloneInstallationFee" xml:space="preserve">
-    <value>跳跃克隆安装费</value>
+    <value>远距克隆安装费</value>
   </data>
   <data name="KillRightFee" xml:space="preserve">
-    <value>击杀权费用</value>
+    <value>击毁权费用</value>
   </data>
   <data name="LpStore" xml:space="preserve">
     <value>LP 商店</value>

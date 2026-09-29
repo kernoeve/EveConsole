@@ -302,7 +302,7 @@
     <value>制造此物品、今天即可开始的工作项。</value>
   </data>
   <data name="Waiting" xml:space="preserve">
-    <value>等待</value>
+    <value>等待中</value>
   </data>
   <data name="TipTasksToMakeThis2" xml:space="preserve">
     <value>制造此物品、仅因栏位被占用而等待的工作项。</value>
@@ -485,7 +485,7 @@
     <value>估值依据</value>
   </data>
   <data name="ChartBy" xml:space="preserve">
-    <value>图表粒度</value>
+    <value>图表周期</value>
   </data>
   <data name="ColStatus" xml:space="preserve">
     <value>状态</value>

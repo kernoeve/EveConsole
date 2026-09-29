@@ -26,7 +26,7 @@
     <value>星域</value>
   </data>
   <data name="Everywhere" xml:space="preserve">
-    <value>所有地点</value>
+    <value>所有位置</value>
   </data>
   <data name="LocationLabel" xml:space="preserve">
     <value>位置</value>
@@ -173,7 +173,7 @@
     <value>可用</value>
   </data>
   <data name="ColDiff" xml:space="preserve">
-    <value>差额</value>
+    <value>差值</value>
   </data>
   <data name="ColAssets" xml:space="preserve">
     <value>资产</value>
@@ -392,7 +392,7 @@
     <value>星域：</value>
   </data>
   <data name="PeriodLabel" xml:space="preserve">
-    <value>时间段：</value>
+    <value>时间范围：</value>
   </data>
   <data name="NoPriceHistoryAvailableNote" xml:space="preserve">
     <value>所选星域中没有此物品的价格历史。</value>
@@ -428,7 +428,7 @@
     <value>尚未记录此物品的衍生价格历史。价格刷新时，会自动记录市场、制造、合同和精炼价值的每日快照。</value>
   </data>
   <data name="FmtWhatOneBatchReturns" xml:space="preserve">
-    <value>按 {0} 精炼一批的返还量，这是此物品所能达到的最佳精炼率——在 00 区装有改装件的 Tatara 精炼厂中，并具备相应的技能和植入体。矿石、冰矿和卫星矿石最高可达 90.6%；其他一切都按废金属处理，无论建筑多好，上限都是 55%。你自己精炼的返还量会更少。</value>
+    <value>按 {0} 精炼一批的返还量，这是此物品所能达到的最佳精炼率——在 00 区装有改装件的塔塔拉精炼厂中，并具备相应的技能和植入体。矿石、冰矿和卫星矿石最高可达 90.6%；其他一切都按废金属处理，无论建筑多好，上限都是 55%。你自己精炼的返还量会更少。</value>
   </data>
   <data name="TitleItemBrowser" xml:space="preserve">
     <value>物品浏览器</value>
@@ -563,7 +563,7 @@ Warrior II 5
     <value>{0} 天 {1} 小时</value>
   </data>
   <data name="ExpiresHoursMinutes" xml:space="preserve">
-    <value>{0} 小时 {1} 分钟</value>
+    <value>{0} 小时 {1} 分</value>
   </data>
   <data name="RangeStation" xml:space="preserve">
     <value>空间站</value>

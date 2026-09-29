@@ -305,7 +305,7 @@
     <value>上次触发</value>
   </data>
   <data name="ColFired" xml:space="preserve">
-    <value>触发次数</value>
+    <value>触发数</value>
   </data>
   <data name="ColLastError" xml:space="preserve">
     <value>上次错误</value>
@@ -755,13 +755,13 @@
     <value>跳跃疲劳</value>
   </data>
   <data name="TableCloneState" xml:space="preserve">
-    <value>克隆状态</value>
+    <value>克隆等级</value>
   </data>
   <data name="TableJumpClones" xml:space="preserve">
-    <value>跳跃克隆</value>
+    <value>远距克隆</value>
   </data>
   <data name="TableJumpCloneImplants" xml:space="preserve">
-    <value>跳跃克隆植入体</value>
+    <value>远距克隆植入体</value>
   </data>
   <data name="TableImplants" xml:space="preserve">
     <value>植入体</value>
@@ -812,7 +812,7 @@
     <value>头衔</value>
   </data>
   <data name="TableRoles" xml:space="preserve">
-    <value>职权</value>
+    <value>职位</value>
   </data>
   <data name="TableFittings" xml:space="preserve">
     <value>装配</value>
@@ -827,7 +827,7 @@
     <value>军团成员</value>
   </data>
   <data name="TableCorpMemberRoles" xml:space="preserve">
-    <value>军团成员职权</value>
+    <value>军团成员职位</value>
   </data>
   <data name="TableCorpTitles" xml:space="preserve">
     <value>军团头衔</value>
@@ -1349,7 +1349,7 @@
     <value>头衔</value>
   </data>
   <data name="EndpointRoles" xml:space="preserve">
-    <value>职权</value>
+    <value>职位</value>
   </data>
   <data name="EndpointFittings" xml:space="preserve">
     <value>装配</value>

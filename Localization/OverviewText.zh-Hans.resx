@@ -158,7 +158,7 @@
     <value>剩余</value>
   </data>
   <data name="ColExpires" xml:space="preserve">
-    <value>到期</value>
+    <value>到期时间</value>
   </data>
   <data name="WorklistAll" xml:space="preserve">
     <value>工作清单（全部）</value>
@@ -167,7 +167,7 @@
     <value>工作清单 →</value>
   </data>
   <data name="ColTask" xml:space="preserve">
-    <value>任务</value>
+    <value>工作项</value>
   </data>
   <data name="ColValue" xml:space="preserve">
     <value>价值</value>
@@ -509,7 +509,7 @@
     <value>更新已取消。</value>
   </data>
   <data name="TokensOpeningCorpLogin" xml:space="preserve">
-    <value>正在打开浏览器——请使用拥有董事 / 会计职权的角色登录…</value>
+    <value>正在打开浏览器——请使用拥有总监 / 会计职位的角色登录…</value>
   </data>
   <data name="TokensLoadingSkills" xml:space="preserve">
     <value>正在加载 {0} 的技能…</value>
@@ -600,7 +600,7 @@
     <value>读取聊天频道</value>
   </data>
   <data name="ScopeReadCorporationRoles" xml:space="preserve">
-    <value>读取军团职权</value>
+    <value>读取军团职位</value>
   </data>
   <data name="ScopeReadFatigue" xml:space="preserve">
     <value>读取跳跃疲劳</value>
@@ -702,7 +702,7 @@
     <value>打开窗口</value>
   </data>
   <data name="ScopeWriteWaypoint" xml:space="preserve">
-    <value>写入航点</value>
+    <value>写入航标</value>
   </data>
   <data name="ScopeReadStructures" xml:space="preserve">
     <value>读取建筑</value>

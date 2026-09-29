@@ -38,7 +38,7 @@
     <value>太空舱价值</value>
   </data>
   <data name="ColHomeStation" xml:space="preserve">
-    <value>家园空间站</value>
+    <value>基地空间站</value>
   </data>
   <data name="ColSkillQueue" xml:space="preserve">
     <value>技能队列</value>
@@ -95,7 +95,7 @@
     <value>在物品浏览器中打开</value>
   </data>
   <data name="TrainingQueue" xml:space="preserve">
-    <value>训练队列</value>
+    <value>技能队列</value>
   </data>
   <data name="TabAttributes" xml:space="preserve">
     <value>属性</value>
@@ -122,10 +122,10 @@
     <value>没有可用的属性数据。角色属性会在 ESI 轮询时加载。</value>
   </data>
   <data name="NeuralRemapping" xml:space="preserve">
-    <value>神经重塑</value>
+    <value>神经再造</value>
   </data>
   <data name="LastRemapLabel" xml:space="preserve">
-    <value>上次重塑：</value>
+    <value>上次重置：</value>
   </data>
   <data name="TabClones" xml:space="preserve">
     <value>克隆</value>
@@ -137,10 +137,10 @@
     <value>当前克隆没有安装植入体。</value>
   </data>
   <data name="JumpClones" xml:space="preserve">
-    <value>跳跃克隆</value>
+    <value>远距克隆</value>
   </data>
   <data name="NoJumpClones" xml:space="preserve">
-    <value>没有跳跃克隆。</value>
+    <value>没有远距克隆。</value>
   </data>
   <data name="TabMedals" xml:space="preserve">
     <value>奖章</value>
@@ -254,16 +254,16 @@
     <value>没有可用的属性数据</value>
   </data>
   <data name="RemapBonusOther" xml:space="preserve">
-    <value>有 {0} 次额外重塑可用</value>
+    <value>有 {0} 次额外重置可用</value>
   </data>
   <data name="RemapAvailableOn" xml:space="preserve">
-    <value>下次可重塑：{0:yyyy-MM-dd}</value>
+    <value>下次可重置：{0:yyyy-MM-dd}</value>
   </data>
   <data name="RemapLastAvailableNow" xml:space="preserve">
-    <value>上次重塑：{0:yyyy-MM-dd}——现在可以重塑</value>
+    <value>上次重置：{0:yyyy-MM-dd}——现在可以重置</value>
   </data>
   <data name="RemapAvailable" xml:space="preserve">
-    <value>现在可以重塑</value>
+    <value>现在可以重置</value>
   </data>
   <data name="ImplantNumbered" xml:space="preserve">
     <value>植入体 #{0}</value>
@@ -296,7 +296,7 @@
     <value>星系 {0}</value>
   </data>
   <data name="SummaryLocationNumbered" xml:space="preserve">
-    <value>地点 {0}</value>
+    <value>位置 {0}</value>
   </data>
   <data name="SummaryTypeNumbered" xml:space="preserve">
     <value>类型 {0}</value>

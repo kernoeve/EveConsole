@@ -98,7 +98,7 @@
     <value>收入（按类型）</value>
   </data>
   <data name="PeriodLabel" xml:space="preserve">
-    <value>时段：</value>
+    <value>时间范围：</value>
   </data>
   <data name="TabSummary" xml:space="preserve">
     <value>汇总</value>
@@ -179,7 +179,7 @@
     <value>采矿记录</value>
   </data>
   <data name="NoMiningDataForNote" xml:space="preserve">
-    <value>此时段没有采矿数据。如果某个步骤失败，上方的状态行会注明。</value>
+    <value>此时间范围内没有采矿数据。如果某个步骤失败，上方的状态行会注明。</value>
   </data>
   <data name="ColDate" xml:space="preserve">
     <value>日期</value>
@@ -266,7 +266,7 @@
     <value>描述</value>
   </data>
   <data name="ColLocation" xml:space="preserve">
-    <value>地点</value>
+    <value>位置</value>
   </data>
   <data name="TipOpenThisStationOrStructure" xml:space="preserve">
     <value>打开此空间站或建筑</value>
@@ -377,7 +377,7 @@
     <value>在上方搜索并选择一个实体，即可查看其详情。</value>
   </data>
   <data name="TabDescription" xml:space="preserve">
-    <value>简介</value>
+    <value>描述</value>
   </data>
   <data name="TabKillsLosses" xml:space="preserve">
     <value>击毁 / 损失</value>
@@ -803,7 +803,7 @@
     <value>项目贡献者前十</value>
   </data>
   <data name="AllTypes" xml:space="preserve">
-    <value>全部类型</value>
+    <value>所有类型</value>
   </data>
   <data name="SeriesAmount" xml:space="preserve">
     <value>金额</value>
@@ -920,7 +920,7 @@
     <value>建筑 {0}</value>
   </data>
   <data name="ConfigLocations" xml:space="preserve">
-    <value>地点</value>
+    <value>位置</value>
   </data>
   <data name="ConfigItems" xml:space="preserve">
     <value>物品</value>
@@ -1391,10 +1391,10 @@
     <value>无人机挂舱</value>
   </data>
   <data name="SlotFighterBay" xml:space="preserve">
-    <value>舰载机机库</value>
+    <value>铁骑舰载机挂舱</value>
   </data>
   <data name="SlotFighterTubes" xml:space="preserve">
-    <value>舰载机发射管</value>
+    <value>铁骑舰载机发射管</value>
   </data>
   <data name="SlotShipHangar" xml:space="preserve">
     <value>舰船维护舱</value>
@@ -1412,7 +1412,7 @@
     <value>冰矿舱</value>
   </data>
   <data name="SlotAsteroidHold" xml:space="preserve">
-    <value>小行星舱</value>
+    <value>小行星矿石舱</value>
   </data>
   <data name="SlotGasHold" xml:space="preserve">
     <value>气云舱</value>
@@ -1421,7 +1421,7 @@
     <value>矿物舱</value>
   </data>
   <data name="SlotSalvageHold" xml:space="preserve">
-    <value>打捞舱</value>
+    <value>打捞物舱</value>
   </data>
   <data name="SlotShipHold" xml:space="preserve">
     <value>舰船舱</value>
@@ -1436,7 +1436,7 @@
     <value>大型舰船舱</value>
   </data>
   <data name="SlotIndustrialShipHold" xml:space="preserve">
-    <value>工业舰船舱</value>
+    <value>工业舰舱</value>
   </data>
   <data name="SlotAmmoHold" xml:space="preserve">
     <value>弹药舱</value>
@@ -1478,7 +1478,7 @@
     <value>头衔</value>
   </data>
   <data name="FactTicker" xml:space="preserve">
-    <value>简称</value>
+    <value>代号</value>
   </data>
   <data name="FactMembers" xml:space="preserve">
     <value>成员数量</value>
@@ -1508,7 +1508,7 @@
     <value>创建者军团</value>
   </data>
   <data name="FactExecutorCorp" xml:space="preserve">
-    <value>执政军团</value>
+    <value>执行军团</value>
   </data>
   <data name="FallbackCorporationName" xml:space="preserve">
     <value>军团 {0}</value>
@@ -1586,7 +1586,7 @@
     <value>代理人类型</value>
   </data>
   <data name="FactLocator" xml:space="preserve">
-    <value>定位服务</value>
+    <value>寻人服务</value>
   </data>
   <data name="FactNo" xml:space="preserve">
     <value>否</value>

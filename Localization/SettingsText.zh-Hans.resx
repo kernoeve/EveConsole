@@ -284,7 +284,7 @@
     <value>玩家建筑：获取某个玩家建筑（城堡、工程复合体等）内的所有订单。需要一个拥有停靠权限的授权角色。适用于 00 区的集结星城和其他私有市场。</value>
   </data>
   <data name="LocationName" xml:space="preserve">
-    <value>地点名称</value>
+    <value>位置名称</value>
   </data>
   <data name="HintEGJita44" xml:space="preserve">
     <value>例如 Jita 4-4</value>
@@ -293,16 +293,16 @@
     <value>星域</value>
   </data>
   <data name="LocationId" xml:space="preserve">
-    <value>地点 ID</value>
+    <value>位置 ID</value>
   </data>
   <data name="HintStationOrStructureId" xml:space="preserve">
     <value>空间站或建筑 ID</value>
   </data>
   <data name="SectionFindLocationByName" xml:space="preserve">
-    <value>按名称查找地点…</value>
+    <value>按名称查找位置…</value>
   </data>
   <data name="SearchForAStationNote" xml:space="preserve">
-    <value>按名称搜索空间站或建筑。结果会填入上方的地点 ID。</value>
+    <value>按名称搜索空间站或建筑。结果会填入上方的位置 ID。</value>
   </data>
   <data name="HintStationOrStructureName" xml:space="preserve">
     <value>空间站或建筑名称…</value>
@@ -833,7 +833,7 @@
     <value>个性化</value>
   </data>
   <data name="EverythingOnThisTabNote" xml:space="preserve">
-    <value>此选项卡中的所有内容都与你本人有关，而不是这台电脑，因此保存在数据库中，由所有打开该数据库的客户端共享。其他选项卡——服务商、密钥、语音、麦克风——只属于这台电脑。</value>
+    <value>此选项卡中的所有内容都与你本人有关，而不是这台电脑，因此保存在数据库中，由所有打开该数据库的客户端共享。其他选项卡——提供商、密钥、语音、麦克风——只属于这台电脑。</value>
   </data>
   <data name="AgentName" xml:space="preserve">
     <value>助手名称</value>
@@ -989,7 +989,7 @@
     <value>语音输入（按键通话）</value>
   </data>
   <data name="Provider" xml:space="preserve">
-    <value>服务商</value>
+    <value>提供商</value>
   </data>
   <data name="MicrophoneDevice" xml:space="preserve">
     <value>麦克风设备</value>
@@ -1454,7 +1454,7 @@
     <value>每小时</value>
   </data>
   <data name="BackupDaily" xml:space="preserve">
-    <value>每天</value>
+    <value>每日</value>
   </data>
   <data name="BackupWeekly" xml:space="preserve">
     <value>每周</value>
@@ -2168,7 +2168,7 @@ SQLite 数据库只会被读取，不会被修改。大型数据库需要一些�
     <value>（所有空间站）</value>
   </data>
   <data name="MarketLocationFallback" xml:space="preserve">
-    <value>地点 {0}</value>
+    <value>位置 {0}</value>
   </data>
   <data name="MarketNewSourceName" xml:space="preserve">
     <value>新市场</value>
@@ -2234,7 +2234,7 @@ SQLite 数据库只会被读取，不会被修改。大型数据库需要一些�
     <value>{0} 个结果</value>
   </data>
   <data name="MarketLocationApplied" xml:space="preserve">
-    <value>已应用地点——点击“保存”后才会保留。</value>
+    <value>已应用位置——点击“保存”后才会保留。</value>
   </data>
   <data name="SdeNotLoaded" xml:space="preserve">
     <value>SDE 未加载</value>

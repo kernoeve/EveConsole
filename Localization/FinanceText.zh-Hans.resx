@@ -56,7 +56,7 @@
     <value>合同价值</value>
   </data>
   <data name="NoNetWorthDataNote" xml:space="preserve">
-    <value>此期间没有净资产数据。</value>
+    <value>此时间范围内没有净资产数据。</value>
   </data>
   <data name="DataIsRecordedAutomaticallyNote" xml:space="preserve">
     <value>每当 ESI 轮询刷新资产、钱包、订单或合同时，都会自动记录数据。</value>
@@ -80,13 +80,13 @@
     <value>收入</value>
   </data>
   <data name="NoIncomeDataForThis" xml:space="preserve">
-    <value>此期间没有收入数据。</value>
+    <value>此时间范围内没有收入数据。</value>
   </data>
   <data name="Expenses" xml:space="preserve">
     <value>支出</value>
   </data>
   <data name="NoExpenseDataForThis" xml:space="preserve">
-    <value>此期间没有支出数据。</value>
+    <value>此时间范围内没有支出数据。</value>
   </data>
   <data name="TabJournal" xml:space="preserve">
     <value>钱包日志</value>

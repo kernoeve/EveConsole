@@ -350,7 +350,7 @@
     <value>工业任务</value>
   </data>
   <data name="ColShort" xml:space="preserve">
-    <value>缺口</value>
+    <value>短缺</value>
   </data>
   <data name="ColOnContract" xml:space="preserve">
     <value>合同中</value>
@@ -707,7 +707,7 @@
     <value>任何人，或仅限下方名单。EVE 邮件和网站均适用。</value>
   </data>
   <data name="HintTypeTwoLettersOfThe" xml:space="preserve">
-    <value>至少输入名称中的两个字母…</value>
+    <value>输入名称中的两个字符…</value>
   </data>
   <data name="Add" xml:space="preserve">
     <value>添加</value>
@@ -1259,7 +1259,7 @@
     <value>{0:N0} 笔销售</value>
   </data>
   <data name="TipContractLine" xml:space="preserve">
-    <value>{0} — {1}，{2}</value>
+    <value>{0}——{1}，{2}</value>
   </data>
   <data name="BuyerAlliance" xml:space="preserve">
     <value>联盟</value>

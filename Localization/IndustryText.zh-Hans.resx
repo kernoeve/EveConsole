@@ -182,7 +182,7 @@
     <value>跳过卫星精炼厂</value>
   </data>
   <data name="TipAthanorsAndTatarasAnchored" xml:space="preserve">
-    <value>锚定在卫星上的 Athanor 和 Tatara 通常用于卫星采矿，而不是工业</value>
+    <value>锚定在卫星上的阿塔诺和塔塔拉通常用于卫星采矿，而不是工业</value>
   </data>
   <data name="AddMissingInSystem" xml:space="preserve">
     <value>+ 添加星系内缺少的建筑</value>
@@ -644,7 +644,7 @@
     <value>完成——{0} 个任务，{1} 种原材料</value>
   </data>
   <data name="FileTypeText" xml:space="preserve">
-    <value>文本</value>
+    <value>文本文件</value>
   </data>
   <data name="TitleExportRawMaterials" xml:space="preserve">
     <value>导出原材料</value>

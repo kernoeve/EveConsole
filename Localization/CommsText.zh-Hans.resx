@@ -44,7 +44,7 @@
     <value>+ 撰写</value>
   </data>
   <data name="FromLabel2" xml:space="preserve">
-    <value>发件人：</value>
+    <value>来自：</value>
   </data>
   <data name="DateFromLabel" xml:space="preserve">
     <value>从：</value>
@@ -193,10 +193,10 @@
     <value>所有类型</value>
   </data>
   <data name="SortDateNewest" xml:space="preserve">
-    <value>日期：从新到旧</value>
+    <value>日期：最新在前</value>
   </data>
   <data name="SortDateOldest" xml:space="preserve">
-    <value>日期：从旧到新</value>
+    <value>日期：最早在前</value>
   </data>
   <data name="SortTypeAz" xml:space="preserve">
     <value>类型（A → Z）</value>
@@ -367,10 +367,10 @@
     <value>克隆已被撤销</value>
   </data>
   <data name="NotifTitleJumpCloneDeletedMsg1" xml:space="preserve">
-    <value>跳跃克隆已被摧毁</value>
+    <value>远距克隆已被摧毁</value>
   </data>
   <data name="NotifTitleJumpCloneDeletedMsg2" xml:space="preserve">
-    <value>跳跃克隆已被摧毁</value>
+    <value>远距克隆已被摧毁</value>
   </data>
   <data name="NotifTitleKillReportVictim" xml:space="preserve">
     <value>舰船损失</value>
@@ -379,7 +379,7 @@
     <value>最后一击</value>
   </data>
   <data name="NotifTitleKillRightEarned" xml:space="preserve">
-    <value>获得击杀权</value>
+    <value>获得击毁权</value>
   </data>
   <data name="NotifTitleWarDeclared" xml:space="preserve">
     <value>已宣战</value>
@@ -619,7 +619,7 @@
     <value>时间</value>
   </data>
   <data name="NotifLabelStarted" xml:space="preserve">
-    <value>开始于</value>
+    <value>开始时间</value>
   </data>
   <data name="NotifLabelStarts" xml:space="preserve">
     <value>开始时间</value>
@@ -637,7 +637,7 @@
     <value>剩余时间</value>
   </data>
   <data name="NotifLabelVulnerabilityWindow" xml:space="preserve">
-    <value>脆弱窗口</value>
+    <value>可被攻击时间窗口</value>
   </data>
   <data name="NotifLabelReady" xml:space="preserve">
     <value>就绪时间</value>
@@ -736,7 +736,7 @@
     <value>提议者</value>
   </data>
   <data name="NotifLabelKillRightOn" xml:space="preserve">
-    <value>击杀权对象</value>
+    <value>击毁权对象</value>
   </data>
   <data name="NotifLabelReinforcedUntil" xml:space="preserve">
     <value>增强结束时间</value>

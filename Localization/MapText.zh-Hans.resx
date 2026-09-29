@@ -23,7 +23,7 @@
     <value>限制路线中途可以停留的地方，而不限制起点或终点。“有空间站或建筑的星系”指任何可以停靠的地方——NPC 空间站或玩家建筑均可。玩家建筑仅包括本应用已解析出名称的建筑，因此这两个选项宁可少报，也不做猜测。</value>
   </data>
   <data name="WaypointsLabel" xml:space="preserve">
-    <value>航点</value>
+    <value>航标</value>
   </data>
   <data name="HintSystemName" xml:space="preserve">
     <value>星系名称…</value>
@@ -47,7 +47,7 @@
     <value>取消</value>
   </data>
   <data name="ColFrom" xml:space="preserve">
-    <value>来自</value>
+    <value>起点</value>
   </data>
   <data name="ColFittingSource" xml:space="preserve">
     <value>来源</value>
@@ -158,7 +158,7 @@
     <value>名称</value>
   </data>
   <data name="HintTypeTwoLettersOf" xml:space="preserve">
-    <value>输入星系名称中的两个字母…</value>
+    <value>输入星系名称中的两个字符…</value>
   </data>
   <data name="NotesLabel" xml:space="preserve">
     <value>备注</value>
@@ -221,10 +221,10 @@
     <value>燃料</value>
   </data>
   <data name="TabFighters" xml:space="preserve">
-    <value>舰载机</value>
+    <value>铁骑舰载机</value>
   </data>
   <data name="ColFighter" xml:space="preserve">
-    <value>舰载机</value>
+    <value>铁骑舰载机</value>
   </data>
   <data name="TabIndustryJobs" xml:space="preserve">
     <value>工业任务</value>
@@ -248,7 +248,7 @@
     <value>流程</value>
   </data>
   <data name="ColEnds" xml:space="preserve">
-    <value>结束</value>
+    <value>结束时间</value>
   </data>
   <data name="AddAStructureByLocation" xml:space="preserve">
     <value>按位置 ID 添加建筑</value>
@@ -323,10 +323,10 @@
     <value>太空舱击毁</value>
   </data>
   <data name="SovereigntyStructuresLabel" xml:space="preserve">
-    <value>主权建筑</value>
+    <value>主权设施</value>
   </data>
   <data name="NoSovereigntyStructuresInThis" xml:space="preserve">
-    <value>此星系中没有主权建筑。</value>
+    <value>此星系中没有主权设施。</value>
   </data>
   <data name="OwnerLabel" xml:space="preserve">
     <value>所有者</value>
@@ -335,7 +335,7 @@
     <value>状态</value>
   </data>
   <data name="VulnerabilityWindowLabel" xml:space="preserve">
-    <value>脆弱窗口</value>
+    <value>可被攻击时间窗口</value>
   </data>
   <data name="SovereigntyChangesLabel" xml:space="preserve">
     <value>主权变更</value>
@@ -389,7 +389,7 @@
     <value>舰船跳跃数</value>
   </data>
   <data name="ActivityDefenseMultiplierLabel" xml:space="preserve">
-    <value>活动防御乘数（ADM）</value>
+    <value>活跃防御系数（ADM）</value>
   </data>
   <data name="IndustryCostIndicesLabel" xml:space="preserve">
     <value>工业成本指数</value>
@@ -404,7 +404,7 @@
     <value>等级</value>
   </data>
   <data name="LocatorLabel" xml:space="preserve">
-    <value>定位</value>
+    <value>寻人</value>
   </data>
   <data name="TipOpenTheStationInNpc" xml:space="preserve">
     <value>在 NPC 实体中打开此空间站</value>
@@ -485,10 +485,10 @@
     <value>有空间站或建筑的星系</value>
   </data>
   <data name="MidpointsCitadelSystems" xml:space="preserve">
-    <value>有 Fortizar / Keepstar 的星系</value>
+    <value>有铁壁 / 星城的星系</value>
   </data>
   <data name="MidpointsKeepstarSystems" xml:space="preserve">
-    <value>有 Keepstar 的星系</value>
+    <value>有星城的星系</value>
   </data>
   <data name="RangePerJump" xml:space="preserve">
     <value>每跳 {0:N2} 光年（基础 {1:N1}，跳跃引擎校准 {2} 级）</value>
@@ -506,7 +506,7 @@
     <value>可以开始规划。</value>
   </data>
   <data name="StatusWaypointOrderChanged" xml:space="preserve">
-    <value>航点顺序已更改——请重新规划以更新路线。</value>
+    <value>航标顺序已更改——请重新规划以更新路线。</value>
   </data>
   <data name="CandidateCost" xml:space="preserve">
     <value>{0:N2} 光年 · 燃料 {1:N0}</value>
@@ -596,46 +596,46 @@
     <value>制造</value>
   </data>
   <data name="TipServiceManufacturing" xml:space="preserve">
-    <value>NPC 工厂，或 Standup Manufacturing Plant / Shipyard</value>
+    <value>NPC 工厂，或屹立制造厂 / 屹立船坞</value>
   </data>
   <data name="ServiceResearch" xml:space="preserve">
     <value>研究 / 发明</value>
   </data>
   <data name="TipServiceResearch" xml:space="preserve">
-    <value>NPC 实验室，或 Standup Research Lab / Invention Lab</value>
+    <value>NPC 实验室，或屹立研究实验室 / 屹立发明实验室</value>
   </data>
   <data name="ServiceReprocessing" xml:space="preserve">
     <value>精炼</value>
   </data>
   <data name="TipServiceReprocessing" xml:space="preserve">
-    <value>NPC 精炼设施，或 Standup Reprocessing Facility</value>
+    <value>NPC 精炼设施，或屹立提炼设施</value>
   </data>
   <data name="ServiceReactions" xml:space="preserve">
     <value>反应</value>
   </data>
   <data name="TipServiceReactions" xml:space="preserve">
-    <value>Standup 反应器。NPC 空间站不能进行反应，所以这里一定是玩家建筑</value>
+    <value>屹立反应堆。NPC 空间站不能进行反应，所以这里一定是玩家建筑</value>
   </data>
   <data name="ServiceCloning" xml:space="preserve">
     <value>克隆舱</value>
   </data>
   <data name="TipServiceCloning" xml:space="preserve">
-    <value>NPC 克隆或跳跃克隆设施，或 Standup Cloning Center</value>
+    <value>NPC 克隆或远距克隆设施，或屹立克隆中心</value>
   </data>
   <data name="ServiceMarket" xml:space="preserve">
     <value>市场</value>
   </data>
   <data name="TipServiceMarket" xml:space="preserve">
-    <value>NPC 市场，或 Standup Market Hub</value>
+    <value>NPC 市场，或屹立市场中心</value>
   </data>
   <data name="DockSupers" xml:space="preserve">
-    <value>超级航母和泰坦——仅限 Keepstar</value>
+    <value>超级航母和泰坦——仅限星城</value>
   </data>
   <data name="TipDockSupers" xml:space="preserve">
-    <value>此处有 Keepstar，超级航母和泰坦可以停靠</value>
+    <value>此处有星城，超级航母和泰坦可以停靠</value>
   </data>
   <data name="DockCapitals" xml:space="preserve">
-    <value>旗舰——Fortizar 或 NPC 空间站</value>
+    <value>旗舰——铁壁或 NPC 空间站</value>
   </data>
   <data name="TipDockCapitals" xml:space="preserve">
     <value>旗舰可以停靠，超级旗舰不能</value>
@@ -674,7 +674,7 @@
     <value>玩家</value>
   </data>
   <data name="AgentLocator" xml:space="preserve">
-    <value>定位</value>
+    <value>寻人</value>
   </data>
   <data name="CorporationNumbered" xml:space="preserve">
     <value>军团 {0}</value>
@@ -743,7 +743,7 @@
     <value>跳跃数</value>
   </data>
   <data name="AdmNone" xml:space="preserve">
-    <value>没有 ADM 历史：此星系没有主权建筑。</value>
+    <value>没有 ADM 历史：此星系没有主权设施。</value>
   </data>
   <data name="AdmNote" xml:space="preserve">
     <value>每日 ADM 峰值，{0:yyyy-MM-dd} 至 {1:yyyy-MM-dd}。</value>
@@ -860,7 +860,7 @@
     <value>{0}（部门 {1}）</value>
   </data>
   <data name="DetailCounts" xml:space="preserve">
-    <value>已装配 {0} · 存放 {1:N0} · 货舱 {2:N0} · 燃料 {3:N0} · 舰载机 {4:N0} · 工业任务 {5:N0}</value>
+    <value>已装配 {0} · 存放 {1:N0} · 货舱 {2:N0} · 燃料 {3:N0} · 铁骑舰载机 {4:N0} · 工业任务 {5:N0}</value>
   </data>
   <data name="StatusDetailLoadFailed" xml:space="preserve">
     <value>详情加载失败：{0}</value>
@@ -1234,7 +1234,7 @@
     <value>无主 / NPC</value>
   </data>
   <data name="NodeNoSovStructure" xml:space="preserve">
-    <value>无主权建筑</value>
+    <value>无主权设施</value>
   </data>
   <data name="LegendLowest" xml:space="preserve">
     <value>最低</value>
@@ -1447,7 +1447,7 @@
     <value>起点和终点是同一个星系。</value>
   </data>
   <data name="RouteNoneKeepstar" xml:space="preserve">
-    <value>在每跳 {0:N2} 光年的范围内，仅经由已知的 Keepstar 星系找不到路线。需要放宽中转点限制，或解析更多建筑。</value>
+    <value>在每跳 {0:N2} 光年的范围内，仅经由已知的星城星系找不到路线。需要放宽中转点限制，或解析更多建筑。</value>
   </data>
   <data name="RouteNoneStations" xml:space="preserve">
     <value>在每跳 {0:N2} 光年的范围内，仅经由有空间站或建筑的星系找不到路线。</value>
@@ -1477,7 +1477,7 @@
     <value>{0:yyyy-MM-dd HH:mm} → {1:HH:mm}（{2:F0} 小时）</value>
   </data>
   <data name="SovStructureFallbackType" xml:space="preserve">
-    <value>主权建筑</value>
+    <value>主权设施</value>
   </data>
   <data name="SovHolderNoOne" xml:space="preserve">
     <value>无主</value>

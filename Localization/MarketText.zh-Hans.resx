@@ -272,7 +272,7 @@
     <value>军团：</value>
   </data>
   <data name="PeriodLabel" xml:space="preserve">
-    <value>时段：</value>
+    <value>时间范围：</value>
   </data>
   <data name="AddGroup" xml:space="preserve">
     <value>+ 添加分组</value>
@@ -320,7 +320,7 @@
     <value>目标</value>
   </data>
   <data name="ColTgtTotal" xml:space="preserve">
-    <value>目标总量</value>
+    <value>目标合计</value>
   </data>
   <data name="ColAvail" xml:space="preserve">
     <value>在售</value>
@@ -341,7 +341,7 @@
     <value>站内最高</value>
   </data>
   <data name="ColBuildPrice" xml:space="preserve">
-    <value>制造价格</value>
+    <value>制造价</value>
   </data>
   <data name="ColVolumeM" xml:space="preserve">
     <value>体积（m³）</value>
@@ -476,7 +476,7 @@
     <value>刷新</value>
   </data>
   <data name="ColLocation" xml:space="preserve">
-    <value>地点</value>
+    <value>位置</value>
   </data>
   <data name="TipOpenThisStationOrStructure" xml:space="preserve">
     <value>打开此空间站或建筑</value>
@@ -542,7 +542,7 @@
     <value>目的地价格</value>
   </data>
   <data name="ColProfitUnit" xml:space="preserve">
-    <value>利润 / 件</value>
+    <value>单位利润</value>
   </data>
   <data name="ColProfitM" xml:space="preserve">
     <value>利润 / m³</value>
@@ -653,7 +653,7 @@
     <value>{0} 及另外 {1} 项</value>
   </data>
   <data name="ContractContentsItems" xml:space="preserve">
-    <value>{0} 件物品</value>
+    <value>{0} 种物品</value>
   </data>
   <data name="ContractContentsCourier" xml:space="preserve">
     <value>（快递）</value>
@@ -827,7 +827,7 @@
     <value>正在加载“{0}”中的物品…</value>
   </data>
   <data name="StatusNoPublishedItemsUnder" xml:space="preserve">
-    <value>“{0}”下没有找到游戏中已发布的物品。</value>
+    <value>“{0}”下没有找到已发布的物品。</value>
   </data>
   <data name="StatusCancelled" xml:space="preserve">
     <value>已取消。</value>
@@ -842,7 +842,7 @@
     <value>计算出错：{0}</value>
   </data>
   <data name="StatusNoMaterialsForBlueprint" xml:space="preserve">
-    <value>没有找到该蓝图的材料。</value>
+    <value>未找到该蓝图的材料。</value>
   </data>
   <data name="SourceAssetDefault" xml:space="preserve">
     <value>— 资产默认来源 —</value>
@@ -941,7 +941,7 @@
     <value>已为 {0:N0} 个军团估值——更新于 {1:d MMM HH:mm}</value>
   </data>
   <data name="HistoryNoneForCorp" xml:space="preserve">
-    <value>{0} 在此时段内尚无历史记录。每次重新计算价值时都会记录一个数据点。</value>
+    <value>{0} 在此时间范围内尚无历史记录。每次重新计算价值时都会记录一个数据点。</value>
   </data>
   <data name="SeriesIskPerLp" xml:space="preserve">
     <value>每 LP 的 ISK</value>

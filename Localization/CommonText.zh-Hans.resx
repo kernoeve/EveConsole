@@ -14,7 +14,7 @@
     <value>搜索物品</value>
   </data>
   <data name="HintStartTypingItemName" xml:space="preserve">
-    <value>开始输入物品名称…</value>
+    <value>输入物品名称…</value>
   </data>
   <data name="Change" xml:space="preserve">
     <value>更改</value>
@@ -161,7 +161,7 @@
     <value>中间价</value>
   </data>
   <data name="JobReady" xml:space="preserve">
-    <value>就绪</value>
+    <value>可交付</value>
   </data>
   <data name="DurationDaysHoursMinutes" xml:space="preserve">
     <value>{0} 天 {1} 小时 {2} 分</value>
@@ -254,7 +254,7 @@
     <value>无人机</value>
   </data>
   <data name="FitSectionFighters" xml:space="preserve">
-    <value>舰载机</value>
+    <value>铁骑舰载机</value>
   </data>
   <data name="FitSectionCargo" xml:space="preserve">
     <value>货舱</value>
