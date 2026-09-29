@@ -56,7 +56,7 @@
     <value>An:</value>
   </data>
   <data name="DateLabel" xml:space="preserve">
-    <value>Datum:</value>
+    <value>Zeit:</value>
   </data>
   <data name="SelectAMessageToRead" xml:space="preserve">
     <value>Wählen Sie eine Nachricht aus, um sie zu lesen.</value>
@@ -893,7 +893,7 @@ Auf der Karte öffnen</value>
     <value>Station {0}</value>
   </data>
   <data name="NotifTipNpcEntities" xml:space="preserve">
-    <value>In den NPC-Entitäten öffnen</value>
+    <value>In „NPC-Entitäten“ öffnen</value>
   </data>
   <data name="NotifNameUnknown" xml:space="preserve">
     <value>{0} (Name unbekannt)</value>

@@ -200,7 +200,7 @@
     <value>Region</value>
   </data>
   <data name="RefreshedTotal24h" xml:space="preserve">
-    <value>Aktualisiert / Gesamt (24 Std.)</value>
+    <value>Aktualisiert/Gesamt (24 Std.)</value>
   </data>
   <data name="Queued" xml:space="preserve">
     <value>Ausstehend</value>
@@ -218,13 +218,13 @@
     <value>Verträge</value>
   </data>
   <data name="ColItemsPulled" xml:space="preserve">
-    <value>Gegenstände abgerufen</value>
+    <value>Inhalt abgerufen</value>
   </data>
   <data name="ColQueued" xml:space="preserve">
     <value>Ausstehend</value>
   </data>
   <data name="ColNote" xml:space="preserve">
-    <value>Notiz</value>
+    <value>Hinweis</value>
   </data>
   <data name="ItemsArePulledOneNote" xml:space="preserve">
     <value>Die Gegenstände werden Vertrag für Vertrag abgerufen, ein Aufruf je Vertrag: zuerst Ihre eigenen Verträge, danach die öffentlichen Angebote. Ein Vertrag wird einmal abgerufen und behalten.</value>
@@ -305,7 +305,7 @@
     <value>Zuletzt ausgelöst</value>
   </data>
   <data name="ColFired" xml:space="preserve">
-    <value>Ausgelöst</value>
+    <value>Ausgel.</value>
   </data>
   <data name="ColLastError" xml:space="preserve">
     <value>Letzter Fehler</value>

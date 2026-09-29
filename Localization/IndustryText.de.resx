@@ -20,7 +20,7 @@
     <value>Enddatum</value>
   </data>
   <data name="CompletedBy" xml:space="preserve">
-    <value>Abgeschlossen von</value>
+    <value>Ausgeliefert von</value>
   </data>
   <data name="Activity" xml:space="preserve">
     <value>Aktivität</value>
@@ -137,10 +137,10 @@
     <value>Gewinn / Slot-Tag</value>
   </data>
   <data name="ColUnitsSold30d" xml:space="preserve">
-    <value>Verkauft 30 Tg. (Einh.)</value>
+    <value>Verkauft 30 Tg.</value>
   </data>
   <data name="ColIskSold30d" xml:space="preserve">
-    <value>Verkauft 30 Tg. (ISK)</value>
+    <value>Umsatz 30 Tg.</value>
   </data>
   <data name="ScanningForIndustryOpportunities" xml:space="preserve">
     <value>Suche nach Industriechancen…</value>
@@ -431,13 +431,13 @@
     <value>Benötigt</value>
   </data>
   <data name="ColProduced" xml:space="preserve">
-    <value>Produziert</value>
+    <value>Erzeugt</value>
   </data>
   <data name="ColLeftover" xml:space="preserve">
-    <value>Überschuss</value>
+    <value>Übersch.</value>
   </data>
   <data name="ColBuildValue" xml:space="preserve">
-    <value>Baukostenwert</value>
+    <value>Baukosten</value>
   </data>
   <data name="ColLeftoverValue" xml:space="preserve">
     <value>Überschusswert</value>
@@ -461,7 +461,7 @@
     <value>Mat.-Kosten</value>
   </data>
   <data name="ColJobCost" xml:space="preserve">
-    <value>Auftragskosten</value>
+    <value>Auftragsk.</value>
   </data>
   <data name="ColUnitCost" xml:space="preserve">
     <value>Stückkosten</value>

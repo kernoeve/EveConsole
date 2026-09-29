@@ -257,7 +257,7 @@
     <value>Status</value>
   </data>
   <data name="SelectAnItemTypeAbove" xml:space="preserve">
-    <value>Wählen Sie oben einen Gegenstandstyp aus.</value>
+    <value>Wählen Sie oben einen Typ aus.</value>
   </data>
   <data name="Save" xml:space="preserve">
     <value>Speichern</value>
@@ -341,7 +341,7 @@
     <value>Vertrag an</value>
   </data>
   <data name="ColStock" xml:space="preserve">
-    <value>Bestand</value>
+    <value>Lager</value>
   </data>
   <data name="ColOnHand" xml:space="preserve">
     <value>Vorhanden</value>
@@ -362,7 +362,7 @@
     <value>Vertrag</value>
   </data>
   <data name="ColEstDate" xml:space="preserve">
-    <value>Vorauss. Datum</value>
+    <value>Vsl. Datum</value>
   </data>
   <data name="ColPri" xml:space="preserve">
     <value>Prio</value>
@@ -383,7 +383,7 @@
     <value>Gewinn</value>
   </data>
   <data name="ColProfit2" xml:space="preserve">
-    <value>Gewinn %</value>
+    <value>Gew. %</value>
   </data>
   <data name="SalesTracker" xml:space="preserve">
     <value>Verkaufsverfolgung →</value>
@@ -614,7 +614,7 @@
     <value>Bestellung</value>
   </data>
   <data name="ColEstDate2" xml:space="preserve">
-    <value>Vorauss. Datum</value>
+    <value>Vsl. Datum</value>
   </data>
   <data name="ColSource" xml:space="preserve">
     <value>Quelle</value>
@@ -641,7 +641,7 @@
     <value>Ergebnis</value>
   </data>
   <data name="ColNote" xml:space="preserve">
-    <value>Notiz</value>
+    <value>Hinweis</value>
   </data>
   <data name="WebSiteEvents" xml:space="preserve">
     <value>Website-Ereignisse</value>
@@ -1146,7 +1146,7 @@ Klicken, um Vertrag {0} im Tool „Verträge“ zu öffnen.</value>
     <value>Wählen Sie zuerst eine Anzeige aus.</value>
   </data>
   <data name="SlackNotConfigured" xml:space="preserve">
-    <value>Kein Slack-Kanal und kein Webhook eingerichtet.</value>
+    <value>Kein Slack-Kanal oder Webhook eingerichtet.</value>
   </data>
   <data name="SlackAlreadyPosted" xml:space="preserve">
     <value>„{0}“ wurde bereits {1} in Slack gepostet.

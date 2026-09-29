@@ -50,10 +50,10 @@
     <value>Monat</value>
   </data>
   <data name="ColTotalIncome" xml:space="preserve">
-    <value>Einnahmen gesamt</value>
+    <value>Einnahmen ges.</value>
   </data>
   <data name="ColTotalExpense" xml:space="preserve">
-    <value>Ausgaben gesamt</value>
+    <value>Ausgaben ges.</value>
   </data>
   <data name="ColRattingTax" xml:space="preserve">
     <value>Ratting-Steuer</value>
@@ -62,13 +62,13 @@
     <value>Industriesteuer</value>
   </data>
   <data name="ColProjPayouts" xml:space="preserve">
-    <value>Projektauszahlungen</value>
+    <value>Projektauszahl.</value>
   </data>
   <data name="ColMinedValue" xml:space="preserve">
     <value>Abgebauter Wert</value>
   </data>
   <data name="ColKills" xml:space="preserve">
-    <value>Abschüsse</value>
+    <value>Kills</value>
   </data>
   <data name="ColLosses" xml:space="preserve">
     <value>Verluste</value>
@@ -95,7 +95,7 @@
     <value>Einnahmen</value>
   </data>
   <data name="IncomeByTypeLabel" xml:space="preserve">
-    <value>Einnahmen nach Art</value>
+    <value>Einnahmen nach Typ</value>
   </data>
   <data name="PeriodLabel" xml:space="preserve">
     <value>Zeitraum:</value>
@@ -104,7 +104,7 @@
     <value>Zusammenfassung</value>
   </data>
   <data name="ColType" xml:space="preserve">
-    <value>Art</value>
+    <value>Typ</value>
   </data>
   <data name="ColCount" xml:space="preserve">
     <value>Anzahl</value>
@@ -116,7 +116,7 @@
     <value>Details</value>
   </data>
   <data name="TypeLabel" xml:space="preserve">
-    <value>Art</value>
+    <value>Typ</value>
   </data>
   <data name="NameLabel" xml:space="preserve">
     <value>Name</value>
@@ -137,7 +137,7 @@
     <value>Ausgaben</value>
   </data>
   <data name="ExpensesByTypeLabel" xml:space="preserve">
-    <value>Ausgaben nach Art</value>
+    <value>Ausgaben nach Typ</value>
   </data>
   <data name="TabRattingTaxes" xml:space="preserve">
     <value>Ratting-Steuern</value>
@@ -227,7 +227,7 @@
     <value>Fortschritt</value>
   </data>
   <data name="ColRemReward" xml:space="preserve">
-    <value>Restbelohnung</value>
+    <value>Restbelohn.</value>
   </data>
   <data name="ColCreator" xml:space="preserve">
     <value>Ersteller</value>
@@ -722,10 +722,10 @@
     <value>Monatszusammenfassung</value>
   </data>
   <data name="StepIncomeByType" xml:space="preserve">
-    <value>Einnahmen nach Art</value>
+    <value>Einnahmen nach Typ</value>
   </data>
   <data name="StepExpenseByType" xml:space="preserve">
-    <value>Ausgaben nach Art</value>
+    <value>Ausgaben nach Typ</value>
   </data>
   <data name="Step24hActivity" xml:space="preserve">
     <value>24-Std.-Aktivität</value>
@@ -770,7 +770,7 @@
     <value>Wird in Slack gepostet…</value>
   </data>
   <data name="SlackPosted" xml:space="preserve">
-    <value>Gepostet in {0} – {1:t}</value>
+    <value>In {0} gepostet – {1:t}</value>
   </data>
   <data name="SlackPostFailed" xml:space="preserve">
     <value>Posten in Slack fehlgeschlagen: {0}</value>
@@ -803,7 +803,7 @@
     <value>Top 10 Beitragende</value>
   </data>
   <data name="AllTypes" xml:space="preserve">
-    <value>Alle Arten</value>
+    <value>Alle Typen</value>
   </data>
   <data name="SeriesAmount" xml:space="preserve">
     <value>Betrag</value>
@@ -1001,10 +1001,10 @@
     <value>x{0} fallengelassen</value>
   </data>
   <data name="RoleFinalBlow" xml:space="preserve">
-    <value>★ FS</value>
+    <value>★ FB</value>
   </data>
   <data name="RoleTopDamage" xml:space="preserve">
-    <value>▲ HS</value>
+    <value>▲ TD</value>
   </data>
   <data name="DamageTaken" xml:space="preserve">
     <value>{0:N0} Schaden</value>

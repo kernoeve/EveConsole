@@ -245,7 +245,7 @@
     <value>Produkt</value>
   </data>
   <data name="ColRuns" xml:space="preserve">
-    <value>Durchläufe</value>
+    <value>Durchl.</value>
   </data>
   <data name="ColEnds" xml:space="preserve">
     <value>Endet</value>
@@ -1001,7 +1001,7 @@
     <value>bereit</value>
   </data>
   <data name="JobStatusReverted" xml:space="preserve">
-    <value>rückgängig gemacht</value>
+    <value>rückgängig</value>
   </data>
   <data name="PickerTitleHigh" xml:space="preserve">
     <value>High Slot {0}</value>

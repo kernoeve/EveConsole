@@ -50,7 +50,7 @@
     <value>Zugewiesen an</value>
   </data>
   <data name="Acceptor" xml:space="preserve">
-    <value>Angenommen von</value>
+    <value>Angen. von</value>
   </data>
   <data name="Price" xml:space="preserve">
     <value>Preis</value>
@@ -134,7 +134,7 @@
     <value>↻ Aktualisieren</value>
   </data>
   <data name="ColType" xml:space="preserve">
-    <value>Art</value>
+    <value>Typ</value>
   </data>
   <data name="ColStatus" xml:space="preserve">
     <value>Status</value>
@@ -227,7 +227,7 @@
     <value>Corporation</value>
   </data>
   <data name="TipOpenInNpcEntities" xml:space="preserve">
-    <value>In NPC-Entitäten öffnen</value>
+    <value>In „NPC-Entitäten“ öffnen</value>
   </data>
   <data name="ColIskLp" xml:space="preserve">
     <value>ISK / LP</value>
@@ -491,10 +491,10 @@
     <value>Bestes Gebot (Station)</value>
   </data>
   <data name="ColRemaining" xml:space="preserve">
-    <value>Übrig</value>
+    <value>Verbleibend</value>
   </data>
   <data name="ColNote" xml:space="preserve">
-    <value>Notiz</value>
+    <value>Hinweis</value>
   </data>
   <data name="Calculate" xml:space="preserve">
     <value>Berechnen</value>

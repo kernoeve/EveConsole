@@ -233,7 +233,7 @@
     <value>Projektstatus</value>
   </data>
   <data name="ColRemaining" xml:space="preserve">
-    <value>Übrig</value>
+    <value>Verbleibend</value>
   </data>
   <data name="ColRem2" xml:space="preserve">
     <value>Übrig %</value>

@@ -38,7 +38,7 @@
     <value>Agent - Missions-Belohnung Corporation-Steuer</value>
   </data>
   <data name="AgentMissionSecurityTax" xml:space="preserve">
-    <value>Agent - Missions-Sicherheitssteuer</value>
+    <value>Exordium-Missionsagentsteuer</value>
   </data>
   <data name="AgentMissionTimeBonusReward" xml:space="preserve">
     <value>Agent - Missions-Belohnung für Zeitbonus</value>
@@ -53,19 +53,19 @@
     <value>Agent - Dienste geleistet</value>
   </data>
   <data name="AgentsPreward" xml:space="preserve">
-    <value>Agent - Vorabbelohnung</value>
+    <value>Agent - Vorauszahlung</value>
   </data>
   <data name="AirCareerProgramReward" xml:space="preserve">
     <value>Belohnung des AIR-Karriereprogramms</value>
   </data>
   <data name="AllianceMaintainanceFee" xml:space="preserve">
-    <value>Allianzunterhaltsgebühr</value>
+    <value>Allianz-Unterhaltsgebühr</value>
   </data>
   <data name="AllianceRegistrationFee" xml:space="preserve">
     <value>Allianz-Registrierungsgebühr</value>
   </data>
   <data name="AllignmentBasedGateToll" xml:space="preserve">
-    <value>Ausrichtungsabhängige Tor-Gebühr</value>
+    <value>Tor-Gebühr</value>
   </data>
   <data name="AssetSafetyRecoveryTax" xml:space="preserve">
     <value>Besitzsicherheit-Steuer</value>
@@ -92,7 +92,7 @@
     <value>Maklergebühr</value>
   </data>
   <data name="CampaignObjectiveIskReward" xml:space="preserve">
-    <value>ISK-Belohnung für Kampagnenziel</value>
+    <value>Kampagnenziel-Belohnung</value>
   </data>
   <data name="CloneActivation" xml:space="preserve">
     <value>Klonaktivierung</value>
@@ -200,7 +200,7 @@
     <value>Corporation - Anmeldegebühr</value>
   </data>
   <data name="CosmeticMarketComponentItemPurchase" xml:space="preserve">
-    <value>Paragon-Hub-Komponentenkauf</value>
+    <value>Paragon-Hub-Designelement</value>
   </data>
   <data name="CosmeticMarketSkinPurchase" xml:space="preserve">
     <value>Paragon-Hub-SKIN-Kauf</value>
@@ -209,10 +209,10 @@
     <value>Paragon-Hub-SKIN-Verkauf</value>
   </data>
   <data name="CosmeticMarketSkinSaleBrokerFee" xml:space="preserve">
-    <value>Paragon-Hub-SKIN-Verkauf - Maklergebühr</value>
+    <value>Paragon-Hub-Auflistungsgebühr</value>
   </data>
   <data name="CosmeticMarketSkinSaleTax" xml:space="preserve">
-    <value>Paragon-Hub-SKIN-Verkauf - Steuer</value>
+    <value>Paragon-Hub-Verkaufsgebühr</value>
   </data>
   <data name="CosmeticMarketSkinTransaction" xml:space="preserve">
     <value>Paragon-Hub-SKIN-Transaktion</value>
@@ -248,7 +248,7 @@
     <value>Duellwette - Treuhandzahlung</value>
   </data>
   <data name="DuelWagerPayment" xml:space="preserve">
-    <value>Duellwettzahlung</value>
+    <value>Duellwettbelohnung</value>
   </data>
   <data name="DuelWagerRefund" xml:space="preserve">
     <value>Duellwetterstattung</value>
@@ -269,16 +269,16 @@
     <value>Fabrikplatz-Mietgebühr</value>
   </data>
   <data name="FluxPayout" xml:space="preserve">
-    <value>HyperNet-Relais-Auszahlung</value>
+    <value>Abgeschlossene HyperNet-Relais-Auszahlung</value>
   </data>
   <data name="FluxTax" xml:space="preserve">
-    <value>HyperNet-Relais-Steuer</value>
+    <value>HyperNet-Relaisgebühr</value>
   </data>
   <data name="FluxTicketRepayment" xml:space="preserve">
-    <value>HyperNode-Rückerstattung</value>
+    <value>HyperNode-Rückerstattung für abgelaufenes HyperNet-Angebot</value>
   </data>
   <data name="FluxTicketSale" xml:space="preserve">
-    <value>HyperNode-Verkauf</value>
+    <value>HyperNode-Transaktion</value>
   </data>
   <data name="FreelanceJobsBroadcastingFee" xml:space="preserve">
     <value>Freelance Jobs Broadcasting Fee</value>
@@ -308,10 +308,10 @@
     <value>Industriesteuer</value>
   </data>
   <data name="IndustrySecurityTax" xml:space="preserve">
-    <value>Industriesicherheitssteuer</value>
+    <value>Exordium-Industriesteuer</value>
   </data>
   <data name="InfrastructureHubMaintenance" xml:space="preserve">
-    <value>Infrastrukturzentrum-Wartung</value>
+    <value>Infrastrukturzentrum-Rechnung</value>
   </data>
   <data name="Inheritance" xml:space="preserve">
     <value>Erbe</value>
@@ -326,7 +326,7 @@
     <value>Belohnung für den Beitrag zur Aufstands-Bekämpfung</value>
   </data>
   <data name="ItemTraderPayment" xml:space="preserve">
-    <value>Gegenstandshändler - Zahlung</value>
+    <value>Gegenstandshandel</value>
   </data>
   <data name="JumpCloneActivationFee" xml:space="preserve">
     <value>Sprungklon-Aktivierungsgebühr</value>
@@ -335,7 +335,7 @@
     <value>Sprungklon-Installationsgebühr</value>
   </data>
   <data name="KillRightFee" xml:space="preserve">
-    <value>Abschussfreigabe-Gebühr</value>
+    <value>Abschussfreigabe</value>
   </data>
   <data name="LpStore" xml:space="preserve">
     <value>LP-Shop</value>
@@ -356,7 +356,7 @@
     <value>Marktbetreibersteuer</value>
   </data>
   <data name="MarketSecurityTax" xml:space="preserve">
-    <value>Marktsicherheitssteuer</value>
+    <value>Exordium-Marktsteuer</value>
   </data>
   <data name="MarketTransaction" xml:space="preserve">
     <value>Markt-Transaktion</value>
@@ -386,7 +386,7 @@
     <value>Missionsbelohnung</value>
   </data>
   <data name="NpcBountySecurityTax" xml:space="preserve">
-    <value>NPC-Kopfgeldsicherheitssteuer</value>
+    <value>Exordium-Kopfgeldsteuer</value>
   </data>
   <data name="OfficeRentalFee" xml:space="preserve">
     <value>Büro-Mietgebühr</value>
@@ -452,10 +452,10 @@
     <value>Nachkonstruktion</value>
   </data>
   <data name="SeasonChallengeReward" xml:space="preserve">
-    <value>Belohnung für Saison-Herausforderung</value>
+    <value>Herausforderung abgeschlossen</value>
   </data>
   <data name="SecurityProcessingFee" xml:space="preserve">
-    <value>Sicherheitsbearbeitungsgebühr</value>
+    <value>Bearbeitungsgebühr für Sicherheitsmarken</value>
   </data>
   <data name="Shares" xml:space="preserve">
     <value>Aktien</value>
@@ -494,6 +494,6 @@
     <value>Kriegsgebühr</value>
   </data>
   <data name="WarFeeSurrender" xml:space="preserve">
-    <value>Kapitulationsgebühr</value>
+    <value>Kriegskapitulationsgebühr</value>
   </data>
 </root>

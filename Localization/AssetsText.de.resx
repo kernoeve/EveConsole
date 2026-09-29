@@ -179,7 +179,7 @@
     <value>Besitz</value>
   </data>
   <data name="ColIndJobs" xml:space="preserve">
-    <value>Ind.-Aufträge</value>
+    <value>Ind.-Auftr.</value>
   </data>
   <data name="ColBuyOrders" xml:space="preserve">
     <value>Kaufaufträge</value>
@@ -353,7 +353,7 @@
     <value>Gegenstandswert abzüglich ISK und benötigter Gegenstände, pro LP, beides auf eine einzelne Einheit umgerechnet.</value>
   </data>
   <data name="ColRequiredItems" xml:space="preserve">
-    <value>Benötigte Gegenstände</value>
+    <value>Benötigt</value>
   </data>
   <data name="TabMarketOrders" xml:space="preserve">
     <value>Marktaufträge</value>
@@ -383,7 +383,7 @@
     <value>Reichweite</value>
   </data>
   <data name="ColMinQty" xml:space="preserve">
-    <value>Min. Menge</value>
+    <value>Minimum</value>
   </data>
   <data name="TabPriceHistory" xml:space="preserve">
     <value>Preisverlauf</value>
@@ -519,7 +519,7 @@ holt sie zurück.</value>
     <value>Gesamt</value>
   </data>
   <data name="ColVsBest" xml:space="preserve">
-    <value>ggü. Bestwert</value>
+    <value>Abstand</value>
   </data>
   <data name="TabMarketCompare" xml:space="preserve">
     <value>Marktvergleich</value>
@@ -639,7 +639,7 @@ holt sie zurück.</value>
     <value>Markt</value>
   </data>
   <data name="SeriesBuild" xml:space="preserve">
-    <value>Bau</value>
+    <value>Baukosten</value>
   </data>
   <data name="SeriesContract" xml:space="preserve">
     <value>Vertrag</value>
@@ -1134,7 +1134,7 @@ holt sie zurück.</value>
     <value>Aufbereitung %</value>
   </data>
   <data name="CopyColNote" xml:space="preserve">
-    <value>Notiz</value>
+    <value>Hinweis</value>
   </data>
   <data name="CopyTotalMarket" xml:space="preserve">
     <value>Marktwert gesamt</value>

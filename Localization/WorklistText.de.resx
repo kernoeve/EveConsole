@@ -119,7 +119,7 @@
     <value>Stationsbedarf</value>
   </data>
   <data name="ColWhy" xml:space="preserve">
-    <value>Warum</value>
+    <value>Grund</value>
   </data>
   <data name="TipWhatIsAskingForThis" xml:space="preserve">
     <value>Was dies anfordert</value>
@@ -494,7 +494,7 @@
     <value>Einheiten</value>
   </data>
   <data name="ColStarted" xml:space="preserve">
-    <value>Begonnen</value>
+    <value>Gestartet</value>
   </data>
   <data name="ColCompleted" xml:space="preserve">
     <value>Abgeschlossen</value>
@@ -788,7 +788,7 @@
     <value>Besitzsicherheit</value>
   </data>
   <data name="KindSkillQueue" xml:space="preserve">
-    <value>Trainingswarteschlange</value>
+    <value>Skill-Warteschlange</value>
   </data>
   <data name="KindCorpProject" xml:space="preserve">
     <value>Corp-Projekt</value>
