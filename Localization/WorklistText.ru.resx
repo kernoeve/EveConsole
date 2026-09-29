@@ -1,0 +1,2203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TabWorklist" xml:space="preserve">
+    <value>Список задач</value>
+  </data>
+  <data name="Worklist" xml:space="preserve">
+    <value>Список задач</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Обновить</value>
+  </data>
+  <data name="ReadyNow" xml:space="preserve">
+    <value>готовы сейчас</value>
+  </data>
+  <data name="TipIncludeWorkThatCannot" xml:space="preserve">
+    <value>Показывать и работу, которую пока нельзя начать, с указанием причины.</value>
+  </data>
+  <data name="TipIncludeItemsHiddenBy" xml:space="preserve">
+    <value>Показывать и строки, скрытые кнопкой «Отложить», пока не истечёт срок откладывания.</value>
+  </data>
+  <data name="HintState" xml:space="preserve">
+    <value>Состояние</value>
+  </data>
+  <data name="TipReadyBlockedOrWaiting" xml:space="preserve">
+    <value>Готово, заблокировано или ожидает</value>
+  </data>
+  <data name="HintType" xml:space="preserve">
+    <value>Тип</value>
+  </data>
+  <data name="TipBuyHaulJobAndThe" xml:space="preserve">
+    <value>Покупка, перевозка, проект и остальное</value>
+  </data>
+  <data name="HintSearchTask" xml:space="preserve">
+    <value>Поиск задачи…</value>
+  </data>
+  <data name="HintCharacter" xml:space="preserve">
+    <value>Персонаж</value>
+  </data>
+  <data name="HintSource" xml:space="preserve">
+    <value>Откуда</value>
+  </data>
+  <data name="HintDestination" xml:space="preserve">
+    <value>Куда</value>
+  </data>
+  <data name="HintSearchNote" xml:space="preserve">
+    <value>Поиск в примечаниях…</value>
+  </data>
+  <data name="TipSearchesTheDetailThe" xml:space="preserve">
+    <value>Ищет сразу в подробностях, причине блокировки и строке об откладывании — во всём, что скрыто за информационным значком строки.</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>Очистить</value>
+  </data>
+  <data name="TipShowWhatThisTask" xml:space="preserve">
+    <value>Показать, что везёт эта задача и что её ждёт</value>
+  </data>
+  <data name="WaitingOnThisLabel" xml:space="preserve">
+    <value>Ждут этого</value>
+  </data>
+  <data name="TipOpenInTheItemBrowser" xml:space="preserve">
+    <value>Открыть в разделе «Просмотр предметов»</value>
+  </data>
+  <data name="ManifestLabel" xml:space="preserve">
+    <value>Груз</value>
+  </data>
+  <data name="ColTask" xml:space="preserve">
+    <value>Задача</value>
+  </data>
+  <data name="TipOpenThisItem" xml:space="preserve">
+    <value>Открыть этот предмет</value>
+  </data>
+  <data name="TipMaterialAndTimeEfficiency" xml:space="preserve">
+    <value>Экономия материалов и времени у чертежа, который использовал бы этот проект</value>
+  </data>
+  <data name="TipOpenThisStationOrStructure" xml:space="preserve">
+    <value>Открыть эту станцию или сооружение</value>
+  </data>
+  <data name="TipOpenInTheEntityBrowser" xml:space="preserve">
+    <value>Открыть в справочнике</value>
+  </data>
+  <data name="ColPrio" xml:space="preserve">
+    <value>приор.</value>
+  </data>
+  <data name="ColFin" xml:space="preserve">
+    <value>фин.</value>
+  </data>
+  <data name="ColBlkd" xml:space="preserve">
+    <value>блок.</value>
+  </data>
+  <data name="ColCover" xml:space="preserve">
+    <value>покр.</value>
+  </data>
+  <data name="ColSeq" xml:space="preserve">
+    <value>пор.</value>
+  </data>
+  <data name="ColFrees" xml:space="preserve">
+    <value>освоб.</value>
+  </data>
+  <data name="Value" xml:space="preserve">
+    <value>Стоимость</value>
+  </data>
+  <data name="Volume" xml:space="preserve">
+    <value>Объём</value>
+  </data>
+  <data name="Snooze" xml:space="preserve">
+    <value>Отложить</value>
+  </data>
+  <data name="TipHideThisItemFor8" xml:space="preserve">
+    <value>Скрыть эту строку на 8 часов</value>
+  </data>
+  <data name="TabStationNeeds" xml:space="preserve">
+    <value>Потребности станций</value>
+  </data>
+  <data name="StationNeeds" xml:space="preserve">
+    <value>Потребности станций</value>
+  </data>
+  <data name="ColWhy" xml:space="preserve">
+    <value>Причина</value>
+  </data>
+  <data name="TipWhatIsAskingForThis" xml:space="preserve">
+    <value>Для чего это нужно</value>
+  </data>
+  <data name="AskedForByLabel" xml:space="preserve">
+    <value>Для чего нужно</value>
+  </data>
+  <data name="TipNothingItemisedThisNeed" xml:space="preserve">
+    <value>Для этой потребности нет расшифровки</value>
+  </data>
+  <data name="ColStation" xml:space="preserve">
+    <value>Станция</value>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>Предмет</value>
+  </data>
+  <data name="ColTotal" xml:space="preserve">
+    <value>Всего</value>
+  </data>
+  <data name="ColOnHand" xml:space="preserve">
+    <value>В наличии</value>
+  </data>
+  <data name="ColShort" xml:space="preserve">
+    <value>Нехватка</value>
+  </data>
+  <data name="ColShortValue" xml:space="preserve">
+    <value>Стоимость нехватки</value>
+  </data>
+  <data name="ColShortVolume" xml:space="preserve">
+    <value>Объём нехватки</value>
+  </data>
+  <data name="ColOrderJobs" xml:space="preserve">
+    <value>Для заказов</value>
+  </data>
+  <data name="ColJobs" xml:space="preserve">
+    <value>Проекты</value>
+  </data>
+  <data name="ColInventoryLevels" xml:space="preserve">
+    <value>Уровни запасов</value>
+  </data>
+  <data name="ColStationLevels" xml:space="preserve">
+    <value>Уровни станций</value>
+  </data>
+  <data name="TabItemNeeds" xml:space="preserve">
+    <value>Потребности в предметах</value>
+  </data>
+  <data name="ItemNeeds" xml:space="preserve">
+    <value>Потребности в предметах</value>
+  </data>
+  <data name="ColInBuild" xml:space="preserve">
+    <value>В производстве</value>
+  </data>
+  <data name="TabBottlenecks" xml:space="preserve">
+    <value>Узкие места</value>
+  </data>
+  <data name="Bottlenecks" xml:space="preserve">
+    <value>Узкие места</value>
+  </data>
+  <data name="TabSummary" xml:space="preserve">
+    <value>Сводка</value>
+  </data>
+  <data name="WhatToDoInNote" xml:space="preserve">
+    <value>Что делать — в том порядке, в каком это стоит делать. Упорядочено по тому, сколько работы задерживает каждый пункт, по всем вкладкам. Подтверждающие цифры — на самих вкладках.</value>
+  </data>
+  <data name="TipOpenThisItemIn" xml:space="preserve">
+    <value>Открыть этот предмет в разделе «Просмотр предметов»</value>
+  </data>
+  <data name="NothingIsHoldingTheNote" xml:space="preserve">
+    <value>Конвейер ничто не задерживает: ни в одном пуле нет заметной очереди, ни один чертёж не задерживает работу, материалов хватает, и ничто не ждёт доставки.</value>
+  </data>
+  <data name="TabSlots" xml:space="preserve">
+    <value>Слоты</value>
+  </data>
+  <data name="SlotsLabel" xml:space="preserve">
+    <value>Слоты</value>
+  </data>
+  <data name="SlotsAreBandwidthNotNote" xml:space="preserve">
+    <value>Слоты — это пропускная способность, а не список покупок. Очередь — это работа, которая накопилась, пока пропускная способность была ниже спроса, поэтому каждое средство оценивается по тому, как оно сокращает время на разбор очереди. Скорости взяты из истории проектов за последние 90 дней, так что в них уже учтены используемые сооружения и навыки.</value>
+  </data>
+  <data name="Capacity" xml:space="preserve">
+    <value>Ёмкость</value>
+  </data>
+  <data name="InUse" xml:space="preserve">
+    <value>Занято</value>
+  </data>
+  <data name="Free" xml:space="preserve">
+    <value>Свободно</value>
+  </data>
+  <data name="WaitingOnASlot" xml:space="preserve">
+    <value>Ждут слота</value>
+  </data>
+  <data name="Blocked" xml:space="preserve">
+    <value>Заблокировано</value>
+  </data>
+  <data name="DaysToCatchUp" xml:space="preserve">
+    <value>Дней на разбор очереди</value>
+  </data>
+  <data name="TabItemContention" xml:space="preserve">
+    <value>Дефицит предметов</value>
+  </data>
+  <data name="MaterialsLabel" xml:space="preserve">
+    <value>Материалы</value>
+  </data>
+  <data name="MaterialsThePipelineRunsNote" xml:space="preserve">
+    <value>Материалы, которые заканчиваются в конвейере, — те, которых нет ни у кого, а не те, что лежат не на той станции: это задача для перевозки, и она рассматривается в другом месте. Упорядочены по работе, которую задерживает каждый из них. Наведите указатель на заголовок столбца, чтобы узнать, что он означает. ⚠ Каждая скорость здесь — нижняя граница: нельзя потребить то, что не удалось произвести, поэтому предмет, который блокировал работу, расходовался с той скоростью, которую позволяла блокировка, а не с той, которая была нужна.</value>
+  </data>
+  <data name="TipShowTheTasksBehindThese" xml:space="preserve">
+    <value>Показать задачи, стоящие за этими числами</value>
+  </data>
+  <data name="Material" xml:space="preserve">
+    <value>Материал</value>
+  </data>
+  <data name="TipTheItemThatRan" xml:space="preserve">
+    <value>Предмет, которого не хватило. Нажмите, чтобы открыть «Просмотр предметов».</value>
+  </data>
+  <data name="Used" xml:space="preserve">
+    <value>Расход</value>
+  </data>
+  <data name="TipConsumedPerDayOver" xml:space="preserve">
+    <value>Расход в день за последние 90 дней, суммарно по всем чертежам, которые его потребляют. Если предмет берут четыре изделия, его нехватка сказывается вчетверо.</value>
+  </data>
+  <data name="Made" xml:space="preserve">
+    <value>Выпуск</value>
+  </data>
+  <data name="TipProducedPerDayOver" xml:space="preserve">
+    <value>Выпуск в день за тот же период. Прочерк означает, что здесь его никто не производит, и пополнить запас можно только покупкой.</value>
+  </data>
+  <data name="Balance" xml:space="preserve">
+    <value>Баланс</value>
+  </data>
+  <data name="TipMadePerUnitConsumed" xml:space="preserve">
+    <value>Выпуск на единицу расхода. Ниже 1,00 запас тает, каким бы полным он ни казался, и никакой буфер этого не выдержит. Во время всплеска спроса — жёлтым, а не красным: поглощать именно такие всплески и есть задача буфера.</value>
+  </data>
+  <data name="Level" xml:space="preserve">
+    <value>Уровень</value>
+  </data>
+  <data name="TipWhatTheInventoryLevels" xml:space="preserve">
+    <value>Сколько уровни запасов требуют держать на складе. Пусто — уровень для этого не задан вовсе, а это уже само по себе важный вывод.</value>
+  </data>
+  <data name="OnHand" xml:space="preserve">
+    <value>В наличии</value>
+  </data>
+  <data name="TipUnitsTheIndustryScope" xml:space="preserve">
+    <value>Единицы, реально доступные в охвате промышленности. Запасы за пределами охвата не учитываются, потому что план не может их использовать.</value>
+  </data>
+  <data name="Need" xml:space="preserve">
+    <value>Нужно</value>
+  </data>
+  <data name="TipWhatTheWorkOn" xml:space="preserve">
+    <value>Сколько нужно работе из списка: то, что здесь есть, плюс то, чего не хватило. Красным — если это больше, чем существует вообще; так бывает даже при полностью выполненном уровне.</value>
+  </data>
+  <data name="Cover" xml:space="preserve">
+    <value>Покрытие</value>
+  </data>
+  <data name="TipTheLevelMeasuredIn" xml:space="preserve">
+    <value>Уровень, выраженный в днях при текущем расходе. Буфер — это отрезок времени, а не количество: 200 единиц того, что расходуется по 2 в день, — это 100 дней, а 200 единиц того, что расходуется по 200 в день, — один день.</value>
+  </data>
+  <data name="Surge" xml:space="preserve">
+    <value>Всплеск</value>
+  </data>
+  <data name="TipHowMuchHarderThis" xml:space="preserve">
+    <value>Во сколько раз интенсивнее это расходуется сейчас, чем в среднем за весь период. Пусто при значении ниже 1,2×. Именно это отличает волну производства от постоянной нехватки.</value>
+  </data>
+  <data name="Blocking" xml:space="preserve">
+    <value>Блокирует</value>
+  </data>
+  <data name="TipTasksThisShortageIs" xml:space="preserve">
+    <value>Задачи, которые задерживает эта нехватка: те, которым этого не хватает напрямую, плюс остановленные из-за отсутствия того, что сделали бы первые, и так далее вверх по цепочке. Считаются задачи, а не типы предметов.</value>
+  </data>
+  <data name="Running" xml:space="preserve">
+    <value>Идут</value>
+  </data>
+  <data name="TipJobsMakingThisItem" xml:space="preserve">
+    <value>Проекты по производству этого предмета, запущенные и идущие в игре прямо сейчас. Это не задачи, поэтому список ничего по ним не требует.</value>
+  </data>
+  <data name="Ready" xml:space="preserve">
+    <value>Готовы</value>
+  </data>
+  <data name="TipTasksToMakeThis" xml:space="preserve">
+    <value>Задачи по производству этого предмета, которые можно начать уже сегодня.</value>
+  </data>
+  <data name="Waiting" xml:space="preserve">
+    <value>Ждут</value>
+  </data>
+  <data name="TipTasksToMakeThis2" xml:space="preserve">
+    <value>Задачи по производству этого предмета, которые задерживает только занятый слот.</value>
+  </data>
+  <data name="Stuck" xml:space="preserve">
+    <value>Застряли</value>
+  </data>
+  <data name="TipTasksToMakeThis3" xml:space="preserve">
+    <value>Задачи по производству этого предмета, заблокированные сами по себе. Красным — если при этом ничего не идёт и не готово: такая ситуация сама не разрешится.</value>
+  </data>
+  <data name="Verdict" xml:space="preserve">
+    <value>Вывод</value>
+  </data>
+  <data name="TipWhatTheRowAmounts" xml:space="preserve">
+    <value>Суть строки в паре слов.</value>
+  </data>
+  <data name="Suggestion" xml:space="preserve">
+    <value>Совет</value>
+  </data>
+  <data name="TipWhatIsHappeningAnd" xml:space="preserve">
+    <value>Что происходит и что это изменит — по цифрам этой строки, а не отсылкой к тому, куда смотреть.</value>
+  </data>
+  <data name="TabBpoFormula" xml:space="preserve">
+    <value>BPO / формулы</value>
+  </data>
+  <data name="BlueprintsLabel" xml:space="preserve">
+    <value>Чертежи</value>
+  </data>
+  <data name="ABlueprintBottleneckIsNote" xml:space="preserve">
+    <value>Узкое место по чертежам — это необходимость ЖДАТЬ, пока освободится оригинал, а не интенсивная работа одного из них. Упорядочивание по использованию ставит решение выше проблемы: формула, которая работает на пределе на восьми оригиналах, никогда ничего не блокировала — именно покупка восьмого это и решила. В списке — от 5% времени «все заняты» и выше или от 15% для предметов с единственным BPO, где эта мера вырождается в простое использование. Наведите указатель на заголовок столбца, чтобы узнать, что он означает.</value>
+  </data>
+  <data name="Product" xml:space="preserve">
+    <value>Продукт</value>
+  </data>
+  <data name="TipWhatThisBlueprintOr" xml:space="preserve">
+    <value>Что производит этот чертёж или формула. Нажмите, чтобы открыть «Просмотр предметов».</value>
+  </data>
+  <data name="Cycle" xml:space="preserve">
+    <value>Цикл</value>
+  </data>
+  <data name="TipHowLongOneRun" xml:space="preserve">
+    <value>Сколько длится один прогон — в среднем по реально выполненным проектам, а не по данным чертежа.</value>
+  </data>
+  <data name="TipOriginalsOwnedCopiesAre" xml:space="preserve">
+    <value>Оригиналы В СОБСТВЕННОСТИ. Копии намеренно не учитываются: конкуренция за чертежи — это вопрос о том, был ли свободен один из ваших.</value>
+  </data>
+  <data name="Installed" xml:space="preserve">
+    <value>В работе</value>
+  </data>
+  <data name="TipHowManyOfThose" xml:space="preserve">
+    <value>Сколько из этих оригиналов прямо сейчас находятся в проектах.</value>
+  </data>
+  <data name="Ceiling" xml:space="preserve">
+    <value>Потолок</value>
+  </data>
+  <data name="TipUnitsADayThe" xml:space="preserve">
+    <value>Сколько единиц в день могли бы выпускать имеющиеся оригиналы вместе, работая без перерыва.</value>
+  </data>
+  <data name="TipUnitsADayActually" xml:space="preserve">
+    <value>Сколько единиц в день реально выпущено за последние 90 дней. Это значение никогда не превышает потолок, поэтому им нельзя измерять спрос.</value>
+  </data>
+  <data name="TipShareOfEachOriginals" xml:space="preserve">
+    <value>Доля времени, которую каждый оригинал провёл в проектах. Только для справки: узких мест это не выявляет, а упорядочивание по этой доле ставит интенсивное использование выше реальных ограничений.</value>
+  </data>
+  <data name="AllBusy" xml:space="preserve">
+    <value>Все заняты</value>
+  </data>
+  <data name="TipShareOfTheLast" xml:space="preserve">
+    <value>Доля последних 90 дней, когда ВСЕ оригиналы были заняты одновременно, — с учётом исследований и копирования, а не только производства. Именно эта цифра показывает, приходилось ли ждать, чтобы запустить ещё один проект.</value>
+  </data>
+  <data name="Rank" xml:space="preserve">
+    <value>Ранг</value>
+  </data>
+  <data name="TipWhereThisSitsAmong" xml:space="preserve">
+    <value>Место среди всех ваших чертежей. Фиксированного порога здесь нет, поэтому отметка ставится относительно вашего собственного разброса.</value>
+  </data>
+  <data name="TipTheSameAllBusy" xml:space="preserve">
+    <value>Та же доля «все заняты» за последние 30 дней — чтобы напряжённый месяц не терялся в спокойном квартале.</value>
+  </data>
+  <data name="Trend" xml:space="preserve">
+    <value>Тенденция</value>
+  </data>
+  <data name="TipWhetherTheRecentSqueeze" xml:space="preserve">
+    <value>Растёт ли недавняя нагрузка, ослабевает или держится на уровне по сравнению со всем периодом.</value>
+  </data>
+  <data name="N1Print" xml:space="preserve">
+    <value>+1 чертёж</value>
+  </data>
+  <data name="TipWhatTheCeilingBecomes" xml:space="preserve">
+    <value>Каким станет потолок с ещё одним оригиналом. Ответ на вопрос, стоит ли его покупать.</value>
+  </data>
+  <data name="Queued" xml:space="preserve">
+    <value>В очереди</value>
+  </data>
+  <data name="TipJobsForThisProduct" xml:space="preserve">
+    <value>Проекты по этому продукту, которые сейчас есть в списке задач. Текущий спрос — то, чего история дать не может.</value>
+  </data>
+  <data name="BlockedNow" xml:space="preserve">
+    <value>Заблокировано сейчас</value>
+  </data>
+  <data name="TipJobsHeldUpBy" xml:space="preserve">
+    <value>Проекты, которые задерживает ТОЛЬКО чертёж. Если продукту не хватает ещё и материалов, дополнительные чертежи ничего не изменят, поэтому такие проекты считаются как ноль.</value>
+  </data>
+  <data name="TipTasksWaitingOnWhat" xml:space="preserve">
+    <value>Задачи, которые ждут того, что производит этот чертёж: напрямую и через другие задачи вверх по цепочке. Чертёж может быть совершенно свободен, и всё же за его продукцией может скопиться очередь.</value>
+  </data>
+  <data name="TipWhatTheRowAmounts2" xml:space="preserve">
+    <value>Суть строки одним словом.</value>
+  </data>
+  <data name="TipWhatIsHappeningAnd2" xml:space="preserve">
+    <value>Что происходит и что это изменит.</value>
+  </data>
+  <data name="TabHauling" xml:space="preserve">
+    <value>Перевозки</value>
+  </data>
+  <data name="TripsLabel" xml:space="preserve">
+    <value>Рейсы</value>
+  </data>
+  <data name="JobsStoppedForWantNote" xml:space="preserve">
+    <value>Проекты, остановленные из-за материалов, которые у вас уже есть, но лежат в другом месте, — вторая половина «Дефицита предметов», где решение — рейс, а не покупка. Каждая строка — проект, который может запуститься, как только прибудут материалы. Наведите указатель на заголовок столбца, чтобы узнать, что он означает.</value>
+  </data>
+  <data name="OneTripSeveralJobsLabel" xml:space="preserve">
+    <value>Один рейс — несколько проектов</value>
+  </data>
+  <data name="Job" xml:space="preserve">
+    <value>Проект</value>
+  </data>
+  <data name="TipTheStoppedJobIt" xml:space="preserve">
+    <value>Остановленный проект. Ему не хватает только материалов, которые у вас уже есть, поэтому он запустится, как только они до него доберутся.</value>
+  </data>
+  <data name="TipOpenWhatThisJobMakes" xml:space="preserve">
+    <value>Открыть то, что производит этот проект</value>
+  </data>
+  <data name="WaitingAt" xml:space="preserve">
+    <value>Где ждёт</value>
+  </data>
+  <data name="TipWhereTheJobWould" xml:space="preserve">
+    <value>Где будет идти проект, а значит, куда должны прибыть материалы.</value>
+  </data>
+  <data name="TipOpenThisStation" xml:space="preserve">
+    <value>Открыть эту станцию</value>
+  </data>
+  <data name="TipJobsStoppedBehindThis" xml:space="preserve">
+    <value>Проекты, остановленные из-за этого: те, которым не хватает того, что он произвёл бы, и те, что стоят за ними вверх по цепочке. Всё это снова придёт в движение, как только этот проект сможет запуститься.</value>
+  </data>
+  <data name="Items" xml:space="preserve">
+    <value>Предметы</value>
+  </data>
+  <data name="TipDistinctItemTypesThis" xml:space="preserve">
+    <value>Сколько разных типов предметов ждёт этот проект.</value>
+  </data>
+  <data name="TipCubicMetresThisJob" xml:space="preserve">
+    <value>Сколько кубометров не хватает этому проекту — чтобы оценить рейс ещё до планирования.</value>
+  </data>
+  <data name="Stops" xml:space="preserve">
+    <value>Остановки</value>
+  </data>
+  <data name="TipStopsAHaulerWould" xml:space="preserve">
+    <value>Сколько остановок придётся сделать перевозчику, чтобы покрыть нехватку, начиная с крупнейшего источника. Это НЕ число ангаров, где лежит предмет: Tritanium может лежать в тринадцати из них, а для проекта хватит одного.</value>
+  </data>
+  <data name="Hauls" xml:space="preserve">
+    <value>Перевозки</value>
+  </data>
+  <data name="TipHaulsAlreadyOnThe" xml:space="preserve">
+    <value>Перевозки, которые уже есть в списке задач и везут к этому проекту недостающие материалы. Пусто — это и есть вывод: материалы существуют, проект стоит, и никто их не везёт.</value>
+  </data>
+  <data name="TabFinalProducts" xml:space="preserve">
+    <value>Конечная продукция</value>
+  </data>
+  <data name="Completed" xml:space="preserve">
+    <value>Завершено</value>
+  </data>
+  <data name="HintFromYyyyMmDd" xml:space="preserve">
+    <value>с yyyy-MM-dd</value>
+  </data>
+  <data name="HintThruYyyyMmDd" xml:space="preserve">
+    <value>по yyyy-MM-dd</value>
+  </data>
+  <data name="ValueAt" xml:space="preserve">
+    <value>Оценка</value>
+  </data>
+  <data name="ChartBy" xml:space="preserve">
+    <value>График</value>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>Статус</value>
+  </data>
+  <data name="ColUnits" xml:space="preserve">
+    <value>Кол-во</value>
+  </data>
+  <data name="ColStarted" xml:space="preserve">
+    <value>Начат</value>
+  </data>
+  <data name="ColCompleted" xml:space="preserve">
+    <value>Завершён</value>
+  </data>
+  <data name="ColBuildCost" xml:space="preserve">
+    <value>Стоимость производства</value>
+  </data>
+  <data name="ColMarketValue" xml:space="preserve">
+    <value>Рыночная стоимость</value>
+  </data>
+  <data name="ColPotentialProfit" xml:space="preserve">
+    <value>Возможная прибыль</value>
+  </data>
+  <data name="ColPotential" xml:space="preserve">
+    <value>Прибыль, %</value>
+  </data>
+  <data name="MarketValue" xml:space="preserve">
+    <value>Рыночная стоимость</value>
+  </data>
+  <data name="PotentialProfit" xml:space="preserve">
+    <value>Возможная прибыль</value>
+  </data>
+  <data name="TabConfig" xml:space="preserve">
+    <value>Настройки</value>
+  </data>
+  <data name="TabSources" xml:space="preserve">
+    <value>Источники</value>
+  </data>
+  <data name="Sources" xml:space="preserve">
+    <value>Источники</value>
+  </data>
+  <data name="ASourceThatIsNote" xml:space="preserve">
+    <value>Выключенный источник полностью пропускается — он не тратит ни одного запроса, а не выполняется впустую, чтобы потом отбросить результат.</value>
+  </data>
+  <data name="StandingBuyOrdersWhatTo" xml:space="preserve">
+    <value>Постоянные ордера на покупку — какие задачи создавать</value>
+  </data>
+  <data name="WhichConditionsBecomeTasksNote" xml:space="preserve">
+    <value>Какие условия превращаются в задачи. Каждое — отдельная работа, поэтому они включаются независимо.</value>
+  </data>
+  <data name="TabMarket" xml:space="preserve">
+    <value>Рынок</value>
+  </data>
+  <data name="WhereShortfallsAreBoughtNote" xml:space="preserve">
+    <value>Где докупается недостающее и какой персонаж ведёт ордера на каждой станции. Задачи проходят через эти станции, поэтому станция без назначенного твинка порождает заблокированные строки без исполнителя.</value>
+  </data>
+  <data name="BuyShortfallsAt" xml:space="preserve">
+    <value>Докупать недостающее в</value>
+  </data>
+  <data name="HintTradeHub" xml:space="preserve">
+    <value>Торговый узел…</value>
+  </data>
+  <data name="TipWherePurchasesAreRaised" xml:space="preserve">
+    <value>Где создаются покупки и какому рыночному твинку они достаются. Чертежи остаются без назначения — BPO и BPC берутся из контрактов, а не через рыночный ордер.</value>
+  </data>
+  <data name="StationOrStructure" xml:space="preserve">
+    <value>Станция или сооружение</value>
+  </data>
+  <data name="Character" xml:space="preserve">
+    <value>Персонаж</value>
+  </data>
+  <data name="Note" xml:space="preserve">
+    <value>Примечание</value>
+  </data>
+  <data name="HintStationOrStructure" xml:space="preserve">
+    <value>Станция или сооружение…</value>
+  </data>
+  <data name="HintCharacter2" xml:space="preserve">
+    <value>Персонаж…</value>
+  </data>
+  <data name="HintOptional" xml:space="preserve">
+    <value>необязательно</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Добавить</value>
+  </data>
+  <data name="ColLocation" xml:space="preserve">
+    <value>Место</value>
+  </data>
+  <data name="ColCharacter" xml:space="preserve">
+    <value>Персонаж</value>
+  </data>
+  <data name="ColNote" xml:space="preserve">
+    <value>Примечание</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>Убрать</value>
+  </data>
+  <data name="TabInventoryRules" xml:space="preserve">
+    <value>Правила запасов</value>
+  </data>
+  <data name="WhenAGroupDropsNote" xml:space="preserve">
+    <value>Когда группа опускается ниже порога, на этой станции должен быть ордер на покупку. На одну группу может ссылаться несколько правил — ниже 100% заказывать на месте, ниже 75% ещё и в торговом узле, — и они складываются, а не заменяют друг друга. Кто выставляет ордер, определяет рыночный твинк станции.</value>
+  </data>
+  <data name="InventoryGroup" xml:space="preserve">
+    <value>Группа запасов</value>
+  </data>
+  <data name="Site" xml:space="preserve">
+    <value>Место</value>
+  </data>
+  <data name="Action" xml:space="preserve">
+    <value>Действие</value>
+  </data>
+  <data name="TriggerBelow" xml:space="preserve">
+    <value>Срабатывать ниже (%)</value>
+  </data>
+  <data name="FillUpTo" xml:space="preserve">
+    <value>Пополнять до (%)</value>
+  </data>
+  <data name="HintPickAGroup" xml:space="preserve">
+    <value>Выберите группу…</value>
+  </data>
+  <data name="HintTypeTwoCharacters" xml:space="preserve">
+    <value>Введите два символа…</value>
+  </data>
+  <data name="DecidedByTheIndyNote" xml:space="preserve">
+    <value>Определяется промпарком на вкладке «Прочее»</value>
+  </data>
+  <data name="TipBuyPlacesAMarket" xml:space="preserve">
+    <value>«Покупка» выставляет рыночный ордер на недостающее; «Производство» запускает под него проект</value>
+  </data>
+  <data name="TipRaiseATaskWhen" xml:space="preserve">
+    <value>Создавать задачу, когда запас падает ниже этой доли от цели группы</value>
+  </data>
+  <data name="TipFillBackUpTo" xml:space="preserve">
+    <value>Пополнять обратно до этой доли от цели группы</value>
+  </data>
+  <data name="AddRule" xml:space="preserve">
+    <value>Добавить правило</value>
+  </data>
+  <data name="ColGroup" xml:space="preserve">
+    <value>Группа</value>
+  </data>
+  <data name="ColAction" xml:space="preserve">
+    <value>Действие</value>
+  </data>
+  <data name="ColTriggerBelow" xml:space="preserve">
+    <value>Срабатывать ниже (%)</value>
+  </data>
+  <data name="ColFillTo" xml:space="preserve">
+    <value>Пополнять до (%)</value>
+  </data>
+  <data name="ColFinal" xml:space="preserve">
+    <value>Конечная</value>
+  </data>
+  <data name="TipThisGroupIsSold" xml:space="preserve">
+    <value>Эту группу продают или используют в полётах, а не как сырьё. Работа, которая её разблокирует, ставится выше работы, которая лишь пополняет буфер.</value>
+  </data>
+  <data name="TipDoubleClickToChangeThe" xml:space="preserve">
+    <value>Дважды щёлкните, чтобы сменить станцию</value>
+  </data>
+  <data name="TabStationLevels" xml:space="preserve">
+    <value>Уровни станций</value>
+  </data>
+  <data name="WhereEachGroupsStockNote" xml:space="preserve">
+    <value>Где должен храниться запас каждой группы. Это распределяет материалы, а не требует их больше — количество уже задают «Правила запасов», — поэтому здесь создаются только перевозки, никогда не покупки и не производство. Отметьте «Принимает излишки» у станции, где должен собираться лишний запас, когда он больше нигде не нужен.</value>
+  </data>
+  <data name="HintGroup" xml:space="preserve">
+    <value>Группа…</value>
+  </data>
+  <data name="HintNeedNotBeInThe" xml:space="preserve">
+    <value>Не обязательно в промпарке…</value>
+  </data>
+  <data name="AcceptsSurplus" xml:space="preserve">
+    <value>Принимает излишки</value>
+  </data>
+  <data name="TipSpareStockOfThis" xml:space="preserve">
+    <value>Лишний запас этой группы собирается здесь, когда он не нужен ни одной станции.</value>
+  </data>
+  <data name="RestockWhenBelowLevelBy" xml:space="preserve">
+    <value>Пополнять, когда ниже уровня на (%)</value>
+  </data>
+  <data name="TipAStationIsLeft" xml:space="preserve">
+    <value>Станцию не трогают, пока её запас не опустится настолько ниже уровня, а затем пополняют до конца. Ноль — пополнять при любой нехватке.</value>
+  </data>
+  <data name="SweepSurplusWhenAboveLevel" xml:space="preserve">
+    <value>Вывозить излишки, когда выше уровня на (%)</value>
+  </data>
+  <data name="TipExcessIsLeftWhere" xml:space="preserve">
+    <value>Излишки остаются на месте, пока запас станции не превысит уровень настолько, а затем вывозятся до уровня. Ноль — вывозить любые излишки.</value>
+  </data>
+  <data name="ColInventoryGroup" xml:space="preserve">
+    <value>Группа запасов</value>
+  </data>
+  <data name="ColAcceptsSurplus" xml:space="preserve">
+    <value>Принимает излишки</value>
+  </data>
+  <data name="TabOther" xml:space="preserve">
+    <value>Прочее</value>
+  </data>
+  <data name="WhereIndustryWorkIsNote" xml:space="preserve">
+    <value>Где планируется промышленная работа, где учитываются её материалы и где докупается недостающее.</value>
+  </data>
+  <data name="Industry" xml:space="preserve">
+    <value>Промышленность</value>
+  </data>
+  <data name="PlanAgainstPark" xml:space="preserve">
+    <value>Планировать по промпарку</value>
+  </data>
+  <data name="MaxJobLengthManufacturing" xml:space="preserve">
+    <value>Макс. длительность проекта — производство</value>
+  </data>
+  <data name="Reactions" xml:space="preserve">
+    <value>реакции</value>
+  </data>
+  <data name="Science" xml:space="preserve">
+    <value>наука</value>
+  </data>
+  <data name="TipDefaultFollowsWhicheverPark" xml:space="preserve">
+    <value>&lt;По умолчанию&gt; следует за промпарком, отмеченным звёздочкой в разделе «Промпарки», — это определяется при каждом планировании работы, так что перенос звёздочки переносит и планирование.</value>
+  </data>
+  <data name="TipDaysAShortfallNeeding" xml:space="preserve">
+    <value>Дни. Нехватка, на которую нужно больше времени, делится на несколько проектов, которые могут идти в разных слотах и у разных персонажей. Пусто — без ограничения; тогда действует только собственный предел прогонов чертежа.</value>
+  </data>
+  <data name="TipDaysReactionsAreSet" xml:space="preserve">
+    <value>Дни. Реакции задаются отдельно от производства, потому что их обычно запускают более короткими непрерывными циклами.</value>
+  </data>
+  <data name="TipDaysCoveringCopyingAnd" xml:space="preserve">
+    <value>Дни, для копирования и модернизации. Именно это решает, когда одна многопрогонная партия модернизации превращается в две: партия ничего не даёт, пока не завершится, а одна попытка по чертежу корабля большого тоннажа занимает уже около восьми дней, так что предел как для производства вынуждал бы делать одну попытку на проект и тратить на каждую научный слот.</value>
+  </data>
+  <data name="Days" xml:space="preserve">
+    <value>д</value>
+  </data>
+  <data name="AssetScope" xml:space="preserve">
+    <value>Охват имущества</value>
+  </data>
+  <data name="CountMaterial" xml:space="preserve">
+    <value>Учитывать материалы</value>
+  </data>
+  <data name="RegionSystem" xml:space="preserve">
+    <value>Сектор / система</value>
+  </data>
+  <data name="TipHowFarToLook" xml:space="preserve">
+    <value>Как далеко смотреть, решая, чего не хватает проекту. Запасы за этими пределами считаются отсутствующими, поэтому порождают покупку, а не перевозку.</value>
+  </data>
+  <data name="IncludeNonPersonalCorpAssets" xml:space="preserve">
+    <value>Учитывать имущество неличных корпораций</value>
+  </data>
+  <data name="TipOffByDefaultOnly" xml:space="preserve">
+    <value>По умолчанию выключено. Материалами считается только имущество корпораций, отмеченных как личные на вкладке «Корпорации», — иначе авторизация персонажа из большой альянсовой корпорации отдала бы инструменту весь её ангар, в котором нет ничего вашего.</value>
+  </data>
+  <data name="AlsoCountTheseStations" xml:space="preserve">
+    <value>Также учитывать эти станции</value>
+  </data>
+  <data name="HintJitaAmarr" xml:space="preserve">
+    <value>Jita, Amarr…</value>
+  </data>
+  <data name="TipTradeHubsYouImport" xml:space="preserve">
+    <value>Торговые узлы, через которые вы ввозите товары. Запас, который ждёт в одном из них, — это ваш запас, и он не должен порождать повторную покупку.</value>
+  </data>
+  <data name="TipClickToRemoveFromThe" xml:space="preserve">
+    <value>Нажмите, чтобы убрать из охвата</value>
+  </data>
+  <data name="CorpProjects" xml:space="preserve">
+    <value>Проекты корпораций</value>
+  </data>
+  <data name="StandingProjectsAreDefinedNote" xml:space="preserve">
+    <value>Постоянные проекты задаются в разделе «Активность корпорации»; списку задач нужно знать только, кто их ведёт. Такие проекты принадлежат корпорации, поэтому распределение идёт по корпорациям, а не по станциям. Показаны только корпорации, у которых действительно есть постоянные проекты.</value>
+  </data>
+  <data name="Corporation" xml:space="preserve">
+    <value>Корпорация</value>
+  </data>
+  <data name="MaintainedBy" xml:space="preserve">
+    <value>Кто ведёт</value>
+  </data>
+  <data name="HintPickACorporation" xml:space="preserve">
+    <value>Выберите корпорацию…</value>
+  </data>
+  <data name="ColCorporation" xml:space="preserve">
+    <value>Корпорация</value>
+  </data>
+  <data name="ColRecent30d" xml:space="preserve">
+    <value>30 д</value>
+  </data>
+  <data name="KindBuy" xml:space="preserve">
+    <value>Покупка</value>
+  </data>
+  <data name="KindHaul" xml:space="preserve">
+    <value>Перевозка</value>
+  </data>
+  <data name="KindRefine" xml:space="preserve">
+    <value>Переработка</value>
+  </data>
+  <data name="KindDecompress" xml:space="preserve">
+    <value>Декомпрессия</value>
+  </data>
+  <data name="KindJob" xml:space="preserve">
+    <value>Проект</value>
+  </data>
+  <data name="KindAssetSafety" xml:space="preserve">
+    <value>Безопасность активов</value>
+  </data>
+  <data name="KindSkillQueue" xml:space="preserve">
+    <value>План навыков</value>
+  </data>
+  <data name="KindCorpProject" xml:space="preserve">
+    <value>Проект корпорации</value>
+  </data>
+  <data name="KindTipRefine" xml:space="preserve">
+    <value>Переработка руды</value>
+  </data>
+  <data name="KindTipDecompress" xml:space="preserve">
+    <value>Декомпрессия газа</value>
+  </data>
+  <data name="KindTipManufacturing" xml:space="preserve">
+    <value>Производственный проект</value>
+  </data>
+  <data name="KindTipReaction" xml:space="preserve">
+    <value>Проект реакции</value>
+  </data>
+  <data name="KindTipScience" xml:space="preserve">
+    <value>Научный проект — копирование или модернизация</value>
+  </data>
+  <data name="KindTipIndustry" xml:space="preserve">
+    <value>Промышленный проект</value>
+  </data>
+  <data name="KindTipCorpProject" xml:space="preserve">
+    <value>Проект корпорации</value>
+  </data>
+  <data name="KindTipAssetSafety" xml:space="preserve">
+    <value>Система безопасности активов</value>
+  </data>
+  <data name="KindTipSkillQueue" xml:space="preserve">
+    <value>План навыков</value>
+  </data>
+  <data name="BlueprintMeTe" xml:space="preserve">
+    <value>ME{0} TE{1}</value>
+  </data>
+  <data name="StateReady" xml:space="preserve">
+    <value>Готово</value>
+  </data>
+  <data name="StateBlocked" xml:space="preserve">
+    <value>Заблокировано</value>
+  </data>
+  <data name="StateWaiting" xml:space="preserve">
+    <value>Ожидает</value>
+  </data>
+  <data name="DataAge" xml:space="preserve">
+    <value>данные: {0}</value>
+  </data>
+  <data name="SnoozedUntil" xml:space="preserve">
+    <value>отложено до {0:d MMM HH:mm}</value>
+  </data>
+  <data name="AgoJustNow" xml:space="preserve">
+    <value>только что</value>
+  </data>
+  <data name="AgoMinutes" xml:space="preserve">
+    <value>{0} мин назад</value>
+  </data>
+  <data name="AgoHours" xml:space="preserve">
+    <value>{0} ч назад</value>
+  </data>
+  <data name="AgoDays" xml:space="preserve">
+    <value>{0} д назад</value>
+  </data>
+  <data name="PoolManufacturing" xml:space="preserve">
+    <value>Производство</value>
+  </data>
+  <data name="PoolReaction" xml:space="preserve">
+    <value>Реакции</value>
+  </data>
+  <data name="PoolScience" xml:space="preserve">
+    <value>Наука</value>
+  </data>
+  <data name="SlotsQueued" xml:space="preserve">
+    <value>Проектов в очереди: {0:N0}. Слотов: {2:N0}, они завершали по {3:N1} проекта в день, так что на разбор очереди нужно {1:N0} д.</value>
+  </data>
+  <data name="SlotsNothingQueued" xml:space="preserve">
+    <value>За этим пулом нет очереди. Свободно {0:N0} из {1:N0}.</value>
+  </data>
+  <data name="SlotsNoCharacterManufacturing" xml:space="preserve">
+    <value>Ни один персонаж не настроен на запуск производственных проектов.</value>
+  </data>
+  <data name="SlotsNoCharacterReaction" xml:space="preserve">
+    <value>Ни один персонаж не настроен на запуск проектов реакций.</value>
+  </data>
+  <data name="SlotsNoCharacterScience" xml:space="preserve">
+    <value>Ни один персонаж не настроен на запуск научных проектов.</value>
+  </data>
+  <data name="DaysN0" xml:space="preserve">
+    <value>{0:N0} д</value>
+  </data>
+  <data name="PerDayN1" xml:space="preserve">
+    <value>{0:N1}/д</value>
+  </data>
+  <data name="DaysN1" xml:space="preserve">
+    <value>{0:N1} д</value>
+  </data>
+  <data name="HoursN1" xml:space="preserve">
+    <value>{0:N1} ч</value>
+  </data>
+  <data name="StateRunning" xml:space="preserve">
+    <value>Выполняется</value>
+  </data>
+  <data name="RoleTrip" xml:space="preserve">
+    <value>рейс</value>
+  </data>
+  <data name="RoleNeeds" xml:space="preserve">
+    <value>нуждается</value>
+  </data>
+  <data name="RoleUsesIt" xml:space="preserve">
+    <value>использует его</value>
+  </data>
+  <data name="RoleMakesIt" xml:space="preserve">
+    <value>производит его</value>
+  </data>
+  <data name="RoleNeedsIt" xml:space="preserve">
+    <value>не хватает</value>
+  </data>
+  <data name="RoleBehind" xml:space="preserve">
+    <value>дальше по цепочке ({0})</value>
+  </data>
+  <data name="ContentionVerdictBuyNow" xml:space="preserve">
+    <value>Купить сейчас</value>
+  </data>
+  <data name="ContentionVerdictOnOrder" xml:space="preserve">
+    <value>Заказано</value>
+  </data>
+  <data name="ContentionVerdictBufferSpent" xml:space="preserve">
+    <value>Буфер исчерпан</value>
+  </data>
+  <data name="ContentionVerdictBlocked" xml:space="preserve">
+    <value>Заблокировано</value>
+  </data>
+  <data name="ContentionVerdictLevelTooLow" xml:space="preserve">
+    <value>Уровень мал</value>
+  </data>
+  <data name="ContentionVerdictNoBuffer" xml:space="preserve">
+    <value>Нет буфера</value>
+  </data>
+  <data name="ContentionVerdictNotTheShelf" xml:space="preserve">
+    <value>Дело не в запасе</value>
+  </data>
+  <data name="ContentionVerdictMakingTooFew" xml:space="preserve">
+    <value>Мало производится</value>
+  </data>
+  <data name="ContentionVerdictBuy" xml:space="preserve">
+    <value>Покупать</value>
+  </data>
+  <data name="ContentionVerdictBufferThin" xml:space="preserve">
+    <value>Тонкий буфер</value>
+  </data>
+  <data name="ContentionVerdictNoLevelSet" xml:space="preserve">
+    <value>Уровень не задан</value>
+  </data>
+  <data name="ContentionVerdictWave" xml:space="preserve">
+    <value>Волна</value>
+  </data>
+  <data name="ContentionVerdictHolding" xml:space="preserve">
+    <value>В норме</value>
+  </data>
+  <data name="FindingStartHere" xml:space="preserve">
+    <value>Начните с этого</value>
+  </data>
+  <data name="FindingSlots" xml:space="preserve">
+    <value>Слоты</value>
+  </data>
+  <data name="FindingBlueprints" xml:space="preserve">
+    <value>Чертежи</value>
+  </data>
+  <data name="FindingFormulas" xml:space="preserve">
+    <value>Формулы</value>
+  </data>
+  <data name="FindingBuying" xml:space="preserve">
+    <value>Покупки</value>
+  </data>
+  <data name="FindingBuffers" xml:space="preserve">
+    <value>Буферы</value>
+  </data>
+  <data name="FindingHauling" xml:space="preserve">
+    <value>Перевозки</value>
+  </data>
+  <data name="LocationWithId" xml:space="preserve">
+    <value>Место {0}</value>
+  </data>
+  <data name="HaulingVerdictNothingMoving" xml:space="preserve">
+    <value>Ничего не движется</value>
+  </data>
+  <data name="HaulingVerdictSeveralStops" xml:space="preserve">
+    <value>Несколько остановок</value>
+  </data>
+  <data name="HaulingVerdictHaulRaised" xml:space="preserve">
+    <value>Перевозка создана</value>
+  </data>
+  <data name="PerDayN2" xml:space="preserve">
+    <value>{0:N2}/д</value>
+  </data>
+  <data name="RankTopPercent" xml:space="preserve">
+    <value>верхние {0:N0}%</value>
+  </data>
+  <data name="BlueprintVerdictBlocking" xml:space="preserve">
+    <value>Блокирует</value>
+  </data>
+  <data name="BlueprintVerdictSteady" xml:space="preserve">
+    <value>Постоянно</value>
+  </data>
+  <data name="BlueprintVerdictContended" xml:space="preserve">
+    <value>Конкуренция</value>
+  </data>
+  <data name="BlueprintVerdictBlocked" xml:space="preserve">
+    <value>Заблокировано</value>
+  </data>
+  <data name="BlueprintVerdictSurge" xml:space="preserve">
+    <value>Всплеск</value>
+  </data>
+  <data name="BlueprintVerdictBuilding" xml:space="preserve">
+    <value>Нарастает</value>
+  </data>
+  <data name="BlueprintVerdictMinor" xml:space="preserve">
+    <value>Незначительно</value>
+  </data>
+  <data name="BlueprintTrendRising" xml:space="preserve">
+    <value>Растёт</value>
+  </data>
+  <data name="BlueprintTrendEasing" xml:space="preserve">
+    <value>Ослабевает</value>
+  </data>
+  <data name="BlueprintTrendSteady" xml:space="preserve">
+    <value>Стабильно</value>
+  </data>
+  <data name="StatusNotLoadedYet" xml:space="preserve">
+    <value>Ещё не загружено.</value>
+  </data>
+  <data name="BottlenecksWorklistEmpty" xml:space="preserve">
+    <value>Список задач пуст — сначала сформируйте его, и здесь будет что анализировать.</value>
+  </data>
+  <data name="BottlenecksNone" xml:space="preserve">
+    <value>Узких мест нет: ни в одном пуле работа не ждёт слота, и ни у одного чертежа все экземпляры не были заняты настолько часто, чтобы что-то приходилось ждать. {0}</value>
+  </data>
+  <data name="BottlenecksSummaryCrossed" xml:space="preserve">
+    <value>Пулов, где работа ждёт слота: {0}; чертежей, на которые стоит взглянуть: {1}; материалов, которые расходуются быстрее, чем производятся: {2}. ⚠ Свободных слотов: {3:N0}, а у чертежей ({4}) заняты все экземпляры — ограничение здесь в чертежах, а не в слотах. {5}</value>
+  </data>
+  <data name="BottlenecksSummary" xml:space="preserve">
+    <value>Пулов, где работа ждёт слота: {0}; чертежей, на которые стоит взглянуть: {1}; материалов, которые расходуются быстрее, чем производятся: {2}. {3}</value>
+  </data>
+  <data name="NeedsNotLoaded" xml:space="preserve">
+    <value>Откройте эту вкладку, чтобы рассчитать, что нужно каждой станции.</value>
+  </data>
+  <data name="NeedsNoLogistics" xml:space="preserve">
+    <value>Источник «Логистика» недоступен.</value>
+  </data>
+  <data name="NeedsNothingWanted" xml:space="preserve">
+    <value>Нигде ничего не нужно — ни правила производства, ни заказы, ни уровни станций не требуют материалов.</value>
+  </data>
+  <data name="NeedsSummary" xml:space="preserve">
+    <value>Потребностей: {0:N0}, станций: {1}; с нехваткой: {2:N0}. Сначала — с наибольшей нехваткой. Это потребности, а не задачи — небольшая нехватка может оставаться в мёртвой зоне уровня станции и не порождать перевозку.</value>
+  </data>
+  <data name="NeedsError" xml:space="preserve">
+    <value>Не удалось рассчитать потребности станций: {0}</value>
+  </data>
+  <data name="BottlenecksError" xml:space="preserve">
+    <value>Не удалось прочитать узкие места: {0}</value>
+  </data>
+  <data name="SourceIncludeTip" xml:space="preserve">
+    <value>Включать этот источник в список задач.</value>
+  </data>
+  <data name="SourceCustomerOrders" xml:space="preserve">
+    <value>Заказы покупателей</value>
+  </data>
+  <data name="SourceCustomerOrdersTip" xml:space="preserve">
+    <value>Планировать ожидающие заказы из «Учёта заказов» за вычетом того, что уже произведено или производится. Использует промпарк, заданный на вкладке «Прочее», и место покупки, заданное на вкладке «Рынок».</value>
+  </data>
+  <data name="ConditionMissing" xml:space="preserve">
+    <value>Отсутствующие ордера</value>
+  </data>
+  <data name="ConditionMissingTip" xml:space="preserve">
+    <value>Постоянный ордер, для которого на его станции нет действующего ордера на покупку.</value>
+  </data>
+  <data name="ConditionOutbid" xml:space="preserve">
+    <value>Цена перебита</value>
+  </data>
+  <data name="ConditionOutbidTip" xml:space="preserve">
+    <value>Кто-то предлагает больше, поэтому ордер ничего не покупает.</value>
+  </data>
+  <data name="ConditionRunningLow" xml:space="preserve">
+    <value>Заканчивается</value>
+  </data>
+  <data name="ConditionRunningLowTip" xml:space="preserve">
+    <value>Оставшийся объём упал ниже порога пополнения.</value>
+  </data>
+  <data name="ConditionExpiring" xml:space="preserve">
+    <value>Скоро истекает</value>
+  </data>
+  <data name="ConditionExpiringTip" xml:space="preserve">
+    <value>Срок действия ордера подходит к концу.</value>
+  </data>
+  <data name="ShowNotReady" xml:space="preserve">
+    <value>Показывать заблокированные / ожидающие</value>
+  </data>
+  <data name="ShowSnoozed" xml:space="preserve">
+    <value>Показывать отложенные</value>
+  </data>
+  <data name="FilterAny" xml:space="preserve">
+    <value>(все)</value>
+  </data>
+  <data name="EmptyListHelp" xml:space="preserve">
+    <value>Строки заново строятся из актуальных данных при каждом обновлении — строка исчезает, как только работа выполнена. Обнаружение идёт по данным опроса ESI, поэтому в каждой строке указано, насколько свежи её данные. Сводка выше считается по всему списку, без учёта фильтров.</value>
+  </data>
+  <data name="ChipBuy" xml:space="preserve">
+    <value>покупки</value>
+  </data>
+  <data name="ChipHaul" xml:space="preserve">
+    <value>перевозки</value>
+  </data>
+  <data name="ChipManufacturing" xml:space="preserve">
+    <value>производство</value>
+  </data>
+  <data name="ChipReactions" xml:space="preserve">
+    <value>реакции</value>
+  </data>
+  <data name="ChipScience" xml:space="preserve">
+    <value>наука</value>
+  </data>
+  <data name="StatusShown" xml:space="preserve">
+    <value>показано: {0:N0}</value>
+  </data>
+  <data name="StatusNothingReady" xml:space="preserve">
+    <value>Готовых нет{0}.</value>
+  </data>
+  <data name="StatusReady" xml:space="preserve">
+    <value>Готово: {0:N0}{1}</value>
+  </data>
+  <data name="RefreshedAt" xml:space="preserve">
+    <value>Обновлено в {0:HH:mm}</value>
+  </data>
+  <data name="ShowNotReadyCount" xml:space="preserve">
+    <value>Показывать заблокированные / ожидающие ({0:N0})</value>
+  </data>
+  <data name="ShowSnoozedCount" xml:space="preserve">
+    <value>Показывать отложенные ({0:N0})</value>
+  </data>
+  <data name="HiddenBlocked" xml:space="preserve">
+    <value>заблокированные: {0}</value>
+  </data>
+  <data name="HiddenWaiting" xml:space="preserve">
+    <value>ожидающие: {0}</value>
+  </data>
+  <data name="HiddenSnoozed" xml:space="preserve">
+    <value>отложенные: {0}</value>
+  </data>
+  <data name="HiddenList" xml:space="preserve">
+    <value>(скрыты {0})</value>
+  </data>
+  <data name="GroupWithId" xml:space="preserve">
+    <value>Группа {0}</value>
+  </data>
+  <data name="FromPark" xml:space="preserve">
+    <value>— по промпарку —</value>
+  </data>
+  <data name="BySkill" xml:space="preserve">
+    <value>— по навыкам —</value>
+  </data>
+  <data name="RuleActionBuy" xml:space="preserve">
+    <value>Покупка</value>
+  </data>
+  <data name="RuleActionBuild" xml:space="preserve">
+    <value>Производство</value>
+  </data>
+  <data name="GroupWithIdLower" xml:space="preserve">
+    <value>группа {0}</value>
+  </data>
+  <data name="NoStationSet" xml:space="preserve">
+    <value>станция не задана</value>
+  </data>
+  <data name="AltWarningMore" xml:space="preserve">
+    <value>Правила покупки ({0}) указывают на станцию без рыночного твинка, поэтому их покупки некому выставить и они будут показаны как заблокированные: {1} и ещё {2}. Назначьте твинка на вкладке «Рынок» или заново выберите станцию в правиле.</value>
+  </data>
+  <data name="AltWarning" xml:space="preserve">
+    <value>Правила покупки ({0}) указывают на станцию без рыночного твинка, поэтому их покупки некому выставить и они будут показаны как заблокированные: {1}. Назначьте твинка на вкладке «Рынок» или заново выберите станцию в правиле.</value>
+  </data>
+  <data name="Unassigned" xml:space="preserve">
+    <value>— не назначен —</value>
+  </data>
+  <data name="RulesNoGroups" xml:space="preserve">
+    <value>Групп уровней запасов пока нет — сначала создайте группу в разделе «Уровни запасов».</value>
+  </data>
+  <data name="RulesNone" xml:space="preserve">
+    <value>Правил пока нет.</value>
+  </data>
+  <data name="RulesCount" xml:space="preserve">
+    <value>Правил: {0:N0}</value>
+  </data>
+  <data name="StatusSaved" xml:space="preserve">
+    <value>Сохранено.</value>
+  </data>
+  <data name="StatusSaveFailed" xml:space="preserve">
+    <value>Не удалось сохранить это изменение: {0}</value>
+  </data>
+  <data name="PickInventoryLevelGroup" xml:space="preserve">
+    <value>Выберите группу уровней запасов.</value>
+  </data>
+  <data name="PickStationForBuyOrder" xml:space="preserve">
+    <value>Выберите станцию или сооружение для ордера на покупку.</value>
+  </data>
+  <data name="ThresholdNotPositive" xml:space="preserve">
+    <value>Порог должен быть числом больше нуля.</value>
+  </data>
+  <data name="FillNotPositive" xml:space="preserve">
+    <value>Цель пополнения должна быть числом больше нуля.</value>
+  </data>
+  <data name="ActivityManufacturing" xml:space="preserve">
+    <value>Производство</value>
+  </data>
+  <data name="ActivityReactions" xml:space="preserve">
+    <value>Реакции</value>
+  </data>
+  <data name="ActivityScience" xml:space="preserve">
+    <value>Наука</value>
+  </data>
+  <data name="ActivitiesNone" xml:space="preserve">
+    <value>— нет —</value>
+  </data>
+  <data name="ParkDefault" xml:space="preserve">
+    <value>&lt;По умолчанию&gt;</value>
+  </data>
+  <data name="ScopeEverywhere" xml:space="preserve">
+    <value>Везде</value>
+  </data>
+  <data name="ScopeRegion" xml:space="preserve">
+    <value>Сектор</value>
+  </data>
+  <data name="ScopeSystem" xml:space="preserve">
+    <value>Система</value>
+  </data>
+  <data name="PickScopeStation" xml:space="preserve">
+    <value>Выберите станцию, чтобы добавить её в охват.</value>
+  </data>
+  <data name="SlotsFreeOfTotal" xml:space="preserve">
+    <value>П {0}/{1}  ·  Р {2}/{3}  ·  Н {4}/{5}</value>
+  </data>
+  <data name="BuyNoLocation" xml:space="preserve">
+    <value>Место покупки не задано. О нехватке по-прежнему будет сообщаться в проектах, которые она блокирует, но создавать покупки негде.</value>
+  </data>
+  <data name="BuyNoAlt" xml:space="preserve">
+    <value>На вкладке «Рынок» месту покупки {0} не назначен рыночный твинк, поэтому у задач покупки там не будет персонажа.</value>
+  </data>
+  <data name="ParkNoDefault" xml:space="preserve">
+    <value>Выбрано {0}, но ни один промпарк не отмечен звёздочкой в разделе «Промпарки». Промышленные проекты не появятся, пока промпарк не отмечен там или не выбран здесь, потому что именно промпарк определяет объекты и модификаторы.</value>
+  </data>
+  <data name="ParkUnlinked" xml:space="preserve">
+    <value>Сооружения этого промпарка, не связанные с реальным местом: {0} ({1}). Материалы там невозможно учесть, поэтому проекты могут выглядеть заблокированными, хотя всё нужное на самом деле есть.</value>
+  </data>
+  <data name="ParkNoStructures" xml:space="preserve">
+    <value>В этом промпарке нет сооружений. Проверить материалы невозможно.</value>
+  </data>
+  <data name="IndustryLoadFailed" xml:space="preserve">
+    <value>Не удалось загрузить настройки промышленности: {0}</value>
+  </data>
+  <data name="GrainDaily" xml:space="preserve">
+    <value>По дням</value>
+  </data>
+  <data name="GrainWeekly" xml:space="preserve">
+    <value>По неделям</value>
+  </data>
+  <data name="GrainMonthly" xml:space="preserve">
+    <value>По месяцам</value>
+  </data>
+  <data name="ValuationMarket" xml:space="preserve">
+    <value>Рыночная стоимость</value>
+  </data>
+  <data name="ValuationOverBuild" xml:space="preserve">
+    <value>% сверх стоимости производства</value>
+  </data>
+  <data name="FinalLoadFailed" xml:space="preserve">
+    <value>Не удалось загрузить: {0}</value>
+  </data>
+  <data name="TypeWithId" xml:space="preserve">
+    <value>Тип {0}</value>
+  </data>
+  <data name="SourceFinalAndOrdered" xml:space="preserve">
+    <value>Конечная · заказ</value>
+  </data>
+  <data name="SourceFinalProduct" xml:space="preserve">
+    <value>Конечная продукция</value>
+  </data>
+  <data name="SourceOrdered" xml:space="preserve">
+    <value>Заказ</value>
+  </data>
+  <data name="FinalNoJobs" xml:space="preserve">
+    <value>В этом периоде нет проектов.</value>
+  </data>
+  <data name="FinalSummary" xml:space="preserve">
+    <value>Проектов: {0:N0} · стоимость: {1} · возможная прибыль: {2}</value>
+  </data>
+  <data name="LevelClash" xml:space="preserve">
+    <value>У группы {0} уже есть уровень на {1} — это изменение не сохранено.</value>
+  </data>
+  <data name="PickInventoryGroup" xml:space="preserve">
+    <value>Выберите группу запасов.</value>
+  </data>
+  <data name="PickStationOrStructure" xml:space="preserve">
+    <value>Выберите станцию или сооружение.</value>
+  </data>
+  <data name="LevelsNone" xml:space="preserve">
+    <value>Уровней станций пока нет. Без них материалы перевозятся только туда, где их ждёт проект.</value>
+  </data>
+  <data name="LevelsCount" xml:space="preserve">
+    <value>Уровней: {0:N0}</value>
+  </data>
+  <data name="CorpWithId" xml:space="preserve">
+    <value>Корпорация {0}</value>
+  </data>
+  <data name="CorpProjectsNone" xml:space="preserve">
+    <value>Постоянных проектов пока нет — сначала задайте их в разделе «Активность корпорации».</value>
+  </data>
+  <data name="CorpProjectsUnassigned" xml:space="preserve">
+    <value>Постоянных проектов: {0:N0}, корпораций: {1} · без назначенного персонажа: {2}, поэтому их строки показаны как заблокированные</value>
+  </data>
+  <data name="CorpProjectsCount" xml:space="preserve">
+    <value>Постоянных проектов: {0:N0}, корпораций: {1}</value>
+  </data>
+  <data name="PickCorporation" xml:space="preserve">
+    <value>Выберите корпорацию.</value>
+  </data>
+  <data name="PickProjectCharacter" xml:space="preserve">
+    <value>Выберите персонажа, который ведёт её постоянные проекты.</value>
+  </data>
+  <data name="MarketAltsNone" xml:space="preserve">
+    <value>Рыночных твинков пока нет. Пока у станции нет такого твинка, её строки показаны как заблокированные: неизвестно, какой персонаж должен выполнять работу.</value>
+  </data>
+  <data name="MarketAltsCount" xml:space="preserve">
+    <value>Рыночных твинков: {0:N0}</value>
+  </data>
+  <data name="PickStationFromList" xml:space="preserve">
+    <value>Выберите станцию или сооружение из списка.</value>
+  </data>
+  <data name="PickMarketAltCharacter" xml:space="preserve">
+    <value>Выберите персонажа, который там работает.</value>
+  </data>
+  <data name="TasksOne" xml:space="preserve">
+    <value>{0:N0} задача</value>
+  </data>
+  <data name="TasksOther" xml:space="preserve">
+    <value>{0:N0} задачи</value>
+  </data>
+  <data name="TasksFew" xml:space="preserve">
+    <value>{0:N0} задачи</value>
+  </data>
+  <data name="TasksMany" xml:space="preserve">
+    <value>{0:N0} задач</value>
+  </data>
+  <data name="SourceSkillQueues" xml:space="preserve">
+    <value>Планы навыков</value>
+  </data>
+  <data name="SkillQueueEmpty" xml:space="preserve">
+    <value>План навыков пуст</value>
+  </data>
+  <data name="SkillQueueEmptyDetail" xml:space="preserve">
+    <value>Ничего не изучается. Каждая минута — это недополученные очки навыков.</value>
+  </data>
+  <data name="SkillQueuePaused" xml:space="preserve">
+    <value>План навыков приостановлен</value>
+  </data>
+  <data name="SkillQueuePausedDetail" xml:space="preserve">
+    <value>В плане есть навыки, но ни один не изучается.</value>
+  </data>
+  <data name="DurationDaysHours" xml:space="preserve">
+    <value>{0} д {1} ч</value>
+  </data>
+  <data name="SkillQueueEndsIn" xml:space="preserve">
+    <value>План навыков закончится через {0}</value>
+  </data>
+  <data name="SkillQueueEndsDetail" xml:space="preserve">
+    <value>Опустеет {0:d MMM HH:mm} — в пределах порога предупреждения ({1} д).</value>
+  </data>
+  <data name="SourceStandingProjects" xml:space="preserve">
+    <value>Постоянные проекты</value>
+  </data>
+  <data name="BlockedNoCharacterForCorp" xml:space="preserve">
+    <value>Для этой корпорации не назначен персонаж</value>
+  </data>
+  <data name="ProjectNotActive" xml:space="preserve">
+    <value>Нет активного проекта корпорации, соответствующего этому описанию.</value>
+  </data>
+  <data name="ProjectCheckAdm" xml:space="preserve">
+    <value>Проверьте данные ADM — {0}: {1}</value>
+  </data>
+  <data name="ProjectCheckAdmDetail" xml:space="preserve">
+    <value>Не удалось прочитать данные о праве владения, поэтому ни одну систему нельзя сравнить с порогом. Это сбой загрузки, а не пустой охват.</value>
+  </data>
+  <data name="ProjectCheckScope" xml:space="preserve">
+    <value>Проверьте охват — {0}: {1}</value>
+  </data>
+  <data name="ProjectCheckScopeDetail" xml:space="preserve">
+    <value>Охват не включает ни одной системы, поэтому для него ничего нельзя создать.</value>
+  </data>
+  <data name="ProjectNothingToRaise" xml:space="preserve">
+    <value>{0} — создавать нечего ({1})</value>
+  </data>
+  <data name="ProjectNothingToRaiseDetail" xml:space="preserve">
+    <value>Каждая система в охвате на пороге или выше, поэтому сегодня правило ничего не выбирает. Строка сама появится снова, если какой-либо ADM упадёт.</value>
+  </data>
+  <data name="ProjectDeliverTo" xml:space="preserve">
+    <value>{0} — {1} на станцию {2}</value>
+  </data>
+  <data name="ProjectDeliverToAnyOffice" xml:space="preserve">
+    <value>{0} — {1} в любой офис корпорации</value>
+  </data>
+  <data name="ProjectNotActiveByRule" xml:space="preserve">
+    <value>Нет активного проекта корпорации, соответствующего этому описанию. Эта система подходит под правило ADM, поэтому сама исчезнет из списка, когда ADM восстановится.</value>
+  </data>
+  <data name="ProjectNotActiveNamed" xml:space="preserve">
+    <value>Нет активного проекта корпорации, соответствующего этому описанию. Эта система прямо указана в самом описании.</value>
+  </data>
+  <data name="SourceStandingBuyOrders" xml:space="preserve">
+    <value>Постоянные ордера на покупку</value>
+  </data>
+  <data name="BlockedNoCharacterAtLocation" xml:space="preserve">
+    <value>Для этого места не назначен персонаж</value>
+  </data>
+  <data name="TitleRaiseBid" xml:space="preserve">
+    <value>{0} — поднять цену</value>
+  </data>
+  <data name="TitlePlaceOrder" xml:space="preserve">
+    <value>{0} — выставить ордер</value>
+  </data>
+  <data name="TitleTopUpOrder" xml:space="preserve">
+    <value>{0} — пополнить ордер</value>
+  </data>
+  <data name="TitleReplaceOrder" xml:space="preserve">
+    <value>{0} — выставить ордер заново</value>
+  </data>
+  <data name="StandingOutbidBy" xml:space="preserve">
+    <value>Цену перебили на {0:N2} ISK — лучшая цена конкурентов: {1}. Ваша: {2}.</value>
+  </data>
+  <data name="StandingOutbid" xml:space="preserve">
+    <value>Цену перебили — лучшая цена конкурентов: {0}. Ваша: {1}.</value>
+  </data>
+  <data name="StandingNoOrderAt" xml:space="preserve">
+    <value>Ордер не найден: {0}.</value>
+  </data>
+  <data name="CompetingBidsUnknown" xml:space="preserve">
+    <value>Цены конкурентов неизвестны — это место не настроено как источник рыночных данных.</value>
+  </data>
+  <data name="StandingRunningLow" xml:space="preserve">
+    <value>Осталось {0} ({1} от исходного объёма).</value>
+  </data>
+  <data name="StandingExpires" xml:space="preserve">
+    <value>Истекает {0}.</value>
+  </data>
+  <data name="OutbidDetail" xml:space="preserve">
+    <value>{0}: ваша цена {1:N2} ISK перебита ценой {2:N2} — отставание {3:N2} ({4:N1}%). В ордере ещё {5:N0} ед., и он ничего не покупает, хотя они кому-то нужны.</value>
+  </data>
+  <data name="WhyShort" xml:space="preserve">
+    <value>не хватает {0:N0} из {1:N0}: {2}</value>
+  </data>
+  <data name="WhyShortOwnedElsewhere" xml:space="preserve">
+    <value>не хватает {0:N0} из {1:N0}: {2} (есть, но не там, где проект)</value>
+  </data>
+  <data name="SharedTripRestarts" xml:space="preserve">
+    <value>{0} → {1}: одна доставка {2:N0} ед. ({3:N0} m³) перезапустит проектов: {4:N0}</value>
+  </data>
+  <data name="SharedTripRestartsBehind" xml:space="preserve">
+    <value>{0} → {1}: одна доставка {2:N0} ед. ({3:N0} m³) перезапустит проектов: {4:N0}, а за ними задач: {5:N0}</value>
+  </data>
+  <data name="SharedTripWanted" xml:space="preserve">
+    <value>{0} → {1}: одна доставка {2:N0} ед. ({3:N0} m³) нужна проектам ({4:N0}), но ни один из них она сама не перезапустит</value>
+  </data>
+  <data name="SharedTripOthersShort" xml:space="preserve">
+    <value>она нужна и другим проектам ({0:N0}), которым не хватает ещё чего-то</value>
+  </data>
+  <data name="SharedTripRaised" xml:space="preserve">
+    <value>уже создана.</value>
+  </data>
+  <data name="SharedTripNothingMoving" xml:space="preserve">
+    <value>ничего не движется.</value>
+  </data>
+  <data name="WaitStartsOnArrival" xml:space="preserve">
+    <value>начнётся по прибытии</value>
+  </data>
+  <data name="WaitWants" xml:space="preserve">
+    <value>нужно {0:N0}</value>
+  </data>
+  <data name="WaitQueuedBehind" xml:space="preserve">
+    <value>в очереди за другим проектом</value>
+  </data>
+  <data name="WaitAlsoShortOne" xml:space="preserve">
+    <value>также не хватает {0:N0} предмета</value>
+  </data>
+  <data name="WaitAlsoShortOther" xml:space="preserve">
+    <value>также не хватает {0:N0} предмета</value>
+  </data>
+  <data name="WaitAlsoShortFew" xml:space="preserve">
+    <value>также не хватает {0:N0} предметов</value>
+  </data>
+  <data name="WaitAlsoShortMany" xml:space="preserve">
+    <value>также не хватает {0:N0} предметов</value>
+  </data>
+  <data name="WaitTipPlanned" xml:space="preserve">
+    <value>Производство, для которого предназначена эта доставка. Ради него планировщик и создал рейс, но в отдельную задачу оно ещё не выделено.</value>
+  </data>
+  <data name="WaitTipStarts" xml:space="preserve">
+    <value>Эта перевозка везёт всё, чего не хватает проекту, поэтому он начнётся, как только груз прибудет.</value>
+  </data>
+  <data name="WaitTipQueued" xml:space="preserve">
+    <value>Проекту нужно кое-что из этого груза, но этот запас уже занят более ранним проектом — до этого проекта груз не дойдёт.</value>
+  </data>
+  <data name="WaitTipStillShort" xml:space="preserve">
+    <value>Всё ещё не хватает: {0}.</value>
+  </data>
+  <data name="WaitTipStillShortMore" xml:space="preserve">
+    <value>Всё ещё не хватает: {0} и ещё {1:N0}.</value>
+  </data>
+  <data name="WaitTipAlsoBehind" xml:space="preserve">
+    <value>Кроме того, за чем-то из этого груза он стоит в очереди за другим проектом.</value>
+  </data>
+  <data name="MergedDetailPooled" xml:space="preserve">
+    <value>Всего {0:N0}: нужно {1:N0} на всех, минус {2:N0} уже в наличии, в ордерах или доступных для извлечения (учтено один раз). {3}</value>
+  </data>
+  <data name="MergedDetail" xml:space="preserve">
+    <value>Всего {0:N0}. {1}</value>
+  </data>
+  <data name="HaulRestartsJobs" xml:space="preserve">
+    <value>По прибытии перезапустит остановленные проекты ({0:N0}): {1}.</value>
+  </data>
+  <data name="HaulRestartsJobsMore" xml:space="preserve">
+    <value>По прибытии перезапустит остановленные проекты ({0:N0}): {1} и ещё {2:N0}.</value>
+  </data>
+  <data name="HaulOthersWantPart" xml:space="preserve">
+    <value>Ещё проектов, которым нужна часть этого груза, но которые не запустятся с этой партией: {0:N0}.</value>
+  </data>
+  <data name="HaulPlannedWantIt" xml:space="preserve">
+    <value>Ещё предметов в этом грузе, нужных запланированной работе без собственного остановленного проекта: {0:N0}.</value>
+  </data>
+  <data name="BuyReleasesJobs" xml:space="preserve">
+    <value>Разблокирует остановленные проекты ({0:N0}): {1}.</value>
+  </data>
+  <data name="BuyReleasesJobsMore" xml:space="preserve">
+    <value>Разблокирует остановленные проекты ({0:N0}): {1} и ещё {2:N0}.</value>
+  </data>
+  <data name="BuyOthersWantIt" xml:space="preserve">
+    <value>Ещё проектов, которым это нужно, но не хватает и другого: {0:N0}.</value>
+  </data>
+  <data name="TitleTagBpoBpc" xml:space="preserve">
+    <value>BPO/BPC</value>
+  </data>
+  <data name="StockOfTarget" xml:space="preserve">
+    <value>запас {0:N0} из {1:N0} ({2:0.#}%)</value>
+  </data>
+  <data name="FillingTo" xml:space="preserve">
+    <value>Пополнение до {0:0.#}% ({1:N0}).</value>
+  </data>
+  <data name="SourceInventoryLevels" xml:space="preserve">
+    <value>Уровни запасов</value>
+  </data>
+  <data name="SourceMaterialPurchases" xml:space="preserve">
+    <value>Покупка материалов</value>
+  </data>
+  <data name="BlockedNoMarketAltAt" xml:space="preserve">
+    <value>Не назначен рыночный твинк: {0}</value>
+  </data>
+  <data name="BlockedNoBuyLocation" xml:space="preserve">
+    <value>На вкладке «Рынок» не задано место покупки</value>
+  </data>
+  <data name="WantedByPlannedBuilds" xml:space="preserve">
+    <value>Запланированное производство</value>
+  </data>
+  <data name="NameRuns" xml:space="preserve">
+    <value>{0} (прогонов: {1:N0})</value>
+  </data>
+  <data name="BlueprintWithId" xml:space="preserve">
+    <value>Чертёж {0}</value>
+  </data>
+  <data name="PrintRunsToStock" xml:space="preserve">
+    <value>{0:N0} в запас</value>
+  </data>
+  <data name="PrintTitle" xml:space="preserve">
+    <value>{0} — BPO/BPC (прогонов: {1:N0})</value>
+  </data>
+  <data name="OnOrderHere" xml:space="preserve">
+    <value>{0:N0} в ордерах здесь</value>
+  </data>
+  <data name="OnOrderElsewhere" xml:space="preserve">
+    <value>{0:N0} в ордерах в других местах</value>
+  </data>
+  <data name="OnOrder" xml:space="preserve">
+    <value>{0:N0} в ордерах</value>
+  </data>
+  <data name="InProduction" xml:space="preserve">
+    <value>{0:N0} в производстве</value>
+  </data>
+  <data name="HeldAndOnOrder" xml:space="preserve">
+    <value>{0:N0} × {1} и {2:N0} в ордерах</value>
+  </data>
+  <data name="RecoverableFrom" xml:space="preserve">
+    <value>{0:N0} можно получить из: {1}</value>
+  </data>
+  <data name="RecoverableFromMore" xml:space="preserve">
+    <value>{0:N0} можно получить из: {1} и ещё {2}</value>
+  </data>
+  <data name="ShortBy" xml:space="preserve">
+    <value>Не хватает {0:N0}.</value>
+  </data>
+  <data name="ShortByTail" xml:space="preserve">
+    <value>не хватает {0:N0}.</value>
+  </data>
+  <data name="BelowThreshold" xml:space="preserve">
+    <value>ниже {0:0.#}%</value>
+  </data>
+  <data name="PurchaseNeedOnHand" xml:space="preserve">
+    <value>{0}: нужно {1:N0}; в наличии {2:N0}</value>
+  </data>
+  <data name="PurchaseNeedOnHandIn" xml:space="preserve">
+    <value>{0}: нужно {1:N0}; в наличии {2:N0} ({3})</value>
+  </data>
+  <data name="PurchaseNeedOnHandTaken" xml:space="preserve">
+    <value>{0}: нужно {1:N0}; в наличии {2:N0}, из них {3:N0} уже ушли в проекты, которых опрос имущества ещё не видел</value>
+  </data>
+  <data name="PurchaseNeedOnHandInTaken" xml:space="preserve">
+    <value>{0}: нужно {1:N0}; в наличии {2:N0} ({3}), из них {4:N0} уже ушли в проекты, которых опрос имущества ещё не видел</value>
+  </data>
+  <data name="WantedForOne" xml:space="preserve">
+    <value>Для: {0}</value>
+  </data>
+  <data name="WantedForTwo" xml:space="preserve">
+    <value>Для: {0} и {1}</value>
+  </data>
+  <data name="WantedForTwoMore" xml:space="preserve">
+    <value>Для: {0}, {1} и ещё {2}</value>
+  </data>
+  <data name="PrintContractPrice" xml:space="preserve">
+    <value>Копии встречались в контрактах от {0:N0} ISK за прогон.</value>
+  </data>
+  <data name="PrintRunsFor" xml:space="preserve">
+    <value>{0:N0} для: {1}</value>
+  </data>
+  <data name="PrintRunsForQueued" xml:space="preserve">
+    <value>{0:N0} для производства в очереди</value>
+  </data>
+  <data name="PrintOriginalOwned" xml:space="preserve">
+    <value>оригинал есть</value>
+  </data>
+  <data name="PrintCopiesOwned" xml:space="preserve">
+    <value>{0:N0} в наличии</value>
+  </data>
+  <data name="PrintNoneOwned" xml:space="preserve">
+    <value>нет в наличии</value>
+  </data>
+  <data name="PrintShortRuns" xml:space="preserve">
+    <value>не хватает прогонов: {0:N0}.</value>
+  </data>
+  <data name="SourceIndustryJobs" xml:space="preserve">
+    <value>Промышленные проекты</value>
+  </data>
+  <data name="JobDetailBuild" xml:space="preserve">
+    <value>{0} Произвести {1:N0}.</value>
+  </data>
+  <data name="BlockedNoSkilledCharacter" xml:space="preserve">
+    <value>Ни у одного включённого персонажа нет навыков для этого проекта</value>
+  </data>
+  <data name="BlockedNoCharacterRunsActivity" xml:space="preserve">
+    <value>Ни один включённый персонаж не выполняет этот вид деятельности</value>
+  </data>
+  <data name="BlockedSiteNotLinked" xml:space="preserve">
+    <value>{0}: не связано с реальным сооружением, поэтому проверить материалы невозможно</value>
+  </data>
+  <data name="BlockedNoLinkedStructure" xml:space="preserve">
+    <value>Для этого проекта нет связанного сооружения, поэтому проверить материалы невозможно</value>
+  </data>
+  <data name="WaitingAllSlotsBusy" xml:space="preserve">
+    <value>У всех персонажей, которые могут это выполнить, заняты все слоты</value>
+  </data>
+  <data name="JobTitleRunsMaking" xml:space="preserve">
+    <value>{0} — прогонов: {1:N0} → {2:N0}</value>
+  </data>
+  <data name="JobTitleRuns" xml:space="preserve">
+    <value>{0} — прогонов: {1:N0}</value>
+  </data>
+  <data name="BlockedNoBlueprintOwned" xml:space="preserve">
+    <value>Нет чертежа — его нужно раздобыть</value>
+  </data>
+  <data name="BlockedBlueprintBusy" xml:space="preserve">
+    <value>Чертёж занят в идущем проекте ({0})</value>
+  </data>
+  <data name="BlockedNoBlueprintFreeAt" xml:space="preserve">
+    <value>{0}: нет свободного чертежа ({1})</value>
+  </data>
+  <data name="JobDetailShort" xml:space="preserve">
+    <value>{0} Не хватает {1:N0}.</value>
+  </data>
+  <data name="BlockedPlannerSilent" xml:space="preserve">
+    <value>Планировщик не создал для этого задачу и не объяснил почему — пожалуйста, сообщите об этом</value>
+  </data>
+  <data name="BlockedNothingMakesIt" xml:space="preserve">
+    <value>В SDE нет ничего, что это производит, поэтому это можно только купить</value>
+  </data>
+  <data name="JobTitleNeeded" xml:space="preserve">
+    <value>{0} — нужно {1:N0}</value>
+  </data>
+  <data name="JobDetailShortOf" xml:space="preserve">
+    <value>{0} Не хватает {1:N0} (проект {2} из {3}).</value>
+  </data>
+  <data name="PrintAt" xml:space="preserve">
+    <value>{0} — {1}.</value>
+  </data>
+  <data name="JobCutToMaterials" xml:space="preserve">
+    <value>Сокращён до того, что покрывают имеющиеся материалы, — ещё прогонов: {0:N0}, они в отдельной строке.</value>
+  </data>
+  <data name="JobRestWaiting" xml:space="preserve">
+    <value>Остаток этого проекта, ждёт материалов.</value>
+  </data>
+  <data name="JobRunsNoFreePrint" xml:space="preserve">
+    <value>Ещё прогонов без свободного чертежа: {0:N0} — они указаны отдельно.</value>
+  </data>
+  <data name="JobCapGameLimit" xml:space="preserve">
+    <value>Ограничено лимитом EVE в 30 дней на один проект.</value>
+  </data>
+  <data name="JobCapCopyRuns" xml:space="preserve">
+    <value>Ограничено оставшимися прогонами копии.</value>
+  </data>
+  <data name="JobCapJobLength" xml:space="preserve">
+    <value>Ограничено длительностью проекта в {0:0.#} д.</value>
+  </data>
+  <data name="JobSizedFullyResearched" xml:space="preserve">
+    <value>Рассчитано по полностью исследованному чертежу (TE{0}) — своего чертежа нет.</value>
+  </data>
+  <data name="JobSizedAgainst" xml:space="preserve">
+    <value>Рассчитано по: {0}.</value>
+  </data>
+  <data name="JobNeedsBlueprintAt" xml:space="preserve">
+    <value>Нужен чертёж в сооружении {0}.</value>
+  </data>
+  <data name="BlockedMaterialsNotAt" xml:space="preserve">
+    <value>Материалов нет в сооружении {0}: {1}</value>
+  </data>
+  <data name="BlockedNotOwned" xml:space="preserve">
+    <value>Нет в наличии: {0}</value>
+  </data>
+  <data name="BlockedNotOwnedIn" xml:space="preserve">
+    <value>Нет в наличии ({0}): {1}</value>
+  </data>
+  <data name="BlockedNotOwnedElsewhere" xml:space="preserve">
+    <value>Нет в наличии: {0}; в другом месте: {1}</value>
+  </data>
+  <data name="BlockedNotOwnedInElsewhere" xml:space="preserve">
+    <value>Нет в наличии ({0}): {1}; в другом месте: {2}</value>
+  </data>
+  <data name="NamesAndMore" xml:space="preserve">
+    <value>{0} и ещё {1}</value>
+  </data>
+  <data name="ReasonPendingOrders" xml:space="preserve">
+    <value>Ожидающих заказов: {0}, на {1:N0} ед.</value>
+  </data>
+  <data name="ReasonForParent" xml:space="preserve">
+    <value>{0:N0} для: {1}.</value>
+  </data>
+  <data name="ReasonsAndMore" xml:space="preserve">
+    <value>и ещё {0}.</value>
+  </data>
+  <data name="ReasonKeepingConsuming" xml:space="preserve">
+    <value>Держать {0:N0} и потребить {1:N0} при {2:N0} в наличии.</value>
+  </data>
+  <data name="PrintDescribeBpo" xml:space="preserve">
+    <value>BPO ME{0}/TE{1}</value>
+  </data>
+  <data name="PrintDescribeBpc" xml:space="preserve">
+    <value>BPC ME{0}/TE{1}, осталось прогонов: {2:N0}</value>
+  </data>
+  <data name="JobLengthMinutes" xml:space="preserve">
+    <value>{0:0} мин</value>
+  </data>
+  <data name="JobLengthHours" xml:space="preserve">
+    <value>{0:0.#} ч</value>
+  </data>
+  <data name="JobLengthDays" xml:space="preserve">
+    <value>{0:0.#} д</value>
+  </data>
+  <data name="HeadDownstream" xml:space="preserve">
+    <value>[этого ждут предметов дальше по цепочке: {0:N0}]</value>
+  </data>
+  <data name="SourceInvention" xml:space="preserve">
+    <value>Модернизация и копирование</value>
+  </data>
+  <data name="InventionHead" xml:space="preserve">
+    <value>{0}: не хватает прогонов производства T2: {1:N0}.</value>
+  </data>
+  <data name="WaitingScienceSlotsBusy" xml:space="preserve">
+    <value>У всех персонажей, выполняющих научные проекты, заняты все слоты</value>
+  </data>
+  <data name="BlockedNotAt" xml:space="preserve">
+    <value>Нет в лаборатории {0}: {1}</value>
+  </data>
+  <data name="InventionTitle" xml:space="preserve">
+    <value>{0} — модернизация (прогонов: {1:N0})</value>
+  </data>
+  <data name="InventionNoCopyDetail" xml:space="preserve">
+    <value>{0} {1:P1} за прогон → BPC: {2:N0}, прогонов в каждой: {3}.</value>
+  </data>
+  <data name="BlockedNoCopyToInvent" xml:space="preserve">
+    <value>Для модернизации нет копии в лаборатории {1}: {0}</value>
+  </data>
+  <data name="CopyTitleNoOriginal" xml:space="preserve">
+    <value>{0} — нет оригинала для копирования</value>
+  </data>
+  <data name="CopyNeedsRunsDetail" xml:space="preserve">
+    <value>{0} Для модернизации нужно прогонов копий: {1:N0}, в наличии: {2:N0}.</value>
+  </data>
+  <data name="BlockedNoBpoToCopy" xml:space="preserve">
+    <value>Ни у одного персонажа нет BPO — его нужно раздобыть или сразу купить копии</value>
+  </data>
+  <data name="CopyTitle" xml:space="preserve">
+    <value>{0} — копирование (копий: {1:N0}, прогонов в каждой: {2:N0})</value>
+  </data>
+  <data name="BlockedOriginalNotAt" xml:space="preserve">
+    <value>Оригинала нет в лаборатории {0} — сначала его нужно туда переместить</value>
+  </data>
+  <data name="NoDecryptor" xml:space="preserve">
+    <value>без файла данных</value>
+  </data>
+  <data name="NameHaveOfWant" xml:space="preserve">
+    <value>{0} ({1:N0} из {2:N0})</value>
+  </data>
+  <data name="InventionCutToDatacores" xml:space="preserve">
+    <value>Сокращён до того, что покрывают имеющиеся инфоблоки, — ещё попыток: {0:N0}, они в отдельной строке.</value>
+  </data>
+  <data name="InventionRestWaiting" xml:space="preserve">
+    <value>Остаток этой партии, ждёт инфоблоков.</value>
+  </data>
+  <data name="JobIndexOf" xml:space="preserve">
+    <value>(проект {0} из {1})</value>
+  </data>
+  <data name="JobCapSourceCopyRuns" xml:space="preserve">
+    <value>Ограничено оставшимися прогонами исходной копии.</value>
+  </data>
+  <data name="InventionAttemptsNoCopy" xml:space="preserve">
+    <value>Ещё попыток, которым нужна исходная копия: {0:N0} — свободных копий нет.</value>
+  </data>
+  <data name="InventionOdds" xml:space="preserve">
+    <value>{0:P1} за прогон (базовая {1:P0}, {2}) → BPC: {3:N0}, прогонов в каждой: {4}, ME{5}/TE{6}, попыток: {7:N0}.</value>
+  </data>
+  <data name="CopyFeedsDetail" xml:space="preserve">
+    <value>{0} Обеспечивает попыток модернизации: {1:N0}; прогонов копий уже в наличии: {2:N0}.</value>
+  </data>
+  <data name="SourceRefining" xml:space="preserve">
+    <value>Переработка</value>
+  </data>
+  <data name="RefineTitleOne" xml:space="preserve">
+    <value>Переработка: {0} — {1:N0} ед.</value>
+  </data>
+  <data name="RefineTitleMany" xml:space="preserve">
+    <value>Переработка руды, типов: {0} — {1:N0} ед.</value>
+  </data>
+  <data name="DecompressTitleOne" xml:space="preserve">
+    <value>Декомпрессия: {0} — {1:N0} ед.</value>
+  </data>
+  <data name="DecompressTitleMany" xml:space="preserve">
+    <value>Декомпрессия газа, типов: {0} — {1:N0} ед.</value>
+  </data>
+  <data name="RefineDetail" xml:space="preserve">
+    <value>{0}: целыми партиями можно переработать {1:N0} ед. — {2}. Всё, что меньше полной партии, остаётся на месте.</value>
+  </data>
+  <data name="RefineDetailMore" xml:space="preserve">
+    <value>{0}: целыми партиями можно переработать {1:N0} ед. — {2} и ещё {3}. Всё, что меньше полной партии, остаётся на месте.</value>
+  </data>
+  <data name="DecompressDetail" xml:space="preserve">
+    <value>{0}: к декомпрессии {1:N0} ед. — {2}.</value>
+  </data>
+  <data name="DecompressDetailMore" xml:space="preserve">
+    <value>{0}: к декомпрессии {1:N0} ед. — {2} и ещё {3}.</value>
+  </data>
+  <data name="SourceAssetSafety" xml:space="preserve">
+    <value>Система безопасности активов</value>
+  </data>
+  <data name="StationWithIdLower" xml:space="preserve">
+    <value>станция {0}</value>
+  </data>
+  <data name="UnnamedStructureWithId" xml:space="preserve">
+    <value>Сооружение без названия {0}</value>
+  </data>
+  <data name="CharacterWithId" xml:space="preserve">
+    <value>Персонаж {0}</value>
+  </data>
+  <data name="SafetyChooseDestinationOne" xml:space="preserve">
+    <value>выберите место назначения для упаковок имущества ({0:N0})</value>
+  </data>
+  <data name="SafetyChooseDestinationOther" xml:space="preserve">
+    <value>выберите место назначения для упаковок имущества ({0:N0})</value>
+  </data>
+  <data name="SafetyChooseDestinationFew" xml:space="preserve">
+    <value>выберите место назначения для упаковок имущества ({0:N0})</value>
+  </data>
+  <data name="SafetyChooseDestinationMany" xml:space="preserve">
+    <value>выберите место назначения для упаковок имущества ({0:N0})</value>
+  </data>
+  <data name="SafetyTypesInOneWrapOne" xml:space="preserve">
+    <value>{0:N0} тип предметов в 1 упаковке</value>
+  </data>
+  <data name="SafetyTypesInOneWrapOther" xml:space="preserve">
+    <value>{0:N0} типа предметов в 1 упаковке</value>
+  </data>
+  <data name="SafetyTypesInOneWrapFew" xml:space="preserve">
+    <value>{0:N0} типа предметов в 1 упаковке</value>
+  </data>
+  <data name="SafetyTypesInOneWrapMany" xml:space="preserve">
+    <value>{0:N0} типов предметов в 1 упаковке</value>
+  </data>
+  <data name="SafetyTypesAcrossWraps" xml:space="preserve">
+    <value>типов предметов: {0:N0}, упаковок: {1:N0}</value>
+  </data>
+  <data name="SafetyDetail" xml:space="preserve">
+    <value>{0}. {1}. Если ничего не делать, через {3} д {4} ч ({5:d MMM HH:mm}) всё будет доставлено на станцию {2} автоматически, по повышенному тарифу.</value>
+  </data>
+  <data name="SourceLogistics" xml:space="preserve">
+    <value>Логистика</value>
+  </data>
+  <data name="HaulTitleItems" xml:space="preserve">
+    <value>Предметов: {0}</value>
+  </data>
+  <data name="HaulWhyUnblocking" xml:space="preserve">
+    <value>Этого ждут проекты.</value>
+  </data>
+  <data name="HaulWhyRestock" xml:space="preserve">
+    <value>Пополняет станцию до её уровня.</value>
+  </data>
+  <data name="HaulWhyRefine" xml:space="preserve">
+    <value>Для переработки или декомпрессии.</value>
+  </data>
+  <data name="HaulWhySurplus" xml:space="preserve">
+    <value>Лишний запас едет туда, где хранится его группа.</value>
+  </data>
+  <data name="PlaceInSpace" xml:space="preserve">
+    <value>{0} (в космосе)</value>
+  </data>
+  <data name="DriverBuild" xml:space="preserve">
+    <value>производство</value>
+  </data>
+  <data name="DriverBlueprintFor" xml:space="preserve">
+    <value>чертёж для</value>
+  </data>
+  <data name="DriverInvention" xml:space="preserve">
+    <value>модернизация</value>
+  </data>
+  <data name="DriverCopiesForInvention" xml:space="preserve">
+    <value>копии для модернизации</value>
+  </data>
+  <data name="DriverStationLevel" xml:space="preserve">
+    <value>уровень станции</value>
+  </data>
+  <data name="HaulAdviceIdleNowhere" xml:space="preserve">
+    <value>Остановлен из-за нехватки предметов, которые у вас уже есть (типов: {0:N0}). Перевезти нужно {1:N0} m³, но ничего из этого не доступно в охвате. Ни одна перевозка из списка ничего из этого сюда не везёт, так что само по себе ничего не изменится.</value>
+  </data>
+  <data name="HaulAdviceIdleOnePlace" xml:space="preserve">
+    <value>Остановлен из-за нехватки предметов, которые у вас уже есть (типов: {0:N0}). Перевезти нужно {1:N0} m³, всё из одного места. Ни одна перевозка из списка ничего из этого сюда не везёт, так что само по себе ничего не изменится.</value>
+  </data>
+  <data name="HaulAdviceIdlePlaces" xml:space="preserve">
+    <value>Остановлен из-за нехватки предметов, которые у вас уже есть (типов: {0:N0}). Перевезти нужно {1:N0} m³, мест погрузки: {2:N0}. Ни одна перевозка из списка ничего из этого сюда не везёт, так что само по себе ничего не изменится.</value>
+  </data>
+  <data name="HaulAdviceSeveralStops" xml:space="preserve">
+    <value>Остановлен из-за нехватки предметов (типов: {0:N0}), всего {1:N0} m³, мест погрузки: {2:N0}, перевозок уже создано: {3:N0}. Погрузок больше одной, поэтому проект будет стоять, пока не прибудет последняя.</value>
+  </data>
+  <data name="HaulAdviceRaised" xml:space="preserve">
+    <value>Остановлен, но перевозки, чтобы доставить сюда {1:N0} m³, уже созданы ({0:N0}). Решать ничего не нужно — проект начнётся, когда прибудут материалы.</value>
+  </data>
+  <data name="HaulAdviceBehind" xml:space="preserve">
+    <value>За ним остановлено ещё задач: {0:N0}.</value>
+  </data>
+  <data name="HaulNeedNowhere" xml:space="preserve">
+    <value>не хватает {0:N0} из {1:N0}, {2:N0} m³ — в охвате взять неоткуда</value>
+  </data>
+  <data name="HaulNeedFrom" xml:space="preserve">
+    <value>не хватает {0:N0} из {1:N0}, {2:N0} m³ — откуда: {3}</value>
+  </data>
+  <data name="HaulNeedFromMore" xml:space="preserve">
+    <value>не хватает {0:N0} из {1:N0}, {2:N0} m³ — откуда: {3} и ещё {4:N0}</value>
+  </data>
+  <data name="StopsOne" xml:space="preserve">
+    <value>{0:N0} остановка</value>
+  </data>
+  <data name="StopsOther" xml:space="preserve">
+    <value>{0:N0} остановки</value>
+  </data>
+  <data name="StopsFew" xml:space="preserve">
+    <value>{0:N0} остановки</value>
+  </data>
+  <data name="StopsMany" xml:space="preserve">
+    <value>{0:N0} остановок</value>
+  </data>
+  <data name="WhyOnListFrom" xml:space="preserve">
+    <value>уже в списке, откуда: {0}</value>
+  </data>
+  <data name="WhyOnList" xml:space="preserve">
+    <value>уже в списке</value>
+  </data>
+  <data name="WhyReadyToInstall" xml:space="preserve">
+    <value>можно запускать</value>
+  </data>
+  <data name="RunsInstalled" xml:space="preserve">
+    <value>запущено прогонов: {0:N0}</value>
+  </data>
+  <data name="JobLands" xml:space="preserve">
+    <value>завершится {0:d MMM HH:mm}</value>
+  </data>
+  <data name="AdviceStopped" xml:space="preserve">
+    <value>Остановлено задач: {0:N0}</value>
+  </data>
+  <data name="AdviceStoppedChain" xml:space="preserve">
+    <value>Остановлено задач: {0:N0} (напрямую из-за этого: {1:N0})</value>
+  </data>
+  <data name="AdviceNothingMade" xml:space="preserve">
+    <value>За последние {0} д не произведено ни одной единицы — это и опустошило запас.</value>
+  </data>
+  <data name="AdviceMakingRunning" xml:space="preserve">
+    <value>Сейчас идут проекты по его производству: {0:N0}.</value>
+  </data>
+  <data name="AdviceMakingReady" xml:space="preserve">
+    <value>Задач по его производству, готовых к запуску: {0:N0} — запустить их и есть решение.</value>
+  </data>
+  <data name="AdviceMakingWaiting" xml:space="preserve">
+    <value>Задач по его производству, ждущих свободного слота: {0:N0}.</value>
+  </data>
+  <data name="AdviceMakingBlocked" xml:space="preserve">
+    <value>Пополнять его нечем: все задачи по его производству ({0:N0}) тоже заблокированы.</value>
+  </data>
+  <data name="AdviceMakingNone" xml:space="preserve">
+    <value>В списке нет ничего, что бы его производило.</value>
+  </data>
+  <data name="AdviceOnOrder" xml:space="preserve">
+    <value>{0}, и здесь это никто не производит, — но на рынке уже выставлены ордера на {1:N0} ед. при нехватке {2:N0}. Создавать больше ничего не нужно; проекты начнутся, когда ордер на покупку исполнится.</value>
+  </data>
+  <data name="AdviceBuyNow" xml:space="preserve">
+    <value>{0}, и здесь это никто не производит.</value>
+  </data>
+  <data name="AdviceBuyNowOnOrder" xml:space="preserve">
+    <value>В ордерах {0:N0} ед. при нехватке {1:N0}, поэтому цену нужно поднять, а не выставлять новый ордер.</value>
+  </data>
+  <data name="AdviceBuyNowLevel" xml:space="preserve">
+    <value>Расход {0:N1}/д при уровне {1:N0}. Запустить их может только покупка.</value>
+  </data>
+  <data name="AdviceBuyNowNoLevel" xml:space="preserve">
+    <value>Расход {0:N1}/д, а уровень, чтобы держать что-то про запас, не задан. Запустить их может только покупка.</value>
+  </data>
+  <data name="AdviceBufferSpent" xml:space="preserve">
+    <value>{0}, осталось {1:N0}. Спрос в {2:N1} раза выше среднего за {3} д, и уровня {4:N0} хватало на {5:N0} д обычного расхода, но не на такой. Более высокий уровень поглотит следующую волну; если такие волны — обычное дело, надёжное решение — производить больше, потому что никакой уровень не выдержит расход, который нечем восполнять.</value>
+  </data>
+  <data name="AdviceLevelTooLow" xml:space="preserve">
+    <value>{0}. Работе из списка нужно {1:N0}, в наличии {2:N0} — уровень {3:N0} выполнен, так что дело не в исчерпанном буфере, а в буфере, рассчитанном на {4:N0} д обычного расхода, тогда как предстоящей работе нужно на {5:N0} больше, чем существует. Закрыть этот разрыв можно, подняв уровень или производя больше.</value>
+  </data>
+  <data name="AdviceLevelTooLowWave" xml:space="preserve">
+    <value>{0}. Работе из списка нужно {1:N0}, в наличии {2:N0} — уровень {3:N0} выполнен, так что дело не в исчерпанном буфере, а в буфере, рассчитанном на {4:N0} д обычного расхода, тогда как предстоящей работе нужно на {5:N0} больше, чем существует, а спрос в {6:N1} раза выше среднего за {7} д. Закрыть этот разрыв можно, подняв уровень или производя больше.</value>
+  </data>
+  <data name="AdviceNoBuffer" xml:space="preserve">
+    <value>{0}, и уровень для этого вообще не задан, хотя расход {1:N1}/д. Запаса нет по определению: каждую единицу приходится производить или покупать ровно тогда, когда она нужна. Не хватает {2:N0} от того, что нужно списку.</value>
+  </data>
+  <data name="AdviceNotTheShelf" xml:space="preserve">
+    <value>{0}, но в наличии {1:N0}, а работе нужно {2:N0} — остановил их не этот материал. Этим проектам не хватает чего-то другого, либо они ждут слота, чертежа или запасов, лежащих на другой станции.</value>
+  </data>
+  <data name="AdviceBlocked" xml:space="preserve">
+    <value>{0}, осталось {1:N0} при уровне {2:N0} — это около {3:N0} д при расходе {4:N1}/д, и запас кончился. Либо уровень слишком мал для такой скорости расхода, либо его не успевают пополнять.</value>
+  </data>
+  <data name="AdviceBuy" xml:space="preserve">
+    <value>В наличии нет, здесь это никто не производит, расход {0:N1}/д. Пока ничего не остановлено.</value>
+  </data>
+  <data name="AdviceMakingTooFew" xml:space="preserve">
+    <value>Расход {0:N1}/д при выпуске {1:N1}/д, и спрос ровный. Нужно больше производства, а не больший буфер.</value>
+  </data>
+  <data name="AdviceMakingTooFewEmpty" xml:space="preserve">
+    <value>Расход {0:N1}/д при выпуске {1:N1}/д, и спрос ровный. При такой скорости запас закончится примерно через {2:N0} д. Нужно больше производства, а не больший буфер.</value>
+  </data>
+  <data name="AdviceWave" xml:space="preserve">
+    <value>Расход в {0:N1} раза выше обычного — проходит волна производства. Осталось {1:N0}, примерно на {2:N0} д при текущем расходе. Пока ничего не остановлено; стоит понаблюдать, а не действовать.</value>
+  </data>
+  <data name="AdviceNoLevelSet" xml:space="preserve">
+    <value>Расход {0:N1}/д, а держать запас на складе ничто не требует, так что при росте спроса никакой подушки нет.</value>
+  </data>
+  <data name="AdviceBufferThin" xml:space="preserve">
+    <value>Уровня {0:N0} хватает на {1:N0} д при расходе {2:N1}/д. Всё, что пополняется дольше, заблокирует работу раньше, чем прибудет.</value>
+  </data>
+  <data name="AdviceHolding" xml:space="preserve">
+    <value>Покрытие {0:N0} д при расходе {1:N1}/д, пополнение {2:N1}/д.</value>
+  </data>
+  <data name="RemedyEffect" xml:space="preserve">
+    <value>очередь разберётся за {0:N0} д вместо {1:N0} д</value>
+  </data>
+  <data name="RemedyTrain" xml:space="preserve">
+    <value>Обучить персонажей, которые уже этим заняты</value>
+  </data>
+  <data name="RemedyTrainNone" xml:space="preserve">
+    <value>Все, кто работает в этом пуле, уже достигли предела навыков.</value>
+  </data>
+  <data name="RemedyTrainDetail" xml:space="preserve">
+    <value>Персонажей ниже предела слотов ({1}): {0} — {2}</value>
+  </data>
+  <data name="RemedyEnable" xml:space="preserve">
+    <value>Включить персонажей, отключённых для этого пула</value>
+  </data>
+  <data name="RemedyEnableNone" xml:space="preserve">
+    <value>Все настроенные персонажи уже работают в этом пуле.</value>
+  </data>
+  <data name="RemedyEnableDetail" xml:space="preserve">
+    <value>Отключено персонажей: {0}, у них сейчас слотов: {1:N0} — обычно их отключают не просто так, поэтому считайте это оценкой масштаба, а не планом. {2}</value>
+  </data>
+  <data name="RemedyAccount" xml:space="preserve">
+    <value>Добавить персонажей одной учётной записи ({0}), обученных до предела</value>
+  </data>
+  <data name="RemedyAccountDetail" xml:space="preserve">
+    <value>{0} × {1} слотов при {2:N0} работающих сейчас. Обучение не мгновенное — это потолок, которого так можно достичь.</value>
+  </data>
+  <data name="ContentionScale" xml:space="preserve">
+    <value>Измерено по чертежам ({0:N0}) за {1} д: у {2:N0} ни разу не были заняты все оригиналы одновременно, медиана — {3:N0}%, а самая загруженная десятая часть начинается с {4:N0}% — это и есть порог для отметок.</value>
+  </data>
+  <data name="PrintAdviceBlockingBpo" xml:space="preserve">
+    <value>Все BPO были заняты {0:N0}% времени за последние {1} д, и проектов, которые не могут начаться прямо сейчас: {2:N0}. Ещё один BPO поднимет потолок с {3:N2} до {4:N2}/д.</value>
+  </data>
+  <data name="PrintAdviceBlockingFormula" xml:space="preserve">
+    <value>Все формулы были заняты {0:N0}% времени за последние {1} д, и проектов, которые не могут начаться прямо сейчас: {2:N0}. Ещё одна формула поднимет потолок с {3:N2} до {4:N2}/д.</value>
+  </data>
+  <data name="PrintAdviceSteadyBpo" xml:space="preserve">
+    <value>Все BPO были заняты {0:N0}% времени за последние {1} д, проектов в очереди: {2:N0} — чтобы запустить ещё один, приходится ждать, пока какой-то освободится. Ещё один BPO поднимет потолок до {3:N2}/д.</value>
+  </data>
+  <data name="PrintAdviceSteadyFormula" xml:space="preserve">
+    <value>Все формулы были заняты {0:N0}% времени за последние {1} д, проектов в очереди: {2:N0} — чтобы запустить ещё один, приходится ждать, пока какая-то освободится. Ещё одна формула поднимет потолок до {3:N2}/д.</value>
+  </data>
+  <data name="PrintAdviceContendedBpo" xml:space="preserve">
+    <value>Все BPO были заняты {0:N0}% времени за последние {1} д, но сегодня в очереди ничего нет. Стоит понаблюдать, а не покупать.</value>
+  </data>
+  <data name="PrintAdviceContendedFormula" xml:space="preserve">
+    <value>Все формулы были заняты {0:N0}% времени за последние {1} д, но сегодня в очереди ничего нет. Стоит понаблюдать, а не покупать.</value>
+  </data>
+  <data name="PrintAdviceBlockedBpo" xml:space="preserve">
+    <value>Проектов, которые не могут начаться: {0:N0}, хотя все имеющиеся BPO редко были заняты одновременно ({1:N0}%). Прежде чем покупать ещё один BPO, проверьте, чего на самом деле не хватает, — похоже, дело не в чертеже.</value>
+  </data>
+  <data name="PrintAdviceBlockedFormula" xml:space="preserve">
+    <value>Проектов, которые не могут начаться: {0:N0}, хотя все имеющиеся формулы редко были заняты одновременно ({1:N0}%). Прежде чем покупать ещё одну формулу, проверьте, чего на самом деле не хватает, — похоже, дело не в формуле.</value>
+  </data>
+  <data name="PrintAdviceSurgeBpo" xml:space="preserve">
+    <value>Сейчас он нужен проектам ({0:N0}), но все BPO были свободны почти всё время за последние {1} д. Это разовая, а не постоянная потребность — BPC может подойти лучше, чем оригинал.</value>
+  </data>
+  <data name="PrintAdviceSurgeFormula" xml:space="preserve">
+    <value>Сейчас она нужна проектам ({0:N0}), но все формулы были свободны почти всё время за последние {1} д. Это разовая, а не постоянная потребность — лучше дать прогонам постоять в очереди, чем покупать ещё одну формулу.</value>
+  </data>
+  <data name="PrintAdviceMinorBpo" xml:space="preserve">
+    <value>Все BPO были заняты {0:N0}% времени за последние {1} д — это заметно, но не входит в самую загруженную десятую часть, и в очереди ничего нет. Ещё один BPO поднял бы потолок до {2:N2}/д.</value>
+  </data>
+  <data name="PrintAdviceMinorFormula" xml:space="preserve">
+    <value>Все формулы были заняты {0:N0}% времени за последние {1} д — это заметно, но не входит в самую загруженную десятую часть, и в очереди ничего нет. Ещё одна формула подняла бы потолок до {2:N2}/д.</value>
+  </data>
+  <data name="PrintAdviceBuildingBpo" xml:space="preserve">
+    <value>Проектов в очереди: {0:N0}; все BPO заняты {1:N0}% времени за период. Ещё один BPO поднял бы потолок до {2:N2}/д.</value>
+  </data>
+  <data name="PrintAdviceBuildingFormula" xml:space="preserve">
+    <value>Проектов в очереди: {0:N0}; все формулы заняты {1:N0}% времени за период. Ещё одна формула подняла бы потолок до {2:N2}/д.</value>
+  </data>
+  <data name="SummarySlotRemedy" xml:space="preserve">
+    <value>{0} — слотов +{1:N0} ({2:N0}%)</value>
+  </data>
+  <data name="SummaryBuyPrint" xml:space="preserve">
+    <value>{0} — купить ещё 1 (сейчас {1:N0}; +{2:N0}% выпуска)</value>
+  </data>
+  <data name="SummaryPlaceBuyOrders" xml:space="preserve">
+    <value>Выставить ордера на покупку ({0:N0})</value>
+  </data>
+  <data name="SummarySetLevel" xml:space="preserve">
+    <value>{0} — задать уровень {1}</value>
+  </data>
+  <data name="SummaryRaiseLevel" xml:space="preserve">
+    <value>{0} — поднять уровень с {1:N0} до {2}</value>
+  </data>
+  <data name="SummaryChangeLevels" xml:space="preserve">
+    <value>Изменить уровни запасов ({0:N0})</value>
+  </data>
+  <data name="SummaryLevelsSized" xml:space="preserve">
+    <value>Рассчитано на {0} д при текущем расходе.</value>
+  </data>
+  <data name="SummaryHaulAt" xml:space="preserve">
+    <value>{0} ({1}) — {2:N0} m³</value>
+  </data>
+  <data name="SummaryRaiseHauls" xml:space="preserve">
+    <value>Создать перевозки ({0:N0})</value>
+  </data>
+  <data name="SummaryHaulsIdle" xml:space="preserve">
+    <value>Проектов, ждущих уже имеющихся материалов, которые никто не везёт: {0:N0}.</value>
+  </data>
+  <data name="SummaryAddManufacturingSlots" xml:space="preserve">
+    <value>Добавить производственные слоты</value>
+  </data>
+  <data name="SummaryAddReactionSlots" xml:space="preserve">
+    <value>Добавить слоты реакций</value>
+  </data>
+  <data name="SummaryAddScienceSlots" xml:space="preserve">
+    <value>Добавить научные слоты</value>
+  </data>
+  <data name="SummarySlotsWaiting" xml:space="preserve">
+    <value>Проектов, ждущих слота: {0:N0}.</value>
+  </data>
+  <data name="SummarySlotsWaitingBehind" xml:space="preserve">
+    <value>Проектов, ждущих слота: {0:N0}; за ними остановлено ещё: {1:N0}.</value>
+  </data>
+  <data name="SummaryBuyBlueprints" xml:space="preserve">
+    <value>Купить чертежи ({0:N0})</value>
+  </data>
+  <data name="SummaryBuyFormulas" xml:space="preserve">
+    <value>Купить формулы ({0:N0})</value>
+  </data>
+  <data name="SummaryBuyUnblocks" xml:space="preserve">
+    <value>{0} — разблокирует задач: {1:N0}</value>
+  </data>
+  <data name="SummaryTripRestarts" xml:space="preserve">
+    <value>{0} → {1} — {2:N0} ({3:N0} m³), перезапустит проектов: {4:N0}</value>
+  </data>
+  <data name="SummaryTripWanted" xml:space="preserve">
+    <value>{0} → {1} — {2:N0} ({3:N0} m³), нужно проектам ({4:N0}), но ни один не перезапустится только от этой доставки</value>
+  </data>
+  <data name="SummaryWorstShown" xml:space="preserve">
+    <value>Показаны худшие ({0}); остальные — на вкладке.</value>
+  </data>
+</root>

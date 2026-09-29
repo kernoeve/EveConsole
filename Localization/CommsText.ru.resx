@@ -1,0 +1,1022 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TitleComposeMail" xml:space="preserve">
+    <value>Новое письмо</value>
+  </data>
+  <data name="FromLabel" xml:space="preserve">
+    <value>От</value>
+  </data>
+  <data name="ToSearchNamePressNote" xml:space="preserve">
+    <value>Кому  (введите имя и нажмите Enter, чтобы добавить)</value>
+  </data>
+  <data name="HintCharacterName" xml:space="preserve">
+    <value>Имя персонажа…</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Добавить</value>
+  </data>
+  <data name="SubjectLabel" xml:space="preserve">
+    <value>Тема</value>
+  </data>
+  <data name="BodyLabel" xml:space="preserve">
+    <value>Текст</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Отменить</value>
+  </data>
+  <data name="Send" xml:space="preserve">
+    <value>Отправить</value>
+  </data>
+  <data name="CharacterLabel" xml:space="preserve">
+    <value>Персонаж</value>
+  </data>
+  <data name="Reply" xml:space="preserve">
+    <value>Ответить</value>
+  </data>
+  <data name="Forward" xml:space="preserve">
+    <value>Переслать</value>
+  </data>
+  <data name="Compose" xml:space="preserve">
+    <value>+ Новое письмо</value>
+  </data>
+  <data name="FromLabel2" xml:space="preserve">
+    <value>От:</value>
+  </data>
+  <data name="DateFromLabel" xml:space="preserve">
+    <value>От:</value>
+  </data>
+  <data name="TipOpenInTheEntityBrowser" xml:space="preserve">
+    <value>Открыть в справочнике</value>
+  </data>
+  <data name="ToLabel" xml:space="preserve">
+    <value>Кому:</value>
+  </data>
+  <data name="DateLabel" xml:space="preserve">
+    <value>Дата:</value>
+  </data>
+  <data name="SelectAMessageToRead" xml:space="preserve">
+    <value>Выберите письмо, чтобы прочитать его.</value>
+  </data>
+  <data name="TitleEveMail" xml:space="preserve">
+    <value>Почта EVE</value>
+  </data>
+  <data name="CharacterLabel2" xml:space="preserve">
+    <value>Персонаж:</value>
+  </data>
+  <data name="TypeLabel" xml:space="preserve">
+    <value>Тип:</value>
+  </data>
+  <data name="SenderLabel" xml:space="preserve">
+    <value>Отправитель:</value>
+  </data>
+  <data name="ThruLabel" xml:space="preserve">
+    <value>До:</value>
+  </data>
+  <data name="SortLabel" xml:space="preserve">
+    <value>Сортировка:</value>
+  </data>
+  <data name="UnreadOnly" xml:space="preserve">
+    <value>Только непрочитанные</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>Очистить</value>
+  </data>
+  <data name="ColDate" xml:space="preserve">
+    <value>Дата</value>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>Тип</value>
+  </data>
+  <data name="ColCharacter" xml:space="preserve">
+    <value>Персонаж</value>
+  </data>
+  <data name="ColSender" xml:space="preserve">
+    <value>Отправитель</value>
+  </data>
+  <data name="ColSenderType" xml:space="preserve">
+    <value>Тип отправителя</value>
+  </data>
+  <data name="ColRead" xml:space="preserve">
+    <value>Статус</value>
+  </data>
+  <data name="Sender" xml:space="preserve">
+    <value>Отправитель</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Дата</value>
+  </data>
+  <data name="Read" xml:space="preserve">
+    <value>Статус</value>
+  </data>
+  <data name="Character" xml:space="preserve">
+    <value>Персонаж</value>
+  </data>
+  <data name="NoFurtherDetails" xml:space="preserve">
+    <value>Других сведений нет.</value>
+  </data>
+  <data name="ShowTheOriginalText" xml:space="preserve">
+    <value>Показать исходный текст</value>
+  </data>
+  <data name="SelectANotificationToNote" xml:space="preserve">
+    <value>Выберите уведомление, чтобы посмотреть подробности.</value>
+  </data>
+  <data name="First" xml:space="preserve">
+    <value>⏮ В начало</value>
+  </data>
+  <data name="Prev" xml:space="preserve">
+    <value>◀ Назад</value>
+  </data>
+  <data name="Next" xml:space="preserve">
+    <value>Вперёд ▶</value>
+  </data>
+  <data name="Last" xml:space="preserve">
+    <value>В конец ⏭</value>
+  </data>
+  <data name="AllCharacters" xml:space="preserve">
+    <value>Все персонажи</value>
+  </data>
+  <data name="MailFolderAll" xml:space="preserve">
+    <value>Вся почта</value>
+  </data>
+  <data name="MailFolderInbox" xml:space="preserve">
+    <value>Входящие</value>
+  </data>
+  <data name="MailFolderSent" xml:space="preserve">
+    <value>Отправлено</value>
+  </data>
+  <data name="MailFolderCorp" xml:space="preserve">
+    <value>Корпоративные</value>
+  </data>
+  <data name="MailFolderAlliance" xml:space="preserve">
+    <value>Общеальянсовые</value>
+  </data>
+  <data name="MailCountOne" xml:space="preserve">
+    <value>{0:N0} письмо</value>
+  </data>
+  <data name="MailCountOther" xml:space="preserve">
+    <value>{0:N0} письма</value>
+  </data>
+  <data name="MailCountFew" xml:space="preserve">
+    <value>{0:N0} письма</value>
+  </data>
+  <data name="MailCountMany" xml:space="preserve">
+    <value>{0:N0} писем</value>
+  </data>
+  <data name="MailBodyLoadError" xml:space="preserve">
+    <value>(Ошибка загрузки текста: {0})</value>
+  </data>
+  <data name="MailNoCharacters" xml:space="preserve">
+    <value>Нет персонажей, от имени которых можно написать письмо.</value>
+  </data>
+  <data name="MailCharacterGone" xml:space="preserve">
+    <value>Персонаж, получивший это письмо, больше недоступен в качестве отправителя.</value>
+  </data>
+  <data name="MailQuoteHeader" xml:space="preserve">
+    <value>{1}, {0} пишет:
+
+</value>
+  </data>
+  <data name="MailSending" xml:space="preserve">
+    <value>Отправка…</value>
+  </data>
+  <data name="MailSent" xml:space="preserve">
+    <value>Письмо отправлено.</value>
+  </data>
+  <data name="MailSendFailed" xml:space="preserve">
+    <value>Не удалось отправить: {0}</value>
+  </data>
+  <data name="NotifRead" xml:space="preserve">
+    <value>Прочитано</value>
+  </data>
+  <data name="NotifUnread" xml:space="preserve">
+    <value>Не прочитано</value>
+  </data>
+  <data name="NotifTipEntity" xml:space="preserve">
+    <value>Открыть в справочнике</value>
+  </data>
+  <data name="NotifAllTypes" xml:space="preserve">
+    <value>Все типы</value>
+  </data>
+  <data name="SortDateNewest" xml:space="preserve">
+    <value>Дата: сначала новые</value>
+  </data>
+  <data name="SortDateOldest" xml:space="preserve">
+    <value>Дата: сначала старые</value>
+  </data>
+  <data name="SortTypeAz" xml:space="preserve">
+    <value>Тип (А → Я)</value>
+  </data>
+  <data name="AllCharactersLower" xml:space="preserve">
+    <value>Все персонажи</value>
+  </data>
+  <data name="NotifNoneMatch" xml:space="preserve">
+    <value>Нет уведомлений, подходящих под эти фильтры.</value>
+  </data>
+  <data name="MailSearching" xml:space="preserve">
+    <value>Поиск…</value>
+  </data>
+  <data name="MailNoCharacterFound" xml:space="preserve">
+    <value>По запросу «{0}» персонажей не найдено.</value>
+  </data>
+  <data name="MailSubjectRequired" xml:space="preserve">
+    <value>Укажите тему.</value>
+  </data>
+  <data name="MailBodyRequired" xml:space="preserve">
+    <value>Введите текст письма.</value>
+  </data>
+  <data name="MailAddRecipient" xml:space="preserve">
+    <value>Добавьте хотя бы одного получателя.</value>
+  </data>
+  <data name="NotifTitleCorpAppNewMsg" xml:space="preserve">
+    <value>Новая заявка на вступление в корпорацию</value>
+  </data>
+  <data name="NotifTitleCorpAppInvitedMsg" xml:space="preserve">
+    <value>Приглашение в корпорацию</value>
+  </data>
+  <data name="NotifTitleCorpAppAcceptMsg" xml:space="preserve">
+    <value>Заявка в корпорацию принята</value>
+  </data>
+  <data name="NotifTitleCharAppAcceptMsg" xml:space="preserve">
+    <value>Заявка принята</value>
+  </data>
+  <data name="NotifTitleCharAppRejectMsg" xml:space="preserve">
+    <value>Заявка отклонена</value>
+  </data>
+  <data name="NotifTitleCharAppWithdrawMsg" xml:space="preserve">
+    <value>Заявка отозвана</value>
+  </data>
+  <data name="NotifTitleCharTerminationMsg" xml:space="preserve">
+    <value>Участник покинул корпорацию</value>
+  </data>
+  <data name="NotifTitleCorpTaxChangeMsg" xml:space="preserve">
+    <value>Изменён налог корпорации</value>
+  </data>
+  <data name="NotifTitleCorpAllBillMsg" xml:space="preserve">
+    <value>Счёт корпорации</value>
+  </data>
+  <data name="NotifTitleInsurancePayoutMsg" xml:space="preserve">
+    <value>Страховая выплата</value>
+  </data>
+  <data name="NotifTitleNPCStandingsLost" xml:space="preserve">
+    <value>Изменились отношения с NPC</value>
+  </data>
+  <data name="NotifTitleNPCStandingsGained" xml:space="preserve">
+    <value>Изменились отношения с NPC</value>
+  </data>
+  <data name="NotifTitleCorporationGoalCreated" xml:space="preserve">
+    <value>Создан проект корпорации</value>
+  </data>
+  <data name="NotifTitleCorporationGoalCompleted" xml:space="preserve">
+    <value>Проект корпорации завершён</value>
+  </data>
+  <data name="NotifTitleCorporationGoalClosed" xml:space="preserve">
+    <value>Проект корпорации закрыт</value>
+  </data>
+  <data name="NotifTitleFreelanceProjectCreated" xml:space="preserve">
+    <value>Создан внешний заказ</value>
+  </data>
+  <data name="NotifTitleFreelanceProjectCompleted" xml:space="preserve">
+    <value>Внешний заказ выполнен</value>
+  </data>
+  <data name="NotifTitleFreelanceProjectExpired" xml:space="preserve">
+    <value>Срок внешнего заказа истёк</value>
+  </data>
+  <data name="NotifTitleFreelanceProjectACLDeleted" xml:space="preserve">
+    <value>Удалён список доступа внешнего заказа</value>
+  </data>
+  <data name="NotifTitleMoonminingExtractionStarted" xml:space="preserve">
+    <value>Начато извлечение породы</value>
+  </data>
+  <data name="NotifTitleMoonminingExtractionFinished" xml:space="preserve">
+    <value>Извлечение породы завершено</value>
+  </data>
+  <data name="NotifTitleMoonminingExtractionCancelled" xml:space="preserve">
+    <value>Извлечение породы отменено</value>
+  </data>
+  <data name="NotifTitleMoonminingAutomaticFracture" xml:space="preserve">
+    <value>Автоматический раскол породы</value>
+  </data>
+  <data name="NotifTitleMoonminingLaserFired" xml:space="preserve">
+    <value>Буровой модуль произвёл раскол</value>
+  </data>
+  <data name="NotifTitleStructureAnchoring" xml:space="preserve">
+    <value>Сооружение встаёт на якорь</value>
+  </data>
+  <data name="NotifTitleStructureUnanchoring" xml:space="preserve">
+    <value>Сооружение снимается с якоря</value>
+  </data>
+  <data name="NotifTitleStructureOnline" xml:space="preserve">
+    <value>Сооружение включено</value>
+  </data>
+  <data name="NotifTitleStructureWentHighPower" xml:space="preserve">
+    <value>Сооружение в режиме высокой мощности</value>
+  </data>
+  <data name="NotifTitleStructureWentLowPower" xml:space="preserve">
+    <value>Сооружение в режиме малой мощности</value>
+  </data>
+  <data name="NotifTitleStructureUnderAttack" xml:space="preserve">
+    <value>Сооружение атаковано</value>
+  </data>
+  <data name="NotifTitleStructureLostShields" xml:space="preserve">
+    <value>Сооружение потеряло щиты</value>
+  </data>
+  <data name="NotifTitleStructureLostArmor" xml:space="preserve">
+    <value>Сооружение потеряло броню</value>
+  </data>
+  <data name="NotifTitleStructureDestroyed" xml:space="preserve">
+    <value>Сооружение уничтожено</value>
+  </data>
+  <data name="NotifTitleStructureFuelAlert" xml:space="preserve">
+    <value>У сооружения заканчивается топливо</value>
+  </data>
+  <data name="NotifTitleStructureLowReagentsAlert" xml:space="preserve">
+    <value>У сооружения заканчиваются реагенты</value>
+  </data>
+  <data name="NotifTitleStructureNoReagentsAlert" xml:space="preserve">
+    <value>У сооружения закончились реагенты</value>
+  </data>
+  <data name="NotifTitleStructureServicesOffline" xml:space="preserve">
+    <value>Службы сооружения выключены</value>
+  </data>
+  <data name="NotifTitleStructureItemsMovedToSafety" xml:space="preserve">
+    <value>Предметы перемещены в систему безопасности активов</value>
+  </data>
+  <data name="NotifTitleStructureItemsDelivered" xml:space="preserve">
+    <value>Предметы доставлены в сооружение</value>
+  </data>
+  <data name="NotifTitleStructureImpendingAbandonmentAssetsAtRisk" xml:space="preserve">
+    <value>Сооружение скоро будет брошено — имущество под угрозой</value>
+  </data>
+  <data name="NotifTitleStructurePaintPurchased" xml:space="preserve">
+    <value>Куплена окраска сооружения</value>
+  </data>
+  <data name="NotifTitleOwnershipTransferred" xml:space="preserve">
+    <value>Сооружение передано другому владельцу</value>
+  </data>
+  <data name="NotifTitleEntosisCaptureStarted" xml:space="preserve">
+    <value>Начат захват энтозом</value>
+  </data>
+  <data name="NotifTitleTowerAlertMsg" xml:space="preserve">
+    <value>Звёздная база атакована</value>
+  </data>
+  <data name="NotifTitleTowerResourceAlertMsg" xml:space="preserve">
+    <value>У звёздной базы заканчивается топливо</value>
+  </data>
+  <data name="NotifTitleCloneActivationMsg2" xml:space="preserve">
+    <value>Клон активирован</value>
+  </data>
+  <data name="NotifTitleCloneActivationMsg" xml:space="preserve">
+    <value>Клон активирован</value>
+  </data>
+  <data name="NotifTitleCloneRevokedMsg2" xml:space="preserve">
+    <value>Клон отозван</value>
+  </data>
+  <data name="NotifTitleJumpCloneDeletedMsg1" xml:space="preserve">
+    <value>Джамп-клон уничтожен</value>
+  </data>
+  <data name="NotifTitleJumpCloneDeletedMsg2" xml:space="preserve">
+    <value>Джамп-клон уничтожен</value>
+  </data>
+  <data name="NotifTitleKillReportVictim" xml:space="preserve">
+    <value>Корабль потерян</value>
+  </data>
+  <data name="NotifTitleKillReportFinalBlow" xml:space="preserve">
+    <value>Решающий удар</value>
+  </data>
+  <data name="NotifTitleKillRightEarned" xml:space="preserve">
+    <value>Получено разрешение на ликвидацию</value>
+  </data>
+  <data name="NotifTitleWarDeclared" xml:space="preserve">
+    <value>Война объявлена</value>
+  </data>
+  <data name="NotifTitleWarInherited" xml:space="preserve">
+    <value>Война унаследована</value>
+  </data>
+  <data name="NotifTitleWarAllyInherited" xml:space="preserve">
+    <value>Унаследован союзник в войне</value>
+  </data>
+  <data name="NotifTitleWarInvalid" xml:space="preserve">
+    <value>Война признана недействительной</value>
+  </data>
+  <data name="NotifTitleWarRetractedByConcord" xml:space="preserve">
+    <value>КОНКОРД отменил войну</value>
+  </data>
+  <data name="NotifTitleWarHQRemovedFromSpace" xml:space="preserve">
+    <value>Штаб войны убран из космоса</value>
+  </data>
+  <data name="NotifTitleMutualWarInviteSent" xml:space="preserve">
+    <value>Отправлено приглашение к взаимной войне</value>
+  </data>
+  <data name="NotifTitleOfferedToAlly" xml:space="preserve">
+    <value>Предложение вступить в войну союзником</value>
+  </data>
+  <data name="NotifTitleAllyJoinedWarAggressorMsg" xml:space="preserve">
+    <value>Союзник присоединился к защищающейся стороне</value>
+  </data>
+  <data name="NotifTitleAllyJoinedWarAllyMsg" xml:space="preserve">
+    <value>Союзник вступил в войну</value>
+  </data>
+  <data name="NotifTitleCorpBecameWarEligible" xml:space="preserve">
+    <value>Корпорация может участвовать в войнах</value>
+  </data>
+  <data name="NotifTitleCorpNoLongerWarEligible" xml:space="preserve">
+    <value>Корпорация больше не может участвовать в войнах</value>
+  </data>
+  <data name="NotifTitleAllianceCapitalChanged" xml:space="preserve">
+    <value>Сменилась столица альянса</value>
+  </data>
+  <data name="NotifTitleExpertSystemExpired" xml:space="preserve">
+    <value>Срок экспертной системы истёк</value>
+  </data>
+  <data name="NotifTitleGameTimeAdded" xml:space="preserve">
+    <value>Добавлено игровое время</value>
+  </data>
+  <data name="NotifLabelStructure" xml:space="preserve">
+    <value>Сооружение</value>
+  </data>
+  <data name="NotifLabelStructureType" xml:space="preserve">
+    <value>Тип сооружения</value>
+  </data>
+  <data name="NotifLabelStructures" xml:space="preserve">
+    <value>Сооружения</value>
+  </data>
+  <data name="NotifLabelStation" xml:space="preserve">
+    <value>Станция</value>
+  </data>
+  <data name="NotifLabelMovedTo" xml:space="preserve">
+    <value>Куда перемещено</value>
+  </data>
+  <data name="NotifLabelCloneLocation" xml:space="preserve">
+    <value>Местоположение клона</value>
+  </data>
+  <data name="NotifLabelLocation" xml:space="preserve">
+    <value>Местоположение</value>
+  </data>
+  <data name="NotifLabelSystem" xml:space="preserve">
+    <value>Система</value>
+  </data>
+  <data name="NotifLabelMoon" xml:space="preserve">
+    <value>Спутник</value>
+  </data>
+  <data name="NotifLabelCharacter" xml:space="preserve">
+    <value>Персонаж</value>
+  </data>
+  <data name="NotifLabelCorporation" xml:space="preserve">
+    <value>Корпорация</value>
+  </data>
+  <data name="NotifLabelAlliance" xml:space="preserve">
+    <value>Альянс</value>
+  </data>
+  <data name="NotifLabelOwner" xml:space="preserve">
+    <value>Владелец</value>
+  </data>
+  <data name="NotifLabelCreatedBy" xml:space="preserve">
+    <value>Кто создал</value>
+  </data>
+  <data name="NotifLabelClosedBy" xml:space="preserve">
+    <value>Кто закрыл</value>
+  </data>
+  <data name="NotifLabelInvitedBy" xml:space="preserve">
+    <value>Кто пригласил</value>
+  </data>
+  <data name="NotifLabelStartedBy" xml:space="preserve">
+    <value>Кто начал</value>
+  </data>
+  <data name="NotifLabelFiredBy" xml:space="preserve">
+    <value>Кто запустил</value>
+  </data>
+  <data name="NotifLabelCancelledBy" xml:space="preserve">
+    <value>Кто отменил</value>
+  </data>
+  <data name="NotifLabelPurchasedBy" xml:space="preserve">
+    <value>Покупатель</value>
+  </data>
+  <data name="NotifLabelDestroyedBy" xml:space="preserve">
+    <value>Кто уничтожил</value>
+  </data>
+  <data name="NotifLabelPoddedBy" xml:space="preserve">
+    <value>Кто уничтожил капсулу</value>
+  </data>
+  <data name="NotifLabelNewOwner" xml:space="preserve">
+    <value>Новый владелец</value>
+  </data>
+  <data name="NotifLabelPreviousOwner" xml:space="preserve">
+    <value>Прежний владелец</value>
+  </data>
+  <data name="NotifLabelLocationOwner" xml:space="preserve">
+    <value>Владелец места</value>
+  </data>
+  <data name="NotifLabelPlacedBy" xml:space="preserve">
+    <value>Кто назначил</value>
+  </data>
+  <data name="NotifLabelDeclaredBy" xml:space="preserve">
+    <value>Кто объявил</value>
+  </data>
+  <data name="NotifLabelAgainst" xml:space="preserve">
+    <value>Против кого</value>
+  </data>
+  <data name="NotifLabelAggressor" xml:space="preserve">
+    <value>Нападающая сторона</value>
+  </data>
+  <data name="NotifLabelAggressorCorporation" xml:space="preserve">
+    <value>Нападающая корпорация</value>
+  </data>
+  <data name="NotifLabelAggressorAlliance" xml:space="preserve">
+    <value>Нападающий альянс</value>
+  </data>
+  <data name="NotifLabelDefender" xml:space="preserve">
+    <value>Защищающаяся сторона</value>
+  </data>
+  <data name="NotifLabelAlly" xml:space="preserve">
+    <value>Союзник</value>
+  </data>
+  <data name="NotifLabelEnemy" xml:space="preserve">
+    <value>Враг</value>
+  </data>
+  <data name="NotifLabelOpponent" xml:space="preserve">
+    <value>Противник</value>
+  </data>
+  <data name="NotifLabelLeftTheWar" xml:space="preserve">
+    <value>Кто вышел из войны</value>
+  </data>
+  <data name="NotifLabelWarHq" xml:space="preserve">
+    <value>Штаб</value>
+  </data>
+  <data name="NotifLabelCost" xml:space="preserve">
+    <value>Стоимость</value>
+  </data>
+  <data name="NotifLabelFee" xml:space="preserve">
+    <value>Плата</value>
+  </data>
+  <data name="NotifLabelStartsAfter" xml:space="preserve">
+    <value>Начнётся через</value>
+  </data>
+  <data name="NotifLabelHostileNow" xml:space="preserve">
+    <value>Боевые действия идут</value>
+  </data>
+  <data name="NotifLabelType" xml:space="preserve">
+    <value>Тип</value>
+  </data>
+  <data name="NotifLabelTypes" xml:space="preserve">
+    <value>Типы</value>
+  </data>
+  <data name="NotifLabelShip" xml:space="preserve">
+    <value>Корабль</value>
+  </data>
+  <data name="NotifLabelRequires" xml:space="preserve">
+    <value>Требуется</value>
+  </data>
+  <data name="NotifLabelItems" xml:space="preserve">
+    <value>Предметы</value>
+  </data>
+  <data name="NotifLabelServices" xml:space="preserve">
+    <value>Службы</value>
+  </data>
+  <data name="NotifLabelOre" xml:space="preserve">
+    <value>Руда</value>
+  </data>
+  <data name="NotifLabelNeeds" xml:space="preserve">
+    <value>Нужно</value>
+  </data>
+  <data name="NotifLabelKillmail" xml:space="preserve">
+    <value>Отчёт о бое</value>
+  </data>
+  <data name="NotifLabelAmount" xml:space="preserve">
+    <value>Сумма</value>
+  </data>
+  <data name="NotifLabelBounty" xml:space="preserve">
+    <value>Награда за голову</value>
+  </data>
+  <data name="NotifLabelLoyaltyPoints" xml:space="preserve">
+    <value>Наградные баллы</value>
+  </data>
+  <data name="NotifLabelProject" xml:space="preserve">
+    <value>Название</value>
+  </data>
+  <data name="NotifLabelShield" xml:space="preserve">
+    <value>Щиты</value>
+  </data>
+  <data name="NotifLabelArmor" xml:space="preserve">
+    <value>Броня</value>
+  </data>
+  <data name="NotifLabelHull" xml:space="preserve">
+    <value>Корпус</value>
+  </data>
+  <data name="NotifLabelCorporationOwned" xml:space="preserve">
+    <value>Принадлежит корпорации</value>
+  </data>
+  <data name="NotifLabelAbandoned" xml:space="preserve">
+    <value>Брошено</value>
+  </data>
+  <data name="NotifLabelDaysUntilAbandoned" xml:space="preserve">
+    <value>Дней до оставления</value>
+  </data>
+  <data name="NotifLabelSecurityStatus" xml:space="preserve">
+    <value>Статус безопасности</value>
+  </data>
+  <data name="NotifLabelNewTaxRate" xml:space="preserve">
+    <value>Новая ставка налога</value>
+  </data>
+  <data name="NotifLabelPreviousTaxRate" xml:space="preserve">
+    <value>Прежняя ставка налога</value>
+  </data>
+  <data name="NotifLabelTime" xml:space="preserve">
+    <value>Время</value>
+  </data>
+  <data name="NotifLabelStarted" xml:space="preserve">
+    <value>Начало</value>
+  </data>
+  <data name="NotifLabelStarts" xml:space="preserve">
+    <value>Начнётся</value>
+  </data>
+  <data name="NotifLabelDeclared" xml:space="preserve">
+    <value>Дата объявления</value>
+  </data>
+  <data name="NotifLabelEnds" xml:space="preserve">
+    <value>Окончание</value>
+  </data>
+  <data name="NotifLabelExpires" xml:space="preserve">
+    <value>Истекает</value>
+  </data>
+  <data name="NotifLabelTimeLeft" xml:space="preserve">
+    <value>Осталось времени</value>
+  </data>
+  <data name="NotifLabelVulnerabilityWindow" xml:space="preserve">
+    <value>Окно уязвимости</value>
+  </data>
+  <data name="NotifLabelReady" xml:space="preserve">
+    <value>Готовность</value>
+  </data>
+  <data name="NotifLabelFracturesAutomatically" xml:space="preserve">
+    <value>Автоматический раскол</value>
+  </data>
+  <data name="NotifLabelLastCloned" xml:space="preserve">
+    <value>Последнее клонирование</value>
+  </data>
+  <data name="NotifLabelPurchased" xml:space="preserve">
+    <value>Куплено</value>
+  </data>
+  <data name="NotifLabelLasts" xml:space="preserve">
+    <value>Длительность</value>
+  </data>
+  <data name="NotifLabelDeliverableFrom" xml:space="preserve">
+    <value>Доставка возможна с</value>
+  </data>
+  <data name="NotifLabelDeliveredAutomatically" xml:space="preserve">
+    <value>Автоматическая доставка</value>
+  </data>
+  <data name="NotifLabelIssued" xml:space="preserve">
+    <value>Дата выставления</value>
+  </data>
+  <data name="NotifLabelDue" xml:space="preserve">
+    <value>Срок оплаты</value>
+  </data>
+  <data name="NotifLabelApplication" xml:space="preserve">
+    <value>Заявка</value>
+  </data>
+  <data name="NotifLabelApplicant" xml:space="preserve">
+    <value>Заявитель</value>
+  </data>
+  <data name="NotifLabelInvited" xml:space="preserve">
+    <value>Приглашённый</value>
+  </data>
+  <data name="NotifLabelMember" xml:space="preserve">
+    <value>Участник</value>
+  </data>
+  <data name="NotifLabelRevokedBy" xml:space="preserve">
+    <value>Кто отозвал</value>
+  </data>
+  <data name="NotifLabelWasAt" xml:space="preserve">
+    <value>Где находился</value>
+  </data>
+  <data name="NotifLabelImplantsLost" xml:space="preserve">
+    <value>Потерянные имплантаты</value>
+  </data>
+  <data name="NotifLabelCloneOf" xml:space="preserve">
+    <value>Чей клон</value>
+  </data>
+  <data name="NotifLabelPayout" xml:space="preserve">
+    <value>Выплата</value>
+  </data>
+  <data name="NotifLabelAssetSafetyStation" xml:space="preserve">
+    <value>Станция системы безопасности активов</value>
+  </data>
+  <data name="NotifLabelFuelRemaining" xml:space="preserve">
+    <value>Остаток топлива</value>
+  </data>
+  <data name="NotifLabelDelivered" xml:space="preserve">
+    <value>Доставлено</value>
+  </data>
+  <data name="NotifLabelDeliveredTo" xml:space="preserve">
+    <value>Кому доставлено</value>
+  </data>
+  <data name="NotifLabelServicesOffline" xml:space="preserve">
+    <value>Выключенные службы</value>
+  </data>
+  <data name="NotifLabelTower" xml:space="preserve">
+    <value>Башня</value>
+  </data>
+  <data name="NotifLabelAttacker" xml:space="preserve">
+    <value>Нападающий</value>
+  </data>
+  <data name="NotifLabelAttackerCorporation" xml:space="preserve">
+    <value>Корпорация нападающего</value>
+  </data>
+  <data name="NotifLabelAttackerAlliance" xml:space="preserve">
+    <value>Альянс нападающего</value>
+  </data>
+  <data name="NotifLabelTransferredBy" xml:space="preserve">
+    <value>Кто передал</value>
+  </data>
+  <data name="NotifLabelExpertSystem" xml:space="preserve">
+    <value>Экспертная система</value>
+  </data>
+  <data name="NotifLabelNewCapital" xml:space="preserve">
+    <value>Новая столица</value>
+  </data>
+  <data name="NotifLabelStructuresPainted" xml:space="preserve">
+    <value>Окрашенные сооружения</value>
+  </data>
+  <data name="NotifLabelOfferedBy" xml:space="preserve">
+    <value>Кто предложил</value>
+  </data>
+  <data name="NotifLabelKillRightOn" xml:space="preserve">
+    <value>Разрешение на ликвидацию</value>
+  </data>
+  <data name="NotifLabelReinforcedUntil" xml:space="preserve">
+    <value>Укреплённый режим до</value>
+  </data>
+  <data name="NotifLabelFightingStarts" xml:space="preserve">
+    <value>Начало битвы</value>
+  </data>
+  <data name="NotifSentenceCorpBecameWarEligible" xml:space="preserve">
+    <value>Ваша корпорация теперь может участвовать в войнах.</value>
+  </data>
+  <data name="NotifSentenceCorpNoLongerWarEligible" xml:space="preserve">
+    <value>Ваша корпорация больше не может участвовать в войнах.</value>
+  </data>
+  <data name="NotifSentenceGameTimeAdded" xml:space="preserve">
+    <value>К учётной записи добавлено игровое время.</value>
+  </data>
+  <data name="NotifDetails" xml:space="preserve">
+    <value>Подробности</value>
+  </data>
+  <data name="NotifColType" xml:space="preserve">
+    <value>Тип</value>
+  </data>
+  <data name="NotifColQuantity" xml:space="preserve">
+    <value>Количество</value>
+  </data>
+  <data name="NotifTotal" xml:space="preserve">
+    <value>Всего</value>
+  </data>
+  <data name="NotifColVolume" xml:space="preserve">
+    <value>Объём</value>
+  </data>
+  <data name="NotifOpenKillmail" xml:space="preserve">
+    <value>Открыть отчёт о бое</value>
+  </data>
+  <data name="NotifYes" xml:space="preserve">
+    <value>Да</value>
+  </data>
+  <data name="NotifNo" xml:space="preserve">
+    <value>Нет</value>
+  </data>
+  <data name="NotifStandingChanges" xml:space="preserve">
+    <value>Изменения отношений</value>
+  </data>
+  <data name="NotifColWith" xml:space="preserve">
+    <value>С кем</value>
+  </data>
+  <data name="NotifColChange" xml:space="preserve">
+    <value>Изменение</value>
+  </data>
+  <data name="NotifColStandingNow" xml:space="preserve">
+    <value>Сейчас</value>
+  </data>
+  <data name="NotifBillType" xml:space="preserve">
+    <value>Тип счёта {0}</value>
+  </data>
+  <data name="NotifBillMarketFine" xml:space="preserve">
+    <value>Рыночный штраф</value>
+  </data>
+  <data name="NotifBillOfficeRental" xml:space="preserve">
+    <value>Аренда офиса</value>
+  </data>
+  <data name="NotifBillBrokerFee" xml:space="preserve">
+    <value>Гонорар брокера</value>
+  </data>
+  <data name="NotifBillWar" xml:space="preserve">
+    <value>Война</value>
+  </data>
+  <data name="NotifBillAllianceMaintenance" xml:space="preserve">
+    <value>Содержание альянса</value>
+  </data>
+  <data name="NotifBillSovereigntyMarker" xml:space="preserve">
+    <value>Содержание права владения</value>
+  </data>
+  <data name="NotifMoreRows" xml:space="preserve">
+    <value>ещё {0}</value>
+  </data>
+  <data name="NotifHoursOne" xml:space="preserve">
+    <value>{0} час</value>
+  </data>
+  <data name="NotifHoursOther" xml:space="preserve">
+    <value>{0} часа</value>
+  </data>
+  <data name="NotifHoursFew" xml:space="preserve">
+    <value>{0} часа</value>
+  </data>
+  <data name="NotifHoursMany" xml:space="preserve">
+    <value>{0} часов</value>
+  </data>
+  <data name="NotifHoursFraction" xml:space="preserve">
+    <value>{0:0.#} часа</value>
+  </data>
+  <data name="NotifSpanDays" xml:space="preserve">
+    <value>{0} д</value>
+  </data>
+  <data name="NotifSpanHours" xml:space="preserve">
+    <value>{0} ч</value>
+  </data>
+  <data name="NotifSpanMinutes" xml:space="preserve">
+    <value>{0} мин</value>
+  </data>
+  <data name="NotifSpanSeconds" xml:space="preserve">
+    <value>{0} с</value>
+  </data>
+  <data name="NotifBillSummary" xml:space="preserve">
+    <value>{0}: {1}.</value>
+  </data>
+  <data name="NotifBillSummaryAt" xml:space="preserve">
+    <value>{0} ({1}): {2}.</value>
+  </data>
+  <data name="NotifBillSummaryDue" xml:space="preserve">
+    <value>{0}: {1}, оплатить до {2}.</value>
+  </data>
+  <data name="NotifBillSummaryAtDue" xml:space="preserve">
+    <value>{0} ({1}): {2}, оплатить до {3}.</value>
+  </data>
+  <data name="NotifLabelBill" xml:space="preserve">
+    <value>Счёт</value>
+  </data>
+  <data name="NotifLabelBilledTo" xml:space="preserve">
+    <value>Плательщик</value>
+  </data>
+  <data name="NotifLabelPayableTo" xml:space="preserve">
+    <value>Получатель</value>
+  </data>
+  <data name="NotifLabelRented" xml:space="preserve">
+    <value>Объект аренды</value>
+  </data>
+  <data name="NotifLabelForAlliance" xml:space="preserve">
+    <value>Для альянса</value>
+  </data>
+  <data name="NotifLabelReference" xml:space="preserve">
+    <value>Идентификатор</value>
+  </data>
+  <data name="NotifLabelSecondReference" xml:space="preserve">
+    <value>Второй идентификатор</value>
+  </data>
+  <data name="NotifTypeNumbered" xml:space="preserve">
+    <value>Тип {0}</value>
+  </data>
+  <data name="NotifTipItemBrowser" xml:space="preserve">
+    <value>Открыть в разделе «Просмотр предметов»</value>
+  </data>
+  <data name="NotifSystemNumbered" xml:space="preserve">
+    <value>Система {0}</value>
+  </data>
+  <data name="NotifTipSecOpenMap" xml:space="preserve">
+    <value>{0}
+Открыть на карте</value>
+  </data>
+  <data name="NotifTipOpenMap" xml:space="preserve">
+    <value>Открыть на карте</value>
+  </data>
+  <data name="NotifMoonNumbered" xml:space="preserve">
+    <value>Спутник {0}</value>
+  </data>
+  <data name="NotifStationNumbered" xml:space="preserve">
+    <value>Станция {0}</value>
+  </data>
+  <data name="NotifTipNpcEntities" xml:space="preserve">
+    <value>Открыть в справочнике NPC</value>
+  </data>
+  <data name="NotifNameUnknown" xml:space="preserve">
+    <value>{0} (название неизвестно)</value>
+  </data>
+  <data name="NotifStructureNameUnknown" xml:space="preserve">
+    <value>Сооружение (название неизвестно)</value>
+  </data>
+  <data name="NotifTipStructureNumbered" xml:space="preserve">
+    <value>Сооружение {0}
+Открыть в разделе «Просмотр сооружений»</value>
+  </data>
+  <data name="NotifTipStructureBrowser" xml:space="preserve">
+    <value>Открыть в разделе «Просмотр сооружений»</value>
+  </data>
+  <data name="NotifOthersOne" xml:space="preserve">
+    <value>и ещё {0}</value>
+  </data>
+  <data name="NotifOthersOther" xml:space="preserve">
+    <value>и ещё {0}</value>
+  </data>
+  <data name="NotifOthersFew" xml:space="preserve">
+    <value>и ещё {0}</value>
+  </data>
+  <data name="NotifOthersMany" xml:space="preserve">
+    <value>и ещё {0}</value>
+  </data>
+  <data name="NotifStandingUp" xml:space="preserve">
+    <value>{0}: отношения к вам улучшились на {1}.</value>
+  </data>
+  <data name="NotifStandingUpTo" xml:space="preserve">
+    <value>{0}: отношения к вам улучшились на {1}, до {2}.</value>
+  </data>
+  <data name="NotifStandingDown" xml:space="preserve">
+    <value>{0}: отношения к вам ухудшились на {1}.</value>
+  </data>
+  <data name="NotifStandingDownTo" xml:space="preserve">
+    <value>{0}: отношения к вам ухудшились на {1}, до {2}.</value>
+  </data>
+  <data name="NotifStandingMoreOne" xml:space="preserve">
+    <value> Кроме того, ещё {0} изменение отношений.</value>
+  </data>
+  <data name="NotifStandingMoreOther" xml:space="preserve">
+    <value> Кроме того, ещё {0} изменения отношений.</value>
+  </data>
+  <data name="NotifStandingMoreFew" xml:space="preserve">
+    <value> Кроме того, ещё {0} изменения отношений.</value>
+  </data>
+  <data name="NotifStandingMoreMany" xml:space="preserve">
+    <value> Кроме того, ещё {0} изменений отношений.</value>
+  </data>
+  <data name="SenderAll" xml:space="preserve">
+    <value>Все отправители</value>
+  </data>
+  <data name="SenderCorporation" xml:space="preserve">
+    <value>Корпорация</value>
+  </data>
+  <data name="SenderCharacter" xml:space="preserve">
+    <value>Персонаж</value>
+  </data>
+  <data name="TimeAgo" xml:space="preserve">
+    <value>{0} назад</value>
+  </data>
+  <data name="TimeAgoTwoUnits" xml:space="preserve">
+    <value>{0} {1}</value>
+  </data>
+  <data name="TimeAgoSecondsOne" xml:space="preserve">
+    <value>{0} секунду</value>
+  </data>
+  <data name="TimeAgoSecondsOther" xml:space="preserve">
+    <value>{0} секунды</value>
+  </data>
+  <data name="TimeAgoSecondsFew" xml:space="preserve">
+    <value>{0} секунды</value>
+  </data>
+  <data name="TimeAgoSecondsMany" xml:space="preserve">
+    <value>{0} секунд</value>
+  </data>
+  <data name="TimeAgoMinutesOne" xml:space="preserve">
+    <value>{0} минуту</value>
+  </data>
+  <data name="TimeAgoMinutesOther" xml:space="preserve">
+    <value>{0} минуты</value>
+  </data>
+  <data name="TimeAgoMinutesFew" xml:space="preserve">
+    <value>{0} минуты</value>
+  </data>
+  <data name="TimeAgoMinutesMany" xml:space="preserve">
+    <value>{0} минут</value>
+  </data>
+  <data name="TimeAgoHoursOne" xml:space="preserve">
+    <value>{0} час</value>
+  </data>
+  <data name="TimeAgoHoursOther" xml:space="preserve">
+    <value>{0} часа</value>
+  </data>
+  <data name="TimeAgoHoursFew" xml:space="preserve">
+    <value>{0} часа</value>
+  </data>
+  <data name="TimeAgoHoursMany" xml:space="preserve">
+    <value>{0} часов</value>
+  </data>
+  <data name="TimeAgoDaysOne" xml:space="preserve">
+    <value>{0} день</value>
+  </data>
+  <data name="TimeAgoDaysOther" xml:space="preserve">
+    <value>{0} дня</value>
+  </data>
+  <data name="TimeAgoDaysFew" xml:space="preserve">
+    <value>{0} дня</value>
+  </data>
+  <data name="TimeAgoDaysMany" xml:space="preserve">
+    <value>{0} дней</value>
+  </data>
+</root>
