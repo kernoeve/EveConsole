@@ -281,7 +281,7 @@
         </DataGridTemplateColumn>
 
         <!-- IN STOCK -->
-        <DataGridTemplateColumn Header="{x:Static loc:SalesText.ColInStock}" Width="80" MinWidth="70" IsReadOnly="True" ClipboardContentBinding="{Binding InStockText}">
+        <DataGridTemplateColumn Header="{x:Static loc:SalesText.ColInStock}" Width="94" MinWidth="94" IsReadOnly="True" ClipboardContentBinding="{Binding InStockText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False" IsVisible="{Binding IsItem}" Text="{Binding InStockText}"
@@ -291,7 +291,7 @@
         </DataGridTemplateColumn>
 
         <!-- IN STOCK OVERRIDE -->
-        <DataGridTemplateColumn Header="{x:Static loc:SalesText.ColStockOvr}" Width="80" MinWidth="70" ClipboardContentBinding="{Binding InStockOverrideText}">
+        <DataGridTemplateColumn Header="{x:Static loc:SalesText.ColStockOvr}" Width="94" MinWidth="94" ClipboardContentBinding="{Binding InStockOverrideText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBox x:CompileBindings="False" Classes="cell" TextAlignment="Right"
@@ -302,7 +302,7 @@
         </DataGridTemplateColumn>
 
         <!-- IN BUILD -->
-        <DataGridTemplateColumn Header="{x:Static loc:SalesText.ColInBuild}" Width="80" MinWidth="70" IsReadOnly="True" ClipboardContentBinding="{Binding InBuildText}">
+        <DataGridTemplateColumn Header="{x:Static loc:SalesText.ColInBuild}" Width="94" MinWidth="94" IsReadOnly="True" ClipboardContentBinding="{Binding InBuildText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False" IsVisible="{Binding IsItem}" Text="{Binding InBuildText}"
@@ -312,7 +312,7 @@
         </DataGridTemplateColumn>
 
         <!-- IN BUILD OVERRIDE -->
-        <DataGridTemplateColumn Header="{x:Static loc:SalesText.ColBuildOvr}" Width="80" MinWidth="70" ClipboardContentBinding="{Binding InBuildOverrideText}">
+        <DataGridTemplateColumn Header="{x:Static loc:SalesText.ColBuildOvr}" Width="94" MinWidth="94" ClipboardContentBinding="{Binding InBuildOverrideText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBox x:CompileBindings="False" Classes="cell" TextAlignment="Right"
@@ -323,7 +323,7 @@
         </DataGridTemplateColumn>
 
         <!-- RESERVED -->
-        <DataGridTemplateColumn Header="{x:Static loc:SalesText.ColReserved}" Width="80" MinWidth="70" IsReadOnly="True" ClipboardContentBinding="{Binding ReservedText}">
+        <DataGridTemplateColumn Header="{x:Static loc:SalesText.ColReserved}" Width="94" MinWidth="94" IsReadOnly="True" ClipboardContentBinding="{Binding ReservedText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False" IsVisible="{Binding IsItem}" Text="{Binding ReservedText}"
@@ -333,7 +333,7 @@
         </DataGridTemplateColumn>
 
         <!-- RESERVED OVERRIDE -->
-        <DataGridTemplateColumn Header="{x:Static loc:SalesText.ColRsrvOvr}" Width="80" MinWidth="70" ClipboardContentBinding="{Binding ReservedOverrideText}">
+        <DataGridTemplateColumn Header="{x:Static loc:SalesText.ColRsrvOvr}" Width="94" MinWidth="94" ClipboardContentBinding="{Binding ReservedOverrideText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBox x:CompileBindings="False" Classes="cell" TextAlignment="Right"

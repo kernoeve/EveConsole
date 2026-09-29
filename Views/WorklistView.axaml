@@ -733,7 +733,7 @@
           <DataGrid.Columns>
             <!-- ⚠️ A dash rather than an empty cell when nothing itemised the need. Blank reads
                  as "the feature is broken"; a dash says "asked, and there is nothing to show". -->
-            <DataGridTemplateColumn Header="{x:Static loc:WorklistText.ColWhy}" Width="34" MinWidth="34" CanUserSort="False" ClipboardContentBinding="{Binding Glyph}">
+            <DataGridTemplateColumn Header="{x:Static loc:WorklistText.ColWhy}" Width="46" MinWidth="34" CanUserSort="False" ClipboardContentBinding="{Binding Glyph}">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:StationNeedRowVm">
                   <Panel>
@@ -933,7 +933,7 @@
           <DataGrid.Columns>
             <!-- ⚠️ A dash rather than an empty cell when nothing itemised the need. Blank reads
                  as "the feature is broken"; a dash says "asked, and there is nothing to show". -->
-            <DataGridTemplateColumn Header="{x:Static loc:WorklistText.ColWhy}" Width="34" MinWidth="34" CanUserSort="False" ClipboardContentBinding="{Binding Glyph}">
+            <DataGridTemplateColumn Header="{x:Static loc:WorklistText.ColWhy}" Width="46" MinWidth="34" CanUserSort="False" ClipboardContentBinding="{Binding Glyph}">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:StationNeedRowVm">
                   <Panel>

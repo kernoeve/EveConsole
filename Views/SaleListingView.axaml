@@ -97,7 +97,7 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
-        <DataGridTextColumn Header="{x:Static loc:SalesText.ColAmount}"      Binding="{Binding Amount}"   SortMemberPath="AmountRaw" Width="60" CellStyleClasses="num" />
+        <DataGridTextColumn Header="{x:Static loc:SalesText.ColAmount}"      Binding="{Binding Amount}"   SortMemberPath="AmountRaw" Width="64" CellStyleClasses="num" />
         <!-- ⚠️ TextAlignment, not HorizontalAlignment. A template column's cell does not stretch
              its content the way a text column's does, so HorizontalAlignment="Right" had nothing
              to align against and these two read as left-aligned beside the Amount column. -->

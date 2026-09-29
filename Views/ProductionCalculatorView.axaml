@@ -520,7 +520,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColProduced}" Width="70" SortMemberPath="QuantityProduced" ClipboardContentBinding="{Binding QuantityProduced, StringFormat=N0}">
+                <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColProduced}" Width="75" SortMemberPath="QuantityProduced" ClipboardContentBinding="{Binding QuantityProduced, StringFormat=N0}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanFinalProduct">
                       <TextBlock Text="{Binding QuantityProduced, StringFormat=N0}" FontSize="10"
@@ -528,7 +528,7 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="ME" Width="36" SortMemberPath="MeLevel" ClipboardContentBinding="{Binding MeLevel}">
+                <DataGridTemplateColumn Header="ME" Width="40" SortMemberPath="MeLevel" ClipboardContentBinding="{Binding MeLevel}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="models:PlanFinalProduct">
                       <TextBlock Text="{Binding MeLevel}" FontSize="10"
