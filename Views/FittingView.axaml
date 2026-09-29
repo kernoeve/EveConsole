@@ -159,18 +159,14 @@
 
       <!-- Actions -->
       <WrapPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0 0 0 6">
-        <Button Classes="tool" Content="New"              Command="{Binding NewFitCommand}"    Margin="0 0 6 4" />
+        <Button Classes="tool" Content="Clear"            Command="{Binding NewFitCommand}"    Margin="0 0 6 4"
+                ToolTip.Tip="Clear the fit and start again (you are asked about unsaved changes)" />
         <Button Classes="tool" Content="Paste EFT…"       Command="{Binding ImportEftCommand}" Margin="0 0 6 4" />
         <Button Classes="tool" Content="From the game…"   Command="{Binding ImportEsiCommand}" Margin="0 0 6 4"
                 ToolTip.Tip="Open one of your characters' or corporations' saved fittings" />
         <Button Classes="tool" Content="Copy EFT"         Command="{Binding CopyEftCommand}"   Margin="0 0 6 4" />
-        <Button Classes="tool" Content="Save"             Command="{Binding SaveCommand}"      Margin="0 0 6 4"
-                ToolTip.Tip="Save in EVE Console" />
-        <Button Classes="tool" Content="Save to game"     Command="{Binding SaveToGameCommand}" Margin="0 0 6 4"
-                ToolTip.Tip="Save as a new fitting on the character chosen as pilot" />
-        <Button Classes="tool" Content="Update in game"   Command="{Binding UpdateInGameCommand}" Margin="0 0 12 4"
-                IsVisible="{Binding HasGameSource}"
-                ToolTip.Tip="Replace the in-game fitting this fit was opened from" />
+        <Button Classes="tool" Content="Save…"           Command="{Binding SaveCommand}"      Margin="0 0 12 4"
+                ToolTip.Tip="Save in EVE Console, or to a character's fittings in the game" />
         <ComboBox ItemsSource="{Binding SavedFits}" SelectedItem="{Binding SelectedSaved}" PlaceholderText="Saved fits…"
                   MinWidth="200" Margin="0 0 6 4" FontSize="11" />
         <Button Classes="tool" Content="Delete" Command="{Binding DeleteSavedCommand}" Margin="0 0 0 4"

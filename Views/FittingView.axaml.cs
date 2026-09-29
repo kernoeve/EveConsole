@@ -36,11 +36,15 @@ public partial class FittingView : UserControl
             if (TopLevel.GetTopLevel(this)?.Clipboard is { } clip) await clip.SetTextAsync(ctx.Input);
             ctx.SetOutput(Unit.Default);
         }));
-        _handlers.Add(vm.ConfirmGame.RegisterHandler(async ctx =>
+        _handlers.Add(vm.AskSave.RegisterHandler(async ctx =>
         {
             var owner = TopLevel.GetTopLevel(this) as Window;
-            ctx.SetOutput(owner is not null
-                && await new ConfirmDialog(ctx.Input, title: "Update fitting in the game").ShowDialog<bool>(owner));
+            ctx.SetOutput(owner is null ? null : await new SaveFitDialog(ctx.Input).ShowDialog<SaveChoice?>(owner));
+        }));
+        _handlers.Add(vm.AskUnsaved.RegisterHandler(async ctx =>
+        {
+            var owner = TopLevel.GetTopLevel(this) as Window;
+            ctx.SetOutput(owner is null ? UnsavedChoice.Cancel : await new UnsavedFitDialog(ctx.Input).ShowDialog<UnsavedChoice>(owner));
         }));
         _handlers.Add(vm.PickEsiFit.RegisterHandler(async ctx =>
         {
