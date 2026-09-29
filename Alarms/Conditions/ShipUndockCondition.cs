@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using EveConsole.Data;
+using EveConsole.Localization;
 using Microsoft.EntityFrameworkCore;
 
 namespace EveConsole.Alarms.Conditions;
@@ -153,6 +154,31 @@ public sealed class ShipUndockCondition : IAlarmCondition
         },
     };
 
+    // The editor's words; the three above are the agent's and stay English. The choices are
+    // stored as the English above and only their words are looked up.
+    public string ScreenName        => AlarmsText.CheckShipUndock;
+    public string ScreenDescription => AlarmsText.CheckShipUndockNote;
+
+    public AlarmFieldText? ScreenField(string property) => property switch
+    {
+        "locations" => new(AlarmsText.UndockFromLabel, AlarmsText.UndockFromNote),
+        "ships"     => new(AlarmsText.FlyingLabel,     AlarmsText.UndockShipsNote),
+        "fit"       => new(AlarmsText.UndockFitLabel,  AlarmsText.UndockFitNote),
+        "fuel"      => new(AlarmsText.UndockFuelLabel, AlarmsText.UndockFuelNote, AlarmsText.SuffixUnits),
+        "ammo"      => new(AlarmsText.UndockAmmoLabel, AlarmsText.UndockAmmoNote, AlarmsText.SuffixUnits),
+        _           => null,
+    };
+
+    public string? ScreenOption(string property, string value) => value switch
+    {
+        Any       => AlarmsText.OptionAny,
+        NotFit    => AlarmsText.OptionNotFit,
+        Fit       => AlarmsText.OptionFit,
+        LowerThan => AlarmsText.OptionLowerThan,
+        NotLower  => AlarmsText.OptionNotLowerThan,
+        _         => null,
+    };
+
     /// <summary>
     /// Rewrites a config from the first shape of this check — <c>unfit</c>, <c>fuel_below</c>,
     /// <c>ammo_below</c>, each a reason to fire — into the choices. Null when there is nothing
@@ -217,14 +243,15 @@ public sealed class ShipUndockCondition : IAlarmCondition
         string alarmName, JsonElement config, IReadOnlyList<AlarmMatch> matches)
     {
         var title = matches.Count == 1 && matches[0].Detail is { } d
-            ? $"{Str(d, "character")} undocked in {Article(HullWord(d))}"
-            : $"{matches.Count} undocks";
+            ? string.Format(AlarmsText.UndockTitle, Str(d, "character"), SpokenHull(d))
+            : Plurals.Format(AlarmsText.ResourceManager, nameof(AlarmsText.UndocksOther), matches.Count);
         return (title, IAlarmCondition.JoinSummaries(matches));
     }
 
     /// <summary>
     /// Said as written: who, where, in what — then what is missing. A pilot who has just left
-    /// the undock can still dock back, and that window is short.
+    /// the undock can still dock back, and that window is short. In the interface language; the
+    /// written summary each match carries stays English, for the event and the agent.
     /// </summary>
     public string? Announcement(JsonElement config, IReadOnlyList<AlarmMatch> matches)
         => ComposeAnnouncement(matches);
@@ -239,15 +266,15 @@ public sealed class ShipUndockCondition : IAlarmCondition
             if (m.Detail is not { } d) continue;
             if (sb.Length > 0) sb.Append(' ');
 
-            sb.Append(Str(d, "character")).Append(" undocked in ").Append(Str(d, "system"))
-              .Append(" in ").Append(Article(HullWord(d)));
-
             // Spoken: the reason, not the arithmetic. "Low on fuel" is what a pilot needs to hear;
             // the units and the threshold are in the written summary for anyone who looks.
             var problems = Problems(d, spoken: true);
-            sb.Append(problems.Count == 0 ? "." : " — " + string.Join(", ", problems) + ".");
+            sb.Append(problems.Count == 0
+                ? string.Format(AlarmsText.UndockSaid, Str(d, "character"), Str(d, "system"), SpokenHull(d))
+                : string.Format(AlarmsText.UndockSaidProblems, Str(d, "character"), Str(d, "system"), SpokenHull(d),
+                                string.Join(", ", problems)));
         }
-        if (matches.Count > 5) sb.Append($" And {matches.Count - 5} more.");
+        if (matches.Count > 5) sb.Append(' ').Append(string.Format(AlarmsText.SaidAndMore, matches.Count - 5));
         return sb.ToString();
     }
 
@@ -561,11 +588,15 @@ public sealed class ShipUndockCondition : IAlarmCondition
     /// is the reason alone — "low on fuel", "low on ammunition" — because the alarm exists to
     /// name the problem and the numbers only slow the sentence down; written, it carries the
     /// units, the threshold and the weapon, for the history and the dialog.
+    ///
+    /// <para>Spoken is in the interface language. Written stays English: it is the match's
+    /// summary, which the event keeps and the agent reads back.</para>
     /// </summary>
     private static List<string> Problems(IReadOnlyDictionary<string, object?> d, bool spoken = false)
     {
         var list = new List<string>();
-        if (d.TryGetValue("unfit", out var u) && u is true) list.Add("nothing fitted");
+        if (d.TryGetValue("unfit", out var u) && u is true)
+            list.Add(spoken ? AlarmsText.UndockNothingFitted : "nothing fitted");
 
         if (d.TryGetValue("fuel_units", out var fu) && fu is int units)
         {
@@ -574,7 +605,7 @@ public sealed class ShipUndockCondition : IAlarmCondition
             var wanted = d.TryGetValue("fuel_wanted", out var fw) && fw is int w ? w : 0;
             if (spoken)
             {
-                if (short_) list.Add(units == 0 ? "no fuel" : "low on fuel");
+                if (short_) list.Add(units == 0 ? AlarmsText.UndockNoFuel : AlarmsText.UndockLowFuel);
             }
             else
                 list.Add(units == 0 ? $"no {fuel}"
@@ -588,7 +619,7 @@ public sealed class ShipUndockCondition : IAlarmCondition
             if (spoken)
             {
                 var have = all.Sum(w => w.TryGetValue("units", out var h) && h is int n ? n : 0);
-                list.Add(have == 0 ? "no ammunition" : "low on ammunition");
+                list.Add(have == 0 ? AlarmsText.UndockNoAmmo : AlarmsText.UndockLowAmmo);
                 return list;
             }
             foreach (var w in all.Take(2))
@@ -605,12 +636,17 @@ public sealed class ShipUndockCondition : IAlarmCondition
         return list;
     }
 
+    // English, for the written summary the agent reads.
     private static string HullWord(IReadOnlyDictionary<string, object?> d)
         => d.TryGetValue("is_pod", out var p) && p is true ? "pod" : Str(d, "hull");
 
     private static string Article(string noun)
         => noun.Length == 0 ? "a ship"
          : ("aeiou".Contains(char.ToLowerInvariant(noun[0])) ? "an " : "a ") + noun;
+
+    /// <summary>The hull with its article, in the interface language: "a Rifter", "a pod".</summary>
+    private static string SpokenHull(IReadOnlyDictionary<string, object?> d)
+        => d.TryGetValue("is_pod", out var p) && p is true ? AlarmsText.HullPod : AlarmWords.Hull(Str(d, "hull"));
 
     private static string Norm(string s) => s.Trim().ToLowerInvariant();
 

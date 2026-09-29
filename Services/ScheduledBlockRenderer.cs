@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 // models because that is where it was first needed; a scheduled post quoting different figures
 // from the same numbers would be worse than the tidier namespace.
 using EveConsole.ViewModels;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -139,11 +140,12 @@ public static class ProjectFilters
 
     public const string All = "all";
 
+    /// <summary>The filter's name, in the interface language: the key above is what is stored.</summary>
     public static string Label(string key) => key switch
     {
-        Missing       => "Missing projects",
-        MissingAndLow => "Missing and low projects",
-        _             => "All projects",
+        Missing       => AlarmsText.FilterMissingProjects,
+        MissingAndLow => AlarmsText.FilterMissingAndLowProjects,
+        _             => AlarmsText.FilterAllProjects,
     };
 }
 

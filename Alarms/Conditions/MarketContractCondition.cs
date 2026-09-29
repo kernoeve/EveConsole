@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Text.Json;
 using Microsoft.Data.Sqlite;
 using EveConsole.Data;
+using EveConsole.Localization;
 
 namespace EveConsole.Alarms.Conditions;
 
@@ -78,6 +79,30 @@ public sealed class MarketContractCondition : IAlarmCondition
         required = new[] { "item", "max_unit_price" },
     };
 
+    // The editor's words; the three above are the agent's and stay English. The sources are
+    // stored as the English values above and only their words are looked up.
+    public string ScreenName        => AlarmsText.CheckMarketContract;
+    public string ScreenDescription => AlarmsText.CheckMarketContractNote;
+
+    public AlarmFieldText? ScreenField(string property) => property switch
+    {
+        "item"              => new(AlarmsText.MarketItemLabel,     AlarmsText.MarketItemNote),
+        "max_unit_price"    => new(AlarmsText.MarketMaxPriceLabel, AlarmsText.MarketMaxPriceNote),
+        "min_quantity"      => new(AlarmsText.MarketMinQtyLabel,   AlarmsText.MarketMinQtyNote),
+        "source"            => new(AlarmsText.MarketSourceLabel,   AlarmsText.MarketSourceNote),
+        "market"            => new(AlarmsText.MarketMarketLabel,   AlarmsText.MarketMarketNote),
+        "bundled_contracts" => new(AlarmsText.MarketBundledLabel,  AlarmsText.MarketBundledNote),
+        _                   => null,
+    };
+
+    public string? ScreenOption(string property, string value) => (property, value) switch
+    {
+        ("source", "both")      => AlarmsText.OptionBoth,
+        ("source", "market")    => AlarmsText.OptionMarket,
+        ("source", "contracts") => AlarmsText.OptionContracts,
+        _                       => null,
+    };
+
     public string Describe(JsonElement config)
     {
         var item = ReadString(config, "item");
@@ -103,7 +128,7 @@ public sealed class MarketContractCondition : IAlarmCondition
     public (string Title, string Body) DefaultText(
         string alarmName, JsonElement config, IReadOnlyList<AlarmMatch> matches)
     {
-        var item = ReadString(config, "item") ?? "Item";
+        var item = ReadString(config, "item") ?? AlarmsText.MarketItemFallback;
 
         // The cheapest offer is the reason to look, so it leads.
         var best = matches
@@ -113,8 +138,8 @@ public sealed class MarketContractCondition : IAlarmCondition
             .Min();
 
         var title = best < double.MaxValue
-            ? $"{item} from {best:N0} ISK"
-            : $"{item} available";
+            ? string.Format(AlarmsText.MarketTitleFrom, item, best)
+            : string.Format(AlarmsText.MarketTitleAvailable, item);
 
         return (title, IAlarmCondition.JoinSummaries(matches));
     }

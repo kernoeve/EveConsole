@@ -2,10 +2,10 @@ using System.Globalization;
 using System.Text.Json;
 using EveConsole.Alarms;
 using EveConsole.Data;
+using EveConsole.Localization;
 using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
-using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -66,6 +66,8 @@ public sealed class AlarmService : ReactiveObject
 
     public AlarmConditionRegistry Registry => _registry;
 
+    // ⚠️ In this machine's interface language — and it is also what other clients are sent as
+    // the worker's status, so they see it in the worker's.
     private string _statusText = DataText.StateIdle;
     public string StatusText
     {

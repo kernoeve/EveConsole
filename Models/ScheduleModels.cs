@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using EveConsole.Localization;
 
 namespace EveConsole.Models;
 
@@ -187,7 +188,7 @@ public static class ScheduleDue
     }
 
     /// <summary>
-    /// A plain-English description of the schedule, for the list.
+    /// A plain-language description of the schedule, for the list, in the interface language.
     ///
     /// <para>Says EVE wherever it says a time. The zone is the first thing anyone checks against a
     /// schedule they did not write this minute, and a bare "at 09:00" does not answer it.</para>
@@ -199,28 +200,45 @@ public static class ScheduleDue
         return t.Kind switch
         {
             ScheduleKind.Interval => t.IntervalMinutes % 60 == 0 && t.IntervalMinutes >= 60
-                                        ? $"Every {t.IntervalMinutes / 60} hour(s)"
-                                        : $"Every {t.IntervalMinutes} minute(s)",
-            ScheduleKind.Weekly   => $"{DayNames(t.DaysOfWeek)} at {at}",
-            ScheduleKind.Monthly  => $"Day {t.DayOfMonth} of each month at {at}",
-            ScheduleKind.Yearly   => $"{MonthName(t.MonthOfYear)} {t.DayOfMonth} each year at {at}",
+                                        ? string.Format(AlarmsText.ScheduleEveryHours, t.IntervalMinutes / 60)
+                                        : string.Format(AlarmsText.ScheduleEveryMinutes, t.IntervalMinutes),
+            ScheduleKind.Weekly   => string.Format(AlarmsText.ScheduleWeeklyAt, DayNames(t.DaysOfWeek), at),
+            ScheduleKind.Monthly  => string.Format(AlarmsText.ScheduleMonthlyAt, t.DayOfMonth, at),
+            ScheduleKind.Yearly   => string.Format(AlarmsText.ScheduleYearlyAt, MonthName(t.MonthOfYear), t.DayOfMonth, at),
             _                     => "—",
         };
     }
 
     private static string DayNames(int mask)
     {
-        if (mask == 127) return "Every day";
+        if (mask == 127) return AlarmsText.ScheduleEveryDay;
 
-        string[] names = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        // Sunday first: a day's bit is its place in this list, as with DayOfWeek.
+        string[] names =
+        [
+            AlarmsText.DaySun, AlarmsText.DayMon, AlarmsText.DayTue, AlarmsText.DayWed,
+            AlarmsText.DayThu, AlarmsText.DayFri, AlarmsText.DaySat,
+        ];
         var picked = new List<string>();
         for (var i = 0; i < 7; i++)
             if ((mask & (1 << i)) != 0) picked.Add(names[i]);
 
-        return picked.Count == 0 ? "No days" : string.Join(", ", picked);
+        return picked.Count == 0 ? AlarmsText.ScheduleNoDays : string.Join(", ", picked);
     }
 
-    private static string MonthName(int month) =>
-        System.Globalization.CultureInfo.InvariantCulture.DateTimeFormat
-              .GetMonthName(Math.Clamp(month, 1, 12));
+    private static string MonthName(int month) => Math.Clamp(month, 1, 12) switch
+    {
+        1  => AlarmsText.MonthJanuary,
+        2  => AlarmsText.MonthFebruary,
+        3  => AlarmsText.MonthMarch,
+        4  => AlarmsText.MonthApril,
+        5  => AlarmsText.MonthMay,
+        6  => AlarmsText.MonthJune,
+        7  => AlarmsText.MonthJuly,
+        8  => AlarmsText.MonthAugust,
+        9  => AlarmsText.MonthSeptember,
+        10 => AlarmsText.MonthOctober,
+        11 => AlarmsText.MonthNovember,
+        _  => AlarmsText.MonthDecember,
+    };
 }

@@ -47,6 +47,22 @@ public sealed class AlarmRowVm : ReactiveObject
 }
 
 /// <summary>
+/// A check in the editor's Check list: the condition, and the words the screen shows for it.
+///
+/// <para>⚠️ A wrapper rather than the condition itself. The condition's own DisplayName and
+/// Description are the agent's and stay English; the list binds these two names, which answer
+/// with <see cref="IAlarmCondition.ScreenName"/> and <see cref="IAlarmCondition.ScreenDescription"/>.</para>
+/// </summary>
+public sealed class AlarmConditionChoice(IAlarmCondition condition)
+{
+    public IAlarmCondition Condition   { get; } = condition;
+    public string          DisplayName => Condition.ScreenName;
+    public string          Description => Condition.ScreenDescription;
+
+    public override string ToString() => DisplayName;
+}
+
+/// <summary>
 /// A single form field derived from a condition's JSON Schema, so a new condition type gets a
 /// usable editor without any new XAML.
 /// </summary>
@@ -57,7 +73,31 @@ public sealed class AlarmFieldVm : ReactiveObject
     public required string  Kind        { get; init; }  // string | integer | boolean | datetime | enum | item | list | threshold
     public          string? Description { get; init; }
     public          bool    Required    { get; init; }
+
+    /// <summary>An enum field's values, as the config stores them.</summary>
     public IReadOnlyList<string>? Options { get; init; }
+
+    /// <summary>
+    /// The same values with the words the screen shows for them: what an enum pick list binds as
+    /// its items, with <see cref="SelectedOption"/> as its selection, to show those words.
+    ///
+    /// <para>⚠️ The enum values are the schema's English and are what gets saved and compared, so
+    /// a pick list showing translated words must pick a <see cref="Choice{T}"/> and never match
+    /// the words back to a value.</para>
+    /// </summary>
+    public IReadOnlyList<Choice<string>>? OptionChoices { get; init; }
+
+    /// <summary>The choice whose value is in <see cref="Text"/>.</summary>
+    public Choice<string>? SelectedOption
+    {
+        get => OptionChoices?.FirstOrDefault(o => o.Value == Text);
+        set
+        {
+            // A detaching ComboBox sets null; that is not a choice.
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            Text = value.Value;
+        }
+    }
 
     /// <summary>The word after a threshold's number — "units", "ISK".</summary>
     public string? Suffix { get; init; }
@@ -84,7 +124,12 @@ public sealed class AlarmFieldVm : ReactiveObject
     public string Text
     {
         get => _text;
-        set { this.RaiseAndSetIfChanged(ref _text, value); this.RaisePropertyChanged(nameof(UnitsEnabled)); }
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _text, value);
+            this.RaisePropertyChanged(nameof(UnitsEnabled));
+            this.RaisePropertyChanged(nameof(SelectedOption));
+        }
     }
 
     // ── A choice with a number ──
@@ -560,7 +605,7 @@ public sealed class AlarmsViewModel : ReactiveObject
         _service   = service;
         _sounds    = sounds;
 
-        Conditions = service.Registry.All.ToList();
+        Conditions = service.Registry.All.Select(c => new AlarmConditionChoice(c)).ToList();
         foreach (var s in sounds.List()) SoundCatalog.Add(s);
 
         NewCommand    = ReactiveCommand.Create(NewAlarm);
@@ -588,7 +633,7 @@ public sealed class AlarmsViewModel : ReactiveObject
     private void RebuildStages()
     {
         Stages.Clear();
-        var count = SelectedCondition?.Stages ?? 0;
+        var count = Condition?.Stages ?? 0;
         for (var i = 1; i <= count; i++)
             Stages.Add(new AlarmStageVm(i, Fields.FirstOrDefault(f => f.StageNumber == i), NewStageActionVm));
         this.RaisePropertyChanged(nameof(IsStaged));
@@ -597,7 +642,7 @@ public sealed class AlarmsViewModel : ReactiveObject
     public ObservableCollection<AlarmStageVm> Stages { get; } = [];
 
     /// <summary>True while the selected check fires in stages; the view swaps the action lists.</summary>
-    public bool IsStaged => (SelectedCondition?.Stages ?? 0) > 0;
+    public bool IsStaged => (Condition?.Stages ?? 0) > 0;
 
     /// <summary>Every action on the editor, flat or under a stage — for previews and tests.</summary>
     private IEnumerable<AlarmActionVm> AllActions =>
@@ -605,7 +650,7 @@ public sealed class AlarmsViewModel : ReactiveObject
 
     private void OnFired() => Dispatcher.UIThread.Post(() => _ = LoadAsync());
 
-    public IReadOnlyList<IAlarmCondition> Conditions { get; }
+    public IReadOnlyList<AlarmConditionChoice> Conditions { get; }
 
     public ObservableCollection<AlarmRowVm>    Alarms  { get; } = [];
     public ObservableCollection<AlarmEventVm>  History { get; } = [];
@@ -626,7 +671,7 @@ public sealed class AlarmsViewModel : ReactiveObject
         new(_sounds, SoundCatalog,
             () => PickSoundFileCallback?.Invoke() ?? Task.FromResult<string?>(null),
             kind, cfg)
-        { StageCount = SelectedCondition?.Stages ?? 0, OnRemove = a => Actions.Remove(a) };
+        { StageCount = Condition?.Stages ?? 0, OnRemove = a => Actions.Remove(a) };
 
     /// <summary>A new action for a stage's list — a sound, like the flat list's default, to be changed.</summary>
     private AlarmActionVm NewStageActionVm(int stage)
@@ -670,12 +715,19 @@ public sealed class AlarmsViewModel : ReactiveObject
     private string _activeThru = "";
     public string ActiveThru { get => _activeThru; set => this.RaiseAndSetIfChanged(ref _activeThru, value); }
 
-    private IAlarmCondition? _selectedCondition;
-    public IAlarmCondition? SelectedCondition
+    private AlarmConditionChoice? _selectedCondition;
+    public AlarmConditionChoice? SelectedCondition
     {
         get => _selectedCondition;
         set => this.RaiseAndSetIfChanged(ref _selectedCondition, value);
     }
+
+    /// <summary>The check itself, behind the choice.</summary>
+    private IAlarmCondition? Condition => SelectedCondition?.Condition;
+
+    /// <summary>The Check list's entry for a check, by its stored type.</summary>
+    private AlarmConditionChoice? ChoiceFor(IAlarmCondition? condition)
+        => Conditions.FirstOrDefault(c => c.Condition == condition);
 
     private AlarmRepeat _repeat = AlarmRepeat.Continuous;
     public Choice<AlarmRepeat> Repeat
@@ -860,7 +912,7 @@ public sealed class AlarmsViewModel : ReactiveObject
 
         // Setting this fires RebuildFields via the subscription, which clears any prior values;
         // the config is applied afterwards so it survives.
-        SelectedCondition = _service.Registry.Find(alarm.ConditionType) ?? Conditions.FirstOrDefault();
+        SelectedCondition = ChoiceFor(_service.Registry.Find(alarm.ConditionType)) ?? Conditions.FirstOrDefault();
         RebuildFields();
 
         try { ApplyConfig(JsonDocument.Parse(alarm.ConditionJson ?? "{}").RootElement); }
@@ -889,16 +941,21 @@ public sealed class AlarmsViewModel : ReactiveObject
     /// <summary>
     /// Turns the selected condition's JSON Schema into form fields. Keeps the editor generic:
     /// a condition added later gets a working UI from its schema alone.
+    ///
+    /// <para>⚠️ The schema is the agent's, in English. What a field SAYS — label, description,
+    /// suffix, the words for each choice — comes from the condition's ScreenField and
+    /// ScreenOption, in the interface language, falling back to the schema's English. What a
+    /// field IS — its name, kind, choices and default — is the schema's, and is what gets saved.</para>
     /// </summary>
     private void RebuildFields()
     {
         Fields.Clear();
-        if (SelectedCondition is null) return;
+        if (Condition is not { } condition) return;
 
         JsonElement schema;
         try
         {
-            schema = JsonSerializer.SerializeToElement(SelectedCondition.ParameterSchema);
+            schema = JsonSerializer.SerializeToElement(condition.ParameterSchema);
         }
         catch { return; }
 
@@ -953,15 +1010,19 @@ public sealed class AlarmsViewModel : ReactiveObject
                      : type == "number"      ? "number"
                                              : "string";
 
+            var screen = condition.ScreenField(prop.Name);
             var field = new AlarmFieldVm
             {
                 Name        = prop.Name,
-                Label       = string.IsNullOrWhiteSpace(title) ? Humanise(prop.Name) : title,
+                Label       = screen?.Label ?? (string.IsNullOrWhiteSpace(title) ? Humanise(prop.Name) : title),
                 Kind        = kind,
-                Description = desc,
+                Description = screen?.Description ?? desc,
                 Required    = required.Contains(prop.Name),
                 Options     = options,
-                Suffix      = suffix,
+                OptionChoices = options?
+                    .Select(o => new Choice<string>(o, condition.ScreenOption(prop.Name, o) ?? o))
+                    .ToList(),
+                Suffix      = screen?.Suffix ?? suffix,
                 Default     = dflt,
                 UnitsName   = kind == "enum" ? unitsName : null,
             };
@@ -1149,7 +1210,7 @@ public sealed class AlarmsViewModel : ReactiveObject
         {
             var sample = new[] { new AlarmMatch("preview", AlarmsText.PreviewSampleDetail) };
             var cfg    = JsonDocument.Parse(BuildConfigJson()).RootElement;
-            var (title, _) = SelectedCondition?.DefaultText(
+            var (title, _) = Condition?.DefaultText(
                 string.IsNullOrWhiteSpace(Name) ? AlarmsText.ThisAlarm : Name, cfg, sample)
                 ?? ("", "");
 
@@ -1304,7 +1365,7 @@ public sealed class AlarmsViewModel : ReactiveObject
 
     private async Task SaveAsync()
     {
-        if (SelectedCondition is null) { StatusText = AlarmsText.ErrPickCondition; return; }
+        if (Condition is null) { StatusText = AlarmsText.ErrPickCondition; return; }
         if (string.IsNullOrWhiteSpace(Name)) { StatusText = AlarmsText.ErrAlarmName; return; }
 
         // An item name that does not resolve makes an alarm that can never match, and says so
@@ -1345,7 +1406,7 @@ public sealed class AlarmsViewModel : ReactiveObject
                 return;
             }
 
-        var conditionType = SelectedCondition.TypeKey;
+        var conditionType = Condition.TypeKey;
         var conditionJson = BuildConfigJson();
         var repeat        = _repeat;
         var actionRows    = AllActions.Select((a, i) => (a.Kind, Json: a.ToConfigJson(), Ordinal: i)).ToList();

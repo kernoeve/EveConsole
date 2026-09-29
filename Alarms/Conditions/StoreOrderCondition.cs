@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using EveConsole.Data;
+using EveConsole.Localization;
 using EveConsole.Models;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
@@ -66,6 +67,22 @@ public sealed class StoreOrderCondition : IAlarmCondition
         },
     };
 
+    // The editor's words; the three above are the agent's and stay English.
+    public string ScreenName        => AlarmsText.CheckStoreOrder;
+    public string ScreenDescription => AlarmsText.CheckStoreOrderNote;
+
+    public AlarmFieldText? ScreenField(string property) => property switch
+    {
+        "new_orders" => new(AlarmsText.StoreNewOrdersLabel,  AlarmsText.StoreNewOrdersNote),
+        "in_stock"   => new(AlarmsText.StoreInStockLabel,    AlarmsText.StoreInStockNote),
+        "in_build"   => new(AlarmsText.StoreInBuildLabel,    AlarmsText.StoreInBuildNote),
+        "contracted" => new(AlarmsText.StoreContractedLabel, AlarmsText.StoreContractedNote),
+        "accepted"   => new(AlarmsText.StoreAcceptedLabel),
+        "canceled"   => new(AlarmsText.StoreCanceledLabel,   AlarmsText.StoreCanceledNote),
+        "store"      => new(AlarmsText.StoreStoreLabel,      AlarmsText.StoreStoreNote),
+        _            => null,
+    };
+
     public string Describe(JsonElement config)
     {
         var kinds = Kinds(config).Where(k => k.On).Select(k => k.Label).ToList();
@@ -79,9 +96,9 @@ public sealed class StoreOrderCondition : IAlarmCondition
     public (string Title, string Body) DefaultText(
         string alarmName, JsonElement config, IReadOnlyList<AlarmMatch> matches)
     {
-        var title = matches.Count == 1 && matches[0].Detail is { } d
-            ? Str(d, "headline")
-            : $"{matches.Count} store order events";
+        var title = matches.Count == 1 && matches[0].Detail is not null
+            ? ScreenWords(matches[0])?.Headline ?? ""
+            : Plurals.Format(AlarmsText.ResourceManager, nameof(AlarmsText.StoreEventsOther), matches.Count);
         return (string.IsNullOrEmpty(title) ? alarmName : title, IAlarmCondition.JoinSummaries(matches));
     }
 
@@ -89,9 +106,67 @@ public sealed class StoreOrderCondition : IAlarmCondition
     public string? Announcement(JsonElement config, IReadOnlyList<AlarmMatch> matches)
     {
         if (matches.Count == 0) return null;
-        var lines = matches.Take(4).Select(m => m.Detail is { } d && Str(d, "spoken") is { Length: > 0 } s ? s : m.Summary);
+        var lines = matches.Take(4).Select(m => ScreenWords(m)?.Spoken ?? m.Summary);
         var text  = string.Join(" ", lines);
-        return matches.Count > 4 ? $"{text} And {matches.Count - 4} more." : text;
+        return matches.Count > 4 ? text + " " + string.Format(AlarmsText.SaidAndMore, matches.Count - 4) : text;
+    }
+
+    /// <summary>
+    /// One event's headline and spoken sentence, in the interface language; null for a match that
+    /// is not one of this check's events.
+    ///
+    /// <para>⚠️ Rebuilt from the match rather than read from its detail. The detail's "headline"
+    /// and "spoken" are English and stay so: the event keeps them and the agent reads them back.
+    /// The kind of event is the third part of the key — "order:12:new", "order:12:source:job" —
+    /// which cannot change once keys have been banked.</para>
+    /// </summary>
+    private static (string Headline, string Spoken)? ScreenWords(AlarmMatch m)
+    {
+        if (m.Detail is not { } d) return null;
+        var parts = m.Key.Split(':');
+        if (parts.Length < 3 || parts[0] != "order") return null;
+
+        var reff      = Str(d, "order_ref");
+        var buyer     = Str(d, "buyer");
+        var item      = Str(d, "item");
+        var units     = Num(d, "units");
+        var what      = units == 1 ? item : $"{units:N0}× {item}";
+        var delivered = Num(d, "units_delivered");
+
+        return parts[2] switch
+        {
+            "new" => (string.Format(AlarmsText.StoreHeadNew, what, buyer),
+                      string.Format(Str(d, "source") switch
+                      {
+                          OrderFulfilmentService.SourceStock    => AlarmsText.StoreSaidNewInStock,
+                          OrderFulfilmentService.SourceJob      => AlarmsText.StoreSaidNewInBuild,
+                          OrderFulfilmentService.SourceContract => AlarmsText.StoreSaidNewContracted,
+                          _                                     => AlarmsText.StoreSaidNewToBuild,
+                      }, Str(d, "store"), what, buyer,
+                      SpokenIsk(d.TryGetValue("price", out var p) && p is double price ? price : 0))),
+
+            "source" when parts.ElementAtOrDefault(3) == "stock"
+                => (string.Format(AlarmsText.StoreHeadInStock, reff), string.Format(AlarmsText.StoreSaidInStock, what, buyer)),
+            "source"
+                => (string.Format(AlarmsText.StoreHeadInBuild, reff), string.Format(AlarmsText.StoreSaidInBuild, what, buyer)),
+
+            // Part of the order on the contract, or all of it.
+            "contract" => (string.Format(AlarmsText.StoreHeadContracted, reff),
+                           Num(d, "units_on_contract") is var onContract && onContract > 0 && onContract < units
+                               ? string.Format(AlarmsText.StoreSaidContractedPart, what, buyer, onContract, units)
+                               : string.Format(AlarmsText.StoreSaidContracted, what, buyer)),
+
+            "delivered" => (string.Format(AlarmsText.StoreHeadDelivered, reff, delivered, units),
+                            string.Format(AlarmsText.StoreSaidDelivered, buyer, what, delivered, units)),
+            "completed" => (string.Format(AlarmsText.StoreHeadComplete, reff),
+                            string.Format(AlarmsText.StoreSaidComplete, buyer, what)),
+            "canceled"  => (string.Format(AlarmsText.StoreHeadCanceled, reff),
+                            string.Format(AlarmsText.StoreSaidCanceled, what, buyer)),
+            _ => null,
+        };
+
+        static int Num(IReadOnlyDictionary<string, object?> d, string key)
+            => d.TryGetValue(key, out var v) && v is int n ? n : 0;
     }
 
     public async Task<IReadOnlyList<AlarmMatch>> EvaluateAsync(
@@ -258,12 +333,22 @@ public sealed class StoreOrderCondition : IAlarmCondition
         ("canceled",   "canceled",    ReadBool(config, "canceled",   true)),
     ];
 
-    /// <summary>"12.4 billion ISK": a price one can hear, rather than ten digits read out.</summary>
+    /// <summary>"12.4 billion ISK": a price one can hear, rather than ten digits read out.
+    /// English, for the event's detail; <see cref="SpokenIsk"/> is what the person hears.</summary>
     internal static string Isk(double isk) => Math.Abs(isk) switch
     {
         >= 1e9 => $"{isk / 1e9:0.##} billion ISK",
         >= 1e6 => $"{isk / 1e6:0.##} million ISK",
         >= 1e3 => $"{isk / 1e3:0.##} thousand ISK",
+        _      => $"{isk:N0} ISK",
+    };
+
+    /// <summary>The same, in the interface language.</summary>
+    private static string SpokenIsk(double isk) => Math.Abs(isk) switch
+    {
+        >= 1e9 => string.Format(AlarmsText.IskBillions,  isk / 1e9),
+        >= 1e6 => string.Format(AlarmsText.IskMillions,  isk / 1e6),
+        >= 1e3 => string.Format(AlarmsText.IskThousands, isk / 1e3),
         _      => $"{isk:N0} ISK",
     };
 

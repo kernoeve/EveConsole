@@ -1,5 +1,6 @@
 using System.Text.Json;
 using EveConsole.Data;
+using EveConsole.Localization;
 using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,6 +23,12 @@ public sealed class AlarmEvaluationContext
 }
 
 /// <summary>
+/// The Alarms editor's words for one parameter of a check, in the interface language. A part
+/// left null shows the schema's own English.
+/// </summary>
+public sealed record AlarmFieldText(string? Label = null, string? Description = null, string? Suffix = null);
+
+/// <summary>
 /// A kind of thing an alarm can watch for. Implementations are stateless: everything they need
 /// comes from the JSON config and the context, and whether a match is *new* is decided by the
 /// service against the seen-key ledger. That keeps adding a condition to a single file.
@@ -31,21 +38,54 @@ public interface IAlarmCondition
     /// <summary>Stored in <see cref="Alarm.ConditionType"/>. Never change once shipped.</summary>
     string TypeKey { get; }
 
+    /// <summary>The check's name in the agent's tool description. English, whatever the interface
+    /// language; the editor shows <see cref="ScreenName"/>.</summary>
     string DisplayName { get; }
 
-    /// <summary>Shown in the editor and handed to the agent so it can pick the right check.</summary>
+    /// <summary>Handed to the agent so it can pick the right check. English, word for word; the
+    /// editor shows <see cref="ScreenDescription"/>.</summary>
     string Description { get; }
 
-    /// <summary>JSON Schema for the config blob. Drives both the agent tool and validation.</summary>
+    /// <summary>JSON Schema for the config blob. Drives both the agent tool and validation, and the
+    /// editor's fields — whose words come from <see cref="ScreenField"/> and
+    /// <see cref="ScreenOption"/>. Its enum values are what the config stores.</summary>
     object ParameterSchema { get; }
 
-    /// <summary>One-line human summary of a configured instance, for the alarm list.</summary>
+    // ── What the Alarms editor shows ──────────────────────────────────────────
+    //
+    // ⚠️ Two readers. DisplayName, Description and ParameterSchema are the AI agent's: its tool
+    // description and schema are built from them word for word, and they stay English whatever
+    // language the screen is in. The editor asks these instead, in the interface language — and a
+    // check that says nothing here shows the agent's English, so a new check still gets a working
+    // editor.
+
+    /// <summary>The check's name in the editor's Check list.</summary>
+    string ScreenName => DisplayName;
+
+    /// <summary>What the editor says the check does, under the Check list.</summary>
+    string ScreenDescription => Description;
+
+    /// <summary>The editor's words for one parameter, by its property name in the schema; null
+    /// leaves the schema's English.</summary>
+    AlarmFieldText? ScreenField(string property) => null;
+
+    /// <summary>The editor's word for one of a parameter's enum values — the value itself is what
+    /// the config stores and never changes. Null shows the value as it is.</summary>
+    string? ScreenOption(string property, string value) => null;
+
+    /// <summary>
+    /// One-line summary of a configured instance, for the alarm list. ⚠️ The agent reads it too —
+    /// manage_alarms lists and confirms alarms with it — so it stays English.
+    /// </summary>
     string Describe(JsonElement config);
 
     /// <summary>
     /// Title and body for an Alert or Dialog when the user has not written their own. Each
     /// check knows what is worth saying about its own matches, so the wording follows the
     /// check rather than being one generic sentence for all of them.
+    ///
+    /// <para>In the interface language: a person reads it. The matches' summaries under the
+    /// title stay English — the agent reads them back from the event.</para>
     /// </summary>
     (string Title, string Body) DefaultText(
         string alarmName, JsonElement config, IReadOnlyList<AlarmMatch> matches)
@@ -59,6 +99,9 @@ public interface IAlarmCondition
     /// the wrong tool: they arrive after a round trip, in whatever order the model chose, with
     /// whatever it thought worth adding. A condition that knows the priority of its own facts
     /// composes the sentence itself, and it is spoken as written, at once.</para>
+    ///
+    /// <para>In the interface language, since it is said to the person: where the agent is asked
+    /// to say it, it is the text to say, inside instructions that stay English.</para>
     /// </summary>
     string? Announcement(JsonElement config, IReadOnlyList<AlarmMatch> matches) => null;
 
@@ -102,7 +145,7 @@ public interface IAlarmCondition
 
         var body = string.Join("\n", matches.Take(max).Select(m => "• " + m.Summary));
         return matches.Count > max
-            ? body + $"\n• …and {matches.Count - max} more"
+            ? body + "\n• " + string.Format(AlarmsText.MatchesAndMore, matches.Count - max)
             : body;
     }
 
@@ -123,4 +166,29 @@ public interface IAlarmCondition
     /// </summary>
     Task<IReadOnlyList<AlarmMatch>> EvaluateAsync(
         JsonElement config, AlarmEvaluationContext ctx, CancellationToken ct = default);
+}
+
+/// <summary>
+/// Pieces the checks share when they title or speak a firing, in the interface language.
+/// </summary>
+internal static class AlarmWords
+{
+    /// <summary>
+    /// A hull with its article — "a Rifter", "an Abaddon", "a ship" when there is no name. An
+    /// entry per case rather than "a " or "an " put in front in code: the choice is English's,
+    /// and a language without articles makes both entries the bare name.
+    /// </summary>
+    public static string Hull(string hull) =>
+        hull.Length == 0                                  ? AlarmsText.HullShip
+        : "aeiou".Contains(char.ToLowerInvariant(hull[0])) ? string.Format(AlarmsText.HullAn, hull)
+        :                                                   string.Format(AlarmsText.HullA, hull);
+
+    /// <summary>Names as a spoken list: "A, B and C", and past three "A, B, C and more".</summary>
+    public static string List(IReadOnlyList<string> items) => items.Count switch
+    {
+        0    => "",
+        1    => items[0],
+        <= 3 => string.Format(AlarmsText.ListAnd, string.Join(", ", items.Take(items.Count - 1)), items[^1]),
+        _    => string.Format(AlarmsText.ListAndMore, string.Join(", ", items.Take(3))),
+    };
 }

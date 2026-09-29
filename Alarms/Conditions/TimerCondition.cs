@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.Json;
+using EveConsole.Localization;
 
 namespace EveConsole.Alarms.Conditions;
 
@@ -55,6 +56,17 @@ public sealed class TimerCondition : IAlarmCondition
             },
         },
         required = new[] { "at" },
+    };
+
+    // The editor's words; the three above are the agent's and stay English.
+    public string ScreenName        => AlarmsText.CheckTimer;
+    public string ScreenDescription => AlarmsText.CheckTimerNote;
+
+    public AlarmFieldText? ScreenField(string property) => property switch
+    {
+        "at"                   => new(AlarmsText.TimerAtLabel,     AlarmsText.TimerAtNote),
+        "repeat_every_seconds" => new(AlarmsText.TimerRepeatLabel, AlarmsText.TimerRepeatNote),
+        _                      => null,
     };
 
     public string Describe(JsonElement config)

@@ -3,6 +3,7 @@ using System.Text.Json;
 using Avalonia.Threading;
 using EveConsole.Alarms;
 using EveConsole.Data;
+using EveConsole.Localization;
 using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -78,6 +79,10 @@ public sealed class AlarmActionRunner
     /// another room. So it does the one thing that is a database write, resolves the wording for
     /// the rest while it still has the matches in hand, and publishes. Every client, this one
     /// included, then performs whatever it is willing to.</para>
+    ///
+    /// <para>That wording — titles, the announcement, the dialog's button — is in the worker's
+    /// interface language, and a client set to another shows it as sent. What the agent is told
+    /// around it stays English.</para>
     /// </summary>
     /// <param name="defaults">
     /// Title and body supplied by the condition, used wherever the user has not written their
@@ -146,7 +151,7 @@ public sealed class AlarmActionRunner
                     case AlarmActionKind.Dialog:
                         signal.DialogTitle  = Expand(Str(cfg, "title")   ?? defaults.Title, alarm, evt);
                         signal.DialogBody   = Expand(Str(cfg, "message") ?? defaults.Body,  alarm, evt);
-                        signal.DialogButton = stage is not null ? "I'm awake" : null;
+                        signal.DialogButton = stage is not null ? AlarmsText.ButtonImAwake : null;
                         somethingElse       = true;
                         break;
 
@@ -195,8 +200,7 @@ public sealed class AlarmActionRunner
         {
             signal.AgentOnly     = true;
             signal.FallbackTitle = alarm.Name;
-            signal.FallbackBody  = evt.Summary
-                                 + "\n\n(The agent is not configured, so this was recorded as an alert.)";
+            signal.FallbackBody  = evt.Summary + "\n\n" + AlarmsText.AgentNotConfiguredNote;
         }
 
         // ⚠️ The fallback is decided here rather than by each client, and only by a worker that

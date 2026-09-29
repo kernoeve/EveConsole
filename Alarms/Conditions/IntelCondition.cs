@@ -1,6 +1,7 @@
 using System.Data.Common;
 using System.Globalization;
 using System.Text.Json;
+using EveConsole.Localization;
 using EveConsole.Services;
 using Microsoft.Data.Sqlite;
 using EveConsole.Data;
@@ -81,6 +82,20 @@ public sealed class IntelCondition : IAlarmCondition
         required = Array.Empty<string>(),
     };
 
+    // The editor's words; the three above are the agent's and stay English.
+    public string ScreenName        => AlarmsText.CheckIntel;
+    public string ScreenDescription => AlarmsText.CheckIntelNote;
+
+    public AlarmFieldText? ScreenField(string property) => property switch
+    {
+        "systems"          => new(AlarmsText.IntelSystemsLabel,     AlarmsText.IntelSystemsNote),
+        "within_jumps_of"  => new(AlarmsText.IntelWithinJumpsLabel, AlarmsText.IntelWithinJumpsNote),
+        "jumps"            => new(AlarmsText.IntelJumpsLabel,       AlarmsText.IntelJumpsNote),
+        "min_players"      => new(AlarmsText.IntelMinPlayersLabel,  AlarmsText.IntelMinPlayersNote),
+        "ignore_no_visual" => new(AlarmsText.IntelIgnoreNvLabel,    AlarmsText.IntelIgnoreNvNote),
+        _                  => null,
+    };
+
     public string Describe(JsonElement config)
     {
         var systems = ReadCsv(config, "systems");
@@ -118,7 +133,10 @@ public sealed class IntelCondition : IAlarmCondition
                  (matches.Select(m => m.Detail?["system"]?.ToString()).Distinct().Count() > 3 ? ", …" : ""),
         };
 
-        var headline = matches.Count == 1 ? "Hostile reported" : $"{matches.Count} hostile reports";
+        // One report is said without its number; more are counted, in the language's plural.
+        var headline = matches.Count == 1
+            ? AlarmsText.IntelHostileReported
+            : Plurals.Format(AlarmsText.ResourceManager, nameof(AlarmsText.IntelHostileReportsOther), matches.Count);
 
         return ($"{headline}{where}", IAlarmCondition.JoinSummaries(matches));
     }
@@ -286,7 +304,7 @@ public sealed class IntelCondition : IAlarmCondition
             .GroupBy(m => m.Detail!.TryGetValue("system_id", out var s) && s is int id ? id : 0)
             .Select(g => new
             {
-                System = g.Select(m => Str(m.Detail!, "system")).FirstOrDefault(s => s.Length > 0) ?? "an unknown system",
+                System = g.Select(m => Str(m.Detail!, "system")).FirstOrDefault(s => s.Length > 0) ?? AlarmsText.UnknownSystem,
                 Newest = g.Max(m => m.Detail!.TryGetValue("at", out var a) && a is DateTime at ? at : DateTime.MinValue),
                 Count  = g.Max(m => m.Detail!.TryGetValue("count", out var c) && c is int n ? n : 0),
                 Pilots = g.SelectMany(m => Names(m.Detail!, "pilots")).Distinct(StringComparer.OrdinalIgnoreCase).ToList(),
@@ -297,23 +315,29 @@ public sealed class IntelCondition : IAlarmCondition
             .OrderByDescending(s => s.Newest)
             .ToList();
 
+        // Said to the person, so in the interface language, a whole sentence per fact: how many
+        // and where, how far out, the hulls, the names, then each note as its own sentence.
         var sb = new System.Text.StringBuilder();
         foreach (var s in perSystem)
         {
             var count = Math.Max(s.Count, s.Pilots.Count);
             if (sb.Length > 0) sb.Append(' ');
-            sb.Append(count == 1 ? "1 hostile" : $"{count} hostiles").Append(" reported in ").Append(s.System);
-            if (s.Jumps is { } jumps)
-                sb.Append(jumps switch { 0 => ", here", 1 => ", 1 jump out", _ => $", {jumps} jumps out" });
-            sb.Append('.');
+            sb.Append(s.Jumps is { } jumps
+                ? Plurals.Format(AlarmsText.ResourceManager, nameof(AlarmsText.IntelSaidReportedAtOther), count, s.System, JumpsOut(jumps))
+                : Plurals.Format(AlarmsText.ResourceManager, nameof(AlarmsText.IntelSaidReportedOther), count, s.System));
 
             if (s.Hulls.Count > 0)
-                sb.Append(" Flying ").Append(s.Hulls.Count == 1 ? Article(s.Hulls[0]) : Join(s.Hulls)).Append('.');
+                sb.Append(' ').Append(string.Format(AlarmsText.IntelSaidFlying,
+                    s.Hulls.Count == 1 ? AlarmWords.Hull(s.Hulls[0]) : AlarmWords.List(s.Hulls)));
             if (s.Pilots.Count > 0)
-                sb.Append(' ').Append(string.Join(", ", s.Pilots.Take(5)))
-                  .Append(s.Pilots.Count > 5 ? $" and {s.Pilots.Count - 5} more." : ".");
+            {
+                var names = string.Join(", ", s.Pilots.Take(5));
+                sb.Append(' ').Append(s.Pilots.Count > 5
+                    ? string.Format(AlarmsText.IntelSaidPilotsAndMore, names, s.Pilots.Count - 5)
+                    : string.Format(AlarmsText.SaidSentence, names));
+            }
             foreach (var note in s.Notes.Take(3))
-                sb.Append(' ').Append(note).Append('.');
+                sb.Append(' ').Append(string.Format(AlarmsText.SaidSentence, note));
         }
         return sb.ToString();
 
@@ -321,12 +345,9 @@ public sealed class IntelCondition : IAlarmCondition
             => d.TryGetValue(key, out var v) && v is string s ? s : "";
         static IEnumerable<string> Names(IReadOnlyDictionary<string, object?> d, string key)
             => d.TryGetValue(key, out var v) && v is IEnumerable<string> list ? list.Where(n => !string.IsNullOrWhiteSpace(n)) : [];
-        static string Article(string hull)
-            => ("aeiou".Contains(char.ToLowerInvariant(hull[0])) ? "an " : "a ") + hull;
-        static string Join(List<string> items)
-            => items.Count <= 3
-                ? string.Join(", ", items.Take(items.Count - 1)) + " and " + items[^1]
-                : string.Join(", ", items.Take(3)) + " and more";
+        static string JumpsOut(int jumps) => jumps == 0
+            ? AlarmsText.IntelSaidHere
+            : Plurals.Format(AlarmsText.ResourceManager, nameof(AlarmsText.IntelSaidJumpsOutOther), jumps);
     }
 
     internal static string MatchKey(int systemId, DateTime at, IReadOnlyList<string> names, int count)

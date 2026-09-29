@@ -1,3 +1,5 @@
+using EveConsole.Localization;
+
 namespace EveConsole.Services;
 
 /// <summary>
@@ -35,5 +37,5 @@ public sealed class AlarmMuteState
     public void Toggle() => Muted = !Muted;
 
     /// <summary>The action a click would take, for a menu item or a button that toggles.</summary>
-    public string ToggleText => _muted ? "Unmute Alarms" : "Mute Alarms";
+    public string ToggleText => _muted ? AlarmsText.UnmuteAlarms : AlarmsText.MuteAlarms;
 }
