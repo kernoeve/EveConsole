@@ -177,7 +177,8 @@ public class InvGroupRow : ReactiveObject
         : $"{LocationDisplay} · {ScopeLabel}";
 
     /// <summary>
-    /// The scope's place as the screen names it: a region or system in the interface language.
+    /// The scope's place as the screen names it: a region, system or NPC station in the interface
+    /// language.
     ///
     /// <para>⚠️ <see cref="LocationName"/> stays English. The Multiplier setter saves the whole
     /// group back from this row, and the edit dialog is handed it to return unchanged.</para>

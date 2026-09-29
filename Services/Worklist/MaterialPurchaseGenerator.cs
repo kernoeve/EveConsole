@@ -204,7 +204,8 @@ public class MaterialPurchaseGenerator(
             .ToDictionary(t => t, t => (Runs: raw[t].Units, For: WantedBy(raw[t])));
 
         var buyAt   = settings.IndustryBuyLocationId;
-        var buyName = settings.IndustryBuyLocationName;
+        // Only ever the tasks' text, so as the screen names it; the setting keeps the English.
+        var buyName = SdeNames.Location(buyAt, settings.IndustryBuyLocationName);
         var alt     = buyAt > 0 ? (await marketAlts.GetByLocationAsync(ct)).GetValueOrDefault(buyAt) : null;
 
         // Prints the blueprints table does not know about but the assets table does. Without this

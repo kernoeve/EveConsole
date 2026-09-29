@@ -207,7 +207,8 @@ public class InventoryLevelGenerator(
                         CharacterId   = alt?.CharacterId   ?? 0,
                         CharacterName = alt?.CharacterName ?? "",
                         LocationId    = rule.LocationId,
-                        LocationName  = rule.LocationName,
+                        // The cell's text; the rule keeps the English it was saved with.
+                        LocationName  = SdeNames.Location(rule.LocationId, rule.LocationName),
                         TypeId        = gi.TypeId,
                         TypeName      = name,
                         Priority      = priority,

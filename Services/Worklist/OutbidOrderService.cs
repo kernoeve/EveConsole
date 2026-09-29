@@ -176,6 +176,8 @@ public class OutbidOrderService(
             .Where(t => typeIds.Contains(t.TypeId))
             .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct);
 
+    /// <summary>Places as the screen names them: a losing order's place only becomes the task's
+    /// detail and location cell. The task is keyed on the ids.</summary>
     private static async Task<Dictionary<long, string>> PlaceNamesAsync(
         AppDbContext db, List<long> ids, CancellationToken ct)
     {
@@ -185,7 +187,7 @@ public class OutbidOrderService(
         foreach (var s in await db.SdeStations.AsNoTracking()
                      .Where(s => ids.Contains(s.StationId))
                      .Select(s => new { s.StationId, s.Name }).ToListAsync(ct))
-            names[s.StationId] = s.Name;
+            names[s.StationId] = SdeNames.Station(s.StationId, s.Name);
 
         foreach (var s in await db.Structures.AsNoTracking()
                      .Where(s => ids.Contains(s.StructureId) && s.Name != "")

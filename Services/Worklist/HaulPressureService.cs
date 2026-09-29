@@ -141,10 +141,11 @@ public class HaulPressureService(
                       .OrderByDescending(x => x.Qty)
                       .ToList());
 
-        // Somewhere to send the reader. A bare id is not a place.
+        // Somewhere to send the reader. A bare id is not a place. Named as the screen names them:
+        // these only go into the sentences below.
         var places = (await db.SdeStations.AsNoTracking()
                 .Select(x => new { Id = (long)x.StationId, x.Name }).ToListAsync(ct))
-            .ToDictionary(x => x.Id, x => x.Name);
+            .ToDictionary(x => x.Id, x => SdeNames.Station(x.Id, x.Name));
         foreach (var x in await db.EsiStructureNames.AsNoTracking()
                      .Where(x => x.Name != "")
                      .Select(x => new { x.StructureId, x.Name }).ToListAsync(ct))

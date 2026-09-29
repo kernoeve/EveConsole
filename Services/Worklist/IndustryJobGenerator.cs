@@ -590,9 +590,12 @@ public class IndustryJobGenerator(
 
                 // Where the park sends this job. Facility assignment is by category, not by
                 // quantity, so one probe at the full shortfall settles it for every split.
+                // The site's name only goes into the rows' text, so the facility the park links to
+                // is named as the screen names it. The park's own label for its structure, the
+                // fallback, is the user's words and stays as they are.
                 var probe    = await PlanRootJobAsync(ctx, d.TypeId, d.Units, ct: ct);
                 var siteId   = probe?.StationId;
-                var siteName = probe?.StationName.Length > 0 ? probe.StationName
+                var siteName = probe?.StationName.Length > 0 ? SdeNames.Location(probe.StationId ?? 0, probe.StationName)
                              : probe?.StructureName ?? "";
 
                 if (siteId is null)

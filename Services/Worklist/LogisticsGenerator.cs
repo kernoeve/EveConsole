@@ -1161,12 +1161,15 @@ public class LogisticsGenerator(
         return map;
     }
 
+    /// <summary>Places as the screen names them. Only ever text — a haul's two ends and a need's
+    /// station, with Station Needs grouping and sorting on what it shows; trips and needs are
+    /// keyed on the ids.</summary>
     private static async Task<Dictionary<long, string>> PlaceNamesAsync(
         AppDbContext db, CancellationToken ct)
     {
         var map = (await db.SdeStations.AsNoTracking()
                 .Select(s => new { Id = (long)s.StationId, s.Name }).ToListAsync(ct))
-            .ToDictionary(s => s.Id, s => s.Name);
+            .ToDictionary(s => s.Id, s => SdeNames.Station(s.Id, s.Name));
 
         foreach (var s in await db.EsiStructureNames.AsNoTracking()
                      .Where(s => s.Name != "")

@@ -18,7 +18,10 @@ public class StandingBuyOrderRowVm(StandingBuyOrderRow r)
     /// sorts and copies. Nothing reads it back: the order keeps the English, and the link goes by
     /// id.</summary>
     public string TypeName     => SdeNames.Type(r.TypeId, r.TypeName);
-    public string LocationName { get; } = r.LocationName;
+
+    /// <summary>The station as the screen names it, likewise; a structure as its owner named it.
+    /// The order keeps the English, and the link goes by id.</summary>
+    public string LocationName { get; } = SdeNames.Location(r.LocationId, r.LocationName);
     public string Owner        { get; } = r.OwnerDisplay;
 
     // ── Links ─────────────────────────────────────────────────────────────────
@@ -241,7 +244,8 @@ public class StandingBuyOrdersViewModel : ReactiveObject
         if (!await _service.AddAsync(result))
         {
             StatusText = string.Format(MarketText.StatusStandingOrderExists,
-                                       SdeNames.Type(result.TypeId, result.TypeName), result.LocationName);
+                                       SdeNames.Type(result.TypeId, result.TypeName),
+                                       SdeNames.Location(result.LocationId, result.LocationName));
             return;
         }
         await LoadAsync();

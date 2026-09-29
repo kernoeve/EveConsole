@@ -108,14 +108,19 @@ public sealed record MonthlyActivityRow(
 //
 // Name is the English, and it is what a picker saves and matches on — so ToString stays English
 // too, being what a box writes into its text on a pick. DisplayName is the name in the interface
-// language, for a list's ItemTemplate to show and nothing else. A station has no other name: an
-// NPC station's is ESI's English, and structures are player-named.
+// language, for a list's ItemTemplate to show and nothing else. A station's is ESI's English: an
+// NPC station has the names the SDE import builds for it, and a structure, player-named, has only
+// the one.
 public sealed record SdeTypeResult(int TypeId, string Name)
 {
     public string DisplayName => SdeNames.Type(TypeId, Name);
     public override string ToString() => Name;
 }
-public sealed record SdeStationResult(long StationId, string Name) { public override string ToString() => Name; }
+public sealed record SdeStationResult(long StationId, string Name)
+{
+    public string DisplayName => SdeNames.Location(StationId, Name);
+    public override string ToString() => Name;
+}
 public sealed record SdeSystemResult(int SystemId, string Name)
 {
     public string DisplayName => SdeNames.SolarSystem(SystemId, Name);
@@ -2366,12 +2371,15 @@ public class CorpActivityService
         string query, CancellationToken ct = default)
     {
         if (query.Length < 2) return [];
+
+        // An NPC station by ESI's English or by the name the screen shows for it. A structure is
+        // player-named, so its one name is all there is to search.
+        var shown = await ShownIdsAsync(SdeNameKind.Station, query, ct);
         using var db = _dbFactory.CreateDbContext();
 
-        // English only: an NPC station's name is ESI's English, which the SDE does not translate.
         var npc = await db.SdeStations
-            .Where(s => EF.Functions.Like(s.Name, $"%{query}%"))
-            .OrderBy(s => s.Name).Take(40)
+            .Where(s => EF.Functions.Like(s.Name, $"%{query}%") || shown.Contains(s.StationId))
+            .OrderBy(s => s.Name).Take(shown.Count == 0 ? PickerMax : PickerShownMax)
             .Select(s => new SdeStationResult((long)s.StationId, s.Name))
             .ToListAsync(ct);
 
@@ -2387,14 +2395,15 @@ public class CorpActivityService
             .Select(s => new SdeStationResult(s.StructureId, s.Name))
             .ToListAsync(ct);
 
-        return npc
+        var hits = npc
             .Concat(player)
             .Concat(corp)
             .GroupBy(s => s.StationId)
             .Select(g => g.First())
-            .OrderBy(s => s.Name)
-            .Take(40)
             .ToList();
+        return shown.Count == 0
+            ? [.. hits.OrderBy(s => s.Name).Take(PickerMax)]
+            : RankPicks(hits, query, r => r.Name, r => r.DisplayName);
     }
 
     /// <summary>Systems whose name contains <paramref name="query"/>. Wormhole systems only when

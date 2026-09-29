@@ -94,7 +94,7 @@ public partial class StandingProjectDialog : Window
             {
                 _selectedStationId          = p.StationId;
                 _selectedStationName        = p.StationName;
-                StationSelectedLabel.Text   = p.StationName;
+                StationSelectedLabel.Text   = SdeNames.Location(p.StationId.Value, p.StationName);
                 StationSelectedLabel.IsVisible = true;
             }
             return;
@@ -222,7 +222,7 @@ public partial class StandingProjectDialog : Window
             await Task.Delay(250, ct);
             var results = await _service.SearchSdeStationsAsync(text, ct);
             if (ct.IsCancellationRequested) return;
-            StationResultsList.ItemsSource = results;
+            StationResultsList.ItemsSource = ShownAll(results, r => r.DisplayName);
             StationResultsBorder.IsVisible = results.Count > 0;
         }
         catch (Exception) { }
@@ -230,11 +230,11 @@ public partial class StandingProjectDialog : Window
 
     private void OnStationSelected(object? sender, SelectionChangedEventArgs e)
     {
-        if (StationResultsList.SelectedItem is not SdeStationResult r) return;
+        if (StationResultsList.SelectedItem is not Shown<SdeStationResult> { Result: var r } shown) return;
         _selectedStationId   = r.StationId;
         _selectedStationName = r.Name;
         StationResultsBorder.IsVisible = false;
-        StationSelectedLabel.Text      = r.Name;
+        StationSelectedLabel.Text      = shown.Name;
         StationSelectedLabel.IsVisible = true;
     }
 

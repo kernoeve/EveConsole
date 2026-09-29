@@ -81,9 +81,10 @@
                     <Setter Property="Background" Value="{DynamicResource SurfaceSelectedBrush}" />
                   </Style>
                 </ListBox.Styles>
+                <!-- As the screen names each station; the result keeps the English that is saved. -->
                 <ListBox.ItemTemplate>
                   <DataTemplate>
-                    <TextBlock Text="{Binding Name}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
+                    <TextBlock Text="{Binding DisplayName}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
                   </DataTemplate>
                 </ListBox.ItemTemplate>
               </ListBox>

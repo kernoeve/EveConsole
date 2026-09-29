@@ -19,6 +19,13 @@ public partial class AddEditPostingDialog : Window
     private string _selectedLocationName = "";
     private bool   _loaded;
 
+    /// <summary>
+    /// A market as the box lists it: the station named as the screen names it, which the item
+    /// template binds, over the station. ⚠️ The station keeps the English, and that is what the
+    /// posting saves.
+    /// </summary>
+    private sealed record ShownMarket(StationOption Station, string Name);
+
     public AddEditPostingDialog(
         PostingDialogResult? existing,
         Func<string, string, Task<IReadOnlyList<LocationOption>>> searchFn,
@@ -32,7 +39,11 @@ public partial class AddEditPostingDialog : Window
         _postsVm    = new PostsEditorViewModel(existingPosts);
         DataContext = _postsVm;
 
-        MarketStationBox.ItemsSource = marketStations;
+        var markets = marketStations
+            .Select(s => new ShownMarket(s, SdeNames.Location(s.LocationId, s.Name)))
+            .OrderBy(m => m.Name, StringComparer.CurrentCulture)
+            .ToList();
+        MarketStationBox.ItemsSource = markets;
         NoStationsText.IsVisible     = marketStations.Count == 0;
         PriceTypeBox.ItemsSource     = Choice.PriceTypes;
         PriceTypeBox.SelectedItem    = PriceTypeChoice("Sell");
@@ -73,8 +84,8 @@ public partial class AddEditPostingDialog : Window
             }
             if (existing.MarketStationId.HasValue)
             {
-                MarketStationBox.SelectedItem = marketStations
-                    .FirstOrDefault(s => s.LocationId == existing.MarketStationId.Value);
+                MarketStationBox.SelectedItem = markets
+                    .FirstOrDefault(m => m.Station.LocationId == existing.MarketStationId.Value);
             }
             if (!string.IsNullOrEmpty(existing.MarketPriceType))
                 PriceTypeBox.SelectedItem = PriceTypeChoice(existing.MarketPriceType);
@@ -118,9 +129,9 @@ public partial class AddEditPostingDialog : Window
         var scope   = GetScope();
         var results = await _searchFn(scope, text);
 
-        // A region or system is listed, in that name's order, as the screen names it. The option
-        // keeps the English, which is what the posting saves. Tag and list stay in one order: a
-        // pick is read back by its index.
+        // A region, system or NPC station is listed, in that name's order, as the screen names it.
+        // The option keeps the English, which is what the posting saves. Tag and list stay in one
+        // order: a pick is read back by its index.
         var shown = results
             .Select(r => (Option: r, Name: InvLevelService.ScopePlaceName(scope, r.Id, r.Name)))
             .OrderBy(x => x.Name, StringComparer.CurrentCulture)
@@ -175,7 +186,7 @@ public partial class AddEditPostingDialog : Window
         }
 
         var basis   = GetBasis();
-        var station = MarketStationBox.SelectedItem as StationOption;
+        var station = (MarketStationBox.SelectedItem as ShownMarket)?.Station;
         if (basis == "Market" && station is null)
         {
             ErrorText.Text = SalesText.SelectMarketForBasis;

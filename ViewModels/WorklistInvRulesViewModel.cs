@@ -155,12 +155,18 @@ public sealed class InvRuleRow : ReactiveObject
         }
     }
 
+    /// <summary>What the rule saves: the station's English. ⚠️ The cell shows
+    /// <see cref="LocationShown"/>.</summary>
     private string _locationName;
     public string LocationName
     {
         get => _locationName;
         private set => this.RaiseAndSetIfChanged(ref _locationName, value);
     }
+
+    /// <summary>The station as the screen names it, which the cell shows, sorts and copies; a
+    /// structure as its owner named it.</summary>
+    public string LocationShown => SdeNames.Location(Rule.LocationId, _locationName);
 
     /// <summary>
     /// Set from the picker rather than by typing: the id is what the rest of the tool matches on,
@@ -174,6 +180,7 @@ public sealed class InvRuleRow : ReactiveObject
             if (value is null) return;
             Rule.LocationId = value.StationId;
             LocationName    = value.Name;
+            this.RaisePropertyChanged(nameof(LocationShown));
             this.RaisePropertyChanged(nameof(LocationDisplay));
             this.RaisePropertyChanged(nameof(AltText));
             Persist();
@@ -183,7 +190,7 @@ public sealed class InvRuleRow : ReactiveObject
     /// <summary>A Build rule's site comes from the park, so there is no station to show or pick.</summary>
     public bool NeedsLocation => _action != "Build";
 
-    public string LocationDisplay => NeedsLocation ? LocationName : WorklistText.FromPark;
+    public string LocationDisplay => NeedsLocation ? LocationShown : WorklistText.FromPark;
 
     public string AltText => _action == "Build" ? WorklistText.BySkill : _altFor(Rule.LocationId);
 
@@ -244,11 +251,13 @@ public class WorklistInvRulesViewModel : ReactiveObject
     /// <summary>Raised after a rule changes so the worklist rebuilds without a manual refresh.</summary>
     public Func<Task>? RulesChanged { get; set; }
 
+    /// <summary>Stations for both pickers, listed in the order of the names shown, which the boxes
+    /// show; each result keeps the English that is saved.</summary>
     public Func<string?, CancellationToken, Task<IEnumerable<object>>> LocationPopulator =>
         async (text, ct) =>
         {
             var hits = await _stations.SearchSdeStationsAsync(text ?? "", ct);
-            return hits.Cast<object>().ToList();
+            return hits.OrderBy(h => h.DisplayName, StringComparer.CurrentCulture).Cast<object>().ToList();
         };
 
     private object? _selectedLocation;
@@ -329,7 +338,7 @@ public class WorklistInvRulesViewModel : ReactiveObject
             .Select(r => new
             {
                 Group = groupNames.GetValueOrDefault(r.GroupId, string.Format(WorklistText.GroupWithIdLower, r.GroupId)),
-                Where = r.LocationId == 0 ? WorklistText.NoStationSet : r.LocationName,
+                Where = r.LocationId == 0 ? WorklistText.NoStationSet : SdeNames.Location(r.LocationId, r.LocationName),
             })
             .OrderBy(x => x.Group)
             .ToList();
@@ -354,6 +363,10 @@ public class WorklistInvRulesViewModel : ReactiveObject
 
         var groupNames = groups.ToDictionary(g => g.Id, g => g.Name);
         var options    = groups.Select(g => new InvGroupOption(g.Id, g.Name)).ToList();
+
+        // The rows and the warning name their stations as the screen does, and this first runs at
+        // start: wait for the names once rather than show the English.
+        await SdeNames.EnsureLoadedAsync();
 
         // Surfaced per rule because a Buy rule pointing at a station with no market alt produces
         // blocked items, and this is where that is fixable. A Build rule routes by skills and

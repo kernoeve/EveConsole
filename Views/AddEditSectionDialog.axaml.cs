@@ -18,6 +18,13 @@ public partial class AddEditSectionDialog : Window
     private string _selectedLocationName = "";
     private bool   _loaded;
 
+    /// <summary>
+    /// A market as the box lists it: the station named as the screen names it, which the item
+    /// template binds, over the station. ⚠️ The station keeps the English, and that is what the
+    /// section saves.
+    /// </summary>
+    private sealed record ShownMarket(StationOption Station, string Name);
+
     public AddEditSectionDialog(
         SectionDialogResult? existing,
         Func<string, string, Task<IReadOnlyList<LocationOption>>> searchFn,
@@ -27,7 +34,11 @@ public partial class AddEditSectionDialog : Window
         InitializeComponent();
         Title = existing == null ? SalesText.TitleAddSection : SalesText.TitleEditSection;
 
-        MarketStationBox.ItemsSource = marketStations;
+        var markets = marketStations
+            .Select(s => new ShownMarket(s, SdeNames.Location(s.LocationId, s.Name)))
+            .OrderBy(m => m.Name, StringComparer.CurrentCulture)
+            .ToList();
+        MarketStationBox.ItemsSource = markets;
         NoStationsText.IsVisible     = marketStations.Count == 0;
         PriceTypeBox.ItemsSource     = Choice.PriceTypes;
         PriceTypeBox.SelectedItem    = PriceTypeChoice("Sell");
@@ -79,7 +90,7 @@ public partial class AddEditSectionDialog : Window
                 default:         BasisBuild.IsChecked    = true; break;
             }
             if (existing.MarketStationId.HasValue)
-                MarketStationBox.SelectedItem = marketStations.FirstOrDefault(s => s.LocationId == existing.MarketStationId.Value);
+                MarketStationBox.SelectedItem = markets.FirstOrDefault(m => m.Station.LocationId == existing.MarketStationId.Value);
             if (!string.IsNullOrEmpty(existing.MarketPriceType))
                 PriceTypeBox.SelectedItem = PriceTypeChoice(existing.MarketPriceType);
             PercentBox.Value = (decimal)existing.PricePercent;
@@ -108,9 +119,9 @@ public partial class AddEditSectionDialog : Window
         var scope   = GetScope();
         var results = await _searchFn(scope, text);
 
-        // A region or system is listed, in that name's order, as the screen names it; the option
-        // keeps the English, which is what the section saves. Tag and list stay in one order: a
-        // pick is read back by its index.
+        // A region, system or NPC station is listed, in that name's order, as the screen names it;
+        // the option keeps the English, which is what the section saves. Tag and list stay in one
+        // order: a pick is read back by its index.
         var shown = results
             .Select(r => (Option: r, Name: InvLevelService.ScopePlaceName(scope, r.Id, r.Name)))
             .OrderBy(x => x.Name, StringComparer.CurrentCulture)
@@ -159,7 +170,7 @@ public partial class AddEditSectionDialog : Window
 
         bool ovPrice = OverridePricingBox.IsChecked == true;
         var basis = ovPrice ? GetBasis() : "Build";
-        var station = MarketStationBox.SelectedItem as StationOption;
+        var station = (MarketStationBox.SelectedItem as ShownMarket)?.Station;
         if (ovPrice && basis == "Market" && station is null)
         {
             ErrorText.Text = SalesText.SelectMarketForBasis;

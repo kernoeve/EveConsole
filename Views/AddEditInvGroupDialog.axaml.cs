@@ -100,9 +100,9 @@ public partial class AddEditInvGroupDialog : Window
         var scope   = GetScope();
         var results = await _searchFn(scope, text);
 
-        // A region or system is listed, in that name's order, as the screen names it. The option
-        // keeps the English, which is what the group saves. Tag and list stay in one order: a
-        // pick is read back by its index.
+        // A region, system or NPC station is listed, in that name's order, as the screen names it.
+        // The option keeps the English, which is what the group saves. Tag and list stay in one
+        // order: a pick is read back by its index.
         var shown = results
             .Select(r => (Option: r, Name: InvLevelService.ScopePlaceName(scope, r.Id, r.Name)))
             .OrderBy(x => x.Name, StringComparer.CurrentCulture)

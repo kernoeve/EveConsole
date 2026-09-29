@@ -196,10 +196,14 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
 
         if (scope == "Station")
         {
-            // NPC stations from SDE
+            // NPC stations from SDE — by the English or by the name the screen shows for one. The
+            // structures below are player-named, and have only the one name to search.
+            await SdeNames.EnsureLoadedAsync(ct);
+            var shown = SdeNames.Find(SdeNameKind.Station, text).Select(id => (int)id).ToList();
+
             var npc = await db.SdeStations
-                .Where(s => EF.Functions.Like(s.Name, $"%{text}%"))
-                .OrderBy(s => s.Name).Take(40)
+                .Where(s => EF.Functions.Like(s.Name, $"%{text}%") || shown.Contains(s.StationId))
+                .OrderBy(s => s.Name).Take(shown.Count == 0 ? 40 : 200)
                 .Select(s => new LocationOption(s.StationId, s.Name))
                 .ToListAsync(ct);
 
@@ -217,18 +221,18 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
                 .Select(s => new LocationOption(s.StructureId, s.Name))
                 .ToListAsync(ct);
 
-            return npc
+            var hits = npc
                 .Concat(player)
                 .Concat(corp)
                 .GroupBy(l => l.Id)
-                .Select(g => g.First())
-                .OrderBy(l => l.Name)
-                .Take(50)
-                .ToList();
+                .Select(g => g.First());
+            return shown.Count == 0
+                ? hits.OrderBy(l => l.Name).Take(50).ToList()
+                : RankStations(hits, text).Take(50).ToList();
         }
 
         // Systems and regions are SDE names, so they are found by the name the screen shows as
-        // well as by the English. Stations and structures above have no other name to search.
+        // well as by the English.
         await SdeNames.EnsureLoadedAsync(ct);
         var systems = scope == "System" ? SdeNames.Find(SdeNameKind.SolarSystem, text).Select(id => (int)id).ToList() : [];
         var regions = scope == "Region" ? SdeNames.Find(SdeNameKind.Region, text).Select(id => (int)id).ToList() : [];
@@ -251,11 +255,27 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
         };
     }
 
+    /// <summary>
+    /// Stations ranked again on whichever of each one's two names holds the text: the name itself
+    /// first, then names starting with it, then the rest, shorter before longer — the ranking the
+    /// Corp Activity pickers use. The SQL orders by the English only, which would put a name typed
+    /// as the screen shows it wherever its English happens to sort, and past the cut.
+    /// </summary>
+    private static IEnumerable<LocationOption> RankStations(IEnumerable<LocationOption> rows, string text) =>
+        rows.Select(r => (Row: r, Name: r.Name.Contains(text, StringComparison.OrdinalIgnoreCase)
+                                            ? r.Name : SdeNames.Location(r.Id, r.Name)))
+            .OrderBy(x => x.Name.Equals(text, StringComparison.OrdinalIgnoreCase)     ? 0
+                        : x.Name.StartsWith(text, StringComparison.OrdinalIgnoreCase) ? 1
+                        : 2)
+            .ThenBy(x => x.Name.Length)
+            .ThenBy(x => x.Name, StringComparer.CurrentCulture)
+            .Select(x => x.Row);
+
     // ── Scope resolution ──────────────────────────────────────────────────────
 
     /// <summary>
-    /// A scope's place as the screen names it: a region or a solar system in the interface
-    /// language, a station or structure as it is (neither is an SDE name we can translate).
+    /// A scope's place as the screen names it: a region, a solar system or an NPC station in the
+    /// interface language, a player structure as it is (players name those).
     ///
     /// <para>⚠️ Display only. The English is what a group, a posting or the worklist saves, and
     /// what goes back into it — call this where the name becomes text, never on what is stored.</para>
@@ -263,9 +283,11 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
     /// <param name="scope">The saved key — "Station", "System", "Region" or "Everywhere".</param>
     public static string ScopePlaceName(string scope, long? locationId, string english) => scope switch
     {
-        "System" when locationId is > 0 => SdeNames.SolarSystem(locationId.Value, english),
-        "Region" when locationId is > 0 => SdeNames.Region(locationId.Value, english),
-        _                               => english,
+        "System"  when locationId is > 0 => SdeNames.SolarSystem(locationId.Value, english),
+        "Region"  when locationId is > 0 => SdeNames.Region(locationId.Value, english),
+        // One column holds a station or a structure; Location tells them apart by the id.
+        "Station" when locationId is > 0 => SdeNames.Location(locationId.Value, english),
+        _                                => english,
     };
 
     // Resolve the set of location IDs a group's scope covers — NPC stations + player/corp

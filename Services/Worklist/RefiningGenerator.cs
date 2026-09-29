@@ -175,6 +175,8 @@ public class RefiningGenerator(
         };
     }
 
+    /// <summary>Places as the screen names them: the facility only becomes the task's detail and
+    /// location cell. The task is keyed on the id.</summary>
     private static async Task<Dictionary<long, string>> PlaceNamesAsync(
         AppDbContext db, List<long> ids, CancellationToken ct)
     {
@@ -184,7 +186,7 @@ public class RefiningGenerator(
         foreach (var s in await db.SdeStations.AsNoTracking()
                      .Where(s => ids.Contains(s.StationId))
                      .Select(s => new { s.StationId, s.Name }).ToListAsync(ct))
-            names[s.StationId] = s.Name;
+            names[s.StationId] = SdeNames.Station(s.StationId, s.Name);
 
         foreach (var s in await db.Structures.AsNoTracking()
                      .Where(s => ids.Contains(s.StructureId) && s.Name != "")

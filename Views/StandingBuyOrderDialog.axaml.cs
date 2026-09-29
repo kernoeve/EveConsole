@@ -53,10 +53,11 @@ public partial class StandingBuyOrderDialog : Window
         ItemSelectedLabel.Text      = SdeNames.Type(existing.TypeId, existing.TypeName);
         ItemSelectedLabel.IsVisible = true;
 
+        // The station likewise: English in the box, as the screen names it in the label.
         _selectedLocationId   = existing.LocationId;
         _selectedLocationName = existing.LocationName;
         StationSearchBox.Text          = existing.LocationName;
-        StationSelectedLabel.Text      = existing.LocationName;
+        StationSelectedLabel.Text      = SdeNames.Location(existing.LocationId, existing.LocationName);
         StationSelectedLabel.IsVisible = true;
     }
 
@@ -123,7 +124,11 @@ public partial class StandingBuyOrderDialog : Window
             await Task.Delay(250, ct);
             var results = await _service.SearchSdeStationsAsync(text, ct);
             if (ct.IsCancellationRequested) return;
-            StationResultsList.ItemsSource = results;
+            // Listed in the order of the names shown, which the list's template shows; each
+            // result keeps the English that is saved.
+            StationResultsList.ItemsSource = results
+                .OrderBy(r => r.DisplayName, StringComparer.CurrentCulture)
+                .ToList();
             StationResultsBorder.IsVisible = results.Count > 0;
         }
         catch (Exception) { }
@@ -135,7 +140,7 @@ public partial class StandingBuyOrderDialog : Window
         _selectedLocationId   = r.StationId;
         _selectedLocationName = r.Name;
         StationResultsBorder.IsVisible = false;
-        StationSelectedLabel.Text      = r.Name;
+        StationSelectedLabel.Text      = r.DisplayName;
         StationSelectedLabel.IsVisible = true;
     }
 

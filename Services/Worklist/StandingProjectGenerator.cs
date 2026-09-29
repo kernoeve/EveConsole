@@ -113,12 +113,14 @@ public class StandingProjectGenerator(
         // which a row names by id in ExpandedSystemId. An ADM or alliance rule's label is a
         // sentence around a region or constellation the row carries no id for, so it comes
         // worded already, in TargetShown, by CorpActivityService, which has the id. A delivery's
-        // destination is a station, and stays as it is.
+        // destination is a station or a structure, by id in StationId: an NPC station is named as
+        // the screen names it, and a structure as its owner named it.
         var target = r.TargetShown.Length > 0 ? r.TargetShown
                    : r.ItemTypeId is int item ? SdeNames.Type(item, r.TargetDisplay)
                    : !byRule && r.ExpandedSystemId is int named ? SdeNames.SolarSystem(named, r.TargetDisplay)
                    : r.TargetDisplay;
-        var dest   = !deliver && byRule && r.ExpandedSystemId is int system ? SdeNames.SolarSystem(system, r.DestDisplay)
+        var dest   = deliver && r.StationId is long station ? SdeNames.Location(station, r.DestDisplay)
+                   : !deliver && byRule && r.ExpandedSystemId is int system ? SdeNames.SolarSystem(system, r.DestDisplay)
                    : r.DestDisplay;
         var place  = byRule ? dest : target;
 

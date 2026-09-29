@@ -493,8 +493,8 @@ public class SalePostingRow : ReactiveObject
 
     public string LocationName    => _locationName;
 
-    /// <summary>The scope's place as the screen names it — a region or system in the interface
-    /// language. ⚠️ Display only: the posting keeps the English.</summary>
+    /// <summary>The scope's place as the screen names it — a region, system or NPC station in the
+    /// interface language. ⚠️ Display only: the posting keeps the English.</summary>
     public string LocationDisplay => InvLevelService.ScopePlaceName(_scope, _locationId, _locationName);
     public string ScopeSuffix     => _scope == "Everywhere" ? "" : $" · {ScopeLabel(_scope)}";
 
@@ -562,10 +562,13 @@ public class SalePostingRow : ReactiveObject
         this.RaisePropertyChanged(nameof(LocationDisplay));
         this.RaisePropertyChanged(nameof(ScopeSuffix));
         this.RaisePropertyChanged(nameof(HasLocationLink));
+        // The market as the screen names it; the posting keeps the English.
         string basis   = m.PricingBasis switch
         {
             "Contract" => SalesText.PriceBasisContract,
-            "Market"   => string.Format(SalesText.PriceBasisMarketAt, m.MarketStationName, Models.MarketPriceType.Label(m.MarketPriceType)),
+            "Market"   => string.Format(SalesText.PriceBasisMarketAt,
+                              SdeNames.Location(m.MarketStationId ?? 0, m.MarketStationName),
+                              Models.MarketPriceType.Label(m.MarketPriceType)),
             _          => SalesText.PriceBasisBuild,
         };
         PricingDisplay = $"{basis} × {m.PricePercent:0.#}%";
@@ -656,7 +659,8 @@ public class SalePostingSectionRow : ReactiveObject
             string b = m.PricingBasis switch
             {
                 "Contract" => SalesText.PriceBasisContract,
-                "Market"   => string.Format(SalesText.PriceBasisMarketShort, m.MarketStationName),
+                "Market"   => string.Format(SalesText.PriceBasisMarketShort,
+                                  SdeNames.Location(m.MarketStationId ?? 0, m.MarketStationName)),
                 _          => SalesText.PriceBasisBuild,
             };
             parts.Add($"{b} ×{m.PricePercent:0.#}%");
@@ -1081,6 +1085,10 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
             StatusText = CommonText.Loading;
             var postings = await _svc.LoadPostingsAsync();
             var sections = await _svc.LoadSectionsAsync();
+
+            // The posting and section lines name their places in the interface language, worded
+            // once as the rows are built; this first runs at start, so wait for the names.
+            await SdeNames.EnsureLoadedAsync();
 
             _allPostings = postings.Select(MakePostingRow).ToList();
             foreach (var pr in _allPostings)

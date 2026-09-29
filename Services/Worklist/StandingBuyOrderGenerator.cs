@@ -86,7 +86,8 @@ public class StandingBuyOrderGenerator(
                 CharacterId   = named ? placedBy  : alt?.CharacterId   ?? 0,
                 CharacterName = named ? ownerName : alt?.CharacterName ?? "",
                 LocationId    = r.LocationId,
-                LocationName  = r.LocationName,
+                // The cell's text; the order keeps the English it was saved with.
+                LocationName  = SdeNames.Location(r.LocationId, r.LocationName),
                 TypeId        = r.TypeId,
                 TypeName      = r.TypeName,
                 Priority      = priority,
@@ -129,7 +130,7 @@ public class StandingBuyOrderGenerator(
         {
             // A station with no market source configured cannot be checked for competition, so
             // say so rather than letting silence read as "nobody else is bidding".
-            var missing = string.Format(WorklistText.StandingNoOrderAt, r.LocationName);
+            var missing = string.Format(WorklistText.StandingNoOrderAt, SdeNames.Location(r.LocationId, r.LocationName));
             return (Fix.PlaceOrder,
                     r.IsLocationTracked ? missing : missing + " " + WorklistText.CompetingBidsUnknown,
                     WorklistPriority.Missing);

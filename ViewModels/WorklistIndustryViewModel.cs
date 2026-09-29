@@ -11,7 +11,8 @@ using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
-/// <summary>A station added to the asset scope on top of its region or system.</summary>
+/// <summary>A station added to the asset scope on top of its region or system. LocationName is
+/// the chip's text, as the screen names the station; it is removed by Id.</summary>
 public sealed record ScopeStationRow(int Id, string LocationName);
 
 /// <summary>
@@ -263,9 +264,12 @@ public class WorklistIndustryViewModel : ReactiveObject
 
     // ── Where industry buys ───────────────────────────────────────────────────
 
+    /// <summary>Stations for the buy-location and extra-station boxes, listed in the order of the
+    /// names shown, which the boxes show; each result keeps the English that is saved.</summary>
     public Func<string?, CancellationToken, Task<IEnumerable<object>>> LocationPopulator =>
         async (text, ct) =>
-            (await _corpActivity.SearchSdeStationsAsync(text ?? "", ct)).Cast<object>().ToList();
+            (await _corpActivity.SearchSdeStationsAsync(text ?? "", ct))
+                .OrderBy(h => h.DisplayName, StringComparer.CurrentCulture).Cast<object>().ToList();
 
     private object? _selectedBuyLocation;
     public object? SelectedBuyLocation
@@ -534,19 +538,23 @@ public class WorklistIndustryViewModel : ReactiveObject
                 ? (await _marketAlts.GetByLocationAsync()).GetValueOrDefault(buyLocId)
                 : null;
 
-            var scopeStations = (await db.WorklistIndyScopeStations.AsNoTracking()
-                    .OrderBy(s => s.LocationName)
-                    .ToListAsync())
-                .Select(s => new ScopeStationRow(s.Id, s.LocationName))
-                .ToList();
+            var extraStations = await db.WorklistIndyScopeStations.AsNoTracking().ToListAsync();
 
             // Slot figures come from the assignment service so the tab and the generator can
             // never disagree about how many slots a character has free.
             var candidates = await _assignment.LoadCandidatesAsync();
 
-            // The scope box names its region or system in the interface language, and this runs
-            // at start: wait for the names once rather than fill the box in English.
+            // The scope box names its region or system in the interface language, as the buy box
+            // and the extra stations name theirs, and this runs at start: wait for the names once
+            // rather than fill them in English.
             await SdeNames.EnsureLoadedAsync();
+
+            // Named and ordered as the screen names them. What is saved keeps the English, and a
+            // chip is removed by its id.
+            var scopeStations = extraStations
+                .Select(s => new ScopeStationRow(s.Id, SdeNames.Location(s.LocationId, s.LocationName)))
+                .OrderBy(s => s.LocationName, StringComparer.CurrentCulture)
+                .ToList();
 
             var rows = candidates
                 .OrderBy(c => c.Config.CharacterName)
@@ -581,7 +589,9 @@ public class WorklistIndustryViewModel : ReactiveObject
                 this.RaisePropertyChanged(nameof(MaxJobDaysRxn));
                 this.RaisePropertyChanged(nameof(MaxJobDaysSci));
 
-                _buyLocationText = _settings.IndustryBuyLocationName;
+                // Shown in the interface language; the setting keeps the English. Nothing reads
+                // the box's text back — a pick saves the result's English.
+                _buyLocationText = SdeNames.Location(buyLocId, _settings.IndustryBuyLocationName);
                 this.RaisePropertyChanged(nameof(BuyLocationText));
 
                 _includeNonPersonalCorps = _settings.IncludeNonPersonalCorps;
@@ -601,7 +611,7 @@ public class WorklistIndustryViewModel : ReactiveObject
                 BuyWarning = buyLocId <= 0
                     ? WorklistText.BuyNoLocation
                     : buyAlt is null
-                        ? string.Format(WorklistText.BuyNoAlt, _settings.IndustryBuyLocationName)
+                        ? string.Format(WorklistText.BuyNoAlt, SdeNames.Location(buyLocId, _settings.IndustryBuyLocationName))
                         : "";
                 this.RaisePropertyChanged(nameof(HasBuyWarning));
 

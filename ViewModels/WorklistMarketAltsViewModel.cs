@@ -23,7 +23,10 @@ public sealed class MarketAltRow : ReactiveObject
 
     public WorklistMarketAlt Alt { get; }
     public int    Id           => Alt.Id;
-    public string LocationName => Alt.LocationName;
+
+    /// <summary>The station as the screen names it, for the grid alone; a structure as its owner
+    /// named it. The alt keeps the English it was saved with.</summary>
+    public string LocationName => SdeNames.Location(Alt.LocationId, Alt.LocationName);
 
     /// <summary>Held on the row, not reached for with $parent — see InvRuleRow.GroupOptions.</summary>
     public IEnumerable<CharacterOption> CharacterOptions { get; }
@@ -124,12 +127,13 @@ public class WorklistMarketAltsViewModel : ReactiveObject
     // ── Station picker ────────────────────────────────────────────────────────
 
     /// <summary>Same station search the standing-buy dialog uses, so both cover NPC stations
-    /// and player structures identically.</summary>
+    /// and player structures identically. Listed in the order of the names shown, which the box
+    /// shows; each result keeps the English that is saved.</summary>
     public Func<string?, CancellationToken, Task<IEnumerable<object>>> LocationPopulator =>
         async (text, ct) =>
         {
             var hits = await _stations.SearchSdeStationsAsync(text ?? "", ct);
-            return hits.Cast<object>().ToList();
+            return hits.OrderBy(h => h.DisplayName, StringComparer.CurrentCulture).Cast<object>().ToList();
         };
 
     private object? _selectedLocation;
@@ -161,7 +165,12 @@ public class WorklistMarketAltsViewModel : ReactiveObject
 
     public async Task LoadAsync()
     {
-        var rows = await _marketAlts.GetAllAsync();
+        // The grid names each station as the screen does, in that name's order; this first runs at
+        // start, so wait for the names once rather than show and order the English.
+        await SdeNames.EnsureLoadedAsync();
+        var rows = (await _marketAlts.GetAllAsync())
+            .OrderBy(d => SdeNames.Location(d.LocationId, d.LocationName), StringComparer.CurrentCulture)
+            .ToList();
 
         await using var db = await _dbFactory.CreateDbContextAsync();
         var chars = await db.Characters.AsNoTracking()
