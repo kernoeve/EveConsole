@@ -3,7 +3,7 @@
         xmlns:vm="clr-namespace:EveConsole.ViewModels"
         x:Class="EveConsole.Views.FitSelectorWindow"
         x:CompileBindings="False"
-        Title="Add Items From Fit"
+        Title="{Binding WindowTitle}"
         Width="800" Height="600"
         MinWidth="600" MinHeight="440"
         CanResize="True"
@@ -158,7 +158,7 @@
               BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
               Padding="14 6" Margin="0 0 8 0" />
       <Button Grid.Column="2"
-              Content="Add Items" Click="OnConfirmClick"
+              Content="{Binding ConfirmText}" Click="OnConfirmClick"
               IsEnabled="{Binding CanConfirm}"
               Background="{DynamicResource SurfaceSelectedBrush}" Foreground="{DynamicResource AccentBrush}"
               BorderBrush="{DynamicResource AccentSurfaceBrush}" BorderThickness="1"

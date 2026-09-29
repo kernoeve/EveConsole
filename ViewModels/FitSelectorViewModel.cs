@@ -132,6 +132,11 @@ public class FitSelectorViewModel : ReactiveObject
     /// fitting tool opens fits rather than adding them to a group, and turns this off.</summary>
     public bool ChooseGroup { get; init; } = true;
 
+    /// <summary>The window's title and its confirm button: adding a fit's items to a group, or
+    /// opening the fit in the fitting tool.</summary>
+    public string WindowTitle => ChooseGroup ? "Add Items From Fit" : "Load Fit From the Game";
+    public string ConfirmText => ChooseGroup ? "Add Items" : "Load Fit";
+
     public bool CanConfirm     => _selectedNode?.IsFit == true && (!ChooseGroup || _selectedGroup != null);
 
     public FitSelectorViewModel(
