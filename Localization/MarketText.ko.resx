@@ -134,7 +134,7 @@
     <value>↻ 새로고침</value>
   </data>
   <data name="ColType" xml:space="preserve">
-    <value>유형</value>
+    <value>종류</value>
   </data>
   <data name="ColStatus" xml:space="preserve">
     <value>상태</value>
@@ -494,7 +494,7 @@
     <value>잔여량</value>
   </data>
   <data name="ColNote" xml:space="preserve">
-    <value>메모</value>
+    <value>비고</value>
   </data>
   <data name="Calculate" xml:space="preserve">
     <value>계산</value>
@@ -734,7 +734,7 @@
     <value>전체</value>
   </data>
   <data name="ContractTypeAll" xml:space="preserve">
-    <value>모든 유형</value>
+    <value>모든 종류</value>
   </data>
   <data name="ContractStatusOutstanding" xml:space="preserve">
     <value>미체결</value>

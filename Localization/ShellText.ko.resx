@@ -269,10 +269,10 @@
     <value>EVE Console의 새 버전이 있습니다.</value>
   </data>
   <data name="CurrentLabel" xml:space="preserve">
-    <value>현재:</value>
+    <value>현재 버전:</value>
   </data>
   <data name="LatestLabel" xml:space="preserve">
-    <value>최신:</value>
+    <value>최신 버전:</value>
   </data>
   <data name="TheAppWillDownloadNote" xml:space="preserve">
     <value>업데이트를 다운로드한 뒤 앱을 다시 시작하여 적용합니다.</value>

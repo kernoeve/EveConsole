@@ -65,7 +65,7 @@
     <value>지도에서 이 지역에 맞춰 보기</value>
   </data>
   <data name="ColSec" xml:space="preserve">
-    <value>시큐리티</value>
+    <value>시큐</value>
   </data>
   <data name="ColDistance" xml:space="preserve">
     <value>거리</value>
@@ -854,10 +854,10 @@
     <value>캐릭터 {0}</value>
   </data>
   <data name="DivisionNumbered" xml:space="preserve">
-    <value>부서 {0}</value>
+    <value>제{0}구획</value>
   </data>
   <data name="DivisionWithNumber" xml:space="preserve">
-    <value>{0} (부서 {1})</value>
+    <value>{0} (제{1}구획)</value>
   </data>
   <data name="DetailCounts" xml:space="preserve">
     <value>장착 {0}개 · 보관 {1:N0}개 · 화물 {2:N0}개 · 연료 {3:N0}개 · 파이터 {4:N0}개 · 작업 {5:N0}개</value>

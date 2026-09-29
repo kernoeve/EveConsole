@@ -44,7 +44,7 @@
     <value>+ 작성</value>
   </data>
   <data name="FromLabel2" xml:space="preserve">
-    <value>보낸 사람:</value>
+    <value>발신:</value>
   </data>
   <data name="DateFromLabel" xml:space="preserve">
     <value>시작일:</value>
@@ -53,7 +53,7 @@
     <value>개체 브라우저에서 열기</value>
   </data>
   <data name="ToLabel" xml:space="preserve">
-    <value>받는 사람:</value>
+    <value>수신:</value>
   </data>
   <data name="DateLabel" xml:space="preserve">
     <value>날짜:</value>
@@ -811,7 +811,7 @@
     <value>소버린티 유지비</value>
   </data>
   <data name="NotifMoreRows" xml:space="preserve">
-    <value>+{0}개 더</value>
+    <value>외 {0}개</value>
   </data>
   <data name="NotifHoursOther" xml:space="preserve">
     <value>{0}시간</value>

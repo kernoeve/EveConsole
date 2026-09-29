@@ -137,7 +137,7 @@
     <value>이 문서를 표시할 수 없습니다: {0}</value>
   </data>
   <data name="GridRowsOther" xml:space="preserve">
-    <value>{0:N0}개 행</value>
+    <value>{0:N0}행</value>
   </data>
   <data name="ToolCallsNone" xml:space="preserve">
     <value>도구 호출 없음</value>

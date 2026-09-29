@@ -71,7 +71,7 @@
     <value>전체 연구 슬롯 중 비어 있는 슬롯 — 복제, 연구, 인벤션</value>
   </data>
   <data name="TabDetail" xml:space="preserve">
-    <value>상세</value>
+    <value>세부 정보</value>
   </data>
   <data name="CharacterLabel" xml:space="preserve">
     <value>캐릭터:</value>

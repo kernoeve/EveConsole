@@ -506,10 +506,10 @@
     <value>판매 추적</value>
   </data>
   <data name="From" xml:space="preserve">
-    <value>시작</value>
+    <value>시작일</value>
   </data>
   <data name="Thru" xml:space="preserve">
-    <value>종료</value>
+    <value>종료일</value>
   </data>
   <data name="Owner" xml:space="preserve">
     <value>소유자</value>
@@ -641,7 +641,7 @@
     <value>결과</value>
   </data>
   <data name="ColNote" xml:space="preserve">
-    <value>메모</value>
+    <value>비고</value>
   </data>
   <data name="WebSiteEvents" xml:space="preserve">
     <value>웹사이트 이벤트</value>

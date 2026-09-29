@@ -320,7 +320,7 @@
     <value>이 항성계 열기</value>
   </data>
   <data name="ColSec" xml:space="preserve">
-    <value>시큐리티</value>
+    <value>시큐</value>
   </data>
   <data name="ColRegion" xml:space="preserve">
     <value>지역</value>
@@ -479,9 +479,9 @@
     <value>아이템 목록을 붙여 넣으십시오: 클라이언트에서
 복사한 격납고나 화물실, 계약, 피팅,
 일괄구매 목록, 또는 다음과 같은 줄
-Tritanium 22222
-Pyerite x 3000
-Warrior II 5
+트리타늄 22222
+파이어라이트 x 3000
+워리어 II 5
 
 붙여 넣기만 해도 목록을 평가하며, Enter
 키도 마찬가지입니다. 평가가 끝나면 목록이

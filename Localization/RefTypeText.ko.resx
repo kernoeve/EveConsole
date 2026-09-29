@@ -74,7 +74,7 @@
     <value>현상금</value>
   </data>
   <data name="BountyPrize" xml:space="preserve">
-    <value>현상금</value>
+    <value>현상금 상품</value>
   </data>
   <data name="BountyPrizeCorporationTax" xml:space="preserve">
     <value>현상금 상품 코퍼레이션 세금</value>

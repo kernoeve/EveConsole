@@ -419,7 +419,7 @@
     <value>지역</value>
   </data>
   <data name="ColSec" xml:space="preserve">
-    <value>시큐리티</value>
+    <value>시큐</value>
   </data>
   <data name="ColAgents" xml:space="preserve">
     <value>에이전트</value>
@@ -1376,7 +1376,7 @@
     <value>하이 슬롯</value>
   </data>
   <data name="SlotMid" xml:space="preserve">
-    <value>미디움 슬롯</value>
+    <value>미드 슬롯</value>
   </data>
   <data name="SlotLow" xml:space="preserve">
     <value>로우 슬롯</value>

@@ -275,10 +275,10 @@
     <value>포함할 프로젝트</value>
   </data>
   <data name="All" xml:space="preserve">
-    <value>모두</value>
+    <value>모두 선택</value>
   </data>
   <data name="None" xml:space="preserve">
-    <value>없음</value>
+    <value>선택 해제</value>
   </data>
   <data name="OneRowPerProjectNote" xml:space="preserve">
     <value>정의된 프로젝트마다 한 행입니다. 지역이나 성좌 범위의 프로젝트는 여기에 한 번만 표시되고, 게시할 때 조건에 맞는 항성계마다 한 행으로 펼쳐집니다. 저장할 때 선택되어 있는 것이 게시됩니다 — 나중에 정의한 프로젝트는 저절로 추가되지 않습니다.</value>

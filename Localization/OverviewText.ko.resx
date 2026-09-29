@@ -158,7 +158,7 @@
     <value>잔여</value>
   </data>
   <data name="ColExpires" xml:space="preserve">
-    <value>만료</value>
+    <value>만료일</value>
   </data>
   <data name="WorklistAll" xml:space="preserve">
     <value>작업 목록 (전체)</value>

@@ -158,7 +158,7 @@
     <value>더 새로운 EVE 정적 데이터 빌드가 있습니다.</value>
   </data>
   <data name="LoadedLabel" xml:space="preserve">
-    <value>불러온 버전:</value>
+    <value>현재 버전:</value>
   </data>
   <data name="LatestLabel" xml:space="preserve">
     <value>최신 버전:</value>
