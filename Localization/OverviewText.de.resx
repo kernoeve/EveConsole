@@ -1,0 +1,863 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="PeriodLabel" xml:space="preserve">
+    <value>Zeitraum:</value>
+  </data>
+  <data name="CustomizeLayout" xml:space="preserve">
+    <value>⚙ Layout anpassen</value>
+  </data>
+  <data name="ActivitySummary" xml:space="preserve">
+    <value>Aktivitätsübersicht</value>
+  </data>
+  <data name="InPeriod" xml:space="preserve">
+    <value>Im Zeitraum</value>
+  </data>
+  <data name="Count" xml:space="preserve">
+    <value>Anzahl</value>
+  </data>
+  <data name="MarketSales" xml:space="preserve">
+    <value>Marktverkäufe</value>
+  </data>
+  <data name="MarketPurchases" xml:space="preserve">
+    <value>Marktkäufe</value>
+  </data>
+  <data name="CompletedJobs" xml:space="preserve">
+    <value>Abgeschlossene Aufträge</value>
+  </data>
+  <data name="PlayerShipKills" xml:space="preserve">
+    <value>Abschüsse von Spielerschiffen</value>
+  </data>
+  <data name="TipRequiresFullKillMail" xml:space="preserve">
+    <value>Erfordert den vollständigen Abruf der Abschussberichte, um Abschüsse von Verlusten zu unterscheiden</value>
+  </data>
+  <data name="ShipsLost" xml:space="preserve">
+    <value>Verlorene Schiffe</value>
+  </data>
+  <data name="CurrentState" xml:space="preserve">
+    <value>Aktueller Stand</value>
+  </data>
+  <data name="Value" xml:space="preserve">
+    <value>Wert</value>
+  </data>
+  <data name="OutstandingSellOrders" xml:space="preserve">
+    <value>Offene Verkaufsaufträge</value>
+  </data>
+  <data name="OutstandingBuyOrders" xml:space="preserve">
+    <value>Offene Kaufaufträge</value>
+  </data>
+  <data name="OutstandingContracts" xml:space="preserve">
+    <value>Ausstehende Verträge</value>
+  </data>
+  <data name="ActiveIndyJobs" xml:space="preserve">
+    <value>Aktive Industrieaufträge</value>
+  </data>
+  <data name="Alerts" xml:space="preserve">
+    <value>Warnungen</value>
+  </data>
+  <data name="AlertSettings" xml:space="preserve">
+    <value>Warneinstellungen →</value>
+  </data>
+  <data name="NoActiveAlerts" xml:space="preserve">
+    <value>Keine aktiven Warnungen.</value>
+  </data>
+  <data name="Dismiss" xml:space="preserve">
+    <value>Verwerfen</value>
+  </data>
+  <data name="EveOnlineNews" xml:space="preserve">
+    <value>EVE-Online-News</value>
+  </data>
+  <data name="NewsUnavailableWillRetryNext" xml:space="preserve">
+    <value>News nicht verfügbar – neuer Versuch bei der nächsten Aktualisierung.</value>
+  </data>
+  <data name="Notifications" xml:space="preserve">
+    <value>Benachrichtigungen</value>
+  </data>
+  <data name="Notifications2" xml:space="preserve">
+    <value>Benachrichtigungen →</value>
+  </data>
+  <data name="NoRecentNotifications" xml:space="preserve">
+    <value>Keine aktuellen Benachrichtigungen.</value>
+  </data>
+  <data name="PersonalKillmails" xml:space="preserve">
+    <value>Persönliche Abschussberichte</value>
+  </data>
+  <data name="Killmails" xml:space="preserve">
+    <value>Abschussberichte →</value>
+  </data>
+  <data name="KillsLabel" xml:space="preserve">
+    <value>Abschüsse</value>
+  </data>
+  <data name="LossesLabel" xml:space="preserve">
+    <value>Verluste</value>
+  </data>
+  <data name="NoKillmailsInThisPeriod" xml:space="preserve">
+    <value>Keine Abschussberichte in diesem Zeitraum.</value>
+  </data>
+  <data name="Income" xml:space="preserve">
+    <value>Einnahmen</value>
+  </data>
+  <data name="NoIncomeDataForThis" xml:space="preserve">
+    <value>Für diesen Zeitraum liegen keine Einnahmen vor.</value>
+  </data>
+  <data name="Expenses" xml:space="preserve">
+    <value>Ausgaben</value>
+  </data>
+  <data name="NoExpenseDataForThis" xml:space="preserve">
+    <value>Für diesen Zeitraum liegen keine Ausgaben vor.</value>
+  </data>
+  <data name="Orders" xml:space="preserve">
+    <value>Bestellungen</value>
+  </data>
+  <data name="OrderTracker" xml:space="preserve">
+    <value>Bestellverfolgung →</value>
+  </data>
+  <data name="NoActiveOrders" xml:space="preserve">
+    <value>Keine aktiven Bestellungen.</value>
+  </data>
+  <data name="ColCreatedOn" xml:space="preserve">
+    <value>Erstellt am</value>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>Gegenstand</value>
+  </data>
+  <data name="ColUnits" xml:space="preserve">
+    <value>Einheiten</value>
+  </data>
+  <data name="ColBuyer" xml:space="preserve">
+    <value>Käufer</value>
+  </data>
+  <data name="ColEstDate" xml:space="preserve">
+    <value>Vsl. Datum</value>
+  </data>
+  <data name="ColSource" xml:space="preserve">
+    <value>Quelle</value>
+  </data>
+  <data name="StandingBuyOrders" xml:space="preserve">
+    <value>Dauer-Kaufaufträge</value>
+  </data>
+  <data name="StandingBuyOrders2" xml:space="preserve">
+    <value>Dauer-Kaufaufträge →</value>
+  </data>
+  <data name="NoStandingBuyOrders" xml:space="preserve">
+    <value>Keine Dauer-Kaufaufträge.</value>
+  </data>
+  <data name="TipOpenInTheItemBrowser" xml:space="preserve">
+    <value>Im Gegenstandsbrowser öffnen</value>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="ColOurBid" xml:space="preserve">
+    <value>Unser Gebot</value>
+  </data>
+  <data name="ColRem" xml:space="preserve">
+    <value>Übrig</value>
+  </data>
+  <data name="ColExpires" xml:space="preserve">
+    <value>Läuft ab</value>
+  </data>
+  <data name="WorklistAll" xml:space="preserve">
+    <value>Arbeitsliste (alle)</value>
+  </data>
+  <data name="Worklist" xml:space="preserve">
+    <value>Arbeitsliste →</value>
+  </data>
+  <data name="ColTask" xml:space="preserve">
+    <value>Aufgabe</value>
+  </data>
+  <data name="ColValue" xml:space="preserve">
+    <value>Wert</value>
+  </data>
+  <data name="ColVolume" xml:space="preserve">
+    <value>Volumen</value>
+  </data>
+  <data name="WorklistBuy" xml:space="preserve">
+    <value>Arbeitsliste (Kaufen)</value>
+  </data>
+  <data name="WorklistHaul" xml:space="preserve">
+    <value>Arbeitsliste (Transport)</value>
+  </data>
+  <data name="WorklistJobs" xml:space="preserve">
+    <value>Arbeitsliste (Aufträge)</value>
+  </data>
+  <data name="WorklistStationNeeds" xml:space="preserve">
+    <value>Arbeitsliste (Stationsbedarf)</value>
+  </data>
+  <data name="StationNeeds" xml:space="preserve">
+    <value>Stationsbedarf →</value>
+  </data>
+  <data name="ColShort" xml:space="preserve">
+    <value>Fehlmenge</value>
+  </data>
+  <data name="ColTotal" xml:space="preserve">
+    <value>Gesamt</value>
+  </data>
+  <data name="ColOnHand" xml:space="preserve">
+    <value>Vorhanden</value>
+  </data>
+  <data name="ColOrderJobs" xml:space="preserve">
+    <value>Bestellungen</value>
+  </data>
+  <data name="ColJobs" xml:space="preserve">
+    <value>Aufträge</value>
+  </data>
+  <data name="ColInvLevels" xml:space="preserve">
+    <value>Sollbestände</value>
+  </data>
+  <data name="ColStnLevels" xml:space="preserve">
+    <value>Stationssoll</value>
+  </data>
+  <data name="ColShortValue" xml:space="preserve">
+    <value>Fehlwert</value>
+  </data>
+  <data name="ColShortVolume" xml:space="preserve">
+    <value>Fehlvolumen</value>
+  </data>
+  <data name="StandingProjects" xml:space="preserve">
+    <value>Dauerprojekte</value>
+  </data>
+  <data name="CorpActivity" xml:space="preserve">
+    <value>Corp-Aktivität →</value>
+  </data>
+  <data name="NoStandingProjects" xml:space="preserve">
+    <value>Keine Dauerprojekte.</value>
+  </data>
+  <data name="ColProject" xml:space="preserve">
+    <value>Projekt</value>
+  </data>
+  <data name="ColProjectStatus" xml:space="preserve">
+    <value>Projektstatus</value>
+  </data>
+  <data name="ColRemaining" xml:space="preserve">
+    <value>Übrig</value>
+  </data>
+  <data name="ColRem2" xml:space="preserve">
+    <value>Übrig %</value>
+  </data>
+  <data name="OverviewDataReflectsCharactersNote" xml:space="preserve">
+    <value>Die Daten der Übersicht umfassen nur Charaktere und persönliche Corporations.</value>
+  </data>
+  <data name="TipOpenInNotifications" xml:space="preserve">
+    <value>In den Benachrichtigungen öffnen</value>
+  </data>
+  <data name="TitleCustomizeOverview" xml:space="preserve">
+    <value>Übersicht anpassen</value>
+  </data>
+  <data name="OverviewLayout" xml:space="preserve">
+    <value>Layout der Übersicht</value>
+  </data>
+  <data name="GridSize" xml:space="preserve">
+    <value>Rastergröße –</value>
+  </data>
+  <data name="Rows" xml:space="preserve">
+    <value>Zeilen</value>
+  </data>
+  <data name="Columns" xml:space="preserve">
+    <value>Spalten</value>
+  </data>
+  <data name="Sections" xml:space="preserve">
+    <value>Abschnitte</value>
+  </data>
+  <data name="DragASectionOntoNote" xml:space="preserve">
+    <value>Ziehen Sie einen Abschnitt auf das Raster, um ihn hinzuzufügen.</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Abbrechen</value>
+  </data>
+  <data name="Apply" xml:space="preserve">
+    <value>Anwenden</value>
+  </data>
+  <data name="BriefCharToCorp" xml:space="preserve">
+    <value>{0} bei {1}</value>
+  </data>
+  <data name="BriefBy" xml:space="preserve">
+    <value>von {0}</value>
+  </data>
+  <data name="BriefCharLeftCorp" xml:space="preserve">
+    <value>{0} hat {1} verlassen</value>
+  </data>
+  <data name="BriefBillAt" xml:space="preserve">
+    <value>{0} in {1}</value>
+  </data>
+  <data name="BriefBillFor" xml:space="preserve">
+    <value>{0} für {1}</value>
+  </data>
+  <data name="BriefAmountDue" xml:space="preserve">
+    <value>{0} · fällig am {1}</value>
+  </data>
+  <data name="BriefStandingFor" xml:space="preserve">
+    <value>{0} {1} für {2}</value>
+  </data>
+  <data name="BriefReady" xml:space="preserve">
+    <value>Bereit ab {0}</value>
+  </data>
+  <data name="BriefFractures" xml:space="preserve">
+    <value>Fraktur am {0}</value>
+  </data>
+  <data name="BriefOfOre" xml:space="preserve">
+    <value>{0} Erz</value>
+  </data>
+  <data name="BriefByAttacker" xml:space="preserve">
+    <value>von {0} {1}</value>
+  </data>
+  <data name="BriefShieldArmorHull" xml:space="preserve">
+    <value>Schild {0} · Panzerung {1} · Struktur {2}</value>
+  </data>
+  <data name="BriefReinforcedUntil" xml:space="preserve">
+    <value>Verstärkt bis {0}</value>
+  </data>
+  <data name="BriefQuantityLeft" xml:space="preserve">
+    <value>noch {0}</value>
+  </data>
+  <data name="BriefTimeLeft" xml:space="preserve">
+    <value>noch {0}</value>
+  </data>
+  <data name="BriefMovedTo" xml:space="preserve">
+    <value>nach {0}</value>
+  </data>
+  <data name="BriefDeliveredFor" xml:space="preserve">
+    <value>{0} für {1}</value>
+  </data>
+  <data name="BriefDaysLeftOne" xml:space="preserve">
+    <value>noch {0} Tag</value>
+  </data>
+  <data name="BriefDaysLeftOther" xml:space="preserve">
+    <value>noch {0} Tage</value>
+  </data>
+  <data name="BriefStructuresByOne" xml:space="preserve">
+    <value>{0} Struktur von {1}</value>
+  </data>
+  <data name="BriefStructuresByOther" xml:space="preserve">
+    <value>{0} Strukturen von {1}</value>
+  </data>
+  <data name="BriefTransferredTo" xml:space="preserve">
+    <value>an {0}</value>
+  </data>
+  <data name="BriefStructureIn" xml:space="preserve">
+    <value>{0} in {1}</value>
+  </data>
+  <data name="BriefTowerAt" xml:space="preserve">
+    <value>{0} bei {1}</value>
+  </data>
+  <data name="BriefKillRightOn" xml:space="preserve">
+    <value>auf {0}</value>
+  </data>
+  <data name="BriefVersus" xml:space="preserve">
+    <value>{0} gegen {1}</value>
+  </data>
+  <data name="BriefFightingStarts" xml:space="preserve">
+    <value>Kämpfe ab {0}</value>
+  </data>
+  <data name="BriefEnds" xml:space="preserve">
+    <value>Endet am {0}</value>
+  </data>
+  <data name="BriefJoins" xml:space="preserve">
+    <value>{0} schließt sich {1} an</value>
+  </data>
+  <data name="BriefAgainst" xml:space="preserve">
+    <value>gegen {0}</value>
+  </data>
+  <data name="BriefNewCapital" xml:space="preserve">
+    <value>Neues Hauptsystem {0}</value>
+  </data>
+  <data name="NewsLess" xml:space="preserve">
+    <value>▲ Weniger</value>
+  </data>
+  <data name="NewsMore" xml:space="preserve">
+    <value>▼ Mehr</value>
+  </data>
+  <data name="PeriodLast24Hours" xml:space="preserve">
+    <value>Letzte 24 Stunden</value>
+  </data>
+  <data name="PeriodLast7Days" xml:space="preserve">
+    <value>Letzte 7 Tage</value>
+  </data>
+  <data name="PeriodLast30Days" xml:space="preserve">
+    <value>Letzte 30 Tage</value>
+  </data>
+  <data name="PeriodLast90Days" xml:space="preserve">
+    <value>Letzte 90 Tage</value>
+  </data>
+  <data name="StepQueryingScope" xml:space="preserve">
+    <value>Umfang wird ermittelt</value>
+  </data>
+  <data name="StatusNoCharacters" xml:space="preserve">
+    <value>Keine Charaktere gefunden.</value>
+  </data>
+  <data name="StepMarketTransactions" xml:space="preserve">
+    <value>Markttransaktionen werden geladen</value>
+  </data>
+  <data name="StepMarketOrders" xml:space="preserve">
+    <value>Marktaufträge werden geladen</value>
+  </data>
+  <data name="StepContracts" xml:space="preserve">
+    <value>Verträge werden geladen</value>
+  </data>
+  <data name="StepIndustryJobs" xml:space="preserve">
+    <value>Industrieaufträge werden geladen</value>
+  </data>
+  <data name="StepKillsLosses" xml:space="preserve">
+    <value>Abschüsse und Verluste werden gezählt</value>
+  </data>
+  <data name="StepPersonalKillmails" xml:space="preserve">
+    <value>Persönliche Abschussberichte</value>
+  </data>
+  <data name="StepStandingProjects" xml:space="preserve">
+    <value>Dauerprojekte</value>
+  </data>
+  <data name="StepWorklist" xml:space="preserve">
+    <value>Arbeitsliste</value>
+  </data>
+  <data name="StepStandingBuyOrders" xml:space="preserve">
+    <value>Dauer-Kaufaufträge</value>
+  </data>
+  <data name="StepOrders" xml:space="preserve">
+    <value>Bestellungen</value>
+  </data>
+  <data name="StepJournal" xml:space="preserve">
+    <value>Logbuchdaten werden geladen</value>
+  </data>
+  <data name="StepCharts" xml:space="preserve">
+    <value>Diagramme werden erstellt</value>
+  </data>
+  <data name="StepAlerts" xml:space="preserve">
+    <value>Warnungen werden geprüft</value>
+  </data>
+  <data name="StepNews" xml:space="preserve">
+    <value>News werden geladen</value>
+  </data>
+  <data name="StepNotifications" xml:space="preserve">
+    <value>Benachrichtigungen werden geladen</value>
+  </data>
+  <data name="StatusLoaded" xml:space="preserve">
+    <value>Geladen in {0:N0} ms – {1} Besitzer, Zeitraum: {2}</value>
+  </data>
+  <data name="CharacterIdNumbered" xml:space="preserve">
+    <value>ID {0}</value>
+  </data>
+  <data name="AlertSkillQueueEmpty" xml:space="preserve">
+    <value>{0}: Die Trainingswarteschlange ist leer.</value>
+  </data>
+  <data name="AlertSkillQueuePaused" xml:space="preserve">
+    <value>{0}: Die Trainingswarteschlange ist pausiert.</value>
+  </data>
+  <data name="DurationDaysHours" xml:space="preserve">
+    <value>{0} Tg. {1} Std.</value>
+  </data>
+  <data name="DurationHoursMinutes" xml:space="preserve">
+    <value>{0} Std. {1} Min.</value>
+  </data>
+  <data name="AlertSkillQueueEnds" xml:space="preserve">
+    <value>{0}: Die Trainingswarteschlange endet in {1} (Warnschwelle: {2} Tg.).</value>
+  </data>
+  <data name="AlertAssetSafetyDeadline" xml:space="preserve">
+    <value>{0}: Gegenstände wurden am {1} in die Besitzsicherheit verschoben – wählen Sie bis {2:d. MMM HH:mm} ein Ziel (noch {3} Tg.), sonst wählt das Spiel eines.</value>
+  </data>
+  <data name="AlertAssetSafety" xml:space="preserve">
+    <value>{0}: Gegenstände wurden am {1} in die Besitzsicherheit verschoben.</value>
+  </data>
+  <data name="StatusPanelsFailed" xml:space="preserve">
+    <value>{0} fehlgeschlagen, siehe Fehlerprotokoll</value>
+  </data>
+  <data name="AlertInactiveProjectsOne" xml:space="preserve">
+    <value>{0} Dauerprojekt ist derzeit nicht aktiv.</value>
+  </data>
+  <data name="AlertInactiveProjectsOther" xml:space="preserve">
+    <value>{0} Dauerprojekte sind derzeit nicht aktiv.</value>
+  </data>
+  <data name="AlertStandingBuyOrders" xml:space="preserve">
+    <value>Dauer-Kaufaufträge: {0}.</value>
+  </data>
+  <data name="SboMissingOne" xml:space="preserve">
+    <value>{0} fehlt</value>
+  </data>
+  <data name="SboMissingOther" xml:space="preserve">
+    <value>{0} fehlen</value>
+  </data>
+  <data name="SboOutbidOne" xml:space="preserve">
+    <value>{0} wurde überboten</value>
+  </data>
+  <data name="SboOutbidOther" xml:space="preserve">
+    <value>{0} wurden überboten</value>
+  </data>
+  <data name="SboNearlyBoughtOutOne" xml:space="preserve">
+    <value>{0} ist fast erfüllt</value>
+  </data>
+  <data name="SboNearlyBoughtOutOther" xml:space="preserve">
+    <value>{0} sind fast erfüllt</value>
+  </data>
+  <data name="SboCloseToExpiryOne" xml:space="preserve">
+    <value>{0} läuft bald ab</value>
+  </data>
+  <data name="SboCloseToExpiryOther" xml:space="preserve">
+    <value>{0} laufen bald ab</value>
+  </data>
+  <data name="AlertUnriggedJobsOne" xml:space="preserve">
+    <value>{0} laufender Auftrag nutzt eine Anlage ohne passende Rigs.</value>
+  </data>
+  <data name="AlertUnriggedJobsOther" xml:space="preserve">
+    <value>{0} laufende Aufträge nutzen Anlagen ohne passende Rigs.</value>
+  </data>
+  <data name="AlertJobsReadyOne" xml:space="preserve">
+    <value>{0} Industrieauftrag ist zur Auslieferung bereit.</value>
+  </data>
+  <data name="AlertJobsReadyOther" xml:space="preserve">
+    <value>{0} Industrieaufträge sind zur Auslieferung bereit.</value>
+  </data>
+  <data name="AlertContractsToYouOne" xml:space="preserve">
+    <value>{0} ausstehender Vertrag an Sie.</value>
+  </data>
+  <data name="AlertContractsToYouOther" xml:space="preserve">
+    <value>{0} ausstehende Verträge an Sie.</value>
+  </data>
+  <data name="AlertContractsExpiringOne" xml:space="preserve">
+    <value>{0} Vertrag läuft bald ab.</value>
+  </data>
+  <data name="AlertContractsExpiringOther" xml:space="preserve">
+    <value>{0} Verträge laufen bald ab.</value>
+  </data>
+  <data name="TokensStatusStart" xml:space="preserve">
+    <value>Fügen Sie einen Charakter hinzu, um zu beginnen.</value>
+  </data>
+  <data name="TokensLoaded" xml:space="preserve">
+    <value>{0} Charakter(e), {1} Corporation(s) geladen.</value>
+  </data>
+  <data name="TokensStartupError" xml:space="preserve">
+    <value>Ladefehler beim Start: {0}</value>
+  </data>
+  <data name="TokensOpeningLogin" xml:space="preserve">
+    <value>Browser wird für die Charakteranmeldung geöffnet…</value>
+  </data>
+  <data name="TokensLoginCancelled" xml:space="preserve">
+    <value>Anmeldung abgebrochen.</value>
+  </data>
+  <data name="TokensOpeningUpdate" xml:space="preserve">
+    <value>Browser wird geöffnet, um „{0}“ zu aktualisieren…</value>
+  </data>
+  <data name="TokensUpdateCancelled" xml:space="preserve">
+    <value>Aktualisierung abgebrochen.</value>
+  </data>
+  <data name="TokensOpeningCorpLogin" xml:space="preserve">
+    <value>Browser wird geöffnet – melden Sie sich mit einem Charakter mit Direktor- oder Buchhalter-Rechten an…</value>
+  </data>
+  <data name="TokensLoadingSkills" xml:space="preserve">
+    <value>Skills von {0} werden geladen…</value>
+  </data>
+  <data name="TokensUnknownSkill" xml:space="preserve">
+    <value>Unbekannter Skill ({0})</value>
+  </data>
+  <data name="TokensExpired" xml:space="preserve">
+    <value>Token abgelaufen – neu autorisieren</value>
+  </data>
+  <data name="TokensNotAuthenticated" xml:space="preserve">
+    <value>Nicht authentifiziert</value>
+  </data>
+  <data name="TokensAllScopes" xml:space="preserve">
+    <value>Alle Berechtigungen enthalten</value>
+  </data>
+  <data name="TokensNoScopesStored" xml:space="preserve">
+    <value>keine Berechtigungen gespeichert</value>
+  </data>
+  <data name="TokensCharacterRemoved" xml:space="preserve">
+    <value>Charakter „{0}“ entfernt.</value>
+  </data>
+  <data name="TokensCorpRemoved" xml:space="preserve">
+    <value>Corporation „{0}“ entfernt.</value>
+  </data>
+  <data name="TokensCharacterAdded" xml:space="preserve">
+    <value>Charakter „{0}“ hinzugefügt.</value>
+  </data>
+  <data name="TokensCharacterUpdated" xml:space="preserve">
+    <value>Charakter „{0}“ aktualisiert.</value>
+  </data>
+  <data name="TokensCorpAdded" xml:space="preserve">
+    <value>Corporation [{0}] {1} hinzugefügt (Auth über {2}).</value>
+  </data>
+  <data name="TokensCorpUpdated" xml:space="preserve">
+    <value>Corporation [{0}] {1} aktualisiert (Auth über {2}).</value>
+  </data>
+  <data name="TokensScopeShortfall" xml:space="preserve">
+    <value>EVE hat {0} angeforderte Berechtigung(en) nicht erteilt: {1}. Fügen Sie den Charakter erneut hinzu und bestätigen Sie den Zustimmungsbildschirm von EVE, um sie zu erteilen.</value>
+  </data>
+  <data name="TokensConfirmReplaceCharacter" xml:space="preserve">
+    <value>Sie haben sich als „{0}“ authentifiziert, aber „{1}“ war zur Aktualisierung ausgewählt.
+
+„{1}“ durch „{0}“ ersetzen?</value>
+  </data>
+  <data name="TokensConfirmReplaceCorp" xml:space="preserve">
+    <value>Der authentifizierte Charakter gehört zu „{0}“, aber „{1}“ war zur Aktualisierung ausgewählt.
+
+„{1}“ durch „{0}“ ersetzen?</value>
+  </data>
+  <data name="TokensScopesMissingOne" xml:space="preserve">
+    <value>{0} Berechtigung nicht erteilt</value>
+  </data>
+  <data name="TokensScopesMissingOther" xml:space="preserve">
+    <value>{0} Berechtigungen nicht erteilt</value>
+  </data>
+  <data name="TokensScopesGrantedOne" xml:space="preserve">
+    <value>{1} von {0} Berechtigung erteilt</value>
+  </data>
+  <data name="TokensScopesGrantedOther" xml:space="preserve">
+    <value>{1} von {0} Berechtigungen erteilt</value>
+  </data>
+  <data name="SectionIncomePie" xml:space="preserve">
+    <value>Einnahmen (Kreisdiagramm)</value>
+  </data>
+  <data name="SectionExpensePie" xml:space="preserve">
+    <value>Ausgaben (Kreisdiagramm)</value>
+  </data>
+  <data name="ScopeReadLists" xml:space="preserve">
+    <value>Listen lesen</value>
+  </data>
+  <data name="ScopeReadCharacter" xml:space="preserve">
+    <value>Charakter lesen</value>
+  </data>
+  <data name="ScopeReadContacts" xml:space="preserve">
+    <value>Kontakte lesen</value>
+  </data>
+  <data name="ScopeReadAssets" xml:space="preserve">
+    <value>Besitz lesen</value>
+  </data>
+  <data name="ScopeReadCalendarEvents" xml:space="preserve">
+    <value>Kalenderereignisse lesen</value>
+  </data>
+  <data name="ScopeRespondCalendarEvents" xml:space="preserve">
+    <value>Auf Kalenderereignisse antworten</value>
+  </data>
+  <data name="ScopeReadAgentsResearch" xml:space="preserve">
+    <value>Agentenforschung lesen</value>
+  </data>
+  <data name="ScopeReadBlueprints" xml:space="preserve">
+    <value>Blaupausen lesen</value>
+  </data>
+  <data name="ScopeReadChatChannels" xml:space="preserve">
+    <value>Chatkanäle lesen</value>
+  </data>
+  <data name="ScopeReadCorporationRoles" xml:space="preserve">
+    <value>Corporation-Rechte lesen</value>
+  </data>
+  <data name="ScopeReadFatigue" xml:space="preserve">
+    <value>Sprungerschöpfung lesen</value>
+  </data>
+  <data name="ScopeReadFreelanceJobs" xml:space="preserve">
+    <value>Freelance-Aufträge lesen</value>
+  </data>
+  <data name="ScopeReadFwStats" xml:space="preserve">
+    <value>Fraktionskrieg-Statistik lesen</value>
+  </data>
+  <data name="ScopeReadLoyalty" xml:space="preserve">
+    <value>Loyalitätspunkte lesen</value>
+  </data>
+  <data name="ScopeReadMedals" xml:space="preserve">
+    <value>Orden lesen</value>
+  </data>
+  <data name="ScopeReadNotifications" xml:space="preserve">
+    <value>Benachrichtigungen lesen</value>
+  </data>
+  <data name="ScopeReadStandings" xml:space="preserve">
+    <value>Ansehen lesen</value>
+  </data>
+  <data name="ScopeReadTitles" xml:space="preserve">
+    <value>Titel lesen</value>
+  </data>
+  <data name="ScopeWriteContacts" xml:space="preserve">
+    <value>Kontakte schreiben</value>
+  </data>
+  <data name="ScopeReadClones" xml:space="preserve">
+    <value>Klone lesen</value>
+  </data>
+  <data name="ScopeReadImplants" xml:space="preserve">
+    <value>Implantate lesen</value>
+  </data>
+  <data name="ScopeReadCharacterContracts" xml:space="preserve">
+    <value>Verträge des Charakters lesen</value>
+  </data>
+  <data name="ScopeReadFittings" xml:space="preserve">
+    <value>Ausrüstungen lesen</value>
+  </data>
+  <data name="ScopeWriteFittings" xml:space="preserve">
+    <value>Ausrüstungen schreiben</value>
+  </data>
+  <data name="ScopeReadFleet" xml:space="preserve">
+    <value>Flotte lesen</value>
+  </data>
+  <data name="ScopeWriteFleet" xml:space="preserve">
+    <value>Flotte schreiben</value>
+  </data>
+  <data name="ScopeReadCharacterJobs" xml:space="preserve">
+    <value>Industrieaufträge des Charakters lesen</value>
+  </data>
+  <data name="ScopeReadCharacterMining" xml:space="preserve">
+    <value>Bergbau des Charakters lesen</value>
+  </data>
+  <data name="ScopeReadKillmails" xml:space="preserve">
+    <value>Abschussberichte lesen</value>
+  </data>
+  <data name="ScopeReadLocation" xml:space="preserve">
+    <value>Standort lesen</value>
+  </data>
+  <data name="ScopeReadOnline" xml:space="preserve">
+    <value>Online-Status lesen</value>
+  </data>
+  <data name="ScopeReadShipType" xml:space="preserve">
+    <value>Schiffstyp lesen</value>
+  </data>
+  <data name="ScopeOrganizeMail" xml:space="preserve">
+    <value>Mails organisieren</value>
+  </data>
+  <data name="ScopeReadMail" xml:space="preserve">
+    <value>Mails lesen</value>
+  </data>
+  <data name="ScopeSendMail" xml:space="preserve">
+    <value>Mails senden</value>
+  </data>
+  <data name="ScopeReadCharacterOrders" xml:space="preserve">
+    <value>Marktaufträge des Charakters lesen</value>
+  </data>
+  <data name="ScopeStructureMarkets" xml:space="preserve">
+    <value>Strukturmärkte</value>
+  </data>
+  <data name="ScopeManagePlanets" xml:space="preserve">
+    <value>Planeten verwalten</value>
+  </data>
+  <data name="ScopeReadCustomsOffices" xml:space="preserve">
+    <value>Zollämter lesen</value>
+  </data>
+  <data name="ScopeSearchStructures" xml:space="preserve">
+    <value>Strukturen suchen</value>
+  </data>
+  <data name="ScopeReadSkills" xml:space="preserve">
+    <value>Skills lesen</value>
+  </data>
+  <data name="ScopeReadSkillQueue" xml:space="preserve">
+    <value>Trainingswarteschlange lesen</value>
+  </data>
+  <data name="ScopeOpenWindow" xml:space="preserve">
+    <value>Fenster öffnen</value>
+  </data>
+  <data name="ScopeWriteWaypoint" xml:space="preserve">
+    <value>Wegpunkte setzen</value>
+  </data>
+  <data name="ScopeReadStructures" xml:space="preserve">
+    <value>Strukturen lesen</value>
+  </data>
+  <data name="ScopeReadCharacterWallet" xml:space="preserve">
+    <value>Konto des Charakters lesen</value>
+  </data>
+  <data name="ScopeReadContracts" xml:space="preserve">
+    <value>Verträge lesen</value>
+  </data>
+  <data name="ScopeReadContainerLogs" xml:space="preserve">
+    <value>Container-Protokolle lesen</value>
+  </data>
+  <data name="ScopeReadMembership" xml:space="preserve">
+    <value>Mitglieder lesen</value>
+  </data>
+  <data name="ScopeReadDivisions" xml:space="preserve">
+    <value>Abteilungen lesen</value>
+  </data>
+  <data name="ScopeReadFacilities" xml:space="preserve">
+    <value>Anlagen lesen</value>
+  </data>
+  <data name="ScopeReadProjects" xml:space="preserve">
+    <value>Projekte lesen</value>
+  </data>
+  <data name="ScopeReadStarbases" xml:space="preserve">
+    <value>Sternenbasen lesen</value>
+  </data>
+  <data name="ScopeTrackMembers" xml:space="preserve">
+    <value>Mitglieder verfolgen</value>
+  </data>
+  <data name="ScopeReadJobs" xml:space="preserve">
+    <value>Industrieaufträge lesen</value>
+  </data>
+  <data name="ScopeReadMining" xml:space="preserve">
+    <value>Bergbau lesen</value>
+  </data>
+  <data name="ScopeReadOrders" xml:space="preserve">
+    <value>Marktaufträge lesen</value>
+  </data>
+  <data name="ScopeReadCorpStructures" xml:space="preserve">
+    <value>Lesen</value>
+  </data>
+  <data name="ScopeReadWallet" xml:space="preserve">
+    <value>Konto lesen</value>
+  </data>
+  <data name="ScopeReadWallets" xml:space="preserve">
+    <value>Konten lesen</value>
+  </data>
+  <data name="ScopeGroupAccess" xml:space="preserve">
+    <value>Zugriff</value>
+  </data>
+  <data name="ScopeGroupActivities" xml:space="preserve">
+    <value>Aktivitäten</value>
+  </data>
+  <data name="ScopeGroupAlliances" xml:space="preserve">
+    <value>Allianzen</value>
+  </data>
+  <data name="ScopeGroupAssets" xml:space="preserve">
+    <value>Besitz</value>
+  </data>
+  <data name="ScopeGroupCalendar" xml:space="preserve">
+    <value>Kalender</value>
+  </data>
+  <data name="ScopeGroupCharacters" xml:space="preserve">
+    <value>Charaktere</value>
+  </data>
+  <data name="ScopeGroupClones" xml:space="preserve">
+    <value>Klone</value>
+  </data>
+  <data name="ScopeGroupContracts" xml:space="preserve">
+    <value>Verträge</value>
+  </data>
+  <data name="ScopeGroupFittings" xml:space="preserve">
+    <value>Ausrüstungen</value>
+  </data>
+  <data name="ScopeGroupFleets" xml:space="preserve">
+    <value>Flotten</value>
+  </data>
+  <data name="ScopeGroupIndustry" xml:space="preserve">
+    <value>Industrie</value>
+  </data>
+  <data name="ScopeGroupKillmails" xml:space="preserve">
+    <value>Abschussberichte</value>
+  </data>
+  <data name="ScopeGroupLocation" xml:space="preserve">
+    <value>Standort</value>
+  </data>
+  <data name="ScopeGroupMail" xml:space="preserve">
+    <value>Mail</value>
+  </data>
+  <data name="ScopeGroupMarkets" xml:space="preserve">
+    <value>Märkte</value>
+  </data>
+  <data name="ScopeGroupPlanets" xml:space="preserve">
+    <value>Planeten</value>
+  </data>
+  <data name="ScopeGroupSearch" xml:space="preserve">
+    <value>Suche</value>
+  </data>
+  <data name="ScopeGroupSkills" xml:space="preserve">
+    <value>Skills</value>
+  </data>
+  <data name="ScopeGroupStructures" xml:space="preserve">
+    <value>Strukturen</value>
+  </data>
+  <data name="ScopeGroupUi" xml:space="preserve">
+    <value>Benutzeroberfläche</value>
+  </data>
+  <data name="ScopeGroupUniverse" xml:space="preserve">
+    <value>Universum</value>
+  </data>
+  <data name="ScopeGroupWallet" xml:space="preserve">
+    <value>Konto</value>
+  </data>
+  <data name="ScopeGroupCorp" xml:space="preserve">
+    <value>Corp</value>
+  </data>
+</root>

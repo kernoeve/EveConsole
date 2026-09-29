@@ -1258,7 +1258,9 @@ public sealed class SchedulerViewModel : ReactiveObject
         {
             var b       = Blocks[i];
             var n       = i + 1;
-            var heading = b.Heading.ToLowerInvariant();
+            // As the section names itself: lower-casing it suited English, and turned German's
+            // capitalised nouns into misspellings.
+            var heading = b.Heading;
 
             // Whole sentences, with the section's number and heading as placeholders.
             if (b.NeedsCorp && b.Corp is null)                      return string.Format(AlarmsText.SectionNeedsCorp, n, heading);
