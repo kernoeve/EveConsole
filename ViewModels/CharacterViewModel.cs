@@ -700,19 +700,19 @@ public class CharacterViewModel : ReactiveObject
 
     private static IReadOnlyList<ScopeGroup> BuildScopeGroups(string[] scopes, bool stripCorporation)
     {
+        // Grouped and ordered by the word the ids start with, so the order is the same in every
+        // language; only the heading shown is looked up.
         return scopes
             .Select(s => new ScopeItem(s, stripCorporation))
             .GroupBy(s => GetScopeCategory(s.Scope))
             .OrderBy(g => g.Key)
-            .Select(g =>
-            {
-                var category = stripCorporation && g.Key == "Corporations" ? "Corp" : g.Key;
-                return new ScopeGroup(category, g);
-            })
+            .Select(g => new ScopeGroup(ScopeLabels.Group(g.Key, stripCorporation), g))
             .ToList()
             .AsReadOnly();
     }
 
+    /// <summary>"esi-assets.read_assets.v1" → "Assets": the group's key, not its heading
+    /// (see <see cref="ScopeLabels.Group"/>).</summary>
     private static string GetScopeCategory(string scope)
     {
         var prefix   = scope.Split('.')[0];

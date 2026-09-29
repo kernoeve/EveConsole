@@ -14,7 +14,7 @@
   </data>
   <data name="ActivitySummary" xml:space="preserve">
     <value>Activity Summary</value>
-    <comment>Text in CharacterView.</comment>
+    <comment>Heading of an Overview section; also its name in the Customize Overview dialog.</comment>
   </data>
   <data name="InPeriod" xml:space="preserve">
     <value>In Period</value>
@@ -74,7 +74,7 @@
   </data>
   <data name="Alerts" xml:space="preserve">
     <value>Alerts</value>
-    <comment>Text in CharacterView.</comment>
+    <comment>Heading of an Overview section; also its name in the Customize Overview dialog.</comment>
   </data>
   <data name="AlertSettings" xml:space="preserve">
     <value>Alert Settings →</value>
@@ -90,7 +90,7 @@
   </data>
   <data name="EveOnlineNews" xml:space="preserve">
     <value>Eve Online News</value>
-    <comment>Text in CharacterView.</comment>
+    <comment>Heading of an Overview section; also its name in the Customize Overview dialog.</comment>
   </data>
   <data name="NewsUnavailableWillRetryNext" xml:space="preserve">
     <value>News unavailable — will retry next refresh.</value>
@@ -98,7 +98,7 @@
   </data>
   <data name="Notifications" xml:space="preserve">
     <value>Notifications</value>
-    <comment>Text in CharacterView.</comment>
+    <comment>Heading of an Overview section; also its name in the Customize Overview dialog.</comment>
   </data>
   <data name="Notifications2" xml:space="preserve">
     <value>Notifications →</value>
@@ -110,7 +110,7 @@
   </data>
   <data name="PersonalKillmails" xml:space="preserve">
     <value>Personal Killmails</value>
-    <comment>Text in CharacterView.</comment>
+    <comment>Heading of an Overview section; also its name in the Customize Overview dialog.</comment>
   </data>
   <data name="Killmails" xml:space="preserve">
     <value>Killmails →</value>
@@ -146,7 +146,7 @@
   </data>
   <data name="Orders" xml:space="preserve">
     <value>Orders</value>
-    <comment>Text in CharacterView.</comment>
+    <comment>Heading of an Overview section (orders customers placed with the user); also its name in the Customize Overview dialog.</comment>
   </data>
   <data name="OrderTracker" xml:space="preserve">
     <value>Order Tracker →</value>
@@ -182,7 +182,7 @@
   </data>
   <data name="StandingBuyOrders" xml:space="preserve">
     <value>Standing Buy Orders</value>
-    <comment>Text in CharacterView.</comment>
+    <comment>Heading of an Overview section; also its name in the Customize Overview dialog.</comment>
   </data>
   <data name="StandingBuyOrders2" xml:space="preserve">
     <value>Standing Buy Orders →</value>
@@ -214,7 +214,7 @@
   </data>
   <data name="WorklistAll" xml:space="preserve">
     <value>Worklist (All)</value>
-    <comment>Text in CharacterView.</comment>
+    <comment>Heading of an Overview section; also its name in the Customize Overview dialog.</comment>
   </data>
   <data name="Worklist" xml:space="preserve">
     <value>Worklist →</value>
@@ -234,19 +234,19 @@
   </data>
   <data name="WorklistBuy" xml:space="preserve">
     <value>Worklist (Buy)</value>
-    <comment>Text in CharacterView.</comment>
+    <comment>Heading of an Overview section; also its name in the Customize Overview dialog.</comment>
   </data>
   <data name="WorklistHaul" xml:space="preserve">
     <value>Worklist (Haul)</value>
-    <comment>Text in CharacterView.</comment>
+    <comment>Heading of an Overview section; also its name in the Customize Overview dialog.</comment>
   </data>
   <data name="WorklistJobs" xml:space="preserve">
     <value>Worklist (Jobs)</value>
-    <comment>Text in CharacterView.</comment>
+    <comment>Heading of an Overview section; also its name in the Customize Overview dialog.</comment>
   </data>
   <data name="WorklistStationNeeds" xml:space="preserve">
     <value>Worklist (Station Needs)</value>
-    <comment>Text in CharacterView.</comment>
+    <comment>Heading of an Overview section; also its name in the Customize Overview dialog.</comment>
   </data>
   <data name="StationNeeds" xml:space="preserve">
     <value>Station Needs →</value>
@@ -290,7 +290,7 @@
   </data>
   <data name="StandingProjects" xml:space="preserve">
     <value>Standing Projects</value>
-    <comment>Text in CharacterView.</comment>
+    <comment>Heading of an Overview section; also its name in the Customize Overview dialog.</comment>
   </data>
   <data name="CorpActivity" xml:space="preserve">
     <value>Corp Activity →</value>
@@ -803,5 +803,345 @@ Replace '{1}' with '{0}'?</value>
   <data name="TokensScopesGrantedOther" xml:space="preserve">
     <value>{1} of {0} scopes granted</value>
     <comment>Scope summary in Settings → ESI Tokens, several scopes in all. {0} is the total, {1} how many of them were granted.</comment>
+  </data>
+  <data name="SectionIncomePie" xml:space="preserve">
+    <value>Income (Pie)</value>
+    <comment>An Overview section, as the Customize Overview dialog lists it: the income pie chart.</comment>
+  </data>
+  <data name="SectionExpensePie" xml:space="preserve">
+    <value>Expenses (Pie)</value>
+    <comment>An Overview section, as the Customize Overview dialog lists it: the expenses pie chart.</comment>
+  </data>
+  <data name="ScopeReadLists" xml:space="preserve">
+    <value>Read Lists</value>
+    <comment>An ESI permission (scope), in the list shown when a character is added and in Settings → ESI Tokens. Under the Access heading: read the character's access lists. Like the other Scope… entries, a verb then what it acts on.</comment>
+  </data>
+  <data name="ScopeReadCharacter" xml:space="preserve">
+    <value>Read Character</value>
+    <comment>An ESI permission (scope), under the Activities heading and under the Structures heading: read the character's activities, or the character's structures.</comment>
+  </data>
+  <data name="ScopeReadContacts" xml:space="preserve">
+    <value>Read Contacts</value>
+    <comment>An ESI permission (scope), under the Alliances, Characters or Corp heading: read that alliance's, character's or corporation's contacts.</comment>
+  </data>
+  <data name="ScopeReadAssets" xml:space="preserve">
+    <value>Read Assets</value>
+    <comment>An ESI permission (scope), under the Assets heading: read the character's or corporation's assets.</comment>
+  </data>
+  <data name="ScopeReadCalendarEvents" xml:space="preserve">
+    <value>Read Calendar Events</value>
+    <comment>An ESI permission (scope), under the Calendar heading: read the character's calendar events.</comment>
+  </data>
+  <data name="ScopeRespondCalendarEvents" xml:space="preserve">
+    <value>Respond Calendar Events</value>
+    <comment>An ESI permission (scope), under the Calendar heading: respond to (accept or decline) calendar events.</comment>
+  </data>
+  <data name="ScopeReadAgentsResearch" xml:space="preserve">
+    <value>Read Agents Research</value>
+    <comment>An ESI permission (scope), under the Characters heading: read the research the character runs with NPC research agents.</comment>
+  </data>
+  <data name="ScopeReadBlueprints" xml:space="preserve">
+    <value>Read Blueprints</value>
+    <comment>An ESI permission (scope), under the Characters or Corp heading: read the blueprints the character or corporation owns.</comment>
+  </data>
+  <data name="ScopeReadChatChannels" xml:space="preserve">
+    <value>Read Chat Channels</value>
+    <comment>An ESI permission (scope), under the Characters heading: read the chat channels the character owns or runs.</comment>
+  </data>
+  <data name="ScopeReadCorporationRoles" xml:space="preserve">
+    <value>Read Corporation Roles</value>
+    <comment>An ESI permission (scope), under the Characters heading: read the character's roles in its corporation.</comment>
+  </data>
+  <data name="ScopeReadFatigue" xml:space="preserve">
+    <value>Read Fatigue</value>
+    <comment>An ESI permission (scope), under the Characters heading: read the character's jump fatigue.</comment>
+  </data>
+  <data name="ScopeReadFreelanceJobs" xml:space="preserve">
+    <value>Read Freelance Jobs</value>
+    <comment>An ESI permission (scope), under the Characters or Corp heading: read freelance jobs (EVE's feature of that name).</comment>
+  </data>
+  <data name="ScopeReadFwStats" xml:space="preserve">
+    <value>Read FW Stats</value>
+    <comment>An ESI permission (scope), under the Characters or Corp heading: read Faction Warfare statistics. FW is Faction Warfare.</comment>
+  </data>
+  <data name="ScopeReadLoyalty" xml:space="preserve">
+    <value>Read Loyalty</value>
+    <comment>An ESI permission (scope), under the Characters heading: read the character's loyalty points.</comment>
+  </data>
+  <data name="ScopeReadMedals" xml:space="preserve">
+    <value>Read Medals</value>
+    <comment>An ESI permission (scope), under the Characters or Corp heading: read the medals awarded or created.</comment>
+  </data>
+  <data name="ScopeReadNotifications" xml:space="preserve">
+    <value>Read Notifications</value>
+    <comment>An ESI permission (scope), under the Characters heading: read the character's in-game notifications.</comment>
+  </data>
+  <data name="ScopeReadStandings" xml:space="preserve">
+    <value>Read Standings</value>
+    <comment>An ESI permission (scope), under the Characters or Corp heading: read the character's or corporation's standings.</comment>
+  </data>
+  <data name="ScopeReadTitles" xml:space="preserve">
+    <value>Read Titles</value>
+    <comment>An ESI permission (scope), under the Characters or Corp heading: read corporation titles.</comment>
+  </data>
+  <data name="ScopeWriteContacts" xml:space="preserve">
+    <value>Write Contacts</value>
+    <comment>An ESI permission (scope), under the Characters heading: add, change and remove the character's contacts.</comment>
+  </data>
+  <data name="ScopeReadClones" xml:space="preserve">
+    <value>Read Clones</value>
+    <comment>An ESI permission (scope), under the Clones heading: read the character's jump clones.</comment>
+  </data>
+  <data name="ScopeReadImplants" xml:space="preserve">
+    <value>Read Implants</value>
+    <comment>An ESI permission (scope), under the Clones heading: read the character's implants.</comment>
+  </data>
+  <data name="ScopeReadCharacterContracts" xml:space="preserve">
+    <value>Read Character Contracts</value>
+    <comment>An ESI permission (scope), under the Contracts heading: read the character's contracts.</comment>
+  </data>
+  <data name="ScopeReadFittings" xml:space="preserve">
+    <value>Read Fittings</value>
+    <comment>An ESI permission (scope), under the Fittings heading: read the character's saved ship fittings.</comment>
+  </data>
+  <data name="ScopeWriteFittings" xml:space="preserve">
+    <value>Write Fittings</value>
+    <comment>An ESI permission (scope), under the Fittings heading: save and delete ship fittings.</comment>
+  </data>
+  <data name="ScopeReadFleet" xml:space="preserve">
+    <value>Read Fleet</value>
+    <comment>An ESI permission (scope), under the Fleets heading: read the character's fleet.</comment>
+  </data>
+  <data name="ScopeWriteFleet" xml:space="preserve">
+    <value>Write Fleet</value>
+    <comment>An ESI permission (scope), under the Fleets heading: change the character's fleet.</comment>
+  </data>
+  <data name="ScopeReadCharacterJobs" xml:space="preserve">
+    <value>Read Character Jobs</value>
+    <comment>An ESI permission (scope), under the Industry heading: read the character's industry jobs.</comment>
+  </data>
+  <data name="ScopeReadCharacterMining" xml:space="preserve">
+    <value>Read Character Mining</value>
+    <comment>An ESI permission (scope), under the Industry heading: read the character's mining ledger.</comment>
+  </data>
+  <data name="ScopeReadKillmails" xml:space="preserve">
+    <value>Read Killmails</value>
+    <comment>An ESI permission (scope), under the Killmails heading: read the character's or corporation's killmails.</comment>
+  </data>
+  <data name="ScopeReadLocation" xml:space="preserve">
+    <value>Read Location</value>
+    <comment>An ESI permission (scope), under the Location heading: read where the character is.</comment>
+  </data>
+  <data name="ScopeReadOnline" xml:space="preserve">
+    <value>Read Online</value>
+    <comment>An ESI permission (scope), under the Location heading: read whether the character is logged in.</comment>
+  </data>
+  <data name="ScopeReadShipType" xml:space="preserve">
+    <value>Read Ship Type</value>
+    <comment>An ESI permission (scope), under the Location heading: read what ship the character is in.</comment>
+  </data>
+  <data name="ScopeOrganizeMail" xml:space="preserve">
+    <value>Organize Mail</value>
+    <comment>An ESI permission (scope), under the Mail heading: label, mark and delete the character's EVE mail.</comment>
+  </data>
+  <data name="ScopeReadMail" xml:space="preserve">
+    <value>Read Mail</value>
+    <comment>An ESI permission (scope), under the Mail heading: read the character's EVE mail.</comment>
+  </data>
+  <data name="ScopeSendMail" xml:space="preserve">
+    <value>Send Mail</value>
+    <comment>An ESI permission (scope), under the Mail heading: send EVE mail as the character.</comment>
+  </data>
+  <data name="ScopeReadCharacterOrders" xml:space="preserve">
+    <value>Read Character Orders</value>
+    <comment>An ESI permission (scope), under the Markets heading: read the character's market orders.</comment>
+  </data>
+  <data name="ScopeStructureMarkets" xml:space="preserve">
+    <value>Structure Markets</value>
+    <comment>An ESI permission (scope), under the Markets heading: read the markets in player-owned structures.</comment>
+  </data>
+  <data name="ScopeManagePlanets" xml:space="preserve">
+    <value>Manage Planets</value>
+    <comment>An ESI permission (scope), under the Planets heading: the character's planetary interaction colonies.</comment>
+  </data>
+  <data name="ScopeReadCustomsOffices" xml:space="preserve">
+    <value>Read Customs Offices</value>
+    <comment>An ESI permission (scope), under the Planets heading: read customs offices (planetary interaction).</comment>
+  </data>
+  <data name="ScopeSearchStructures" xml:space="preserve">
+    <value>Search Structures</value>
+    <comment>An ESI permission (scope), under the Search heading: search player-owned structures by name.</comment>
+  </data>
+  <data name="ScopeReadSkills" xml:space="preserve">
+    <value>Read Skills</value>
+    <comment>An ESI permission (scope), under the Skills heading: read the character's skills.</comment>
+  </data>
+  <data name="ScopeReadSkillQueue" xml:space="preserve">
+    <value>Read Skill Queue</value>
+    <comment>An ESI permission (scope), under the Skills heading: read the character's skill queue.</comment>
+  </data>
+  <data name="ScopeOpenWindow" xml:space="preserve">
+    <value>Open Window</value>
+    <comment>An ESI permission (scope), under the UI heading: open windows in the game client.</comment>
+  </data>
+  <data name="ScopeWriteWaypoint" xml:space="preserve">
+    <value>Write Waypoint</value>
+    <comment>An ESI permission (scope), under the UI heading: set autopilot waypoints in the game client.</comment>
+  </data>
+  <data name="ScopeReadStructures" xml:space="preserve">
+    <value>Read Structures</value>
+    <comment>An ESI permission (scope), under the Universe heading (details of player-owned structures) or the Corp heading (the corporation's structures).</comment>
+  </data>
+  <data name="ScopeReadCharacterWallet" xml:space="preserve">
+    <value>Read Character Wallet</value>
+    <comment>An ESI permission (scope), under the Wallet heading: read the character's wallet.</comment>
+  </data>
+  <data name="ScopeReadContracts" xml:space="preserve">
+    <value>Read Contracts</value>
+    <comment>An ESI permission (scope), in the list shown when a corporation is added, under the Contracts heading: read the corporation's contracts.</comment>
+  </data>
+  <data name="ScopeReadContainerLogs" xml:space="preserve">
+    <value>Read Container Logs</value>
+    <comment>An ESI permission (scope), in a corporation's list, under the Corp heading: read the logs of the corporation's containers.</comment>
+  </data>
+  <data name="ScopeReadMembership" xml:space="preserve">
+    <value>Read Membership</value>
+    <comment>An ESI permission (scope), in a corporation's list, under the Corp heading: read who the corporation's members are.</comment>
+  </data>
+  <data name="ScopeReadDivisions" xml:space="preserve">
+    <value>Read Divisions</value>
+    <comment>An ESI permission (scope), in a corporation's list, under the Corp heading: read the names of the corporation's hangar and wallet divisions.</comment>
+  </data>
+  <data name="ScopeReadFacilities" xml:space="preserve">
+    <value>Read Facilities</value>
+    <comment>An ESI permission (scope), in a corporation's list, under the Corp heading: read the corporation's industry facilities.</comment>
+  </data>
+  <data name="ScopeReadProjects" xml:space="preserve">
+    <value>Read Projects</value>
+    <comment>An ESI permission (scope), in a corporation's list, under the Corp heading: read the corporation's projects.</comment>
+  </data>
+  <data name="ScopeReadStarbases" xml:space="preserve">
+    <value>Read Starbases</value>
+    <comment>An ESI permission (scope), in a corporation's list, under the Corp heading: read the corporation's starbases (control towers).</comment>
+  </data>
+  <data name="ScopeTrackMembers" xml:space="preserve">
+    <value>Track Members</value>
+    <comment>An ESI permission (scope), in a corporation's list, under the Corp heading: see where the corporation's members are and when they last logged in.</comment>
+  </data>
+  <data name="ScopeReadJobs" xml:space="preserve">
+    <value>Read Jobs</value>
+    <comment>An ESI permission (scope), in a corporation's list, under the Industry heading: read the corporation's industry jobs.</comment>
+  </data>
+  <data name="ScopeReadMining" xml:space="preserve">
+    <value>Read Mining</value>
+    <comment>An ESI permission (scope), in a corporation's list, under the Industry heading: read the corporation's moon mining.</comment>
+  </data>
+  <data name="ScopeReadOrders" xml:space="preserve">
+    <value>Read Orders</value>
+    <comment>An ESI permission (scope), in a corporation's list, under the Markets heading: read the corporation's market orders.</comment>
+  </data>
+  <data name="ScopeReadCorpStructures" xml:space="preserve">
+    <value>Read</value>
+    <comment>An ESI permission (scope), in a corporation's list, under the Structures heading: read the corporation's structures. "Read" is a verb.</comment>
+  </data>
+  <data name="ScopeReadWallet" xml:space="preserve">
+    <value>Read Wallet</value>
+    <comment>An ESI permission (scope), in a corporation's list, under the Wallet heading: read the corporation's wallet. ESI has this one and Read Wallets (plural) side by side.</comment>
+  </data>
+  <data name="ScopeReadWallets" xml:space="preserve">
+    <value>Read Wallets</value>
+    <comment>An ESI permission (scope), in a corporation's list, under the Wallet heading: read the corporation's wallets (its wallet divisions). ESI has this one and Read Wallet (singular) side by side.</comment>
+  </data>
+  <data name="ScopeGroupAccess" xml:space="preserve">
+    <value>Access</value>
+    <comment>Heading over a group of ESI permissions (scopes), in the list shown when a character is added and in Settings → ESI Tokens: access lists.</comment>
+  </data>
+  <data name="ScopeGroupActivities" xml:space="preserve">
+    <value>Activities</value>
+    <comment>Heading over a group of ESI permissions (scopes): the character's activities.</comment>
+  </data>
+  <data name="ScopeGroupAlliances" xml:space="preserve">
+    <value>Alliances</value>
+    <comment>Heading over a group of ESI permissions (scopes): alliances.</comment>
+  </data>
+  <data name="ScopeGroupAssets" xml:space="preserve">
+    <value>Assets</value>
+    <comment>Heading over a group of ESI permissions (scopes): assets.</comment>
+  </data>
+  <data name="ScopeGroupCalendar" xml:space="preserve">
+    <value>Calendar</value>
+    <comment>Heading over a group of ESI permissions (scopes): the in-game calendar.</comment>
+  </data>
+  <data name="ScopeGroupCharacters" xml:space="preserve">
+    <value>Characters</value>
+    <comment>Heading over a group of ESI permissions (scopes): the character itself.</comment>
+  </data>
+  <data name="ScopeGroupClones" xml:space="preserve">
+    <value>Clones</value>
+    <comment>Heading over a group of ESI permissions (scopes): jump clones and implants.</comment>
+  </data>
+  <data name="ScopeGroupContracts" xml:space="preserve">
+    <value>Contracts</value>
+    <comment>Heading over a group of ESI permissions (scopes): contracts.</comment>
+  </data>
+  <data name="ScopeGroupFittings" xml:space="preserve">
+    <value>Fittings</value>
+    <comment>Heading over a group of ESI permissions (scopes): saved ship fittings.</comment>
+  </data>
+  <data name="ScopeGroupFleets" xml:space="preserve">
+    <value>Fleets</value>
+    <comment>Heading over a group of ESI permissions (scopes): fleets.</comment>
+  </data>
+  <data name="ScopeGroupIndustry" xml:space="preserve">
+    <value>Industry</value>
+    <comment>Heading over a group of ESI permissions (scopes): industry jobs and mining.</comment>
+  </data>
+  <data name="ScopeGroupKillmails" xml:space="preserve">
+    <value>Killmails</value>
+    <comment>Heading over a group of ESI permissions (scopes): killmails.</comment>
+  </data>
+  <data name="ScopeGroupLocation" xml:space="preserve">
+    <value>Location</value>
+    <comment>Heading over a group of ESI permissions (scopes): where the character is.</comment>
+  </data>
+  <data name="ScopeGroupMail" xml:space="preserve">
+    <value>Mail</value>
+    <comment>Heading over a group of ESI permissions (scopes): EVE mail.</comment>
+  </data>
+  <data name="ScopeGroupMarkets" xml:space="preserve">
+    <value>Markets</value>
+    <comment>Heading over a group of ESI permissions (scopes): markets.</comment>
+  </data>
+  <data name="ScopeGroupPlanets" xml:space="preserve">
+    <value>Planets</value>
+    <comment>Heading over a group of ESI permissions (scopes): planetary interaction.</comment>
+  </data>
+  <data name="ScopeGroupSearch" xml:space="preserve">
+    <value>Search</value>
+    <comment>Heading over a group of ESI permissions (scopes): search. A noun.</comment>
+  </data>
+  <data name="ScopeGroupSkills" xml:space="preserve">
+    <value>Skills</value>
+    <comment>Heading over a group of ESI permissions (scopes): skills.</comment>
+  </data>
+  <data name="ScopeGroupStructures" xml:space="preserve">
+    <value>Structures</value>
+    <comment>Heading over a group of ESI permissions (scopes): player-owned structures.</comment>
+  </data>
+  <data name="ScopeGroupUi" xml:space="preserve">
+    <value>UI</value>
+    <comment>Heading over a group of ESI permissions (scopes): the game client's user interface.</comment>
+  </data>
+  <data name="ScopeGroupUniverse" xml:space="preserve">
+    <value>Universe</value>
+    <comment>Heading over a group of ESI permissions (scopes): the game universe.</comment>
+  </data>
+  <data name="ScopeGroupWallet" xml:space="preserve">
+    <value>Wallet</value>
+    <comment>Heading over a group of ESI permissions (scopes): wallets.</comment>
+  </data>
+  <data name="ScopeGroupCorp" xml:space="preserve">
+    <value>Corp</value>
+    <comment>Heading over a group of ESI permissions (scopes), in the list shown when a corporation is added: the corporation itself. Short for corporation.</comment>
   </data>
 </root>

@@ -130,6 +130,7 @@
   </data>
   <data name="NavIncomeExpense" xml:space="preserve">
     <value>Income &amp; Expense</value>
+    <comment>Navigation item and tab title; also the name of its Overview section in the Customize Overview dialog.</comment>
   </data>
   <data name="NavWallet" xml:space="preserve">
     <value>Wallet</value>
@@ -196,9 +197,11 @@
   </data>
   <data name="TabSaleListingBuild" xml:space="preserve">
     <value>Sale Listing (Build)</value>
+    <comment>Tab title; also the name of its Overview section in the Customize Overview dialog.</comment>
   </data>
   <data name="TabSaleListingMarket" xml:space="preserve">
     <value>Sale Listing (Market)</value>
+    <comment>Tab title; also the name of its Overview section in the Customize Overview dialog.</comment>
   </data>
   <data name="TipScheduler" xml:space="preserve">
     <value>Scheduler</value>
@@ -470,7 +473,7 @@
   </data>
   <data name="ServerOnline" xml:space="preserve">
     <value>Online</value>
-    <comment>Title bar: the game server's state before it is first checked.</comment>
+    <comment>Title bar, beside the EVE clock: the game server (Tranquility) is up. Also shown before it is first checked. Keep short.</comment>
   </data>
   <data name="TipServerStatus" xml:space="preserve">
     <value>Tranquility server status</value>
@@ -623,5 +626,93 @@ Right-click to unmute.</value>
   <data name="RecoveryRestoreFailed" xml:space="preserve">
     <value>Restore failed: {0}</value>
     <comment>Database recovery dialog, error. {0} is the error.</comment>
+  </data>
+  <data name="ServerOffline" xml:space="preserve">
+    <value>Offline</value>
+    <comment>Title bar, beside the EVE clock: the game server (Tranquility) is down. Keep short.</comment>
+  </data>
+  <data name="ServerPlayersOnline" xml:space="preserve">
+    <value>{0:N0} online</value>
+    <comment>Title bar, beside the game server's state: how many players are logged in to EVE. {0} is the number. Keep short.</comment>
+  </data>
+  <data name="ThemeDark" xml:space="preserve">
+    <value>Dark</value>
+    <comment>A colour theme, in Settings and the title bar's theme menu.</comment>
+  </data>
+  <data name="ThemeLight" xml:space="preserve">
+    <value>Light</value>
+    <comment>A colour theme, in Settings and the title bar's theme menu.</comment>
+  </data>
+  <data name="ThemeBlueDark" xml:space="preserve">
+    <value>Blue (dark)</value>
+    <comment>A colour theme, in Settings and the title bar's theme menu: blue tint on the dark theme.</comment>
+  </data>
+  <data name="ThemeBlueLight" xml:space="preserve">
+    <value>Blue (light)</value>
+    <comment>A colour theme, in Settings and the title bar's theme menu: blue tint on the light theme.</comment>
+  </data>
+  <data name="ThemePinkDark" xml:space="preserve">
+    <value>Pink (dark)</value>
+    <comment>A colour theme, in Settings and the title bar's theme menu: pink tint on the dark theme.</comment>
+  </data>
+  <data name="ThemePinkLight" xml:space="preserve">
+    <value>Pink (light)</value>
+    <comment>A colour theme, in Settings and the title bar's theme menu: pink tint on the light theme.</comment>
+  </data>
+  <data name="ThemeBeigeDark" xml:space="preserve">
+    <value>Beige (dark)</value>
+    <comment>A colour theme, in Settings and the title bar's theme menu: beige tint on the dark theme.</comment>
+  </data>
+  <data name="ThemeBeigeLight" xml:space="preserve">
+    <value>Beige (light)</value>
+    <comment>A colour theme, in Settings and the title bar's theme menu: beige tint on the light theme.</comment>
+  </data>
+  <data name="UpdateAheadNotInstalled" xml:space="preserve">
+    <value>This copy was not set up by the installer, so it cannot update itself. Install {0} or later from the releases page.</value>
+    <comment>Status in the dialog shown when the database is newer than this copy of the app. {0} is the database's version. "The releases page" is the web page the dialog's "Releases page" button opens.</comment>
+  </data>
+  <data name="UpdateAheadCheckFailed" xml:space="preserve">
+    <value>Could not check for an update: {0}. Get {1} or later from the releases page.</value>
+    <comment>Status in the dialog shown when the database is newer than this copy of the app, when the update check failed. {0} is the error (in English, without its closing full stop), {1} the database's version. "The releases page" is the web page the dialog's "Releases page" button opens.</comment>
+  </data>
+  <data name="UpdateAheadCheckFailedNoReason" xml:space="preserve">
+    <value>Could not check for an update: no reason given. Get {0} or later from the releases page.</value>
+    <comment>Status in the dialog shown when the database is newer than this copy of the app, when the update check failed without saying why. {0} is the database's version. "The releases page" is the web page the dialog's "Releases page" button opens.</comment>
+  </data>
+  <data name="UpdateAheadNoRelease" xml:space="preserve">
+    <value>No newer release is out yet. {0} has not been released: the database was opened by a development build, or the release is still being published.</value>
+    <comment>Status in the dialog shown when the database is newer than this copy of the app, when no newer release exists. {0} is the database's version.</comment>
+  </data>
+  <data name="UpdateAheadReleaseTooOld" xml:space="preserve">
+    <value>The newest release, {0}, is still older than this database ({1}), which was opened by a build that has not been released.</value>
+    <comment>Status in the dialog shown when the database is newer than this copy of the app. {0} is the newest release's version, {1} the database's version.</comment>
+  </data>
+  <data name="UpdateAheadAvailable" xml:space="preserve">
+    <value>Version {0} is available. Updating installs it and restarts EVE Console on this database.</value>
+    <comment>Status in the dialog shown when the database is newer than this copy of the app, when a release that can open it exists. {0} is that release's version. EVE Console is the product name.</comment>
+  </data>
+  <data name="RecoveryReasonUnknown" xml:space="preserve">
+    <value>unknown</value>
+    <comment>Database recovery dialog, under "REPORTED": shown in place of the reason the database could not be opened, when none was given.</comment>
+  </data>
+  <data name="VersionMismatchDatabaseAhead" xml:space="preserve">
+    <value>This database is at version {0}, and this client is {1}.
+
+A newer build has already changed this database in ways this one knows nothing about, and schema changes only ever move forward.
+
+Update this client to {0} or later.</value>
+    <comment>Shown at startup, and the app then stops, when the database was upgraded by a newer copy of the app. {0} is the database's version, {1} this copy's version. A "client" is one running copy of the app; a "build" is a version of it.</comment>
+  </data>
+  <data name="VersionMismatchWorkerBehind" xml:space="preserve">
+    <value>This database is at version {0}, and this client is {1}.
+
+Another client is running the background processes on {0}, and only that client may change the schema. The changes this build expects have not been made, so much of it would not work.
+
+Update the client running the background processes to {1}, or close it and start this one first so that it takes over and applies them.</value>
+    <comment>Shown at startup, and the app then stops, when another copy of the app runs the background processes on an older version. {0} is the database's (and that copy's) version, {1} this copy's version. A "client" is one running copy of the app; a "build" is a version of it.</comment>
+  </data>
+  <data name="VersionMismatchHeading" xml:space="preserve">
+    <value>This build does not match the database</value>
+    <comment>Heading of the dialog shown with VersionMismatchWorkerBehind, before the app stops.</comment>
   </data>
 </root>

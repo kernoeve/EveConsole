@@ -11,6 +11,7 @@ using EveConsole.Api;
 using EveConsole.Models;
 using EveConsole.Monitoring;
 using EveConsole.Services;
+using EveConsole.Localization;
 using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
 using Microsoft.Extensions.DependencyInjection;
@@ -173,7 +174,7 @@ public class App : Application
         // a 958 MB leftover could not be deleted while the app was running.
         if (DbEngine.IsSqlite && !DatabaseIntegrityService.IsUsable(AppConfig.GetDbPath(), out var dbError))
         {
-            var recovery = new DatabaseRecoveryDialog(AppConfig.GetDbPath(), dbError ?? "unknown");
+            var recovery = new DatabaseRecoveryDialog(AppConfig.GetDbPath(), dbError ?? ShellText.RecoveryReasonUnknown);
 
             // ⚠️ The splash stays up and owns the dialog. Hiding it first is what broke this on
             // its first real run: a modal dialog must have a *visible* owner, so hiding the splash
@@ -699,9 +700,16 @@ public class App : Application
                     // database first. The updater lives in the main window, which a stopped client
                     // never reaches, so this looks for the release there and then and offers it.
                     // The other direction is another client's to fix: a plain stop, as before.
+                    //
+                    // ⚠️ The dialog says `message` again, in the interface's language; the console
+                    // line below keeps the English, as every log line does. A change to one is a
+                    // change to the other.
                     Avalonia.Controls.Window dialog = dbV > appV
-                        ? new UpdateRequiredDialog(message, dbV!, errorLogger)
-                        : new FatalDialog("This build does not match the database", message);
+                        ? new UpdateRequiredDialog(
+                            string.Format(ShellText.VersionMismatchDatabaseAhead, dbVersion, AppVersion.Number),
+                            dbV!, errorLogger)
+                        : new FatalDialog(ShellText.VersionMismatchHeading,
+                            string.Format(ShellText.VersionMismatchWorkerBehind, dbVersion, AppVersion.Number));
 
                     // A tray start has no splash to own it, and used to end here without a word.
                     await ShowAndWaitAsync(dialog, splash);

@@ -1,5 +1,6 @@
 using Velopack;
 using Velopack.Sources;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -55,11 +56,32 @@ public static class AppUpdater
 
     /// <summary>The remedy in a sentence — the dialog's status line, and the log line a headless
     /// client leaves behind, so the two can never tell a person different things. The log names
-    /// the releases page by its address; the dialog has a link to it beside the text.</summary>
+    /// the releases page by its address; the dialog has a link to it beside the text.
+    ///
+    /// <para>⚠️ So each sentence is written twice: the dialog's is read from the resources, in the
+    /// interface's language, and the log's stays English here, as every log line does. A change to
+    /// one is a change to the other.</para></summary>
     public static string Describe(AheadRemedy remedy, Version database, Version? latest, string? error = null,
                                   bool forLog = false)
     {
-        var where = forLog ? ReleasesUrl : "the releases page";
+        if (!forLog)
+            return remedy switch
+            {
+            AheadRemedy.NotInstalled =>
+                string.Format(ShellText.UpdateAheadNotInstalled, database),
+            AheadRemedy.CheckFailed when string.IsNullOrWhiteSpace(error) =>
+                string.Format(ShellText.UpdateAheadCheckFailedNoReason, database),
+            AheadRemedy.CheckFailed =>
+                string.Format(ShellText.UpdateAheadCheckFailed, WithoutFullStop(error!), database),
+            AheadRemedy.NoRelease =>
+                string.Format(ShellText.UpdateAheadNoRelease, database),
+            AheadRemedy.ReleaseTooOld =>
+                string.Format(ShellText.UpdateAheadReleaseTooOld, latest, database),
+            _ =>
+                string.Format(ShellText.UpdateAheadAvailable, latest),
+            };
+
+        var where = ReleasesUrl;
         return remedy switch
         {
         AheadRemedy.NotInstalled =>
@@ -78,6 +100,14 @@ public static class AppUpdater
         {
             var t = string.IsNullOrWhiteSpace(text) ? "no reason given" : text.Trim();
             return t.EndsWith('.') ? t : t + ".";
+        }
+
+        // The error as the dialog's sentence takes it: the sentence supplies the full stop, so a
+        // translation can use its own.
+        static string WithoutFullStop(string text)
+        {
+            var t = text.Trim();
+            return t.EndsWith('.') ? t[..^1] : t;
         }
     }
 
