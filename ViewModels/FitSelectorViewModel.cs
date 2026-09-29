@@ -60,6 +60,8 @@ public class FitTreeNode : ReactiveObject
         FitSource.Corp     => CorpBrush,
         _                  => Brushes.Transparent
     };
+    /// <summary>Whose fitting it is, beside its name: the character, or the corporation.</summary>
+    public string OwnerLabel => Entry is { } e ? FitSelectorViewModel.OwnerLabel(e) : "";
 }
 
 // ── Detail panel line ─────────────────────────────────────────────────────────
@@ -86,6 +88,34 @@ public class FitSelectorViewModel : ReactiveObject
     private readonly ObservableCollection<Corporation> _corporations;
 
     public ObservableCollection<FitTreeNode>   RootNodes   { get; } = [];
+
+    // ── Owner filter ──────────────────────────────────────────────────────────
+
+    public const string EveryOwner = "Everyone";
+
+    /// <summary>A fitting's owner as the picker names it: a character's name, or a corporation's
+    /// followed by "(corp)" — a character and a corporation can share a name.</summary>
+    public static string OwnerLabel(FitEntry e) => e.Source == FitSource.Corp ? $"{e.OwnerName} (corp)" : e.OwnerName;
+
+    /// <summary>Everyone, then each character with fittings, then each corporation.</summary>
+    public ObservableCollection<string> Owners { get; } = [EveryOwner];
+
+    private string _selectedOwner = EveryOwner;
+    public string SelectedOwner
+    {
+        get => _selectedOwner;
+        set
+        {
+            var v = string.IsNullOrEmpty(value) ? EveryOwner : value;
+            if (v == _selectedOwner) return;
+            this.RaiseAndSetIfChanged(ref _selectedOwner, v);
+            if (_allFits is not null) _ = BuildTreeAsync(Filtered(), CancellationToken.None);
+        }
+    }
+
+    private List<FitEntry>? _allFits;
+    private List<FitEntry> Filtered() =>
+        _selectedOwner == EveryOwner ? _allFits! : _allFits!.Where(f => OwnerLabel(f) == _selectedOwner).ToList();
     public ObservableCollection<FitGroupOption> Groups      { get; } = [];
     public ObservableCollection<FitDetailLine>  DetailLines { get; } = [];
 
@@ -166,6 +196,10 @@ public class FitSelectorViewModel : ReactiveObject
         try
         {
             var fits = await _svc.FetchAllFitsAsync(_characters, _corporations, ct);
+            _allFits = fits;
+            foreach (var owner in fits.OrderBy(f => f.Source).ThenBy(f => f.OwnerName, StringComparer.OrdinalIgnoreCase)
+                                      .Select(OwnerLabel).Distinct())
+                Owners.Add(owner);
             StatusText = "Building tree…";
             await BuildTreeAsync(fits, ct);
         }
@@ -186,6 +220,8 @@ public class FitSelectorViewModel : ReactiveObject
         }
 
         await using var db = _dbFactory.CreateDbContext();
+        RootNodes.Clear();
+        SelectedNode = null;
 
         // Group fits by ship TypeId
         var fitsByShip = fits

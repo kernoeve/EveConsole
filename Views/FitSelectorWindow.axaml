@@ -72,9 +72,19 @@
               Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource SurfaceRaisedBrush}" BorderThickness="1"
               CornerRadius="3">
         <Grid RowDefinitions="Auto,*">
-          <TextBlock Grid.Row="0"
-                     Text="FITS" FontSize="10" FontWeight="SemiBold"
-                     Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" Margin="8 8 8 4" />
+          <!-- Heading, what the dots mean, and whose fittings to list. -->
+          <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Margin="8 6 6 4">
+            <TextBlock Grid.Column="0" Text="FITS" FontSize="10" FontWeight="SemiBold" VerticalAlignment="Center"
+                       Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" Margin="0 0 14 0" />
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
+              <Ellipse Width="8" Height="8" Fill="#c8a84b" VerticalAlignment="Center" />
+              <TextBlock Text="Character" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 8 0" />
+              <Ellipse Width="8" Height="8" Fill="#5599cc" VerticalAlignment="Center" />
+              <TextBlock Text="Corporation" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+            </StackPanel>
+            <ComboBox Grid.Column="2" ItemsSource="{Binding Owners}" SelectedItem="{Binding SelectedOwner}"
+                      MinWidth="180" FontSize="11" ToolTip.Tip="Show one character's or corporation's fittings" />
+          </Grid>
 
           <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto">
             <TreeView ItemsSource="{Binding RootNodes}"
@@ -91,6 +101,9 @@
                     <TextBlock Text="{Binding Name}"
                                FontSize="12" VerticalAlignment="Center"
                                Foreground="{DynamicResource TextPrimaryBrush}" />
+                    <TextBlock Text="{Binding OwnerLabel}" IsVisible="{Binding IsFit}"
+                               FontSize="10" VerticalAlignment="Center" Margin="4 0 0 0"
+                               Foreground="{DynamicResource TextFaintBrush}" />
                   </StackPanel>
                 </TreeDataTemplate>
               </TreeView.ItemTemplate>
