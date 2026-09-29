@@ -61,8 +61,8 @@
     <comment>AI Companion panel: hint in the empty message box. {0} is the agent's name (the persona the user chose, e.g. a voice's name).</comment>
   </data>
   <data name="ErrMicrophoneFailed" xml:space="preserve">
-    <value>Microphone recording failed to start. Check your microphone in Settings → Agent.</value>
-    <comment>AI Companion panel: error when push-to-talk cannot start recording.</comment>
+    <value>Microphone recording failed to start. Check your microphone in Settings → {0}.</value>
+    <comment>Agent panel error. {0} is where, built from the Settings tab names ("AI Agent → Speech Input (STT)").</comment>
   </data>
   <data name="StatusRecording" xml:space="preserve">
     <value>Recording…</value>
@@ -85,12 +85,12 @@
     <comment>AI Companion panel: error when what was said could not be turned into text. {0} is the error.</comment>
   </data>
   <data name="ErrNoModel" xml:space="preserve">
-    <value>No model is set up. Add one, with its key or its server's address, in Settings → AI Agent.</value>
-    <comment>AI Companion panel: error on sending when no AI model is set up.</comment>
+    <value>No model is set up. Add one, with its key or its server's address, in Settings → {0}.</value>
+    <comment>Agent panel error. {0} is where, built from the Settings tab names ("AI Agent → Speech Input (STT)").</comment>
   </data>
   <data name="ErrAgentDisabled" xml:space="preserve">
-    <value>Agent is disabled. Enable it in Settings → Agent.</value>
-    <comment>AI Companion panel: error on sending when the agent is switched off.</comment>
+    <value>Agent is disabled. Enable it in Settings → {0}.</value>
+    <comment>Agent panel error. {0} is where, built from the Settings tab names ("AI Agent → Speech Input (STT)").</comment>
   </data>
   <data name="StatusOrganizingContext" xml:space="preserve">
     <value>Organizing context…</value>

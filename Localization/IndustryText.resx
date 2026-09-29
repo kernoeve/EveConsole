@@ -769,8 +769,8 @@
     <comment>Price Overrides status line. {0} is the number of overrides.</comment>
   </data>
   <data name="OverrideStatusAdded" xml:space="preserve">
-    <value>Added {0}. Enter a value and Save.</value>
-    <comment>Price Overrides status line after a type is added. {0} is the item name; "Save" is the button.</comment>
+    <value>Added {0}. Enter a value and press {1}.</value>
+    <comment>Price overrides status line. {0} is the item added, {1} the name of the button that saves (Save &amp; Recalculate).</comment>
   </data>
   <data name="OverrideStatusRemoved" xml:space="preserve">
     <value>Removed {0}. Save/recalculate to refresh costs.</value>

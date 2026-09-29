@@ -745,6 +745,282 @@
   <data name="ContractStatusReversed" xml:space="preserve">
     <value>已撤销</value>
   </data>
+  <data name="PeriodAllTime" xml:space="preserve">
+    <value>全部时间</value>
+  </data>
+  <data name="PeriodLast365Days" xml:space="preserve">
+    <value>最近 365 天</value>
+  </data>
+  <data name="PeriodLast90Days" xml:space="preserve">
+    <value>最近 90 天</value>
+  </data>
+  <data name="PeriodLast30Days" xml:space="preserve">
+    <value>最近 30 天</value>
+  </data>
+  <data name="PeriodLast7Days" xml:space="preserve">
+    <value>最近 7 天</value>
+  </data>
+  <data name="RegionNumbered" xml:space="preserve">
+    <value>星域 {0}</value>
+  </data>
+  <data name="TypeNumbered" xml:space="preserve">
+    <value>类型 {0}</value>
+  </data>
+  <data name="SeriesSalesIsk" xml:space="preserve">
+    <value>销售 ISK</value>
+  </data>
+  <data name="StatusAllRegions" xml:space="preserve">
+    <value>所有星域</value>
+  </data>
+  <data name="PieOther" xml:space="preserve">
+    <value>其他</value>
+  </data>
+  <data name="GroupNumbered" xml:space="preserve">
+    <value>分组 {0}</value>
+  </data>
+  <data name="NoMarketDataForSelection" xml:space="preserve">
+    <value>所选范围内没有市场数据。</value>
+  </data>
+  <data name="StatusMarketGroupCount" xml:space="preserve">
+    <value>{0:N0} 个市场分组</value>
+  </data>
+  <data name="StatusTypeCount" xml:space="preserve">
+    <value>{0:N0} 种物品</value>
+  </data>
+  <data name="NoOrdersForSelection" xml:space="preserve">
+    <value>所选范围内没有订单。</value>
+  </data>
+  <data name="StatusAllItemsAlreadyInGroup" xml:space="preserve">
+    <value>“{0}”中的所有物品都已在该分组中。</value>
+  </data>
+  <data name="TypeIdNumbered" xml:space="preserve">
+    <value>类型 ID {0}</value>
+  </data>
+  <data name="StatusAddedItemsSkipped" xml:space="preserve">
+    <value>已从“{1}”添加 {0} 种物品；{2} 种已存在，已跳过。</value>
+  </data>
+  <data name="StatusAddedItems" xml:space="preserve">
+    <value>已从“{1}”添加 {0} 种物品。</value>
+  </data>
+  <data name="StatusLoadingItemsIn" xml:space="preserve">
+    <value>正在加载“{0}”中的物品…</value>
+  </data>
+  <data name="StatusNoPublishedItemsUnder" xml:space="preserve">
+    <value>“{0}”下没有找到游戏中已发布的物品。</value>
+  </data>
+  <data name="StatusCancelled" xml:space="preserve">
+    <value>已取消。</value>
+  </data>
+  <data name="StatusNoGroupSelected" xml:space="preserve">
+    <value>未选择分组。</value>
+  </data>
+  <data name="StatusCalculatingMaterials" xml:space="preserve">
+    <value>正在计算材料…</value>
+  </data>
+  <data name="StatusCalculationError" xml:space="preserve">
+    <value>计算出错：{0}</value>
+  </data>
+  <data name="StatusNoMaterialsForBlueprint" xml:space="preserve">
+    <value>没有找到该蓝图的材料。</value>
+  </data>
+  <data name="SourceAssetDefault" xml:space="preserve">
+    <value>— 资产默认来源 —</value>
+  </data>
+  <data name="CollectionDefaultChoice" xml:space="preserve">
+    <value>— 默认 —</value>
+  </data>
+  <data name="CollectionDefault" xml:space="preserve">
+    <value>默认</value>
+  </data>
+  <data name="StatusNoGroups" xml:space="preserve">
+    <value>尚未配置分组。点击“{0}”创建一个。</value>
+  </data>
+  <data name="StatusGroupsAndItems" xml:space="preserve">
+    <value>{0} 个分组，{1} 种物品</value>
+  </data>
+  <data name="DataFromHoursAgo" xml:space="preserve">
+    <value>数据更新于 {0} 小时 {1} 分钟前</value>
+  </data>
+  <data name="DataFromMinutesAgo" xml:space="preserve">
+    <value>数据更新于 {0} 分钟前</value>
+  </data>
+  <data name="DataFromJustNow" xml:space="preserve">
+    <value>数据刚刚更新</value>
+  </data>
+  <data name="StatusNoCachedOrders" xml:space="preserve">
+    <value>没有缓存的订单——请运行市场定价以获取数据。</value>
+  </data>
+  <data name="StatusGroupCount" xml:space="preserve">
+    <value>{0} 个分组</value>
+  </data>
+  <data name="StatusCollectionDeleted" xml:space="preserve">
+    <value>已删除集合“{0}”。</value>
+  </data>
+  <data name="StatusCollectionAdded" xml:space="preserve">
+    <value>已添加集合“{0}”。</value>
+  </data>
+  <data name="ModeSellToBuyOrder" xml:space="preserve">
+    <value>从卖单买入 → 卖给买单</value>
+  </data>
+  <data name="ModeUndercutSellOrder" xml:space="preserve">
+    <value>从卖单买入 → 压价挂卖单</value>
+  </data>
+  <data name="StatusSelectStations" xml:space="preserve">
+    <value>请选择来源和目的地空间站，然后点击“{0}”。</value>
+  </data>
+  <data name="ErrSelectBothStations" xml:space="preserve">
+    <value>请同时选择来源空间站和目的地空间站。</value>
+  </data>
+  <data name="ErrSameStation" xml:space="preserve">
+    <value>来源和目的地必须是不同的空间站。</value>
+  </data>
+  <data name="ErrInvalidCargo" xml:space="preserve">
+    <value>请输入有效的货舱容量（m³）。</value>
+  </data>
+  <data name="ErrInvalidIskCap" xml:space="preserve">
+    <value>请输入有效的 ISK 上限（留空则不限）。</value>
+  </data>
+  <data name="ErrInvalidMinIskVolume" xml:space="preserve">
+    <value>请输入有效的 ISK 成交额下限（留空则不筛选）。</value>
+  </data>
+  <data name="ErrInvalidMinUnitVolume" xml:space="preserve">
+    <value>请输入有效的成交量下限（留空则不筛选）。</value>
+  </data>
+  <data name="StatusCalculating" xml:space="preserve">
+    <value>正在计算…</value>
+  </data>
+  <data name="ErrNoDestinationRegion" xml:space="preserve">
+    <value>无法确定目的地空间站所在的星域——请确保已加载该地点的市场数据，以便成交量筛选正常工作。</value>
+  </data>
+  <data name="StatusNoOpportunities" xml:space="preserve">
+    <value>此路线上没有找到有利可图的机会。</value>
+  </data>
+  <data name="PeriodPast30Days" xml:space="preserve">
+    <value>过去 30 天</value>
+  </data>
+  <data name="PeriodPast90Days" xml:space="preserve">
+    <value>过去 90 天</value>
+  </data>
+  <data name="PeriodPast365Days" xml:space="preserve">
+    <value>过去 365 天</value>
+  </data>
+  <data name="StatusRecalculatingLp" xml:space="preserve">
+    <value>正在重新计算 LP 价值…</value>
+  </data>
+  <data name="StatusRecalculationFailed" xml:space="preserve">
+    <value>重新计算失败：{0}</value>
+  </data>
+  <data name="StatusNoLpValues" xml:space="preserve">
+    <value>尚无 LP 价值——将在市场价格刷新时计算。</value>
+  </data>
+  <data name="CorpNumbered" xml:space="preserve">
+    <value>军团 {0}</value>
+  </data>
+  <data name="StatusCorpsValued" xml:space="preserve">
+    <value>已为 {0:N0} 个军团估值——更新于 {1:d MMM HH:mm}</value>
+  </data>
+  <data name="HistoryNoneForCorp" xml:space="preserve">
+    <value>{0} 在此时段内尚无历史记录。每次重新计算价值时都会记录一个数据点。</value>
+  </data>
+  <data name="SeriesIskPerLp" xml:space="preserve">
+    <value>每 LP 的 ISK</value>
+  </data>
+  <data name="HistoryRange" xml:space="preserve">
+    <value>{0:N0} 天——{1:N2} 至 {2:N2} ISK/LP</value>
+  </data>
+  <data name="TipStationNotTracked" xml:space="preserve">
+    <value>此空间站不是已配置的市场来源，因此无法得知竞争出价。请在“设置 → 市场”中添加。</value>
+  </data>
+  <data name="TipOutbidBy" xml:space="preserve">
+    <value>被超价 {0:N2} ISK——该空间站的最高出价为 {1:N2}。</value>
+  </data>
+  <data name="TipNoOtherBids" xml:space="preserve">
+    <value>此处没有该物品的其他买单。</value>
+  </data>
+  <data name="OrderStateMissing" xml:space="preserve">
+    <value>缺失</value>
+  </data>
+  <data name="OrderStateOutbid" xml:space="preserve">
+    <value>被超价</value>
+  </data>
+  <data name="OrderStateActive" xml:space="preserve">
+    <value>有效</value>
+  </data>
+  <data name="NoteNoLiveOrder" xml:space="preserve">
+    <value>此地点没有有效买单</value>
+  </data>
+  <data name="NoteOutbidBy" xml:space="preserve">
+    <value>被超价 {0:N2} ISK（空间站最高出价 {1:N2}）</value>
+  </data>
+  <data name="NoteBelowVolume" xml:space="preserve">
+    <value>剩余数量低于原始数量的 {0:N0}%</value>
+  </data>
+  <data name="NoteUnderDuration" xml:space="preserve">
+    <value>剩余时长不足 {0:N0}%</value>
+  </data>
+  <data name="NoteNeedsAttention" xml:space="preserve">
+    <value>{0}——需要处理</value>
+  </data>
+  <data name="StatusNoStandingOrders" xml:space="preserve">
+    <value>尚未定义任何长期收购订单。</value>
+  </data>
+  <data name="StatusCountDefined" xml:space="preserve">
+    <value>已定义 {0:N0} 个</value>
+  </data>
+  <data name="StatusCountMissing" xml:space="preserve">
+    <value>{0:N0} 个缺失</value>
+  </data>
+  <data name="StatusCountOutbid" xml:space="preserve">
+    <value>{0:N0} 个被超价</value>
+  </data>
+  <data name="StatusCountRunningLow" xml:space="preserve">
+    <value>{0:N0} 个余量偏低</value>
+  </data>
+  <data name="StatusCountExpiringSoon" xml:space="preserve">
+    <value>{0:N0} 个即将到期</value>
+  </data>
+  <data name="StatusAllHealthy" xml:space="preserve">
+    <value>全部正常</value>
+  </data>
+  <data name="StatusStandingOrderExists" xml:space="preserve">
+    <value>{1} 已存在 {0} 的长期收购订单。</value>
+  </data>
+  <data name="ConfirmAddLargeGroup" xml:space="preserve">
+    <value>所选分组包含 {0} 种物品。确定要全部添加吗？</value>
+  </data>
+  <data name="TitleAddCollection" xml:space="preserve">
+    <value>添加集合</value>
+  </data>
+  <data name="CollectionNameLabel" xml:space="preserve">
+    <value>集合名称</value>
+  </data>
+  <data name="TitleRenameCollection" xml:space="preserve">
+    <value>重命名集合</value>
+  </data>
+  <data name="TitleEditStandingBuyOrder" xml:space="preserve">
+    <value>编辑长期收购订单</value>
+  </data>
+  <data name="ErrPickItemType" xml:space="preserve">
+    <value>请从搜索结果中选择一个物品类型。</value>
+  </data>
+  <data name="ErrPickStation" xml:space="preserve">
+    <value>请从搜索结果中选择一个空间站或建筑。</value>
+  </data>
+  <data name="ConfirmDeleteStandingOrder" xml:space="preserve">
+    <value>确定要删除此长期收购订单吗？</value>
+  </data>
+  <data name="TitleAddGroup" xml:space="preserve">
+    <value>添加分组</value>
+  </data>
+  <data name="TitleEditGroup" xml:space="preserve">
+    <value>编辑分组</value>
+  </data>
+  <data name="ErrGroupNameRequired" xml:space="preserve">
+    <value>必须填写分组名称。</value>
+  </data>
+  <data name="StatusItemTypesLoadedOther" xml:space="preserve">
+    <value>{0} 种物品  ·  已装载 {1:N1} m³</value>
+  </data>
   <data name="StationUnknown" xml:space="preserve">
     <value>未知（{0}）</value>
   </data>

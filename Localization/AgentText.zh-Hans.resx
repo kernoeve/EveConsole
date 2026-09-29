@@ -43,4 +43,100 @@
   <data name="FmtMuteUnmuteVoice" xml:space="preserve">
     <value>将 {0} 的语音静音 / 取消静音</value>
   </data>
+  <data name="AskWatermark" xml:space="preserve">
+    <value>向 {0} 提问…</value>
+  </data>
+  <data name="ErrMicrophoneFailed" xml:space="preserve">
+    <value>麦克风录音无法启动。请在“设置 → {0}”中检查你的麦克风。</value>
+  </data>
+  <data name="StatusRecording" xml:space="preserve">
+    <value>正在录音…</value>
+  </data>
+  <data name="StatusTranscribing" xml:space="preserve">
+    <value>正在转写…</value>
+  </data>
+  <data name="StatusNoSpeechCaptured" xml:space="preserve">
+    <value>未录到语音——说话时请按住按键。</value>
+  </data>
+  <data name="StatusNoSpeechDetected" xml:space="preserve">
+    <value>未检测到语音——请试着多说一会儿。</value>
+  </data>
+  <data name="ErrTranscriptionFailed" xml:space="preserve">
+    <value>转写失败：{0}</value>
+  </data>
+  <data name="ErrNoModel" xml:space="preserve">
+    <value>尚未设置模型。请在“设置 → {0}”中添加一个模型，并填写其密钥或服务器地址。</value>
+  </data>
+  <data name="ErrAgentDisabled" xml:space="preserve">
+    <value>AI 助手已禁用。请在“设置 → {0}”中启用。</value>
+  </data>
+  <data name="StatusOrganizingContext" xml:space="preserve">
+    <value>正在整理上下文…</value>
+  </data>
+  <data name="StatusThinking" xml:space="preserve">
+    <value>正在思考…</value>
+  </data>
+  <data name="StatusLookingIntoIt" xml:space="preserve">
+    <value>正在查询…</value>
+  </data>
+  <data name="ToolStatusQueryDatabase" xml:space="preserve">
+    <value>正在读取数据库…</value>
+  </data>
+  <data name="ToolStatusDescribeTables" xml:space="preserve">
+    <value>正在检查数据库结构…</value>
+  </data>
+  <data name="ToolStatusGetAssets" xml:space="preserve">
+    <value>正在查询资产…</value>
+  </data>
+  <data name="ToolStatusGetIndustryJobs" xml:space="preserve">
+    <value>正在查询工业任务…</value>
+  </data>
+  <data name="ToolStatusGetCharacterInfo" xml:space="preserve">
+    <value>正在查询角色…</value>
+  </data>
+  <data name="ToolStatusGetMarketPrices" xml:space="preserve">
+    <value>正在查看市场价格…</value>
+  </data>
+  <data name="ToolStatusSearchItems" xml:space="preserve">
+    <value>正在搜索物品…</value>
+  </data>
+  <data name="ToolStatusCaptureTab" xml:space="preserve">
+    <value>正在查看屏幕…</value>
+  </data>
+  <data name="ToolStatusManageAlarms" xml:space="preserve">
+    <value>正在设置警报…</value>
+  </data>
+  <data name="ToolStatusWorking" xml:space="preserve">
+    <value>正在处理…</value>
+  </data>
+  <data name="StatusCopiedRows" xml:space="preserve">
+    <value>已复制 {0:N0} 行（含表头）。</value>
+  </data>
+  <data name="StatusSavedRows" xml:space="preserve">
+    <value>已将 {0:N0} 行保存到 {1}</value>
+  </data>
+  <data name="StatusCopiedDocument" xml:space="preserve">
+    <value>已将文档复制为 Markdown。</value>
+  </data>
+  <data name="StatusSavedTo" xml:space="preserve">
+    <value>已保存到 {0}</value>
+  </data>
+  <data name="TitleSaveDocument" xml:space="preserve">
+    <value>保存文档</value>
+  </data>
+  <data name="FileTypeText" xml:space="preserve">
+    <value>文本文件</value>
+  </data>
+  <data name="FileTypeAllFiles" xml:space="preserve">
+    <value>所有文件</value>
+  </data>
+  <data name="TitleSaveGrid" xml:space="preserve">
+    <value>保存表格</value>
+  </data>
+  <data name="ErrDocumentRender" xml:space="preserve">
+    <value>无法渲染此文档：{0}</value>
+  </data>
+  <data name="GridRowsOther" xml:space="preserve">
+    <value>{0:N0} 行</value>
+  </data>
 </root>

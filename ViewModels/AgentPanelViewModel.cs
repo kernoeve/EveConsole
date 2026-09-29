@@ -14,6 +14,10 @@ namespace EveConsole.ViewModels;
 
 public sealed class AgentPanelViewModel : ReactiveObject
 {
+    /// <summary>Where in Settings something lives, by the tabs' own names — so a message that
+    /// sends the person there names the tabs they will see, in their language.</summary>
+    private static string SettingsPath(string subTab) => $"{SettingsText.TabAiAgent} → {subTab}";
+
     private static readonly string HistoryPath = Path.Combine(
         AppConfig.AppDataDir, "aura-history.json");
 
@@ -140,7 +144,7 @@ public sealed class AgentPanelViewModel : ReactiveObject
         else
         {
             StatusText = "";
-            ErrorText  = AgentText.ErrMicrophoneFailed;
+            ErrorText  = string.Format(AgentText.ErrMicrophoneFailed, SettingsPath(SettingsText.TabSpeechInput));
         }
     }
 
@@ -535,9 +539,8 @@ public sealed class AgentPanelViewModel : ReactiveObject
         var roles = _service.Roles;
         if (roles.Conversation is not { CanAnswer: true })
         {
-            ErrorText = _service.Settings.Enabled
-                ? AgentText.ErrNoModel
-                : AgentText.ErrAgentDisabled;
+            ErrorText = string.Format(_service.Settings.Enabled ? AgentText.ErrNoModel : AgentText.ErrAgentDisabled,
+                                      SettingsPath(SettingsText.TabAgent));
             return;
         }
 

@@ -1529,6 +1529,42 @@
   <data name="ScopePickRegion" xml:space="preserve">
     <value>请选择一个星域，或选择“所有位置”。</value>
   </data>
+  <data name="OwnerAll" xml:space="preserve">
+    <value>全部</value>
+  </data>
+  <data name="TitleSaleListingBuild" xml:space="preserve">
+    <value>销售清单——制造成本</value>
+  </data>
+  <data name="TitleSaleListingMarket" xml:space="preserve">
+    <value>销售清单——市场价值</value>
+  </data>
+  <data name="PostTypeSummary" xml:space="preserve">
+    <value>摘要</value>
+  </data>
+  <data name="PostTypeDetail" xml:space="preserve">
+    <value>明细</value>
+  </data>
+  <data name="PostTypeStatic" xml:space="preserve">
+    <value>静态文本</value>
+  </data>
+  <data name="TextColourLabel" xml:space="preserve">
+    <value>文本颜色</value>
+  </data>
+  <data name="HeaderColourLabel" xml:space="preserve">
+    <value>页眉颜色</value>
+  </data>
+  <data name="SourceStock" xml:space="preserve">
+    <value>库存</value>
+  </data>
+  <data name="SourceInProduction" xml:space="preserve">
+    <value>生产中</value>
+  </data>
+  <data name="SourceContracted" xml:space="preserve">
+    <value>合同中</value>
+  </data>
+  <data name="SourceUnsourced" xml:space="preserve">
+    <value>尚无来源</value>
+  </data>
   <data name="ItemsAndMoreOther" xml:space="preserve">
     <value>{1} 及另外 {0} 项物品</value>
   </data>

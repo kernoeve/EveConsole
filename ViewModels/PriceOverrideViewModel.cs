@@ -141,7 +141,7 @@ public class PriceOverrideViewModel : ReactiveObject
         var row = new PriceOverrideRow(result.TypeId, result.TypeName, null, null, null);
         Rows.Add(row);
         SelectedRow = row;
-        Status = string.Format(IndustryText.OverrideStatusAdded, result.TypeName);
+        Status = string.Format(IndustryText.OverrideStatusAdded, result.TypeName, IndustryText.SaveRecalculate);
     }
 
     private async Task DeleteSelectedAsync()
