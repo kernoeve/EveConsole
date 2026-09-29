@@ -532,4 +532,655 @@ Warrior II 5
   <data name="Add" xml:space="preserve">
     <value>添加</value>
   </data>
+  <data name="ScopeEverything" xml:space="preserve">
+    <value>全部</value>
+  </data>
+  <data name="ScopePersonal" xml:space="preserve">
+    <value>角色和个人军团</value>
+  </data>
+  <data name="MenuCopyWithHeaders" xml:space="preserve">
+    <value>复制（含列标题）</value>
+  </data>
+  <data name="HintColumn" xml:space="preserve">
+    <value>列…</value>
+  </data>
+  <data name="HintValue" xml:space="preserve">
+    <value>值…</value>
+  </data>
+  <data name="LpHeldNone" xml:space="preserve">
+    <value>无</value>
+  </data>
+  <data name="BatchPerPortion" xml:space="preserve">
+    <value>每 {0:N0} 个</value>
+  </data>
+  <data name="BatchPerUnit" xml:space="preserve">
+    <value>每个</value>
+  </data>
+  <data name="OrderExpired" xml:space="preserve">
+    <value>已过期</value>
+  </data>
+  <data name="ExpiresDaysHours" xml:space="preserve">
+    <value>{0} 天 {1} 小时</value>
+  </data>
+  <data name="ExpiresHoursMinutes" xml:space="preserve">
+    <value>{0} 小时 {1} 分钟</value>
+  </data>
+  <data name="RangeStation" xml:space="preserve">
+    <value>空间站</value>
+  </data>
+  <data name="RangeSolarSystem" xml:space="preserve">
+    <value>星系</value>
+  </data>
+  <data name="RangeRegion" xml:space="preserve">
+    <value>星域</value>
+  </data>
+  <data name="MarketValueLabel" xml:space="preserve">
+    <value>市场价值：</value>
+  </data>
+  <data name="FallbackCorpName" xml:space="preserve">
+    <value>军团 {0}</value>
+  </data>
+  <data name="ErrLpStore" xml:space="preserve">
+    <value>读取 LP 商店时出错：{0}</value>
+  </data>
+  <data name="AssetScopeAllOwners" xml:space="preserve">
+    <value>全部所有者</value>
+  </data>
+  <data name="AssetsNoneHeldPersonal" xml:space="preserve">
+    <value>你的角色和个人军团均未持有此物品。“全部所有者”包括应用可见的所有军团。</value>
+  </data>
+  <data name="AssetsNoneHeldAnywhere" xml:space="preserve">
+    <value>在应用可见的范围内，没有人持有此物品。</value>
+  </data>
+  <data name="StatusLoadingItems" xml:space="preserve">
+    <value>正在加载物品…</value>
+  </data>
+  <data name="PeriodAllTime" xml:space="preserve">
+    <value>全部时间</value>
+  </data>
+  <data name="PeriodLast30Days" xml:space="preserve">
+    <value>最近 30 天</value>
+  </data>
+  <data name="PeriodLast90Days" xml:space="preserve">
+    <value>最近 90 天</value>
+  </data>
+  <data name="PeriodLast365Days" xml:space="preserve">
+    <value>最近 365 天</value>
+  </data>
+  <data name="FallbackGroupName" xml:space="preserve">
+    <value>分组 #{0}</value>
+  </data>
+  <data name="ErrLoadingTree" xml:space="preserve">
+    <value>加载目录树时出错：{0}</value>
+  </data>
+  <data name="SeriesAvg" xml:space="preserve">
+    <value>平均</value>
+  </data>
+  <data name="TipChartAvg" xml:space="preserve">
+    <value>平均：{0:N2}</value>
+  </data>
+  <data name="TipChartHigh" xml:space="preserve">
+    <value>最高：{0:N2}</value>
+  </data>
+  <data name="TipChartLow" xml:space="preserve">
+    <value>最低：{0:N2}</value>
+  </data>
+  <data name="SeriesVolume" xml:space="preserve">
+    <value>成交量</value>
+  </data>
+  <data name="TipChartVolume" xml:space="preserve">
+    <value>成交量：{0:N0}</value>
+  </data>
+  <data name="TipChartSeriesIsk" xml:space="preserve">
+    <value>{0}：{1:N2} ISK</value>
+  </data>
+  <data name="SeriesMarket" xml:space="preserve">
+    <value>市场</value>
+  </data>
+  <data name="SeriesBuild" xml:space="preserve">
+    <value>制造</value>
+  </data>
+  <data name="SeriesContract" xml:space="preserve">
+    <value>合同</value>
+  </data>
+  <data name="SeriesReprocessed" xml:space="preserve">
+    <value>精炼</value>
+  </data>
+  <data name="MarketValueWithPriceType" xml:space="preserve">
+    <value>市场价值（{0}）：</value>
+  </data>
+  <data name="LocPrivateStructure" xml:space="preserve">
+    <value>私人建筑</value>
+  </data>
+  <data name="LocUnanchoredStructure" xml:space="preserve">
+    <value>已解除锚定的建筑</value>
+  </data>
+  <data name="LocPlayerStructure" xml:space="preserve">
+    <value>玩家建筑</value>
+  </data>
+  <data name="FallbackStationName" xml:space="preserve">
+    <value>空间站 {0}</value>
+  </data>
+  <data name="ErrOrders" xml:space="preserve">
+    <value>读取市场订单时出错：{0}</value>
+  </data>
+  <data name="StatVolume" xml:space="preserve">
+    <value>体积</value>
+  </data>
+  <data name="StatMass" xml:space="preserve">
+    <value>质量</value>
+  </data>
+  <data name="StatCapacity" xml:space="preserve">
+    <value>容量</value>
+  </data>
+  <data name="StatPortionSize" xml:space="preserve">
+    <value>每批数量</value>
+  </data>
+  <data name="StatBasePrice" xml:space="preserve">
+    <value>基础价格</value>
+  </data>
+  <data name="FallbackBlueprintName" xml:space="preserve">
+    <value>蓝图 #{0}</value>
+  </data>
+  <data name="ActivityManufacturing" xml:space="preserve">
+    <value>制造</value>
+  </data>
+  <data name="ActivityReaction" xml:space="preserve">
+    <value>反应</value>
+  </data>
+  <data name="ActivityInvention" xml:space="preserve">
+    <value>发明</value>
+  </data>
+  <data name="ActivityCopying" xml:space="preserve">
+    <value>拷贝</value>
+  </data>
+  <data name="ActivityMeResearch" xml:space="preserve">
+    <value>ME 研究</value>
+  </data>
+  <data name="ActivityTeResearch" xml:space="preserve">
+    <value>TE 研究</value>
+  </data>
+  <data name="FallbackSkillName" xml:space="preserve">
+    <value>技能 #{0}</value>
+  </data>
+  <data name="ActivityMaterialResearch" xml:space="preserve">
+    <value>材料效率研究</value>
+  </data>
+  <data name="ActivityTimeResearch" xml:space="preserve">
+    <value>时间效率研究</value>
+  </data>
+  <data name="ActivityReactions" xml:space="preserve">
+    <value>反应</value>
+  </data>
+  <data name="ActivityIndustryFallback" xml:space="preserve">
+    <value>工业</value>
+  </data>
+  <data name="NoPrice" xml:space="preserve">
+    <value>无价格</value>
+  </data>
+  <data name="Best" xml:space="preserve">
+    <value>最佳</value>
+  </data>
+  <data name="NoteContract" xml:space="preserve">
+    <value>合同价</value>
+  </data>
+  <data name="TargetTheItems" xml:space="preserve">
+    <value>物品本身</value>
+  </data>
+  <data name="TargetReprocessedOutput" xml:space="preserve">
+    <value>精炼产出</value>
+  </data>
+  <data name="StatusPasteList" xml:space="preserve">
+    <value>粘贴物品清单，然后点击“估价”。</value>
+  </data>
+  <data name="StatusNoOrdersHeld" xml:space="preserve">
+    <value>尚无订单数据。请先在“设置 → {0}”中添加市场来源，并等待它完成获取。</value>
+  </data>
+  <data name="ErrLoadStations" xml:space="preserve">
+    <value>无法加载空间站：{0}</value>
+  </data>
+  <data name="StatusPickStation" xml:space="preserve">
+    <value>请先选择一个空间站。</value>
+  </data>
+  <data name="StatusNothingToAppraise" xml:space="preserve">
+    <value>没有可估价的内容：请先粘贴物品清单。</value>
+  </data>
+  <data name="StatusAppraising" xml:space="preserve">
+    <value>正在估价…</value>
+  </data>
+  <data name="ErrAppraisalFailed" xml:space="preserve">
+    <value>估价失败：{0}</value>
+  </data>
+  <data name="StatusCopied" xml:space="preserve">
+    <value>已复制到剪贴板。</value>
+  </data>
+  <data name="AgeNoOrdersHeld" xml:space="preserve">
+    <value>无订单数据</value>
+  </data>
+  <data name="NoPrices" xml:space="preserve">
+    <value>无价格</value>
+  </data>
+  <data name="CoveragePriced" xml:space="preserve">
+    <value>已定价 {0:N0} / {1:N0}</value>
+  </data>
+  <data name="NotRead" xml:space="preserve">
+    <value>无法识别：{0}</value>
+  </data>
+  <data name="NothingToValue" xml:space="preserve">
+    <value>没有可按此方式估值的物品</value>
+  </data>
+  <data name="AgeJustNow" xml:space="preserve">
+    <value>刚刚获取</value>
+  </data>
+  <data name="AgeMinutes" xml:space="preserve">
+    <value>{0:0} 分钟前获取</value>
+  </data>
+  <data name="AgeHours" xml:space="preserve">
+    <value>{0:0} 小时前获取</value>
+  </data>
+  <data name="GroupMarketValue" xml:space="preserve">
+    <value>市场价值</value>
+  </data>
+  <data name="GroupBuildValue" xml:space="preserve">
+    <value>制造价值</value>
+  </data>
+  <data name="GroupReprocessedValue" xml:space="preserve">
+    <value>精炼价值</value>
+  </data>
+  <data name="StatusClipboardNoItem" xml:space="preserve">
+    <value>剪贴板中的内容没有提到任何物品，因此清单保持原样。“编辑清单”可以接受任意文本。</value>
+  </data>
+  <data name="TipRemoveCompareStation" xml:space="preserve">
+    <value>将此空间站移出对比</value>
+  </data>
+  <data name="EditList" xml:space="preserve">
+    <value>编辑清单</value>
+  </data>
+  <data name="TipEditList" xml:space="preserve">
+    <value>重新展开清单以便修改。清单收起时，在此工具的任意位置粘贴，都会对新清单进行估价。</value>
+  </data>
+  <data name="TipHideList" xml:space="preserve">
+    <value>收起清单，让表格占满整个宽度。估价完成后，清单会自动收起。</value>
+  </data>
+  <data name="IncludeIjShort" xml:space="preserve">
+    <value>工业任务</value>
+  </data>
+  <data name="IncludeOrdersShort" xml:space="preserve">
+    <value>买单</value>
+  </data>
+  <data name="IncludeContractsShort" xml:space="preserve">
+    <value>合同</value>
+  </data>
+  <data name="IncludePackagedOnly" xml:space="preserve">
+    <value>仅打包物品</value>
+  </data>
+  <data name="IncludeNone" xml:space="preserve">
+    <value>无</value>
+  </data>
+  <data name="ErrImportFailed" xml:space="preserve">
+    <value>导入失败：{0}</value>
+  </data>
+  <data name="DefaultCollection" xml:space="preserve">
+    <value>默认</value>
+  </data>
+  <data name="StatusLoadingAvailability" xml:space="preserve">
+    <value>正在加载可用数量…</value>
+  </data>
+  <data name="StatusLoadingItemsIn" xml:space="preserve">
+    <value>正在加载“{0}”中的物品…</value>
+  </data>
+  <data name="StatusNoPublishedItems" xml:space="preserve">
+    <value>“{0}”下没有找到已发布的物品。</value>
+  </data>
+  <data name="StatusCancelled" xml:space="preserve">
+    <value>已取消。</value>
+  </data>
+  <data name="StatusNoGroupSelected" xml:space="preserve">
+    <value>未选择分组。</value>
+  </data>
+  <data name="StatusCalculatingMaterials" xml:space="preserve">
+    <value>正在计算材料…</value>
+  </data>
+  <data name="ErrCalculation" xml:space="preserve">
+    <value>计算出错：{0}</value>
+  </data>
+  <data name="StatusNoMaterials" xml:space="preserve">
+    <value>未找到该蓝图的材料。</value>
+  </data>
+  <data name="StatusAllItemsAlreadyIn" xml:space="preserve">
+    <value>“{0}”中的所有物品都已在该分组中。</value>
+  </data>
+  <data name="FallbackTypeName" xml:space="preserve">
+    <value>类型 {0}</value>
+  </data>
+  <data name="DefaultCollectionOption" xml:space="preserve">
+    <value>— 默认 —</value>
+  </data>
+  <data name="StatusGroupAdded" xml:space="preserve">
+    <value>已添加分组“{0}”。</value>
+  </data>
+  <data name="StatusGroupDeleted" xml:space="preserve">
+    <value>已删除分组“{0}”。</value>
+  </data>
+  <data name="StatusAlreadyInGroup" xml:space="preserve">
+    <value>{0} 已在该分组中。</value>
+  </data>
+  <data name="StatusCollectionDeleted" xml:space="preserve">
+    <value>已删除集合“{0}”。</value>
+  </data>
+  <data name="StatusCollectionAdded" xml:space="preserve">
+    <value>已添加集合“{0}”。</value>
+  </data>
+  <data name="TitleAddCollection" xml:space="preserve">
+    <value>添加集合</value>
+  </data>
+  <data name="CollectionNameLabel" xml:space="preserve">
+    <value>集合名称</value>
+  </data>
+  <data name="TitleRenameCollection" xml:space="preserve">
+    <value>重命名集合</value>
+  </data>
+  <data name="TitleExportCollection" xml:space="preserve">
+    <value>导出集合</value>
+  </data>
+  <data name="TitleAddGroup" xml:space="preserve">
+    <value>添加分组</value>
+  </data>
+  <data name="TitleEditGroup" xml:space="preserve">
+    <value>编辑分组</value>
+  </data>
+  <data name="LocationLabelStation" xml:space="preserve">
+    <value>空间站</value>
+  </data>
+  <data name="LocationLabelSolarSystem" xml:space="preserve">
+    <value>星系</value>
+  </data>
+  <data name="LocationLabelRegion" xml:space="preserve">
+    <value>星域</value>
+  </data>
+  <data name="ErrGroupNameRequired" xml:space="preserve">
+    <value>必须填写分组名称。</value>
+  </data>
+  <data name="AssetColItemId" xml:space="preserve">
+    <value>物品 ID</value>
+  </data>
+  <data name="AssetColTypeId" xml:space="preserve">
+    <value>类型 ID</value>
+  </data>
+  <data name="AssetColTypeName" xml:space="preserve">
+    <value>类型名称</value>
+  </data>
+  <data name="AssetColGroup" xml:space="preserve">
+    <value>分组</value>
+  </data>
+  <data name="AssetColCategory" xml:space="preserve">
+    <value>类别</value>
+  </data>
+  <data name="AssetColQuantity" xml:space="preserve">
+    <value>数量</value>
+  </data>
+  <data name="AssetColOwnerType" xml:space="preserve">
+    <value>所有者类型</value>
+  </data>
+  <data name="AssetColOwnerName" xml:space="preserve">
+    <value>所有者名称</value>
+  </data>
+  <data name="AssetColOwnerId" xml:space="preserve">
+    <value>所有者 ID</value>
+  </data>
+  <data name="AssetColLocationId" xml:space="preserve">
+    <value>位置 ID</value>
+  </data>
+  <data name="AssetColLocationName" xml:space="preserve">
+    <value>位置名称</value>
+  </data>
+  <data name="AssetColLocationType" xml:space="preserve">
+    <value>位置类型</value>
+  </data>
+  <data name="AssetColRootLocationId" xml:space="preserve">
+    <value>根位置 ID</value>
+  </data>
+  <data name="AssetColSolarSystem" xml:space="preserve">
+    <value>星系</value>
+  </data>
+  <data name="AssetColSolarSystemId" xml:space="preserve">
+    <value>星系 ID</value>
+  </data>
+  <data name="AssetColRegionName" xml:space="preserve">
+    <value>星域名称</value>
+  </data>
+  <data name="AssetColRegionId" xml:space="preserve">
+    <value>星域 ID</value>
+  </data>
+  <data name="AssetColSecurity" xml:space="preserve">
+    <value>安全等级</value>
+  </data>
+  <data name="AssetColIsStation" xml:space="preserve">
+    <value>是否空间站</value>
+  </data>
+  <data name="AssetColVolume" xml:space="preserve">
+    <value>体积</value>
+  </data>
+  <data name="AssetColTotalVolume" xml:space="preserve">
+    <value>总体积</value>
+  </data>
+  <data name="AssetColValuePerUnit" xml:space="preserve">
+    <value>单件价值</value>
+  </data>
+  <data name="AssetColTotalValue" xml:space="preserve">
+    <value>总价值</value>
+  </data>
+  <data name="AssetColIskPerM3" xml:space="preserve">
+    <value>ISK/m³</value>
+  </data>
+  <data name="AssetColBuildCost" xml:space="preserve">
+    <value>制造成本</value>
+  </data>
+  <data name="AssetColItemCount" xml:space="preserve">
+    <value>物品数量</value>
+  </data>
+  <data name="AssetColIsSingleton" xml:space="preserve">
+    <value>是否不可堆叠</value>
+  </data>
+  <data name="AssetColIsBlueprintCopy" xml:space="preserve">
+    <value>是否蓝图拷贝</value>
+  </data>
+  <data name="StatusNoAssets" xml:space="preserve">
+    <value>没有资产。</value>
+  </data>
+  <data name="StatusShowingAssetsOther" xml:space="preserve">
+    <value>显示 {0:N0} 项资产中的 {1:N0} 项</value>
+  </data>
+  <data name="StatusAssetsTotalOther" xml:space="preserve">
+    <value>共 {0:N0} 项资产</value>
+  </data>
+  <data name="RangeJumpsOther" xml:space="preserve">
+    <value>{0} 跳</value>
+  </data>
+  <data name="ReprocessFilterAll" xml:space="preserve">
+    <value>全部</value>
+  </data>
+  <data name="ReprocessFilterOre" xml:space="preserve">
+    <value>矿石</value>
+  </data>
+  <data name="ReprocessFilterNonOre" xml:space="preserve">
+    <value>非矿石</value>
+  </data>
+  <data name="AssetGroupNone" xml:space="preserve">
+    <value>无</value>
+  </data>
+  <data name="AssetsSummaryUnitsStacksPlaces" xml:space="preserve">
+    <value>{0}，分为 {1}，分布于 {2}</value>
+  </data>
+  <data name="AssetsUnitsOther" xml:space="preserve">
+    <value>{0:N0} 个单位</value>
+  </data>
+  <data name="AssetsStacksOther" xml:space="preserve">
+    <value>{0:N0} 堆</value>
+  </data>
+  <data name="AssetsLocationsOther" xml:space="preserve">
+    <value>{0:N0} 个位置</value>
+  </data>
+  <data name="AssetsSummaryWorth" xml:space="preserve">
+    <value>价值 {0}</value>
+  </data>
+  <data name="AssetsSummaryInJobs" xml:space="preserve">
+    <value>{0:N0} 个单位仍在工业任务中</value>
+  </data>
+  <data name="AllSources" xml:space="preserve">
+    <value>所有来源</value>
+  </data>
+  <data name="StatusItemsAcrossCategories" xml:space="preserve">
+    <value>{0}，分布于 {1}</value>
+  </data>
+  <data name="TreeItemsOther" xml:space="preserve">
+    <value>{0:N0} 种物品</value>
+  </data>
+  <data name="TreeCategoriesOther" xml:space="preserve">
+    <value>{0:N0} 个类别</value>
+  </data>
+  <data name="CopyBasisSell" xml:space="preserve">
+    <value>卖价</value>
+  </data>
+  <data name="CopyBasisBuy" xml:space="preserve">
+    <value>买价</value>
+  </data>
+  <data name="CopyBasisSplit" xml:space="preserve">
+    <value>中间价</value>
+  </data>
+  <data name="CopyValuedAt" xml:space="preserve">
+    <value>按 {0} 的{1}估值，取市场价的 {2:0.#}%</value>
+  </data>
+  <data name="CopyValuedAtReprocessed" xml:space="preserve">
+    <value>按 {0} 的{1}估值精炼产出，取市场价的 {2:0.#}%</value>
+  </data>
+  <data name="CopyColVolumeM3" xml:space="preserve">
+    <value>体积 m3</value>
+  </data>
+  <data name="CopyColMarketUnit" xml:space="preserve">
+    <value>市场单价</value>
+  </data>
+  <data name="CopyColMarketTotal" xml:space="preserve">
+    <value>市场总价</value>
+  </data>
+  <data name="CopyColMarketPct" xml:space="preserve">
+    <value>市场 %</value>
+  </data>
+  <data name="CopyColBuildUnit" xml:space="preserve">
+    <value>制造单价</value>
+  </data>
+  <data name="CopyColBuildTotal" xml:space="preserve">
+    <value>制造总价</value>
+  </data>
+  <data name="CopyColBuildPct" xml:space="preserve">
+    <value>制造 %</value>
+  </data>
+  <data name="CopyColReprocessUnit" xml:space="preserve">
+    <value>精炼单价</value>
+  </data>
+  <data name="CopyColReprocessTotal" xml:space="preserve">
+    <value>精炼总价</value>
+  </data>
+  <data name="CopyColReprocessPct" xml:space="preserve">
+    <value>精炼 %</value>
+  </data>
+  <data name="CopyColNote" xml:space="preserve">
+    <value>备注</value>
+  </data>
+  <data name="CopyTotalMarket" xml:space="preserve">
+    <value>市场价值合计</value>
+  </data>
+  <data name="CopyTotalBuild" xml:space="preserve">
+    <value>制造价值合计</value>
+  </data>
+  <data name="CopyTotalReprocessed" xml:space="preserve">
+    <value>精炼价值合计</value>
+  </data>
+  <data name="CopyTotalVolumeM3" xml:space="preserve">
+    <value>总体积 m3</value>
+  </data>
+  <data name="CopyColStationUnit" xml:space="preserve">
+    <value>{0} 单价</value>
+  </data>
+  <data name="CopyColStationTotal" xml:space="preserve">
+    <value>{0} 总价</value>
+  </data>
+  <data name="CopyColStationPct" xml:space="preserve">
+    <value>{0} %</value>
+  </data>
+  <data name="StatusPricesSell" xml:space="preserve">
+    <value>卖价</value>
+  </data>
+  <data name="StatusPricesBuy" xml:space="preserve">
+    <value>买价</value>
+  </data>
+  <data name="StatusPricesSplit" xml:space="preserve">
+    <value>中间价</value>
+  </data>
+  <data name="StatusValuedItemsOther" xml:space="preserve">
+    <value>按 {1} 的{2}估值 {0:N0} 种物品（{3}）</value>
+  </data>
+  <data name="StatusValuedRowsOther" xml:space="preserve">
+    <value>按 {1} 的{2}估值精炼后的 {0:N0} 行（{3}）</value>
+  </data>
+  <data name="StatusValued" xml:space="preserve">
+    <value>{0}。</value>
+  </data>
+  <data name="StatusValuedUnpriced" xml:space="preserve">
+    <value>{0}；{1} 项无法估值。</value>
+  </data>
+  <data name="AgeDaysOther" xml:space="preserve">
+    <value>{0} 天前获取</value>
+  </data>
+  <data name="InvGroupsOther" xml:space="preserve">
+    <value>{0} 个分组</value>
+  </data>
+  <data name="InvItemsOther" xml:space="preserve">
+    <value>{0} 种物品</value>
+  </data>
+  <data name="StatusImported" xml:space="preserve">
+    <value>已导入“{0}”——{1}，{2}。</value>
+  </data>
+  <data name="StatusImportedSkipped" xml:space="preserve">
+    <value>已导入“{0}”——{1}，{2}。{3}</value>
+  </data>
+  <data name="ImportSkippedItemsOther" xml:space="preserve">
+    <value>已跳过 {0} 种物品：本机安装的 SDE 中没有这些物品。</value>
+  </data>
+  <data name="StatusGroupsLoadedOther" xml:space="preserve">
+    <value>已加载 {0} 个分组。点击“刷新”以加载可用数量。</value>
+  </data>
+  <data name="StatusItemsUpdatedOther" xml:space="preserve">
+    <value>已于 {1:HH:mm:ss} 更新 {0} 种物品。</value>
+  </data>
+  <data name="StatusItemsAddedOther" xml:space="preserve">
+    <value>已从“{1}”添加 {0} 种物品。</value>
+  </data>
+  <data name="StatusItemsAddedSkippedOther" xml:space="preserve">
+    <value>已从“{1}”添加 {0} 种物品；{2} 种已存在，已跳过。</value>
+  </data>
+  <data name="ConfirmDeleteGroup" xml:space="preserve">
+    <value>删除分组“{0}”？此操作无法撤销。</value>
+  </data>
+  <data name="ConfirmDeleteGroupItemsOther" xml:space="preserve">
+    <value>删除分组“{1}”及其中的 {0:N0} 种物品？此操作无法撤销。</value>
+  </data>
+  <data name="ConfirmDeleteCollection" xml:space="preserve">
+    <value>删除集合“{0}”？</value>
+  </data>
+  <data name="ConfirmDeleteCollectionGroupsOther" xml:space="preserve">
+    <value>删除集合“{1}”？其中的 {0:N0} 个分组将移至“{2}”，不会被删除。</value>
+  </data>
+  <data name="ConfirmAddLargeGroupOther" xml:space="preserve">
+    <value>所选分组包含 {0} 种物品。确定要全部添加吗？</value>
+  </data>
+  <data name="ErrSelectStation" xml:space="preserve">
+    <value>请选择一个空间站，或选择“{0}”。</value>
+  </data>
+  <data name="ErrSelectSystem" xml:space="preserve">
+    <value>请选择一个星系，或选择“{0}”。</value>
+  </data>
+  <data name="ErrSelectRegion" xml:space="preserve">
+    <value>请选择一个星域，或选择“{0}”。</value>
+  </data>
 </root>

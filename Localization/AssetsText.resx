@@ -762,7 +762,7 @@ away: Edit list brings it back.</value>
     <comment>Item Browser, market orders, Range column: the buy order buys anywhere in its region.</comment>
   </data>
   <data name="MarketValueLabel" xml:space="preserve">
-    <value>Market Value</value>
+    <value>Market Value:</value>
     <comment>Item Browser, item header: label for the item's market value.</comment>
   </data>
   <data name="FallbackCorpName" xml:space="preserve">
@@ -858,7 +858,7 @@ away: Edit list brings it back.</value>
     <comment>Item Browser derived history chart: the line for the value of what the item reprocesses into.</comment>
   </data>
   <data name="MarketValueWithPriceType" xml:space="preserve">
-    <value>Market Value ({0})</value>
+    <value>Market Value ({0}):</value>
     <comment>Item Browser, item header: label for the item's market value. {0} is the price type (Buy, Sell or Split).</comment>
   </data>
   <data name="LocPrivateStructure" xml:space="preserve">
@@ -974,8 +974,8 @@ away: Edit list brings it back.</value>
     <comment>Item Valuation status line before anything is valued. Appraise is the button's name.</comment>
   </data>
   <data name="StatusNoOrdersHeld" xml:space="preserve">
-    <value>No orders are held yet. Add a market source under Settings &gt; Market and let it fetch first.</value>
-    <comment>Item Valuation status line when no market orders have been fetched yet.</comment>
+    <value>No orders are held yet. Add a market source under Settings → {0} and let it fetch first.</value>
+    <comment>Item Valuation status line when no market orders have been fetched yet. {0} is the Settings tab's name (Market).</comment>
   </data>
   <data name="ErrLoadStations" xml:space="preserve">
     <value>Could not load the stations: {0}</value>

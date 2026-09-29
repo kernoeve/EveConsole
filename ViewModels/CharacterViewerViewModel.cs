@@ -213,7 +213,7 @@ public class QueueItemVm
         if (days    > 0) parts.Add(Unit(nameof(CharactersText.DurationDaysOther), days));
         if (hours   > 0 || days > 0) parts.Add(Unit(nameof(CharactersText.DurationHoursOther), hours));
         if (minutes > 0 || parts.Count == 0) parts.Add(Unit(nameof(CharactersText.DurationMinutesOther), minutes));
-        return string.Join(", ", parts);
+        return string.Join(CharactersText.DurationSeparator, parts);
     }
 
     // One part of a duration, in the form its number needs: "1 day", "3 hours".
@@ -317,7 +317,7 @@ public class CharacterViewerViewModel : ReactiveObject
             {
                 SummaryRows.Clear();
                 foreach (var r in rows) SummaryRows.Add(new CharacterSummaryRowVm(r));
-                SummaryStatus = string.Format(CharactersText.SummaryStatus, rows.Count);
+                SummaryStatus = Plurals.Format(CharactersText.ResourceManager, nameof(CharactersText.SummaryStatusOther), rows.Count);
             });
         }
         catch (Exception ex)
@@ -419,7 +419,7 @@ public class CharacterViewerViewModel : ReactiveObject
     }
     public bool   NoMedals      => _medals.Count == 0;
     public string MedalCountText => _medals.Count == 0 ? CharactersText.NoMedalsOnRecord
-                                  : string.Format(CharactersText.MedalCount, _medals.Count);
+                                  : Plurals.Format(CharactersText.ResourceManager, nameof(CharactersText.MedalCountOther), _medals.Count);
 
     // ── Titles tab ────────────────────────────────────────────────────────────
     private IReadOnlyList<TitleVm> _titles = [];
@@ -679,7 +679,7 @@ public class CharacterViewerViewModel : ReactiveObject
         if (attrs is null)
             remapInfo = CharactersText.RemapNoData;
         else if (attrs.BonusRemaps > 0)
-            remapInfo = string.Format(CharactersText.RemapBonus, attrs.BonusRemaps);
+            remapInfo = Plurals.Format(CharactersText.ResourceManager, nameof(CharactersText.RemapBonusOther), attrs.BonusRemaps);
         else if (attrs.AccruingRemapCooldownDate.HasValue && attrs.AccruingRemapCooldownDate > DateTimeOffset.UtcNow)
             remapInfo = string.Format(CharactersText.RemapAvailableOn, attrs.AccruingRemapCooldownDate.Value.UtcDateTime);
         else

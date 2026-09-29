@@ -280,9 +280,13 @@
     <value>Agent</value>
     <comment>Standings tab: what the standing is with, an agent. Column value.</comment>
   </data>
-  <data name="SummaryStatus" xml:space="preserve">
-    <value>{0} character(s). Figures come from polled data — the detail tab's Refresh updates one character, polling updates all.</value>
-    <comment>Status line under the Summary grid. {0} is how many characters.</comment>
+  <data name="SummaryStatusOne" xml:space="preserve">
+    <value>{0} character. Figures come from polled data — the detail tab's Refresh updates one character, polling updates all.</value>
+    <comment>Character Viewer status line, one character. {0} is the number.</comment>
+  </data>
+  <data name="SummaryStatusOther" xml:space="preserve">
+    <value>{0} characters. Figures come from polled data — the detail tab's Refresh updates one character, polling updates all.</value>
+    <comment>Character Viewer status line, several characters. {0} is the number.</comment>
   </data>
   <data name="SummaryLoadFailed" xml:space="preserve">
     <value>Could not load the summary: {0}</value>
@@ -292,9 +296,13 @@
     <value>No medals on record for this character.</value>
     <comment>Medals tab.</comment>
   </data>
-  <data name="MedalCount" xml:space="preserve">
-    <value>{0} medal(s)</value>
-    <comment>Medals tab. {0} is how many medals.</comment>
+  <data name="MedalCountOne" xml:space="preserve">
+    <value>{0} medal</value>
+    <comment>How many medals a character has, one. {0} is the number.</comment>
+  </data>
+  <data name="MedalCountOther" xml:space="preserve">
+    <value>{0} medals</value>
+    <comment>How many medals a character has, several. {0} is the number.</comment>
   </data>
   <data name="StatusSelectCharacterToView" xml:space="preserve">
     <value>Select a character to view their data.</value>
@@ -336,9 +344,13 @@
     <value>No attribute data available</value>
     <comment>Attributes tab: neural remap information.</comment>
   </data>
-  <data name="RemapBonus" xml:space="preserve">
-    <value>{0} bonus remap(s) available</value>
-    <comment>Attributes tab. {0} is how many bonus remaps are available.</comment>
+  <data name="RemapBonusOne" xml:space="preserve">
+    <value>{0} bonus remap available</value>
+    <comment>Attribute remaps banked, one. {0} is the number.</comment>
+  </data>
+  <data name="RemapBonusOther" xml:space="preserve">
+    <value>{0} bonus remaps available</value>
+    <comment>Attribute remaps banked, several. {0} is the number.</comment>
   </data>
   <data name="RemapAvailableOn" xml:space="preserve">
     <value>Remap available: {0:dd MMM yyyy}</value>
@@ -419,5 +431,9 @@
   <data name="QueueSkillsPausedOther" xml:space="preserve">
     <value>{0} skills (paused)</value>
     <comment>Skills tab, above a paused training queue, several skills queued. {0} is the number.</comment>
+  </data>
+  <data name="DurationSeparator" xml:space="preserve">
+    <value>, </value>
+    <comment>Between the parts of a duration: "4 days, 2 hours, 3 minutes". A comma and a space in English; keep whatever spacing your language uses.</comment>
   </data>
 </root>

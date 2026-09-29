@@ -446,7 +446,7 @@ public sealed class ItemValuationViewModel : ReactiveObject
                 SelectedTarget  = Targets.First(x => x.Reprocess == savedTarget);
                 foreach (var id in savedCompare)
                     if (stations.FirstOrDefault(s => s.LocationId == id) is { } st && st.LocationId != SelectedStation?.LocationId) CompareStations.Add(st);
-                if (stations.Count == 0) Status = AssetsText.StatusNoOrdersHeld;
+                if (stations.Count == 0) Status = string.Format(AssetsText.StatusNoOrdersHeld, SettingsText.TabMarket);
                 _loaded = true;
                 CompareColumnsChanged?.Invoke();
             });
