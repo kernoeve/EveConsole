@@ -35,13 +35,13 @@
     <value>Nave</value>
   </data>
   <data name="ColPodValue" xml:space="preserve">
-    <value>Valor de la cápsula</value>
+    <value>Valor cápsula</value>
   </data>
   <data name="ColHomeStation" xml:space="preserve">
     <value>Estación base</value>
   </data>
   <data name="ColSkillQueue" xml:space="preserve">
-    <value>Cola de habilidades</value>
+    <value>Cola de hab.</value>
   </data>
   <data name="TipEntriesInTheQueue" xml:space="preserve">
     <value>Entradas de la cola y tiempo que falta para que termine la última.</value>

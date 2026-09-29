@@ -149,7 +149,7 @@
     <value>Valor del déficit</value>
   </data>
   <data name="ColShortVolume" xml:space="preserve">
-    <value>Volumen del déficit</value>
+    <value>Vol. del déficit</value>
   </data>
   <data name="ColOrderJobs" xml:space="preserve">
     <value>Trab. de encargos</value>
@@ -158,7 +158,7 @@
     <value>Trabajos</value>
   </data>
   <data name="ColInventoryLevels" xml:space="preserve">
-    <value>Niveles de inventario</value>
+    <value>Niv. inventario</value>
   </data>
   <data name="ColStationLevels" xml:space="preserve">
     <value>Niveles por estación</value>
@@ -212,7 +212,7 @@
     <value>Esperando una ranura</value>
   </data>
   <data name="Blocked" xml:space="preserve">
-    <value>Bloqueados</value>
+    <value>Bloqueadas</value>
   </data>
   <data name="DaysToCatchUp" xml:space="preserve">
     <value>Días para ponerse al día</value>
@@ -500,7 +500,7 @@
     <value>Completado</value>
   </data>
   <data name="ColBuildCost" xml:space="preserve">
-    <value>Coste de fabricación</value>
+    <value>Coste de fabr.</value>
   </data>
   <data name="ColMarketValue" xml:space="preserve">
     <value>Valor de mercado</value>
@@ -599,7 +599,7 @@
     <value>Acción</value>
   </data>
   <data name="TriggerBelow" xml:space="preserve">
-    <value>Activar por debajo de (%)</value>
+    <value>Si baja de (%)</value>
   </data>
   <data name="FillUpTo" xml:space="preserve">
     <value>Rellenar hasta (%)</value>
@@ -632,10 +632,10 @@
     <value>Acción</value>
   </data>
   <data name="ColTriggerBelow" xml:space="preserve">
-    <value>Activar por debajo de (%)</value>
+    <value>Si baja de (%)</value>
   </data>
   <data name="ColFillTo" xml:space="preserve">
-    <value>Rellenar hasta (%)</value>
+    <value>Rellenar a (%)</value>
   </data>
   <data name="ColFinal" xml:space="preserve">
     <value>Final</value>
@@ -785,7 +785,7 @@
     <value>Trabajo</value>
   </data>
   <data name="KindAssetSafety" xml:space="preserve">
-    <value>Seguridad de los bienes</value>
+    <value>Seguridad de bienes</value>
   </data>
   <data name="KindSkillQueue" xml:space="preserve">
     <value>Cola de habilidades</value>
@@ -1064,7 +1064,7 @@
     <value>Un pedido permanente sin pedido de compra activo en su estación.</value>
   </data>
   <data name="ConditionOutbid" xml:space="preserve">
-    <value>Superados</value>
+    <value>Superado</value>
   </data>
   <data name="ConditionOutbidTip" xml:space="preserve">
     <value>Alguien ofrece más, así que el pedido no está comprando nada.</value>

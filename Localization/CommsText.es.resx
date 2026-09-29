@@ -98,7 +98,7 @@
     <value>Remitente</value>
   </data>
   <data name="ColSenderType" xml:space="preserve">
-    <value>Tipo de remitente</value>
+    <value>Tipo remitente</value>
   </data>
   <data name="ColRead" xml:space="preserve">
     <value>Leída</value>

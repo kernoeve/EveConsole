@@ -152,7 +152,7 @@
     <value>Estado</value>
   </data>
   <data name="ColOurBid" xml:space="preserve">
-    <value>Nuestra oferta</value>
+    <value>Tu oferta</value>
   </data>
   <data name="ColRem" xml:space="preserve">
     <value>Rest.</value>
@@ -215,7 +215,7 @@
     <value>Valor del déficit</value>
   </data>
   <data name="ColShortVolume" xml:space="preserve">
-    <value>Volumen del déficit</value>
+    <value>Vol. del déficit</value>
   </data>
   <data name="StandingProjects" xml:space="preserve">
     <value>Proyectos permanentes</value>

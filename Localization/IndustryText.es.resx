@@ -5,7 +5,7 @@
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <data name="OwnerType" xml:space="preserve">
-    <value>Tipo de propietario</value>
+    <value>Tipo propietario</value>
   </data>
   <data name="Owner" xml:space="preserve">
     <value>Propietario</value>
@@ -17,7 +17,7 @@
     <value>Fecha de inicio</value>
   </data>
   <data name="EndDate" xml:space="preserve">
-    <value>Fecha de finalización</value>
+    <value>Fecha de fin</value>
   </data>
   <data name="CompletedBy" xml:space="preserve">
     <value>Completado por</value>
@@ -35,7 +35,7 @@
     <value>Objetos</value>
   </data>
   <data name="SuccessChance" xml:space="preserve">
-    <value>Probabilidad de éxito</value>
+    <value>Prob. de éxito</value>
   </data>
   <data name="TimeLeft" xml:space="preserve">
     <value>Tiempo restante</value>
@@ -116,7 +116,7 @@
     <value>Abrir en el Explorador de objetos</value>
   </data>
   <data name="ColBuildCost" xml:space="preserve">
-    <value>Coste de fabricación</value>
+    <value>Coste de fabr.</value>
   </data>
   <data name="ColSellPrice" xml:space="preserve">
     <value>Precio de venta</value>
@@ -128,16 +128,16 @@
     <value>Margen</value>
   </data>
   <data name="ColBuildTime" xml:space="preserve">
-    <value>Tiempo de fabricación</value>
+    <value>Tiempo de fabr.</value>
   </data>
   <data name="ColSlotDays" xml:space="preserve">
-    <value>Días de ranura</value>
+    <value>Días-ranura</value>
   </data>
   <data name="ColProfitSlotDay" xml:space="preserve">
-    <value>Beneficio / día de ranura</value>
+    <value>Beneficio / día-ranura</value>
   </data>
   <data name="ColUnitsSold30d" xml:space="preserve">
-    <value>Unid. vendidas 30 d</value>
+    <value>Unid. vend. 30 d</value>
   </data>
   <data name="ColIskSold30d" xml:space="preserve">
     <value>ISK vendidos 30 d</value>
@@ -431,13 +431,13 @@
     <value>Necesario</value>
   </data>
   <data name="ColProduced" xml:space="preserve">
-    <value>Producido</value>
+    <value>Produc.</value>
   </data>
   <data name="ColLeftover" xml:space="preserve">
     <value>Sobrante</value>
   </data>
   <data name="ColBuildValue" xml:space="preserve">
-    <value>Valor de fabricación</value>
+    <value>Valor fabr.</value>
   </data>
   <data name="ColLeftoverValue" xml:space="preserve">
     <value>Valor sobrante</value>
@@ -461,7 +461,7 @@
     <value>Coste mat.</value>
   </data>
   <data name="ColJobCost" xml:space="preserve">
-    <value>Coste trabajo</value>
+    <value>Coste trab.</value>
   </data>
   <data name="ColUnitCost" xml:space="preserve">
     <value>Coste unit.</value>
@@ -590,7 +590,7 @@
     <value>Se han guardado {0} precio(s) manual(es) y se han recalculado los costes de fabricación a las {1:t}.</value>
   </data>
   <data name="OverrideStatusSaveFailed" xml:space="preserve">
-    <value>No se ha podido guardar: {0}</value>
+    <value>Error al guardar: {0}</value>
   </data>
   <data name="ModeBuildSellOrder" xml:space="preserve">
     <value>Fabricar y vender con pedido de venta</value>

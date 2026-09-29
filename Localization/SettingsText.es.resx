@@ -155,7 +155,7 @@
     <value>Actualización de los datos estáticos de EVE</value>
   </data>
   <data name="ANewerEveStaticNote" xml:space="preserve">
-    <value>Hay disponible una versión más reciente de los datos estáticos de EVE.</value>
+    <value>Hay una versión más reciente de los datos estáticos de EVE.</value>
   </data>
   <data name="LoadedLabel" xml:space="preserve">
     <value>Cargada:</value>
@@ -248,7 +248,7 @@
     <value>Libres / total</value>
   </data>
   <data name="ColSkillQueue" xml:space="preserve">
-    <value>Cola de habilidades</value>
+    <value>Cola de hab.</value>
   </data>
   <data name="TipCharacterSkillQueueShould" xml:space="preserve">
     <value>La cola de habilidades del personaje debe mantenerse en marcha. Desmárcala para un alt cuya cola esté vacía a propósito, y ni las alertas del Resumen ni la lista de tareas lo avisarán.</value>
@@ -1136,7 +1136,7 @@
     <value>La cola de habilidades del personaje está vacía</value>
   </data>
   <data name="CharacterSkillQueueIs" xml:space="preserve">
-    <value>La cola de habilidades del personaje está en pausa (tiene entradas, pero no entrena nada)</value>
+    <value>La cola de habilidades del personaje está en pausa (tiene entradas, pero nada en desarrollo)</value>
   </data>
   <data name="SkillQueueWillBeEmpty" xml:space="preserve">
     <value>La cola de habilidades se vaciará en menos de</value>

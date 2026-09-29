@@ -380,7 +380,7 @@
     <value>Coste de fabr.</value>
   </data>
   <data name="ColProfit" xml:space="preserve">
-    <value>Beneficio</value>
+    <value>Benef.</value>
   </data>
   <data name="ColProfit2" xml:space="preserve">
     <value>Benef. %</value>
@@ -464,7 +464,7 @@
     <value>Reserv. man.</value>
   </data>
   <data name="ColBuildCost2" xml:space="preserve">
-    <value>Coste de fabr.</value>
+    <value>Coste fabr.</value>
   </data>
   <data name="ColMktValue" xml:space="preserve">
     <value>Valor merc.</value>
@@ -473,13 +473,13 @@
     <value>Contrato</value>
   </data>
   <data name="ColSalePrice" xml:space="preserve">
-    <value>Precio de venta</value>
+    <value>Precio venta</value>
   </data>
   <data name="ColProfit3" xml:space="preserve">
     <value>Beneficio</value>
   </data>
   <data name="ColProfit4" xml:space="preserve">
-    <value>Beneficio %</value>
+    <value>Benef. %</value>
   </data>
   <data name="ColReadyEst" xml:space="preserve">
     <value>Listo (est.)</value>
@@ -581,7 +581,7 @@
     <value>Precio de fabr.</value>
   </data>
   <data name="ColMarketPrice" xml:space="preserve">
-    <value>Precio de mercado</value>
+    <value>Precio mercado</value>
   </data>
   <data name="AddStore" xml:space="preserve">
     <value>+ Añadir tienda</value>

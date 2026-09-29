@@ -14,7 +14,7 @@
     <value>Calibración de motor de salto</value>
   </data>
   <data name="JumpFuelConservationLabel" xml:space="preserve">
-    <value>Conservación de combustible de salto</value>
+    <value>Conservación de combustible</value>
   </data>
   <data name="JumpThroughLabel" xml:space="preserve">
     <value>Escalas en</value>
@@ -245,7 +245,7 @@
     <value>Producto</value>
   </data>
   <data name="ColRuns" xml:space="preserve">
-    <value>Iteraciones</value>
+    <value>Iter.</value>
   </data>
   <data name="ColEnds" xml:space="preserve">
     <value>Fin</value>
@@ -1444,7 +1444,7 @@ Propietario: {3}</value>
     <value>Sistema de operaciones</value>
   </data>
   <data name="LegendIncursionsActive" xml:space="preserve">
-    <value>{0} activas</value>
+    <value>{0} activa(s)</value>
   </data>
   <data name="SecBandHigh" xml:space="preserve">
     <value>Seguridad alta</value>

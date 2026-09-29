@@ -56,10 +56,10 @@
     <value>Gastos totales</value>
   </data>
   <data name="ColRattingTax" xml:space="preserve">
-    <value>Imp. recompensas</value>
+    <value>Imp. recomp.</value>
   </data>
   <data name="ColIndustryTax" xml:space="preserve">
-    <value>Imp. industria</value>
+    <value>Imp. industrial</value>
   </data>
   <data name="ColProjPayouts" xml:space="preserve">
     <value>Pagos proyectos</value>
@@ -227,7 +227,7 @@
     <value>Progreso</value>
   </data>
   <data name="ColRemReward" xml:space="preserve">
-    <value>Retrib. restante</value>
+    <value>Retrib. rest.</value>
   </data>
   <data name="ColCreator" xml:space="preserve">
     <value>Creador</value>
@@ -908,7 +908,7 @@
     <value>Recuperar restos</value>
   </data>
   <data name="ProjectTypeScanSignature" xml:space="preserve">
-    <value>Escanear firma</value>
+    <value>Escanear señal</value>
   </data>
   <data name="ProjectTypeShipInsurance" xml:space="preserve">
     <value>Seguro de nave</value>
@@ -950,7 +950,7 @@
     <value>Material(es)</value>
   </data>
   <data name="ConfigSignatureTypes" xml:space="preserve">
-    <value>Tipo(s) de firma</value>
+    <value>Tipo(s) de señal</value>
   </data>
   <data name="ConfigFactions" xml:space="preserve">
     <value>Facción(es)</value>

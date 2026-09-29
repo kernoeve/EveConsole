@@ -281,7 +281,7 @@
     <value>Impuesto de transacción</value>
   </data>
   <data name="SliceIndustryTax" xml:space="preserve">
-    <value>Impuestos industriales</value>
+    <value>Impuesto industrial</value>
   </data>
   <data name="SliceOtherExpenses" xml:space="preserve">
     <value>Otros gastos</value>

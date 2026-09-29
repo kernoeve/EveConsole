@@ -56,7 +56,7 @@
     <value>Modelo</value>
   </data>
   <data name="ColCalls" xml:space="preserve">
-    <value>Llamadas</value>
+    <value>Llam.</value>
   </data>
   <data name="ColInput" xml:space="preserve">
     <value>Entrada</value>
@@ -74,7 +74,7 @@
     <value>Unidades</value>
   </data>
   <data name="ColAvg" xml:space="preserve">
-    <value>Media</value>
+    <value>Med.</value>
   </data>
   <data name="ColErrors" xml:space="preserve">
     <value>Errores</value>
@@ -89,7 +89,7 @@
     <value>Hora</value>
   </data>
   <data name="ColTook" xml:space="preserve">
-    <value>Duración</value>
+    <value>Tiempo</value>
   </data>
   <data name="ColActivity" xml:space="preserve">
     <value>Actividad</value>
@@ -218,7 +218,7 @@
     <value>Contratos</value>
   </data>
   <data name="ColItemsPulled" xml:space="preserve">
-    <value>Objetos descargados</value>
+    <value>Descargados</value>
   </data>
   <data name="ColQueued" xml:space="preserve">
     <value>En cola</value>
@@ -305,7 +305,7 @@
     <value>Último disparo</value>
   </data>
   <data name="ColFired" xml:space="preserve">
-    <value>Disparos</value>
+    <value>Veces</value>
   </data>
   <data name="ColLastError" xml:space="preserve">
     <value>Último error</value>

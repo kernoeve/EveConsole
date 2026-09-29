@@ -353,7 +353,7 @@
     <value>Valor del objeto menos los ISK y los objetos necesarios, por PL, ambos reducidos a una sola unidad.</value>
   </data>
   <data name="ColRequiredItems" xml:space="preserve">
-    <value>Objetos necesarios</value>
+    <value>Necesarios</value>
   </data>
   <data name="TabMarketOrders" xml:space="preserve">
     <value>Pedidos del mercado</value>
@@ -578,7 +578,7 @@ con Enter. Una vez valorada, la lista se pliega:
     <value>Valor de mercado:</value>
   </data>
   <data name="FallbackCorpName" xml:space="preserve">
-    <value>Corp. {0}</value>
+    <value>Corporación {0}</value>
   </data>
   <data name="ErrLpStore" xml:space="preserve">
     <value>Tienda de PL: {0}</value>
@@ -818,7 +818,7 @@ con Enter. Una vez valorada, la lista se pliega:
     <value>Nada</value>
   </data>
   <data name="ErrImportFailed" xml:space="preserve">
-    <value>No se ha podido importar: {0}</value>
+    <value>Error al importar: {0}</value>
   </data>
   <data name="DefaultCollection" xml:space="preserve">
     <value>Predeterminada</value>

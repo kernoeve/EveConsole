@@ -496,7 +496,7 @@ Haz clic con el botón derecho para dejar de silenciarlas.</value>
     <value>No se ha podido apartar el archivo dañado: {0}</value>
   </data>
   <data name="RecoveryRestoreFailed" xml:space="preserve">
-    <value>No se ha podido restaurar: {0}</value>
+    <value>Error en la restauración: {0}</value>
   </data>
   <data name="ServerOffline" xml:space="preserve">
     <value>Sin conexión</value>

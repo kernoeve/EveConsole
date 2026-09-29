@@ -107,7 +107,7 @@
     <value>Valor de mercado</value>
   </data>
   <data name="ColBuildValue" xml:space="preserve">
-    <value>Valor de fabricación</value>
+    <value>Valor de fabr.</value>
   </data>
   <data name="ColDetails" xml:space="preserve">
     <value>Detalles</value>
@@ -488,7 +488,7 @@
     <value>Tu oferta</value>
   </data>
   <data name="ColStationBestBid" xml:space="preserve">
-    <value>Mejor oferta de la estación</value>
+    <value>Mejor oferta (estación)</value>
   </data>
   <data name="ColRemaining" xml:space="preserve">
     <value>Restante</value>
@@ -788,7 +788,7 @@
     <value>Tipo {0}</value>
   </data>
   <data name="SeriesSalesIsk" xml:space="preserve">
-    <value>ISK en ventas</value>
+    <value>ISK vendidos</value>
   </data>
   <data name="StatusAllRegions" xml:space="preserve">
     <value>todas las regiones</value>
@@ -935,7 +935,7 @@
     <value>Aún no hay valores de PL: se calculan cuando se actualizan los precios de mercado.</value>
   </data>
   <data name="CorpNumbered" xml:space="preserve">
-    <value>Corp. {0}</value>
+    <value>Corporación {0}</value>
   </data>
   <data name="StatusCorpsValued" xml:space="preserve">
     <value>{0:N0} corporación(es) valorada(s) — actualizado el {1:d MMM HH:mm}</value>
