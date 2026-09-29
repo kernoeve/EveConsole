@@ -967,4 +967,569 @@
   <data name="OrderStatusCanceled" xml:space="preserve">
     <value>已取消</value>
   </data>
+  <data name="TipOpenContract" xml:space="preserve">
+    <value>在合同工具中打开此合同</value>
+  </data>
+  <data name="UnitsInBuild" xml:space="preserve">
+    <value>制造中 {0:N0}</value>
+  </data>
+  <data name="TipBuildCostAsOf" xml:space="preserve">
+    <value>此订单完结当天（{0}）的制造成本。</value>
+  </data>
+  <data name="TipBuildCostCurrent" xml:space="preserve">
+    <value>当前的制造成本。</value>
+  </data>
+  <data name="FilterActive" xml:space="preserve">
+    <value>进行中</value>
+  </data>
+  <data name="FilterCompleted" xml:space="preserve">
+    <value>已完成</value>
+  </data>
+  <data name="FilterCanceled" xml:space="preserve">
+    <value>已取消</value>
+  </data>
+  <data name="FilterAll" xml:space="preserve">
+    <value>全部</value>
+  </data>
+  <data name="ContractNumbered" xml:space="preserve">
+    <value>合同 {0}</value>
+  </data>
+  <data name="ContractAcceptedOn" xml:space="preserve">
+    <value>已于 {0:yyyy-MM-dd} 接受</value>
+  </data>
+  <data name="ContractAccepted" xml:space="preserve">
+    <value>已接受</value>
+  </data>
+  <data name="ContractWaiting" xml:space="preserve">
+    <value>等待买家接受</value>
+  </data>
+  <data name="ContractDeclined" xml:space="preserve">
+    <value>买家已拒绝</value>
+  </data>
+  <data name="ContractNotPolled" xml:space="preserve">
+    <value>尚未出现在已轮询的合同中</value>
+  </data>
+  <data name="ContractsListed" xml:space="preserve">
+    <value>{0} 个合同——{1}</value>
+  </data>
+  <data name="ContractUnitsUncounted" xml:space="preserve">
+    <value>数量尚未统计</value>
+  </data>
+  <data name="TipClickToOpenContract" xml:space="preserve">
+    <value>
+点击可在合同工具中打开合同 {0}。</value>
+  </data>
+  <data name="TypeNumbered" xml:space="preserve">
+    <value>类型 {0}</value>
+  </data>
+  <data name="StatusLabelled" xml:space="preserve">
+    <value>已为 {0:N0} 个订单添加标签“{1}”。</value>
+  </data>
+  <data name="StatusLabelFailed" xml:space="preserve">
+    <value>无法添加标签：{0}</value>
+  </data>
+  <data name="StatusLabelRemoved" xml:space="preserve">
+    <value>已从 {1:N0} 个订单中移除标签“{0}”。</value>
+  </data>
+  <data name="BuyerCharacter" xml:space="preserve">
+    <value>角色</value>
+  </data>
+  <data name="BuyerCorporation" xml:space="preserve">
+    <value>军团</value>
+  </data>
+  <data name="GrainDaily" xml:space="preserve">
+    <value>每日</value>
+  </data>
+  <data name="GrainWeekly" xml:space="preserve">
+    <value>每周</value>
+  </data>
+  <data name="GrainMonthly" xml:space="preserve">
+    <value>每月</value>
+  </data>
+  <data name="UncostedNote" xml:space="preserve">
+    <value>{0:N0} 笔销售在两种基准下都没有成本，未计入图表。</value>
+  </data>
+  <data name="OwnerCharsAndPersonalCorps" xml:space="preserve">
+    <value>所有角色和个人军团</value>
+  </data>
+  <data name="TypeAll" xml:space="preserve">
+    <value>所有类型</value>
+  </data>
+  <data name="SaleTypeMarket" xml:space="preserve">
+    <value>市场</value>
+  </data>
+  <data name="SaleTypeContract" xml:space="preserve">
+    <value>合同</value>
+  </data>
+  <data name="BasisBuild" xml:space="preserve">
+    <value>制造成本</value>
+  </data>
+  <data name="BasisMarket" xml:space="preserve">
+    <value>市场价格</value>
+  </data>
+  <data name="NoSalesMatch" xml:space="preserve">
+    <value>没有符合筛选条件的销售。</value>
+  </data>
+  <data name="ExcludedShown" xml:space="preserve">
+    <value> · {0:N0} 笔非营利销售，已显示但不计入</value>
+  </data>
+  <data name="ExcludedHidden" xml:space="preserve">
+    <value> · {0:N0} 笔非营利销售，已隐藏</value>
+  </data>
+  <data name="SeriesGrossCosts" xml:space="preserve">
+    <value>总成本</value>
+  </data>
+  <data name="SeriesGrossSales" xml:space="preserve">
+    <value>总销售额</value>
+  </data>
+  <data name="SeriesNetProfit" xml:space="preserve">
+    <value>净利润</value>
+  </data>
+  <data name="SeriesMargin" xml:space="preserve">
+    <value>利润率</value>
+  </data>
+  <data name="PieOther" xml:space="preserve">
+    <value>其他</value>
+  </data>
+  <data name="StatusLabelledSales" xml:space="preserve">
+    <value>已为 {0:N0} 笔销售添加标签“{1}”。</value>
+  </data>
+  <data name="StatusLabelRemovedSales" xml:space="preserve">
+    <value>已从 {1:N0} 笔销售中移除标签“{0}”。</value>
+  </data>
+  <data name="StatusLabelRemoveFailed" xml:space="preserve">
+    <value>无法移除标签：{0}</value>
+  </data>
+  <data name="ScopeEverywhere" xml:space="preserve">
+    <value>所有位置</value>
+  </data>
+  <data name="PriceBasisContract" xml:space="preserve">
+    <value>合同成本</value>
+  </data>
+  <data name="PriceBasisMarketAt" xml:space="preserve">
+    <value>市场：{0}（{1}）</value>
+  </data>
+  <data name="PriceBasisBuild" xml:space="preserve">
+    <value>制造成本</value>
+  </data>
+  <data name="SummaryScope" xml:space="preserve">
+    <value>范围：</value>
+  </data>
+  <data name="PriceBasisMarketShort" xml:space="preserve">
+    <value>市场：{0}</value>
+  </data>
+  <data name="SummaryPackagedOnly" xml:space="preserve">
+    <value>仅打包物品</value>
+  </data>
+  <data name="SummaryAllItems" xml:space="preserve">
+    <value>所有物品</value>
+  </data>
+  <data name="StatusPostingExported" xml:space="preserve">
+    <value>发布已导出。</value>
+  </data>
+  <data name="StatusExportFailed" xml:space="preserve">
+    <value>导出失败：{0}</value>
+  </data>
+  <data name="StatusNotAPosting" xml:space="preserve">
+    <value>该文件不是销售发布。</value>
+  </data>
+  <data name="StatusImportFailed" xml:space="preserve">
+    <value>导入失败：{0}</value>
+  </data>
+  <data name="NoPostingsYet" xml:space="preserve">
+    <value>尚无发布——添加一个即可开始。</value>
+  </data>
+  <data name="StatusLoadFailed" xml:space="preserve">
+    <value>加载失败：{0}</value>
+  </data>
+  <data name="SlackSelectPosting" xml:space="preserve">
+    <value>请先选择一个发布。</value>
+  </data>
+  <data name="SlackNotConfigured" xml:space="preserve">
+    <value>未配置 Slack 频道或 Webhook。</value>
+  </data>
+  <data name="SlackAlreadyPosted" xml:space="preserve">
+    <value>“{0}”已发布到 Slack（{1}）。
+
+</value>
+  </data>
+  <data name="SlackPostAgain" xml:space="preserve">
+    <value>要再次发布吗？</value>
+  </data>
+  <data name="SlackPostCancelled" xml:space="preserve">
+    <value>已取消发布。</value>
+  </data>
+  <data name="SlackPosting" xml:space="preserve">
+    <value>正在发布到 Slack…</value>
+  </data>
+  <data name="SlackNothingToPost" xml:space="preserve">
+    <value>没有可发布的内容——此发布没有帖子块。</value>
+  </data>
+  <data name="SlackPostFailed" xml:space="preserve">
+    <value>帖子块“{0}”发布到 Slack 失败：{1}</value>
+  </data>
+  <data name="SlackAllEmpty" xml:space="preserve">
+    <value>没有可发布的内容——所有帖子块都是空的。</value>
+  </data>
+  <data name="SlackPosted" xml:space="preserve">
+    <value>已发布到 {0}——{1:t}</value>
+  </data>
+  <data name="SelectSectionFirst" xml:space="preserve">
+    <value>请先选择一个分区（或分区中的物品）。</value>
+  </data>
+  <data name="NoItemsInGroup" xml:space="preserve">
+    <value>该市场分组中没有物品。</value>
+  </data>
+  <data name="ItemsAlreadyInSection" xml:space="preserve">
+    <value>这些物品都已在该分区中。</value>
+  </data>
+  <data name="AddedItems" xml:space="preserve">
+    <value>已添加 {0} 种物品。</value>
+  </data>
+  <data name="StoreOpenMailAndWeb" xml:space="preserve">
+    <value>邮件和网站均开放</value>
+  </data>
+  <data name="StoreOpenMail" xml:space="preserve">
+    <value>邮件开放</value>
+  </data>
+  <data name="StoreOpenWeb" xml:space="preserve">
+    <value>网站开放</value>
+  </data>
+  <data name="StoreClosed" xml:space="preserve">
+    <value>已关闭</value>
+  </data>
+  <data name="MailReceived" xml:space="preserve">
+    <value>收到</value>
+  </data>
+  <data name="MailSent" xml:space="preserve">
+    <value>发出</value>
+  </data>
+  <data name="EventOrder" xml:space="preserve">
+    <value>订单</value>
+  </data>
+  <data name="EventCancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="EventVisit" xml:space="preserve">
+    <value>访问</value>
+  </data>
+  <data name="OutcomeBooked" xml:space="preserve">
+    <value>已接单</value>
+  </data>
+  <data name="OutcomeApplied" xml:space="preserve">
+    <value>已执行</value>
+  </data>
+  <data name="OutcomeDeclined" xml:space="preserve">
+    <value>已拒绝</value>
+  </data>
+  <data name="OutcomeFailed" xml:space="preserve">
+    <value>失败</value>
+  </data>
+  <data name="OutcomeNoted" xml:space="preserve">
+    <value>已记录</value>
+  </data>
+  <data name="AllowNotFoundCharacter" xml:space="preserve">
+    <value>找不到名为“{0}”的角色。</value>
+  </data>
+  <data name="AllowNotFoundCorporation" xml:space="preserve">
+    <value>找不到名为“{0}”的军团。</value>
+  </data>
+  <data name="AllowNotFoundAlliance" xml:space="preserve">
+    <value>找不到名为“{0}”的联盟。</value>
+  </data>
+  <data name="WebStatusSynced" xml:space="preserve">
+    <value>上次同步于 {0:yyyy-MM-dd HH:mm}。</value>
+  </data>
+  <data name="WebStatusSyncedVersion" xml:space="preserve">
+    <value>上次同步于 {0:yyyy-MM-dd HH:mm}，网站版本 {1}。</value>
+  </data>
+  <data name="WebStatusNotSynced" xml:space="preserve">
+    <value>尚未同步。</value>
+  </data>
+  <data name="WebStatusNotSyncedVersion" xml:space="preserve">
+    <value>尚未同步，网站版本 {0}。</value>
+  </data>
+  <data name="StoreUnnamed" xml:space="preserve">
+    <value>（未命名）</value>
+  </data>
+  <data name="OutcomeNeedsDecision" xml:space="preserve">
+    <value>待决定</value>
+  </data>
+  <data name="SalesCountOther" xml:space="preserve">
+    <value>{0:N0} 笔销售</value>
+  </data>
+  <data name="TipContractLine" xml:space="preserve">
+    <value>{0} — {1}，{2}</value>
+  </data>
+  <data name="BuyerAlliance" xml:space="preserve">
+    <value>联盟</value>
+  </data>
+  <data name="LimitScopeType" xml:space="preserve">
+    <value>物品类型</value>
+  </data>
+  <data name="LimitScopeGroup" xml:space="preserve">
+    <value>物品分组</value>
+  </data>
+  <data name="LimitScopeStore" xml:space="preserve">
+    <value>整个商店</value>
+  </data>
+  <data name="LimitPeriodDays" xml:space="preserve">
+    <value>天</value>
+  </data>
+  <data name="LimitPeriodMonths" xml:space="preserve">
+    <value>个月</value>
+  </data>
+  <data name="LimitPeriodYears" xml:space="preserve">
+    <value>年</value>
+  </data>
+  <data name="LimitPeriodAllTime" xml:space="preserve">
+    <value>全部时间</value>
+  </data>
+  <data name="PriceListTooLong" xml:space="preserve">
+    <value>⚠  价目表大小为 {0:N0} 字节，上限为 {1:N0} 字节——超出 {2:N0} 字节，因此将分成 {3} 封邮件送达。请缩短发布内容，以便用一封邮件发送。</value>
+  </data>
+  <data name="PriceListFits" xml:space="preserve">
+    <value>价目表大小为 {0:N0} 字节，上限为 {1:N0} 字节——一封邮件即可容纳，还剩 {2:N0} 字节。</value>
+  </data>
+  <data name="BannerNone" xml:space="preserve">
+    <value>无。</value>
+  </data>
+  <data name="BannerSaved" xml:space="preserve">
+    <value>横幅已保存；下次同步时会发送到网站。</value>
+  </data>
+  <data name="BannerSavedScaled" xml:space="preserve">
+    <value>横幅已保存，已缩放为 {0} × {1} 并转为 WebP 格式；下次同步时会发送到网站。</value>
+  </data>
+  <data name="BannerUnusable" xml:space="preserve">
+    <value>无法使用该横幅：{0}</value>
+  </data>
+  <data name="BannerRemoved" xml:space="preserve">
+    <value>横幅已移除；网站会在下次同步时将其删除。</value>
+  </data>
+  <data name="BannerRemoveFailed" xml:space="preserve">
+    <value>无法移除横幅：{0}</value>
+  </data>
+  <data name="WebClosed" xml:space="preserve">
+    <value>网站渠道已关闭。</value>
+  </data>
+  <data name="WebNeedsAddress" xml:space="preserve">
+    <value>需要先设置网站地址和密钥才能同步。</value>
+  </data>
+  <data name="WebOtherClient" xml:space="preserve">
+    <value>另一个客户端正在运行后台工作并负责同步网站；它会在下一个周期获取此更改。</value>
+  </data>
+  <data name="WebSyncing" xml:space="preserve">
+    <value>正在同步网站…</value>
+  </data>
+  <data name="WebSecretGenerated" xml:space="preserve">
+    <value>已生成新密钥。请在网站上设置相同的值，否则下次同步会被拒绝。</value>
+  </data>
+  <data name="SsoKeysNeeded" xml:space="preserve">
+    <value>在网站获得 EVE 应用程序的客户端 ID 和客户端密钥之前，买家无法登录。请在此处输入：部署按钮会把它们放到网站上；手动搭建的网站需要将相同的值设为其 EVE_CLIENT_ID 和 EVE_CLIENT_SECRET 密钥。</value>
+  </data>
+  <data name="TokenSavedDpapi" xml:space="preserve">
+    <value>令牌已保存在本机，由 Windows 为你的账户加密。</value>
+  </data>
+  <data name="TokenSavedKeyring" xml:space="preserve">
+    <value>令牌已保存在本机的密钥环中。</value>
+  </data>
+  <data name="TokenSavedPlain" xml:space="preserve">
+    <value>令牌以明文保存在本机的 config.json 中；没有可用的密钥环。</value>
+  </data>
+  <data name="TokenNone" xml:space="preserve">
+    <value>本机未保存令牌。部署和更新需要令牌；同步不需要。</value>
+  </data>
+  <data name="DeployPasteToken" xml:space="preserve">
+    <value>请先粘贴令牌。</value>
+  </data>
+  <data name="DeployCheckingToken" xml:space="preserve">
+    <value>正在检查令牌…</value>
+  </data>
+  <data name="DeployTokenGone" xml:space="preserve">
+    <value>令牌已从本机移除。网站会继续运行；只有从这里部署和更新时才需要令牌。</value>
+  </data>
+  <data name="SsoSendThem" xml:space="preserve">
+    <value>点击“部署或更新网站”即可将它们发送到网站；手动搭建的网站需要将它们设为其 EVE_CLIENT_ID 和 EVE_CLIENT_SECRET 密钥。</value>
+  </data>
+  <data name="SsoKeysNotOnSite" xml:space="preserve">
+    <value>密钥已保存在此处，但网站上还没有。{0}</value>
+  </data>
+  <data name="SsoNoKeys" xml:space="preserve">
+    <value>网站还没有 EVE 应用程序密钥：请注册应用程序，并在上方输入其密钥。</value>
+  </data>
+  <data name="SsoReady" xml:space="preserve">
+    <value>网站已有 EVE 应用程序密钥；登录已设置完成。</value>
+  </data>
+  <data name="SsoKeysNotSaved" xml:space="preserve">
+    <value>网站已有 EVE 应用程序密钥，但此处没有保存：请在上方输入相同的密钥，以便更新时保留它们。</value>
+  </data>
+  <data name="SsoReadySame" xml:space="preserve">
+    <value>网站已有这些 EVE 应用程序密钥；登录已设置完成。</value>
+  </data>
+  <data name="SsoKeysDiffer" xml:space="preserve">
+    <value>网站上的 EVE 应用程序密钥与此处保存的不同。{0}</value>
+  </data>
+  <data name="DeployCheckingAccount" xml:space="preserve">
+    <value>正在检查账户…</value>
+  </data>
+  <data name="DeployCancelled" xml:space="preserve">
+    <value>已取消部署。</value>
+  </data>
+  <data name="DeployAskingSite" xml:space="preserve">
+    <value>正在查询网站…</value>
+  </data>
+  <data name="NoStoresYet" xml:space="preserve">
+    <value>尚无商店——添加一个，买家即可通过 EVE 邮件咨询。</value>
+  </data>
+  <data name="StatusSaveFailed" xml:space="preserve">
+    <value>保存失败：{0}</value>
+  </data>
+  <data name="NewStoreName" xml:space="preserve">
+    <value>新商店</value>
+  </data>
+  <data name="DeployPickAccount" xml:space="preserve">
+    <value>请先选择 Cloudflare 账户。</value>
+  </data>
+  <data name="RenameWorkersTitle" xml:space="preserve">
+    <value>重命名该账户的 workers.dev 名称</value>
+  </data>
+  <data name="RenameWorkersLabel" xml:space="preserve">
+    <value>新名称</value>
+  </data>
+  <data name="RenameWorkersHint" xml:space="preserve">
+    <value>小写字母、数字和连字符</value>
+  </data>
+  <data name="DeployRenaming" xml:space="preserve">
+    <value>正在重命名…</value>
+  </data>
+  <data name="DeleteStoreConfirm" xml:space="preserve">
+    <value>删除商店“{0}”？
+
+它将关闭并从此列表中消失。
+
+不会销毁任何数据：它的订单仍保留在订单跟踪中，它的设置、允许名单和消息历史也会保留，因此所有引用它的内容仍能正常解析。它只是不再读取和回复邮件。</value>
+  </data>
+  <data name="AllowAlreadyListed" xml:space="preserve">
+    <value>{0} 已在名单中。</value>
+  </data>
+  <data name="AllowAddFailed" xml:space="preserve">
+    <value>无法添加：{0}</value>
+  </data>
+  <data name="TitleAddPosting" xml:space="preserve">
+    <value>添加发布</value>
+  </data>
+  <data name="TitleEditPosting" xml:space="preserve">
+    <value>编辑发布</value>
+  </data>
+  <data name="LocStationLabel" xml:space="preserve">
+    <value>空间站</value>
+  </data>
+  <data name="LocSolarSystemLabel" xml:space="preserve">
+    <value>星系</value>
+  </data>
+  <data name="LocRegionLabel" xml:space="preserve">
+    <value>星域</value>
+  </data>
+  <data name="PostingNameRequired" xml:space="preserve">
+    <value>必须填写发布名称。</value>
+  </data>
+  <data name="SelectMarketForBasis" xml:space="preserve">
+    <value>请为“指定市场”基准选择一个市场。</value>
+  </data>
+  <data name="TitleAddSection" xml:space="preserve">
+    <value>添加分区</value>
+  </data>
+  <data name="TitleEditSection" xml:space="preserve">
+    <value>编辑分区</value>
+  </data>
+  <data name="SectionNameRequired" xml:space="preserve">
+    <value>必须填写分区名称。</value>
+  </data>
+  <data name="CorpNumbered" xml:space="preserve">
+    <value>军团 {0}</value>
+  </data>
+  <data name="CharNumbered" xml:space="preserve">
+    <value>角色 {0}</value>
+  </data>
+  <data name="NoItems" xml:space="preserve">
+    <value>（无物品）</value>
+  </data>
+  <data name="MoreItems" xml:space="preserve">
+    <value>{0} 及另外 {1} 项物品</value>
+  </data>
+  <data name="UnitsMultiple" xml:space="preserve">
+    <value>多种</value>
+  </data>
+  <data name="TitleEditOrder" xml:space="preserve">
+    <value>编辑订单</value>
+  </data>
+  <data name="NotLinked" xml:space="preserve">
+    <value>{0}（未关联）</value>
+  </data>
+  <data name="ChooseBannerTitle" xml:space="preserve">
+    <value>选择横幅图片</value>
+  </data>
+  <data name="AddLabelToOrders" xml:space="preserve">
+    <value>为 {0} 个订单添加标签</value>
+  </data>
+  <data name="AddLabel" xml:space="preserve">
+    <value>添加标签</value>
+  </data>
+  <data name="RemoveLabelFromOrders" xml:space="preserve">
+    <value>从 {0} 个订单移除标签</value>
+  </data>
+  <data name="RemoveLabel" xml:space="preserve">
+    <value>移除标签</value>
+  </data>
+  <data name="NewLabelMenu" xml:space="preserve">
+    <value>新建标签…</value>
+  </data>
+  <data name="NewLabelTitle" xml:space="preserve">
+    <value>新建标签</value>
+  </data>
+  <data name="LabelPrompt" xml:space="preserve">
+    <value>标签</value>
+  </data>
+  <data name="NewLabelHint" xml:space="preserve">
+    <value>例如：旗舰计划</value>
+  </data>
+  <data name="AddLabelToSales" xml:space="preserve">
+    <value>为 {0} 笔销售添加标签</value>
+  </data>
+  <data name="RemoveLabelFromSales" xml:space="preserve">
+    <value>从 {0} 笔销售移除标签</value>
+  </data>
+  <data name="TitleExportPosting" xml:space="preserve">
+    <value>导出发布</value>
+  </data>
+  <data name="TitleImportPosting" xml:space="preserve">
+    <value>导入发布</value>
+  </data>
+  <data name="WorkersNameInvalid" xml:space="preserve">
+    <value>workers.dev 名称只能包含小写字母、数字和连字符，最多 63 个字符。</value>
+  </data>
+  <data name="HostnameInvalid" xml:space="preserve">
+    <value>这不是有效的主机名：应形如 store.example.com，只能包含字母、数字、连字符和点。</value>
+  </data>
+  <data name="ContractUnitsOther" xml:space="preserve">
+    <value>{0:N0} 个单位</value>
+  </data>
+  <data name="BasisContract" xml:space="preserve">
+    <value>合同价格</value>
+  </data>
+  <data name="PolicyList" xml:space="preserve">
+    <value>名单</value>
+  </data>
+  <data name="PolicyAnyone" xml:space="preserve">
+    <value>任何人</value>
+  </data>
+  <data name="ScopePickStation" xml:space="preserve">
+    <value>请选择一个空间站，或选择“所有位置”。</value>
+  </data>
+  <data name="ScopePickSystem" xml:space="preserve">
+    <value>请选择一个星系，或选择“所有位置”。</value>
+  </data>
+  <data name="ScopePickRegion" xml:space="preserve">
+    <value>请选择一个星域，或选择“所有位置”。</value>
+  </data>
 </root>

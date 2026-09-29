@@ -1635,6 +1635,54 @@ Click to open contract {0} in the Contracts tool.</value>
     <value>Noted</value>
     <comment>What became of a web event.</comment>
   </data>
+  <data name="AllowNotFoundCharacter" xml:space="preserve">
+    <value>Could not find a character called "{0}".</value>
+    <comment>Stores: adding a sender. {0} is the name typed.</comment>
+  </data>
+  <data name="AllowNotFoundCorporation" xml:space="preserve">
+    <value>Could not find a corporation called "{0}".</value>
+    <comment>Stores: adding a sender. {0} is the name typed.</comment>
+  </data>
+  <data name="AllowNotFoundAlliance" xml:space="preserve">
+    <value>Could not find an alliance called "{0}".</value>
+    <comment>Stores: adding a sender. {0} is the name typed.</comment>
+  </data>
+  <data name="WebStatusSynced" xml:space="preserve">
+    <value>Last synced {0:yyyy-MM-dd HH:mm}.</value>
+    <comment>A store's web site. {0} is when it last synced.</comment>
+  </data>
+  <data name="WebStatusSyncedVersion" xml:space="preserve">
+    <value>Last synced {0:yyyy-MM-dd HH:mm}, site version {1}.</value>
+    <comment>A store's web site. {0} is when it last synced, {1} the site's version.</comment>
+  </data>
+  <data name="WebStatusNotSynced" xml:space="preserve">
+    <value>Not synced yet.</value>
+    <comment>A store's web site.</comment>
+  </data>
+  <data name="WebStatusNotSyncedVersion" xml:space="preserve">
+    <value>Not synced yet, site version {0}.</value>
+    <comment>A store's web site. {0} is the site's version.</comment>
+  </data>
+  <data name="StoreUnnamed" xml:space="preserve">
+    <value>(unnamed)</value>
+    <comment>A store that has no name yet.</comment>
+  </data>
+  <data name="OutcomeNeedsDecision" xml:space="preserve">
+    <value>Needs a decision</value>
+    <comment>What happened to a web-store event: it waits for you to decide.</comment>
+  </data>
+  <data name="SalesCountOne" xml:space="preserve">
+    <value>{0:N0} sale</value>
+    <comment>Sales Tracker status line, one sale. {0} is the number.</comment>
+  </data>
+  <data name="SalesCountOther" xml:space="preserve">
+    <value>{0:N0} sales</value>
+    <comment>Sales Tracker status line, several sales. {0} is the number.</comment>
+  </data>
+  <data name="TipContractLine" xml:space="preserve">
+    <value>{0} — {1}, {2}</value>
+    <comment>One line of an order's contract tooltip. {0} is the contract, {1} how many units it carries, {2} where it stands.</comment>
+  </data>
   <data name="BuyerAlliance" xml:space="preserve">
     <value>Alliance</value>
     <comment>What an allowed sender is: an alliance.</comment>
@@ -1706,18 +1754,6 @@ Click to open contract {0} in the Contracts tool.</value>
   <data name="WebNeedsAddress" xml:space="preserve">
     <value>Needs a site address and a secret before it can sync.</value>
     <comment>The web channel's state.</comment>
-  </data>
-  <data name="WebLastSynced" xml:space="preserve">
-    <value>Last synced {0:yyyy-MM-dd HH:mm}</value>
-    <comment>The web channel's state. {0} is when.</comment>
-  </data>
-  <data name="WebNotSynced" xml:space="preserve">
-    <value>Not synced yet</value>
-    <comment>The web channel's state.</comment>
-  </data>
-  <data name="WebSiteVersion" xml:space="preserve">
-    <value>, site version {0}</value>
-    <comment>Added after the sync state. {0} is the site's version.</comment>
   </data>
   <data name="WebOtherClient" xml:space="preserve">
     <value>Another client is running the background work and syncs the web site; it will pick the change up on its next cycle.</value>
@@ -1842,10 +1878,6 @@ It closes and disappears from this list.
 
 Nothing is destroyed: its orders stay in the Order Tracker, and its settings, allow list and message history are kept so anything referring to it still resolves. It simply stops reading and answering mail.</value>
     <comment>Asked before a store is deleted. {0} is its name.</comment>
-  </data>
-  <data name="AllowNotFound" xml:space="preserve">
-    <value>Could not find a {0} called "{1}".</value>
-    <comment>Status. {0} is character/corporation/alliance, {1} the name typed.</comment>
   </data>
   <data name="AllowAlreadyListed" xml:space="preserve">
     <value>{0} is already on the list.</value>

@@ -606,7 +606,7 @@ public class SalesTrackerViewModel : ReactiveObject
 
         StatusText = list.Count == 0
             ? SalesText.NoSalesMatch
-            : $"{list.Count:N0} sale(s)" +
+            : Plurals.Format(SalesText.ResourceManager, nameof(SalesText.SalesCountOther), list.Count) +
               (excluded > 0
                   ? ShowNotForProfit
                       ? string.Format(SalesText.ExcludedShown, excluded)

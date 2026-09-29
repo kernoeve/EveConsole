@@ -8,6 +8,10 @@
     <value>Add Item</value>
     <comment>Window title in AddItemDialog.</comment>
   </data>
+  <data name="TypeNumbered" xml:space="preserve">
+    <value>Type {0}</value>
+    <comment>An item whose name is unknown. {0} is its type number.</comment>
+  </data>
   <data name="SearchForItemLabel" xml:space="preserve">
     <value>SEARCH FOR ITEM</value>
     <comment>Label in AddItemDialog.</comment>

@@ -531,7 +531,7 @@
     <comment>What the notification type OfferedToAlly is called.</comment>
   </data>
   <data name="NotifTitleAllyJoinedWarAggressorMsg" xml:space="preserve">
-    <value>Ally joined the aggressor</value>
+    <value>Ally joined the defender</value>
     <comment>What the notification type AllyJoinedWarAggressorMsg is called.</comment>
   </data>
   <data name="NotifTitleAllyJoinedWarAllyMsg" xml:space="preserve">
@@ -1045,6 +1045,78 @@
   <data name="NotifBillType" xml:space="preserve">
     <value>Bill type {0}</value>
     <comment>A bill of a type the app does not know. {0} is its number.</comment>
+  </data>
+  <data name="NotifBillMarketFine" xml:space="preserve">
+    <value>Market fine</value>
+    <comment>A kind of corporation bill.</comment>
+  </data>
+  <data name="NotifBillOfficeRental" xml:space="preserve">
+    <value>Office rental</value>
+    <comment>A kind of corporation bill: rent for an office in a station or structure.</comment>
+  </data>
+  <data name="NotifBillBrokerFee" xml:space="preserve">
+    <value>Broker fee</value>
+    <comment>A kind of corporation bill.</comment>
+  </data>
+  <data name="NotifBillWar" xml:space="preserve">
+    <value>War</value>
+    <comment>A kind of corporation bill: the cost of a war declaration.</comment>
+  </data>
+  <data name="NotifBillAllianceMaintenance" xml:space="preserve">
+    <value>Alliance maintenance</value>
+    <comment>A kind of corporation bill: the upkeep of an alliance.</comment>
+  </data>
+  <data name="NotifBillSovereigntyMarker" xml:space="preserve">
+    <value>Sovereignty marker</value>
+    <comment>A kind of corporation bill: the upkeep of a sovereignty claim.</comment>
+  </data>
+  <data name="NotifMoreRows" xml:space="preserve">
+    <value>+{0} more</value>
+    <comment>After the first row of a list on a notification card. {0} is how many more rows the list has.</comment>
+  </data>
+  <data name="NotifHoursOne" xml:space="preserve">
+    <value>{0} hour</value>
+    <comment>A number of hours, one. {0} is the number.</comment>
+  </data>
+  <data name="NotifHoursOther" xml:space="preserve">
+    <value>{0} hours</value>
+    <comment>A number of hours, several. {0} is the number.</comment>
+  </data>
+  <data name="NotifHoursFraction" xml:space="preserve">
+    <value>{0:0.#} hours</value>
+    <comment>A number of hours that is not whole, e.g. 1.5 hours. {0} is the number.</comment>
+  </data>
+  <data name="NotifSpanDays" xml:space="preserve">
+    <value>{0}d</value>
+    <comment>Part of a short time span such as "1d 4h 12m": days. {0} is the number.</comment>
+  </data>
+  <data name="NotifSpanHours" xml:space="preserve">
+    <value>{0}h</value>
+    <comment>Part of a short time span such as "1d 4h 12m": hours. {0} is the number.</comment>
+  </data>
+  <data name="NotifSpanMinutes" xml:space="preserve">
+    <value>{0}m</value>
+    <comment>Part of a short time span such as "1d 4h 12m": minutes. {0} is the number.</comment>
+  </data>
+  <data name="NotifSpanSeconds" xml:space="preserve">
+    <value>{0}s</value>
+    <comment>A short time span under a minute: seconds. {0} is the number.</comment>
+  </data>
+  <data name="NotifBillSummary" xml:space="preserve">
+    <value>{0}: {1}.</value>
+    <comment>One-line summary of a bill. {0} is the kind of bill, {1} the amount in ISK.</comment>
+  </data>
+  <data name="NotifBillSummaryAt" xml:space="preserve">
+    <value>{0} at {1}: {2}.</value>
+    <comment>One-line summary of a bill. {0} is the kind of bill, {1} the station or structure, {2} the amount in ISK.</comment>
+  </data>
+  <data name="NotifBillSummaryDue" xml:space="preserve">
+    <value>{0}: {1}, due {2}.</value>
+    <comment>One-line summary of a bill. {0} is the kind of bill, {1} the amount in ISK, {2} the date it is due.</comment>
+  </data>
+  <data name="NotifBillSummaryAtDue" xml:space="preserve">
+    <value>{0} at {1}: {2}, due {3}.</value>
+    <comment>One-line summary of a bill. {0} is the kind of bill, {1} the station or structure, {2} the amount in ISK, {3} the date it is due.</comment>
   </data>
   <data name="NotifLabelBill" xml:space="preserve">
     <value>Bill</value>

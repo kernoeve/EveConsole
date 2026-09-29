@@ -562,4 +562,187 @@
   <data name="TitleTradeOpportunities" xml:space="preserve">
     <value>贸易机会</value>
   </data>
+  <data name="ContractTypeItemExchange" xml:space="preserve">
+    <value>物品交换</value>
+  </data>
+  <data name="ContractTypeAuction" xml:space="preserve">
+    <value>拍卖</value>
+  </data>
+  <data name="ContractTypeCourier" xml:space="preserve">
+    <value>快递</value>
+  </data>
+  <data name="ContractTypeLoan" xml:space="preserve">
+    <value>租借</value>
+  </data>
+  <data name="ContractExpired" xml:space="preserve">
+    <value>已过期</value>
+  </data>
+  <data name="ContractTotalRow" xml:space="preserve">
+    <value>总计</value>
+  </data>
+  <data name="TipLinesUnpriced" xml:space="preserve">
+    <value>{0:N0} 行没有市场价格，未计入</value>
+  </data>
+  <data name="TipEveryLinePriced" xml:space="preserve">
+    <value>每一行都有市场价格</value>
+  </data>
+  <data name="TipLinesUncosted" xml:space="preserve">
+    <value>{0:N0} 行没有制造成本，未计入</value>
+  </data>
+  <data name="TipEveryLineCosted" xml:space="preserve">
+    <value>每一行都有制造成本</value>
+  </data>
+  <data name="ItemOffered" xml:space="preserve">
+    <value>提供</value>
+  </data>
+  <data name="ItemRequested" xml:space="preserve">
+    <value>索取</value>
+  </data>
+  <data name="TipNoMarketPrice" xml:space="preserve">
+    <value>没有此物品的市场价格记录</value>
+  </data>
+  <data name="TipIskPerUnitMarket" xml:space="preserve">
+    <value>按资产价值的市场来源，每单位 {0} ISK</value>
+  </data>
+  <data name="TipNoBuildCost" xml:space="preserve">
+    <value>没有此物品的制造成本记录</value>
+  </data>
+  <data name="TipIskPerUnitBuild" xml:space="preserve">
+    <value>每单位制造成本 {0} ISK</value>
+  </data>
+  <data name="AskingEsi" xml:space="preserve">
+    <value>正在查询 ESI…</value>
+  </data>
+  <data name="ItemsHttpError" xml:space="preserve">
+    <value>请求物品时，ESI 返回了 HTTP {0}。</value>
+  </data>
+  <data name="ItemsNoneListed" xml:space="preserve">
+    <value>ESI 没有列出该合同的任何物品。</value>
+  </data>
+  <data name="ItemsNotAskedYet" xml:space="preserve">
+    <value>尚未请求——后台扫描会处理它。</value>
+  </data>
+  <data name="NoTitle" xml:space="preserve">
+    <value>（无标题）</value>
+  </data>
+  <data name="AvailabilityPublic" xml:space="preserve">
+    <value>公开</value>
+  </data>
+  <data name="AvailabilityPrivate" xml:space="preserve">
+    <value>私人</value>
+  </data>
+  <data name="LocationNumbered" xml:space="preserve">
+    <value>位置 {0}</value>
+  </data>
+  <data name="TipIssuedForCorp" xml:space="preserve">
+    <value>由 {0} 代表军团发布。在实体浏览器中打开。</value>
+  </data>
+  <data name="TipOpenEntity" xml:space="preserve">
+    <value>在实体浏览器中打开</value>
+  </data>
+  <data name="FilterAllStatuses" xml:space="preserve">
+    <value>所有状态</value>
+  </data>
+  <data name="FilterActive" xml:space="preserve">
+    <value>有效</value>
+  </data>
+  <data name="ContractNotStored" xml:space="preserve">
+    <value>本地没有存储合同 {0}——它可能是公开合同，或尚未轮询到。</value>
+  </data>
+  <data name="NotAvailable" xml:space="preserve">
+    <value>不可用。</value>
+  </data>
+  <data name="LoadingContracts" xml:space="preserve">
+    <value>正在加载合同…</value>
+  </data>
+  <data name="ScopeAllOwners" xml:space="preserve">
+    <value>全部所有者</value>
+  </data>
+  <data name="ScopeAllCharsCorps" xml:space="preserve">
+    <value>所有角色和个人军团</value>
+  </data>
+  <data name="AllianceNumbered" xml:space="preserve">
+    <value>联盟 {0}</value>
+  </data>
+  <data name="AllAssignees" xml:space="preserve">
+    <value>所有指定对象</value>
+  </data>
+  <data name="AllAcceptors" xml:space="preserve">
+    <value>所有接受者</value>
+  </data>
+  <data name="NoContractsStored" xml:space="preserve">
+    <value>尚未存储任何军团或个人合同。</value>
+  </data>
+  <data name="SortPriceLowHigh" xml:space="preserve">
+    <value>价格：低 → 高</value>
+  </data>
+  <data name="SortPriceHighLow" xml:space="preserve">
+    <value>价格：高 → 低</value>
+  </data>
+  <data name="SortNewest" xml:space="preserve">
+    <value>最新在前</value>
+  </data>
+  <data name="SortOldest" xml:space="preserve">
+    <value>最早在前</value>
+  </data>
+  <data name="SortRewardHighLow" xml:space="preserve">
+    <value>报酬：高 → 低</value>
+  </data>
+  <data name="SortVolumeHighLow" xml:space="preserve">
+    <value>体积：高 → 低</value>
+  </data>
+  <data name="SortContentsAz" xml:space="preserve">
+    <value>内容（A → Z）</value>
+  </data>
+  <data name="AllCategories" xml:space="preserve">
+    <value>所有类别</value>
+  </data>
+  <data name="NoResults" xml:space="preserve">
+    <value>没有结果</value>
+  </data>
+  <data name="PageOfContracts" xml:space="preserve">
+    <value>第 {0:N0} / {1:N0} 页  ·  {2:N0} 个合同</value>
+  </data>
+  <data name="AllRegions" xml:space="preserve">
+    <value>所有星域</value>
+  </data>
+  <data name="FilterHistorical" xml:space="preserve">
+    <value>历史</value>
+  </data>
+  <data name="FilterAllContracts" xml:space="preserve">
+    <value>全部</value>
+  </data>
+  <data name="ContractTypeAll" xml:space="preserve">
+    <value>所有类型</value>
+  </data>
+  <data name="ContractStatusOutstanding" xml:space="preserve">
+    <value>未完成</value>
+  </data>
+  <data name="ContractStatusInProgress" xml:space="preserve">
+    <value>进行中</value>
+  </data>
+  <data name="ContractStatusFinished" xml:space="preserve">
+    <value>已完成</value>
+  </data>
+  <data name="ContractStatusFinishedIssuer" xml:space="preserve">
+    <value>由发布者完成</value>
+  </data>
+  <data name="ContractStatusFinishedContractor" xml:space="preserve">
+    <value>由接受者完成</value>
+  </data>
+  <data name="ContractStatusCancelled" xml:space="preserve">
+    <value>已取消</value>
+  </data>
+  <data name="ContractStatusRejected" xml:space="preserve">
+    <value>已拒绝</value>
+  </data>
+  <data name="ContractStatusFailed" xml:space="preserve">
+    <value>已失败</value>
+  </data>
+  <data name="ContractStatusDeleted" xml:space="preserve">
+    <value>已删除</value>
+  </data>
+  <data name="ContractStatusReversed" xml:space="preserve">
+    <value>已撤销</value>
+  </data>
 </root>

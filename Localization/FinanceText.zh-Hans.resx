@@ -193,4 +193,163 @@
   <data name="ColBuySell" xml:space="preserve">
     <value>买/卖</value>
   </data>
+  <data name="MasterWallet" xml:space="preserve">
+    <value>主钱包</value>
+  </data>
+  <data name="DivisionShort" xml:space="preserve">
+    <value>部门 {0}</value>
+  </data>
+  <data name="DirBuy" xml:space="preserve">
+    <value>买入</value>
+  </data>
+  <data name="DirSell" xml:space="preserve">
+    <value>卖出</value>
+  </data>
+  <data name="SortDateNewest" xml:space="preserve">
+    <value>日期：最新在前</value>
+  </data>
+  <data name="SortDateOldest" xml:space="preserve">
+    <value>日期：最早在前</value>
+  </data>
+  <data name="SortAmountHighLow" xml:space="preserve">
+    <value>金额：高 → 低</value>
+  </data>
+  <data name="SortAmountLowHigh" xml:space="preserve">
+    <value>金额：低 → 高</value>
+  </data>
+  <data name="SortBalanceHighLow" xml:space="preserve">
+    <value>余额：高 → 低</value>
+  </data>
+  <data name="SortTotalHighLow" xml:space="preserve">
+    <value>总计：高 → 低</value>
+  </data>
+  <data name="SortTotalLowHigh" xml:space="preserve">
+    <value>总计：低 → 高</value>
+  </data>
+  <data name="SortUnitPriceHighLow" xml:space="preserve">
+    <value>单价：高 → 低</value>
+  </data>
+  <data name="SortQuantityHighLow" xml:space="preserve">
+    <value>数量：高 → 低</value>
+  </data>
+  <data name="Last24Hours" xml:space="preserve">
+    <value>最近 24 小时</value>
+  </data>
+  <data name="Last7Days" xml:space="preserve">
+    <value>最近 7 天</value>
+  </data>
+  <data name="Last30Days" xml:space="preserve">
+    <value>最近 30 天</value>
+  </data>
+  <data name="Last90Days" xml:space="preserve">
+    <value>最近 90 天</value>
+  </data>
+  <data name="OwnerAllCharsCorps" xml:space="preserve">
+    <value>所有角色和个人军团</value>
+  </data>
+  <data name="LoadingBalances" xml:space="preserve">
+    <value>正在加载余额…</value>
+  </data>
+  <data name="BuildingCharts" xml:space="preserve">
+    <value>正在生成图表…</value>
+  </data>
+  <data name="LoadingDivisions" xml:space="preserve">
+    <value>正在加载部门…</value>
+  </data>
+  <data name="SliceMarketSales" xml:space="preserve">
+    <value>市场销售</value>
+  </data>
+  <data name="SliceNpcBounties" xml:space="preserve">
+    <value>NPC 赏金</value>
+  </data>
+  <data name="SliceContractSales" xml:space="preserve">
+    <value>合同销售</value>
+  </data>
+  <data name="SliceOtherIncome" xml:space="preserve">
+    <value>其他收入</value>
+  </data>
+  <data name="SliceMarketPurchases" xml:space="preserve">
+    <value>市场购买</value>
+  </data>
+  <data name="SliceContractPurchases" xml:space="preserve">
+    <value>合同购买</value>
+  </data>
+  <data name="SliceBrokerFees" xml:space="preserve">
+    <value>中介费</value>
+  </data>
+  <data name="SliceTransactionTax" xml:space="preserve">
+    <value>交易税</value>
+  </data>
+  <data name="SliceIndustryTax" xml:space="preserve">
+    <value>工业税</value>
+  </data>
+  <data name="SliceOtherExpenses" xml:space="preserve">
+    <value>其他支出</value>
+  </data>
+  <data name="DivisionNumbered" xml:space="preserve">
+    <value>部门 {0}</value>
+  </data>
+  <data name="Last365Days" xml:space="preserve">
+    <value>最近 365 天</value>
+  </data>
+  <data name="YearToDate" xml:space="preserve">
+    <value>今年至今</value>
+  </data>
+  <data name="PriorYear" xml:space="preserve">
+    <value>去年</value>
+  </data>
+  <data name="CustomRange" xml:space="preserve">
+    <value>自定义范围</value>
+  </data>
+  <data name="OwnerPersonal" xml:space="preserve">
+    <value>个人</value>
+  </data>
+  <data name="LineNetWorthTotal" xml:space="preserve">
+    <value>净资产（总计）</value>
+  </data>
+  <data name="LineAssets" xml:space="preserve">
+    <value>资产</value>
+  </data>
+  <data name="LineWallet" xml:space="preserve">
+    <value>钱包</value>
+  </data>
+  <data name="LineIndustryJobs" xml:space="preserve">
+    <value>工业任务</value>
+  </data>
+  <data name="LineSellOrders" xml:space="preserve">
+    <value>卖单</value>
+  </data>
+  <data name="LineBuyEscrow" xml:space="preserve">
+    <value>买单托管金</value>
+  </data>
+  <data name="LineContractCollateral" xml:space="preserve">
+    <value>合同保证金</value>
+  </data>
+  <data name="LineContractValue" xml:space="preserve">
+    <value>合同价值</value>
+  </data>
+  <data name="AsOfDate" xml:space="preserve">
+    <value>截至 {0}</value>
+  </data>
+  <data name="CategoryOther" xml:space="preserve">
+    <value>其他</value>
+  </data>
+  <data name="NoCharacters" xml:space="preserve">
+    <value>没有角色。</value>
+  </data>
+  <data name="SeriesIncome" xml:space="preserve">
+    <value>收入</value>
+  </data>
+  <data name="SeriesExpense" xml:space="preserve">
+    <value>支出</value>
+  </data>
+  <data name="SeriesCashflow" xml:space="preserve">
+    <value>现金流</value>
+  </data>
+  <data name="LastDaysNoteOther" xml:space="preserve">
+    <value>最近 {0} 天——不含在你自己的钱包之间转移的 ISK</value>
+  </data>
+  <data name="DirAll" xml:space="preserve">
+    <value>全部</value>
+  </data>
 </root>

@@ -7,6 +7,9 @@
   <data name="TitleAddItem" xml:space="preserve">
     <value>添加物品</value>
   </data>
+  <data name="TypeNumbered" xml:space="preserve">
+    <value>类型 {0}</value>
+  </data>
   <data name="SearchForItemLabel" xml:space="preserve">
     <value>搜索物品</value>
   </data>
@@ -138,5 +141,23 @@
   </data>
   <data name="NoMatchesPressEnterNote" xml:space="preserve">
     <value>没有匹配项——按 Enter 键创建。</value>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>正在加载…</value>
+  </data>
+  <data name="Checking" xml:space="preserve">
+    <value>正在检查…</value>
+  </data>
+  <data name="ErrorWithMessage" xml:space="preserve">
+    <value>错误：{0}</value>
+  </data>
+  <data name="PriceTypeBuy" xml:space="preserve">
+    <value>买价</value>
+  </data>
+  <data name="PriceTypeSell" xml:space="preserve">
+    <value>卖价</value>
+  </data>
+  <data name="PriceTypeSplit" xml:space="preserve">
+    <value>中间价</value>
   </data>
 </root>

@@ -154,7 +154,7 @@ public class WalletTransactionRowVm
         IReadOnlyDictionary<(long, int), string> divisionNames)
     {
         DateText     = t.Date.ToLocalTime().ToString("MMM d, HH:mm");
-        TypeName     = typeNames.TryGetValue(t.TypeId, out var n) ? n : $"\"Type\" {t.TypeId}";
+        TypeName     = typeNames.TryGetValue(t.TypeId, out var n) ? n : string.Format(CommonText.TypeNumbered, t.TypeId);
         QuantityRaw  = t.Quantity;
         Quantity     = t.Quantity.ToString("N0");
         UnitPriceRaw = t.UnitPrice;

@@ -86,7 +86,7 @@ public class StoreRowVm : ReactiveObject
     public Store Model => _model;
     public int   Id    => _model.Id;
 
-    public string Name          => _model.Name.Length > 0 ? _model.Name : "(unnamed)";
+    public string Name          => _model.Name.Length > 0 ? _model.Name : SalesText.StoreUnnamed;
     public string CharacterName => _model.CharacterName;
     public bool   Enabled       => _model.Enabled;
     public bool   WebEnabled    => _model.WebEnabled;
@@ -141,7 +141,7 @@ public class StoreWebEventRowVm(StoreWebEvent e)
     {
         "booked"   => SalesText.OutcomeBooked,
         "applied"  => SalesText.OutcomeApplied,
-        "review"   => "Needs a decision",
+        "review"   => SalesText.OutcomeNeedsDecision,
         "rejected" => SalesText.OutcomeDeclined,
         "error"    => SalesText.OutcomeFailed,
         "noted"    => SalesText.OutcomeNoted,
@@ -942,9 +942,16 @@ public class StoresViewModel : ReactiveObject
     {
         if (!s.WebEnabled) return SalesText.WebClosed;
         if (s.WebUrl.Length == 0 || s.WebSecret.Length == 0) return SalesText.WebNeedsAddress;
-        var last = s.WebLastSyncAt is { } t ? string.Format(SalesText.WebLastSynced, t.ToLocalTime()) : SalesText.WebNotSynced;
-        var ver  = s.WebSiteVersion.Length > 0 ? string.Format(SalesText.WebSiteVersion, s.WebSiteVersion) : "";
-        return s.WebLastError.Length > 0 ? $"{last}{ver}. ⚠ {s.WebLastError}" : $"{last}{ver}.";
+        // Whole sentences: the version and the full stop were joined on in English order.
+        var ver    = s.WebSiteVersion;
+        var status = (s.WebLastSyncAt, ver.Length > 0) switch
+        {
+            ({ } t, true)  => string.Format(SalesText.WebStatusSyncedVersion, t.ToLocalTime(), ver),
+            ({ } t, false) => string.Format(SalesText.WebStatusSynced, t.ToLocalTime()),
+            (null, true)   => string.Format(SalesText.WebStatusNotSyncedVersion, ver),
+            _              => SalesText.WebStatusNotSynced,
+        };
+        return s.WebLastError.Length > 0 ? $"{status} ⚠ {s.WebLastError}" : status;
     }
 
     /// <summary>
@@ -1881,7 +1888,12 @@ public class StoresViewModel : ReactiveObject
                 : await ResolveAsync(db, typed, kind);
             if (resolved is null)
             {
-                Status = string.Format(SalesText.AllowNotFound, kind, typed);
+                Status = string.Format(kind switch
+                {
+                    "corporation" => SalesText.AllowNotFoundCorporation,
+                    "alliance"    => SalesText.AllowNotFoundAlliance,
+                    _             => SalesText.AllowNotFoundCharacter,
+                }, typed);
                 return;
             }
 

@@ -504,9 +504,9 @@ public class OrderTrackerViewModel : ReactiveObject
                     _ => string.Format(SalesText.ContractsListed, links.Count, string.Join(", ", links.Select(l => l.ContractId))),
                 };
                 var tip = links.Count == 0 ? "" : string.Join("\n", links.Select(l =>
-                        $"{Named(l.ContractId)} — " +
-                        (l.Units is int u ? Plurals.Format(SalesText.ResourceManager, nameof(SalesText.ContractUnitsOther), u) : SalesText.ContractUnitsUncounted) +
-                        $", {Where(l.ContractId)}"))
+                        string.Format(SalesText.TipContractLine, Named(l.ContractId),
+                            l.Units is int u ? Plurals.Format(SalesText.ResourceManager, nameof(SalesText.ContractUnitsOther), u) : SalesText.ContractUnitsUncounted,
+                            Where(l.ContractId))))
                     + (o.LinkedContractId is { } open ? string.Format(SalesText.TipClickToOpenContract, open) : "");
 
                 // ⚠️ Named, not positional. storeName, contractLabel and buildAsOf are three

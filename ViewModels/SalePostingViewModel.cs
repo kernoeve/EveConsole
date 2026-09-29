@@ -478,7 +478,16 @@ public class SalePostingRow : ReactiveObject
     private long?  _locationId;
 
     public string LocationName    => _locationName;
-    public string ScopeSuffix     => _scope == "Everywhere" ? "" : $" · {_scope}";
+    public string ScopeSuffix     => _scope == "Everywhere" ? "" : $" · {ScopeLabel(_scope)}";
+
+    // The scope is saved by its English key; this is the word shown for it.
+    private static string ScopeLabel(string scope) => scope switch
+    {
+        "Station" => SalesText.Station,
+        "System"  => SalesText.System,
+        "Region"  => SalesText.Region,
+        _         => scope,
+    };
     public bool   HasLocationLink => _locationId is > 0 && _locationName.Length > 0
                                   && _scope != "Everywhere";
 
@@ -527,7 +536,7 @@ public class SalePostingRow : ReactiveObject
     {
         Model          = m;
         PostingName    = m.Name;
-        ScopeDisplay   = m.Scope == "Everywhere" ? SalesText.ScopeEverywhere : $"{m.LocationName} · {m.Scope}";
+        ScopeDisplay   = m.Scope == "Everywhere" ? SalesText.ScopeEverywhere : $"{m.LocationName} · {ScopeLabel(m.Scope)}";
         _scope         = m.Scope;
         _locationId    = m.LocationId;
         _locationName  = m.LocationName;
@@ -537,7 +546,7 @@ public class SalePostingRow : ReactiveObject
         string basis   = m.PricingBasis switch
         {
             "Contract" => SalesText.PriceBasisContract,
-            "Market"   => string.Format(SalesText.PriceBasisMarketAt, m.MarketStationName, m.MarketPriceType),
+            "Market"   => string.Format(SalesText.PriceBasisMarketAt, m.MarketStationName, Models.MarketPriceType.Label(m.MarketPriceType)),
             _          => SalesText.PriceBasisBuild,
         };
         PricingDisplay = $"{basis} × {m.PricePercent:0.#}%";

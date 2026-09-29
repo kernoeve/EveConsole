@@ -146,7 +146,7 @@ internal static class SalesQuery
         string OwnerName(long id, string type) => type == "corporation"
             ? (corpNames.TryGetValue(id, out var cn) ? cn : string.Format(SalesText.CorpNumbered, id))
             : (charNames.TryGetValue(id, out var pn) ? pn : string.Format(SalesText.CharNumbered, id));
-        string TypeName(int id) => typeNames.TryGetValue(id, out var n) ? n : $"\"Type\" {id}";
+        string TypeName(int id) => typeNames.TryGetValue(id, out var n) ? n : string.Format(SalesText.TypeNumbered, id);
 
         // Buyer names — external players. Resolve from local caches, fall back to ESI once and
         // persist to the shared UniverseNames cache so later loads stay offline.

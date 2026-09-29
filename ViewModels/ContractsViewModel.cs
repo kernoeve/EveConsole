@@ -122,7 +122,10 @@ public sealed record ContractItemValues(IReadOnlyDictionary<int, double> MarketU
 
 public class ContractItemRowVm : ReactiveObject
 {
-    public string Kind      { get; }     // "Offered" / "Requested"
+    public string Kind      { get; }     // "Offered" / "Requested", as shown
+    /// <summary>Offered by the issuer, rather than asked for. ⚠️ Rows are told apart by this,
+    /// never by Kind: two translations of the words could be the same.</summary>
+    public bool   IsOffered { get; }
     public IBrush KindColor { get; }
     public string TypeName  { get; }
     public string Quantity  { get; }
@@ -155,6 +158,7 @@ public class ContractItemRowVm : ReactiveObject
     {
         IsTotal   = true;
         Kind      = rows.Count > 0 ? rows[0].Kind : "";
+        IsOffered = rows.Count > 0 && rows[0].IsOffered;
         KindColor = Palette.TextMuted;
         TypeName  = MarketText.ContractTotalRow;
         QuantityRaw = rows.Sum(r => r.QuantityRaw);
@@ -170,9 +174,10 @@ public class ContractItemRowVm : ReactiveObject
 
     public ContractItemRowVm(ContractItem it, IReadOnlyDictionary<int, string> typeNames, ContractItemValues values)
     {
+        IsOffered = it.IsIncluded;
         Kind      = it.IsIncluded ? MarketText.ItemOffered : MarketText.ItemRequested;
         KindColor = it.IsIncluded ? Palette.Good : Palette.Bad;
-        TypeName  = typeNames.TryGetValue(it.TypeId, out var n) ? n : $"\"Type\" {it.TypeId}";
+        TypeName  = typeNames.TryGetValue(it.TypeId, out var n) ? n : string.Format(CommonText.TypeNumbered, it.TypeId);
         TypeId    = it.TypeId;
         QuantityRaw = it.Quantity;
         Quantity  = it.Quantity.ToString("N0");
@@ -343,8 +348,8 @@ public class ContractDetailVm : ReactiveObject
                                  .ThenBy(i => typeNames.TryGetValue(i.TypeId, out var n) ? n : ""))
             Items.Add(new ContractItemRowVm(it, typeNames, values));
 
-        var offered   = Items.Where(r => r.Kind == MarketText.ItemOffered).ToList();
-        var requested = Items.Where(r => r.Kind == MarketText.ItemRequested).ToList();
+        var offered   = Items.Where(r => r.IsOffered).ToList();
+        var requested = Items.Where(r => !r.IsOffered).ToList();
         foreach (var r in offered)   Offered.Add(r);
         if (offered.Count > 0)       Offered.Add(new ContractItemRowVm(offered));
         foreach (var r in requested) Requested.Add(r);
@@ -501,7 +506,7 @@ public class ContractRowVm
         SearchText = string.Join(" ",
             new[] { c.Title ?? "" }.Concat(items.Select(Name))).ToLowerInvariant();
 
-        string Name(ContractItem i) => typeNames.TryGetValue(i.TypeId, out var n) ? n : $"\"Type\" {i.TypeId}";
+        string Name(ContractItem i) => typeNames.TryGetValue(i.TypeId, out var n) ? n : string.Format(CommonText.TypeNumbered, i.TypeId);
     }
 }
 

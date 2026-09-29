@@ -352,12 +352,12 @@ public static class NotificationBody
     // types are the game's own names, and their references are shown as they come.
     private static readonly Dictionary<int, string> BillTypes = new()
     {
-        [1] = "Market fine",
-        [2] = "Office rental",
-        [3] = "Broker fee",
-        [4] = "War",
-        [5] = "Alliance maintenance",
-        [6] = "Sovereignty marker",
+        [1] = CommsText.NotifBillMarketFine,
+        [2] = CommsText.NotifBillOfficeRental,
+        [3] = CommsText.NotifBillBrokerFee,
+        [4] = CommsText.NotifBillWar,
+        [5] = CommsText.NotifBillAllianceMaintenance,
+        [6] = CommsText.NotifBillSovereigntyMarker,
     };
 
     /// <summary>Types that carry nothing but their name.</summary>
@@ -513,7 +513,7 @@ public static class NotificationBody
             List<Pending> first = quantityFirst && c2 is not null
                 ? [c2 with { Text = $"{c2.Text} ×", Flush = false }, c1]
                 : [c1, .. new[] { c2, c3 }.OfType<Pending>()];
-            if (table.Rows.Count > 1) first.Add(Pending.Muted($"+{table.Rows.Count - 1} more"));
+            if (table.Rows.Count > 1) first.Add(Pending.Muted(string.Format(CommsText.NotifMoreRows, table.Rows.Count - 1)));
 
             Facts[key] = first;
             Facts[$"{key}.count"] = [Pending.Plain(table.Rows.Count.ToString("N0", CultureInfo.CurrentCulture))];
@@ -661,7 +661,7 @@ public static class NotificationBody
         K.Date      => Pending.Plain(Date(Long(s)) ?? s),
         K.Duration  => Pending.Plain(Span(TimeSpan.FromTicks(Long(s)))),
         K.Seconds   => Pending.Plain(Span(TimeSpan.FromSeconds(Dbl(s)))),
-        K.Hours     => Pending.Plain(Dbl(s) == 1 ? "1 hour" : $"{Dbl(s):0.#} hours"),
+        K.Hours     => Pending.Plain(Hours(Dbl(s))),
         _           => Strip(s).Trim() is { Length: > 0 } t ? Pending.Plain(t) : null,
     };
 
@@ -758,11 +758,18 @@ public static class NotificationBody
         if (issued is not null) parts.Field("issued", CommsText.NotifLabelIssued, Pending.Plain(issued), 0);
         if (due is not null)    parts.Field("due", CommsText.NotifLabelDue, Pending.Plain(due), 0);
 
+        // ⚠️ Whole sentences, one per case: "at" and "due" were joined on in English word order.
         return res =>
         {
-            var at   = place is not null ? $" at {place.Build(res).Text}" : "";
-            var when = due is not null ? $", due {due}" : "";
-            return $"{what}{at}: {Isk(amount)}{when}.";
+            var money = Isk(amount);
+            var where = place?.Build(res).Text;
+            return (where, due) switch
+            {
+                (null, null) => string.Format(CommsText.NotifBillSummary, what, money),
+                (_, null)    => string.Format(CommsText.NotifBillSummaryAt, what, where, money),
+                (null, _)    => string.Format(CommsText.NotifBillSummaryDue, what, money, due),
+                _            => string.Format(CommsText.NotifBillSummaryAtDue, what, where, money, due),
+            };
         };
     }
 
@@ -1056,11 +1063,17 @@ public static class NotificationBody
     private static string Span(TimeSpan t)
     {
         var parts = new List<string>(3);
-        if (t.TotalDays >= 1) parts.Add($"{(int)t.TotalDays}d");
-        if (t.Hours > 0)      parts.Add($"{t.Hours}h");
-        if (t.Minutes > 0)    parts.Add($"{t.Minutes}m");
-        return parts.Count > 0 ? string.Join(" ", parts) : $"{Math.Max(0, (int)t.TotalSeconds)}s";
+        if (t.TotalDays >= 1) parts.Add(string.Format(CommsText.NotifSpanDays, (int)t.TotalDays));
+        if (t.Hours > 0)      parts.Add(string.Format(CommsText.NotifSpanHours, t.Hours));
+        if (t.Minutes > 0)    parts.Add(string.Format(CommsText.NotifSpanMinutes, t.Minutes));
+        return parts.Count > 0 ? string.Join(" ", parts) : string.Format(CommsText.NotifSpanSeconds, Math.Max(0, (int)t.TotalSeconds));
     }
+
+    /// <summary>"1 hour", "24 hours", "1.5 hours".</summary>
+    private static string Hours(double h) =>
+        h == Math.Floor(h) && Math.Abs(h) < long.MaxValue
+            ? Plurals.Format(CommsText.ResourceManager, nameof(CommsText.NotifHoursOther), (long)h)
+            : string.Format(CommsText.NotifHoursFraction, h);
 
     private static string Strip(string s) =>
         Regex.Replace(Regex.Replace(s, @"<a[^>]*>(.*?)</a>", "$1", RegexOptions.IgnoreCase | RegexOptions.Singleline),
