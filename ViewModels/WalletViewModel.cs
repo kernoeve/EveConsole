@@ -168,7 +168,9 @@ public class WalletTransactionRowVm
             ? (divisionNames.TryGetValue((t.OwnerId, t.Division.Value), out var dn) ? dn
                : t.Division.Value == 1 ? FinanceText.MasterWallet : string.Format(FinanceText.DivisionShort, t.Division))
             : "";
-        LocationName = locationNames.TryGetValue(t.LocationId, out var ln) ? ln : "";
+        // An NPC station in the interface language, a structure as named: the grid is all that
+        // reads it, and the filter matches both.
+        LocationName = locationNames.TryGetValue(t.LocationId, out var ln) ? SdeNames.Location(t.LocationId, ln) : "";
         _typeId      = t.TypeId;
         _locationId  = t.LocationId;
         _ownerId     = t.OwnerId;
@@ -845,10 +847,15 @@ public class WalletViewModel : ReactiveObject
         var locF = _txnLocationFilter.Trim();
         if (locF.Length > 0)
         {
+            // The English name, or the name the grid shows: the NPC stations whose name in the
+            // interface language holds the text are added by id, as integer literals.
+            var shownIds = SdeNames.Find(SdeNameKind.Station, locF);
+            var orShown  = shownIds.Count == 0 ? ""
+                : $" OR x.\"LocationId\" IN ({string.Join(",", shownIds.Select(id => id.ToString(System.Globalization.CultureInfo.InvariantCulture)))})";
             int i = ps.Count; ps.Add("%" + locF + "%");
             int j = ps.Count; ps.Add("%" + locF + "%");
-            parts.Add($"x.\"LocationId\" IN (SELECT \"StationId\" FROM \"SdeStations\" WHERE \"Name\" LIKE {{{i}}} "
-                    + $"UNION SELECT \"StructureId\" FROM \"EsiStructureNames\" WHERE \"Name\" LIKE {{{j}}})");
+            parts.Add($"(x.\"LocationId\" IN (SELECT \"StationId\" FROM \"SdeStations\" WHERE \"Name\" LIKE {{{i}}} "
+                    + $"UNION SELECT \"StructureId\" FROM \"EsiStructureNames\" WHERE \"Name\" LIKE {{{j}}}){orShown})");
         }
 
         var ownerF = _txnOwnerFilter.Trim();

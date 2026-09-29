@@ -774,11 +774,14 @@ public class MarketLevelViewModel : ReactiveObject, IPeriodicRefresh
         var configs    = await db.MarketPricingConfigs.OrderBy(c => c.SortOrder).ToListAsync();
         var defaults   = await db.MarketDefaultSettings.FindAsync(1);
         int? defaultId = defaults?.AssetValueConfigId;
+        var places     = await MarketSourceNames.PlacesAsync(db, configs.Select(c => c.LocationId));
 
+        // Each named as Settings names it; the dialog hands back the id, never the label.
         MarketSources.Clear();
         MarketSources.Add(new MarketSourceOptionVm(null, MarketText.SourceAssetDefault));
         foreach (var c in configs)
-            MarketSources.Add(new MarketSourceOptionVm(c.Id, c.LocationName));
+            MarketSources.Add(new MarketSourceOptionVm(c.Id,
+                MarketSourceNames.Shown(c.LocationId, c.LocationName, places.GetValueOrDefault(c.LocationId))));
     }
 
     private async Task LoadAvailableStationsAsync()
@@ -786,7 +789,8 @@ public class MarketLevelViewModel : ReactiveObject, IPeriodicRefresh
         // ⚠️ Off the calling thread — the auto-refresh reaches this from a main-thread timer.
         var stations = await Task.Run(() => _svc.GetAvailableStationsAsync());
         AvailableStations.Clear();
-        foreach (var s in stations) AvailableStations.Add(s);
+        // By the name the dialog shows; a group keeps the English Name it is given.
+        foreach (var s in stations.OrderBy(s => s.DisplayName, StringComparer.CurrentCulture)) AvailableStations.Add(s);
     }
 
     private IReadOnlyList<CollectionOption> GetCollectionOptions()

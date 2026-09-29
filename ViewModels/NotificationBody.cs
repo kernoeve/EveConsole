@@ -387,7 +387,7 @@ public static class NotificationBody
         var prepared = notifications.Select(n => Prepare(n.Type, n.Text, r)).ToList();
         await r.ResolveAsync(names, dbFactory);
 
-        // Items, systems and NPCs are named in the interface language as each value is built.
+        // Items, systems, NPC stations and NPCs are named in the interface language as each value is built.
         // Waited for once, so a list laid out right after start does not show English and keep it.
         await SdeNames.EnsureLoadedAsync();
         return [.. prepared.Select(p => p.Finish(r))];
@@ -971,8 +971,8 @@ public static class NotificationBody
                     var known = _stationInfo.TryGetValue(id, out var st);
                     return new NotifValueVm
                     {
-                        // English, like a moon's: built from celestial names not translated yet.
-                        Text    = known ? st.Name : string.Format(CommsText.NotifStationNumbered, id),
+                        // In the interface language, as the game client names it (SdeNames.Station).
+                        Text    = known ? SdeNames.Station(id, st.Name) : string.Format(CommsText.NotifStationNumbered, id),
                         IconUrl = known && st.TypeId > 0 ? $"types/{st.TypeId}/icon?size=32" : null,
                         Tip     = CommsText.NotifTipNpcEntities,
                         Open    = () => EntityNavigator.Instance.Entity(EntityKind.Station, id),

@@ -375,9 +375,11 @@ public class ContractDetailVm : ReactiveObject
         return "—";
     }
 
+    /// <summary>A start or end location as shown: an NPC station in the interface language, a
+    /// structure as its owner named it. The map it is read from stays English.</summary>
     private static string Loc(IReadOnlyDictionary<long, string> locations, long? id) =>
         id is > 0 && locations.TryGetValue(id.Value, out var n) && !string.IsNullOrEmpty(n)
-            ? n : (id is > 0 ? string.Format(MarketText.LocationNumbered, id) : "—");
+            ? SdeNames.Location(id.Value, n) : (id is > 0 ? string.Format(MarketText.LocationNumbered, id) : "—");
 }
 
 public class ContractRowVm

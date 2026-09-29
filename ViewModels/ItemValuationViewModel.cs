@@ -452,10 +452,14 @@ public sealed class ItemValuationViewModel : ReactiveObject
             var savedCompare = (UiState.Get(CompareKey) ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries)
                 .Select(s => long.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out var id) ? id : 0).Where(id => id > 0).ToList();
 
+            // The box names the station as its list does (ValueMemberBinding), so the names shown
+            // are waited for first: text that differs from the pick's makes the box drop the pick.
+            await SdeNames.EnsureLoadedAsync();
+
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 SelectedStation = stations.FirstOrDefault(s => s.LocationId == savedId) ?? stations.FirstOrDefault();
-                StationText     = SelectedStation?.Name ?? "";
+                StationText     = SelectedStation?.DisplayName ?? "";
                 SelectedBasis   = Bases.First(x => x.Basis == savedBasis);
                 SelectedTarget  = Targets.First(x => x.Reprocess == savedTarget);
                 foreach (var id in savedCompare)
@@ -570,6 +574,7 @@ public sealed class ItemValuationViewModel : ReactiveObject
         var v  = _valuation;
         var sb = new StringBuilder();
         var basis = BasisPhrase(SelectedBasis?.Basis, AssetsText.CopyBasisSell, AssetsText.CopyBasisBuy, AssetsText.CopyBasisSplit);
+        // The stations by their English names here, like the items below: Name, not DisplayName.
         sb.AppendLine(string.Format(v.Reprocessed ? AssetsText.CopyValuedAtReprocessed : AssetsText.CopyValuedAt,
             v.Stations[0].Station.Name, basis, PricePercent));
         sb.AppendLine(string.Join("\t",
@@ -679,7 +684,7 @@ public sealed class ItemValuationViewModel : ReactiveObject
         var prices = BasisPhrase(SelectedBasis?.Basis, AssetsText.StatusPricesSell, AssetsText.StatusPricesBuy, AssetsText.StatusPricesSplit);
         var valued = Plurals.Format(AssetsText.ResourceManager,
             v.Reprocessed ? nameof(AssetsText.StatusValuedRowsOther) : nameof(AssetsText.StatusValuedItemsOther),
-            v.Values.Count, v.Stations[0].Station.Name, prices, ageText);
+            v.Values.Count, v.Stations[0].Station.DisplayName, prices, ageText);
         Status = v.Unpriced > 0
             ? string.Format(AssetsText.StatusValuedUnpriced, valued, v.Unpriced)
             : string.Format(AssetsText.StatusValued, valued);

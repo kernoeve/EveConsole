@@ -95,10 +95,15 @@ internal static class SalesQuery
         var mgAll = await db.SdeMarketGroups.AsNoTracking()
             .ToDictionaryAsync(g => g.MarketGroupId, g => new { g.ParentGroupId, g.Name });
 
-        // ⚠️ The item and market-group names on these rows are only ever shown — in the grids, and
-        // in the rollups and pies, which group by what the reader sees — so they are put in the
-        // interface language here, where the rows are built. The ids travel with them for the links.
+        // ⚠️ The item, market-group and NPC station names on these rows are only ever shown — in the
+        // grids, and in the rollups and pies, which group by what the reader sees — so they are put
+        // in the interface language here, where the rows are built. The ids travel with them for
+        // the links. A player structure keeps the name its owner gave it.
         await SdeNames.EnsureLoadedAsync();
+
+        // Which table named the place (IsStation) decides, as it does for the link.
+        static string Place(long id, bool isStation, string? name) =>
+            name is null ? "" : isStation ? SdeNames.Station(id, name) : name;
 
         string GroupTwoUp(int typeId)
         {
@@ -183,7 +188,7 @@ internal static class SalesQuery
             var (bu, mv) = Snap(m.TypeId, ParseDate(m.DateStr));
             rows.Add(new SaleRowVm(
                 ParseDate(m.DateStr), "Market", m.OwnerType, m.OwnerId, IsPersonal(m.OwnerId, m.OwnerType),
-                OwnerName(m.OwnerId, m.OwnerType), m.Location ?? "", BuyerName(m.BuyerId),
+                OwnerName(m.OwnerId, m.OwnerType), Place(m.LocationId, m.IsStation > 0, m.Location), BuyerName(m.BuyerId),
                 TypeName(m.TypeId), m.Quantity.ToString("N0"), m.Quantity * m.UnitPrice,
                 bu is double b ? b * m.Quantity : null, mv is double v ? v * m.Quantity : null,
                 m.TypeId, GroupTwoUp(m.TypeId), m.SaleId,
@@ -203,7 +208,7 @@ internal static class SalesQuery
             var firstType = its.Count > 0 ? its[0].TypeId : 0;
             rows.Add(new SaleRowVm(
                 when, "Contract", c.OwnerType, c.OwnerId, IsPersonal(c.OwnerId, c.OwnerType),
-                OwnerName(c.OwnerId, c.OwnerType), c.Location ?? "", BuyerName(c.BuyerId),
+                OwnerName(c.OwnerId, c.OwnerType), Place(c.LocationId, c.IsStation > 0, c.Location), BuyerName(c.BuyerId),
                 namesText, units, c.Price, build, mkt,
                 firstType, firstType > 0 ? GroupTwoUp(firstType) : "—", c.SaleId,
                 c.LocationId, c.IsStation > 0, c.BuyerId, BuyerKind(c.BuyerId), c.Title ?? "")

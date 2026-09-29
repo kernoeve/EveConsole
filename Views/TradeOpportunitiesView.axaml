@@ -74,17 +74,20 @@
 
           <TextBlock Text="{x:Static loc:MarketText.From}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
                      VerticalAlignment="Center" />
+          <!-- Both boxes name each station as the interface does, and find it by that name or by
+               its English (StationFilter, which makes the filter mode Custom). Nothing is saved
+               from them but the pick itself. -->
           <AutoCompleteBox ItemsSource="{Binding Stations}"
                            SelectedItem="{Binding SourceStation}"
-                           ValueMemberBinding="{Binding Name}"
-                           FilterMode="Contains"
+                           ValueMemberBinding="{Binding DisplayName}"
+                           ItemFilter="{Binding StationFilter}"
                            MinimumPrefixLength="0"
                            Watermark="{x:Static loc:MarketText.HintTypeToFilter}"
                            Width="220" FontSize="12"
                            Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextPrimaryBrush}">
             <AutoCompleteBox.ItemTemplate>
               <DataTemplate DataType="vm:StationOption">
-                <TextBlock Text="{Binding Name}" />
+                <TextBlock Text="{Binding DisplayName}" />
               </DataTemplate>
             </AutoCompleteBox.ItemTemplate>
           </AutoCompleteBox>
@@ -93,15 +96,15 @@
                      VerticalAlignment="Center" />
           <AutoCompleteBox ItemsSource="{Binding Stations}"
                            SelectedItem="{Binding DestinationStation}"
-                           ValueMemberBinding="{Binding Name}"
-                           FilterMode="Contains"
+                           ValueMemberBinding="{Binding DisplayName}"
+                           ItemFilter="{Binding StationFilter}"
                            MinimumPrefixLength="0"
                            Watermark="{x:Static loc:MarketText.HintTypeToFilter}"
                            Width="220" FontSize="12"
                            Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextPrimaryBrush}">
             <AutoCompleteBox.ItemTemplate>
               <DataTemplate DataType="vm:StationOption">
-                <TextBlock Text="{Binding Name}" />
+                <TextBlock Text="{Binding DisplayName}" />
               </DataTemplate>
             </AutoCompleteBox.ItemTemplate>
           </AutoCompleteBox>

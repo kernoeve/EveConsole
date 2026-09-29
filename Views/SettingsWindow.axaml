@@ -400,7 +400,7 @@
                 <ListBox.ItemTemplate>
                   <DataTemplate x:DataType="vm:MarketPricingConfigVm">
                     <Grid ColumnDefinitions="*,Auto" Margin="2 3">
-                      <TextBlock Grid.Column="0" Text="{Binding LocationName}"
+                      <TextBlock Grid.Column="0" Text="{Binding DisplayName}"
                                  Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
                       <TextBlock Grid.Column="1" Text="{Binding Method}"
                                  FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
@@ -509,7 +509,7 @@
                             <TextBlock Grid.Column="0" Text="{Binding Category}"
                                        FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
                                        VerticalAlignment="Center" />
-                            <TextBlock Grid.Column="1" Text="{Binding Name}"
+                            <TextBlock Grid.Column="1" Text="{Binding DisplayName}"
                                        Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
                           </Grid>
                         </DataTemplate>
@@ -617,7 +617,7 @@
                         HorizontalAlignment="Stretch">
                 <ComboBox.ItemTemplate>
                   <DataTemplate x:DataType="vm:MarketPricingConfigVm">
-                    <TextBlock Text="{Binding LocationName}" FontSize="12" />
+                    <TextBlock Text="{Binding DisplayName}" FontSize="12" />
                   </DataTemplate>
                 </ComboBox.ItemTemplate>
               </ComboBox>
@@ -643,7 +643,7 @@
                         HorizontalAlignment="Stretch">
                 <ComboBox.ItemTemplate>
                   <DataTemplate x:DataType="vm:MarketPricingConfigVm">
-                    <TextBlock Text="{Binding LocationName}" FontSize="12" />
+                    <TextBlock Text="{Binding DisplayName}" FontSize="12" />
                   </DataTemplate>
                 </ComboBox.ItemTemplate>
               </ComboBox>

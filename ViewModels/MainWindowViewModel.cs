@@ -485,6 +485,7 @@ public class MainWindowViewModel : ReactiveObject
                         c.Name,
                         s.Online,
                         Docked   = s.StationId != null || s.StructureId != null,
+                        s.StationId,
                         s.SolarSystemId,
                         System   = sys != null ? sys.Name : null,
                         Place    = sta  != null ? sta.Name
@@ -503,15 +504,15 @@ public class MainWindowViewModel : ReactiveObject
 
             var list = online.Select(r =>
             {
-                // The system and the hull in the interface language. Docked places stay as
-                // named: NPC station names are not translated, player structures never are.
+                // The system, an NPC station and the hull in the interface language. A player
+                // structure stays as its owner named it.
                 var system = string.IsNullOrWhiteSpace(r.System) ? ShellText.LocationUnknown
                            : SdeNames.SolarSystem(r.SolarSystemId ?? 0, r.System);
 
                 // Docked: the station or structure, which says more than its system does. In
                 // space: the system, which is all there is to say.
                 var where = !r.Docked                              ? system
-                          : !string.IsNullOrWhiteSpace(r.Place)    ? r.Place
+                          : !string.IsNullOrWhiteSpace(r.Place)    ? (r.StationId is { } station ? SdeNames.Station(station, r.Place) : r.Place)
                           :                                          string.Format(ShellText.StructureInSystem, system);
 
                 // The hull is what the ship IS; ShipName is what the pilot called it. Show

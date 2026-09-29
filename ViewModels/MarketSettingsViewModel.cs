@@ -18,13 +18,59 @@ public class CharacterAuthOption
     public override string ToString() => Name;
 }
 
-public record LocationResult(long Id, string Name, string Category);
+/// <summary>A search hit. <see cref="Name"/> is English: picking one makes it the source's name.</summary>
+public record LocationResult(long Id, string Name, string Category)
+{
+    /// <summary>What the results list shows: an NPC station in the interface language, a structure as named.</summary>
+    public string DisplayName => SdeNames.Location(Id, Name);
+}
 
 public class StationFilterOption
 {
     public long?  LocationId { get; init; }
     public string Name       { get; init; } = "";
-    public override string ToString() => Name;
+
+    /// <summary>An NPC station in the interface language; the filter is kept by its id.</summary>
+    public string DisplayName => LocationId is { } id ? SdeNames.Location(id, Name) : Name;
+
+    public override string ToString() => DisplayName;
+}
+
+/// <summary>
+/// A market source's name as the screens show it. The name is the user's to edit and is shown as
+/// stored — except while it is still exactly the English name of the NPC station or region the
+/// source reads, as picking one leaves it: that is shown in the interface language.
+///
+/// <para>⚠️ Display only. A source is saved, remembered and matched by its stored name.</para>
+/// </summary>
+internal static class MarketSourceNames
+{
+    /// <summary>The English names of the NPC stations and regions among these location ids, by id:
+    /// what a stored name is held against.</summary>
+    public static async Task<Dictionary<long, string>> PlacesAsync(
+        AppDbContext db, IEnumerable<long> locationIds, CancellationToken ct = default)
+    {
+        var ids        = locationIds.Distinct().ToList();
+        var stationIds = ids.Where(id => id is >= 60_000_000 and <= 63_999_999).Select(id => (int)id).ToList();
+        var regionIds  = ids.Where(id => id is >= 10_000_000 and <= 10_999_999).Select(id => (int)id).ToList();
+
+        var places = new Dictionary<long, string>();
+        if (stationIds.Count > 0)
+            foreach (var s in await db.SdeStations.AsNoTracking().Where(s => stationIds.Contains(s.StationId))
+                         .Select(s => new { s.StationId, s.Name }).ToListAsync(ct))
+                places[s.StationId] = s.Name;
+        if (regionIds.Count > 0)
+            foreach (var r in await db.SdeRegions.AsNoTracking().Where(r => regionIds.Contains(r.RegionId))
+                         .Select(r => new { r.RegionId, r.Name }).ToListAsync(ct))
+                places[r.RegionId] = r.Name;
+        return places;
+    }
+
+    /// <summary>The name shown for a source reading <paramref name="locationId"/>, stored as
+    /// <paramref name="stored"/>; <paramref name="placeEnglish"/> is that place's English name, when
+    /// it is a station or region.</summary>
+    public static string Shown(long locationId, string stored, string? placeEnglish) =>
+        placeEnglish is not null && stored == placeEnglish ? SdeNames.Location(locationId, stored) : stored;
 }
 
 public class SdeRegionOption
@@ -87,11 +133,34 @@ public class MarketPricingConfigVm : ReactiveObject
     }
 
     private string _locationName = "";
+    /// <summary>The name as stored, which the user edits: what the source is saved, remembered and
+    /// matched by. The lists show <see cref="DisplayName"/>.</summary>
     public string LocationName
     {
         get => _locationName;
-        set => this.RaiseAndSetIfChanged(ref _locationName, value);
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _locationName, value);
+            this.RaisePropertyChanged(nameof(DisplayName));
+        }
     }
+
+    private string? _placeName;
+    /// <summary>The English name of the NPC station or region the source reads, when it reads one:
+    /// what tells a name left as the place's own from one typed in.</summary>
+    public string? PlaceName
+    {
+        get => _placeName;
+        set
+        {
+            _placeName = value;
+            this.RaisePropertyChanged(nameof(DisplayName));
+        }
+    }
+
+    /// <summary>The name as the lists show it — see <see cref="MarketSourceNames"/>.</summary>
+    public string DisplayName =>
+        long.TryParse(LocationIdText, out var id) ? MarketSourceNames.Shown(id, LocationName, PlaceName) : LocationName;
 
     private string _locationIdText = "";
     public string LocationIdText
@@ -99,8 +168,10 @@ public class MarketPricingConfigVm : ReactiveObject
         get => _locationIdText;
         set
         {
+            var another = _locationIdText != value;
             this.RaiseAndSetIfChanged(ref _locationIdText, value);
             ResolvedLocationName = "";
+            if (another) PlaceName = null;   // named again once the lookup has found it
         }
     }
 
@@ -134,6 +205,7 @@ public class MarketPricingConfigVm : ReactiveObject
             if (value is null) return;
             _locationIdText = value.RegionId.ToString();
             this.RaisePropertyChanged(nameof(LocationIdText));
+            PlaceName    = value.Name;
             LocationName = value.Name;
         }
     }
@@ -444,10 +516,11 @@ public class MarketSettingsViewModel : ReactiveObject
         var rows = await _db.MarketPricingConfigs.AsNoTracking()
             .OrderBy(c => c.SortOrder).ThenBy(c => c.Id)
             .ToListAsync();
+        var places = await MarketSourceNames.PlacesAsync(_db, rows.Select(r => r.LocationId));
 
         Configs.Clear();
         foreach (var row in rows)
-            Configs.Add(ToVm(row));
+            Configs.Add(ToVm(row, places));
 
         Selected = Configs.FirstOrDefault();
 
@@ -541,7 +614,9 @@ public class MarketSettingsViewModel : ReactiveObject
         }
     }
 
-    private MarketPricingConfigVm ToVm(MarketPricingConfig c)
+    /// <param name="places">The English names of the stations and regions the sources read
+    /// (<see cref="MarketSourceNames.PlacesAsync"/>), for the names the lists show.</param>
+    private MarketPricingConfigVm ToVm(MarketPricingConfig c, IReadOnlyDictionary<long, string>? places = null)
     {
         var authChar  = c.AuthCharId.HasValue
             ? CharacterOptions.FirstOrDefault(o => o.CharId == c.AuthCharId.Value)
@@ -569,6 +644,7 @@ public class MarketSettingsViewModel : ReactiveObject
         // saved LocationName (the setter overwrites it with the region name).
         vm.SelectedRegion    = regionOpt;
         vm.LocationName      = c.LocationName;
+        vm.PlaceName         = places?.GetValueOrDefault(c.LocationId) ?? vm.PlaceName;
         vm.SelectedAuthChar  = authChar; // may be null if characters not loaded yet — AuthCharId preserved above
         return vm;
     }
@@ -596,7 +672,7 @@ public class MarketSettingsViewModel : ReactiveObject
                 .FirstOrDefaultAsync(s => s.StationId == (int)locId);
             namedOptions.Add(new StationFilterOption { LocationId = locId, Name = station?.Name ?? string.Format(SettingsText.MarketLocationFallback, locId) });
         }
-        foreach (var opt in namedOptions.OrderBy(o => o.Name, StringComparer.OrdinalIgnoreCase))
+        foreach (var opt in namedOptions.OrderBy(o => o.DisplayName, StringComparer.CurrentCultureIgnoreCase))
             StationFilterOptions.Add(opt);
 
         SelectedStationFilter = StationFilterOptions.FirstOrDefault(o => o.LocationId == config.StationFilter)
@@ -641,9 +717,10 @@ public class MarketSettingsViewModel : ReactiveObject
         config.StationFilter        = Selected.StationFilter;
         config.UsePercentileFilter  = Selected.UsePercentileFilter;
         config.PercentilePercent    = Selected.PercentilePercent;
+        var shown                   = Selected.DisplayName;
 
         await _db.SaveChangesAsync();
-        Status = string.Format(SettingsText.MarketSourceSaved, config.LocationName);
+        Status = string.Format(SettingsText.MarketSourceSaved, shown);
     }
 
     private async Task RemoveAsync()
@@ -685,7 +762,7 @@ public class MarketSettingsViewModel : ReactiveObject
     {
         if (Selected is null) return;
         IsBusy = true;
-        Status = string.Format(SettingsText.MarketRefreshing, Selected.LocationName);
+        Status = string.Format(SettingsText.MarketRefreshing, Selected.DisplayName);
         try
         {
             await SaveAsync();
@@ -742,12 +819,14 @@ public class MarketSettingsViewModel : ReactiveObject
             }
             else
             {
-                // NPC station — query local SDE first (faster, no network)
+                // NPC station — query local SDE first (faster, no network). Shown in the interface
+                // language; its English is what tells a name left as the station's own.
                 var station = await _db.SdeStations.AsNoTracking()
                     .FirstOrDefaultAsync(s => s.StationId == (int)id);
                 if (station is not null)
                 {
-                    Selected.ResolvedLocationName = station.Name;
+                    Selected.ResolvedLocationName = SdeNames.Station(id, station.Name);
+                    Selected.PlaceName            = station.Name;
                 }
                 else
                 {
@@ -779,13 +858,14 @@ public class MarketSettingsViewModel : ReactiveObject
             var result = await _esiClient.SearchLocationsAsync(charId.Value, LocationSearch);
             var found  = new List<LocationResult>();
 
-            // Resolve station IDs from local SDE
-            if (result?.Station?.Count > 0)
+            // Resolve station IDs from local SDE — with the stations whose name in the interface
+            // language holds the text, since ESI searches the English names only.
+            var ids = (result?.Station ?? []).Concat(SdeNames.Find(SdeNameKind.Station, LocationSearch.Trim()))
+                .Select(i => (int)i).Distinct().ToList();
+            if (ids.Count > 0)
             {
-                var ids      = result.Station.Select(i => (int)i).ToList();
                 var stations = await _db.SdeStations.AsNoTracking()
                     .Where(s => ids.Contains(s.StationId))
-                    .OrderBy(s => s.Name)
                     .ToListAsync();
                 found.AddRange(stations.Select(s => new LocationResult(s.StationId, s.Name, SettingsText.MarketResultStation)));
             }
@@ -808,8 +888,10 @@ public class MarketSettingsViewModel : ReactiveObject
                     finally { sem.Release(); }
                 });
                 found.AddRange(await Task.WhenAll(tasks));
-                found.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase));
             }
+
+            // By the name shown.
+            found.Sort((a, b) => string.Compare(a.DisplayName, b.DisplayName, StringComparison.CurrentCultureIgnoreCase));
 
             foreach (var r in found)
                 LocationResults.Add(r);
@@ -823,8 +905,8 @@ public class MarketSettingsViewModel : ReactiveObject
     {
         if (Selected is null || SelectedLocationResult is null) return;
         Selected.LocationIdText       = SelectedLocationResult.Id.ToString();
-        Selected.LocationName         = SelectedLocationResult.Name;
-        Selected.ResolvedLocationName = SelectedLocationResult.Name;
+        Selected.LocationName         = SelectedLocationResult.Name;          // English: stored
+        Selected.ResolvedLocationName = SelectedLocationResult.DisplayName;
         SelectedLocationResult        = null;
         LocationResults.Clear();
         LocationSearch = "";

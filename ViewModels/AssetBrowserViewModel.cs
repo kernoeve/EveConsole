@@ -485,8 +485,8 @@ public class AssetBrowserViewModel : ReactiveObject
     // the sort and the aggregate tabs' grouping all run on that; a row's names are put into the
     // interface language only as it is read, by the ids the row carries beside them.
 
-    /// <summary>The names in one row, as shown: types, groups, categories, systems and regions, and
-    /// the container types on the Container path.</summary>
+    /// <summary>The names in one row, as shown: types, groups, categories, systems and regions, NPC
+    /// stations, and the container types on the Container path.</summary>
     private static void ShowNames(Dictionary<string, string> row)
     {
         Show(row, "Type Name",    "Type Id",         SdeNames.Type);
@@ -501,6 +501,11 @@ public class AssetBrowserViewModel : ReactiveObject
         var system = IdIn(row, "Solar System Id");
         if (system > 0 && IdIn(row, root) == system)
             Show(row, "Location Name", "Solar System Id", SdeNames.SolarSystem);
+
+        // An NPC station, as Is Station says — the query's own tell, which the links go by too. A
+        // player structure keeps the name its owner gave it.
+        if (row.TryGetValue("Is Station", out var isStation) && isStation == "1")
+            Show(row, "Location Name", root, SdeNames.Station);
 
         if (row.TryGetValue("Container", out var path) && path.Length > 0
             && row.TryGetValue("Container Type Ids", out var hops) && hops.Length > 0)
@@ -546,17 +551,18 @@ public class AssetBrowserViewModel : ReactiveObject
     /// <summary>
     /// The filterable columns that show an SDE name: its kind, the column its id is in, and when it
     /// is that name at all — a Location Name is a system's only for an item in space, whose place
-    /// is the system.
+    /// is the system, and an NPC station's only where Is Station says so.
     /// </summary>
-    private static (SdeNameKind Kind, string IdColumn, string? Guard)? ShownNameColumn(string column) => column switch
+    private static IReadOnlyList<(SdeNameKind Kind, string IdColumn, string? Guard)> ShownNameColumns(string column) => column switch
     {
-        "Type Name"     => (SdeNameKind.Type,        "Type Id",         null),
-        "Group"         => (SdeNameKind.Group,       "Group Id",        null),
-        "Category"      => (SdeNameKind.Category,    "Category Id",     null),
-        "Solar System"  => (SdeNameKind.SolarSystem, "Solar System Id", null),
-        "Region Name"   => (SdeNameKind.Region,      "Region Id",       null),
-        "Location Name" => (SdeNameKind.SolarSystem, "Solar System Id", "\"Root Location Id\" = \"Solar System Id\""),
-        _               => null,
+        "Type Name"     => [(SdeNameKind.Type,        "Type Id",         null)],
+        "Group"         => [(SdeNameKind.Group,       "Group Id",        null)],
+        "Category"      => [(SdeNameKind.Category,    "Category Id",     null)],
+        "Solar System"  => [(SdeNameKind.SolarSystem, "Solar System Id", null)],
+        "Region Name"   => [(SdeNameKind.Region,      "Region Id",       null)],
+        "Location Name" => [(SdeNameKind.SolarSystem, "Solar System Id",  "\"Root Location Id\" = \"Solar System Id\""),
+                            (SdeNameKind.Station,     "Root Location Id", "\"Is Station\" = 1")],
+        _               => [],
     };
 
     /// <summary>
@@ -567,23 +573,27 @@ public class AssetBrowserViewModel : ReactiveObject
     private static string FilterClause(ActiveFilter f, int index)
     {
         var clause = SqlFilter.Clause(f.Column, f.Op, index);
-        if (ShownNameColumn(f.Column) is not { } shown) return clause;
 
-        IReadOnlyList<long> ids =
-              f.Op.UseLike            ? SdeNames.Find(shown.Kind, f.Value)
-            : f.Op.Sql is "=" or "!=" ? SdeNames.Map(shown.Kind).Where(kv => kv.Value == f.Value).Select(kv => kv.Key).ToList()
-            :                           [];
-        if (ids.Count == 0) return clause;
+        var matches = new List<string>();
+        foreach (var shown in ShownNameColumns(f.Column))
+        {
+            IReadOnlyList<long> ids =
+                  f.Op.UseLike            ? SdeNames.Find(shown.Kind, f.Value)
+                : f.Op.Sql is "=" or "!=" ? SdeNames.Map(shown.Kind).Where(kv => kv.Value == f.Value).Select(kv => kv.Key).ToList()
+                :                           [];
+            if (ids.Count == 0) continue;
 
-        // Integers the app computed, not typed text, so they are written into the SQL as they are.
-        var list = string.Join(",", ids.Select(id => id.ToString(CultureInfo.InvariantCulture)));
-        var match = shown.Guard is null
-            ? $"(\"{shown.IdColumn}\" IN ({list}))"
-            : $"({shown.Guard} AND \"{shown.IdColumn}\" IN ({list}))";
+            // Integers the app computed, not typed text, so they are written into the SQL as they are.
+            var list = string.Join(",", ids.Select(id => id.ToString(CultureInfo.InvariantCulture)));
+            matches.Add(shown.Guard is null
+                ? $"(\"{shown.IdColumn}\" IN ({list}))"
+                : $"({shown.Guard} AND \"{shown.IdColumn}\" IN ({list}))");
+        }
+        if (matches.Count == 0) return clause;
 
         return f.Op.Sql is "NOT LIKE" or "!="
-            ? $"({clause} AND NOT {match})"
-            : $"({clause} OR {match})";
+            ? $"({clause} AND NOT {string.Join(" AND NOT ", matches)})"
+            : $"({clause} OR {string.Join(" OR ", matches)})";
     }
 
     // ── SQL ───────────────────────────────────────────────────────────────────

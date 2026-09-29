@@ -52,13 +52,22 @@
     <!-- ── Options ─────────────────────────────────────────────────────── -->
     <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10" Margin="0 0 0 10">
       <TextBlock Text="{x:Static loc:AssetsText.StationLabel}" FontSize="12" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" />
+      <!-- The list and the box name each station as the interface does (DisplayName); the pick is
+           remembered by its id, and the search finds the English as well. -->
       <AutoCompleteBox Width="330" FontSize="12"
                        Text="{Binding StationText}"
                        SelectedItem="{Binding SelectedStation}"
                        AsyncPopulator="{Binding StationPopulator}"
+                       ValueMemberBinding="{Binding DisplayName}"
                        FilterMode="None" MinimumPrefixLength="0" MinimumPopulateDelay="0:0:0.15" MaxDropDownHeight="300"
                        Watermark="{x:Static loc:AssetsText.HintTypeAStationOrStructure}"
-                       ToolTip.Tip="{x:Static loc:AssetsText.TipAnyStationOrStructure}" />
+                       ToolTip.Tip="{x:Static loc:AssetsText.TipAnyStationOrStructure}">
+        <AutoCompleteBox.ItemTemplate>
+          <DataTemplate x:DataType="services:MarketStation">
+            <TextBlock Text="{Binding DisplayName}" />
+          </DataTemplate>
+        </AutoCompleteBox.ItemTemplate>
+      </AutoCompleteBox>
 
       <TextBlock Text="{x:Static loc:AssetsText.PricesLabel}" FontSize="12" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="8 0 0 0" />
       <ComboBox ItemsSource="{Binding Bases}" SelectedItem="{Binding SelectedBasis}" MinWidth="90" FontSize="12"
@@ -244,9 +253,16 @@
                                  Text="{Binding CompareText}"
                                  SelectedItem="{Binding CompareCandidate}"
                                  AsyncPopulator="{Binding ComparePopulator}"
+                                 ValueMemberBinding="{Binding DisplayName}"
                                  FilterMode="None" MinimumPrefixLength="0" MinimumPopulateDelay="0:0:0.15" MaxDropDownHeight="300"
                                  Watermark="{x:Static loc:AssetsText.HintTypeAStationOr}"
-                                 KeyDown="OnCompareKeyDown" />
+                                 KeyDown="OnCompareKeyDown">
+                  <AutoCompleteBox.ItemTemplate>
+                    <DataTemplate x:DataType="services:MarketStation">
+                      <TextBlock Text="{Binding DisplayName}" />
+                    </DataTemplate>
+                  </AutoCompleteBox.ItemTemplate>
+                </AutoCompleteBox>
                 <Button Grid.Column="2" Content="{x:Static loc:AssetsText.Add}" Click="OnAddCompareClick" Padding="12 4" FontSize="12" Margin="6 0 0 0" HorizontalAlignment="Left" />
                 <TextBox Grid.Column="3" Text="{Binding Filter}" Watermark="{x:Static loc:AssetsText.HintFilterByItemName}" Width="220" FontSize="12" HorizontalAlignment="Left" Margin="16 0 0 0"
                          Background="{DynamicResource SurfaceInputBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}"

@@ -5,10 +5,17 @@ using Microsoft.Data.Sqlite;
 using ReactiveUI;
 using EveConsole.Data;
 using EveConsole.Localization;
+using EveConsole.Models;
 
 namespace EveConsole.ViewModels;
 
-public record StationOption(long LocationId, string Name);
+/// <summary>A place with market orders. <see cref="Name"/> is English: the sale-posting dialogs
+/// store it.</summary>
+public record StationOption(long LocationId, string Name)
+{
+    /// <summary>What a picker shows: an NPC station in the interface language, a structure as named.</summary>
+    public string DisplayName => SdeNames.Location(LocationId, Name);
+}
 
 public enum TradeMode { SellToBuyOrder, UndercutSellOrder }
 public record TradeModeOption(string Label, TradeMode Kind);
@@ -77,6 +84,11 @@ public class TradeOpportunitiesViewModel : ReactiveObject
     // ── Station dropdowns ─────────────────────────────────────────────────────
 
     public ObservableCollection<StationOption> Stations { get; } = [];
+
+    /// <summary>What the two station boxes find as they are typed in: a station by the name they
+    /// show, or by its English — which is what gets pasted from other sites.</summary>
+    public Avalonia.Controls.AutoCompleteFilterPredicate<object?> StationFilter { get; } = (text, item) =>
+        item is StationOption s && SdeNames.Matches(SdeNameKind.Station, s.LocationId, s.Name, text ?? "");
 
     private StationOption? _sourceStation;
     public StationOption? SourceStation
@@ -258,6 +270,9 @@ public class TradeOpportunitiesViewModel : ReactiveObject
 
     private async Task LoadStationsAsync()
     {
+        // Sorted by the names shown, so they are waited for first (at once in English).
+        await SdeNames.EnsureLoadedAsync();
+
         using var conn = AppDb.Connect();
         await conn.OpenAsync();
 
@@ -274,7 +289,7 @@ public class TradeOpportunitiesViewModel : ReactiveObject
                 reader.IsDBNull(1) ? string.Format(MarketText.StationUnknown, id) : reader.GetString(1)));
         }
         Stations.Clear();
-        foreach (var s in found.OrderBy(s => s.Name, StringComparer.CurrentCultureIgnoreCase)) Stations.Add(s);
+        foreach (var s in found.OrderBy(s => s.DisplayName, StringComparer.CurrentCultureIgnoreCase)) Stations.Add(s);
     }
 
     // ── Calculate ─────────────────────────────────────────────────────────────

@@ -24,6 +24,11 @@ public enum PriceBasis
 /// </summary>
 public sealed record MarketStation(long LocationId, string Name, int SystemId, int ConfigId, int Orders)
 {
+    /// <summary>What the pickers, the compare band and the status line show: an NPC station in the
+    /// interface language, a structure as its owner named it. <see cref="Name"/> stays English —
+    /// the search and the Copy text read it.</summary>
+    public string DisplayName => SdeNames.Location(LocationId, Name);
+
     public override string ToString() => Name;
 }
 
@@ -129,13 +134,13 @@ public sealed class AppraisalService(IDbContextFactory<AppDbContext> dbFactory)
         return list;
     }
 
-    /// <summary>Stations whose name holds the text, busiest first.</summary>
+    /// <summary>Stations whose name holds the text — the English, or the name shown — busiest first.</summary>
     public async Task<IReadOnlyList<MarketStation>> SearchStationsAsync(string text, int limit = 30, CancellationToken ct = default)
     {
         var all = await StationsAsync(ct);
         var needle = text.Trim();
         if (needle.Length == 0) return all.Take(limit).ToList();
-        return all.Where(s => s.Name.Contains(needle, StringComparison.OrdinalIgnoreCase)).Take(limit).ToList();
+        return all.Where(s => SdeNames.Matches(SdeNameKind.Station, s.LocationId, s.Name, needle)).Take(limit).ToList();
     }
 
     // ── Valuation ──────────────────────────────────────────────────────────

@@ -234,7 +234,7 @@ public partial class ItemValuationView : UserControl
         if (_vm is null) return;
         var totals = _vm.CompareTotals;
         CompareBand.SetGroups(_vm.CompareColumns.Select((s, i) =>
-            new ColumnGroup(FixedCompareColumns + 3 * i, 3, s.Name, WashKeys[i % 3], i < totals.Count ? StationLine(totals[i]) : null)));
+            new ColumnGroup(FixedCompareColumns + 3 * i, 3, s.DisplayName, WashKeys[i % 3], i < totals.Count ? StationLine(totals[i]) : null)));
     }
 
     private Control StationLine(CompareTotalVm total)

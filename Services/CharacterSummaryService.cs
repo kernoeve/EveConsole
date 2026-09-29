@@ -138,7 +138,8 @@ public class CharacterSummaryService(IDbContextFactory<AppDbContext> dbFactory, 
         await ResolveNamesAsync(chars, corps, ct);
 
         // The rows are the grid's text and nothing else reads them, so the game's names in them —
-        // a system, a hull, an NPC corporation — are put in the interface language here.
+        // a system, an NPC station, a hull, an NPC corporation — are put in the interface language
+        // here, where the ids are still to hand.
         await SdeNames.EnsureLoadedAsync(ct);
 
         return chars.Select(c =>
@@ -161,8 +162,11 @@ public class CharacterSummaryService(IDbContextFactory<AppDbContext> dbFactory, 
                 Where(s, places),
                 ShipText(s, ships),
                 pods.GetValueOrDefault(c.Id),
+                // A station or a structure: the first in the interface language, the second as named.
                 clones.GetValueOrDefault(c.Id)?.HomeLocationId is { } home
-                    ? places.GetValueOrDefault(home, string.Format(CharactersText.SummaryLocationNumbered, home))
+                    ? places.TryGetValue(home, out var homeName)
+                        ? SdeNames.Location(home, homeName)
+                        : string.Format(CharactersText.SummaryLocationNumbered, home)
                     : "",
                 q.Length,
                 q.Ends,
@@ -211,11 +215,15 @@ public class CharacterSummaryService(IDbContextFactory<AppDbContext> dbFactory, 
     }
 
     /// <summary>Where a character is: the station or structure if docked, the system if not. A
-    /// system is named in the interface language; stations and structures stay as they are.</summary>
+    /// system and an NPC station are named in the interface language; a structure as its owner
+    /// named it.</summary>
     private static string Where(CharacterStatus? s, Dictionary<long, string> places)
     {
         if (s is null) return "";
-        if (s.StationId   is { } st) return places.GetValueOrDefault(st, string.Format(CharactersText.SummaryStationNumbered, st));
+        if (s.StationId   is { } st)
+            return places.TryGetValue(st, out var station)
+                ? SdeNames.Station(st, station)
+                : string.Format(CharactersText.SummaryStationNumbered, st);
         if (s.StructureId is { } sr) return places.GetValueOrDefault(sr, string.Format(CharactersText.SummaryStructureNumbered, sr));
         if (s.SolarSystemId is { } sys)
             return places.TryGetValue(sys, out var n)

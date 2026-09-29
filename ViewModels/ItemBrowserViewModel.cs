@@ -221,9 +221,18 @@ public record RequiredForGroupVm(string CategoryName, IReadOnlyList<RequiredForI
 public class MarketConfigOption
 {
     public int    Id           { get; init; }
+
+    /// <summary>The source's name as stored: what the choice is remembered and matched by.</summary>
     public string LocationName { get; init; } = "";
     public string Method       { get; init; } = "";
-    public override string ToString() => LocationName;
+
+    private readonly string? _displayName;
+
+    /// <summary>The name the picker shows (see <see cref="MarketSourceNames"/>); the stored one
+    /// when none was given.</summary>
+    public string DisplayName { get => _displayName ?? LocationName; init => _displayName = value; }
+
+    public override string ToString() => DisplayName;
 }
 
 public class OrderRowVm
@@ -832,7 +841,9 @@ public class ItemBrowserViewModel : ReactiveObject
             ct.ThrowIfCancellationRequested();
             rows.Add(new ItemAssetRowVm
             {
-                Location           = Str(r, 0),
+                // The root place by its id: an NPC station, or the system of a stack in space, in
+                // the interface language; a structure as named. Grouped, sorted and copied as shown.
+                Location           = SdeNames.Location(Long(r, 1), Str(r, 0)),
                 LocationId         = Long(r, 1),
                 IsStation          = Long(r, 2) == 1,
                 Owner              = Str(r, 3),
@@ -1995,12 +2006,25 @@ public class ItemBrowserViewModel : ReactiveObject
 
     private async Task LoadMarketConfigsAsync()
     {
-        var configs = await _db.MarketPricingConfigs.AsNoTracking()
+        var rows = await _db.MarketPricingConfigs.AsNoTracking()
             .Where(c => (c.Method == MarketMethod.EsiRegion || c.Method == MarketMethod.PlayerStructure)
                         && c.IsEnabled)
             .OrderBy(c => c.SortOrder).ThenBy(c => c.Id)
-            .Select(c => new MarketConfigOption { Id = c.Id, LocationName = c.LocationName, Method = c.Method })
+            .Select(c => new { c.Id, c.LocationName, c.Method, c.LocationId })
             .ToListAsync();
+
+        // Each source named as Settings names it: a region or station left as picked in the
+        // interface language. Own context: this runs alongside the tab loads, which use _db.
+        Dictionary<long, string> places;
+        await using (var owned = _dbFactory is null ? null : await _dbFactory.CreateDbContextAsync())
+            places = await MarketSourceNames.PlacesAsync(owned ?? _db, rows.Select(c => c.LocationId));
+        var configs = rows.Select(c => new MarketConfigOption
+        {
+            Id           = c.Id,
+            LocationName = c.LocationName,
+            Method       = c.Method,
+            DisplayName  = MarketSourceNames.Shown(c.LocationId, c.LocationName, places.GetValueOrDefault(c.LocationId)),
+        }).ToList();
 
         var remembered = UiState.Get(UiState.MarketSource, _prefs);
 
@@ -2164,9 +2188,10 @@ public class ItemBrowserViewModel : ReactiveObject
                     : reason;
             }
 
+            // An NPC station in the interface language (the grid only shows it); a structure as named.
             string GetLocation(MarketRawOrder o)
             {
-                if (stationNames.TryGetValue(o.LocationId, out var n)) return n;
+                if (stationNames.TryGetValue(o.LocationId, out var n)) return SdeNames.Station(o.LocationId, n);
                 if (structureNames.TryGetValue(o.LocationId, out var sn)) return sn;
                 if (o.LocationId < 1_000_000_000_000L) return string.Format(AssetsText.FallbackStationName, o.LocationId);
 
