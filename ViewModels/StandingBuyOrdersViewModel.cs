@@ -13,7 +13,11 @@ public class StandingBuyOrderRowVm(StandingBuyOrderRow r)
 {
     public long   DbId         { get; } = r.DbId;
     public int    TypeId       { get; } = r.TypeId;
-    public string TypeName     { get; } = r.TypeName;
+
+    /// <summary>The item as the screen names it — here, on the Overview panel, and in both grids'
+    /// sorts and copies. Nothing reads it back: the order keeps the English, and the link goes by
+    /// id.</summary>
+    public string TypeName     => SdeNames.Type(r.TypeId, r.TypeName);
     public string LocationName { get; } = r.LocationName;
     public string Owner        { get; } = r.OwnerDisplay;
 
@@ -193,6 +197,9 @@ public class StandingBuyOrdersViewModel : ReactiveObject
 
         var rows = await _service.BuildGridRowsAsync();
 
+        // The rows name their items in the interface language, and this first runs at start.
+        await SdeNames.EnsureLoadedAsync();
+
         Rows.Clear();
         foreach (var r in rows) Rows.Add(new StandingBuyOrderRowVm(r));
 
@@ -233,7 +240,8 @@ public class StandingBuyOrdersViewModel : ReactiveObject
 
         if (!await _service.AddAsync(result))
         {
-            StatusText = string.Format(MarketText.StatusStandingOrderExists, result.TypeName, result.LocationName);
+            StatusText = string.Format(MarketText.StatusStandingOrderExists,
+                                       SdeNames.Type(result.TypeId, result.TypeName), result.LocationName);
             return;
         }
         await LoadAsync();

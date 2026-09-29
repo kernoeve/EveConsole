@@ -145,8 +145,12 @@ public class WorklistSettings(AppPreferencesService prefs)
     /// The scope's name for a task's text, as in "Not owned in The Forge" — empty when the scope
     /// is everywhere. A name rather than a phrase: each sentence that mentions it has a form with
     /// the place and one without, since other languages put the place elsewhere in the sentence.
+    ///
+    /// <para>In the interface language, since it only ever lands in that text. ⚠️ Not the saved
+    /// name — that is <see cref="IndustryScopeName"/>, in English.</para>
     /// </summary>
-    public string IndustryScopePlace => IndustryScope == "Everywhere" ? "" : IndustryScopeName;
+    public string IndustryScopePlace => IndustryScope == "Everywhere" ? ""
+        : InvLevelService.ScopePlaceName(IndustryScope, IndustryScopeId, IndustryScopeName);
 
     /// <summary>
     /// Whether hangars belonging to corporations that are not the player's own count as material.

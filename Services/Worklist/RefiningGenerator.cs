@@ -132,16 +132,19 @@ public class RefiningGenerator(
         var total = lines.Sum(l => l.Quantity);
         var place = places.GetValueOrDefault(locationId, string.Format(WorklistText.LocationWithId, locationId));
 
+        // The lines keep the English names; these two sentences name them as the screen does.
+        static string Shown(WorklistLine l) => SdeNames.Type(l.TypeId, l.TypeName);
+
         // A whole title per case: the verb, and the word the kinds are counted in, differ.
         var title = (refine, lines.Count == 1) switch
         {
-            (true,  true)  => string.Format(WorklistText.RefineTitleOne, lines[0].TypeName, total),
+            (true,  true)  => string.Format(WorklistText.RefineTitleOne, Shown(lines[0]), total),
             (true,  false) => string.Format(WorklistText.RefineTitleMany, lines.Count, total),
-            (false, true)  => string.Format(WorklistText.DecompressTitleOne, lines[0].TypeName, total),
+            (false, true)  => string.Format(WorklistText.DecompressTitleOne, Shown(lines[0]), total),
             (false, false) => string.Format(WorklistText.DecompressTitleMany, lines.Count, total),
         };
 
-        var biggest = string.Join(", ", lines.Take(3).Select(l => $"{l.Quantity:N0} {l.TypeName}"));
+        var biggest = string.Join(", ", lines.Take(3).Select(l => $"{l.Quantity:N0} {Shown(l)}"));
         var more    = lines.Count - 3;
 
         return new WorklistItem

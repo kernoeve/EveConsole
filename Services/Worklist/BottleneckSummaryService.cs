@@ -180,7 +180,8 @@ public class BottleneckSummaryService
             // throughput one purchase buys.
             [.. blocking.Take(MaxNamed).Select(p => new ObservationPoint(p.ProductTypeId,
                 string.Format(WorklistText.SummaryBuyPrint,
-                              p.ProductName, p.Prints, p.Prints > 0 ? 100.0 / p.Prints : 100)))]);
+                              SdeNames.Type(p.ProductTypeId, p.ProductName),
+                              p.Prints, p.Prints > 0 ? 100.0 / p.Prints : 100)))]);
     }
 
     // ── Buying ────────────────────────────────────────────────────────────────
@@ -246,11 +247,11 @@ public class BottleneckSummaryService
 
         foreach (var s in unset.Take(MaxNamed / 2))
             points.Add(new ObservationPoint(s.TypeId,
-                string.Format(WorklistText.SummarySetLevel, s.Name, Suggest(s))));
+                string.Format(WorklistText.SummarySetLevel, SdeNames.Type(s.TypeId, s.Name), Suggest(s))));
 
         foreach (var s in thin.Take(MaxNamed))
             points.Add(new ObservationPoint(s.TypeId,
-                string.Format(WorklistText.SummaryRaiseLevel, s.Name, s.Level, Suggest(s))));
+                string.Format(WorklistText.SummaryRaiseLevel, SdeNames.Type(s.TypeId, s.Name), s.Level, Suggest(s))));
 
         yield return new Observation(
             "levels",
@@ -284,9 +285,9 @@ public class BottleneckSummaryService
             ? [.. shared.Take(MaxNamed).Select(h => new ObservationPoint(h.TypeId,
                   h.Unblocks > 0
                       ? string.Format(WorklistText.SummaryTripRestarts,
-                                      h.TypeName, h.StationName, h.Units, h.Volume, h.Unblocks)
+                                      SdeNames.Type(h.TypeId, h.TypeName), h.StationName, h.Units, h.Volume, h.Unblocks)
                       : string.Format(WorklistText.SummaryTripWanted,
-                                      h.TypeName, h.StationName, h.Units, h.Volume, h.Jobs)))]
+                                      SdeNames.Type(h.TypeId, h.TypeName), h.StationName, h.Units, h.Volume, h.Jobs)))]
             : [.. idle.OrderByDescending(h => h.StalledTasks).Take(MaxNamed)
                    .Select(h => new ObservationPoint(h.TypeId,
                        string.Format(WorklistText.SummaryHaulAt, h.Title, h.StationName, h.Volume)))];

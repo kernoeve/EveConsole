@@ -106,34 +106,46 @@ public class StandingProjectGenerator(
         // so a system can appear because somebody chose it, or because its ADM dropped under a
         // threshold, and only the second kind goes away again when the ADM recovers.
         var byRule = r.DestDisplay.Length > 0;
-        var place  = byRule ? r.DestDisplay : r.TargetDisplay;
+
+        // ⚠️ The row's names are English — the same row feeds the posted report — so the two
+        // SDE names in it are put in the interface language here, where they become the task's
+        // text: the item of a delivery, and a system, which a row names by id in
+        // ExpandedSystemId. A delivery's destination is a station, and an ADM rule's label is
+        // already a sentence around a region or constellation this row carries no id for; both
+        // stay as they are.
+        var target = r.ItemTypeId is int item ? SdeNames.Type(item, r.TargetDisplay)
+                   : !byRule && r.ExpandedSystemId is int named ? SdeNames.SolarSystem(named, r.TargetDisplay)
+                   : r.TargetDisplay;
+        var dest   = !deliver && byRule && r.ExpandedSystemId is int system ? SdeNames.SolarSystem(system, r.DestDisplay)
+                   : r.DestDisplay;
+        var place  = byRule ? dest : target;
 
         return r.MatchStatus switch
         {
             "not_active" when deliver => (
                 r.DestDisplay.Length > 0
-                    ? string.Format(WorklistText.ProjectDeliverTo, r.TypeDisplay, r.TargetDisplay, r.DestDisplay)
-                    : string.Format(WorklistText.ProjectDeliverToAnyOffice, r.TypeDisplay, r.TargetDisplay),
+                    ? string.Format(WorklistText.ProjectDeliverTo, r.TypeDisplay, target, dest)
+                    : string.Format(WorklistText.ProjectDeliverToAnyOffice, r.TypeDisplay, target),
                 WorklistText.ProjectNotActive),
 
             "not_active" => (
                 $"{r.TypeDisplay} — {place}"
-              + (byRule ? $" — {r.TargetDisplay}" : ""),
+              + (byRule ? $" — {target}" : ""),
                 byRule ? WorklistText.ProjectNotActiveByRule : WorklistText.ProjectNotActiveNamed),
 
             // ⚠️ Not a create. There is nothing to create a project against, and saying "create"
             // would send somebody to try. Three separate reasons reach here and they want three
             // different answers — one is a fault, one is a misconfiguration, one is good news.
             "no_adm" => (
-                string.Format(WorklistText.ProjectCheckAdm, r.TypeDisplay, r.TargetDisplay),
+                string.Format(WorklistText.ProjectCheckAdm, r.TypeDisplay, target),
                 WorklistText.ProjectCheckAdmDetail),
 
             "no_systems" => (
-                string.Format(WorklistText.ProjectCheckScope, r.TypeDisplay, r.TargetDisplay),
+                string.Format(WorklistText.ProjectCheckScope, r.TypeDisplay, target),
                 WorklistText.ProjectCheckScopeDetail),
 
             "all_healthy" => (
-                string.Format(WorklistText.ProjectNothingToRaise, r.TypeDisplay, r.TargetDisplay),
+                string.Format(WorklistText.ProjectNothingToRaise, r.TypeDisplay, target),
                 WorklistText.ProjectNothingToRaiseDetail),
 
 

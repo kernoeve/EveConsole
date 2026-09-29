@@ -43,6 +43,11 @@ public class WorklistService(
         // generator. See BuildCache; it flows into the fan-out below and closes with it.
         using var _ = BuildCache.Begin();
 
+        // The generators write each row's title and reasons as they go, with the SDE names in them
+        // in the interface language — so the names have to be in before the first one runs, or a
+        // list built right after start reads English until the next refresh. At once in English.
+        await SdeNames.EnsureLoadedAsync(ct);
+
         // Newly authorised characters join the industry list here, once, before the fan-out below.
         // Inside a generator it would run once per generator in parallel, and they would race to
         // insert the same rows.
@@ -187,13 +192,16 @@ public class WorklistService(
                         return new WorklistWaitingJob(
                             j.Key, j.Title, j.TypeId, j.TypeName,
                             Unblocked:   outstanding.Count == 0,
+                            // Deduped on the English, then named as the screen shows them: this
+                            // list is only ever read out in the row's tooltip.
                             StillShortOf: [.. outstanding.Where(s => !cargo.ContainsKey(s.TypeId))
-                                                         .Select(s => s.TypeName).Distinct()],
+                                                         .DistinctBy(s => s.TypeName)
+                                                         .Select(s => SdeNames.Type(s.TypeId, s.TypeName))],
                             QueuedBehind: outstanding.Any(s => cargo.ContainsKey(s.TypeId)));
                     })
                     .OrderByDescending(w => w.Unblocked)
                     .ThenBy(w => w.StillShortOf.Count)
-                    .ThenBy(w => w.TypeName)
+                    .ThenBy(w => SdeNames.Type(w.TypeId, w.TypeName))
                     .ToList();
 
                 var freed = waiting.Where(w => w.Unblocked).ToList();
@@ -244,7 +252,7 @@ public class WorklistService(
     /// </summary>
     private static string Listed(string upToThree, string withMore, IReadOnlyList<WorklistWaitingJob> jobs)
     {
-        var names = string.Join(", ", jobs.Take(3).Select(j => j.TypeName));
+        var names = string.Join(", ", jobs.Take(3).Select(j => SdeNames.Type(j.TypeId, j.TypeName)));
         return jobs.Count > 3
             ? string.Format(withMore, jobs.Count, names, jobs.Count - 3)
             : string.Format(upToThree, jobs.Count, names);
@@ -371,10 +379,12 @@ public class WorklistService(
                 var waiting = touched
                     .Select(j =>
                     {
+                        // Deduped on the English, then named as the screen shows them — the list
+                        // is only read out in the row's tooltip.
                         var outstanding = j.Shortages
                             .Where(s => bought.GetValueOrDefault(s.TypeId) < s.Short)
-                            .Select(s => s.TypeName)
-                            .Distinct()
+                            .DistinctBy(s => s.TypeName)
+                            .Select(s => SdeNames.Type(s.TypeId, s.TypeName))
                             .ToList();
 
                         return new WorklistWaitingJob(
@@ -384,7 +394,7 @@ public class WorklistService(
                     })
                     .OrderByDescending(w => w.Unblocked)
                     .ThenBy(w => w.StillShortOf.Count)
-                    .ThenBy(w => w.TypeName)
+                    .ThenBy(w => SdeNames.Type(w.TypeId, w.TypeName))
                     .ToList();
 
                 // ⚠️ Ranking still comes from the jobs this purchase can actually release on its
@@ -519,6 +529,9 @@ public class WorklistService(
             // for it are looked up, and the tag itself is carried on unchanged.
             var tagText = tag == "BPO/BPC" ? WorklistText.TitleTagBpoBpc : tag;
 
+            // The title is screen text; the English TypeName goes on unchanged below it.
+            var shown = SdeNames.Type(lead.Item.TypeId, lead.Item.TypeName);
+
             var merged = lead.Item with
             {
                 // Keyed off the merge key, so the combined task keeps one identity across
@@ -529,9 +542,9 @@ public class WorklistService(
                 // carries no count by design — naming a number there would invent one.
                 Title     = (tag, total) switch
                 {
-                    (null, _) => $"{lead.Item.TypeName} × {total:N0}",
-                    (_,    0) => $"{lead.Item.TypeName} — {tagText}",
-                    _         => $"{lead.Item.TypeName} — {tagText} × {total:N0}",
+                    (null, _) => $"{shown} × {total:N0}",
+                    (_,    0) => $"{shown} — {tagText}",
+                    _         => $"{shown} — {tagText} × {total:N0}",
                 },
                 Quantity  = total,
                 // ⚠️ The contributors' own figures do not add up to this, and saying so is the

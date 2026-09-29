@@ -95,12 +95,18 @@ internal static class SalesQuery
         var mgAll = await db.SdeMarketGroups.AsNoTracking()
             .ToDictionaryAsync(g => g.MarketGroupId, g => new { g.ParentGroupId, g.Name });
 
+        // ⚠️ The item and market-group names on these rows are only ever shown — in the grids, and
+        // in the rollups and pies, which group by what the reader sees — so they are put in the
+        // interface language here, where the rows are built. The ids travel with them for the links.
+        await SdeNames.EnsureLoadedAsync();
+
         string GroupTwoUp(int typeId)
         {
             if (!typeMg.TryGetValue(typeId, out var mgId) || mgId is null) return "—";
             if (!mgAll.TryGetValue(mgId.Value, out var mg)) return "—";
-            if (mg.ParentGroupId is int pid && mgAll.TryGetValue(pid, out var parent)) return parent.Name;
-            return mg.Name;   // item's group is already top-level
+            if (mg.ParentGroupId is int pid && mgAll.TryGetValue(pid, out var parent))
+                return SdeNames.MarketGroup(pid, parent.Name);
+            return SdeNames.MarketGroup(mgId.Value, mg.Name);   // item's group is already top-level
         }
 
         // Nearest-day price snapshots for the sold types (resolved in memory — a correlated
@@ -146,7 +152,7 @@ internal static class SalesQuery
         string OwnerName(long id, string type) => type == "corporation"
             ? (corpNames.TryGetValue(id, out var cn) ? cn : string.Format(SalesText.CorpNumbered, id))
             : (charNames.TryGetValue(id, out var pn) ? pn : string.Format(SalesText.CharNumbered, id));
-        string TypeName(int id) => typeNames.TryGetValue(id, out var n) ? n : string.Format(SalesText.TypeNumbered, id);
+        string TypeName(int id) => typeNames.TryGetValue(id, out var n) ? SdeNames.Type(id, n) : string.Format(SalesText.TypeNumbered, id);
 
         // Buyer names — external players. Resolve from local caches, fall back to ESI once and
         // persist to the shared UniverseNames cache so later loads stay offline.

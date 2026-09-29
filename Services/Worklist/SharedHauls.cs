@@ -34,12 +34,15 @@ public sealed record SharedHaul(
     {
         get
         {
+            // The item as the screen names it; TypeName itself stays English.
+            var item = SdeNames.Type(TypeId, TypeName);
+
             var delivery = Unblocks <= 0
-                ? string.Format(WorklistText.SharedTripWanted, TypeName, StationName, Units, Volume, Jobs)
+                ? string.Format(WorklistText.SharedTripWanted, item, StationName, Units, Volume, Jobs)
                 : Stalled > 0
                     ? string.Format(WorklistText.SharedTripRestartsBehind,
-                                    TypeName, StationName, Units, Volume, Unblocks, Stalled)
-                    : string.Format(WorklistText.SharedTripRestarts, TypeName, StationName, Units, Volume, Unblocks);
+                                    item, StationName, Units, Volume, Unblocks, Stalled)
+                    : string.Format(WorklistText.SharedTripRestarts, item, StationName, Units, Volume, Unblocks);
 
             var others = Unblocks > 0 && Jobs > Unblocks
                 ? " — " + string.Format(WorklistText.SharedTripOthersShort, Jobs - Unblocks)

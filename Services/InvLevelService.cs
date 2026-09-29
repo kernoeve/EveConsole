@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EveConsole.Data;
+using EveConsole.Localization;
 using EveConsole.Models;
 using EveConsole.ViewModels;
 using Microsoft.EntityFrameworkCore;
@@ -166,12 +167,19 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
 
     // ── Item type search ──────────────────────────────────────────────────────
 
+    /// <summary>
+    /// Published types whose name contains <paramref name="text"/> — in English or as the screen
+    /// names them, since a name may be typed either way. The results carry the English; the
+    /// picker shows each in the interface language.
+    /// </summary>
     public async Task<IReadOnlyList<InvTypeResult>> SearchTypesAsync(string text, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(text)) return [];
+        await SdeNames.EnsureLoadedAsync(ct);
+        var shown = SdeNames.Find(SdeNameKind.Type, text).Select(id => (int)id).ToList();
         await using var db = dbFactory.CreateDbContext();
         return await db.SdeTypes
-            .Where(t => EF.Functions.Like(t.Name, $"%{text}%") && t.Published)
+            .Where(t => (EF.Functions.Like(t.Name, $"%{text}%") || shown.Contains(t.TypeId)) && t.Published)
             .OrderBy(t => t.Name)
             .Take(40)
             .Select(t => new InvTypeResult(t.TypeId, t.Name))
@@ -219,16 +227,22 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
                 .ToList();
         }
 
+        // Systems and regions are SDE names, so they are found by the name the screen shows as
+        // well as by the English. Stations and structures above have no other name to search.
+        await SdeNames.EnsureLoadedAsync(ct);
+        var systems = scope == "System" ? SdeNames.Find(SdeNameKind.SolarSystem, text).Select(id => (int)id).ToList() : [];
+        var regions = scope == "Region" ? SdeNames.Find(SdeNameKind.Region, text).Select(id => (int)id).ToList() : [];
+
         return scope switch
         {
             "System" => await db.SdeSolarSystems
-                .Where(s => EF.Functions.Like(s.Name, $"%{text}%") && !s.IsWormhole)
+                .Where(s => (EF.Functions.Like(s.Name, $"%{text}%") || systems.Contains(s.SolarSystemId)) && !s.IsWormhole)
                 .OrderBy(s => s.Name).Take(40)
                 .Select(s => new LocationOption(s.SolarSystemId, s.Name))
                 .ToListAsync(ct),
 
             "Region" => await db.SdeRegions
-                .Where(r => EF.Functions.Like(r.Name, $"%{text}%") && !r.IsWormhole)
+                .Where(r => (EF.Functions.Like(r.Name, $"%{text}%") || regions.Contains(r.RegionId)) && !r.IsWormhole)
                 .OrderBy(r => r.Name).Take(40)
                 .Select(r => new LocationOption(r.RegionId, r.Name))
                 .ToListAsync(ct),
@@ -238,6 +252,21 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
     }
 
     // ── Scope resolution ──────────────────────────────────────────────────────
+
+    /// <summary>
+    /// A scope's place as the screen names it: a region or a solar system in the interface
+    /// language, a station or structure as it is (neither is an SDE name we can translate).
+    ///
+    /// <para>⚠️ Display only. The English is what a group, a posting or the worklist saves, and
+    /// what goes back into it — call this where the name becomes text, never on what is stored.</para>
+    /// </summary>
+    /// <param name="scope">The saved key — "Station", "System", "Region" or "Everywhere".</param>
+    public static string ScopePlaceName(string scope, long? locationId, string english) => scope switch
+    {
+        "System" when locationId is > 0 => SdeNames.SolarSystem(locationId.Value, english),
+        "Region" when locationId is > 0 => SdeNames.Region(locationId.Value, english),
+        _                               => english,
+    };
 
     // Resolve the set of location IDs a group's scope covers — NPC stations + player/corp
     // structures, plus the solar-system id itself so items floating in space (or in a ship in

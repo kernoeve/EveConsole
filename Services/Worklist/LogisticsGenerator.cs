@@ -49,10 +49,11 @@ public sealed record NeedDriver(
     };
 
     /// <summary>What to show: the product and how many of it, or the plain reason when there is
-    /// no product behind it.</summary>
+    /// no product behind it. The product as the screen names it; DriverName stays English.</summary>
     public string Label => DriverTypeId <= 0
         ? Kind
-        : Units > 1 ? $"{DriverName} ×{Units:N0}" : DriverName;
+        : Units > 1 ? $"{SdeNames.Type(DriverTypeId, DriverName)} ×{Units:N0}"
+                    : SdeNames.Type(DriverTypeId, DriverName);
 }
 
 /// <summary>
@@ -1174,10 +1175,11 @@ public class LogisticsGenerator(
 
         // Anything in space — an anchored container, a ship left on grid — roots to the system
         // rather than a station. Saying "in space" beats printing a bare id, and it tells the
-        // reader why the pickup has no station name.
+        // reader why the pickup has no station name. Already a sentence in the interface
+        // language, so the system is named in it too.
         foreach (var s in await db.SdeSolarSystems.AsNoTracking()
                      .Select(s => new { s.SolarSystemId, s.Name }).ToListAsync(ct))
-            map.TryAdd(s.SolarSystemId, string.Format(WorklistText.PlaceInSpace, s.Name));
+            map.TryAdd(s.SolarSystemId, string.Format(WorklistText.PlaceInSpace, SdeNames.SolarSystem(s.SolarSystemId, s.Name)));
 
         return map;
     }

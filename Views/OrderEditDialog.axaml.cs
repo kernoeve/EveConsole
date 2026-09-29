@@ -27,6 +27,13 @@ public partial class OrderEditDialog : Window
     private string _buyerType = "";
     private string _buyerName = "";
 
+    /// <summary>
+    /// A type result as the list shows it: the name in the interface language, which the item
+    /// template binds, over the result. ⚠️ The result keeps the English, which is what the dialog
+    /// hands back.
+    /// </summary>
+    private sealed record ShownType(TypeResultVm Result, string Name);
+
     // Parameterless ctor for the XAML previewer only.
     public OrderEditDialog() : this(_ => Task.FromResult(new List<TypeResultVm>()), null) { }
 
@@ -57,7 +64,7 @@ public partial class OrderEditDialog : Window
             Opened += (_, _) => _loading = false;
             _typeId = initial.TypeId;
             _typeName = initial.TypeName;
-            SelectedTypeText.Text = initial.TypeName;
+            SelectedTypeText.Text = SdeNames.Type(initial.TypeId, initial.TypeName);
             UnitsBox.Value = initial.Units;
             _buyerId   = initial.BuyerId;
             _buyerType = initial.BuyerType;
@@ -90,7 +97,8 @@ public partial class OrderEditDialog : Window
             await Task.Delay(200, ct);
             var results = await _searchFunc(text);
             if (ct.IsCancellationRequested) return;
-            ResultsList.ItemsSource = results;
+            // Named as the screen shows them, in the order the search ranked them.
+            ResultsList.ItemsSource = results.Select(r => new ShownType(r, SdeNames.Type(r.TypeId, r.Name))).ToList();
             ResultsBox.IsVisible = results.Count > 0;
         }
         catch (OperationCanceledException) { }
@@ -98,11 +106,11 @@ public partial class OrderEditDialog : Window
 
     private void OnResultSelected(object? sender, SelectionChangedEventArgs e)
     {
-        if (ResultsList.SelectedItem is TypeResultVm t)
+        if (ResultsList.SelectedItem is ShownType { Result: var t } shown)
         {
             _typeId = t.TypeId;
             _typeName = t.Name;
-            SelectedTypeText.Text = t.Name;
+            SelectedTypeText.Text = shown.Name;
             ResultsBox.IsVisible = false;   // collapse the results once an item is chosen
             UpdateOk();
         }

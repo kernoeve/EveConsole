@@ -79,7 +79,7 @@ public class StandingBuyOrderGenerator(
                 // Name first so the column sorts by item. These carry no quantity — they are
                 // about the state of a standing order, not an amount to acquire — so the verb
                 // stays, trailing, rather than being replaced by a count there is none of.
-                Title         = TitleOf(action, r.TypeName),
+                Title         = TitleOf(action, SdeNames.Type(r.TypeId, r.TypeName)),
                 Detail        = detail,
                 Readiness     = blocked ? WorklistReadiness.Blocked : WorklistReadiness.Ready,
                 BlockedBy     = blocked ? WorklistText.BlockedNoCharacterAtLocation : "",

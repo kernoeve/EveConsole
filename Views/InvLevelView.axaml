@@ -243,7 +243,7 @@
                     <Button Classes="link" Click="OnOpenGroupLocation"
                             IsVisible="{Binding HasLocationLink}"
                             ToolTip.Tip="{x:Static loc:AssetsText.TipOpenThisLocation}">
-                      <TextBlock Text="{Binding LocationName}" Classes="linktext"
+                      <TextBlock Text="{Binding LocationDisplay}" Classes="linktext"
                                  FontSize="10" Foreground="{DynamicResource InfoBrush}" />
                     </Button>
                     <TextBlock Text="{Binding ScopeDisplay}" IsVisible="{Binding !HasLocationLink}"
@@ -269,7 +269,7 @@
                          a picture. -->
                     <Image Source="{Binding Icon}" Width="18" Height="18"
                            VerticalAlignment="Center" />
-                    <TextBlock Text="{Binding TypeName}" Classes="linktext"
+                    <TextBlock Text="{Binding DisplayName}" Classes="linktext"
                                FontSize="11" VerticalAlignment="Center"
                                Foreground="{DynamicResource TextPrimaryBrush}" />
                   </StackPanel>

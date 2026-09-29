@@ -14,6 +14,16 @@ namespace EveConsole.ViewModels;
 /// <summary>A station added to the asset scope on top of its region or system.</summary>
 public sealed record ScopeStationRow(int Id, string LocationName);
 
+/// <summary>
+/// A region or system in the scope picker: the id and the English name that are saved, and the
+/// name the list shows. ⚠️ The box writes ToString back into its text when one is picked, which
+/// is why that is the shown name — nothing reads the text back as a choice.
+/// </summary>
+public sealed record ScopePlaceOption(long Id, string Name, string Shown)
+{
+    public override string ToString() => Shown;
+}
+
 /// <summary>One enabled character, with their slot picture alongside the switches.</summary>
 /// <summary>
 /// One industry character in the grid, with the three activity switches editable in place and
@@ -342,10 +352,16 @@ public class WorklistIndustryViewModel : ReactiveObject
 
     public bool NeedsScopePlace => _selectedScope != "Everywhere";
 
+    /// <summary>Regions or systems for the scope box, named in the interface language and listed in
+    /// that name's order. The English travels with each, since that is what is saved.</summary>
     public Func<string?, CancellationToken, Task<IEnumerable<object>>> ScopePlacePopulator =>
-        async (text, ct) => _selectedScope == "System"
-            ? (await _corpActivity.SearchSdeSystemsAsync(text ?? "", ct)).Cast<object>().ToList()
-            : (await _corpActivity.SearchSdeRegionsAsync(text ?? "", ct)).Cast<object>().ToList();
+        async (text, ct) => (_selectedScope == "System"
+                ? (await _corpActivity.SearchSdeSystemsAsync(text ?? "", ct))
+                    .Select(s => new ScopePlaceOption(s.SystemId, s.Name, SdeNames.SolarSystem(s.SystemId, s.Name)))
+                : (await _corpActivity.SearchSdeRegionsAsync(text ?? "", ct))
+                    .Select(r => new ScopePlaceOption(r.RegionId, r.Name, SdeNames.Region(r.RegionId, r.Name))))
+            .OrderBy(o => o.Shown, StringComparer.CurrentCulture)
+            .Cast<object>().ToList();
 
     private object? _selectedScopePlace;
     public object? SelectedScopePlace
@@ -356,12 +372,8 @@ public class WorklistIndustryViewModel : ReactiveObject
             this.RaiseAndSetIfChanged(ref _selectedScopePlace, value);
             if (_loading) return;
 
-            (long Id, string Name)? place = value switch
-            {
-                SdeSystemResult s => (s.SystemId, s.Name),
-                SdeRegionResult r => (r.RegionId, r.Name),
-                _                 => null,
-            };
+            // ⚠️ The English name is saved, never the shown one: the worklist reads it back.
+            (long Id, string Name)? place = value is ScopePlaceOption o ? (o.Id, o.Name) : null;
             if (place is not { } p) return;
 
             _ = Fire(async () =>
@@ -532,6 +544,10 @@ public class WorklistIndustryViewModel : ReactiveObject
             // never disagree about how many slots a character has free.
             var candidates = await _assignment.LoadCandidatesAsync();
 
+            // The scope box names its region or system in the interface language, and this runs
+            // at start: wait for the names once rather than fill the box in English.
+            await SdeNames.EnsureLoadedAsync();
+
             var rows = candidates
                 .OrderBy(c => c.Config.CharacterName)
                 .Select(c => new IndyCharRow(
@@ -572,7 +588,9 @@ public class WorklistIndustryViewModel : ReactiveObject
                 this.RaisePropertyChanged(nameof(IncludeNonPersonalCorps));
 
                 _selectedScope  = _settings.IndustryScope;
-                _scopePlaceText = _settings.IndustryScopeName;
+                // Shown in the interface language; the setting keeps the English.
+                _scopePlaceText = InvLevelService.ScopePlaceName(
+                    _settings.IndustryScope, _settings.IndustryScopeId, _settings.IndustryScopeName);
                 this.RaisePropertyChanged(nameof(SelectedScope));
                 this.RaisePropertyChanged(nameof(NeedsScopePlace));
                 this.RaisePropertyChanged(nameof(ScopePlaceText));

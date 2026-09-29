@@ -34,7 +34,8 @@ public class OrderSummaryRowVm(TrackedOrder o, string itemName) : ReactiveObject
     /// <summary>What the buyer quotes back. Empty on an order entered by hand.</summary>
     public string Ref      => o.OrderRef;
 
-    public string Item     => itemName.Length > 0 ? itemName : string.Format(SalesText.TypeNumbered, o.TypeId);
+    /// <summary>The item as the screen names it. Only ever shown.</summary>
+    public string Item     => itemName.Length > 0 ? SdeNames.Type(o.TypeId, itemName) : string.Format(SalesText.TypeNumbered, o.TypeId);
     public int    Units    => o.Units;
     public string UnitsText => o.Units.ToString("N0");
     public string Buyer    => o.Buyer.Length > 0 ? o.Buyer : "";

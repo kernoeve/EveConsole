@@ -562,7 +562,8 @@ public class IndustryDemandService(
 
             if (root is null) continue;
 
-            var name    = ctx.TypeNames.GetValueOrDefault(typeId, string.Format(WorklistText.TypeWithId, typeId));
+            // Only ever read out in a row's reasons, so named as the screen shows it.
+            var name    = SdeNames.Type(typeId, ctx.TypeNames.GetValueOrDefault(typeId, string.Format(WorklistText.TypeWithId, typeId)));
             var portion = already > 0 ? (double)(net - already) / net : 1.0;
 
             foreach (var m in root.Materials)

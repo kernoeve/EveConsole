@@ -133,7 +133,7 @@ public class InventionGenerator(
                 .ThenBy(c => c.Config.CharacterId)
                 .First();
 
-            var head = string.Format(WorklistText.InventionHead, name, shortRuns);
+            var head = string.Format(WorklistText.InventionHead, SdeNames.Type(d.TypeId, name), shortRuns);
 
             items.AddRange(CopyTasks(recipe, plan, copyLab.Value, printsByType, owner, reaches,
                                      timeCtx, best, siteStock, d.Priority, name, head));
@@ -158,6 +158,11 @@ public class InventionGenerator(
         Dictionary<long, int> slotsLeft,
         int priority, string name, string head, Dictionary<int, string> names)
     {
+        // What the titles and the reasons say — screen text. The rows' TypeName and their manifest
+        // lines keep the English.
+        var shown       = SdeNames.Type(recipe.ProductTypeId, name);
+        var sourceShown = SdeNames.Type(recipe.SourceBlueprintTypeId, recipe.SourceBlueprintName);
+
         // The source copies standing at the lab. Nothing else can carry an attempt: the copy is
         // installed in the job and locked for its duration, so concurrent invention jobs need a
         // copy each exactly as concurrent builds need a print each.
@@ -306,7 +311,7 @@ public class InventionGenerator(
                     Source        = Id,
                     Kind          = WorklistKind.Job,
                     Pool          = IndustryPool.Science,
-                    Title         = string.Format(WorklistText.InventionTitle, name, runs),
+                    Title         = string.Format(WorklistText.InventionTitle, shown, runs),
                     Quantity      = runs,
                     Detail        = head + ofText + " "
                                   + string.Format(WorklistText.InventionOdds,
@@ -314,7 +319,7 @@ public class InventionGenerator(
                                                   plan.SuccessesNeeded, plan.RunsPerBpc,
                                                   plan.InventedMe, plan.InventedTe, plan.Attempts)
                                   + " " + string.Format(WorklistText.PrintAt,
-                                                        $"{recipe.SourceBlueprintName} {job.Print.Describe()}", lab.Name)
+                                                        $"{sourceShown} {job.Print.Describe()}", lab.Name)
                                   + $"{durText}{capText}{extraDetail}{shortText}",
                     Readiness     = readiness,
                     BlockedBy     = blockedBy,
@@ -344,12 +349,12 @@ public class InventionGenerator(
                 Source    = Id,
                 Kind      = WorklistKind.Job,
                 Pool      = IndustryPool.Science,
-                Title     = string.Format(WorklistText.InventionTitle, name, plan.Attempts),
+                Title     = string.Format(WorklistText.InventionTitle, shown, plan.Attempts),
                 Quantity  = plan.Attempts,
                 Detail    = string.Format(WorklistText.InventionNoCopyDetail,
                                           head, plan.Chance, plan.SuccessesNeeded, plan.RunsPerBpc),
                 Readiness = WorklistReadiness.Blocked,
-                BlockedBy      = string.Format(WorklistText.BlockedNoCopyToInvent, recipe.SourceBlueprintName, lab.Name),
+                BlockedBy      = string.Format(WorklistText.BlockedNoCopyToInvent, sourceShown, lab.Name),
                 BlockedByPrint = true,
                 LocationId   = lab.Site,
                 LocationName = lab.Name,
@@ -367,7 +372,7 @@ public class InventionGenerator(
         // A datacore, and how many of it the lab holds against what the job wants.
         string HaveOfWant(int typeId, long have, long want) =>
             string.Format(WorklistText.NameHaveOfWant,
-                          names.GetValueOrDefault(typeId, string.Format(WorklistText.TypeWithId, typeId)),
+                          SdeNames.Type(typeId, names.GetValueOrDefault(typeId, string.Format(WorklistText.TypeWithId, typeId))),
                           have, want);
     }
 
@@ -397,6 +402,9 @@ public class InventionGenerator(
         var perCopy  = Math.Min(shortRuns, recipe.MaxCopyRuns);
         var original = all.FirstOrDefault(b => owner.Owns(b) && b.IsOriginal);
 
+        // For the titles. The rows' TypeName keeps the English.
+        var sourceShown = SdeNames.Type(recipe.SourceBlueprintTypeId, recipe.SourceBlueprintName);
+
         if (original is null)
             return [new WorklistItem
             {
@@ -404,7 +412,7 @@ public class InventionGenerator(
                 Source    = Id,
                 Kind      = WorklistKind.Job,
                 Pool      = IndustryPool.Science,
-                Title     = string.Format(WorklistText.CopyTitleNoOriginal, recipe.SourceBlueprintName),
+                Title     = string.Format(WorklistText.CopyTitleNoOriginal, sourceShown),
                 Detail    = string.Format(WorklistText.CopyNeedsRunsDetail, head, plan.CopyRunsNeeded, ownedCopyRuns),
                 Readiness = WorklistReadiness.Blocked,
                 BlockedBy      = WorklistText.BlockedNoBpoToCopy,
@@ -430,7 +438,7 @@ public class InventionGenerator(
             Source        = Id,
             Kind          = WorklistKind.Job,
             Pool          = IndustryPool.Science,
-            Title         = string.Format(WorklistText.CopyTitle, recipe.SourceBlueprintName, copies, perCopy),
+            Title         = string.Format(WorklistText.CopyTitle, sourceShown, copies, perCopy),
             Quantity      = copies,
             Detail        = string.Format(WorklistText.CopyFeedsDetail, head, plan.Attempts, ownedCopyRuns)
                           + " " + string.Format(WorklistText.PrintAt, original.Describe(), lab.Name)
@@ -450,8 +458,10 @@ public class InventionGenerator(
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
+    // Named as the screen shows it. ⚠️ Only here: the settings pick a decryptor by its English
+    // Name (InventionService.DecryptorFor).
     private static string DecryptorText(Decryptor d) =>
-        d.IsNone ? WorklistText.NoDecryptor : $"{d.Name} ×{d.ChanceMultiplier:0.0#}";
+        d.IsNone ? WorklistText.NoDecryptor : $"{SdeNames.Type(d.TypeId, d.Name)} ×{d.ChanceMultiplier:0.0#}";
 
     private Decryptor DecryptorFor(int productTypeId, ProductionContext ctx, List<Decryptor> all) =>
         InventionService.DecryptorFor(

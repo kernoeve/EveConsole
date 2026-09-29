@@ -174,7 +174,15 @@ public class InvGroupRow : ReactiveObject
     // Displayed beneath the group name to indicate scope
     public string ScopeDisplay => Scope == "Everywhere"
         ? AssetsText.Everywhere
-        : $"{LocationName} · {ScopeLabel}";
+        : $"{LocationDisplay} · {ScopeLabel}";
+
+    /// <summary>
+    /// The scope's place as the screen names it: a region or system in the interface language.
+    ///
+    /// <para>⚠️ <see cref="LocationName"/> stays English. The Multiplier setter saves the whole
+    /// group back from this row, and the edit dialog is handed it to return unchanged.</para>
+    /// </summary>
+    public string LocationDisplay => InvLevelService.ScopePlaceName(Scope, LocationId, LocationName);
 
     /// <summary>The scope's word as shown. ⚠️ Scope itself is the saved key — "Station",
     /// "System", "Region", "Everywhere" — and is what everything compares; only this is looked up.</summary>
@@ -302,6 +310,7 @@ public class InvGroupRow : ReactiveObject
         this.RaisePropertyChanged(nameof(ScopeLabel));
         this.RaisePropertyChanged(nameof(ScopeSuffix));
         this.RaisePropertyChanged(nameof(LocationName));
+        this.RaisePropertyChanged(nameof(LocationDisplay));
         this.RaisePropertyChanged(nameof(HasLocationLink));
         this.RaisePropertyChanged(nameof(IncludeSummary));
     }
@@ -336,6 +345,10 @@ public class InvItemRow : ReactiveObject
     public int    GroupId  { get; }
     public int    TypeId   { get; }
     public string TypeName { get; }
+
+    /// <summary>The item as the grid shows it, and what the grid sorts it by. ⚠️ Display only:
+    /// <see cref="TypeName"/> is the English, and what is handed on.</summary>
+    public string DisplayName => SdeNames.Type(TypeId, TypeName);
 
     public bool HasItemLink => TypeId > 0 && TypeName.Length > 0;
     public void OpenItem() => EntityNavigator.Instance.Item(TypeId);
@@ -713,6 +726,9 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
 
     private async Task InitAsync()
     {
+        // The rows are named, and sorted, in the interface language; this runs at start, so wait
+        // for the names once rather than sort by the English and keep that order.
+        await SdeNames.EnsureLoadedAsync();
         await LoadGroupsAsync();
         await RefreshAllAsync();
     }
@@ -853,18 +869,21 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
         var pick = await ShowMarketGroupPickerDialog();
         if (pick == null) return;
 
-        StatusText = string.Format(AssetsText.StatusLoadingItemsIn, pick.GroupName);
+        // Only ever said on screen, in the status line.
+        var groupName = SdeNames.MarketGroup(pick.MarketGroupId, pick.GroupName);
+
+        StatusText = string.Format(AssetsText.StatusLoadingItemsIn, groupName);
         var items = await _batchSvc.GetItemsInGroupTreeAsync(pick.MarketGroupId);
 
         if (items.Count == 0)
         {
-            StatusText = string.Format(AssetsText.StatusNoPublishedItems, pick.GroupName);
+            StatusText = string.Format(AssetsText.StatusNoPublishedItems, groupName);
             return;
         }
 
         if (items.Count > 100)
         {
-            var confirmed = await ShowConfirmLargeGroupAsync(pick.GroupName, items.Count);
+            var confirmed = await ShowConfirmLargeGroupAsync(groupName, items.Count);
             if (!confirmed) { StatusText = AssetsText.StatusCancelled; return; }
         }
 
@@ -873,7 +892,7 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
 
         await AddItemsToGroupAsync(targetGroup,
             items.ToDictionary(x => x.TypeId, _ => pick.TargetQty),
-            pick.GroupName);
+            groupName);
     }
 
     // ── Blueprint add ─────────────────────────────────────────────────────────
@@ -916,7 +935,9 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
         var itemsWithQty  = mats.ToDictionary(kv => kv.Key,
                                               kv => (int)Math.Clamp(kv.Value.Qty, 0, int.MaxValue));
         var nameOverrides = mats.ToDictionary(kv => kv.Key, kv => kv.Value.Name);
-        await AddItemsToGroupAsync(targetGroup, itemsWithQty, pick.ProductName, nameOverrides);
+        // The label is only said in the status line, so it is named as the screen shows it.
+        await AddItemsToGroupAsync(targetGroup, itemsWithQty,
+            SdeNames.Type(pick.ProductTypeId, pick.ProductName), nameOverrides);
     }
 
     // ── Shared batch-add helper ───────────────────────────────────────────────
@@ -1103,7 +1124,7 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
         var item = await _svc.AddItemAsync(groupRow.GroupId, result.TypeId, result.TargetQty);
         if (item is null)
         {
-            StatusText = string.Format(AssetsText.StatusAlreadyInGroup, result.TypeName);
+            StatusText = string.Format(AssetsText.StatusAlreadyInGroup, SdeNames.Type(result.TypeId, result.TypeName));
             return;
         }
 
@@ -1180,7 +1201,8 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
 
         Func<InvItemRow, IComparable?>? key = propName switch
         {
-            "TypeName"       => r => r.TypeName,
+            // By what the column shows, not the English behind it.
+            "TypeName"       => r => r.DisplayName,
             "TargetQty"      => r => (IComparable?)r.TargetQty,
             "TargetTotal"    => r => (IComparable?)r.TargetTotal,
             "Available"      => r => (IComparable?)r.Available,
@@ -1207,9 +1229,10 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
         RebuildGridRows();
     }
 
+    /// <summary>By the name the grid shows, in the reader's own collation (Chinese by pinyin).</summary>
     private static void SortItemsAlpha(InvGroupRow group)
     {
-        var sorted = group.AllItems.OrderBy(i => i.TypeName, StringComparer.OrdinalIgnoreCase).ToList();
+        var sorted = group.AllItems.OrderBy(i => i.DisplayName, StringComparer.CurrentCultureIgnoreCase).ToList();
         group.AllItems.Clear();
         group.AllItems.AddRange(sorted);
     }

@@ -253,6 +253,10 @@ public class WorklistFinalProductsViewModel : ReactiveObject
         try
         {
             _all = await Task.Run(() => GatherAsync(ct), ct);
+
+            // Apply names each row's item in the interface language; wait for the names once, so
+            // a tab opened right after start does not show them in English.
+            await SdeNames.EnsureLoadedAsync(ct);
             Apply();
         }
         catch (OperationCanceledException) { }
@@ -407,7 +411,8 @@ public class WorklistFinalProductsViewModel : ReactiveObject
             {
                 JobId     = r.JobId,
                 TypeId    = r.TypeId,
-                Item      = r.Item,
+                // Only ever shown; the raw row keeps the English.
+                Item      = SdeNames.Type(r.TypeId, r.Item),
                 Source    = r.Source,
                 Status    = r.Status,
                 Runs      = r.Runs,

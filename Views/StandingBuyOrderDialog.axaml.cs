@@ -26,6 +26,12 @@ public partial class StandingBuyOrderDialog : Window
 
     private CancellationTokenSource? _cts;
 
+    /// <summary>
+    /// An item result as the list shows it: the name in the interface language, which the item
+    /// template binds, over the result. ⚠️ The result keeps the English, and that is what is saved.
+    /// </summary>
+    private sealed record ShownType(SdeTypeResult Result, string Name);
+
     // Parameterless ctor for the XAML designer only.
     public StandingBuyOrderDialog() : this(null!, null) { }
 
@@ -41,8 +47,10 @@ public partial class StandingBuyOrderDialog : Window
 
         _selectedTypeId   = existing.TypeId;
         _selectedTypeName = existing.TypeName;
+        // The search box keeps the English: it is searched with, and the search is on the
+        // English column. The label says it as the screen names it.
         ItemSearchBox.Text          = existing.TypeName;
-        ItemSelectedLabel.Text      = existing.TypeName;
+        ItemSelectedLabel.Text      = SdeNames.Type(existing.TypeId, existing.TypeName);
         ItemSelectedLabel.IsVisible = true;
 
         _selectedLocationId   = existing.LocationId;
@@ -73,8 +81,13 @@ public partial class StandingBuyOrderDialog : Window
         {
             await Task.Delay(250, ct);   // debounce
             var results = await _service.SearchSdeTypesAsync(text, ct);
+            await SdeNames.EnsureLoadedAsync(ct);
             if (ct.IsCancellationRequested) return;
-            ItemResultsList.ItemsSource = results;
+            // Named, and listed, as the screen shows them.
+            ItemResultsList.ItemsSource = results
+                .Select(r => new ShownType(r, SdeNames.Type(r.TypeId, r.Name)))
+                .OrderBy(s => s.Name, StringComparer.CurrentCulture)
+                .ToList();
             ItemResultsBorder.IsVisible = results.Count > 0;
         }
         catch (Exception) { }
@@ -82,11 +95,11 @@ public partial class StandingBuyOrderDialog : Window
 
     private void OnItemSelected(object? sender, SelectionChangedEventArgs e)
     {
-        if (ItemResultsList.SelectedItem is not SdeTypeResult r) return;
+        if (ItemResultsList.SelectedItem is not ShownType { Result: var r } shown) return;
         _selectedTypeId   = r.TypeId;
         _selectedTypeName = r.Name;
         ItemResultsBorder.IsVisible = false;
-        ItemSelectedLabel.Text      = r.Name;
+        ItemSelectedLabel.Text      = shown.Name;
         ItemSelectedLabel.IsVisible = true;
     }
 

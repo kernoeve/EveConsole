@@ -171,8 +171,9 @@ public class InventoryLevelGenerator(
                     var fill  = need.FillText(rule);
 
                     // The name leads. The column sorts on this string, so a leading verb sorted
-                    // every shortfall in the list under "P" for "Place order".
-                    var title    = $"{name} × {shortfall:N0}";
+                    // every shortfall in the list under "P" for "Place order". Named as the screen
+                    // shows it; TypeName below stays English.
+                    var title    = $"{SdeNames.Type(gi.TypeId, name)} × {shortfall:N0}";
                     var detail   = $"{stock}{order}.{fill} " + string.Format(WorklistText.ShortBy, shortfall)
                                  + (bids.IsTracked(rule.LocationId)
                                       ? ""
@@ -260,8 +261,9 @@ public class InventoryLevelGenerator(
             var  from  = new List<string>();
 
             // Each source counts in full against every product it yields. One batch of ice gives
-            // all of its outputs at once, so there is nothing to apportion between them.
-            foreach (var s in subs[typeId].OrderBy(s => s.SourceName))
+            // all of its outputs at once, so there is nothing to apportion between them. Named,
+            // and listed, as the screen shows them — this is only ever a clause of the row's detail.
+            foreach (var s in subs[typeId].OrderBy(s => SdeNames.Type(s.SourceTypeId, s.SourceName)))
             {
                 var have  = held.GetValueOrDefault(s.SourceTypeId);
                 var due   = onOrder.GetValueOrDefault(s.SourceTypeId);
@@ -271,10 +273,11 @@ public class InventoryLevelGenerator(
                 var gives = s.From(units);
                 if (gives <= 0) continue;
 
+                var shown = SdeNames.Type(s.SourceTypeId, s.SourceName);
                 total += gives;
                 from.Add(due > 0
-                    ? string.Format(WorklistText.HeldAndOnOrder, have, s.SourceName, due)
-                    : $"{units:N0} {s.SourceName}");
+                    ? string.Format(WorklistText.HeldAndOnOrder, have, shown, due)
+                    : $"{units:N0} {shown}");
             }
 
             if (total <= 0) continue;

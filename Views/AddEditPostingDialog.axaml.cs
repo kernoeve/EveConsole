@@ -62,7 +62,7 @@ public partial class AddEditPostingDialog : Window
             {
                 _selectedLocationId       = existing.LocationId;
                 _selectedLocationName     = existing.LocationName;
-                SelectedLocationText.Text = existing.LocationName;
+                SelectedLocationText.Text = InvLevelService.ScopePlaceName(existing.Scope, existing.LocationId, existing.LocationName);
             }
 
             switch (existing.PricingBasis)
@@ -115,10 +115,20 @@ public partial class AddEditPostingDialog : Window
         var text = LocationSearchBox.Text ?? "";
         if (text.Length < 2) { LocationResultsBorder.IsVisible = false; return; }
 
-        var results = await _searchFn(GetScope(), text);
-        LocationListBox.ItemsSource     = results.Select(r => r.Name).ToList();
+        var scope   = GetScope();
+        var results = await _searchFn(scope, text);
+
+        // A region or system is listed, in that name's order, as the screen names it. The option
+        // keeps the English, which is what the posting saves. Tag and list stay in one order: a
+        // pick is read back by its index.
+        var shown = results
+            .Select(r => (Option: r, Name: InvLevelService.ScopePlaceName(scope, r.Id, r.Name)))
+            .OrderBy(x => x.Name, StringComparer.CurrentCulture)
+            .ToList();
+
+        LocationListBox.ItemsSource     = shown.Select(x => x.Name).ToList();
         LocationResultsBorder.IsVisible = results.Count > 0;
-        LocationListBox.Tag             = results;
+        LocationListBox.Tag             = shown.Select(x => x.Option).ToList();
     }
 
     private void OnLocationSelected(object? sender, SelectionChangedEventArgs e)
@@ -130,7 +140,7 @@ public partial class AddEditPostingDialog : Window
         var chosen = opts[LocationListBox.SelectedIndex];
         _selectedLocationId   = chosen.Id;
         _selectedLocationName = chosen.Name;
-        SelectedLocationText.Text       = chosen.Name;
+        SelectedLocationText.Text       = InvLevelService.ScopePlaceName(GetScope(), chosen.Id, chosen.Name);
         LocationSearchBox.Text          = "";
         LocationResultsBorder.IsVisible = false;
         LocationListBox.SelectedIndex   = -1;

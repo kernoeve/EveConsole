@@ -47,7 +47,11 @@ public class TrackedOrderRowVm : ReactiveObject
     public Bitmap? Icon { get => _icon; private set => this.RaiseAndSetIfChanged(ref _icon, value); }
     public Task LoadIconAsync() => ItemIcons.LoadAsync(TypeId, bmp => Icon = bmp);
     public DateTimeOffset Created { get; } public long CreatedSort { get; } public string CreatedText { get; }
+
+    /// <summary>The item as the grid shows it, sorts it and copies it. The English is
+    /// <see cref="TypeEnglish"/>, which the filter also searches and the dialog is handed.</summary>
     public int    TypeId  { get; } public string Type   { get; }
+    public string TypeEnglish { get; }
     public int    Units   { get; } public string UnitsText { get; }
     public string Buyer   { get; }
 
@@ -207,7 +211,8 @@ public class TrackedOrderRowVm : ReactiveObject
         Created     = o.CreatedAt;
         CreatedSort = o.CreatedAt.UtcTicks;
         CreatedText = o.CreatedAt.UtcDateTime.ToString("yyyy-MM-dd");
-        TypeId      = o.TypeId;   Type  = typeName;
+        TypeId      = o.TypeId;   Type  = SdeNames.Type(o.TypeId, typeName);
+        TypeEnglish = typeName;
         Units       = o.Units;    UnitsText = o.Units.ToString("N0");
         Buyer       = o.Buyer;
         BuyerId     = o.BuyerId;
@@ -281,7 +286,7 @@ public class TrackedOrderRowVm : ReactiveObject
     }
 
     public OrderDialogResult ToDialog() =>
-        new(TypeId, Type, Units, Buyer, string.IsNullOrEmpty(EstDate) ? null : EstDate,
+        new(TypeId, TypeEnglish, Units, Buyer, string.IsNullOrEmpty(EstDate) ? null : EstDate,
             PurchaseRaw, StatusRaw, IsPriority, BuyerId, BuyerType, ContractIds,
             string.IsNullOrEmpty(CompletedOn) ? null : CompletedOn,
             LabelList.ToList());
@@ -419,6 +424,9 @@ public class OrderTrackerViewModel : ReactiveObject
                 .ToDictionaryAsync(t => t.TypeId, t => t.Name);
             var buildCosts = await db.BuildCosts.AsNoTracking().Where(b => typeIds.Contains(b.TypeId))
                 .ToDictionaryAsync(b => b.TypeId, b => (double)b.TotalCost);
+
+            // The rows name their items in the interface language, and this first runs at start.
+            await SdeNames.EnsureLoadedAsync();
 
             // Build cost is a moving number, so an order that has settled is judged against what the
             // item cost on the day it settled. Otherwise the profit shown against a months-old order
@@ -561,8 +569,9 @@ public class OrderTrackerViewModel : ReactiveObject
         if (_statusFilter?.Value is string s) q = q.Where(r => r.StatusRaw == s);
         if (TryDate(_createdFrom, out var from)) q = q.Where(r => r.Created.UtcDateTime.Date >= from);
         if (TryDate(_createdThru, out var thru)) q = q.Where(r => r.Created.UtcDateTime.Date <= thru);
+        // The name the grid shows or the English one: names get pasted from websites and chat.
         if (!string.IsNullOrWhiteSpace(_typeFilter))
-            q = q.Where(r => r.Type.Contains(_typeFilter, StringComparison.OrdinalIgnoreCase));
+            q = q.Where(r => SdeNames.Matches(SdeNameKind.Type, r.TypeId, r.TypeEnglish, _typeFilter));
         if (!string.IsNullOrWhiteSpace(_buyerFilter))
             q = q.Where(r => r.Buyer.Contains(_buyerFilter, StringComparison.OrdinalIgnoreCase));
 
@@ -843,8 +852,13 @@ public class OrderTrackerViewModel : ReactiveObject
         var prefix = $"{trimmed}%";
         var any    = $"%{trimmed}%";
 
+        // And the types whose name as the screen shows it contains what was typed, which the
+        // English LIKE cannot see. Empty in English.
+        await SdeNames.EnsureLoadedAsync();
+        var shown = SdeNames.Find(SdeNameKind.Type, trimmed).Select(id => (int)id).ToList();
+
         var results = await db.SdeTypes.AsNoTracking()
-            .Where(t => EF.Functions.Like(t.Name, any) && t.Published)
+            .Where(t => (EF.Functions.Like(t.Name, any) || shown.Contains(t.TypeId)) && t.Published)
             // LIKE is case-insensitive for ASCII in SQLite, which is what a name search wants.
             .OrderByDescending(t => EF.Functions.Like(t.Name, exact))
             .ThenByDescending(t => EF.Functions.Like(t.Name, prefix))
@@ -852,6 +866,19 @@ public class OrderTrackerViewModel : ReactiveObject
             .ThenBy(t => t.Name)
             .Take(TypeSearchLimit)
             .Select(t => new { t.TypeId, t.Name }).ToListAsync();
+
+        // ⚠️ Ranked again where a shown name matched: the SQL could only rank by the English, and
+        // a name typed in the interface language is none of exact, prefix or short there. Each row
+        // counts by whichever of its two names answers what was typed better. The set is the one
+        // the SQL chose, so nothing the limit kept is lost; only the order changes.
+        if (shown.Count > 0)
+            results = results
+                .Select(r => (Row: r, Shown: SdeNames.Type(r.TypeId, r.Name)))
+                .OrderBy(x => Math.Min(NameRank(x.Row.Name, trimmed), NameRank(x.Shown, trimmed)))
+                .ThenBy(x => x.Shown.Length)
+                .ThenBy(x => x.Shown, StringComparer.CurrentCulture)
+                .Select(x => x.Row)
+                .ToList();
 
         return results.Select(r => new TypeResultVm(r.TypeId, r.Name)).ToList();
     }

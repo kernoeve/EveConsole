@@ -33,6 +33,17 @@ public partial class StandingProjectDialog : Window
         public override string ToString() => Name;
     }
 
+    /// <summary>
+    /// A search result as a list shows it: the name in the interface language, which the item
+    /// template binds, over the result. ⚠️ The result keeps the English, and that is what the
+    /// project saves — it is also what the posted report prints.
+    /// </summary>
+    private sealed record Shown<T>(T Result, string Name);
+
+    /// <summary>Results named, and listed, as the screen shows them.</summary>
+    private static List<Shown<T>> ShownAll<T>(IEnumerable<T> results, Func<T, string> name) =>
+        [.. results.Select(r => new Shown<T>(r, name(r))).OrderBy(s => s.Name, StringComparer.CurrentCulture)];
+
     public StandingProjectDialog(CorpActivityService service, CorpStandingProject? existing = null)
     {
         InitializeComponent();
@@ -76,7 +87,7 @@ public partial class StandingProjectDialog : Window
             {
                 _selectedTypeId             = p.ItemTypeId;
                 _selectedTypeName           = p.ItemTypeName;
-                ItemSelectedLabel.Text      = p.ItemTypeName;
+                ItemSelectedLabel.Text      = SdeNames.Type(p.ItemTypeId.Value, p.ItemTypeName);
                 ItemSelectedLabel.IsVisible = true;
             }
             if (p.StationId.HasValue)
@@ -98,7 +109,7 @@ public partial class StandingProjectDialog : Window
                 {
                     _selectedRegionId             = p.ScopeEntityId;
                     _selectedRegionName           = p.ScopeEntityName;
-                    RegionSelectedLabel.Text      = p.ScopeEntityName;
+                    RegionSelectedLabel.Text      = SdeNames.Region(p.ScopeEntityId.Value, p.ScopeEntityName);
                     RegionSelectedLabel.IsVisible = true;
                 }
                 RegionAdmBox.Value = (decimal)(p.MinAdm ?? 4.0);
@@ -109,7 +120,7 @@ public partial class StandingProjectDialog : Window
                 {
                     _selectedConstId             = p.ScopeEntityId;
                     _selectedConstName           = p.ScopeEntityName;
-                    ConstSelectedLabel.Text      = p.ScopeEntityName;
+                    ConstSelectedLabel.Text      = SdeNames.Constellation(p.ScopeEntityId.Value, p.ScopeEntityName);
                     ConstSelectedLabel.IsVisible = true;
                 }
                 ConstAdmBox.Value = (decimal)(p.MinAdm ?? 4.0);
@@ -126,7 +137,7 @@ public partial class StandingProjectDialog : Window
                 {
                     _selectedSystemId             = p.SolarSystemId;
                     _selectedSystemName           = p.SolarSystemName;
-                    SystemSelectedLabel.Text      = p.SolarSystemName;
+                    SystemSelectedLabel.Text      = SdeNames.SolarSystem(p.SolarSystemId.Value, p.SolarSystemName);
                     SystemSelectedLabel.IsVisible = true;
                 }
                 break;
@@ -173,8 +184,9 @@ public partial class StandingProjectDialog : Window
         {
             await Task.Delay(250, ct);
             var results = await _service.SearchSdeTypesAsync(text, ct);
+            await SdeNames.EnsureLoadedAsync(ct);
             if (ct.IsCancellationRequested) return;
-            ItemResultsList.ItemsSource = results;
+            ItemResultsList.ItemsSource = ShownAll(results, r => SdeNames.Type(r.TypeId, r.Name));
             ItemResultsBorder.IsVisible = results.Count > 0;
         }
         catch (Exception) { }
@@ -182,11 +194,11 @@ public partial class StandingProjectDialog : Window
 
     private void OnItemSelected(object? sender, SelectionChangedEventArgs e)
     {
-        if (ItemResultsList.SelectedItem is not SdeTypeResult r) return;
+        if (ItemResultsList.SelectedItem is not Shown<SdeTypeResult> { Result: var r } shown) return;
         _selectedTypeId   = r.TypeId;
         _selectedTypeName = r.Name;
         ItemResultsBorder.IsVisible = false;
-        ItemSelectedLabel.Text      = r.Name;
+        ItemSelectedLabel.Text      = shown.Name;
         ItemSelectedLabel.IsVisible = true;
     }
 
@@ -245,8 +257,9 @@ public partial class StandingProjectDialog : Window
         {
             await Task.Delay(250, ct);
             var results = await _service.SearchSdeSystemsAsync(text, ct);
+            await SdeNames.EnsureLoadedAsync(ct);
             if (ct.IsCancellationRequested) return;
-            SystemResultsList.ItemsSource = results;
+            SystemResultsList.ItemsSource = ShownAll(results, r => SdeNames.SolarSystem(r.SystemId, r.Name));
             SystemResultsBorder.IsVisible = results.Count > 0;
         }
         catch (Exception) { }
@@ -254,11 +267,11 @@ public partial class StandingProjectDialog : Window
 
     private void OnSystemSelected(object? sender, SelectionChangedEventArgs e)
     {
-        if (SystemResultsList.SelectedItem is not SdeSystemResult r) return;
+        if (SystemResultsList.SelectedItem is not Shown<SdeSystemResult> { Result: var r } shown) return;
         _selectedSystemId   = r.SystemId;
         _selectedSystemName = r.Name;
         SystemResultsBorder.IsVisible = false;
-        SystemSelectedLabel.Text      = r.Name;
+        SystemSelectedLabel.Text      = shown.Name;
         SystemSelectedLabel.IsVisible = true;
     }
 
@@ -281,8 +294,9 @@ public partial class StandingProjectDialog : Window
         {
             await Task.Delay(250, ct);
             var results = await _service.SearchSdeRegionsAsync(text, ct);
+            await SdeNames.EnsureLoadedAsync(ct);
             if (ct.IsCancellationRequested) return;
-            RegionResultsList.ItemsSource = results;
+            RegionResultsList.ItemsSource = ShownAll(results, r => SdeNames.Region(r.RegionId, r.Name));
             RegionResultsBorder.IsVisible = results.Count > 0;
         }
         catch (Exception) { }
@@ -290,11 +304,11 @@ public partial class StandingProjectDialog : Window
 
     private void OnRegionSelected(object? sender, SelectionChangedEventArgs e)
     {
-        if (RegionResultsList.SelectedItem is not SdeRegionResult r) return;
+        if (RegionResultsList.SelectedItem is not Shown<SdeRegionResult> { Result: var r } shown) return;
         _selectedRegionId   = r.RegionId;
         _selectedRegionName = r.Name;
         RegionResultsBorder.IsVisible = false;
-        RegionSelectedLabel.Text      = r.Name;
+        RegionSelectedLabel.Text      = shown.Name;
         RegionSelectedLabel.IsVisible = true;
     }
 
@@ -317,8 +331,9 @@ public partial class StandingProjectDialog : Window
         {
             await Task.Delay(250, ct);
             var results = await _service.SearchSdeConstellationsAsync(text, ct);
+            await SdeNames.EnsureLoadedAsync(ct);
             if (ct.IsCancellationRequested) return;
-            ConstResultsList.ItemsSource = results;
+            ConstResultsList.ItemsSource = ShownAll(results, r => SdeNames.Constellation(r.ConstellationId, r.Name));
             ConstResultsBorder.IsVisible = results.Count > 0;
         }
         catch (Exception) { }
@@ -326,11 +341,11 @@ public partial class StandingProjectDialog : Window
 
     private void OnConstSelected(object? sender, SelectionChangedEventArgs e)
     {
-        if (ConstResultsList.SelectedItem is not SdeConstellationResult r) return;
+        if (ConstResultsList.SelectedItem is not Shown<SdeConstellationResult> { Result: var r } shown) return;
         _selectedConstId   = r.ConstellationId;
         _selectedConstName = r.Name;
         ConstResultsBorder.IsVisible = false;
-        ConstSelectedLabel.Text      = r.Name;
+        ConstSelectedLabel.Text      = shown.Name;
         ConstSelectedLabel.IsVisible = true;
     }
 

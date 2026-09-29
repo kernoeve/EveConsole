@@ -1591,6 +1591,9 @@ public class StoresViewModel : ReactiveObject
                 .Where(t => orderTypeIds.Contains(t.TypeId))
                 .ToDictionaryAsync(t => t.TypeId, t => t.Name);
 
+            // The order rows name their items in the interface language (OrderSummaryRowVm).
+            await SdeNames.EnsureLoadedAsync();
+
             // ⚠️ By item, not by order reference. A reference is how the mail tool addresses a
             // conversation — a buyer who asked for three things in one message gets one — and it
             // is not a unit of anything worth counting. Everything else that summarises this

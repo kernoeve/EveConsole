@@ -150,7 +150,7 @@ public class OutbidOrderService(
             Key           = $"outbid:{l.TypeId}:{l.LocationId}",
             Source        = "outbid",
             Kind          = WorklistKind.Buy,
-            Title         = string.Format(WorklistText.TitleRaiseBid, l.TypeName),
+            Title         = string.Format(WorklistText.TitleRaiseBid, SdeNames.Type(l.TypeId, l.TypeName)),
             // No quantity to acquire, so nothing to merge with a purchase of the same thing. The
             // two are different actions: one changes a price, the other places an order.
             MergeKey      = null,

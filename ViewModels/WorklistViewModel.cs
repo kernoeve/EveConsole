@@ -563,8 +563,9 @@ public sealed class ShortageTaskRowVm : ReactiveObject
         _                                 => t.State,
     };
 
-    /// <summary>What this task makes. Blank on an installed job, whose title says it already.</summary>
-    public string Item => t.TypeName;
+    /// <summary>What this task makes, as the screen names it. Blank on an installed job, whose
+    /// title says it already.</summary>
+    public string Item => SdeNames.Type(t.TypeId, t.TypeName);
 
     /// <summary>Indented by how far down the chain it sits, so the hops read as a shape rather
     /// than as a column of numbers.</summary>
@@ -622,7 +623,7 @@ public sealed class ItemShortageRowVm : ReactiveObject, IExpandableRow
 
     public string Glyph => !HasTasks ? "" : _isExpanded ? "▾" : "▸";
 
-    public string Item      => s.Name;
+    public string Item      => SdeNames.Type(s.TypeId, s.Name);
     public string Used      => string.Format(WorklistText.PerDayN1, s.UsedPerDay);
     public string Made      => s.Buildable ? string.Format(WorklistText.PerDayN1, s.MadePerDay) : "—";
     public string Level     => s.Level > 0 ? s.Level.ToString("N0") : "";
@@ -765,12 +766,15 @@ public sealed class WorklistWaitingJobVm : ReactiveObject
     /// same print listed twenty identical rows saying the same thing — a wall of text that told
     /// the reader nothing the first line had not, and made the expanded row taller than the grid.
     /// </summary>
-    public string TypeName => _count > 1 ? $"{_w.TypeName} × {_count:N0}" : _w.TypeName;
+    public string TypeName => _count > 1 ? $"{Shown} × {_count:N0}" : Shown;
     public string StatusText  => _w.StatusText;
     public string StatusTip   => _w.StatusTip;
     public IBrush StatusColor => _w.StatusColor;
     public bool   HasItemLink => _w.HasItemLink;
     public void   OpenItem()  => _w.OpenItem();
+
+    /// <summary>The product as the screen names it. The record keeps the English.</summary>
+    private string Shown => SdeNames.Type(_w.TypeId, _w.TypeName);
 
     private Avalonia.Media.Imaging.Bitmap? _icon;
     public Avalonia.Media.Imaging.Bitmap? Icon
@@ -799,7 +803,8 @@ public sealed class WorklistLineVm : ReactiveObject
 
     public WorklistLine Line => _line;
 
-    public string TypeName   => _line.TypeName;
+    /// <summary>As the screen names it; <see cref="Line"/> keeps the English.</summary>
+    public string TypeName   => SdeNames.Type(_line.TypeId, _line.TypeName);
     public long   Quantity   => _line.Quantity;
     public string ValueText  => _line.ValueText;
     public string VolumeText => _line.VolumeText;
@@ -1007,7 +1012,7 @@ public sealed class PrintPressureRowVm : ReactiveObject, IExpandableRow
 
     public bool HasTasks => p.Tasks.Count > 0;
 
-    public string Product   => p.ProductName;
+    public string Product   => SdeNames.Type(p.ProductTypeId, p.ProductName);
     public string Cycle     => p.CycleDays >= 1 ? string.Format(WorklistText.DaysN1, p.CycleDays)
                                                 : string.Format(WorklistText.HoursN1, p.CycleDays * 24);
     public string Prints    => p.Prints.ToString("N0");
@@ -1128,7 +1133,13 @@ public sealed class StationNeedRowVm(StationNeed n) : ReactiveObject, IExpandabl
     public string Glyph => !HasDrivers ? "" : _isExpanded ? "▾" : "▸";
 
     public string Station => n.StationName;
-    public string Item    => n.TypeName;
+
+    /// <summary>
+    /// The item as the screen names it — which is also what Item Needs groups under and sorts its
+    /// groups by, so the headings read in the reader's own order. Nothing matches on it: the
+    /// need itself keeps the English, and the links go by id.
+    /// </summary>
+    public string Item    => SdeNames.Type(n.TypeId, n.TypeName);
 
     // Both names on a need point somewhere; the ids were already on the record.
     public bool HasStationLink => n.StationId > 0 && n.StationName.Length > 0;
@@ -1503,6 +1514,11 @@ public class WorklistViewModel : ReactiveObject
         NeedsLoading = true;
         try
         {
+            // The rows name their items in the interface language, and Item Needs groups by that
+            // name: in before the first rows are built, or a tab opened right after start is
+            // grouped under the English and stays that way.
+            await SdeNames.EnsureLoadedAsync();
+
             var rows = await logistics.NeedsAsync();
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
@@ -2000,10 +2016,16 @@ public class WorklistViewModel : ReactiveObject
         && Is(_characterFilter, r.CharacterName)
         && Is(_sourceFilter,    r.LocationName)
         && Is(_destFilter,      r.DestinationName)
-        && Has(_descriptionFilter, r.Title)
+        // ⚠️ The title names the item in the interface language, and a name pasted from a website
+        // or chat is English — so the row's own item is matched in English too. Not on a haul,
+        // whose title names no item and whose TypeName is merely the first line of its manifest.
+        && (Has(_descriptionFilter, r.Title)
+            || !r.IsHaul && SdeNames.Matches(Models.SdeNameKind.Type, r.TypeId, r.Item.TypeName, _descriptionFilter))
         // The note cell shows the detail, the blocked reason and the snooze line together, so a
-        // search over it has to cover all three or it would miss what the reader can see.
-        && Has(_noteFilter, $"{r.Detail} {r.Note} {r.SnoozeText}");
+        // search over it has to cover all three or it would miss what the reader can see — and
+        // what a job is short of, in English, for the same reason as the title above.
+        && (Has(_noteFilter, $"{r.Detail} {r.Note} {r.SnoozeText}")
+            || r.Item.Shortages.Any(s => s.TypeName.Contains(_noteFilter, StringComparison.OrdinalIgnoreCase)));
 
     private static bool Is(string filter, string value) =>
         filter == AnyValue

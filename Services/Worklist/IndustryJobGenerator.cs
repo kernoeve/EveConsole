@@ -559,6 +559,8 @@ public class IndustryJobGenerator(
                 if (product is null) continue;   // nothing makes it — a Buy rule's job, not this
 
                 var name       = names.GetValueOrDefault(d.TypeId, string.Format(WorklistText.TypeWithId, d.TypeId));
+                // For the titles, which are screen text. TypeName goes on carrying the English.
+                var shown      = SdeNames.Type(d.TypeId, name);
                 var isReaction = product.Activity == "reaction";
                 var pool       = isReaction ? IndustryPool.Reaction : IndustryPool.Manufacturing;
                 var required   = bpSkills.GetValueOrDefault((product.TypeId, product.Activity), []);
@@ -760,8 +762,10 @@ public class IndustryJobGenerator(
                         var short_   = MissingAtSite(
                             stock, inScope, ctx, owner, restMats, siteId.Value, claimed);
 
-                        var haul = short_.Where(m => !m.MustBuy).Select(m => m.Name).ToList();
-                        var buy  = short_.Where(m =>  m.MustBuy).Select(m => m.Name).ToList();
+                        // Named as the screen shows them: these only go into the sentence below.
+                        // The shortages recorded with the row keep the English.
+                        var haul = short_.Where(m => !m.MustBuy).Select(m => SdeNames.Type(m.TypeId, m.Name)).ToList();
+                        var buy  = short_.Where(m =>  m.MustBuy).Select(m => SdeNames.Type(m.TypeId, m.Name)).ToList();
 
                         // With the scope's name where there is one: "not owned" means nothing
                         // owned in that region, which is not the same claim as nothing anywhere.
@@ -803,8 +807,8 @@ public class IndustryJobGenerator(
                         // sorts by digit — scattering the several jobs of one split across the
                         // whole list.
                         var runsText = product.Quantity > 1
-                            ? string.Format(WorklistText.JobTitleRunsMaking, name, runs, produced)
-                            : string.Format(WorklistText.JobTitleRuns, name, runs);
+                            ? string.Format(WorklistText.JobTitleRunsMaking, shown, runs, produced)
+                            : string.Format(WorklistText.JobTitleRuns, shown, runs);
 
                         // Which piece of a split this is, named only on a real split.
                         var shortText = split.Jobs.Count > 1
@@ -1091,8 +1095,8 @@ public class IndustryJobGenerator(
                             Kind          = WorklistKind.Job,
                             Title         = product.Quantity > 1
                                 ? string.Format(WorklistText.JobTitleRunsMaking,
-                                                name, runs, runs * (long)Math.Max(1, product.Quantity))
-                                : string.Format(WorklistText.JobTitleRuns, name, runs),
+                                                shown, runs, runs * (long)Math.Max(1, product.Quantity))
+                                : string.Format(WorklistText.JobTitleRuns, shown, runs),
                             Quantity      = runs * (long)Math.Max(1, product.Quantity),
                             Detail        = string.Format(WorklistText.JobDetailShort, head, d.Units)
                                           + " " + string.Format(WorklistText.JobNeedsBlueprintAt, siteName)
@@ -1217,7 +1221,9 @@ public class IndustryJobGenerator(
             // ⚠️ The amount belongs in the title. There is no run count — that is the whole
             // point of the row, nothing can be started — but a bare name beside a filled-in
             // value and volume column reads as a malformed row rather than a blocked one.
-            Title        = units > 0 ? string.Format(WorklistText.JobTitleNeeded, name, units) : name,
+            // Named as the screen shows it; TypeName below keeps the English.
+            Title        = units > 0 ? string.Format(WorklistText.JobTitleNeeded, SdeNames.Type(typeId, name), units)
+                                     : SdeNames.Type(typeId, name),
             Quantity     = units,
             Detail       = detail,
             Readiness    = WorklistReadiness.Blocked,

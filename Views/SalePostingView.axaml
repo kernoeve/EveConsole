@@ -191,7 +191,7 @@
                     <Button Classes="link" Click="OnOpenPostingLocation"
                             IsVisible="{Binding HasLocationLink}"
                             ToolTip.Tip="{x:Static loc:SalesText.TipOpenThisLocation}">
-                      <TextBlock Text="{Binding LocationName}" Classes="linktext"
+                      <TextBlock Text="{Binding LocationDisplay}" Classes="linktext"
                                  FontSize="10" Foreground="{DynamicResource InfoBrush}" />
                     </Button>
                     <TextBlock Text="{Binding ScopeDisplay}" IsVisible="{Binding !HasLocationLink}"
@@ -235,7 +235,7 @@
                 <Button IsVisible="{Binding IsItem}" Classes="link" Click="OnOpenItem"
                         Canvas.Left="32" Canvas.Top="5"
                         ToolTip.Tip="{x:Static loc:SalesText.TipOpenInTheItemBrowser}">
-                  <TextBlock Text="{Binding TypeName}" Classes="linktext"
+                  <TextBlock Text="{Binding DisplayName}" Classes="linktext"
                              FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
                 </Button>
               </Canvas>

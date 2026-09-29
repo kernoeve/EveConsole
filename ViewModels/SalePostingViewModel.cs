@@ -492,6 +492,10 @@ public class SalePostingRow : ReactiveObject
     private long?  _locationId;
 
     public string LocationName    => _locationName;
+
+    /// <summary>The scope's place as the screen names it — a region or system in the interface
+    /// language. ⚠️ Display only: the posting keeps the English.</summary>
+    public string LocationDisplay => InvLevelService.ScopePlaceName(_scope, _locationId, _locationName);
     public string ScopeSuffix     => _scope == "Everywhere" ? "" : $" · {ScopeLabel(_scope)}";
 
     // The scope is saved by its English key; this is the word shown for it.
@@ -550,11 +554,12 @@ public class SalePostingRow : ReactiveObject
     {
         Model          = m;
         PostingName    = m.Name;
-        ScopeDisplay   = m.Scope == "Everywhere" ? SalesText.ScopeEverywhere : $"{m.LocationName} · {ScopeLabel(m.Scope)}";
         _scope         = m.Scope;
         _locationId    = m.LocationId;
         _locationName  = m.LocationName;
+        ScopeDisplay   = m.Scope == "Everywhere" ? SalesText.ScopeEverywhere : $"{LocationDisplay} · {ScopeLabel(m.Scope)}";
         this.RaisePropertyChanged(nameof(LocationName));
+        this.RaisePropertyChanged(nameof(LocationDisplay));
         this.RaisePropertyChanged(nameof(ScopeSuffix));
         this.RaisePropertyChanged(nameof(HasLocationLink));
         string basis   = m.PricingBasis switch
@@ -643,7 +648,9 @@ public class SalePostingSectionRow : ReactiveObject
 
         var parts = new List<string>();
         if (m.OverrideScope)
-            parts.Add(SalesText.SummaryScope + (m.Scope == "Everywhere" ? SalesText.ScopeEverywhere : m.LocationName));
+            parts.Add(SalesText.SummaryScope + (m.Scope == "Everywhere"
+                ? SalesText.ScopeEverywhere
+                : InvLevelService.ScopePlaceName(m.Scope, m.LocationId, m.LocationName)));
         if (m.OverridePricing)
         {
             string b = m.PricingBasis switch
@@ -705,7 +712,14 @@ public class SalePostingItemRow : ReactiveObject
     public int    ItemId    { get; }
     public int    SectionId { get; }
     public int    TypeId    { get; }
+
+    /// <summary>⚠️ English, and it has to stay so: the posting is rendered from it (see
+    /// <see cref="ToView"/>) and posted to Slack, Discord and EVE mail, and the items are ordered
+    /// by it because the rendered listing is.</summary>
     public string TypeName  { get; private set; }
+
+    /// <summary>The item as the grid shows it.</summary>
+    public string DisplayName => SdeNames.Type(TypeId, TypeName);
 
     public bool HasItemLink => TypeId > 0 && TypeName.Length > 0;
     public void OpenItem() => EntityNavigator.Instance.Item(TypeId);
@@ -844,7 +858,7 @@ public class SalePostingItemRow : ReactiveObject
 
     public void ApplyCalc(SalePostingCalc c, string basis, bool showCompletion)
     {
-        TypeName        = c.Name; this.RaisePropertyChanged(nameof(TypeName));
+        TypeName        = c.Name; this.RaisePropertyChanged(nameof(TypeName)); this.RaisePropertyChanged(nameof(DisplayName));
         _inStock        = c.InStock;
         _inBuild        = c.InBuild;
         _reserved       = c.Reserved;
@@ -1133,6 +1147,8 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
         }
     }
 
+    // ⚠️ By the English TypeName, not the name the grid shows: the posting is rendered in this
+    // order, and SalePostingService.BuildViewAsync mails it in the same one.
     private void SortPostingItems(SalePostingRow pr)
     {
         foreach (var s in pr.Sections)

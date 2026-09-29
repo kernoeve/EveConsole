@@ -273,7 +273,8 @@ public class MaterialPurchaseGenerator(
                 // instruction — but the name leads, because the column sorts on this string and
                 // a leading count sorts by digit, scattering an item's rows across the list.
                 Kind          = WorklistKind.Buy,
-                Title         = $"{typeName} × {short_:N0}",
+                // Named as the screen shows it; TypeName below stays English.
+                Title         = $"{SdeNames.Type(typeId, typeName)} × {short_:N0}",
                 Quantity      = short_,
                 // Prints merge too. A job needing copies and a stocking rule wanting some on the
                 // shelf are one trip to the contract window, exactly as two demands for the same
@@ -325,9 +326,11 @@ public class MaterialPurchaseGenerator(
     /// </summary>
     private static string WantedBy(IndustryDemandService.RawNeed need)
     {
+        // Named as the screen shows them: this is only ever the opening of a row's detail.
         var users = need.Consumers
             .GroupBy(c => c.TypeId)
-            .Select(g => (g.First().Name, Runs: g.Sum(c => c.Runs), Units: g.Sum(c => c.Units)))
+            .Select(g => (Name: SdeNames.Type(g.Key, g.First().Name),
+                          Runs: g.Sum(c => c.Runs), Units: g.Sum(c => c.Units)))
             .OrderByDescending(u => u.Units)
             .ToList();
         if (users.Count == 0) return WorklistText.WantedByPlannedBuilds;
@@ -445,7 +448,8 @@ public class MaterialPurchaseGenerator(
             if (!ctx.BlueprintByProduct.TryGetValue(entry.TypeId, out var bp)) continue;
             jobNeed[bp.TypeId] = jobNeed.GetValueOrDefault(bp.TypeId)
                                + IndustryJobSplit.RunsFor(entry.Quantity, Math.Max(1, bp.Quantity));
-            forWhat.TryAdd(bp.TypeId, entry.TypeName);
+            // Only ever read out in the row's detail, so named as the screen shows it.
+            forWhat.TryAdd(bp.TypeId, SdeNames.Type(entry.TypeId, entry.TypeName));
         }
 
         // What the material tree asks for, in runs, at every level — the queue above only sees
@@ -522,7 +526,7 @@ public class MaterialPurchaseGenerator(
                 Key           = $"industry_print:{bpTypeId}",
                 Source        = "material_purchases",
                 Kind          = WorklistKind.Buy,
-                Title         = string.Format(WorklistText.PrintTitle, bpName, stillNeeded),
+                Title         = string.Format(WorklistText.PrintTitle, SdeNames.Type(bpTypeId, bpName), stillNeeded),
                 TitleTag      = "BPO/BPC",
                 Quantity      = stillNeeded,
                 MergeKey      = WorklistItem.BuyMergeKey(buyAt, bpTypeId),
@@ -608,8 +612,9 @@ public class MaterialPurchaseGenerator(
             var  from  = new List<string>();
 
             // Each source is counted in full against every product it yields. One batch of ice
-            // gives all of its outputs at once, so there is nothing to apportion.
-            foreach (var s in subs[typeId].OrderBy(s => s.SourceName))
+            // gives all of its outputs at once, so there is nothing to apportion. Named, and
+            // listed, as the screen shows them — this is only ever a clause of the row's detail.
+            foreach (var s in subs[typeId].OrderBy(s => SdeNames.Type(s.SourceTypeId, s.SourceName)))
             {
                 var have  = held.GetValueOrDefault(s.SourceTypeId);
                 var due   = ordered.GetValueOrDefault(s.SourceTypeId);
@@ -619,10 +624,11 @@ public class MaterialPurchaseGenerator(
                 var gives = s.From(units);
                 if (gives <= 0) continue;
 
+                var shown = SdeNames.Type(s.SourceTypeId, s.SourceName);
                 total += gives;
                 from.Add(due > 0
-                    ? string.Format(WorklistText.HeldAndOnOrder, have, s.SourceName, due)
-                    : $"{units:N0} {s.SourceName}");
+                    ? string.Format(WorklistText.HeldAndOnOrder, have, shown, due)
+                    : $"{units:N0} {shown}");
             }
 
             if (total <= 0) continue;
