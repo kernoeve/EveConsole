@@ -113,6 +113,37 @@ public static class SdeNames
         return lang is null ? Empty : Loaded(lang)?.For(kind) ?? Empty;
     }
 
+    // ── Searching ───────────────────────────────────────────────────────────────
+    //
+    // A screen's own search box finds what the screen shows AND the English: the capsuleer reads
+    // the game in their language, but pastes names from English sites, killboards and chat.
+
+    /// <summary>
+    /// Whether <paramref name="text"/> is in this entity's English or in the name the screen shows
+    /// for it, ignoring case — for a filter that runs over rows already in memory.
+    /// </summary>
+    public static bool Matches(SdeNameKind kind, long id, string english, string text)
+    {
+        if (english.Contains(text, StringComparison.OrdinalIgnoreCase)) return true;
+        var shown = Get(kind, id, english);
+        return !ReferenceEquals(shown, english) && shown.Contains(text, StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// The ids of one kind whose name in the interface language contains <paramref name="text"/>,
+    /// ignoring case — for a search that runs in SQL on the English column, to add the ids of what
+    /// was typed in the interface language (<c>… || ids.Contains(x.TypeId)</c>). Empty in English,
+    /// and for blank text.
+    /// </summary>
+    public static IReadOnlyList<long> Find(SdeNameKind kind, string text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return [];
+        var found = new List<long>();
+        foreach (var (id, name) in Map(kind))
+            if (name.Contains(text, StringComparison.OrdinalIgnoreCase)) found.Add(id);
+        return found;
+    }
+
     /// <summary>
     /// Completes once the interface language's names are in: at once in English, or when they
     /// already are. For code that builds a screen's rows and would rather wait a moment, once,
