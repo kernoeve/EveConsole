@@ -174,6 +174,10 @@ public class FittingCanvas : Control
     /// floor stops a future hull degrading silently into dots.</summary>
     private const double MinSlotSize = 20;
 
+    /// <summary>Largest box edge as a share of the ring's radius, so the boxes shrink with the ring
+    /// — beside another fit, or in a small window — instead of crowding it.</summary>
+    private const double MaxSlotFraction = 0.2;
+
     /// <summary>
     /// Box edge actually used, recomputed each layout so every band shares one size — differing
     /// sizes around a single ring would read as meaning something.
@@ -276,7 +280,7 @@ public class FittingCanvas : Control
                      Room(FittingBand.Low,  _radius * HorizontalExtent)),
                      Room(FittingBand.Mid,  _radius * MidExtent));
 
-        _slotSize = Math.Clamp(tightest - SlotGap, MinSlotSize, maxSlot);
+        _slotSize = Math.Clamp(tightest - SlotGap, MinSlotSize, Math.Max(MinSlotSize, Math.Min(maxSlot, _radius * MaxSlotFraction)));
 
         // ⚠️ Slots are spaced along a straight axis, then pushed out to the circle — NOT spread
         // by equal angles. Equal angles look even in degrees and uneven on screen: across the top
@@ -338,13 +342,28 @@ public class FittingCanvas : Control
         // With eight highs the band now reaches roughly 49° from vertical while the topmost mid
         // sits around 20° from horizontal, leaving a clear arc between them rather than the few
         // pixels there were before.
-        Horizontal(FittingBand.High, top: true,  maxHalfExtent: _radius * HorizontalExtent);
-        Horizontal(FittingBand.Low,  top: false, maxHalfExtent: _radius * HorizontalExtent);
+        void PlaceBands()
+        {
+            Horizontal(FittingBand.High, top: true,  maxHalfExtent: _radius * HorizontalExtent);
+            Horizontal(FittingBand.Low,  top: false, maxHalfExtent: _radius * HorizontalExtent);
 
-        Vertical(FittingBand.Mid, right: true,  centreOffsetY: 0,              maxHalfExtent: _radius * MidExtent);
-        Vertical(FittingBand.Rig, right: false, centreOffsetY: _radius * 0.36, maxHalfExtent: _radius * RigExtent);
-        Vertical(FittingBand.Subsystem, right: false, centreOffsetY: -_radius * 0.38,
-                 maxHalfExtent: _radius * RigExtent);
+            Vertical(FittingBand.Mid, right: true,  centreOffsetY: 0,              maxHalfExtent: _radius * MidExtent);
+            Vertical(FittingBand.Rig, right: false, centreOffsetY: _radius * 0.36, maxHalfExtent: _radius * RigExtent);
+            Vertical(FittingBand.Subsystem, right: false, centreOffsetY: -_radius * 0.38,
+                     maxHalfExtent: _radius * RigExtent);
+        }
+
+        // ⚠️ Spacing within a band does not keep bands apart: where two meet — the outer lows and
+        // the rigs above them, the outer highs and the top mid — the boxes can overlap however the
+        // band itself is spaced. Three rigs beside six or more lows do this at any size above about
+        // a sixth of the radius. So shrink the boxes, a pixel at a time, until every band is clear.
+        while (true)
+        {
+            _placed.Clear();
+            PlaceBands();
+            if (_slotSize <= MinSlotSize || BandsClear()) break;
+            _slotSize = Math.Max(MinSlotSize, _slotSize - 1);
+        }
 
         // Services are a straight row below the circle: there can be seven, and an arc that long
         // reads as another module band rather than as something different in kind.
@@ -364,6 +383,19 @@ public class FittingCanvas : Control
 
     private Point  _centre;
     private double _radius;
+
+    /// <summary>No box closer than the slot gap to a box of another band.</summary>
+    private bool BandsClear()
+    {
+        for (var i = 0; i < _placed.Count; i++)
+        for (var j = i + 1; j < _placed.Count; j++)
+        {
+            var (a, ra) = _placed[i];
+            var (b, rb) = _placed[j];
+            if (a.Band != b.Band && ra.Inflate(SlotGap / 2).Intersects(rb.Inflate(SlotGap / 2))) return false;
+        }
+        return true;
+    }
 
     // ── Interaction ──────────────────────────────────────────────────────────
 

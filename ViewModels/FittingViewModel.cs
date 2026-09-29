@@ -269,17 +269,20 @@ public class FittingViewModel : ReactiveObject
         Characters   = characters;
         Corporations = corporations;
         Esi          = esi;
+        LeftPane     = new FitPaneViewModel(this, false);
+        RightPane    = new FitPaneViewModel(this, true);
+        _activePane  = LeftPane;
+        LeftPane.IsActive = true;
+        try { _finderVisible = UiState.Get(FinderKey) != "0"; } catch { }
 
         ImportEftCommand   = Guarded(ReactiveCommand.CreateFromTask(ImportEftAsync));
         ImportEsiCommand   = Guarded(ReactiveCommand.CreateFromTask(ImportEsiAsync));
-        CopyEftCommand     = Guarded(ReactiveCommand.CreateFromTask(() => SelectedTab?.CopyEftAsync() ?? NoFit()));
-        SaveCommand        = Guarded(ReactiveCommand.CreateFromTask(async () => { if (SelectedTab is { } t) await t.SaveInteractiveAsync(); else await NoFit(); }));
         DeleteSavedCommand = Guarded(ReactiveCommand.CreateFromTask(DeleteSavedAsync));
         AddSelectedCommand = Guarded(ReactiveCommand.CreateFromTask(() => SelectedResult is { } r ? AddAsync(r) : Task.CompletedTask));
         AddToCargoCommand  = Guarded(ReactiveCommand.Create(() =>
         {
             if (SelectedResult is not { } r) return;
-            if (SelectedTab is not { HasShip: true } tab) { Status = "Pick a hull first."; return; }
+            if (SelectedTab is not { HasShip: true } tab) { Status = "Start a fit first."; return; }
             tab.AddToCargo(r, 1);
         }));
 
@@ -289,13 +292,7 @@ public class FittingViewModel : ReactiveObject
             .Subscribe(__ => _ = RunSearchAsync());
     }
 
-    private Task NoFit()
-    {
-        Status = "Pick a hull or open a fit first.";
-        return Task.CompletedTask;
-    }
-
-    private ReactiveCommand<TIn, TOut> Guarded<TIn, TOut>(ReactiveCommand<TIn, TOut> c)
+    internal ReactiveCommand<TIn, TOut> Guarded<TIn, TOut>(ReactiveCommand<TIn, TOut> c)
     {
         c.ThrownExceptions.Subscribe(ex => Status = ex.Message);
         return c;
@@ -304,44 +301,151 @@ public class FittingViewModel : ReactiveObject
     private string _status = "";
     public string Status { get => _status; set => this.RaiseAndSetIfChanged(ref _status, value); }
 
-    // ── Tabs ────────────────────────────────────────────────────────────────────
+    // ── Side panel ──────────────────────────────────────────────────────────────
 
-    public ObservableCollection<FitTabViewModel> Tabs { get; } = [];
-
-    private FitTabViewModel? _selectedTab;
-    public FitTabViewModel? SelectedTab
+    private const string FinderKey = "fitting.finder_visible";
+    private bool _finderVisible = true;
+    /// <summary>The item list on the left; hidden to give the fits the whole width.</summary>
+    public bool FinderVisible
     {
-        get => _selectedTab;
+        get => _finderVisible;
         set
         {
-            if (_selectedTab is not null) _selectedTab.IsSelected = false;
-            this.RaiseAndSetIfChanged(ref _selectedTab, value);
-            if (value is not null) value.IsSelected = true;
-            this.RaisePropertyChanged(nameof(HasTab));
-            _ = RunSearchAsync();   // "only what fits" follows the tab's hull
+            this.RaiseAndSetIfChanged(ref _finderVisible, value);
+            try { UiState.Set(FinderKey, value ? "1" : "0"); } catch { }
         }
     }
-    public bool HasTab => _selectedTab is not null;
+    public ReactiveCommand<Unit, Unit> ToggleFinderCommand => _toggleFinder ??= ReactiveCommand.Create(() => { FinderVisible = !FinderVisible; });
+    private ReactiveCommand<Unit, Unit>? _toggleFinder;
+
+    // ── Tabs, on one side or two ────────────────────────────────────────────────
+
+    /// <summary>The first side, which holds every tab until one is dragged to the right.</summary>
+    public FitPaneViewModel LeftPane  { get; }
+    /// <summary>The second side, shown only while it holds a tab.</summary>
+    public FitPaneViewModel RightPane { get; }
+    public IEnumerable<FitTabViewModel> AllTabs => LeftPane.Tabs.Concat(RightPane.Tabs);
+    public bool IsSplit => RightPane.Tabs.Count > 0;
+    public bool HasTab  => LeftPane.Tabs.Count > 0;
+
+    private FitPaneViewModel _activePane;
+    /// <summary>The side last clicked: new fits open there, and the finder adds to its fit.</summary>
+    public FitPaneViewModel ActivePane
+    {
+        get => _activePane;
+        set
+        {
+            if (value == _activePane) return;
+            _activePane.IsActive = false;
+            _activePane = value;
+            value.IsActive = true;
+            this.RaisePropertyChanged();
+            this.RaisePropertyChanged(nameof(SelectedTab));
+            _ = RunSearchAsync();   // "only what fits" follows the fit being worked on
+        }
+    }
+
+    /// <summary>The fit being worked on: the one showing on the active side.</summary>
+    public FitTabViewModel? SelectedTab
+    {
+        get => _activePane.SelectedTab;
+        set
+        {
+            if (value is null) return;
+            value.Pane.SelectedTab = value;
+            if (value.Pane != _activePane) { ActivePane = value.Pane; return; }
+            this.RaisePropertyChanged();
+            _ = RunSearchAsync();
+        }
+    }
 
     public ReactiveCommand<FitTabViewModel, Unit> SelectTabCommand => _selectTab ??= ReactiveCommand.Create<FitTabViewModel>(t => SelectedTab = t);
     private ReactiveCommand<FitTabViewModel, Unit>? _selectTab;
 
-    /// <summary>A new tab, calculated with the pilot of the tab it was opened from.</summary>
+    /// <summary>A new tab on the active side, calculated with the pilot of the fit it was opened from.</summary>
     private FitTabViewModel NewTab()
     {
-        var tab = new FitTabViewModel(this, SelectedTab?.SelectedSkillSource ?? SkillSources.FirstOrDefault());
-        Tabs.Add(tab);
+        var tab = new FitTabViewModel(this, SelectedTab?.SelectedSkillSource ?? SkillSources.FirstOrDefault()) { Pane = _activePane };
+        _activePane.Tabs.Add(tab);
         SelectedTab = tab;
+        PanesChanged();
         return tab;
     }
 
     public void CloseTab(FitTabViewModel tab)
     {
-        var i = Tabs.IndexOf(tab);
-        if (i < 0) return;
-        Tabs.RemoveAt(i);
-        if (SelectedTab == tab) SelectedTab = Tabs.Count == 0 ? null : Tabs[Math.Min(i, Tabs.Count - 1)];
+        var pane = tab.Pane;
+        if (!TakeOut(tab)) return;
+        if (pane == _activePane) this.RaisePropertyChanged(nameof(SelectedTab));
+        PanesChanged();
     }
+
+    /// <summary>Puts <paramref name="tab"/> on <paramref name="to"/> before position
+    /// <paramref name="index"/> (at the end when null): dragging a tab along its row, or across
+    /// to the other side. Dragging one to the right while there is only one side splits the view.</summary>
+    public void MoveTab(FitTabViewModel tab, FitPaneViewModel to, int? index = null)
+    {
+        var from = tab.Pane;
+        var i    = from.Tabs.IndexOf(tab);
+        if (i < 0) return;
+        var at = Math.Clamp(index ?? to.Tabs.Count, 0, to.Tabs.Count);
+        if (from == to)
+        {
+            if (at > i) at--;
+            if (at != i) from.Tabs.Move(i, at);
+        }
+        else
+        {
+            TakeOut(tab);
+            tab.Pane = to;
+            to.Tabs.Insert(at, tab);
+        }
+        SelectedTab = tab;
+        PanesChanged();
+    }
+
+    /// <summary>Removes a tab from its side, showing its neighbour in its place.</summary>
+    private static bool TakeOut(FitTabViewModel tab)
+    {
+        var pane = tab.Pane;
+        var i    = pane.Tabs.IndexOf(tab);
+        if (i < 0) return false;
+        pane.Tabs.RemoveAt(i);
+        if (pane.SelectedTab == tab) pane.SelectedTab = pane.Tabs.Count == 0 ? null : pane.Tabs[Math.Min(i, pane.Tabs.Count - 1)];
+        return true;
+    }
+
+    /// <summary>Two sides only while both hold a fit: when the last tab leaves either one, the
+    /// view goes back to a single side.</summary>
+    private void PanesChanged()
+    {
+        if (LeftPane.Tabs.Count == 0 && RightPane.Tabs.Count > 0)
+        {
+            var showing = RightPane.SelectedTab;
+            var moving  = RightPane.Tabs.ToList();
+            RightPane.Tabs.Clear();
+            RightPane.SelectedTab = null;
+            foreach (var t in moving) { t.Pane = LeftPane; LeftPane.Tabs.Add(t); }
+            LeftPane.SelectedTab = showing;
+        }
+        if (RightPane.Tabs.Count == 0 && _activePane == RightPane) ActivePane = LeftPane;
+        this.RaisePropertyChanged(nameof(IsSplit));
+        this.RaisePropertyChanged(nameof(HasTab));
+        this.RaisePropertyChanged(nameof(SelectedTab));
+        this.RaisePropertyChanged(nameof(ShowSplitDropZone));
+        _ = RunSearchAsync();
+    }
+
+    private bool _isDraggingTab;
+    /// <summary>A tab is being dragged — the view shows where it can be dropped.</summary>
+    public bool IsDraggingTab
+    {
+        get => _isDraggingTab;
+        set { this.RaiseAndSetIfChanged(ref _isDraggingTab, value); this.RaisePropertyChanged(nameof(ShowSplitDropZone)); }
+    }
+    /// <summary>While dragging, with one side holding more than one tab: the right half takes a tab
+    /// to show two fits side by side.</summary>
+    public bool ShowSplitDropZone => _isDraggingTab && !IsSplit && LeftPane.Tabs.Count > 1;
 
     private int _searchedHull;
 
@@ -388,9 +492,12 @@ public class FittingViewModel : ReactiveObject
                 foreach (var c in (await db.Characters.AsNoTracking().Select(c => new { c.Id, c.Name }).ToListAsync()).OrderBy(c => c.Name))
                     SkillSources.Add(new SkillSourceOption(c.Name, c.Id, 0));
             await LoadSavedListAsync();
+            Hulls.Clear();
+            foreach (var h in Catalog.Entries.Where(e => e.Kind == CatalogKind.Hull).OrderBy(e => e.Name, StringComparer.OrdinalIgnoreCase))
+                Hulls.Add(h);
 
             IsReady = true;
-            Status  = "Pick a hull from the list on the left, or import a fit.";
+            Status  = "Start a fit from a hull, paste one, or open one from the game or your saved fits.";
             await RunSearchAsync();
         }
         catch (Exception ex) { Status = $"Could not load game data: {ex.Message}"; }
@@ -399,8 +506,25 @@ public class FittingViewModel : ReactiveObject
 
     // ── Finder ──────────────────────────────────────────────────────────────────
 
+    /// <summary>Every hull, for the new-fit picker.</summary>
+    public ObservableCollection<CatalogEntry> Hulls { get; } = [];
+
+    /// <summary>The new-fit picker matches every word against the hull's name or its class.</summary>
+    public Avalonia.Controls.AutoCompleteFilterPredicate<object?> HullFilter { get; } = (text, item) =>
+        item is CatalogEntry e && (text ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .All(w => e.Name.Contains(w, StringComparison.OrdinalIgnoreCase) || e.GroupName.Contains(w, StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>A new fit on <paramref name="hull"/>, in a tab of its own.</summary>
+    public async Task NewFitAsync(CatalogEntry hull)
+    {
+        if (Data is null || hull.Kind != CatalogKind.Hull) return;
+        await Data.LoadTypesAsync([hull.TypeId]);
+        await NewTab().StartAsync(hull);
+        Status = $"New {hull.Name} fit. Add modules from Items.";
+    }
+
     public static IReadOnlyList<string> KindFilters { get; } =
-        ["All", "Hulls", "Modules", "Rigs", "Subsystems", "Charges", "Drones", "Implants", "Boosters", "Other items"];
+        ["All", "Modules", "Rigs", "Subsystems", "Charges", "Drones", "Implants", "Boosters", "Other items"];
 
     private string _searchText = "";
     public string SearchText { get => _searchText; set => this.RaiseAndSetIfChanged(ref _searchText, value); }
@@ -422,7 +546,6 @@ public class FittingViewModel : ReactiveObject
         if (Catalog is null || Data is null) return;
         HashSet<CatalogKind>? kinds = KindFilter switch
         {
-            "Hulls"      => [CatalogKind.Hull],
             "Modules"    => [CatalogKind.Module],
             "Rigs"       => [CatalogKind.Rig],
             "Subsystems" => [CatalogKind.Subsystem],
@@ -439,6 +562,7 @@ public class FittingViewModel : ReactiveObject
         if (kinds is not null && SearchText.Trim().Length == 0 && FinderSlot is null && kinds.Contains(CatalogKind.Module)) { SearchResults.Clear(); return; }
 
         var found = Catalog.Search(SearchText, kinds)
+            .Where(f => f.Kind != CatalogKind.Hull)
             .Where(f => FinderSlot is not { } only || f.Slot == only)
             .Take(400).ToList();
         if (FitsOnly && SelectedTab?.LastEngine is { } engine)
@@ -504,6 +628,7 @@ public class FittingViewModel : ReactiveObject
         this.RaisePropertyChanged(nameof(HasFinderSlot));
         KindFilter = slot switch { FitSlot.Rig => "Rigs", FitSlot.Subsystem => "Subsystems", _ => "Modules" };
         FitsOnly   = true;
+        FinderVisible = true;
         _ = RunSearchAsync();
     }
 
@@ -512,17 +637,11 @@ public class FittingViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> AddSelectedCommand { get; }
     public ReactiveCommand<Unit, Unit> AddToCargoCommand  { get; }
 
-    /// <summary>A hull opens a new tab; anything else goes on the fit in the tab that is showing.</summary>
+    /// <summary>Puts <paramref name="entry"/> on the fit being worked on (a hull starts a new one).</summary>
     public async Task AddAsync(CatalogEntry entry)
     {
         if (Data is null || Catalog is null) return;
-        if (entry.Kind == CatalogKind.Hull)
-        {
-            await Data.LoadTypesAsync([entry.TypeId]);
-            await NewTab().StartAsync(entry);
-            Status = $"{entry.Name} in a new tab. Now add modules from the list.";
-            return;
-        }
+        if (entry.Kind == CatalogKind.Hull) { await NewFitAsync(entry); return; }
         if (SelectedTab is not { HasShip: true } tab) { Status = "Pick a hull first."; return; }
         await tab.AddAsync(entry);
     }
@@ -530,9 +649,7 @@ public class FittingViewModel : ReactiveObject
     // ── Import, export, saving ──────────────────────────────────────────────────
 
     public ReactiveCommand<Unit, Unit> ImportEftCommand   { get; }
-    public ReactiveCommand<Unit, Unit> CopyEftCommand     { get; }
     public ReactiveCommand<Unit, Unit> ImportEsiCommand   { get; }
-    public ReactiveCommand<Unit, Unit> SaveCommand        { get; }
 
     /// <summary>Asks the view for EFT text to import; null when cancelled.</summary>
     public Interaction<Unit, string?> AskEft { get; } = new();
@@ -627,6 +744,33 @@ public class FittingViewModel : ReactiveObject
     }
 }
 
+/// <summary>One side of the fitting tool: a row of tabs and the fit showing. The tool has two,
+/// and shows the second only while it holds a tab.</summary>
+public sealed class FitPaneViewModel(FittingViewModel tool, bool isRight) : ReactiveObject
+{
+    public FittingViewModel Tool { get; } = tool;
+    public bool IsRight { get; } = isRight;
+    public ObservableCollection<FitTabViewModel> Tabs { get; } = [];
+
+    private FitTabViewModel? _selectedTab;
+    public FitTabViewModel? SelectedTab
+    {
+        get => _selectedTab;
+        set
+        {
+            if (_selectedTab is not null) _selectedTab.IsSelected = false;
+            this.RaiseAndSetIfChanged(ref _selectedTab, value);
+            if (value is not null) value.IsSelected = true;
+            this.RaisePropertyChanged(nameof(HasTab));
+        }
+    }
+    public bool HasTab => _selectedTab is not null;
+
+    private bool _isActive;
+    /// <summary>The side last clicked; marked when there are two.</summary>
+    public bool IsActive { get => _isActive; set => this.RaiseAndSetIfChanged(ref _isActive, value); }
+}
+
 /// <summary>
 /// One fit, in its own tab of the fitting tool: its hull, modules, drones, cargo and implants, and
 /// everything calculated from them. The tool opens a tab for every hull picked and every fit
@@ -663,9 +807,16 @@ public class FitTabViewModel : ReactiveObject
         _selectedSkillSource = pilot ?? SkillSources.FirstOrDefault();
         this.WhenAnyValue(x => x.SelectedSkillSource).Skip(1)
             .Subscribe(_ => ScheduleRecalc());
-        CloseCommand = ReactiveCommand.Create(() => Tool.CloseTab(this));
-        SelectCommand = ReactiveCommand.Create(() => { Tool.SelectedTab = this; });
+        CloseCommand   = ReactiveCommand.Create(() => Tool.CloseTab(this));
+        SelectCommand  = ReactiveCommand.Create(() => { Tool.SelectedTab = this; });
+        CopyEftCommand = Tool.Guarded(ReactiveCommand.CreateFromTask(CopyEftAsync));
+        SaveCommand    = Tool.Guarded(ReactiveCommand.CreateFromTask(async () => { await SaveInteractiveAsync(); }));
     }
+
+    /// <summary>The side of the tool this tab is on.</summary>
+    public FitPaneViewModel Pane { get; internal set; } = null!;
+    public ReactiveCommand<Unit, Unit> CopyEftCommand { get; }
+    public ReactiveCommand<Unit, Unit> SaveCommand    { get; }
 
     /// <summary>The tab's label: the fit's name, else the hull's.</summary>
     public string TabTitle => FitName.Trim().Length > 0 ? FitName.Trim() : ShipName.Length > 0 ? ShipName : "New fit";

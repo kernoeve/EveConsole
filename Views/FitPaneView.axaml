@@ -1,0 +1,85 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:EveConsole.ViewModels"
+             xmlns:views="using:EveConsole.Views"
+             x:Class="EveConsole.Views.FitPaneView"
+             x:DataType="vm:FitPaneViewModel"
+             DragDrop.AllowDrop="True">
+
+  <UserControl.Styles>
+    <!-- A fit's tab: the name, a dot when it has unsaved changes, and a close button. Drag it
+         along the row to reorder, or to the other side. -->
+    <Style Selector="Border.fittab">
+      <Setter Property="Padding" Value="10 5 4 5" />
+      <Setter Property="Margin" Value="0 0 2 0" />
+      <Setter Property="CornerRadius" Value="3 3 0 0" />
+      <Setter Property="Background" Value="{DynamicResource SurfacePanelBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderDefaultBrush}" />
+      <Setter Property="BorderThickness" Value="1 1 1 0" />
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Border.fittab.selected">
+      <Setter Property="Background" Value="{DynamicResource SurfaceRaisedBrush}" />
+    </Style>
+    <Style Selector="Border.fittab TextBlock.tabtitle">
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+    </Style>
+    <Style Selector="Border.fittab.selected TextBlock.tabtitle">
+      <Setter Property="Foreground" Value="{DynamicResource TextBrightBrush}" />
+    </Style>
+    <!-- With two sides, the one the item list adds to has its tab underlined in the accent. -->
+    <Style Selector="Border.strip.active Border.fittab.selected">
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+    </Style>
+    <Style Selector="Border.strip">
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderDefaultBrush}" />
+      <Setter Property="BorderThickness" Value="0 0 0 1" />
+    </Style>
+    <Style Selector="Border.dropmark">
+      <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="Width" Value="2" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Setter Property="IsHitTestVisible" Value="False" />
+    </Style>
+  </UserControl.Styles>
+
+  <DockPanel>
+    <Border DockPanel.Dock="Top" x:Name="Strip" Classes="strip" Classes.active="{Binding IsActive}" Padding="10 6 10 0">
+      <Panel>
+        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+          <ItemsControl x:Name="TabList" ItemsSource="{Binding Tabs}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:FitTabViewModel">
+                <Border Classes="fittab" Classes.selected="{Binding IsSelected}"
+                        PointerPressed="OnTabPressed" PointerMoved="OnTabMoved" PointerReleased="OnTabReleased"
+                        ToolTip.Tip="Drag to reorder, or onto the right half to see two fits side by side">
+                  <StackPanel Orientation="Horizontal" Spacing="4">
+                    <TextBlock Classes="tabtitle" Text="{Binding TabTitle}" MaxWidth="220" TextTrimming="CharacterEllipsis"
+                               VerticalAlignment="Center" />
+                    <TextBlock Text="•" FontSize="14" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"
+                               IsVisible="{Binding TabDirty}" ToolTip.Tip="Changed since it was opened or saved" />
+                    <Button Classes="remove" Content="✕" FontSize="10" Command="{Binding CloseCommand}" ToolTip.Tip="Close this fit" />
+                  </StackPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+        <!-- Where a dragged tab would land. -->
+        <Border x:Name="DropMark" Classes="dropmark" IsVisible="False" />
+      </Panel>
+    </Border>
+
+    <ContentControl Content="{Binding SelectedTab}">
+      <ContentControl.ContentTemplate>
+        <DataTemplate x:DataType="vm:FitTabViewModel">
+          <views:FitTabView />
+        </DataTemplate>
+      </ContentControl.ContentTemplate>
+    </ContentControl>
+  </DockPanel>
+</UserControl>
