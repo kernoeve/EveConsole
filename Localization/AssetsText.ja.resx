@@ -1109,7 +1109,7 @@ Warrior II 5
     <value>再処理 %</value>
   </data>
   <data name="CopyColNote" xml:space="preserve">
-    <value>注記</value>
+    <value>備考</value>
   </data>
   <data name="CopyTotalMarket" xml:space="preserve">
     <value>マーケット合計</value>

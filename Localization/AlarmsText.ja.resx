@@ -326,7 +326,7 @@
     <value>アイテム配送</value>
   </data>
   <data name="ProjectTypeDestroyNpc" xml:space="preserve">
-    <value>NPC撃破</value>
+    <value>NPC撃墜</value>
   </data>
   <data name="FilterMissingProjects" xml:space="preserve">
     <value>不足しているプロジェクト</value>
@@ -377,7 +377,7 @@
     <value>このコーポには「アイテム配送」のプロジェクトが定義されていません。</value>
   </data>
   <data name="NoDestroyNpcProjects" xml:space="preserve">
-    <value>このコーポには「NPC撃破」のプロジェクトが定義されていません。</value>
+    <value>このコーポには「NPC撃墜」のプロジェクトが定義されていません。</value>
   </data>
   <data name="StatusCommandFailed" xml:space="preserve">
     <value>失敗しました：{0}</value>

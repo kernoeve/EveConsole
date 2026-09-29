@@ -878,7 +878,7 @@
     <value>施設</value>
   </data>
   <data name="ColNote" xml:space="preserve">
-    <value>注記</value>
+    <value>備考</value>
   </data>
   <data name="ColCreated" xml:space="preserve">
     <value>開始日時</value>

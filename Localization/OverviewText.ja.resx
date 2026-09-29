@@ -152,7 +152,7 @@
     <value>ステータス</value>
   </data>
   <data name="ColOurBid" xml:space="preserve">
-    <value>自分の価格</value>
+    <value>自分の買値</value>
   </data>
   <data name="ColRem" xml:space="preserve">
     <value>残り</value>

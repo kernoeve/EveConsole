@@ -44,7 +44,7 @@
     <value>+ 作成</value>
   </data>
   <data name="FromLabel2" xml:space="preserve">
-    <value>差出人：</value>
+    <value>差出人</value>
   </data>
   <data name="DateFromLabel" xml:space="preserve">
     <value>開始：</value>
@@ -53,10 +53,10 @@
     <value>エンティティブラウザで開きます</value>
   </data>
   <data name="ToLabel" xml:space="preserve">
-    <value>宛先：</value>
+    <value>宛先</value>
   </data>
   <data name="DateLabel" xml:space="preserve">
-    <value>日付：</value>
+    <value>日付</value>
   </data>
   <data name="SelectAMessageToRead" xml:space="preserve">
     <value>読むメッセージを選択してください。</value>

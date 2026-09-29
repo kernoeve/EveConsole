@@ -854,10 +854,10 @@
     <value>キャラクター{0}</value>
   </data>
   <data name="DivisionNumbered" xml:space="preserve">
-    <value>第{0}部門</value>
+    <value>部門{0}</value>
   </data>
   <data name="DivisionWithNumber" xml:space="preserve">
-    <value>{0}（第{1}部門）</value>
+    <value>{0}（部門{1}）</value>
   </data>
   <data name="DetailCounts" xml:space="preserve">
     <value>装備{0} · 保管{1:N0} · カーゴ{2:N0} · 燃料{3:N0} · 艦載戦闘機{4:N0} · ジョブ{5:N0}件</value>

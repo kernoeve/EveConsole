@@ -89,7 +89,7 @@
     <value>時刻</value>
   </data>
   <data name="ColTook" xml:space="preserve">
-    <value>所要時間</value>
+    <value>時間</value>
   </data>
   <data name="ColActivity" xml:space="preserve">
     <value>アクティビティ</value>
@@ -212,7 +212,7 @@
     <value>契約アイテム</value>
   </data>
   <data name="ColSource" xml:space="preserve">
-    <value>取得元</value>
+    <value>発生元</value>
   </data>
   <data name="ColContracts" xml:space="preserve">
     <value>契約</value>
@@ -305,7 +305,7 @@
     <value>最終発動</value>
   </data>
   <data name="ColFired" xml:space="preserve">
-    <value>発動回数</value>
+    <value>発動数</value>
   </data>
   <data name="ColLastError" xml:space="preserve">
     <value>最後のエラー</value>
@@ -1388,7 +1388,7 @@
     <value>メンバーの追跡</value>
   </data>
   <data name="EndpointCorpProjects" xml:space="preserve">
-    <value>コーポのプロジェクト</value>
+    <value>コーポレーションプロジェクト</value>
   </data>
   <data name="EndpointMiningExtractions" xml:space="preserve">
     <value>衛星抽出</value>

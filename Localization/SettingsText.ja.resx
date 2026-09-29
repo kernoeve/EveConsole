@@ -158,7 +158,7 @@
     <value>EVE静的データの新しいビルドが利用可能です。</value>
   </data>
   <data name="LoadedLabel" xml:space="preserve">
-    <value>読み込み済み：</value>
+    <value>現在：</value>
   </data>
   <data name="LatestLabel" xml:space="preserve">
     <value>最新：</value>
@@ -284,7 +284,7 @@
     <value>プレイヤーストラクチャ：特定のプレイヤー所有ストラクチャ（城塞、エンジニアリング複合施設など）内のすべての注文を取得します。入港できる認証キャラクターが必要です。ゼロセクのステージング拠点など、非公開のマーケットに使用します。</value>
   </data>
   <data name="LocationName" xml:space="preserve">
-    <value>場所の名前</value>
+    <value>場所名</value>
   </data>
   <data name="HintEGJita44" xml:space="preserve">
     <value>例：ジタ4-4</value>

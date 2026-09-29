@@ -638,7 +638,7 @@
     <value>補充目標（%）</value>
   </data>
   <data name="ColFinal" xml:space="preserve">
-    <value>最終製品</value>
+    <value>最終</value>
   </data>
   <data name="TipThisGroupIsSold" xml:space="preserve">
     <value>このグループは販売するか自分で使うもので、材料ではありません。これのブロックを解除する作業は、バッファーを補充するだけの作業より上位になります。</value>
@@ -749,7 +749,7 @@
     <value>クリックすると対象範囲から外します</value>
   </data>
   <data name="CorpProjects" xml:space="preserve">
-    <value>コーポのプロジェクト</value>
+    <value>コーポレーションプロジェクト</value>
   </data>
   <data name="StandingProjectsAreDefinedNote" xml:space="preserve">
     <value>常設プロジェクトは「コーポの活動」で定義します。ワークリストに必要なのは、誰がそれを管理するかだけです。プロジェクトはコーポレーションに属するため、ステーションではなくコーポレーションごとに割り当てます。実際に常設プロジェクトがあるコーポレーションだけが表示されます。</value>
@@ -791,7 +791,7 @@
     <value>スキルキュー</value>
   </data>
   <data name="KindCorpProject" xml:space="preserve">
-    <value>コーポのプロジェクト</value>
+    <value>コーポレーションプロジェクト</value>
   </data>
   <data name="KindTipRefine" xml:space="preserve">
     <value>鉱石の再処理</value>
@@ -812,7 +812,7 @@
     <value>生産ジョブ</value>
   </data>
   <data name="KindTipCorpProject" xml:space="preserve">
-    <value>コーポのプロジェクト</value>
+    <value>コーポレーションプロジェクト</value>
   </data>
   <data name="KindTipAssetSafety" xml:space="preserve">
     <value>アセットセーフティ</value>
@@ -1088,7 +1088,7 @@
     <value>スヌーズ中を表示</value>
   </data>
   <data name="FilterAny" xml:space="preserve">
-    <value>（すべて）</value>
+    <value>すべて</value>
   </data>
   <data name="EmptyListHelp" xml:space="preserve">
     <value>項目は更新のたびに最新のデータから作り直されます — 作業が終わると項目は消えます。検出はポーリングしたESIのデータに基づくため、各行には元のデータがどれだけ古いかが表示されます。上の集計はフィルターではなく、実行結果全体から数えています。</value>

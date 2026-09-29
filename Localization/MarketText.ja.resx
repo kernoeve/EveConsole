@@ -494,7 +494,7 @@
     <value>残り</value>
   </data>
   <data name="ColNote" xml:space="preserve">
-    <value>メモ</value>
+    <value>備考</value>
   </data>
   <data name="Calculate" xml:space="preserve">
     <value>計算</value>
@@ -653,7 +653,7 @@
     <value>{0}ほか{1}件</value>
   </data>
   <data name="ContractContentsItems" xml:space="preserve">
-    <value>アイテム{0}個</value>
+    <value>アイテム{0}件</value>
   </data>
   <data name="ContractContentsCourier" xml:space="preserve">
     <value>（輸送）</value>

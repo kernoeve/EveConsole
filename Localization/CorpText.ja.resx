@@ -272,13 +272,13 @@
     <value>このステーションまたはストラクチャを開きます</value>
   </data>
   <data name="ColProjectStatus" xml:space="preserve">
-    <value>プロジェクトの状態</value>
+    <value>プロジェクトのステータス</value>
   </data>
   <data name="ColRemaining" xml:space="preserve">
     <value>残り</value>
   </data>
   <data name="ColRem" xml:space="preserve">
-    <value>残り %</value>
+    <value>残り%</value>
   </data>
   <data name="ColPayout" xml:space="preserve">
     <value>支払額</value>
@@ -452,7 +452,7 @@
     <value>数量</value>
   </data>
   <data name="ColRequires" xml:space="preserve">
-    <value>必要なもの</value>
+    <value>必要なアイテム</value>
   </data>
   <data name="TabFactionWarfare" xml:space="preserve">
     <value>国家間戦争</value>
@@ -755,7 +755,7 @@
     <value>Webhook経由</value>
   </data>
   <data name="SlackNoDestination" xml:space="preserve">
-    <value>SlackのチャンネルまたはWebhookが設定されていません。</value>
+    <value>SlackのチャンネルもWebhookも設定されていません。</value>
   </data>
   <data name="Top10AlreadyPosted" xml:space="preserve">
     <value>このトップ10リストは{0}にすでにSlackへ投稿されています。</value>
@@ -1184,16 +1184,16 @@
     <value>{0} — 領有権、ADM {1:0.##}未満</value>
   </data>
   <data name="ProjectsTitleDeliverMissing" xml:space="preserve">
-    <value>アイテム配送プロジェクト — 未作成のプロジェクト</value>
+    <value>アイテム配送プロジェクト — 不足しているプロジェクト</value>
   </data>
   <data name="ProjectsTitleDestroyMissing" xml:space="preserve">
-    <value>NPC撃墜プロジェクト — 未作成のプロジェクト</value>
+    <value>NPC撃墜プロジェクト — 不足しているプロジェクト</value>
   </data>
   <data name="ProjectsTitleDeliverMissingLow" xml:space="preserve">
-    <value>アイテム配送プロジェクト — 未作成・残りわずかのプロジェクト</value>
+    <value>アイテム配送プロジェクト — 不足・残りわずかのプロジェクト</value>
   </data>
   <data name="ProjectsTitleDestroyMissingLow" xml:space="preserve">
-    <value>NPC撃墜プロジェクト — 未作成・残りわずかのプロジェクト</value>
+    <value>NPC撃墜プロジェクト — 不足・残りわずかのプロジェクト</value>
   </data>
   <data name="ProjectsTitleDeliverAll" xml:space="preserve">
     <value>アイテム配送プロジェクト</value>
@@ -1586,7 +1586,7 @@
     <value>エージェントタイプ</value>
   </data>
   <data name="FactLocator" xml:space="preserve">
-    <value>人物捜索</value>
+    <value>位置探知</value>
   </data>
   <data name="FactNo" xml:space="preserve">
     <value>いいえ</value>
