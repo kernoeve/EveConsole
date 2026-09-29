@@ -1,0 +1,1610 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TitlePosting" xml:space="preserve">
+    <value>Объявление</value>
+  </data>
+  <data name="PostingNameLabel" xml:space="preserve">
+    <value>Название объявления</value>
+  </data>
+  <data name="InventoryScopeInStockIn" xml:space="preserve">
+    <value>Охват запасов (в наличии / в производстве)</value>
+  </data>
+  <data name="Station" xml:space="preserve">
+    <value>Станция</value>
+  </data>
+  <data name="System" xml:space="preserve">
+    <value>Система</value>
+  </data>
+  <data name="Region" xml:space="preserve">
+    <value>Сектор</value>
+  </data>
+  <data name="Everywhere" xml:space="preserve">
+    <value>Везде</value>
+  </data>
+  <data name="LocationLabel" xml:space="preserve">
+    <value>Место</value>
+  </data>
+  <data name="HintTypeToSearch" xml:space="preserve">
+    <value>Введите текст для поиска…</value>
+  </data>
+  <data name="SalePriceBasisLabel" xml:space="preserve">
+    <value>Основа цены продажи</value>
+  </data>
+  <data name="BuildCost" xml:space="preserve">
+    <value>Стоимость производства</value>
+  </data>
+  <data name="ContractCost" xml:space="preserve">
+    <value>Цена по контрактам</value>
+  </data>
+  <data name="SpecificMarket" xml:space="preserve">
+    <value>Конкретный рынок</value>
+  </data>
+  <data name="MarketCurrentOrdersSameNote" xml:space="preserve">
+    <value>Рынок (текущие ордера — тот же список, что в «Торговых возможностях»)</value>
+  </data>
+  <data name="NoPolledMarketsYetNote" xml:space="preserve">
+    <value>Опрашиваемых рынков пока нет — сначала добавьте настройку рынка в разделе «Обзор рынка».</value>
+  </data>
+  <data name="PriceTypeLabel" xml:space="preserve">
+    <value>Тип цены</value>
+  </data>
+  <data name="SalePriceBasisLabel2" xml:space="preserve">
+    <value>Цена продажи = основа ×  %</value>
+  </data>
+  <data name="BuildDefaults110ContractMarket" xml:space="preserve">
+    <value>%  (по умолчанию: производство — 110%, контракт/рынок — 100%)</value>
+  </data>
+  <data name="ShowQuantitiesInPostingLabel" xml:space="preserve">
+    <value>Показывать количество в объявлении</value>
+  </data>
+  <data name="InStock" xml:space="preserve">
+    <value>В наличии</value>
+  </data>
+  <data name="InBuild" xml:space="preserve">
+    <value>В производстве</value>
+  </data>
+  <data name="Reserved" xml:space="preserve">
+    <value>Зарезервировано</value>
+  </data>
+  <data name="IncludeEarliestJobCompletion" xml:space="preserve">
+    <value>Указывать ближайшую дату завершения проекта (когда «В наличии» = 0, а «В производстве» ≥ 1)</value>
+  </data>
+  <data name="OnlyIncludePackagedItems" xml:space="preserve">
+    <value>Только предметы в упаковке (без собранных / оснащённых корпусов)</value>
+  </data>
+  <data name="ColourEveMailOnlyNote" xml:space="preserve">
+    <value>Цвет  (только почта EVE — другие форматы его игнорируют)</value>
+  </data>
+  <data name="ColourEachItemLine" xml:space="preserve">
+    <value>Окрашивать строку каждого предмета по его состоянию: в наличии, в производстве или отсутствует</value>
+  </data>
+  <data name="InStockLabel" xml:space="preserve">
+    <value>В наличии</value>
+  </data>
+  <data name="InBuildLabel" xml:space="preserve">
+    <value>В производстве</value>
+  </data>
+  <data name="NeitherLabel" xml:space="preserve">
+    <value>Отсутствует</value>
+  </data>
+  <data name="AColourSetOnNote" xml:space="preserve">
+    <value>Цвет, заданный у самого предмета, перекрывает этот; цвет раздела применяется, когда не задан ни тот, ни другой. В шапке, подвале и статическом тексте пишите [color=#rrggbb]текст[/color] — в остальных форматах эта разметка удаляется.</value>
+  </data>
+  <data name="PostBlocksFirstParentNote" xml:space="preserve">
+    <value>Блоки сообщений  (первый — основное сообщение; остальные — подробности в ветке)</value>
+  </data>
+  <data name="AddPost" xml:space="preserve">
+    <value>+ Добавить сообщение</value>
+  </data>
+  <data name="HintName" xml:space="preserve">
+    <value>Название</value>
+  </data>
+  <data name="TipMoveUp" xml:space="preserve">
+    <value>Переместить вверх</value>
+  </data>
+  <data name="TipMoveDown" xml:space="preserve">
+    <value>Переместить вниз</value>
+  </data>
+  <data name="TipDelete" xml:space="preserve">
+    <value>Удалить</value>
+  </data>
+  <data name="HintStaticContent" xml:space="preserve">
+    <value>Статический текст…</value>
+  </data>
+  <data name="HintHeaderTextBeforeTheContent" xml:space="preserve">
+    <value>Шапка — текст перед содержимым…</value>
+  </data>
+  <data name="HintFooterTextAfterTheContent" xml:space="preserve">
+    <value>Подвал — текст после содержимого…</value>
+  </data>
+  <data name="FooterColourLabel" xml:space="preserve">
+    <value>Цвет подвала</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Отменить</value>
+  </data>
+  <data name="Ok" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="TitleSection" xml:space="preserve">
+    <value>Раздел</value>
+  </data>
+  <data name="SectionNameLabel" xml:space="preserve">
+    <value>Название раздела</value>
+  </data>
+  <data name="SectionPrefixOutputOnlyNote" xml:space="preserve">
+    <value>Префикс раздела  (только в выводе — например, :macro: для Slack)</value>
+  </data>
+  <data name="HintEGShips" xml:space="preserve">
+    <value>например, :ships:</value>
+  </data>
+  <data name="SectionHeaderColourEveMail" xml:space="preserve">
+    <value>Цвет заголовка раздела  (только почта EVE)</value>
+  </data>
+  <data name="SectionRowColourLabel" xml:space="preserve">
+    <value>Цвет строк раздела</value>
+  </data>
+  <data name="OnlyUsedWhenTheNote" xml:space="preserve">
+    <value>⚠ Используется, только если объявление НЕ окрашивает строки по состоянию. Та настройка действует построчно и имеет приоритет, поэтому, когда она включена, этот цвет ни на что не влияет. Собственный цвет предмета перекрывает оба.</value>
+  </data>
+  <data name="OverrideInventoryScopeForThis" xml:space="preserve">
+    <value>Переопределить охват запасов для этого раздела</value>
+  </data>
+  <data name="ScopeLabel" xml:space="preserve">
+    <value>Охват</value>
+  </data>
+  <data name="OverrideSalePriceBasis" xml:space="preserve">
+    <value>Переопределить основу цены продажи для этого раздела</value>
+  </data>
+  <data name="MarketCurrentOrders" xml:space="preserve">
+    <value>Рынок (текущие ордера)</value>
+  </data>
+  <data name="Build110ContractMarket100" xml:space="preserve">
+    <value>%  (производство — 110%, контракт/рынок — 100%)</value>
+  </data>
+  <data name="OverridePackagedOnlySetting" xml:space="preserve">
+    <value>Переопределить настройку «только в упаковке» для этого раздела</value>
+  </data>
+  <data name="TitleWhereShouldTheSiteLive" xml:space="preserve">
+    <value>Где разместить сайт?</value>
+  </data>
+  <data name="TheSiteNeedsAnNote" xml:space="preserve">
+    <value>Сайту нужен адрес. Это может быть бесплатный адрес, который Cloudflare выдаёт каждому Worker, или ваш собственный домен, уже подключённый к этой учётной записи Cloudflare. И то и другое можно позже изменить на вкладке «Сайт».</value>
+  </data>
+  <data name="TheFreeWorkersDevAddress" xml:space="preserve">
+    <value>Бесплатный адрес workers.dev</value>
+  </data>
+  <data name="ThisAccountHasNoNote" xml:space="preserve">
+    <value>У этой учётной записи ещё нет имени workers.dev. Задайте его:</value>
+  </data>
+  <data name="HintYourName" xml:space="preserve">
+    <value>your-name</value>
+  </data>
+  <data name="WorkersDev" xml:space="preserve">
+    <value>.workers.dev</value>
+  </data>
+  <data name="EveryWorkerOnThisNote" xml:space="preserve">
+    <value>Это имя общее для всех Worker в этой учётной записи Cloudflare, оно должно быть уникальным во всём Cloudflare, и его можно позже изменить в панели управления: Workers &amp; Pages, Account details. Строчные латинские буквы, цифры и дефисы.</value>
+  </data>
+  <data name="ADomainOfMy" xml:space="preserve">
+    <value>Собственный домен в Cloudflare</value>
+  </data>
+  <data name="TheDomainMustAlreadyNote" xml:space="preserve">
+    <value>Домен уже должен быть подключён к этой учётной записи Cloudflare, и его DNS должны обслуживаться там же. Cloudflare создаст запись и сертификат; сайт будет отвечать только по этому имени.</value>
+  </data>
+  <data name="Continue" xml:space="preserve">
+    <value>Продолжить</value>
+  </data>
+  <data name="TitleAddOrder" xml:space="preserve">
+    <value>Добавление заказа</value>
+  </data>
+  <data name="ItemTypeLabel" xml:space="preserve">
+    <value>Тип предмета</value>
+  </data>
+  <data name="NoneSelected" xml:space="preserve">
+    <value>(ничего не выбрано)</value>
+  </data>
+  <data name="HintStartTypingItemName" xml:space="preserve">
+    <value>Начните вводить название предмета…</value>
+  </data>
+  <data name="UnitsLabel" xml:space="preserve">
+    <value>Количество</value>
+  </data>
+  <data name="PurchasePriceTotalLabel" xml:space="preserve">
+    <value>Цена покупки (всего)</value>
+  </data>
+  <data name="BuyerLabel" xml:space="preserve">
+    <value>Покупатель</value>
+  </data>
+  <data name="HintStartTypingACharacterOr" xml:space="preserve">
+    <value>Начните вводить имя персонажа или название корпорации…</value>
+  </data>
+  <data name="EstimatedDateLabel" xml:space="preserve">
+    <value>Ожидаемая дата</value>
+  </data>
+  <data name="CompletedDateLabel" xml:space="preserve">
+    <value>Дата выполнения</value>
+  </data>
+  <data name="SetAutomaticallyTodayWhenNote" xml:space="preserve">
+    <value>Задаётся автоматически: сегодняшняя дата, когда вы отмечаете заказ как выполненный или отменённый, или дата принятия связанного контракта. Если настоящая дата другая, исправьте её здесь.</value>
+  </data>
+  <data name="PriorityPutThisOrder" xml:space="preserve">
+    <value>Приоритет — поставить этот заказ и всё, что для него нужно, в начало</value>
+  </data>
+  <data name="TipOutranksEveryOtherOrder" xml:space="preserve">
+    <value>Ставится выше всех остальных заказов независимо от ожидаемой даты — вместе с проектами, покупками и перевозками, которые на него работают.</value>
+  </data>
+  <data name="ContractLabel" xml:space="preserve">
+    <value>Контракт</value>
+  </data>
+  <data name="HintContractIdsIfThe" xml:space="preserve">
+    <value>ID контрактов, если какой-то не сопоставился</value>
+  </data>
+  <data name="NormallyFilledInAutomaticallyNote" xml:space="preserve">
+    <value>Обычно заполняется автоматически — все контракты, по которым уходит этот заказ, ведь заказ может уйти несколькими контрактами. Добавьте здесь ID, если контракт не удаётся сопоставить, — обычно потому, что его оформили раньше, чем внесли заказ; несколько ID разделяйте запятыми. Если убрать ID, этот контракт будет отвязан.</value>
+  </data>
+  <data name="LabelsLabel" xml:space="preserve">
+    <value>Метки</value>
+  </data>
+  <data name="FreeTagsForGroupingNote" xml:space="preserve">
+    <value>Произвольные метки для группировки заказов — корпоративная программа, клиент, партия. Введите что угодно; если такой метки ещё нет, нажатие Enter создаст её. В «Учёте заказов» по ним можно фильтровать.</value>
+  </data>
+  <data name="StatusLabel" xml:space="preserve">
+    <value>Статус</value>
+  </data>
+  <data name="SelectAnItemTypeAbove" xml:space="preserve">
+    <value>Выберите тип предмета выше.</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Сохранить</value>
+  </data>
+  <data name="OrderTracker" xml:space="preserve">
+    <value>Учёт заказов</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Обновить</value>
+  </data>
+  <data name="AddOrder" xml:space="preserve">
+    <value>Добавить заказ</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Изменить</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Удалить</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Статус</value>
+  </data>
+  <data name="Created" xml:space="preserve">
+    <value>Создан</value>
+  </data>
+  <data name="HintFromYyyyMmDd" xml:space="preserve">
+    <value>с yyyy-MM-dd</value>
+  </data>
+  <data name="HintThruYyyyMmDd" xml:space="preserve">
+    <value>по yyyy-MM-dd</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>Тип</value>
+  </data>
+  <data name="HintItemName" xml:space="preserve">
+    <value>название предмета</value>
+  </data>
+  <data name="Buyer" xml:space="preserve">
+    <value>Покупатель</value>
+  </data>
+  <data name="HintBuyer" xml:space="preserve">
+    <value>покупатель</value>
+  </data>
+  <data name="Label" xml:space="preserve">
+    <value>Метка</value>
+  </data>
+  <data name="MenuAddLabel" xml:space="preserve">
+    <value>Добавить метку</value>
+  </data>
+  <data name="MenuRemoveLabel" xml:space="preserve">
+    <value>Убрать метку</value>
+  </data>
+  <data name="ColCreated" xml:space="preserve">
+    <value>Создан</value>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>Тип</value>
+  </data>
+  <data name="TipOpenInTheItemBrowser" xml:space="preserve">
+    <value>Открыть в разделе «Просмотр предметов»</value>
+  </data>
+  <data name="ColUnits" xml:space="preserve">
+    <value>Кол-во</value>
+  </data>
+  <data name="ColBuyer" xml:space="preserve">
+    <value>Покупатель</value>
+  </data>
+  <data name="TipOpenInTheEntityBrowser" xml:space="preserve">
+    <value>Открыть в справочнике</value>
+  </data>
+  <data name="ColOrder" xml:space="preserve">
+    <value>№ заказа</value>
+  </data>
+  <data name="ColLabels" xml:space="preserve">
+    <value>Метки</value>
+  </data>
+  <data name="ColStore" xml:space="preserve">
+    <value>Магазин</value>
+  </data>
+  <data name="ColContractTo" xml:space="preserve">
+    <value>Контракт на имя</value>
+  </data>
+  <data name="ColStock" xml:space="preserve">
+    <value>Запас</value>
+  </data>
+  <data name="ColOnHand" xml:space="preserve">
+    <value>В наличии</value>
+  </data>
+  <data name="ColIndyJob" xml:space="preserve">
+    <value>Проект</value>
+  </data>
+  <data name="ColShort" xml:space="preserve">
+    <value>Нехватка</value>
+  </data>
+  <data name="ColOnContract" xml:space="preserve">
+    <value>В контрактах</value>
+  </data>
+  <data name="ColDelivered" xml:space="preserve">
+    <value>Доставлено</value>
+  </data>
+  <data name="ColContract" xml:space="preserve">
+    <value>Контракт</value>
+  </data>
+  <data name="ColEstDate" xml:space="preserve">
+    <value>Ожид. дата</value>
+  </data>
+  <data name="ColPri" xml:space="preserve">
+    <value>Приор.</value>
+  </data>
+  <data name="ColPurchasePrice" xml:space="preserve">
+    <value>Цена покупки</value>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>Статус</value>
+  </data>
+  <data name="ColCompleted" xml:space="preserve">
+    <value>Выполнен</value>
+  </data>
+  <data name="ColBuildCost" xml:space="preserve">
+    <value>Стоимость производства</value>
+  </data>
+  <data name="ColProfit" xml:space="preserve">
+    <value>Прибыль</value>
+  </data>
+  <data name="ColProfit2" xml:space="preserve">
+    <value>Прибыль, %</value>
+  </data>
+  <data name="SalesTracker" xml:space="preserve">
+    <value>Учёт продаж →</value>
+  </data>
+  <data name="ColDateTime" xml:space="preserve">
+    <value>Дата / время</value>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>Предмет</value>
+  </data>
+  <data name="ColAmount" xml:space="preserve">
+    <value>Сумма</value>
+  </data>
+  <data name="TabDefinitions" xml:space="preserve">
+    <value>Определения</value>
+  </data>
+  <data name="AddPosting" xml:space="preserve">
+    <value>+ Добавить объявление</value>
+  </data>
+  <data name="ImportPosting" xml:space="preserve">
+    <value>Импортировать объявление</value>
+  </data>
+  <data name="ProfitBasedOn" xml:space="preserve">
+    <value>Основа прибыли</value>
+  </data>
+  <data name="MenuOpenInItemBrowser" xml:space="preserve">
+    <value>Открыть в разделе «Просмотр предметов»</value>
+  </data>
+  <data name="MenuAddItemsFromMarketGroup" xml:space="preserve">
+    <value>Добавить предметы из группы рынка</value>
+  </data>
+  <data name="MenuDeleteItem" xml:space="preserve">
+    <value>Удалить предмет</value>
+  </data>
+  <data name="ColPostingSectionItem" xml:space="preserve">
+    <value>Объявление / раздел / предмет</value>
+  </data>
+  <data name="Section" xml:space="preserve">
+    <value>+ Раздел</value>
+  </data>
+  <data name="Export" xml:space="preserve">
+    <value>Экспорт</value>
+  </data>
+  <data name="TipOpenThisLocation" xml:space="preserve">
+    <value>Открыть это место</value>
+  </data>
+  <data name="Item" xml:space="preserve">
+    <value>+ Предмет</value>
+  </data>
+  <data name="ColNameOverride" xml:space="preserve">
+    <value>Своё название</value>
+  </data>
+  <data name="ColPrefix" xml:space="preserve">
+    <value>Префикс</value>
+  </data>
+  <data name="ColColour" xml:space="preserve">
+    <value>Цвет</value>
+  </data>
+  <data name="HintRrggbb" xml:space="preserve">
+    <value>#rrggbb</value>
+  </data>
+  <data name="ColInStock" xml:space="preserve">
+    <value>В наличии</value>
+  </data>
+  <data name="ColStockOvr" xml:space="preserve">
+    <value>Наличие вручн.</value>
+  </data>
+  <data name="ColInBuild" xml:space="preserve">
+    <value>В производстве</value>
+  </data>
+  <data name="ColBuildOvr" xml:space="preserve">
+    <value>Произв. вручн.</value>
+  </data>
+  <data name="ColReserved" xml:space="preserve">
+    <value>Резерв</value>
+  </data>
+  <data name="ColRsrvOvr" xml:space="preserve">
+    <value>Резерв вручн.</value>
+  </data>
+  <data name="ColBuildCost2" xml:space="preserve">
+    <value>Стоим. произв.</value>
+  </data>
+  <data name="ColMktValue" xml:space="preserve">
+    <value>Рын. стоимость</value>
+  </data>
+  <data name="ColContract2" xml:space="preserve">
+    <value>Контракт</value>
+  </data>
+  <data name="ColSalePrice" xml:space="preserve">
+    <value>Цена продажи</value>
+  </data>
+  <data name="ColProfit3" xml:space="preserve">
+    <value>Прибыль</value>
+  </data>
+  <data name="ColProfit4" xml:space="preserve">
+    <value>Прибыль, %</value>
+  </data>
+  <data name="ColReadyEst" xml:space="preserve">
+    <value>Готово (ожид.)</value>
+  </data>
+  <data name="TabPosting" xml:space="preserve">
+    <value>Объявление</value>
+  </data>
+  <data name="Format" xml:space="preserve">
+    <value>Формат</value>
+  </data>
+  <data name="TipReRenderTheSelected" xml:space="preserve">
+    <value>Заново сформировать выбранное объявление по последним данным определений</value>
+  </data>
+  <data name="PostToSlack" xml:space="preserve">
+    <value>Опубликовать в Slack</value>
+  </data>
+  <data name="Copy" xml:space="preserve">
+    <value>Копировать</value>
+  </data>
+  <data name="TipCopyTheRawFormatted" xml:space="preserve">
+    <value>Скопировать отформатированный текст как есть (с разметкой) в буфер обмена</value>
+  </data>
+  <data name="SalesTracker2" xml:space="preserve">
+    <value>Учёт продаж</value>
+  </data>
+  <data name="From" xml:space="preserve">
+    <value>С</value>
+  </data>
+  <data name="Thru" xml:space="preserve">
+    <value>По</value>
+  </data>
+  <data name="Owner" xml:space="preserve">
+    <value>Владелец</value>
+  </data>
+  <data name="SaleType" xml:space="preserve">
+    <value>Тип продажи</value>
+  </data>
+  <data name="ShowNotForProfit" xml:space="preserve">
+    <value>Показывать некоммерческие</value>
+  </data>
+  <data name="TipIncludeSalesMarkedAs" xml:space="preserve">
+    <value>Включать продажи, отмеченные как некоммерческие. Когда такие продажи показаны, они учитываются везде на этом экране: сводки, графики и таблица — всё следует этому флажку.</value>
+  </data>
+  <data name="TabSummary" xml:space="preserve">
+    <value>Сводка</value>
+  </data>
+  <data name="ProfitByBuyer" xml:space="preserve">
+    <value>Прибыль по покупателям</value>
+  </data>
+  <data name="ColSales" xml:space="preserve">
+    <value>Продажи</value>
+  </data>
+  <data name="ProfitByMarketGroup" xml:space="preserve">
+    <value>Прибыль по группам рынка</value>
+  </data>
+  <data name="ColGroup" xml:space="preserve">
+    <value>Группа</value>
+  </data>
+  <data name="ProfitByItem" xml:space="preserve">
+    <value>Прибыль по предметам</value>
+  </data>
+  <data name="NoProfitToShow" xml:space="preserve">
+    <value>Нет прибыли для показа</value>
+  </data>
+  <data name="ChartBy" xml:space="preserve">
+    <value>График</value>
+  </data>
+  <data name="CostsSalesAndProfit" xml:space="preserve">
+    <value>Затраты, продажи и прибыль</value>
+  </data>
+  <data name="Margin" xml:space="preserve">
+    <value>Маржа</value>
+  </data>
+  <data name="TabDetail" xml:space="preserve">
+    <value>Подробно</value>
+  </data>
+  <data name="MenuMarkAsNotForProfit" xml:space="preserve">
+    <value>Отметить как некоммерческие</value>
+  </data>
+  <data name="MenuRestoreToProfit" xml:space="preserve">
+    <value>Вернуть в учёт прибыли</value>
+  </data>
+  <data name="ColOwner" xml:space="preserve">
+    <value>Владелец</value>
+  </data>
+  <data name="ColLocation" xml:space="preserve">
+    <value>Место</value>
+  </data>
+  <data name="TipOpenThisStationOrStructure" xml:space="preserve">
+    <value>Открыть эту станцию или сооружение</value>
+  </data>
+  <data name="ColItemS" xml:space="preserve">
+    <value>Предметы</value>
+  </data>
+  <data name="ColTotalSale" xml:space="preserve">
+    <value>Сумма продажи</value>
+  </data>
+  <data name="ColBuildPrice" xml:space="preserve">
+    <value>Стоимость производства</value>
+  </data>
+  <data name="ColMarketPrice" xml:space="preserve">
+    <value>Рыночная цена</value>
+  </data>
+  <data name="AddStore" xml:space="preserve">
+    <value>+ Добавить магазин</value>
+  </data>
+  <data name="CheckMailNow" xml:space="preserve">
+    <value>Проверить почту сейчас</value>
+  </data>
+  <data name="TabOverview" xml:space="preserve">
+    <value>Обзор</value>
+  </data>
+  <data name="Inquiries" xml:space="preserve">
+    <value>Запросы</value>
+  </data>
+  <data name="ActiveItems" xml:space="preserve">
+    <value>Активные позиции</value>
+  </data>
+  <data name="Completed" xml:space="preserve">
+    <value>Выполнено</value>
+  </data>
+  <data name="Cancelled" xml:space="preserve">
+    <value>Отменено</value>
+  </data>
+  <data name="ActiveOrders" xml:space="preserve">
+    <value>Активные заказы</value>
+  </data>
+  <data name="ColCreatedOn" xml:space="preserve">
+    <value>Создан</value>
+  </data>
+  <data name="ColOrder2" xml:space="preserve">
+    <value>Заказ</value>
+  </data>
+  <data name="ColEstDate2" xml:space="preserve">
+    <value>Ожид. дата</value>
+  </data>
+  <data name="ColSource" xml:space="preserve">
+    <value>Источник</value>
+  </data>
+  <data name="Messages" xml:space="preserve">
+    <value>Письма</value>
+  </data>
+  <data name="ColWhen" xml:space="preserve">
+    <value>Когда</value>
+  </data>
+  <data name="ColDirection" xml:space="preserve">
+    <value>Направление</value>
+  </data>
+  <data name="ColWho" xml:space="preserve">
+    <value>Кто</value>
+  </data>
+  <data name="ColCommand" xml:space="preserve">
+    <value>Команда</value>
+  </data>
+  <data name="ColSubject" xml:space="preserve">
+    <value>Тема</value>
+  </data>
+  <data name="ColOutcome" xml:space="preserve">
+    <value>Результат</value>
+  </data>
+  <data name="ColNote" xml:space="preserve">
+    <value>Примечание</value>
+  </data>
+  <data name="WebSiteEvents" xml:space="preserve">
+    <value>События сайта</value>
+  </data>
+  <data name="ShowVisits" xml:space="preserve">
+    <value>Показывать посещения</value>
+  </data>
+  <data name="ColKind" xml:space="preserve">
+    <value>Вид</value>
+  </data>
+  <data name="BookIt" xml:space="preserve">
+    <value>Принять</value>
+  </data>
+  <data name="Decline" xml:space="preserve">
+    <value>Отклонить</value>
+  </data>
+  <data name="TabConfig" xml:space="preserve">
+    <value>Настройки</value>
+  </data>
+  <data name="TabGeneral" xml:space="preserve">
+    <value>Общие</value>
+  </data>
+  <data name="Store" xml:space="preserve">
+    <value>Магазин</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Название</value>
+  </data>
+  <data name="EveMailbox" xml:space="preserve">
+    <value>Почтовый ящик EVE</value>
+  </data>
+  <data name="UsedForOrderStatusNote" xml:space="preserve">
+    <value>Используется для уведомлений о статусе заказов, а также для запросов к магазину, когда он открыт для почты EVE.</value>
+  </data>
+  <data name="PriceList" xml:space="preserve">
+    <value>Прайс-лист</value>
+  </data>
+  <data name="GiveInStockOrders" xml:space="preserve">
+    <value>Назначать заказам из наличия ожидаемую дату</value>
+  </data>
+  <data name="DaySFromTheOrder" xml:space="preserve">
+    <value>д после заказа</value>
+  </data>
+  <data name="OrderLabelsOnEveryNote" xml:space="preserve">
+    <value>Метки заказов  (на каждом заказе, принятом этим магазином)</value>
+  </data>
+  <data name="LabelsAppearOnTheNote" xml:space="preserve">
+    <value>Метки видны в «Учёте заказов», и по ним там можно фильтровать. Всё, что введено здесь, предлагается в его списках меток, так что программу можно настроить ещё до прихода первого заказа.</value>
+  </data>
+  <data name="TabRestrictions" xml:space="preserve">
+    <value>Ограничения</value>
+  </data>
+  <data name="WhoMayOrder" xml:space="preserve">
+    <value>Кто может заказывать</value>
+  </data>
+  <data name="UsedWhenServeIsNote" xml:space="preserve">
+    <value>Используется, когда в поле «Обслуживать» выбрано «Список». Отправитель подходит по собственному имени, по своей корпорации или по своему альянсу. Имена сопоставляются с ID, которые приложение уже встречало.</value>
+  </data>
+  <data name="Serve" xml:space="preserve">
+    <value>Обслуживать</value>
+  </data>
+  <data name="AnyoneOrOnlyTheNote" xml:space="preserve">
+    <value>Всех или только список ниже. Одинаково для почты EVE и сайта.</value>
+  </data>
+  <data name="HintTypeTwoLettersOfThe" xml:space="preserve">
+    <value>Введите две буквы имени…</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Добавить</value>
+  </data>
+  <data name="ColName" xml:space="preserve">
+    <value>Имя</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>Убрать</value>
+  </data>
+  <data name="PurchaseLimit" xml:space="preserve">
+    <value>Лимит покупок</value>
+  </data>
+  <data name="HowMuchOneBuyerNote" xml:space="preserve">
+    <value>Сколько может получить один покупатель — считается по его неотменённым заказам в этом магазине, каким бы путём они ни поступили. Для программы, выдающей первый корпус каждого вида: одна единица каждого типа предметов за всё время. На сайте предмет, который покупателю больше нельзя заказать, показан серым, а в поле количества — сколько осталось; заказ сверх лимита, который всё же дошёл до приложения, откладывается, чтобы вы его просмотрели, и никогда не принимается сам.</value>
+  </data>
+  <data name="LimitEachBuyer" xml:space="preserve">
+    <value>Ограничить покупки каждого покупателя</value>
+  </data>
+  <data name="To" xml:space="preserve">
+    <value>до</value>
+  </data>
+  <data name="UnitSOf" xml:space="preserve">
+    <value>ед. на</value>
+  </data>
+  <data name="Per" xml:space="preserve">
+    <value>за</value>
+  </data>
+  <data name="TabEveMail" xml:space="preserve">
+    <value>Почта EVE</value>
+  </data>
+  <data name="EveMail" xml:space="preserve">
+    <value>Почта EVE</value>
+  </data>
+  <data name="AShopFrontInNote" xml:space="preserve">
+    <value>Витрина в почтовом ящике: покупатели пишут персонажу, указанному выше, а приложение отвечает, принимает заказы и держит покупателей в курсе. Кто может покупать, задаётся на вкладке «Ограничения» — одинаково для почты и сайта.</value>
+  </data>
+  <data name="OpenByEveMail" xml:space="preserve">
+    <value>Открыть для почты EVE — читать письма, приходящие в ящик, и отвечать на них</value>
+  </data>
+  <data name="BuyersPutTheCommandNote" xml:space="preserve">
+    <value>Покупатели пишут команду в ТЕМЕ письма: PRICES, ORDER, STATUS, CANCEL или HELP. В тексте ORDER — по одному предмету в строке; проще всего перетащить предмет в письмо. STATUS без параметров выводит все открытые заказы; для CANCEL нужен номер из письма-подтверждения.</value>
+  </data>
+  <data name="MessageHeaderOnEveryNote" xml:space="preserve">
+    <value>Шапка письма  (в каждом письме этого магазина)</value>
+  </data>
+  <data name="HintEGThanksFor" xml:space="preserve">
+    <value>например: Спасибо, что покупаете у нас.</value>
+  </data>
+  <data name="TipEveMarkupWorksHere" xml:space="preserve">
+    <value>Здесь работает разметка EVE: &lt;b&gt;, &lt;i&gt;, &lt;u&gt;, перетащенные ссылки и [color=#rrggbb]текст[/color]. Цвет рядом с этим полем окрашивает весь блок, а тег — его часть.</value>
+  </data>
+  <data name="MessageFooterLabel" xml:space="preserve">
+    <value>Подвал письма</value>
+  </data>
+  <data name="BothAcceptEveMarkupNote" xml:space="preserve">
+    <value>Оба поля принимают разметку EVE — полужирный, курсив, подчёркивание, перетащенные ссылки — и [color=#rrggbb]текст[/color] для части строки. Выбор цвета рядом с каждым полем окрашивает весь блок.</value>
+  </data>
+  <data name="HintEGContractsAre" xml:space="preserve">
+    <value>например: Контракты выставляются из Jita 4-4.</value>
+  </data>
+  <data name="TabWebSite" xml:space="preserve">
+    <value>Сайт</value>
+  </data>
+  <data name="WebSite" xml:space="preserve">
+    <value>Сайт</value>
+  </data>
+  <data name="AShopFrontOnNote" xml:space="preserve">
+    <value>Витрина в интернете, на сайте, который размещаете вы. Покупатели входят через EVE SSO, видят этот прайс-лист с тем, что есть в наличии, в производстве и в резерве, оформляют заказы и следят за ними. Приложение отправляет сайту то, что на нём можно показывать, и каждые несколько минут забирает действия покупателей; у сайта нет доступа к базе данных. Кто может покупать, задаётся на вкладке «Ограничения» — одинаково для почты и сайта.</value>
+  </data>
+  <data name="OpenOnTheWeb" xml:space="preserve">
+    <value>Открыть в интернете — публиковать на сайте и принимать его заказы</value>
+  </data>
+  <data name="SiteAddress" xml:space="preserve">
+    <value>Адрес сайта</value>
+  </data>
+  <data name="Secret" xml:space="preserve">
+    <value>Секрет</value>
+  </data>
+  <data name="NewSecret" xml:space="preserve">
+    <value>Новый секрет</value>
+  </data>
+  <data name="Theme" xml:space="preserve">
+    <value>Тема</value>
+  </data>
+  <data name="BuyersMayAlsoChooseLabel" xml:space="preserve">
+    <value>Покупатели также могут выбрать:</value>
+  </data>
+  <data name="CheckTheSite" xml:space="preserve">
+    <value>Проверять сайт</value>
+  </data>
+  <data name="Every" xml:space="preserve">
+    <value>каждые</value>
+  </data>
+  <data name="MinutesABuyerWaitsNote" xml:space="preserve">
+    <value>мин. Столько покупатель может ждать подтверждения; каждое обращение расходует один из бесплатных суточных запросов сайта.</value>
+  </data>
+  <data name="AlsoMailWebBuyers" xml:space="preserve">
+    <value>Также писать покупателям с сайта о ходе их заказов (нужен персонаж, указанный выше)</value>
+  </data>
+  <data name="TheThemeIsTheNote" xml:space="preserve">
+    <value>Тема принадлежит магазину и не связана с темой этого приложения. Секретом приложение подписывает каждое обращение; при ручной настройке сайта задайте то же значение в его STORE_SYNC_SECRET.</value>
+  </data>
+  <data name="AboutThisStoreOnTheLabel" xml:space="preserve">
+    <value>Об этом магазине (на сайте)</value>
+  </data>
+  <data name="HintContractTermsPickupWhatever" xml:space="preserve">
+    <value>Условия контрактов, место получения — всё, что покупателю стоит прочитать до заказа. Обычный текст или HTML.</value>
+  </data>
+  <data name="HtmlIsWelcomeBNote" xml:space="preserve">
+    <value>HTML приветствуется: &lt;b&gt; &lt;i&gt; &lt;u&gt; &lt;a href&gt; &lt;br&gt; &lt;p&gt; &lt;h2&gt; &lt;ul&gt; &lt;ol&gt; &lt;li&gt; &lt;hr&gt; &lt;img src&gt; &lt;table&gt; &lt;blockquote&gt; &lt;code&gt; и &lt;font color&gt; из почтовой разметки. Переносы и пустые строки сохраняются как написано, пока вы не начнёте размечать текст тегами абзацев или списков, — после этого всё решают теги. Сайт отбрасывает скрипты, обработчики и неизвестные ему теги и закрывает все незакрытые теги.</value>
+  </data>
+  <data name="BannerLabel" xml:space="preserve">
+    <value>Баннер</value>
+  </data>
+  <data name="OptionalShownAcrossTheNote" xml:space="preserve">
+    <value>Необязательно. Показывается над прайс-листом во всю ширину страницы и высотой до 300 пикселей; лучше всего подходит широкая картинка, примерно 1100 на 250, а у более высокой видна середина. Большой файл уменьшается и отправляется в формате WebP.</value>
+  </data>
+  <data name="ChoosePicture" xml:space="preserve">
+    <value>Выбрать картинку…</value>
+  </data>
+  <data name="SyncNow" xml:space="preserve">
+    <value>Синхронизировать сейчас</value>
+  </data>
+  <data name="EveApplicationNeededBeforeNote" xml:space="preserve">
+    <value>Приложение EVE  (нужно, чтобы покупатели могли входить)</value>
+  </data>
+  <data name="DeployFirstSoTheNote" xml:space="preserve">
+    <value>Сначала разверните сайт, чтобы у него был адрес. Затем зарегистрируйте приложение на сайте разработчиков EVE: любое название и описание, только Authentication (без областей доступа) и адрес обратного вызова (Callback URL), показанный ниже. Скопируйте его Client ID и Secret Key в два поля ниже: сайт, развёрнутый отсюда, получает их сразу после сохранения, а строка под полями показывает, есть ли эти ключи у сайта. Сайту, настроенному вручную, нужны те же значения в секретах EVE_CLIENT_ID и EVE_CLIENT_SECRET.</value>
+  </data>
+  <data name="OpenDevelopersEveonlineCom" xml:space="preserve">
+    <value>Открыть developers.eveonline.com, чтобы создать приложение</value>
+  </data>
+  <data name="CallbackUrl" xml:space="preserve">
+    <value>Callback URL</value>
+  </data>
+  <data name="HintKnownOnceTheSite" xml:space="preserve">
+    <value>Станет известен, когда у сайта появится адрес или ниже будут указаны учётная запись и имя Worker</value>
+  </data>
+  <data name="ClientId" xml:space="preserve">
+    <value>Client ID</value>
+  </data>
+  <data name="HintFromTheApplicationsPage" xml:space="preserve">
+    <value>Со страницы приложения на сайте разработчиков</value>
+  </data>
+  <data name="SecretKey" xml:space="preserve">
+    <value>Secret Key</value>
+  </data>
+  <data name="HintShownOnceWhenThe" xml:space="preserve">
+    <value>Показывается один раз, при создании приложения</value>
+  </data>
+  <data name="AutomaticDeploymentAndUpdatesNote" xml:space="preserve">
+    <value>Автоматическое развёртывание и обновление в Cloudflare  (только для кнопки развёртывания)</value>
+  </data>
+  <data name="FillTheseInOnlyNote" xml:space="preserve">
+    <value>Заполняйте эти поля, только если хотите, чтобы приложение само разместило сайт в вашей учётной записи Cloudflare и поддерживало его в актуальном состоянии кнопкой «Развернуть или обновить сайт»: она создаёт базу данных, загружает последний выпуск сайта, задаёт секреты, указанные выше, и размещает сайт на бесплатном адресе workers.dev или на вашем собственном домене в этой учётной записи. Повторное развёртывание обновляет сайт, не затрагивая его заказы. Чтобы вместо этого настроить сайт вручную, следуйте документации, а затем введите адрес сайта и секрет выше; ни одно из этих полей для этого не нужно.</value>
+  </data>
+  <data name="Documentation" xml:space="preserve">
+    <value>Документация</value>
+  </data>
+  <data name="SiteSourceAndReleases" xml:space="preserve">
+    <value>Исходный код и выпуски сайта</value>
+  </data>
+  <data name="CreateACloudflareApiToken" xml:space="preserve">
+    <value>Создать токен API Cloudflare</value>
+  </data>
+  <data name="OnTheCloudflareTokenNote" xml:space="preserve">
+    <value>На странице токенов Cloudflare: Create Token, шаблон «Edit Cloudflare Workers», добавьте разрешение D1 Edit, затем Continue и Create. Вставьте токен ниже и нажмите «Сохранить токен»; он будет проверен и затем сохранён только на этом компьютере, в зашифрованном для вашей учётной записи виде.</value>
+  </data>
+  <data name="ApiToken" xml:space="preserve">
+    <value>Токен API</value>
+  </data>
+  <data name="HintPasteATokenTo" xml:space="preserve">
+    <value>Вставьте токен, чтобы сохранить его на этом компьютере</value>
+  </data>
+  <data name="SaveToken" xml:space="preserve">
+    <value>Сохранить токен</value>
+  </data>
+  <data name="Forget" xml:space="preserve">
+    <value>Забыть</value>
+  </data>
+  <data name="Account" xml:space="preserve">
+    <value>Учётная запись</value>
+  </data>
+  <data name="HintSaveATokenToList" xml:space="preserve">
+    <value>Сохраните токен, чтобы увидеть учётные записи</value>
+  </data>
+  <data name="WorkerName" xml:space="preserve">
+    <value>Имя Worker</value>
+  </data>
+  <data name="AlsoTheDatabasesNameNote" xml:space="preserve">
+    <value>Это же и имя базы данных. Строчные латинские буквы, цифры и дефисы; адрес сайта — это имя на workers.dev учётной записи, если ниже не выбран ваш собственный домен.</value>
+  </data>
+  <data name="Address" xml:space="preserve">
+    <value>Адрес</value>
+  </data>
+  <data name="TheFreeWorkersDev" xml:space="preserve">
+    <value>Бесплатный адрес workers.dev: имя Worker на workers.dev учётной записи</value>
+  </data>
+  <data name="RenameTheAccountsWorkersDev" xml:space="preserve">
+    <value>Изменить имя workers.dev учётной записи…</value>
+  </data>
+  <data name="ADomainOfMy2" xml:space="preserve">
+    <value>Собственный домен в Cloudflare:</value>
+  </data>
+  <data name="ADomainMustAlreadyNote" xml:space="preserve">
+    <value>Домен уже должен быть подключён к этой учётной записи Cloudflare, и его DNS должны обслуживаться там же. При следующем развёртывании сайт привязывается к нему, Cloudflare создаёт запись и сертификат, а адрес workers.dev отключается, чтобы покупатели и обратный вызов приложения EVE видели одно имя; при обратном переключении домен освобождается. В любом случае Callback URL выше меняется, так что обновите его и в приложении EVE.</value>
+  </data>
+  <data name="DeployOrUpdateSite" xml:space="preserve">
+    <value>Развернуть или обновить сайт</value>
+  </data>
+  <data name="Check" xml:space="preserve">
+    <value>Проверить</value>
+  </data>
+  <data name="TabInfo" xml:space="preserve">
+    <value>Информация</value>
+  </data>
+  <data name="AboutThisStore" xml:space="preserve">
+    <value>Об этом магазине</value>
+  </data>
+  <data name="WhatInfoSendsBackNote" xml:space="preserve">
+    <value>Что отвечает команда INFO: кто ведёт магазин, что в нём есть, условия доставки — всё, что покупателю стоит знать до заказа. Если оставить поле пустым, команда не предлагается: справка не будет упоминать INFO, а тот, кто всё же её пришлёт, получит справку.</value>
+  </data>
+  <data name="InformationLabel" xml:space="preserve">
+    <value>Информация</value>
+  </data>
+  <data name="WriteItAsTextNote" xml:space="preserve">
+    <value>Пишите обычным текстом — при отправке переводы строк становятся разрывами строк. Работает та же разметка почты EVE, что и в справке: &lt;b&gt; &lt;i&gt; &lt;u&gt;, &lt;font size="12"&gt; и &lt;font color="#ffc8a84b"&gt; — цвета задаются в ARGB, так что пара цифр альфа-канала обязательна. Одни только пробелы не считаются заполненным полем.</value>
+  </data>
+  <data name="TabUsage" xml:space="preserve">
+    <value>Справка</value>
+  </data>
+  <data name="UsageMessage" xml:space="preserve">
+    <value>Справка</value>
+  </data>
+  <data name="WhatHelpSendsAndNote" xml:space="preserve">
+    <value>Что отправляет команда HELP и что уходит в ответ на всё, что магазин не смог понять. Стандартная справка объясняет, как делать заказы вообще; магазину со своими правилами — один корпус на покупателя, фиксированная цена, программа с условиями — лучше сказать об этом своими словами, чем рассылать неподходящие инструкции.</value>
+  </data>
+  <data name="UseACustomUsage" xml:space="preserve">
+    <value>Использовать для этого магазина свою справку</value>
+  </data>
+  <data name="MessageLabel" xml:space="preserve">
+    <value>Сообщение</value>
+  </data>
+  <data name="WriteItAsTextNote2" xml:space="preserve">
+    <value>Пишите обычным текстом — при отправке переводы строк становятся разрывами строк. Разметка почты EVE: &lt;b&gt; &lt;i&gt; &lt;u&gt;, &lt;font size="12"&gt; и &lt;font color="#ffc8a84b"&gt; — цвета задаются в ARGB, так что пара цифр альфа-канала обязательна. Ссылки на предметы и персонажей: &lt;a href="showinfo:TYPEID"&gt; и &lt;a href="showinfo:1373//CHARACTERID"&gt;. Пробелы сохраняются как написано; HTML-сущности не декодируются и будут показаны как есть.</value>
+  </data>
+  <data name="ResetToTheDefaultMessage" xml:space="preserve">
+    <value>Вернуть стандартный текст</value>
+  </data>
+  <data name="OrderStatusPending" xml:space="preserve">
+    <value>Ожидает</value>
+  </data>
+  <data name="OrderStatusCompleted" xml:space="preserve">
+    <value>Выполнен</value>
+  </data>
+  <data name="OrderStatusCanceled" xml:space="preserve">
+    <value>Отменён</value>
+  </data>
+  <data name="TipOpenContract" xml:space="preserve">
+    <value>Открыть этот контракт в разделе «Контракты»</value>
+  </data>
+  <data name="UnitsInBuild" xml:space="preserve">
+    <value>{0:N0} в производстве</value>
+  </data>
+  <data name="TipBuildCostAsOf" xml:space="preserve">
+    <value>Стоимость производства на {0} — день закрытия заказа.</value>
+  </data>
+  <data name="TipBuildCostCurrent" xml:space="preserve">
+    <value>Текущая стоимость производства.</value>
+  </data>
+  <data name="FilterActive" xml:space="preserve">
+    <value>Активные</value>
+  </data>
+  <data name="FilterCompleted" xml:space="preserve">
+    <value>Выполненные</value>
+  </data>
+  <data name="FilterCanceled" xml:space="preserve">
+    <value>Отменённые</value>
+  </data>
+  <data name="FilterAll" xml:space="preserve">
+    <value>Все</value>
+  </data>
+  <data name="ContractNumbered" xml:space="preserve">
+    <value>Контракт {0}</value>
+  </data>
+  <data name="ContractAcceptedOn" xml:space="preserve">
+    <value>принят {0:yyyy-MM-dd}</value>
+  </data>
+  <data name="ContractAccepted" xml:space="preserve">
+    <value>принят</value>
+  </data>
+  <data name="ContractWaiting" xml:space="preserve">
+    <value>ждёт покупателя</value>
+  </data>
+  <data name="ContractDeclined" xml:space="preserve">
+    <value>отклонён</value>
+  </data>
+  <data name="ContractNotPolled" xml:space="preserve">
+    <value>ещё не получен при опросе контрактов</value>
+  </data>
+  <data name="ContractsListed" xml:space="preserve">
+    <value>Контрактов: {0} — {1}</value>
+  </data>
+  <data name="ContractUnitsUncounted" xml:space="preserve">
+    <value>количество ещё не подсчитано</value>
+  </data>
+  <data name="TipClickToOpenContract" xml:space="preserve">
+    <value>
+Нажмите, чтобы открыть контракт {0} в разделе «Контракты».</value>
+  </data>
+  <data name="TypeNumbered" xml:space="preserve">
+    <value>Тип {0}</value>
+  </data>
+  <data name="StatusLabelled" xml:space="preserve">
+    <value>Метка «{1}» добавлена к заказам: {0:N0}.</value>
+  </data>
+  <data name="StatusLabelFailed" xml:space="preserve">
+    <value>Не удалось добавить метку: {0}</value>
+  </data>
+  <data name="StatusLabelRemoved" xml:space="preserve">
+    <value>Метка «{0}» убрана с заказов: {1:N0}.</value>
+  </data>
+  <data name="BuyerCharacter" xml:space="preserve">
+    <value>Персонаж</value>
+  </data>
+  <data name="BuyerCorporation" xml:space="preserve">
+    <value>Корпорация</value>
+  </data>
+  <data name="GrainDaily" xml:space="preserve">
+    <value>По дням</value>
+  </data>
+  <data name="GrainWeekly" xml:space="preserve">
+    <value>По неделям</value>
+  </data>
+  <data name="GrainMonthly" xml:space="preserve">
+    <value>По месяцам</value>
+  </data>
+  <data name="UncostedNote" xml:space="preserve">
+    <value>Продажи без стоимости ни по одной основе не показаны на графиках: {0:N0}.</value>
+  </data>
+  <data name="OwnerCharsAndPersonalCorps" xml:space="preserve">
+    <value>Все персонажи и личные корпорации</value>
+  </data>
+  <data name="TypeAll" xml:space="preserve">
+    <value>Все типы</value>
+  </data>
+  <data name="SaleTypeMarket" xml:space="preserve">
+    <value>Рынок</value>
+  </data>
+  <data name="SaleTypeContract" xml:space="preserve">
+    <value>Контракт</value>
+  </data>
+  <data name="BasisBuild" xml:space="preserve">
+    <value>Производство</value>
+  </data>
+  <data name="BasisMarket" xml:space="preserve">
+    <value>Рынок</value>
+  </data>
+  <data name="NoSalesMatch" xml:space="preserve">
+    <value>Нет продаж, подходящих под фильтры.</value>
+  </data>
+  <data name="ExcludedShown" xml:space="preserve">
+    <value> · некоммерческих: {0:N0} — показаны, но не учтены</value>
+  </data>
+  <data name="ExcludedHidden" xml:space="preserve">
+    <value> · некоммерческих: {0:N0} — скрыты</value>
+  </data>
+  <data name="SeriesGrossCosts" xml:space="preserve">
+    <value>Валовые затраты</value>
+  </data>
+  <data name="SeriesGrossSales" xml:space="preserve">
+    <value>Валовые продажи</value>
+  </data>
+  <data name="SeriesNetProfit" xml:space="preserve">
+    <value>Чистая прибыль</value>
+  </data>
+  <data name="SeriesMargin" xml:space="preserve">
+    <value>Маржа</value>
+  </data>
+  <data name="PieOther" xml:space="preserve">
+    <value>Прочее</value>
+  </data>
+  <data name="StatusLabelledSales" xml:space="preserve">
+    <value>Метка «{1}» добавлена к продажам: {0:N0}.</value>
+  </data>
+  <data name="StatusLabelRemovedSales" xml:space="preserve">
+    <value>Метка «{0}» убрана с продаж: {1:N0}.</value>
+  </data>
+  <data name="StatusLabelRemoveFailed" xml:space="preserve">
+    <value>Не удалось убрать метку: {0}</value>
+  </data>
+  <data name="ScopeEverywhere" xml:space="preserve">
+    <value>Везде</value>
+  </data>
+  <data name="PriceBasisContract" xml:space="preserve">
+    <value>Контракт</value>
+  </data>
+  <data name="PriceBasisMarketAt" xml:space="preserve">
+    <value>Рынок: {0} ({1})</value>
+  </data>
+  <data name="PriceBasisBuild" xml:space="preserve">
+    <value>Производство</value>
+  </data>
+  <data name="SummaryScope" xml:space="preserve">
+    <value>охват: </value>
+  </data>
+  <data name="PriceBasisMarketShort" xml:space="preserve">
+    <value>Рынок:{0}</value>
+  </data>
+  <data name="SummaryPackagedOnly" xml:space="preserve">
+    <value>только в упаковке</value>
+  </data>
+  <data name="SummaryAllItems" xml:space="preserve">
+    <value>все предметы</value>
+  </data>
+  <data name="StatusPostingExported" xml:space="preserve">
+    <value>Объявление экспортировано.</value>
+  </data>
+  <data name="StatusExportFailed" xml:space="preserve">
+    <value>Не удалось экспортировать: {0}</value>
+  </data>
+  <data name="StatusNotAPosting" xml:space="preserve">
+    <value>Этот файл не является объявлением о продаже.</value>
+  </data>
+  <data name="StatusImportFailed" xml:space="preserve">
+    <value>Не удалось импортировать: {0}</value>
+  </data>
+  <data name="NoPostingsYet" xml:space="preserve">
+    <value>Объявлений пока нет — добавьте первое, чтобы начать.</value>
+  </data>
+  <data name="StatusLoadFailed" xml:space="preserve">
+    <value>Не удалось загрузить: {0}</value>
+  </data>
+  <data name="SlackSelectPosting" xml:space="preserve">
+    <value>Сначала выберите объявление.</value>
+  </data>
+  <data name="SlackNotConfigured" xml:space="preserve">
+    <value>Не настроен ни канал Slack, ни веб-хук.</value>
+  </data>
+  <data name="SlackAlreadyPosted" xml:space="preserve">
+    <value>Объявление «{0}» уже публиковалось в Slack {1}.
+
+</value>
+  </data>
+  <data name="SlackPostAgain" xml:space="preserve">
+    <value>Опубликовать снова?</value>
+  </data>
+  <data name="SlackPostCancelled" xml:space="preserve">
+    <value>Публикация отменена.</value>
+  </data>
+  <data name="SlackPosting" xml:space="preserve">
+    <value>Публикация в Slack…</value>
+  </data>
+  <data name="SlackNothingToPost" xml:space="preserve">
+    <value>Публиковать нечего — в этом объявлении нет блоков сообщений.</value>
+  </data>
+  <data name="SlackPostFailed" xml:space="preserve">
+    <value>Не удалось опубликовать в Slack блок «{0}»: {1}</value>
+  </data>
+  <data name="SlackAllEmpty" xml:space="preserve">
+    <value>Публиковать нечего — все блоки сообщений пусты.</value>
+  </data>
+  <data name="SlackPosted" xml:space="preserve">
+    <value>Опубликовано: {0} — {1:t}</value>
+  </data>
+  <data name="SelectSectionFirst" xml:space="preserve">
+    <value>Сначала выберите раздел (или предмет в нём).</value>
+  </data>
+  <data name="NoItemsInGroup" xml:space="preserve">
+    <value>В этой группе рынка нет предметов.</value>
+  </data>
+  <data name="ItemsAlreadyInSection" xml:space="preserve">
+    <value>Все эти предметы уже есть в разделе.</value>
+  </data>
+  <data name="AddedItems" xml:space="preserve">
+    <value>Добавлено предметов: {0}.</value>
+  </data>
+  <data name="StoreOpenMailAndWeb" xml:space="preserve">
+    <value>Открыт для почты и сайта</value>
+  </data>
+  <data name="StoreOpenMail" xml:space="preserve">
+    <value>Открыт для почты</value>
+  </data>
+  <data name="StoreOpenWeb" xml:space="preserve">
+    <value>Открыт для сайта</value>
+  </data>
+  <data name="StoreClosed" xml:space="preserve">
+    <value>Закрыт</value>
+  </data>
+  <data name="MailReceived" xml:space="preserve">
+    <value>Получено</value>
+  </data>
+  <data name="MailSent" xml:space="preserve">
+    <value>Отправлено</value>
+  </data>
+  <data name="EventOrder" xml:space="preserve">
+    <value>Заказ</value>
+  </data>
+  <data name="EventCancel" xml:space="preserve">
+    <value>Отмена</value>
+  </data>
+  <data name="EventVisit" xml:space="preserve">
+    <value>Посещение</value>
+  </data>
+  <data name="OutcomeBooked" xml:space="preserve">
+    <value>Принято</value>
+  </data>
+  <data name="OutcomeApplied" xml:space="preserve">
+    <value>Применено</value>
+  </data>
+  <data name="OutcomeDeclined" xml:space="preserve">
+    <value>Отклонено</value>
+  </data>
+  <data name="OutcomeFailed" xml:space="preserve">
+    <value>Сбой</value>
+  </data>
+  <data name="OutcomeNoted" xml:space="preserve">
+    <value>Учтено</value>
+  </data>
+  <data name="AllowNotFoundCharacter" xml:space="preserve">
+    <value>Персонаж с именем «{0}» не найден.</value>
+  </data>
+  <data name="AllowNotFoundCorporation" xml:space="preserve">
+    <value>Корпорация с названием «{0}» не найдена.</value>
+  </data>
+  <data name="AllowNotFoundAlliance" xml:space="preserve">
+    <value>Альянс с названием «{0}» не найден.</value>
+  </data>
+  <data name="WebStatusSynced" xml:space="preserve">
+    <value>Последняя синхронизация: {0:yyyy-MM-dd HH:mm}.</value>
+  </data>
+  <data name="WebStatusSyncedVersion" xml:space="preserve">
+    <value>Последняя синхронизация: {0:yyyy-MM-dd HH:mm}, версия сайта: {1}.</value>
+  </data>
+  <data name="WebStatusNotSynced" xml:space="preserve">
+    <value>Ещё не синхронизировано.</value>
+  </data>
+  <data name="WebStatusNotSyncedVersion" xml:space="preserve">
+    <value>Ещё не синхронизировано, версия сайта: {0}.</value>
+  </data>
+  <data name="StoreUnnamed" xml:space="preserve">
+    <value>(без названия)</value>
+  </data>
+  <data name="OutcomeNeedsDecision" xml:space="preserve">
+    <value>Нужно решение</value>
+  </data>
+  <data name="SalesCountOne" xml:space="preserve">
+    <value>{0:N0} продажа</value>
+  </data>
+  <data name="SalesCountOther" xml:space="preserve">
+    <value>{0:N0} продажи</value>
+  </data>
+  <data name="SalesCountFew" xml:space="preserve">
+    <value>{0:N0} продажи</value>
+  </data>
+  <data name="SalesCountMany" xml:space="preserve">
+    <value>{0:N0} продаж</value>
+  </data>
+  <data name="TipContractLine" xml:space="preserve">
+    <value>{0} — {1}, {2}</value>
+  </data>
+  <data name="BuyerAlliance" xml:space="preserve">
+    <value>Альянс</value>
+  </data>
+  <data name="LimitScopeType" xml:space="preserve">
+    <value>тип предмета</value>
+  </data>
+  <data name="LimitScopeGroup" xml:space="preserve">
+    <value>группу предметов</value>
+  </data>
+  <data name="LimitScopeStore" xml:space="preserve">
+    <value>весь магазин</value>
+  </data>
+  <data name="LimitPeriodDays" xml:space="preserve">
+    <value>д</value>
+  </data>
+  <data name="LimitPeriodMonths" xml:space="preserve">
+    <value>мес.</value>
+  </data>
+  <data name="LimitPeriodYears" xml:space="preserve">
+    <value>г.</value>
+  </data>
+  <data name="LimitPeriodAllTime" xml:space="preserve">
+    <value>всё время</value>
+  </data>
+  <data name="PriceListTooLong" xml:space="preserve">
+    <value>⚠  Прайс-лист занимает {0:N0} из {1:N0} байт — превышение на {2:N0}, поэтому он придёт в {3} письмах. Сократите объявление, чтобы отправить его одним письмом.</value>
+  </data>
+  <data name="PriceListFits" xml:space="preserve">
+    <value>Прайс-лист занимает {0:N0} из {1:N0} байт — помещается в одно письмо, запас: {2:N0}.</value>
+  </data>
+  <data name="BannerNone" xml:space="preserve">
+    <value>Нет.</value>
+  </data>
+  <data name="BannerSaved" xml:space="preserve">
+    <value>Баннер сохранён; он попадёт на сайт при следующей синхронизации.</value>
+  </data>
+  <data name="BannerSavedScaled" xml:space="preserve">
+    <value>Баннер сохранён, уменьшен до {0} × {1} и отправлен в формате WebP; он попадёт на сайт при следующей синхронизации.</value>
+  </data>
+  <data name="BannerUnusable" xml:space="preserve">
+    <value>Не удалось использовать баннер: {0}</value>
+  </data>
+  <data name="BannerRemoved" xml:space="preserve">
+    <value>Баннер удалён; сайт уберёт его при следующей синхронизации.</value>
+  </data>
+  <data name="BannerRemoveFailed" xml:space="preserve">
+    <value>Не удалось удалить баннер: {0}</value>
+  </data>
+  <data name="WebClosed" xml:space="preserve">
+    <value>Канал сайта закрыт.</value>
+  </data>
+  <data name="WebNeedsAddress" xml:space="preserve">
+    <value>Для синхронизации нужны адрес сайта и секрет.</value>
+  </data>
+  <data name="WebOtherClient" xml:space="preserve">
+    <value>Фоновую работу выполняет другой клиент, и сайт синхронизирует он; изменение он подхватит в следующем цикле.</value>
+  </data>
+  <data name="WebSyncing" xml:space="preserve">
+    <value>Синхронизация сайта…</value>
+  </data>
+  <data name="WebSecretGenerated" xml:space="preserve">
+    <value>Создан новый секрет. Задайте то же значение на сайте, иначе следующая синхронизация будет отклонена.</value>
+  </data>
+  <data name="SsoKeysNeeded" xml:space="preserve">
+    <value>Покупатели не смогут войти, пока у сайта нет Client ID и Secret Key приложения EVE. Введите их здесь: кнопка развёртывания передаст их на сайт, а сайту, настроенному вручную, нужны те же значения в секретах EVE_CLIENT_ID и EVE_CLIENT_SECRET.</value>
+  </data>
+  <data name="TokenSavedDpapi" xml:space="preserve">
+    <value>Токен сохранён на этом компьютере и зашифрован Windows для вашей учётной записи.</value>
+  </data>
+  <data name="TokenSavedKeyring" xml:space="preserve">
+    <value>Токен сохранён в связке ключей этого компьютера.</value>
+  </data>
+  <data name="TokenSavedPlain" xml:space="preserve">
+    <value>Токен сохранён на этом компьютере в config.json как есть: связка ключей недоступна.</value>
+  </data>
+  <data name="TokenNone" xml:space="preserve">
+    <value>На этом компьютере токен не сохранён. Он нужен для развёртывания и обновления, но не для синхронизации.</value>
+  </data>
+  <data name="DeployPasteToken" xml:space="preserve">
+    <value>Сначала вставьте токен.</value>
+  </data>
+  <data name="DeployCheckingToken" xml:space="preserve">
+    <value>Проверка токена…</value>
+  </data>
+  <data name="DeployTokenGone" xml:space="preserve">
+    <value>Токена на этом компьютере больше нет. Сайт продолжает работать; токен нужен только для развёртывания и обновления отсюда.</value>
+  </data>
+  <data name="SsoSendThem" xml:space="preserve">
+    <value>Нажмите «Развернуть или обновить сайт», чтобы передать их; сайту, настроенному вручную, они нужны в секретах EVE_CLIENT_ID и EVE_CLIENT_SECRET.</value>
+  </data>
+  <data name="SsoKeysNotOnSite" xml:space="preserve">
+    <value>Ключи сохранены здесь, но у сайта их ещё нет. {0}</value>
+  </data>
+  <data name="SsoNoKeys" xml:space="preserve">
+    <value>У сайта ещё нет ключей приложения EVE: зарегистрируйте приложение и введите его ключи выше.</value>
+  </data>
+  <data name="SsoReady" xml:space="preserve">
+    <value>У сайта есть ключи приложения EVE; вход настроен.</value>
+  </data>
+  <data name="SsoKeysNotSaved" xml:space="preserve">
+    <value>У сайта есть ключи приложения EVE, но здесь они не сохранены: введите те же ключи выше, чтобы обновление их сохранило.</value>
+  </data>
+  <data name="SsoReadySame" xml:space="preserve">
+    <value>У сайта есть эти ключи приложения EVE; вход настроен.</value>
+  </data>
+  <data name="SsoKeysDiffer" xml:space="preserve">
+    <value>Ключи приложения EVE на сайте отличаются от сохранённых здесь. {0}</value>
+  </data>
+  <data name="DeployCheckingAccount" xml:space="preserve">
+    <value>Проверка учётной записи…</value>
+  </data>
+  <data name="DeployCancelled" xml:space="preserve">
+    <value>Развёртывание отменено.</value>
+  </data>
+  <data name="DeployAskingSite" xml:space="preserve">
+    <value>Запрос к сайту…</value>
+  </data>
+  <data name="NoStoresYet" xml:space="preserve">
+    <value>Магазинов пока нет — добавьте магазин, чтобы покупатели могли обращаться по почте EVE.</value>
+  </data>
+  <data name="StatusSaveFailed" xml:space="preserve">
+    <value>Не удалось сохранить: {0}</value>
+  </data>
+  <data name="NewStoreName" xml:space="preserve">
+    <value>Новый магазин</value>
+  </data>
+  <data name="DeployPickAccount" xml:space="preserve">
+    <value>Сначала выберите учётную запись Cloudflare.</value>
+  </data>
+  <data name="RenameWorkersTitle" xml:space="preserve">
+    <value>Изменение имени workers.dev учётной записи</value>
+  </data>
+  <data name="RenameWorkersLabel" xml:space="preserve">
+    <value>Новое имя</value>
+  </data>
+  <data name="RenameWorkersHint" xml:space="preserve">
+    <value>строчные латинские буквы, цифры и дефисы</value>
+  </data>
+  <data name="DeployRenaming" xml:space="preserve">
+    <value>Переименование…</value>
+  </data>
+  <data name="DeleteStoreConfirm" xml:space="preserve">
+    <value>Удалить магазин «{0}»?
+
+Он закроется и исчезнет из этого списка.
+
+Ничего не уничтожается: его заказы остаются в «Учёте заказов», а настройки, список разрешённых отправителей и история писем сохраняются, чтобы всё, что на него ссылается, по-прежнему находило его. Он просто перестанет читать почту и отвечать на неё.</value>
+  </data>
+  <data name="AllowAlreadyListed" xml:space="preserve">
+    <value>{0} уже есть в списке.</value>
+  </data>
+  <data name="AllowAddFailed" xml:space="preserve">
+    <value>Не удалось добавить: {0}</value>
+  </data>
+  <data name="TitleAddPosting" xml:space="preserve">
+    <value>Добавление объявления</value>
+  </data>
+  <data name="TitleEditPosting" xml:space="preserve">
+    <value>Изменение объявления</value>
+  </data>
+  <data name="LocStationLabel" xml:space="preserve">
+    <value>Станция</value>
+  </data>
+  <data name="LocSolarSystemLabel" xml:space="preserve">
+    <value>Звёздная система</value>
+  </data>
+  <data name="LocRegionLabel" xml:space="preserve">
+    <value>Сектор</value>
+  </data>
+  <data name="PostingNameRequired" xml:space="preserve">
+    <value>Введите название объявления.</value>
+  </data>
+  <data name="SelectMarketForBasis" xml:space="preserve">
+    <value>Выберите рынок для основы «Конкретный рынок».</value>
+  </data>
+  <data name="TitleAddSection" xml:space="preserve">
+    <value>Добавление раздела</value>
+  </data>
+  <data name="TitleEditSection" xml:space="preserve">
+    <value>Изменение раздела</value>
+  </data>
+  <data name="SectionNameRequired" xml:space="preserve">
+    <value>Введите название раздела.</value>
+  </data>
+  <data name="CorpNumbered" xml:space="preserve">
+    <value>Корпорация {0}</value>
+  </data>
+  <data name="CharNumbered" xml:space="preserve">
+    <value>Персонаж {0}</value>
+  </data>
+  <data name="NoItems" xml:space="preserve">
+    <value>(нет предметов)</value>
+  </data>
+  <data name="UnitsMultiple" xml:space="preserve">
+    <value>Несколько</value>
+  </data>
+  <data name="TitleEditOrder" xml:space="preserve">
+    <value>Изменение заказа</value>
+  </data>
+  <data name="NotLinked" xml:space="preserve">
+    <value>{0}  (не связан)</value>
+  </data>
+  <data name="ChooseBannerTitle" xml:space="preserve">
+    <value>Выбор картинки для баннера</value>
+  </data>
+  <data name="AddLabelToOrders" xml:space="preserve">
+    <value>Добавить метку к заказам ({0})</value>
+  </data>
+  <data name="AddLabel" xml:space="preserve">
+    <value>Добавить метку</value>
+  </data>
+  <data name="RemoveLabelFromOrders" xml:space="preserve">
+    <value>Убрать метку с заказов ({0})</value>
+  </data>
+  <data name="RemoveLabel" xml:space="preserve">
+    <value>Убрать метку</value>
+  </data>
+  <data name="NewLabelMenu" xml:space="preserve">
+    <value>Новая метка…</value>
+  </data>
+  <data name="NewLabelTitle" xml:space="preserve">
+    <value>Новая метка</value>
+  </data>
+  <data name="LabelPrompt" xml:space="preserve">
+    <value>Метка</value>
+  </data>
+  <data name="NewLabelHint" xml:space="preserve">
+    <value>например: Программа капиталов</value>
+  </data>
+  <data name="AddLabelToSales" xml:space="preserve">
+    <value>Добавить метку к продажам ({0})</value>
+  </data>
+  <data name="RemoveLabelFromSales" xml:space="preserve">
+    <value>Убрать метку с продаж ({0})</value>
+  </data>
+  <data name="TitleExportPosting" xml:space="preserve">
+    <value>Экспорт объявления</value>
+  </data>
+  <data name="TitleImportPosting" xml:space="preserve">
+    <value>Импорт объявления</value>
+  </data>
+  <data name="WorkersNameInvalid" xml:space="preserve">
+    <value>Имя workers.dev должно состоять из строчных латинских букв, цифр и дефисов — не более 63 символов.</value>
+  </data>
+  <data name="HostnameInvalid" xml:space="preserve">
+    <value>Это не имя хоста: нужно что-то вроде store.example.com — только буквы, цифры, дефисы и точки.</value>
+  </data>
+  <data name="ContractUnitsOne" xml:space="preserve">
+    <value>{0:N0} единица</value>
+  </data>
+  <data name="ContractUnitsOther" xml:space="preserve">
+    <value>{0:N0} единицы</value>
+  </data>
+  <data name="ContractUnitsFew" xml:space="preserve">
+    <value>{0:N0} единицы</value>
+  </data>
+  <data name="ContractUnitsMany" xml:space="preserve">
+    <value>{0:N0} единиц</value>
+  </data>
+  <data name="BasisContract" xml:space="preserve">
+    <value>Контракт</value>
+  </data>
+  <data name="PolicyList" xml:space="preserve">
+    <value>Список</value>
+  </data>
+  <data name="PolicyAnyone" xml:space="preserve">
+    <value>Все</value>
+  </data>
+  <data name="ScopePickStation" xml:space="preserve">
+    <value>Выберите станцию или вариант «Везде».</value>
+  </data>
+  <data name="ScopePickSystem" xml:space="preserve">
+    <value>Выберите звёздную систему или вариант «Везде».</value>
+  </data>
+  <data name="ScopePickRegion" xml:space="preserve">
+    <value>Выберите сектор или вариант «Везде».</value>
+  </data>
+  <data name="OwnerAll" xml:space="preserve">
+    <value>Все</value>
+  </data>
+  <data name="TitleSaleListingBuild" xml:space="preserve">
+    <value>Список продаж — стоимость производства</value>
+  </data>
+  <data name="TitleSaleListingMarket" xml:space="preserve">
+    <value>Список продаж — рыночная стоимость</value>
+  </data>
+  <data name="PostTypeSummary" xml:space="preserve">
+    <value>Сводка</value>
+  </data>
+  <data name="PostTypeDetail" xml:space="preserve">
+    <value>Подробности</value>
+  </data>
+  <data name="PostTypeStatic" xml:space="preserve">
+    <value>Текст</value>
+  </data>
+  <data name="TextColourLabel" xml:space="preserve">
+    <value>Цвет текста</value>
+  </data>
+  <data name="HeaderColourLabel" xml:space="preserve">
+    <value>Цвет шапки</value>
+  </data>
+  <data name="SourceStock" xml:space="preserve">
+    <value>Запас</value>
+  </data>
+  <data name="SourceInProduction" xml:space="preserve">
+    <value>В производстве</value>
+  </data>
+  <data name="SourceContracted" xml:space="preserve">
+    <value>В контракте</value>
+  </data>
+  <data name="SourceUnsourced" xml:space="preserve">
+    <value>Без источника</value>
+  </data>
+  <data name="ItemsAndMoreOne" xml:space="preserve">
+    <value>{1} и ещё {0} предмет</value>
+  </data>
+  <data name="ItemsAndMoreOther" xml:space="preserve">
+    <value>{1} и ещё {0} предмета</value>
+  </data>
+  <data name="ItemsAndMoreFew" xml:space="preserve">
+    <value>{1} и ещё {0} предмета</value>
+  </data>
+  <data name="ItemsAndMoreMany" xml:space="preserve">
+    <value>{1} и ещё {0} предметов</value>
+  </data>
+  <data name="MoreItemsTailOne" xml:space="preserve">
+    <value>и ещё {0} предмет</value>
+  </data>
+  <data name="MoreItemsTailOther" xml:space="preserve">
+    <value>и ещё {0} предмета</value>
+  </data>
+  <data name="MoreItemsTailFew" xml:space="preserve">
+    <value>и ещё {0} предмета</value>
+  </data>
+  <data name="MoreItemsTailMany" xml:space="preserve">
+    <value>и ещё {0} предметов</value>
+  </data>
+</root>

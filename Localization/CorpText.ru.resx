@@ -1,0 +1,1693 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="CorporationLabel" xml:space="preserve">
+    <value>Корпорация:</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Обновить</value>
+  </data>
+  <data name="TabActivity24h" xml:space="preserve">
+    <value>Активность (24 ч)</value>
+  </data>
+  <data name="PlayersActiveLabel" xml:space="preserve">
+    <value>Активных игроков:</value>
+  </data>
+  <data name="IncomeLabel" xml:space="preserve">
+    <value>Доход:</value>
+  </data>
+  <data name="ExpensesLabel" xml:space="preserve">
+    <value>Расходы:</value>
+  </data>
+  <data name="RattingLabel" xml:space="preserve">
+    <value>Охота на пиратов</value>
+  </data>
+  <data name="ColCharacter" xml:space="preserve">
+    <value>Персонаж</value>
+  </data>
+  <data name="TipOpenInTheEntityBrowser" xml:space="preserve">
+    <value>Открыть в справочнике</value>
+  </data>
+  <data name="ColValue" xml:space="preserve">
+    <value>Сумма</value>
+  </data>
+  <data name="IndustryLabel" xml:space="preserve">
+    <value>Промышленность</value>
+  </data>
+  <data name="MiningLabel" xml:space="preserve">
+    <value>Добыча</value>
+  </data>
+  <data name="RecentKillsLossesLabel" xml:space="preserve">
+    <value>Последние победы и потери</value>
+  </data>
+  <data name="TabMonthlyActivity" xml:space="preserve">
+    <value>Активность по месяцам</value>
+  </data>
+  <data name="ColMonth" xml:space="preserve">
+    <value>Месяц</value>
+  </data>
+  <data name="ColTotalIncome" xml:space="preserve">
+    <value>Общий доход</value>
+  </data>
+  <data name="ColTotalExpense" xml:space="preserve">
+    <value>Общий расход</value>
+  </data>
+  <data name="ColRattingTax" xml:space="preserve">
+    <value>Налог с охоты</value>
+  </data>
+  <data name="ColIndustryTax" xml:space="preserve">
+    <value>Пром. налог</value>
+  </data>
+  <data name="ColProjPayouts" xml:space="preserve">
+    <value>Выплаты по проектам</value>
+  </data>
+  <data name="ColMinedValue" xml:space="preserve">
+    <value>Стоимость добычи</value>
+  </data>
+  <data name="ColKills" xml:space="preserve">
+    <value>Победы</value>
+  </data>
+  <data name="ColLosses" xml:space="preserve">
+    <value>Потери</value>
+  </data>
+  <data name="ColIskEff" xml:space="preserve">
+    <value>Эфф. ISK</value>
+  </data>
+  <data name="ColPlayersActive" xml:space="preserve">
+    <value>Активные игроки</value>
+  </data>
+  <data name="IskTrendsBillions" xml:space="preserve">
+    <value>Динамика ISK (млрд)</value>
+  </data>
+  <data name="KillsLossesIskEfficiencyRight" xml:space="preserve">
+    <value>Победы / потери (эффективность ISK — справа)</value>
+  </data>
+  <data name="PlayersActiveLabel2" xml:space="preserve">
+    <value>Активные игроки</value>
+  </data>
+  <data name="MiningReprocessedValue" xml:space="preserve">
+    <value>Добыча (стоимость при переработке)</value>
+  </data>
+  <data name="TabIncome" xml:space="preserve">
+    <value>Доходы</value>
+  </data>
+  <data name="IncomeByTypeLabel" xml:space="preserve">
+    <value>Доходы по типам</value>
+  </data>
+  <data name="PeriodLabel" xml:space="preserve">
+    <value>Период:</value>
+  </data>
+  <data name="TabSummary" xml:space="preserve">
+    <value>Сводка</value>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>Тип</value>
+  </data>
+  <data name="ColCount" xml:space="preserve">
+    <value>Количество</value>
+  </data>
+  <data name="ColAmount" xml:space="preserve">
+    <value>Сумма</value>
+  </data>
+  <data name="TabDetail" xml:space="preserve">
+    <value>Подробно</value>
+  </data>
+  <data name="TypeLabel" xml:space="preserve">
+    <value>Тип</value>
+  </data>
+  <data name="NameLabel" xml:space="preserve">
+    <value>Имя</value>
+  </data>
+  <data name="HintContains" xml:space="preserve">
+    <value>содержит…</value>
+  </data>
+  <data name="ColDateTime" xml:space="preserve">
+    <value>Дата / время</value>
+  </data>
+  <data name="ColName" xml:space="preserve">
+    <value>Имя</value>
+  </data>
+  <data name="ColReason" xml:space="preserve">
+    <value>Причина</value>
+  </data>
+  <data name="TabExpense" xml:space="preserve">
+    <value>Расходы</value>
+  </data>
+  <data name="ExpensesByTypeLabel" xml:space="preserve">
+    <value>Расходы по типам</value>
+  </data>
+  <data name="TabRattingTaxes" xml:space="preserve">
+    <value>Налог с охоты</value>
+  </data>
+  <data name="RattingTaxLabel" xml:space="preserve">
+    <value>Налог с охоты на пиратов</value>
+  </data>
+  <data name="DailyRattingTaxLabel" xml:space="preserve">
+    <value>Налог с охоты по дням</value>
+  </data>
+  <data name="TabIndustryTaxes" xml:space="preserve">
+    <value>Промышленный налог</value>
+  </data>
+  <data name="IndustryTaxLabel" xml:space="preserve">
+    <value>Промышленный налог</value>
+  </data>
+  <data name="DailyIndustryTaxLabel" xml:space="preserve">
+    <value>Промышленный налог по дням</value>
+  </data>
+  <data name="TabDonations" xml:space="preserve">
+    <value>Пожертвования</value>
+  </data>
+  <data name="DonationsLabel" xml:space="preserve">
+    <value>Пожертвования</value>
+  </data>
+  <data name="ColDonated" xml:space="preserve">
+    <value>Пожертвовано</value>
+  </data>
+  <data name="DailyDonationsLabel" xml:space="preserve">
+    <value>Пожертвования по дням</value>
+  </data>
+  <data name="ColDonor" xml:space="preserve">
+    <value>Жертвователь</value>
+  </data>
+  <data name="TabMining" xml:space="preserve">
+    <value>Добыча</value>
+  </data>
+  <data name="MiningLedgerLabel" xml:space="preserve">
+    <value>Журнал учёта добычи</value>
+  </data>
+  <data name="NoMiningDataForNote" xml:space="preserve">
+    <value>Нет данных о добыче за этот период. Если какой-то шаг не удался, об этом сказано в строке состояния выше.</value>
+  </data>
+  <data name="ColDate" xml:space="preserve">
+    <value>Дата</value>
+  </data>
+  <data name="ColOreType" xml:space="preserve">
+    <value>Тип руды</value>
+  </data>
+  <data name="TipOpenInTheItemBrowser" xml:space="preserve">
+    <value>Открыть в разделе «Просмотр предметов»</value>
+  </data>
+  <data name="ColQuantity" xml:space="preserve">
+    <value>Количество</value>
+  </data>
+  <data name="ColReprocessedValue" xml:space="preserve">
+    <value>Стоимость при переработке</value>
+  </data>
+  <data name="TabKillmails" xml:space="preserve">
+    <value>Отчёты о боях</value>
+  </data>
+  <data name="KillmailsLabel" xml:space="preserve">
+    <value>Отчёты о боях</value>
+  </data>
+  <data name="DailyKillsLossesLabel" xml:space="preserve">
+    <value>Победы / потери по дням</value>
+  </data>
+  <data name="TabProjects" xml:space="preserve">
+    <value>Проекты</value>
+  </data>
+  <data name="TabActive" xml:space="preserve">
+    <value>Действующие</value>
+  </data>
+  <data name="TotalRewardLabel" xml:space="preserve">
+    <value>Общее вознаграждение:</value>
+  </data>
+  <data name="RemainingLabel" xml:space="preserve">
+    <value>Осталось:</value>
+  </data>
+  <data name="NoActiveCorpProjects" xml:space="preserve">
+    <value>Нет действующих проектов корпорации.</value>
+  </data>
+  <data name="ColCareer" xml:space="preserve">
+    <value>Карьера</value>
+  </data>
+  <data name="ColProgress" xml:space="preserve">
+    <value>Прогресс</value>
+  </data>
+  <data name="ColRemReward" xml:space="preserve">
+    <value>Ост. вознагр.</value>
+  </data>
+  <data name="ColCreator" xml:space="preserve">
+    <value>Создатель</value>
+  </data>
+  <data name="ColCreated" xml:space="preserve">
+    <value>Создан</value>
+  </data>
+  <data name="TabHistory" xml:space="preserve">
+    <value>История</value>
+  </data>
+  <data name="NoProjectHistoryAvailable" xml:space="preserve">
+    <value>Истории проектов нет.</value>
+  </data>
+  <data name="ColState" xml:space="preserve">
+    <value>Состояние</value>
+  </data>
+  <data name="ColCompleted" xml:space="preserve">
+    <value>Завершён</value>
+  </data>
+  <data name="TabStandingProjects" xml:space="preserve">
+    <value>Постоянные проекты</value>
+  </data>
+  <data name="AddProject" xml:space="preserve">
+    <value>+ Добавить проект</value>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>Загрузка…</value>
+  </data>
+  <data name="MenuCloneItem" xml:space="preserve">
+    <value>Дублировать</value>
+  </data>
+  <data name="MenuOpenItemInItemBrowser" xml:space="preserve">
+    <value>Открыть предмет в разделе «Просмотр предметов»</value>
+  </data>
+  <data name="ColDescription" xml:space="preserve">
+    <value>Описание</value>
+  </data>
+  <data name="ColLocation" xml:space="preserve">
+    <value>Место</value>
+  </data>
+  <data name="TipOpenThisStationOrStructure" xml:space="preserve">
+    <value>Открыть эту станцию или сооружение</value>
+  </data>
+  <data name="ColProjectStatus" xml:space="preserve">
+    <value>Статус проекта</value>
+  </data>
+  <data name="ColRemaining" xml:space="preserve">
+    <value>Осталось</value>
+  </data>
+  <data name="ColRem" xml:space="preserve">
+    <value>Ост. %</value>
+  </data>
+  <data name="ColPayout" xml:space="preserve">
+    <value>Выплата</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Изменить</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Удалить</value>
+  </data>
+  <data name="NoStandingProjectsDefinedNote" xml:space="preserve">
+    <value>Постоянные проекты не заданы. Нажмите «+ Добавить проект», чтобы создать проект.</value>
+  </data>
+  <data name="SelectAProjectAboveNote" xml:space="preserve">
+    <value>Выберите проект выше, чтобы увидеть подробности.</value>
+  </data>
+  <data name="TabDetails" xml:space="preserve">
+    <value>Подробности</value>
+  </data>
+  <data name="ConfigurationLabel" xml:space="preserve">
+    <value>Конфигурация</value>
+  </data>
+  <data name="TabContributors" xml:space="preserve">
+    <value>Участники</value>
+  </data>
+  <data name="ColContributed" xml:space="preserve">
+    <value>Вклад</value>
+  </data>
+  <data name="ColOfTarget" xml:space="preserve">
+    <value>% от цели</value>
+  </data>
+  <data name="TabTop10Lists" xml:space="preserve">
+    <value>Списки топ-10</value>
+  </data>
+  <data name="Top10ByMonthLabel" xml:space="preserve">
+    <value>Топ-10 за месяц</value>
+  </data>
+  <data name="MonthLabel" xml:space="preserve">
+    <value>Месяц:</value>
+  </data>
+  <data name="YearLabel" xml:space="preserve">
+    <value>Год:</value>
+  </data>
+  <data name="Loading2" xml:space="preserve">
+    <value>Загрузка…</value>
+  </data>
+  <data name="TipFormatUsedForExport" xml:space="preserve">
+    <value>Формат для кнопок «Экспорт в буфер обмена» и «Опубликовать в Slack»</value>
+  </data>
+  <data name="ExportToClipboard" xml:space="preserve">
+    <value>Экспорт в буфер обмена</value>
+  </data>
+  <data name="ExportNoIsk" xml:space="preserve">
+    <value>Экспорт (без ISK)</value>
+  </data>
+  <data name="PostToSlack" xml:space="preserve">
+    <value>Опубликовать в Slack</value>
+  </data>
+  <data name="MiningUnitsMinedLabel" xml:space="preserve">
+    <value>Добыча — добыто единиц</value>
+  </data>
+  <data name="KillsLabel" xml:space="preserve">
+    <value>Победы</value>
+  </data>
+  <data name="ProjectContributorsLabel" xml:space="preserve">
+    <value>Участники проектов</value>
+  </data>
+  <data name="TabMonthlySummary" xml:space="preserve">
+    <value>Месячная сводка</value>
+  </data>
+  <data name="MonthlySummaryLabel" xml:space="preserve">
+    <value>Месячная сводка</value>
+  </data>
+  <data name="ThisMonth" xml:space="preserve">
+    <value>Этот месяц</value>
+  </data>
+  <data name="Change" xml:space="preserve">
+    <value>Изменение</value>
+  </data>
+  <data name="TipChangeVsThePreviousMonth" xml:space="preserve">
+    <value>Изменение по сравнению с прошлым месяцем</value>
+  </data>
+  <data name="TipPercentChangeVsThePrevious" xml:space="preserve">
+    <value>Изменение в процентах по сравнению с прошлым месяцем</value>
+  </data>
+  <data name="FmtRows" xml:space="preserve">
+    <value>Строк: {0:N0}</value>
+  </data>
+  <data name="TitleCorpActivity" xml:space="preserve">
+    <value>Активность корпорации</value>
+  </data>
+  <data name="HintTypeAtLeastTwo" xml:space="preserve">
+    <value>Введите хотя бы два символа для поиска…</value>
+  </data>
+  <data name="SearchAboveAndPickNote" xml:space="preserve">
+    <value>Выполните поиск выше и выберите запись, чтобы увидеть подробности.</value>
+  </data>
+  <data name="TabDescription" xml:space="preserve">
+    <value>Описание</value>
+  </data>
+  <data name="TabKillsLosses" xml:space="preserve">
+    <value>Победы / потери</value>
+  </data>
+  <data name="ColName2" xml:space="preserve">
+    <value>Название</value>
+  </data>
+  <data name="ColDetails" xml:space="preserve">
+    <value>Подробности</value>
+  </data>
+  <data name="ColLvl" xml:space="preserve">
+    <value>Ур.</value>
+  </data>
+  <data name="ColDivision" xml:space="preserve">
+    <value>Подразделение</value>
+  </data>
+  <data name="ColStation" xml:space="preserve">
+    <value>Станция</value>
+  </data>
+  <data name="TipOpenInTheStationsTab" xml:space="preserve">
+    <value>Открыть на вкладке «Станции»</value>
+  </data>
+  <data name="ColFrom" xml:space="preserve">
+    <value>С</value>
+  </data>
+  <data name="ColUntil" xml:space="preserve">
+    <value>По</value>
+  </data>
+  <data name="ColDuration" xml:space="preserve">
+    <value>Длительность</value>
+  </data>
+  <data name="TabStations" xml:space="preserve">
+    <value>Станции</value>
+  </data>
+  <data name="ColSystem" xml:space="preserve">
+    <value>Система</value>
+  </data>
+  <data name="ColRegion" xml:space="preserve">
+    <value>Сектор</value>
+  </data>
+  <data name="ColSec" xml:space="preserve">
+    <value>Безоп.</value>
+  </data>
+  <data name="ColAgents" xml:space="preserve">
+    <value>Агенты</value>
+  </data>
+  <data name="TabOrders" xml:space="preserve">
+    <value>Ордера</value>
+  </data>
+  <data name="Sells" xml:space="preserve">
+    <value>Продажа</value>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>Предмет</value>
+  </data>
+  <data name="TipOpenInItemBrowser" xml:space="preserve">
+    <value>Открыть в разделе «Просмотр предметов»</value>
+  </data>
+  <data name="ColLowPrice" xml:space="preserve">
+    <value>Мин. цена</value>
+  </data>
+  <data name="ColHighPrice" xml:space="preserve">
+    <value>Макс. цена</value>
+  </data>
+  <data name="Buys" xml:space="preserve">
+    <value>Покупка</value>
+  </data>
+  <data name="TabLpOffers" xml:space="preserve">
+    <value>Предложения за LP</value>
+  </data>
+  <data name="ColQty" xml:space="preserve">
+    <value>Кол-во</value>
+  </data>
+  <data name="ColRequires" xml:space="preserve">
+    <value>Требует</value>
+  </data>
+  <data name="TabFactionWarfare" xml:space="preserve">
+    <value>Межгосударственные войны</value>
+  </data>
+  <data name="ColRole" xml:space="preserve">
+    <value>Роль</value>
+  </data>
+  <data name="ColOwner" xml:space="preserve">
+    <value>Владелец</value>
+  </data>
+  <data name="ColHeldBy" xml:space="preserve">
+    <value>Под контролем</value>
+  </data>
+  <data name="FwRoleOwner" xml:space="preserve">
+    <value>Владелец</value>
+  </data>
+  <data name="FwRoleOccupier" xml:space="preserve">
+    <value>Оккупант</value>
+  </data>
+  <data name="ColContested" xml:space="preserve">
+    <value>Оспаривается</value>
+  </data>
+  <data name="ColPoints" xml:space="preserve">
+    <value>Очки</value>
+  </data>
+  <data name="ColThreshold" xml:space="preserve">
+    <value>Порог</value>
+  </data>
+  <data name="TabIntelReports" xml:space="preserve">
+    <value>Донесения разведки</value>
+  </data>
+  <data name="ColWhen" xml:space="preserve">
+    <value>Когда</value>
+  </data>
+  <data name="ColShip" xml:space="preserve">
+    <value>Корабль</value>
+  </data>
+  <data name="ColChannel" xml:space="preserve">
+    <value>Канал</value>
+  </data>
+  <data name="ColReporter" xml:space="preserve">
+    <value>Автор</value>
+  </data>
+  <data name="HintCharacter" xml:space="preserve">
+    <value>Персонаж…</value>
+  </data>
+  <data name="HintCorp" xml:space="preserve">
+    <value>Корпорация…</value>
+  </data>
+  <data name="FromLabel" xml:space="preserve">
+    <value>С:</value>
+  </data>
+  <data name="ThruLabel" xml:space="preserve">
+    <value>По:</value>
+  </data>
+  <data name="HintShip" xml:space="preserve">
+    <value>Корабль…</value>
+  </data>
+  <data name="HintSystemRegion" xml:space="preserve">
+    <value>Система / сектор…</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>Очистить</value>
+  </data>
+  <data name="LoadMore" xml:space="preserve">
+    <value>Загрузить ещё</value>
+  </data>
+  <data name="SelectAKillmailToView" xml:space="preserve">
+    <value>Выберите отчёт о бое, чтобы увидеть подробности.</value>
+  </data>
+  <data name="TipOpenOnTheUniverseMap" xml:space="preserve">
+    <value>Открыть на карте вселенной</value>
+  </data>
+  <data name="DestroyedLabel" xml:space="preserve">
+    <value>Уничтожено</value>
+  </data>
+  <data name="DroppedLabel" xml:space="preserve">
+    <value>Выпало</value>
+  </data>
+  <data name="TotalLabel" xml:space="preserve">
+    <value>Всего</value>
+  </data>
+  <data name="AttackersLabel" xml:space="preserve">
+    <value>Нападающие</value>
+  </data>
+  <data name="TitleKillmails" xml:space="preserve">
+    <value>Отчёты о боях</value>
+  </data>
+  <data name="TabAgents" xml:space="preserve">
+    <value>Агенты</value>
+  </data>
+  <data name="TabCorporations" xml:space="preserve">
+    <value>Корпорации</value>
+  </data>
+  <data name="TabFactions" xml:space="preserve">
+    <value>Фракции</value>
+  </data>
+  <data name="TabPilots" xml:space="preserve">
+    <value>Пилоты</value>
+  </data>
+  <data name="TabAlliances" xml:space="preserve">
+    <value>Альянсы</value>
+  </data>
+  <data name="TitleStandingProject" xml:space="preserve">
+    <value>Постоянный проект</value>
+  </data>
+  <data name="ProjectTypeLabel" xml:space="preserve">
+    <value>Тип проекта</value>
+  </data>
+  <data name="DeliverItem" xml:space="preserve">
+    <value>Доставить предмет</value>
+  </data>
+  <data name="DestroyNpc" xml:space="preserve">
+    <value>Уничтожить NPC</value>
+  </data>
+  <data name="ItemTypeLabel" xml:space="preserve">
+    <value>Тип предмета</value>
+  </data>
+  <data name="HintSearchForItemType" xml:space="preserve">
+    <value>Поиск типа предмета…</value>
+  </data>
+  <data name="DestinationStationStructureLabel" xml:space="preserve">
+    <value>Станция / сооружение назначения</value>
+  </data>
+  <data name="HintSearchForStationOrStructure" xml:space="preserve">
+    <value>Поиск станции или сооружения…</value>
+  </data>
+  <data name="ScopeLabel" xml:space="preserve">
+    <value>Охват</value>
+  </data>
+  <data name="SpecificSystem" xml:space="preserve">
+    <value>Конкретная система</value>
+  </data>
+  <data name="AllSystemsInA" xml:space="preserve">
+    <value>Все системы сектора с ADM ниже минимума</value>
+  </data>
+  <data name="AllSystemsInA2" xml:space="preserve">
+    <value>Все системы созвездия с ADM ниже минимума</value>
+  </data>
+  <data name="AllSystemsWhereAn" xml:space="preserve">
+    <value>Все системы, правом владения которыми обладает альянс</value>
+  </data>
+  <data name="SolarSystemLabel" xml:space="preserve">
+    <value>Звёздная система</value>
+  </data>
+  <data name="HintSearchForSolarSystem" xml:space="preserve">
+    <value>Поиск звёздной системы…</value>
+  </data>
+  <data name="RegionLabel" xml:space="preserve">
+    <value>Сектор</value>
+  </data>
+  <data name="HintSearchForRegion" xml:space="preserve">
+    <value>Поиск сектора…</value>
+  </data>
+  <data name="MinAdmLabel" xml:space="preserve">
+    <value>Мин. ADM:</value>
+  </data>
+  <data name="ConstellationLabel" xml:space="preserve">
+    <value>Созвездие</value>
+  </data>
+  <data name="HintSearchForConstellation" xml:space="preserve">
+    <value>Поиск созвездия…</value>
+  </data>
+  <data name="AllianceLabel" xml:space="preserve">
+    <value>Альянс</value>
+  </data>
+  <data name="NoAllianceFoundOnNote" xml:space="preserve">
+    <value>Ни у одного отслеживаемого персонажа не найден альянс.</value>
+  </data>
+  <data name="EverySystemThisAllianceNote" xml:space="preserve">
+    <value>Все системы этого альянса с ADM ниже порога, где бы они ни были. Заново считываются с карты права владения при каждом построении таблицы.</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Отменить</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Сохранить</value>
+  </data>
+  <data name="StatusNoSystemsBelowMinAdm" xml:space="preserve">
+    <value>нет систем с ADM ниже минимума</value>
+  </data>
+  <data name="StatusScopeNoSystems" xml:space="preserve">
+    <value>в охвате нет ни одной системы</value>
+  </data>
+  <data name="StatusSovUnavailableNote" xml:space="preserve">
+    <value>данные о праве владения недоступны — {0}</value>
+  </data>
+  <data name="StatusSovUnavailable" xml:space="preserve">
+    <value>данные о праве владения недоступны</value>
+  </data>
+  <data name="StatusOfficeUnavailableNote" xml:space="preserve">
+    <value>местоположение офиса неизвестно — {0}</value>
+  </data>
+  <data name="StatusOfficeUnavailableLoading" xml:space="preserve">
+    <value>местоположение офиса неизвестно — данные об имуществе ещё загружаются</value>
+  </data>
+  <data name="StatusProjectNotActive" xml:space="preserve">
+    <value>проект не активен</value>
+  </data>
+  <data name="StatusSelectCorp" xml:space="preserve">
+    <value>Выберите корпорацию выше, чтобы загрузить данные.</value>
+  </data>
+  <data name="PeriodLast30Days" xml:space="preserve">
+    <value>Последние 30 дней</value>
+  </data>
+  <data name="PeriodLast60Days" xml:space="preserve">
+    <value>Последние 60 дней</value>
+  </data>
+  <data name="PeriodLast90Days" xml:space="preserve">
+    <value>Последние 90 дней</value>
+  </data>
+  <data name="PeriodLast6Months" xml:space="preserve">
+    <value>Последние 6 месяцев</value>
+  </data>
+  <data name="PeriodLastYear" xml:space="preserve">
+    <value>Последний год</value>
+  </data>
+  <data name="PeriodLast7Days" xml:space="preserve">
+    <value>Последние 7 дней</value>
+  </data>
+  <data name="StatusFilterFailed" xml:space="preserve">
+    <value>Ошибка фильтра: {0}</value>
+  </data>
+  <data name="FormatPlainText" xml:space="preserve">
+    <value>Обычный текст</value>
+  </data>
+  <data name="FormatEveMail" xml:space="preserve">
+    <value>Почта EVE</value>
+  </data>
+  <data name="StepMining" xml:space="preserve">
+    <value>добыча</value>
+  </data>
+  <data name="StepRatting" xml:space="preserve">
+    <value>налог с охоты</value>
+  </data>
+  <data name="StepIndustry" xml:space="preserve">
+    <value>промышленный налог</value>
+  </data>
+  <data name="StepDonations" xml:space="preserve">
+    <value>пожертвования</value>
+  </data>
+  <data name="StepKills" xml:space="preserve">
+    <value>отчёты о боях</value>
+  </data>
+  <data name="StepIncome" xml:space="preserve">
+    <value>доходы</value>
+  </data>
+  <data name="StepExpense" xml:space="preserve">
+    <value>расходы</value>
+  </data>
+  <data name="StepWallet" xml:space="preserve">
+    <value>кошелёк</value>
+  </data>
+  <data name="StepDailyChart" xml:space="preserve">
+    <value>дневной график</value>
+  </data>
+  <data name="StepMonthlyActivity" xml:space="preserve">
+    <value>активность по месяцам</value>
+  </data>
+  <data name="StepProjects" xml:space="preserve">
+    <value>проекты</value>
+  </data>
+  <data name="StepTop10" xml:space="preserve">
+    <value>топ-10</value>
+  </data>
+  <data name="StepMonthlySummary" xml:space="preserve">
+    <value>месячная сводка</value>
+  </data>
+  <data name="StepIncomeByType" xml:space="preserve">
+    <value>доходы по типам</value>
+  </data>
+  <data name="StepExpenseByType" xml:space="preserve">
+    <value>расходы по типам</value>
+  </data>
+  <data name="Step24hActivity" xml:space="preserve">
+    <value>активность за 24 ч</value>
+  </data>
+  <data name="StatusLoadingStep" xml:space="preserve">
+    <value>Загрузка: {0}…</value>
+  </data>
+  <data name="StatusStepFailed" xml:space="preserve">
+    <value>Внимание: не удалось загрузить «{0}» — {1}</value>
+  </data>
+  <data name="StatusLoaded" xml:space="preserve">
+    <value>Загружено — {0}</value>
+  </data>
+  <data name="StatusLoadedWithFailures" xml:space="preserve">
+    <value>Загружено — {0}, но с ошибками: {1}. Причину см. в журнале ошибок.</value>
+  </data>
+  <data name="StatusRefreshingStep" xml:space="preserve">
+    <value>Обновление: {0}…</value>
+  </data>
+  <data name="StatusReady" xml:space="preserve">
+    <value>Готово</value>
+  </data>
+  <data name="StatusStepReloadFailed" xml:space="preserve">
+    <value>Внимание: не удалось перезагрузить «{0}» — {1}</value>
+  </data>
+  <data name="SlackViaWebhook" xml:space="preserve">
+    <value>через веб-хук</value>
+  </data>
+  <data name="SlackNoDestination" xml:space="preserve">
+    <value>Канал или веб-хук Slack не настроен.</value>
+  </data>
+  <data name="Top10AlreadyPosted" xml:space="preserve">
+    <value>Этот список топ-10 уже был опубликован в Slack {0}.</value>
+  </data>
+  <data name="PostItAgain" xml:space="preserve">
+    <value>Опубликовать снова?</value>
+  </data>
+  <data name="SlackPostCancelled" xml:space="preserve">
+    <value>Публикация отменена.</value>
+  </data>
+  <data name="SlackPosting" xml:space="preserve">
+    <value>Публикация в Slack…</value>
+  </data>
+  <data name="SlackPosted" xml:space="preserve">
+    <value>Опубликовано в {0} — {1:t}</value>
+  </data>
+  <data name="SlackPostFailed" xml:space="preserve">
+    <value>Не удалось опубликовать в Slack: {0}</value>
+  </data>
+  <data name="SlackPostedPartly" xml:space="preserve">
+    <value>Опубликовано в {2} сообщений: {0} из {1}; следующее Slack отклонил: {3}</value>
+  </data>
+  <data name="SummaryAlreadyPosted" xml:space="preserve">
+    <value>Эта месячная сводка уже была опубликована в Slack {0}.</value>
+  </data>
+  <data name="Top10ExportHeader" xml:space="preserve">
+    <value>Топ-10 — {0} {1}</value>
+  </data>
+  <data name="Top10ExportHeaderCorp" xml:space="preserve">
+    <value>{0} — топ-10 — {1} {2}</value>
+  </data>
+  <data name="StepTop10Ratters" xml:space="preserve">
+    <value>топ-10 охотников на пиратов</value>
+  </data>
+  <data name="StepTop10Industry" xml:space="preserve">
+    <value>топ-10 промышленности</value>
+  </data>
+  <data name="StepTop10Killers" xml:space="preserve">
+    <value>топ-10 по победам</value>
+  </data>
+  <data name="StepTop10Miners" xml:space="preserve">
+    <value>топ-10 добытчиков</value>
+  </data>
+  <data name="StepTop10Contributors" xml:space="preserve">
+    <value>топ-10 участников проектов</value>
+  </data>
+  <data name="AllTypes" xml:space="preserve">
+    <value>Все типы</value>
+  </data>
+  <data name="SeriesAmount" xml:space="preserve">
+    <value>Сумма</value>
+  </data>
+  <data name="Step24hSummary" xml:space="preserve">
+    <value>сводка за 24 ч</value>
+  </data>
+  <data name="Step24hRatters" xml:space="preserve">
+    <value>охотники на пиратов за 24 ч</value>
+  </data>
+  <data name="Step24hIndustry" xml:space="preserve">
+    <value>промышленность за 24 ч</value>
+  </data>
+  <data name="Step24hMiners" xml:space="preserve">
+    <value>добытчики за 24 ч</value>
+  </data>
+  <data name="Step24hKills" xml:space="preserve">
+    <value>победы за 24 ч</value>
+  </data>
+  <data name="SeriesTotal" xml:space="preserve">
+    <value>Всего</value>
+  </data>
+  <data name="FallbackCharacterName" xml:space="preserve">
+    <value>Персонаж {0}</value>
+  </data>
+  <data name="SeriesKills" xml:space="preserve">
+    <value>Победы</value>
+  </data>
+  <data name="SeriesLosses" xml:space="preserve">
+    <value>Потери</value>
+  </data>
+  <data name="FieldName" xml:space="preserve">
+    <value>Название</value>
+  </data>
+  <data name="FieldState" xml:space="preserve">
+    <value>Состояние</value>
+  </data>
+  <data name="FieldType" xml:space="preserve">
+    <value>Тип</value>
+  </data>
+  <data name="FieldCareer" xml:space="preserve">
+    <value>Карьера</value>
+  </data>
+  <data name="FieldCreated" xml:space="preserve">
+    <value>Создан</value>
+  </data>
+  <data name="FieldLastModified" xml:space="preserve">
+    <value>Изменён</value>
+  </data>
+  <data name="FieldCreator" xml:space="preserve">
+    <value>Создатель</value>
+  </data>
+  <data name="FieldProgress" xml:space="preserve">
+    <value>Прогресс</value>
+  </data>
+  <data name="FieldTotalReward" xml:space="preserve">
+    <value>Общее вознаграждение</value>
+  </data>
+  <data name="FieldRemainingReward" xml:space="preserve">
+    <value>Оставшееся вознаграждение</value>
+  </data>
+  <data name="FieldDescription" xml:space="preserve">
+    <value>Описание</value>
+  </data>
+  <data name="ProjectTypeCaptureFwComplex" xml:space="preserve">
+    <value>Захват комплексов МВ</value>
+  </data>
+  <data name="ProjectTypeDamageShip" xml:space="preserve">
+    <value>Повредить корабль</value>
+  </data>
+  <data name="ProjectTypeDefendFwComplex" xml:space="preserve">
+    <value>Защита комплексов МВ</value>
+  </data>
+  <data name="ProjectTypeDestroyNonCapsuleers" xml:space="preserve">
+    <value>Уничтожение NPC</value>
+  </data>
+  <data name="ProjectTypeDestroyShip" xml:space="preserve">
+    <value>Уничтожить корабль</value>
+  </data>
+  <data name="ProjectTypeEarnLoyaltyPoints" xml:space="preserve">
+    <value>Получение наградных баллов</value>
+  </data>
+  <data name="ProjectTypeLoseShip" xml:space="preserve">
+    <value>Потерять корабль</value>
+  </data>
+  <data name="ProjectTypeManual" xml:space="preserve">
+    <value>Вручную</value>
+  </data>
+  <data name="ProjectTypeManufactureItem" xml:space="preserve">
+    <value>Произвести предмет</value>
+  </data>
+  <data name="ProjectTypeMineMaterial" xml:space="preserve">
+    <value>Добыть материалы</value>
+  </data>
+  <data name="ProjectTypeRemoteBoostShield" xml:space="preserve">
+    <value>Дистанционный ремонт щитов</value>
+  </data>
+  <data name="ProjectTypeRemoteRepairArmor" xml:space="preserve">
+    <value>Дистанционный ремонт брони</value>
+  </data>
+  <data name="ProjectTypeSalvageWreck" xml:space="preserve">
+    <value>Демонтаж обломков</value>
+  </data>
+  <data name="ProjectTypeScanSignature" xml:space="preserve">
+    <value>Сканирование сигнатур</value>
+  </data>
+  <data name="ProjectTypeShipInsurance" xml:space="preserve">
+    <value>Страхование кораблей</value>
+  </data>
+  <data name="ProjectTypeUnknown" xml:space="preserve">
+    <value>Неизвестно</value>
+  </data>
+  <data name="FallbackStructureName" xml:space="preserve">
+    <value>Сооружение {0}</value>
+  </data>
+  <data name="ConfigLocations" xml:space="preserve">
+    <value>Места</value>
+  </data>
+  <data name="ConfigItems" xml:space="preserve">
+    <value>Предметы</value>
+  </data>
+  <data name="ConfigDestinations" xml:space="preserve">
+    <value>Пункты назначения</value>
+  </data>
+  <data name="ConfigDestination" xml:space="preserve">
+    <value>Пункт назначения</value>
+  </data>
+  <data name="ConfigOwner" xml:space="preserve">
+    <value>Владелец</value>
+  </data>
+  <data name="ConfigShipTypes" xml:space="preserve">
+    <value>Типы кораблей</value>
+  </data>
+  <data name="ConfigTargets" xml:space="preserve">
+    <value>Цели</value>
+  </data>
+  <data name="ConfigKilledBy" xml:space="preserve">
+    <value>Кем уничтожен</value>
+  </data>
+  <data name="ConfigConflictType" xml:space="preserve">
+    <value>Тип конфликта</value>
+  </data>
+  <data name="ConfigMaterials" xml:space="preserve">
+    <value>Материалы</value>
+  </data>
+  <data name="ConfigSignatureTypes" xml:space="preserve">
+    <value>Типы сигнатур</value>
+  </data>
+  <data name="ConfigFactions" xml:space="preserve">
+    <value>Фракции</value>
+  </data>
+  <data name="ConfigArchetypes" xml:space="preserve">
+    <value>Типы комплексов</value>
+  </data>
+  <data name="ConfigCorporations" xml:space="preserve">
+    <value>Корпорации</value>
+  </data>
+  <data name="ConfigSubType" xml:space="preserve">
+    <value>Подтип</value>
+  </data>
+  <data name="StatusMaintainLoadFailed" xml:space="preserve">
+    <value>Не удалось загрузить постоянные проекты: {0}</value>
+  </data>
+  <data name="SlackPostedInPartsOne" xml:space="preserve">
+    <value>Опубликовано в {1}: {0} сообщение — {2:t}</value>
+  </data>
+  <data name="SlackPostedInPartsOther" xml:space="preserve">
+    <value>Опубликовано в {1}: {0} сообщения — {2:t}</value>
+  </data>
+  <data name="SlackPostedInPartsFew" xml:space="preserve">
+    <value>Опубликовано в {1}: {0} сообщения — {2:t}</value>
+  </data>
+  <data name="SlackPostedInPartsMany" xml:space="preserve">
+    <value>Опубликовано в {1}: {0} сообщений — {2:t}</value>
+  </data>
+  <data name="ConfirmDeleteStandingProject" xml:space="preserve">
+    <value>Вы уверены, что хотите удалить этот постоянный проект?</value>
+  </data>
+  <data name="ErrSelectItemType" xml:space="preserve">
+    <value>Выберите тип предмета.</value>
+  </data>
+  <data name="ErrSelectDestination" xml:space="preserve">
+    <value>Выберите станцию или сооружение назначения.</value>
+  </data>
+  <data name="ErrSelectSolarSystem" xml:space="preserve">
+    <value>Выберите звёздную систему.</value>
+  </data>
+  <data name="ErrSelectRegion" xml:space="preserve">
+    <value>Выберите сектор.</value>
+  </data>
+  <data name="ErrSelectAlliance" xml:space="preserve">
+    <value>Выберите альянс.</value>
+  </data>
+  <data name="ErrSelectConstellation" xml:space="preserve">
+    <value>Выберите созвездие.</value>
+  </data>
+  <data name="KillQtyDestroyed" xml:space="preserve">
+    <value>x{0} уничт.</value>
+  </data>
+  <data name="KillQtyDropped" xml:space="preserve">
+    <value>x{0} выпало</value>
+  </data>
+  <data name="RoleFinalBlow" xml:space="preserve">
+    <value>★ Добил</value>
+  </data>
+  <data name="RoleTopDamage" xml:space="preserve">
+    <value>▲ Макс. урон</value>
+  </data>
+  <data name="DamageTaken" xml:space="preserve">
+    <value>{0:N0} урона</value>
+  </data>
+  <data name="StatusLoadingKillmails" xml:space="preserve">
+    <value>Загрузка отчётов о боях…</value>
+  </data>
+  <data name="KillmailsLoadedMore" xml:space="preserve">
+    <value>Загружено отчётов о боях: {0:N0} — есть ещё, нажмите «Загрузить ещё»</value>
+  </data>
+  <data name="KillmailsCount" xml:space="preserve">
+    <value>Отчётов о боях: {0:N0}</value>
+  </data>
+  <data name="EntitySearchTruncated" xml:space="preserve">
+    <value>Показано {0:N0} из {1:N0} совпадений — продолжайте ввод, чтобы сузить поиск.</value>
+  </data>
+  <data name="TabMemberCorps" xml:space="preserve">
+    <value>Корпорации-участники</value>
+  </data>
+  <data name="TabCorpHistory" xml:space="preserve">
+    <value>История корпораций</value>
+  </data>
+  <data name="TabAllianceHistory" xml:space="preserve">
+    <value>История альянсов</value>
+  </data>
+  <data name="ColHistoryCorporation" xml:space="preserve">
+    <value>Корпорация</value>
+  </data>
+  <data name="ColHistoryAlliance" xml:space="preserve">
+    <value>Альянс</value>
+  </data>
+  <data name="StationsCount" xml:space="preserve">
+    <value>Станций: {0:N0}</value>
+  </data>
+  <data name="CorpStationsOne" xml:space="preserve">
+    <value>{0:N0} станция</value>
+  </data>
+  <data name="CorpStationsOther" xml:space="preserve">
+    <value>{0:N0} станции</value>
+  </data>
+  <data name="CorpStationsFew" xml:space="preserve">
+    <value>{0:N0} станции</value>
+  </data>
+  <data name="CorpStationsMany" xml:space="preserve">
+    <value>{0:N0} станций</value>
+  </data>
+  <data name="NoStationsFound" xml:space="preserve">
+    <value>Станции не найдены.</value>
+  </data>
+  <data name="NoStationsMilitia" xml:space="preserve">
+    <value>Станций нет — это корпорация ополчения фракции {0}, а магазин наград ополчения работает не через станцию.</value>
+  </data>
+  <data name="OrdersScopeNoMarketData" xml:space="preserve">
+    <value>нет рыночных данных ни по одному сектору, где у этой корпорации есть станции</value>
+  </data>
+  <data name="OrdersScopeCoverage" xml:space="preserve">
+    <value>рыночные данные охватывают секторов: {0} из {1}</value>
+  </data>
+  <data name="NoOrdersFoundScoped" xml:space="preserve">
+    <value>Ордера не найдены — {0}.</value>
+  </data>
+  <data name="NoOrdersFound" xml:space="preserve">
+    <value>В загруженных рыночных данных ордера не найдены.</value>
+  </data>
+  <data name="OrdersCountScoped" xml:space="preserve">
+    <value>Продажа: {0:N0}, покупка: {1:N0} — {2}</value>
+  </data>
+  <data name="OrdersCount" xml:space="preserve">
+    <value>Продажа: {0:N0}, покупка: {1:N0}</value>
+  </data>
+  <data name="NoLpOffersFound" xml:space="preserve">
+    <value>Предложения за LP не найдены.</value>
+  </data>
+  <data name="LpOffersCount" xml:space="preserve">
+    <value>Предложений за LP: {0:N0}</value>
+  </data>
+  <data name="NoWarfareSystemsFound" xml:space="preserve">
+    <value>Системы межгосударственных войн не найдены.</value>
+  </data>
+  <data name="WarfareSystemsCount" xml:space="preserve">
+    <value>Систем межгосударственных войн: {0:N0}</value>
+  </data>
+  <data name="NoMemberCorpsReturned" xml:space="preserve">
+    <value>Корпорации-участники не получены. ESI сообщает только текущий состав.</value>
+  </data>
+  <data name="NoAgentsFound" xml:space="preserve">
+    <value>Агенты не найдены.</value>
+  </data>
+  <data name="NoMemberCorpsFound" xml:space="preserve">
+    <value>Корпорации не найдены.</value>
+  </data>
+  <data name="AgentsCount" xml:space="preserve">
+    <value>Агентов: {0:N0}</value>
+  </data>
+  <data name="MemberCorpsCount" xml:space="preserve">
+    <value>Корпораций-участников: {0:N0}</value>
+  </data>
+  <data name="NoAllianceHistory" xml:space="preserve">
+    <value>Для этой корпорации история альянсов не записана.</value>
+  </data>
+  <data name="HistoryPeriodsCount" xml:space="preserve">
+    <value>Периодов: {0:N0}, сначала новые</value>
+  </data>
+  <data name="NoKillmailsForEntity" xml:space="preserve">
+    <value>Для этой записи нет отчётов о боях.</value>
+  </data>
+  <data name="RecentKillmailsCapped" xml:space="preserve">
+    <value>Последних отчётов о боях: {0:N0} (достигнут предел)</value>
+  </data>
+  <data name="RecentKillmailsCount" xml:space="preserve">
+    <value>Последних отчётов о боях: {0:N0}</value>
+  </data>
+  <data name="NoIntelSightings" xml:space="preserve">
+    <value>Разведданных нет. Они поступают из каналов разведки через импорт журналов чата.</value>
+  </data>
+  <data name="IntelSightingsCount" xml:space="preserve">
+    <value>Сообщений разведки: {0:N0}</value>
+  </data>
+  <data name="SlackDestinationWebhook" xml:space="preserve">
+    <value>Slack (веб-хук)</value>
+  </data>
+  <data name="SlackDestinationSlack" xml:space="preserve">
+    <value>Slack</value>
+  </data>
+  <data name="NoCorpHistory" xml:space="preserve">
+    <value>Для этого персонажа история корпораций не записана.</value>
+  </data>
+  <data name="FallbackSystemName" xml:space="preserve">
+    <value>Система {0}</value>
+  </data>
+  <data name="SovAdmNoLevels" xml:space="preserve">
+    <value>конечная точка права владения не вернула значений ADM</value>
+  </data>
+  <data name="ScopeRegionAdm" xml:space="preserve">
+    <value>Сектор: {0} (ADM &lt; {1:F1})</value>
+  </data>
+  <data name="ScopeAllianceSov" xml:space="preserve">
+    <value>Владение: {0} (ADM &lt; {1:F1})</value>
+  </data>
+  <data name="ScopeConstellationAdm" xml:space="preserve">
+    <value>Созв.: {0} (ADM &lt; {1:F1})</value>
+  </data>
+  <data name="RemainingComplete" xml:space="preserve">
+    <value>Выполнено</value>
+  </data>
+  <data name="StandingProjectSummary" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="ReportStatusActive" xml:space="preserve">
+    <value>Активен</value>
+  </data>
+  <data name="ReportStatusAllHealthy" xml:space="preserve">
+    <value>Всё в порядке</value>
+  </data>
+  <data name="ReportStatusNoProject" xml:space="preserve">
+    <value>Нет проекта</value>
+  </data>
+  <data name="ReportStatusNoSystems" xml:space="preserve">
+    <value>Нет систем в охвате</value>
+  </data>
+  <data name="ReportStatusNoOffice" xml:space="preserve">
+    <value>Нет офиса</value>
+  </data>
+  <data name="ReportStatusAdmUnavailable" xml:space="preserve">
+    <value>ADM недоступен</value>
+  </data>
+  <data name="ReportColProject" xml:space="preserve">
+    <value>Проект</value>
+  </data>
+  <data name="ReportColStatus" xml:space="preserve">
+    <value>Статус</value>
+  </data>
+  <data name="ReportColRemaining" xml:space="preserve">
+    <value>Осталось</value>
+  </data>
+  <data name="ReportColIskLeft" xml:space="preserve">
+    <value>Осталось ISK</value>
+  </data>
+  <data name="ReportColLastCompleted" xml:space="preserve">
+    <value>Последнее завершение</value>
+  </data>
+  <data name="PickerScopeRegionAdm" xml:space="preserve">
+    <value>{0} — сектор, ADM ниже {1:0.##}</value>
+  </data>
+  <data name="PickerScopeConstellationAdm" xml:space="preserve">
+    <value>{0} — созвездие, ADM ниже {1:0.##}</value>
+  </data>
+  <data name="PickerScopeAllianceSov" xml:space="preserve">
+    <value>{0} — владение, ADM ниже {1:0.##}</value>
+  </data>
+  <data name="ProjectsTitleDeliverMissing" xml:space="preserve">
+    <value>Проекты доставки предметов — отсутствующие проекты</value>
+  </data>
+  <data name="ProjectsTitleDestroyMissing" xml:space="preserve">
+    <value>Проекты уничтожения NPC — отсутствующие проекты</value>
+  </data>
+  <data name="ProjectsTitleDeliverMissingLow" xml:space="preserve">
+    <value>Проекты доставки предметов — отсутствующие и почти завершённые</value>
+  </data>
+  <data name="ProjectsTitleDestroyMissingLow" xml:space="preserve">
+    <value>Проекты уничтожения NPC — отсутствующие и почти завершённые</value>
+  </data>
+  <data name="ProjectsTitleDeliverAll" xml:space="preserve">
+    <value>Проекты доставки предметов</value>
+  </data>
+  <data name="ProjectsTitleDestroyAll" xml:space="preserve">
+    <value>Проекты уничтожения NPC</value>
+  </data>
+  <data name="Top10TitleRatting" xml:space="preserve">
+    <value>Налог с охоты на пиратов</value>
+  </data>
+  <data name="Top10TitleMining" xml:space="preserve">
+    <value>Добыча — стоимость при переработке</value>
+  </data>
+  <data name="Top10TitleKills" xml:space="preserve">
+    <value>Победы</value>
+  </data>
+  <data name="Top10TitleProjects" xml:space="preserve">
+    <value>Участники проектов</value>
+  </data>
+  <data name="Top10TitleIndustry" xml:space="preserve">
+    <value>Промышленный налог</value>
+  </data>
+  <data name="SummarySectionIncome" xml:space="preserve">
+    <value>Доходы</value>
+  </data>
+  <data name="SummarySectionExpenses" xml:space="preserve">
+    <value>Расходы</value>
+  </data>
+  <data name="SummarySectionNet" xml:space="preserve">
+    <value>Итог</value>
+  </data>
+  <data name="SummarySectionCombat" xml:space="preserve">
+    <value>Бои</value>
+  </data>
+  <data name="SummarySectionMining" xml:space="preserve">
+    <value>Добыча</value>
+  </data>
+  <data name="SummarySectionProjects" xml:space="preserve">
+    <value>Проекты корпорации</value>
+  </data>
+  <data name="SummarySectionMembers" xml:space="preserve">
+    <value>Участники</value>
+  </data>
+  <data name="SummaryRowRattingTax" xml:space="preserve">
+    <value>Налог с охоты на пиратов</value>
+  </data>
+  <data name="SummaryRowIndustryTax" xml:space="preserve">
+    <value>Промышленный налог</value>
+  </data>
+  <data name="SummaryRowDonations" xml:space="preserve">
+    <value>Пожертвования</value>
+  </data>
+  <data name="SummaryRowContracts" xml:space="preserve">
+    <value>Контракты</value>
+  </data>
+  <data name="SummaryRowMarket" xml:space="preserve">
+    <value>Рынок</value>
+  </data>
+  <data name="SummaryRowOther" xml:space="preserve">
+    <value>Прочее</value>
+  </data>
+  <data name="SummaryRowTotalIncome" xml:space="preserve">
+    <value>Общий доход</value>
+  </data>
+  <data name="SummaryRowProjectPayouts" xml:space="preserve">
+    <value>Выплаты по проектам</value>
+  </data>
+  <data name="SummaryRowWithdrawals" xml:space="preserve">
+    <value>Снятие средств</value>
+  </data>
+  <data name="SummaryRowTotalExpenses" xml:space="preserve">
+    <value>Общие расходы</value>
+  </data>
+  <data name="SummaryRowNetPosition" xml:space="preserve">
+    <value>Чистый результат</value>
+  </data>
+  <data name="SummaryRowKills" xml:space="preserve">
+    <value>Победы</value>
+  </data>
+  <data name="SummaryRowLosses" xml:space="preserve">
+    <value>Потери</value>
+  </data>
+  <data name="SummaryRowIskDestroyed" xml:space="preserve">
+    <value>Уничтожено на ISK</value>
+  </data>
+  <data name="SummaryRowIskLost" xml:space="preserve">
+    <value>Потеряно на ISK</value>
+  </data>
+  <data name="SummaryRowIskEfficiency" xml:space="preserve">
+    <value>Эффективность ISK</value>
+  </data>
+  <data name="SummaryChangePoints" xml:space="preserve">
+    <value>{0}{1:F1} п. п.</value>
+  </data>
+  <data name="SummaryRowUnitsMined" xml:space="preserve">
+    <value>Добыто единиц</value>
+  </data>
+  <data name="SummaryRowMinedValue" xml:space="preserve">
+    <value>Стоимость добычи</value>
+  </data>
+  <data name="SummaryRowCreated" xml:space="preserve">
+    <value>Создано</value>
+  </data>
+  <data name="SummaryRowCreatedValue" xml:space="preserve">
+    <value>Стоимость созданных</value>
+  </data>
+  <data name="SummaryRowCompleted" xml:space="preserve">
+    <value>Завершено</value>
+  </data>
+  <data name="SummaryRowCompletedValue" xml:space="preserve">
+    <value>Стоимость завершённых</value>
+  </data>
+  <data name="SummaryRowActivePlayers" xml:space="preserve">
+    <value>Активные игроки</value>
+  </data>
+  <data name="SummaryExportSubtitle" xml:space="preserve">
+    <value>Столбцы изменений — по сравнению с прошлым месяцем.</value>
+  </data>
+  <data name="SummaryColItem" xml:space="preserve">
+    <value>Показатель</value>
+  </data>
+  <data name="SummaryColAmount" xml:space="preserve">
+    <value>Сумма</value>
+  </data>
+  <data name="SummaryHeader" xml:space="preserve">
+    <value>Месячная сводка — {0} {1}</value>
+  </data>
+  <data name="SummaryHeaderCorp" xml:space="preserve">
+    <value>{0} — месячная сводка — {1} {2}</value>
+  </data>
+  <data name="SeriesIncome" xml:space="preserve">
+    <value>Доходы</value>
+  </data>
+  <data name="SeriesExpenses" xml:space="preserve">
+    <value>Расходы</value>
+  </data>
+  <data name="SeriesRattingTax" xml:space="preserve">
+    <value>Налог с охоты</value>
+  </data>
+  <data name="SeriesIndustryTax" xml:space="preserve">
+    <value>Промышленный налог</value>
+  </data>
+  <data name="SeriesProjPayouts" xml:space="preserve">
+    <value>Выплаты по проектам</value>
+  </data>
+  <data name="ChartTitleIskTrends" xml:space="preserve">
+    <value>Динамика ISK (млрд)</value>
+  </data>
+  <data name="SeriesUnitsMined" xml:space="preserve">
+    <value>Добыто единиц</value>
+  </data>
+  <data name="ChartTitleActivityTrends" xml:space="preserve">
+    <value>Динамика активности (победы и потери — слева, добыто единиц — справа)</value>
+  </data>
+  <data name="SeriesIskEfficiency" xml:space="preserve">
+    <value>Эффективность ISK</value>
+  </data>
+  <data name="ChartTitleKillTrends" xml:space="preserve">
+    <value>Победы и потери (эффективность ISK — справа)</value>
+  </data>
+  <data name="SeriesMinedValue" xml:space="preserve">
+    <value>Стоимость добычи</value>
+  </data>
+  <data name="ChartTitleMining" xml:space="preserve">
+    <value>Добыча (стоимость при переработке)</value>
+  </data>
+  <data name="ChartPlayersActive" xml:space="preserve">
+    <value>Активные игроки</value>
+  </data>
+  <data name="SlotShip" xml:space="preserve">
+    <value>Корабль</value>
+  </data>
+  <data name="KillmailItemCopy" xml:space="preserve">
+    <value>{0} (копия)</value>
+  </data>
+  <data name="KillmailGroupOther" xml:space="preserve">
+    <value>Прочее</value>
+  </data>
+  <data name="SlotHigh" xml:space="preserve">
+    <value>Разъёмы большой мощности</value>
+  </data>
+  <data name="SlotMid" xml:space="preserve">
+    <value>Разъёмы средней мощности</value>
+  </data>
+  <data name="SlotLow" xml:space="preserve">
+    <value>Разъёмы малой мощности</value>
+  </data>
+  <data name="SlotRig" xml:space="preserve">
+    <value>Разъёмы для модификаторов</value>
+  </data>
+  <data name="SlotSubsystem" xml:space="preserve">
+    <value>Разъёмы подсистем</value>
+  </data>
+  <data name="SlotDroneBay" xml:space="preserve">
+    <value>Отсек для дронов</value>
+  </data>
+  <data name="SlotFighterBay" xml:space="preserve">
+    <value>Отсек для истребителей</value>
+  </data>
+  <data name="SlotFighterTubes" xml:space="preserve">
+    <value>Взлётные полосы истребителей</value>
+  </data>
+  <data name="SlotShipHangar" xml:space="preserve">
+    <value>Отсек обслуживания кораблей</value>
+  </data>
+  <data name="SlotFleetHangar" xml:space="preserve">
+    <value>Ангар флота</value>
+  </data>
+  <data name="SlotFuelBay" xml:space="preserve">
+    <value>Топливный отсек</value>
+  </data>
+  <data name="SlotOreHold" xml:space="preserve">
+    <value>Отсек для руды</value>
+  </data>
+  <data name="SlotIceHold" xml:space="preserve">
+    <value>Отсек для льда</value>
+  </data>
+  <data name="SlotAsteroidHold" xml:space="preserve">
+    <value>Отсек для астероидов</value>
+  </data>
+  <data name="SlotGasHold" xml:space="preserve">
+    <value>Газовый отсек</value>
+  </data>
+  <data name="SlotMineralHold" xml:space="preserve">
+    <value>Отсек для минералов</value>
+  </data>
+  <data name="SlotSalvageHold" xml:space="preserve">
+    <value>Отсек для демонтированных компонентов</value>
+  </data>
+  <data name="SlotShipHold" xml:space="preserve">
+    <value>Отсек для кораблей</value>
+  </data>
+  <data name="SlotSmallShipHold" xml:space="preserve">
+    <value>Отсек для малых кораблей</value>
+  </data>
+  <data name="SlotMediumShipHold" xml:space="preserve">
+    <value>Отсек для средних кораблей</value>
+  </data>
+  <data name="SlotLargeShipHold" xml:space="preserve">
+    <value>Отсек для больших кораблей</value>
+  </data>
+  <data name="SlotIndustrialShipHold" xml:space="preserve">
+    <value>Ангар для буровых и грузовых кораблей</value>
+  </data>
+  <data name="SlotAmmoHold" xml:space="preserve">
+    <value>Отсек боеприпасов</value>
+  </data>
+  <data name="SlotCargoHold" xml:space="preserve">
+    <value>Грузовой отсек</value>
+  </data>
+  <data name="SearchViaEsi" xml:space="preserve">
+    <value>через ESI</value>
+  </data>
+  <data name="FactCorporation" xml:space="preserve">
+    <value>Корпорация</value>
+  </data>
+  <data name="FactAlliance" xml:space="preserve">
+    <value>Альянс</value>
+  </data>
+  <data name="FactSecurityStatus" xml:space="preserve">
+    <value>Статус безопасности</value>
+  </data>
+  <data name="FactFaction" xml:space="preserve">
+    <value>Фракция</value>
+  </data>
+  <data name="FactGender" xml:space="preserve">
+    <value>Пол</value>
+  </data>
+  <data name="FactRace" xml:space="preserve">
+    <value>Раса</value>
+  </data>
+  <data name="FactBloodline" xml:space="preserve">
+    <value>Родословная</value>
+  </data>
+  <data name="FactAchievementScore" xml:space="preserve">
+    <value>Число достижений</value>
+  </data>
+  <data name="FactBorn" xml:space="preserve">
+    <value>Дата рождения</value>
+  </data>
+  <data name="FactTitle" xml:space="preserve">
+    <value>Должность</value>
+  </data>
+  <data name="FactTicker" xml:space="preserve">
+    <value>Короткое название</value>
+  </data>
+  <data name="FactMembers" xml:space="preserve">
+    <value>Участники</value>
+  </data>
+  <data name="FactCeo" xml:space="preserve">
+    <value>Президент</value>
+  </data>
+  <data name="FactFounded" xml:space="preserve">
+    <value>Дата основания</value>
+  </data>
+  <data name="FactTaxRate" xml:space="preserve">
+    <value>Ставка налога</value>
+  </data>
+  <data name="FactWarEligible" xml:space="preserve">
+    <value>Может участвовать в войнах</value>
+  </data>
+  <data name="FactYes" xml:space="preserve">
+    <value>Да</value>
+  </data>
+  <data name="FactUrl" xml:space="preserve">
+    <value>URL</value>
+  </data>
+  <data name="FactCreator" xml:space="preserve">
+    <value>Создатель</value>
+  </data>
+  <data name="FactCreatorCorp" xml:space="preserve">
+    <value>Корпорация-основатель</value>
+  </data>
+  <data name="FactExecutorCorp" xml:space="preserve">
+    <value>Руководящая корпорация</value>
+  </data>
+  <data name="FallbackCorporationName" xml:space="preserve">
+    <value>Корпорация {0}</value>
+  </data>
+  <data name="FallbackAllianceName" xml:space="preserve">
+    <value>Альянс {0}</value>
+  </data>
+  <data name="HistoryNoAlliance" xml:space="preserve">
+    <value>— без альянса —</value>
+  </data>
+  <data name="HistoryPresent" xml:space="preserve">
+    <value>сейчас</value>
+  </data>
+  <data name="HistoryDays" xml:space="preserve">
+    <value>{0:N0} д</value>
+  </data>
+  <data name="GenderMale" xml:space="preserve">
+    <value>Мужской</value>
+  </data>
+  <data name="GenderFemale" xml:space="preserve">
+    <value>Женский</value>
+  </data>
+  <data name="SubtitleOurCharacter" xml:space="preserve">
+    <value>Один из ваших персонажей</value>
+  </data>
+  <data name="SubtitlePlayerCharacter" xml:space="preserve">
+    <value>Персонаж игрока</value>
+  </data>
+  <data name="FactCharacterId" xml:space="preserve">
+    <value>ID персонажа</value>
+  </data>
+  <data name="FactKillmailsOn" xml:space="preserve">
+    <value>В отчётах о боях</value>
+  </data>
+  <data name="FactKillsLosses" xml:space="preserve">
+    <value>Побед: {0:N0}, потерь: {1:N0}</value>
+  </data>
+  <data name="FactLastSeen" xml:space="preserve">
+    <value>Последнее появление</value>
+  </data>
+  <data name="SubtitleOurCorporation" xml:space="preserve">
+    <value>Одна из ваших корпораций</value>
+  </data>
+  <data name="SubtitlePlayerCorporation" xml:space="preserve">
+    <value>Корпорация игроков</value>
+  </data>
+  <data name="SubtitlePlayerAlliance" xml:space="preserve">
+    <value>Альянс игроков</value>
+  </data>
+  <data name="FactCorporationId" xml:space="preserve">
+    <value>ID корпорации</value>
+  </data>
+  <data name="FactAllianceId" xml:space="preserve">
+    <value>ID альянса</value>
+  </data>
+  <data name="FactPilotsSeen" xml:space="preserve">
+    <value>Замечено пилотов</value>
+  </data>
+  <data name="FactCorporationsSeen" xml:space="preserve">
+    <value>Замечено корпораций</value>
+  </data>
+  <data name="SubtitleAgent" xml:space="preserve">
+    <value>Агент уровня {0} ({1})</value>
+  </data>
+  <data name="FactAgentId" xml:space="preserve">
+    <value>ID агента</value>
+  </data>
+  <data name="FactStation" xml:space="preserve">
+    <value>Станция</value>
+  </data>
+  <data name="FactDivision" xml:space="preserve">
+    <value>Подразделение</value>
+  </data>
+  <data name="FactAgentType" xml:space="preserve">
+    <value>Тип агента</value>
+  </data>
+  <data name="FactLocator" xml:space="preserve">
+    <value>Поисковый сервис</value>
+  </data>
+  <data name="FactNo" xml:space="preserve">
+    <value>Нет</value>
+  </data>
+  <data name="FactHeadquarters" xml:space="preserve">
+    <value>Штаб-квартира</value>
+  </data>
+  <data name="FactStations" xml:space="preserve">
+    <value>Станции</value>
+  </data>
+  <data name="FactAgents" xml:space="preserve">
+    <value>Агенты</value>
+  </data>
+  <data name="FactToJoin" xml:space="preserve">
+    <value>Условия вступления</value>
+  </data>
+  <data name="FactToJoinValue" xml:space="preserve">
+    <value>отношения от {0:N1}, статус безопасности от {1:N1}</value>
+  </data>
+  <data name="FactLpStore" xml:space="preserve">
+    <value>Магазин наград</value>
+  </data>
+  <data name="FactLpOffers" xml:space="preserve">
+    <value>предложений: {0:N0}</value>
+  </data>
+  <data name="FactLpStoreNone" xml:space="preserve">
+    <value>нет</value>
+  </data>
+  <data name="FactYourLp" xml:space="preserve">
+    <value>Ваши LP</value>
+  </data>
+  <data name="FactIskPerLp" xml:space="preserve">
+    <value>ISK за LP</value>
+  </data>
+  <data name="FactWebsite" xml:space="preserve">
+    <value>Сайт</value>
+  </data>
+  <data name="SubtitleNpcCorp" xml:space="preserve">
+    <value>NPC-корпорация</value>
+  </data>
+  <data name="SubtitleFaction" xml:space="preserve">
+    <value>Фракция</value>
+  </data>
+  <data name="FactFactionId" xml:space="preserve">
+    <value>ID фракции</value>
+  </data>
+  <data name="FactMilitiaCorp" xml:space="preserve">
+    <value>Корпорация ополчения</value>
+  </data>
+  <data name="FactHomeSystem" xml:space="preserve">
+    <value>Столичная система</value>
+  </data>
+  <data name="FactCorporations" xml:space="preserve">
+    <value>Корпорации</value>
+  </data>
+  <data name="SubtitleNpcStation" xml:space="preserve">
+    <value>Станция NPC</value>
+  </data>
+  <data name="FactStationId" xml:space="preserve">
+    <value>ID станции</value>
+  </data>
+  <data name="FactSystem" xml:space="preserve">
+    <value>Система</value>
+  </data>
+  <data name="FactConstellation" xml:space="preserve">
+    <value>Созвездие</value>
+  </data>
+  <data name="FactRegion" xml:space="preserve">
+    <value>Сектор</value>
+  </data>
+  <data name="FactSecurity" xml:space="preserve">
+    <value>Статус безопасности</value>
+  </data>
+  <data name="FactSecurityValue" xml:space="preserve">
+    <value>{0}  (точное значение {1})</value>
+  </data>
+  <data name="FactType" xml:space="preserve">
+    <value>Тип</value>
+  </data>
+  <data name="FactReprocessing" xml:space="preserve">
+    <value>Переработка</value>
+  </data>
+  <data name="FactReprocessingValue" xml:space="preserve">
+    <value>{0:0.#}% · налог {1:0.#}%</value>
+  </data>
+</root>
