@@ -72,6 +72,29 @@ public class ZkillboardKillImportService
                 refKeys.Select(r => (r.OwnerId, r.OwnerType, r.KillMailId)).ToHashSet(),
                 flagIds.ToHashSet());
         }
+
+        /// <summary>
+        /// The same, for just these killmails — what a single page of kills needs. Loading every
+        /// id in the tables, as <see cref="LoadAsync"/> does for a backfill, reads millions of
+        /// rows to answer a question about two hundred.
+        /// </summary>
+        public static async Task<KnownIds> LoadForAsync(
+            AppDbContext db, IReadOnlyCollection<int> killMailIds, CancellationToken ct = default)
+        {
+            var ids = killMailIds.ToList();
+            var detailIds = await db.KillMailDetails.Where(d => ids.Contains(d.KillMailId))
+                .Select(d => d.KillMailId).ToListAsync(ct);
+            var refKeys = await db.EsiKillMailRefs.Where(r => ids.Contains(r.KillMailId))
+                .Select(r => new { r.OwnerId, r.OwnerType, r.KillMailId })
+                .ToListAsync(ct);
+            var flagIds = await db.ZkbKillFlags.Where(f => ids.Contains(f.KillMailId))
+                .Select(f => f.KillMailId).ToListAsync(ct);
+
+            return new KnownIds(
+                detailIds.ToHashSet(),
+                refKeys.Select(r => (r.OwnerId, r.OwnerType, r.KillMailId)).ToHashSet(),
+                flagIds.ToHashSet());
+        }
     }
 
     /// <summary>Records that zKillboard is known to have this kill — the marker

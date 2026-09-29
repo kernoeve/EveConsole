@@ -126,10 +126,13 @@
         </ScrollViewer>
       </TabItem>
 
-      <TabItem Header="Kills / Losses" IsVisible="{Binding HasKills}">
-        <Grid RowDefinitions="Auto,*" Margin="0 6">
+      <!-- IsSelected is how the view model learns the tab is open: zKillboard is asked then,
+           not for every entity picked. -->
+      <TabItem Header="Kills / Losses" IsVisible="{Binding HasKills}"
+               IsSelected="{Binding KillsTabSelected, Mode=TwoWay}">
+        <Grid RowDefinitions="Auto,*,Auto" Margin="0 6">
           <TextBlock Grid.Row="0" Text="{Binding KillsStatus}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
-                     Margin="4 0 0 6"/>
+                     Margin="4 0 0 6" TextWrapping="Wrap"/>
           <!-- The Killmail Browser's own row, from the shared template — same layout,
                ship render, logos and security colouring. -->
           <ListBox Grid.Row="1" ItemsSource="{Binding Kills}"
@@ -147,6 +150,10 @@
               </Style>
             </ListBox.Styles>
           </ListBox>
+          <Button Grid.Row="2" Content="{Binding LoadMoreKillsText}"
+                  Command="{Binding LoadMoreKillsCommand}"
+                  IsVisible="{Binding CanLoadMoreKills}"
+                  HorizontalAlignment="Center" Margin="0 8 0 0" Padding="12 5" FontSize="12" />
         </Grid>
       </TabItem>
 

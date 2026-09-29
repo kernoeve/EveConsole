@@ -106,6 +106,63 @@ public class ZkillboardApiClient(IHttpClientFactory httpClientFactory, AppErrorL
     }
 
     /// <summary>
+    /// One page of an entity's killmails — kills and losses together, newest first — from
+    /// <c>/api/{character|corporation|alliance}ID/{id}/page/{n}/</c>.
+    ///
+    /// <para>Each entry is the full ESI body with a "zkb" sibling at its root (hash, values), so
+    /// a page stores without one ESI call per kill. Checked against the live API on a large
+    /// alliance (2026-09-28): pages hold up to 200 (the first held 198), strictly newest first,
+    /// items included, and page 26 still answered.</para>
+    ///
+    /// <para>Null when zKillboard could not be reached or answered with anything but a list —
+    /// its errors come back as an object. An empty list means the page is past the end.</para>
+    /// </summary>
+    /// <param name="entityType">"character", "corporation" or "alliance".</param>
+    public async Task<List<ZkbFullKill>?> GetEntityPageAsync(
+        string entityType, long entityId, int page, CancellationToken ct = default)
+    {
+        var path = entityType switch
+        {
+            "character"   => "characterID",
+            "corporation" => "corporationID",
+            "alliance"    => "allianceID",
+            _ => throw new ArgumentOutOfRangeException(nameof(entityType), entityType, "must be character, corporation or alliance"),
+        };
+        var url = $"https://zkillboard.com/api/{path}/{entityId}/page/{page}/";
+
+        try
+        {
+            using var response = await _http.GetAsync(url, ct);
+            if (!response.IsSuccessStatusCode)
+            {
+                errorLogger.Log(nameof(ZkillboardApiClient), $"GetEntityPageAsync {entityType}:{entityId} page {page}",
+                    new HttpRequestException($"zKillboard answered HTTP {(int)response.StatusCode}"));
+                return null;
+            }
+
+            using var doc = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync(ct), cancellationToken: ct);
+            if (doc.RootElement.ValueKind != JsonValueKind.Array) return null;
+
+            var kills = new List<ZkbFullKill>();
+            foreach (var entry in doc.RootElement.EnumerateArray())
+            {
+                var hash = entry.TryGetProperty("zkb", out var zkb) && zkb.TryGetProperty("hash", out var h)
+                    ? h.GetString() : null;
+                if (string.IsNullOrEmpty(hash)) continue;
+
+                var kill = entry.Deserialize<EsiKillMailFull>(JsonOptions);
+                if (kill is not null && kill.KillMailId > 0) kills.Add(new ZkbFullKill(kill, hash));
+            }
+            return kills;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            errorLogger.Log(nameof(ZkillboardApiClient), $"GetEntityPageAsync {entityType}:{entityId} page {page}", ex);
+            return null;
+        }
+    }
+
+    /// <summary>
     /// The full killmail dump for one calendar day (universe-wide). The root is a JSON
     /// OBJECT keyed by killmail id — e.g. <c>{"137236407": {ESI killmail body}, ...}</c>
     /// — not an array, and entries carry no hash (see ZkbFullKill remarks). Parsed as
