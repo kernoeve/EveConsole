@@ -28,15 +28,26 @@ translators.
 | Code      | Language   | State |
 |-----------|------------|-------|
 | `en`      | English    | The source |
-| `zh-Hans` | 简体中文    | **Preview**: the first screens, as machine drafts awaiting a native speaker's review ([#125](https://github.com/kernoeve/EveConsole/issues/125)) |
+| `zh-Hans` | 简体中文    | **Preview** |
+| `de`      | Deutsch    | **Preview** |
+| `es`      | Español    | **Preview** |
+| `fr`      | Français   | **Preview** |
+| `ja`      | 日本語      | **Preview** |
+| `ko`      | 한국어      | **Preview** |
+| `ru`      | Русский    | **Preview** |
 
-EVE's own languages are the candidates for the rest: German (`de`), French (`fr`), Spanish (`es`),
-Russian (`ru`), Japanese (`ja`) and Korean (`ko`). A language is added to `Languages.All` in
-[Languages.cs](Languages.cs) once its files exist, with the fonts to try first for Chinese,
-Japanese and Korean — see the note there on why.
+These are EVE's own languages. Every screen is translated in each, as drafts in the game client's
+own words, and each stays `Preview` until a native speaker has reviewed it
+([#125](https://github.com/kernoeve/EveConsole/issues/125)). A language marked `Preview` is offered
+in Settings but never picked automatically, so nobody is dropped into an unreviewed translation
+because of their system's language.
 
-A language marked `Preview` is offered in Settings but never picked automatically, so nobody is
-dropped into a half-translated app because of their system's language.
+Each language keeps a glossary, `Glossary.<code>.md`: the style it follows, the terms it uses
+(the client's own where the client has one), and the entries a native speaker should check first.
+A correction to a term belongs there before it goes into the files, so every screen picks it up.
+
+A new language is added to `Languages.All` in [Languages.cs](Languages.cs) once its files exist,
+with the fonts to try first for Chinese, Japanese and Korean — see the note there on why.
 
 ## Adding text (developers)
 
@@ -63,6 +74,11 @@ A mistyped name is a build error, not a blank label.
   "Order" means a market order or a sort order.
 - **Never match on what is displayed.** Select a tab, find a column or compare a choice by an id,
   or by the same resource the label was built from — the displayed words change with the language.
+- **Read a number a person typed with `NumberText.TryParse`**, which reads the interface's own
+  format, and show one for editing in that format too. Never by stripping commas: French writes
+  one and a half as "1,5", which that reads as 15.
+- **Leave room.** German and Russian run a third longer than English. A fixed-width column fits
+  its header in the longest language, or its translations need a short form.
 - **Keys** are PascalCase, named for where they appear: `Nav…` for navigation, `Tab…` for tabs,
   `Tip…` for tooltips, `…Label`, `…Header`, `…Note`.
 - **One file per area.** `OrdersText.resx` for the Order Tracker, and so on: files stay a size a
