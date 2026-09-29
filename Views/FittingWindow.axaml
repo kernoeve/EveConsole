@@ -1,0 +1,12 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="clr-namespace:EveConsole.Views"
+        xmlns:vm="clr-namespace:EveConsole.ViewModels"
+        x:Class="EveConsole.Views.FittingWindow"
+        x:DataType="vm:FittingViewModel"
+        Title="Fitting"
+        Width="1400" Height="860"
+        MinWidth="1000" MinHeight="560"
+        Background="{DynamicResource SurfaceBaseBrush}">
+  <views:FittingView DataContext="{Binding}" />
+</Window>

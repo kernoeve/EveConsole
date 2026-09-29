@@ -37,6 +37,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     private IndustryOpportunitiesWindow? _industryOpportunitiesWindow;
     private IndyParksWindow?             _indyParksWindow;
     private ProductionCalculatorWindow?  _productionCalculatorWindow;
+    private FittingWindow?               _fittingWindow;
 
     // Tab drag-to-detach state
     private PointerPressedEventArgs? _tabDragPressArgs;
@@ -556,6 +557,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             "industry_opps"  => _industryOpportunitiesWindow?.IsVisible == true ? _industryOpportunitiesWindow : null,
             "indy_parks"     => _indyParksWindow?.IsVisible           == true ? _indyParksWindow           : null,
             "prod_calc"      => _productionCalculatorWindow?.IsVisible == true ? _productionCalculatorWindow : null,
+            "fitting"        => _fittingWindow?.IsVisible             == true ? _fittingWindow             : null,
             _                => null
         };
 
@@ -831,6 +833,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             "industry_opps"  => _industryOpportunitiesWindow = new IndustryOpportunitiesWindow { DataContext = vm.IndustryOpportunitiesVm },
             "indy_parks"     => _indyParksWindow           = new IndyParksWindow           { DataContext = vm.IndyParksVm },
             "prod_calc"      => _productionCalculatorWindow = new ProductionCalculatorWindow { DataContext = vm.ProductionCalcVm },
+            "fitting"        => _fittingWindow             = new FittingWindow             { DataContext = vm.FittingVm },
             _                => null
         };
         if (window is null) return null;
@@ -858,6 +861,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                 case "industry_opps":  _industryOpportunitiesWindow = null; break;
                 case "indy_parks":     _indyParksWindow           = null; break;
                 case "prod_calc":      _productionCalculatorWindow = null; break;
+                case "fitting":        _fittingWindow             = null; break;
             }
             vm.MarkToolReattached(toolId);
         };

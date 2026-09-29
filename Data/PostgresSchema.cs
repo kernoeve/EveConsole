@@ -775,6 +775,17 @@ public static class PostgresSchema
         ALTER TABLE "Corporations" ADD COLUMN IF NOT EXISTS "TokenError" TEXT NOT NULL DEFAULT ''
         """,
 
+        // Fits saved in the fitting tool, as EFT text. Mirrored for SQLite in App.axaml.cs.
+        """
+        CREATE TABLE IF NOT EXISTS "SavedFits" (
+            "Id"         BIGSERIAL   PRIMARY KEY,
+            "Name"       TEXT        NOT NULL DEFAULT '',
+            "ShipTypeId" INTEGER     NOT NULL DEFAULT 0,
+            "Eft"        TEXT        NOT NULL DEFAULT '',
+            "UpdatedAt"  TIMESTAMPTZ NOT NULL DEFAULT now()
+        )
+        """,
+
         // ── Corp moon-mining ledger, one row per day ─────────────────────────
         //
         // Replaces "EsiCorpMiningLedger", which was keyed without the date and so held only each
@@ -892,6 +903,7 @@ public static class PostgresSchema
         """CREATE INDEX IF NOT EXISTS "IX_IntelReports_Obsolete_Time" ON "IntelReports" ("Obsolete", "ReportedAt")""",
         """CREATE INDEX IF NOT EXISTS "IX_IntelReportCharacters_CharacterId" ON "IntelReportCharacters" ("CharacterId")""",
         """CREATE INDEX IF NOT EXISTS "IX_Alarms_Enabled" ON "Alarms" ("Enabled")""",
+        """CREATE INDEX IF NOT EXISTS "IX_SavedFits_ShipTypeId" ON "SavedFits" ("ShipTypeId")""",
         """CREATE INDEX IF NOT EXISTS "IX_AlarmActions_AlarmId" ON "AlarmActions" ("AlarmId")""",
         """CREATE INDEX IF NOT EXISTS "IX_AlarmSeenKeys_Alarm_Seen" ON "AlarmSeenKeys" ("AlarmId", "FirstSeenAt")""",
         """CREATE INDEX IF NOT EXISTS "IX_AlarmEvents_Alarm_Fired" ON "AlarmEvents" ("AlarmId", "FiredAt")""",

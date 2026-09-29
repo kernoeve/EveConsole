@@ -2273,6 +2273,17 @@ public class App : Application
                 // Why the SSO refused an owner's refresh token; "" while it is good. Mirrored in PostgresSchema.
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Characters" ADD COLUMN "TokenError" TEXT NOT NULL DEFAULT ''"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Corporations" ADD COLUMN "TokenError" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                // Fits saved in the fitting tool, as EFT text. Mirrored in PostgresSchema.
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "SavedFits" (
+                        "Id"         INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "Name"       TEXT    NOT NULL DEFAULT '',
+                        "ShipTypeId" INTEGER NOT NULL DEFAULT 0,
+                        "Eft"        TEXT    NOT NULL DEFAULT '',
+                        "UpdatedAt"  TEXT    NOT NULL DEFAULT ''
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_SavedFits_ShipTypeId" ON "SavedFits" ("ShipTypeId")""");
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "CorpTop10Excludes" (
                         "EntityId"   INTEGER NOT NULL,

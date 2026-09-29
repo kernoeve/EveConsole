@@ -128,7 +128,11 @@ public class FitSelectorViewModel : ReactiveObject
     }
 
     public bool HasSelectedFit => _selectedNode?.IsFit == true;
-    public bool CanConfirm     => _selectedNode?.IsFit == true && _selectedGroup != null;
+    /// <summary>Whether the picker asks which Inventory Levels group the fit goes into. The
+    /// fitting tool opens fits rather than adding them to a group, and turns this off.</summary>
+    public bool ChooseGroup { get; init; } = true;
+
+    public bool CanConfirm     => _selectedNode?.IsFit == true && (!ChooseGroup || _selectedGroup != null);
 
     public FitSelectorViewModel(
         FittingsService                     svc,

@@ -23,6 +23,6 @@ public partial class FitSelectorWindow : Window
     private void OnConfirmClick(object? sender, RoutedEventArgs e)
     {
         if (!Vm.CanConfirm) return;
-        Close(new FitSelectorResult(Vm.SelectedNode!.Entry!.Data, Vm.SelectedGroup!.GroupId));
+        Close(new FitSelectorResult(Vm.SelectedNode!.Entry!.Data, Vm.SelectedGroup?.GroupId ?? 0));
     }
 }

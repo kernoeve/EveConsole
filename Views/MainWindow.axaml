@@ -627,6 +627,9 @@
               <DataTemplate DataType="vm:ProductionCalculatorViewModel">
                 <views:ProductionCalculatorView />
               </DataTemplate>
+              <DataTemplate DataType="vm:FittingViewModel">
+                <views:FittingView />
+              </DataTemplate>
               <DataTemplate DataType="vm:PriceOverrideViewModel">
                 <views:PriceOverrideView />
               </DataTemplate>

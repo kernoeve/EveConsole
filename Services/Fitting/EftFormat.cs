@@ -83,10 +83,99 @@ public static class EftFormat
         return new ParseResult(fit, unknown);
     }
 
+    /// <summary>
+    /// The fit as EFT text: low, mid and high slots, rigs, subsystems, then drones, implants and
+    /// boosters, then cargo — each section separated by a blank line, the order the client writes.
+    /// </summary>
+    public static string Write(FitDefinition fit, DogmaData data)
+    {
+        string Name(int id) => data.TryType(id, out var t) ? t.Name : $"Type {id}";
+        var sb = new System.Text.StringBuilder();
+        sb.Append('[').Append(Name(fit.ShipTypeId)).Append(", ").Append(fit.Name.Length > 0 ? fit.Name : "New fit").Append("]\n");
+
+        var bySlot = fit.Modules.GroupBy(m => data.TryType(m.TypeId, out var t) ? DogmaEngine.SlotOf(data, t) : FitSlot.None)
+            .ToDictionary(g => g.Key, g => g.ToList());
+        foreach (var slot in new[] { FitSlot.Low, FitSlot.Mid, FitSlot.High, FitSlot.Rig, FitSlot.Subsystem, FitSlot.Service })
+        {
+            if (!bySlot.TryGetValue(slot, out var mods)) continue;
+            sb.Append('\n');
+            foreach (var m in mods)
+            {
+                sb.Append(Name(m.TypeId));
+                if (m.ChargeTypeId is { } c) sb.Append(", ").Append(Name(c));
+                if (m.State == ModuleState.Offline) sb.Append(" /OFFLINE");
+                sb.Append('\n');
+            }
+        }
+        if (fit.Drones.Count > 0)
+        {
+            sb.Append('\n');
+            foreach (var d in fit.Drones) sb.Append(Name(d.TypeId)).Append(" x").Append(d.Count).Append('\n');
+        }
+        if (fit.Implants.Count + fit.Boosters.Count > 0)
+        {
+            sb.Append('\n');
+            foreach (var i in fit.Implants.Concat(fit.Boosters)) sb.Append(Name(i)).Append('\n');
+        }
+        if (fit.Cargo.Count > 0)
+        {
+            sb.Append('\n');
+            foreach (var (id, qty) in fit.Cargo) sb.Append(Name(id)).Append(" x").Append(qty).Append('\n');
+        }
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// A fitting saved in the game (ESI), as a fit. The game records what sits in each slot and
+    /// bay but not which charge a module has loaded, so each module is given the first charge in
+    /// the fit's cargo it can take.
+    /// </summary>
+    public static async Task<FitDefinition> FromEsiAsync(Models.EsiFittingData esi, DogmaData data, FittingCatalog catalog, CancellationToken ct = default)
+    {
+        await data.LoadTypesAsync(esi.Items.Select(i => i.TypeId).Append(esi.ShipTypeId), ct);
+        var fit = new FitDefinition { ShipTypeId = esi.ShipTypeId, Name = esi.Name };
+        var cargo = new List<(int TypeId, int Quantity)>();
+
+        static int SlotIndex(string flag) => int.TryParse(new string(flag.SkipWhile(c => !char.IsDigit(c)).ToArray()), out var n) ? n : 0;
+        foreach (var item in esi.Items.OrderBy(i => i.Flag).ThenBy(i => SlotIndex(i.Flag)))
+        {
+            if (!data.TryType(item.TypeId, out var type)) continue;
+            var flag = item.Flag;
+            if (flag.StartsWith("HiSlot") || flag.StartsWith("MedSlot") || flag.StartsWith("LoSlot") || flag.StartsWith("RigSlot")
+                || flag.StartsWith("SubSystemSlot") || flag.StartsWith("ServiceSlot"))
+                for (var n = 0; n < Math.Max(1, item.Quantity); n++)
+                    fit.Modules.Add(new FitModule(item.TypeId, DefaultState(data, type)));
+            else if (flag is "DroneBay" or "FighterBay")
+                fit.Drones.Add(new FitDrone(item.TypeId, item.Quantity, 0));
+            else if (type.CategoryId == DogmaData.CategoryImplant)
+                (IsBooster(data, type) ? fit.Boosters : fit.Implants).Add(item.TypeId);
+            else
+                cargo.Add((item.TypeId, item.Quantity));
+        }
+
+        for (var i = 0; i < fit.Modules.Count; i++)
+        {
+            var valid = (await catalog.ChargesForAsync(fit.Modules[i].TypeId, ct)).Select(c => c.TypeId).ToHashSet();
+            if (valid.Count == 0) continue;
+            var loaded = cargo.FirstOrDefault(c => valid.Contains(c.TypeId));
+            if (loaded.TypeId != 0) fit.Modules[i] = fit.Modules[i] with { ChargeTypeId = loaded.TypeId };
+        }
+        fit.Cargo.AddRange(cargo);
+        return fit;
+    }
+
     /// <summary>Active if the module can be activated, else online — what a pilot undocks with.</summary>
     public static ModuleState DefaultState(DogmaData data, DogmaTypeInfo type) =>
-        type.EffectIds.Any(id => data.Effects.TryGetValue(id, out var e) && e.Category is 1 or 2)
-            ? ModuleState.Active : ModuleState.Online;
+        CanActivate(data, type) ? ModuleState.Active : ModuleState.Online;
+
+    /// <summary>
+    /// Whether the module is switched on and off in space: its own cycling (default) effect is an
+    /// active or targeted one. ⚠️ Not "has any active effect" — the generic <c>online</c> effect
+    /// every module carries is filed as active, which would make every plate and heat sink
+    /// look activatable.
+    /// </summary>
+    public static bool CanActivate(DogmaData data, DogmaTypeInfo type) =>
+        type.DefaultEffectId is { } id && data.Effects.TryGetValue(id, out var e) && e.Category is 1 or 2;
 
     private static bool IsBooster(DogmaData data, DogmaTypeInfo type) =>
         data.AttributesByName.TryGetValue("boosterness", out var a) && type.Attributes.ContainsKey(a.Id);

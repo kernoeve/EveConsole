@@ -1,0 +1,31 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="EveConsole.Views.EftPasteDialog"
+        Title="Import fit"
+        Width="520" Height="480" MinWidth="360" MinHeight="300"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource SurfaceBaseBrush}">
+
+  <Grid RowDefinitions="Auto,*,Auto" Margin="20">
+
+    <TextBlock Grid.Row="0" FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap" Margin="0 0 0 8"
+               Text="Paste a fit in EFT format — what the game's fitting window copies, and what fitting sites share. The first line names the hull: [Rifter, My fit]." />
+
+    <TextBox Grid.Row="1" x:Name="EftBox"
+             AcceptsReturn="True" TextWrapping="NoWrap" FontFamily="Consolas,Menlo,monospace" FontSize="12"
+             Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+             CornerRadius="3" Foreground="{DynamicResource TextBrightBrush}" CaretBrush="{DynamicResource AccentBrush}" Padding="8 6" />
+
+    <Grid Grid.Row="2" ColumnDefinitions="*,Auto,Auto" Margin="0 12 0 0">
+      <TextBlock x:Name="ErrorText" Grid.Column="0" FontSize="11" Foreground="{DynamicResource BadBrush}" IsVisible="False" VerticalAlignment="Center" />
+      <Button Grid.Column="1" Content="Cancel"
+              Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
+              BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+              Padding="14 6" Margin="0 0 8 0" Click="OnCancelClick" />
+      <Button Grid.Column="2" Content="Import"
+              Background="{DynamicResource SurfaceSelectedBrush}" Foreground="{DynamicResource AccentBrush}"
+              BorderBrush="{DynamicResource AccentSurfaceBrush}" BorderThickness="1"
+              Padding="14 6" Click="OnOkClick" />
+    </Grid>
+  </Grid>
+</Window>

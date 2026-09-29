@@ -428,6 +428,7 @@ public static class AppKnowledge
         ("industry",            "Industry Jobs",          "Industry Jobs"),
         ("indy_parks",          "Indy Parks",             "Indy Parks"),
         ("prod_calc",           "Production Calculator",  "Production Calc"),
+        ("fitting",             "Fitting",                "Fitting"),
         ("price_overrides",     "Price Overrides",        "Price Overrides"),
         ("industry_opps",       "Industry Opportunities", "Industry Opportunities"),
         ("market_viewer",       "Market Overview",        "Market Overview"),

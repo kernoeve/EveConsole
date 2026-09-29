@@ -46,7 +46,7 @@
   <Grid RowDefinitions="Auto,*,Auto" Margin="14">
 
     <!-- ── Group selector ───────────────────────────────────────────────── -->
-    <Grid Grid.Row="0" ColumnDefinitions="Auto,*" Margin="0 0 0 10">
+    <Grid Grid.Row="0" ColumnDefinitions="Auto,*" Margin="0 0 0 10" IsVisible="{Binding ChooseGroup}">
       <TextBlock Grid.Column="0"
                  Text="ADD TO GROUP:" FontSize="10" FontWeight="SemiBold"
                  Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1"

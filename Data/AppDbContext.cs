@@ -143,6 +143,7 @@ public class AppDbContext : DbContext
     public DbSet<SdeDogmaAttribute>     SdeDogmaAttributes     => Set<SdeDogmaAttribute>();
     public DbSet<SdeDogmaEffect>        SdeDogmaEffects        => Set<SdeDogmaEffect>();
     public DbSet<SdeDogmaEffectModifier> SdeDogmaEffectModifiers => Set<SdeDogmaEffectModifier>();
+    public DbSet<SavedFit>              SavedFits              => Set<SavedFit>();
     public DbSet<SdeTypeDogmaAttribute> SdeTypeDogmaAttributes => Set<SdeTypeDogmaAttribute>();
     public DbSet<SdeTypeDogmaEffect>    SdeTypeDogmaEffects    => Set<SdeTypeDogmaEffect>();
     public DbSet<SdeBlueprint>          SdeBlueprints          => Set<SdeBlueprint>();
@@ -384,6 +385,10 @@ public class AppDbContext : DbContext
         mb.Entity<SdeDogmaEffect>(e => {
             e.HasKey(x => x.EffectId);
             e.Property(x => x.EffectId).ValueGeneratedNever(); });
+
+        mb.Entity<SavedFit>(e => {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => x.ShipTypeId); });
 
         mb.Entity<SdeDogmaEffectModifier>(e => {
             e.HasKey(x => new { x.EffectId, x.Ordinal });

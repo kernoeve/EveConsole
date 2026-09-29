@@ -239,6 +239,7 @@ public class MainWindowViewModel : ReactiveObject
     public IndustryOpportunitiesViewModel IndustryOpportunitiesVm { get; }
     public IndyParksViewModel             IndyParksVm            { get; }
     public ProductionCalculatorViewModel  ProductionCalcVm       { get; }
+    public FittingViewModel               FittingVm              { get; }
     public PriceOverrideViewModel         PriceOverrideVm        { get; }
     public StructureBrowserViewModel      StructureBrowserVm     { get; }
     public UniverseViewModel              UniverseVm             { get; }
@@ -670,6 +671,7 @@ public class MainWindowViewModel : ReactiveObject
             "industry"   => ("Industry Jobs",   IndustryBrowserVm,        true),
             "indy_parks" => ("Indy Parks",      IndyParksVm,              true),
             "prod_calc"  => ("Production Calc", ProductionCalcVm,         true),
+            "fitting"    => ("Fitting",         FittingVm,                true),
             "price_overrides" => ("Price Overrides", PriceOverrideVm,     true),
             "structure_browser" => ("Structure Browser", StructureBrowserVm, true),
             "universe"        => ("Universe",        UniverseVm,        true),
@@ -944,6 +946,7 @@ public class MainWindowViewModel : ReactiveObject
         IncomeExpenseVm   = new IncomeExpenseViewModel(dbFactory, errorLogger);
         MarketVm          = new MarketSettingsViewModel(dbFactory.CreateDbContext(), dbFactory, marketPricing, esi, CharacterVm.Characters, buildCostService);
         var fittingsService = new FittingsService(esi, dbFactory);
+        FittingVm         = new FittingViewModel(dbFactory, fittingsService, CharacterVm.Characters, CharacterVm.Corporations);
         MarketLevelVm     = new MarketLevelViewModel(marketLevelService, dbFactory, fittingsService,
             CharacterVm.Characters, CharacterVm.Corporations, batchAddService, prodCalcService);
         // appPrefs is the constructor parameter, not the AppPrefs property — that is not assigned
@@ -1239,6 +1242,10 @@ public class MainWindowViewModel : ReactiveObject
                 new NavItem("assets",     "Assets"),
                 new NavItem("items",      "Item Browser"),
                 new NavItem("inv_levels", "Inventory Levels"),
+            ]),
+            new("Ships",
+            [
+                new NavItem("fitting", "Fitting"),
             ]),
             new("Structures / Navigation",
             [
