@@ -525,11 +525,12 @@ public partial class IndustryBrowserView : ReactiveUserControl<IndustryBrowserVi
 
     private async Task LoadDetailImagesAsync(GridRow row)
     {
-        long.TryParse(row[IndustryBrowserViewModel.ColBlueprintTypeId].Replace(",", ""), out var bpTypeId);
-        long.TryParse(row[IndustryBrowserViewModel.ColProductTypeId].Replace(",", ""),   out var prodTypeId);
-        long.TryParse(row[IndustryBrowserViewModel.ColFacilityTypeId].Replace(",", ""),  out var facTypeId);
+        // The ids as the grid wrote them, in the interface's number format.
+        NumberText.TryParse(row[IndustryBrowserViewModel.ColBlueprintTypeId], out long bpTypeId);
+        NumberText.TryParse(row[IndustryBrowserViewModel.ColProductTypeId],   out long prodTypeId);
+        NumberText.TryParse(row[IndustryBrowserViewModel.ColFacilityTypeId],  out long facTypeId);
 
-        int.TryParse(row[IndustryBrowserViewModel.ColActivityId].Replace(",", ""), out var actId);
+        NumberText.TryParse(row[IndustryBrowserViewModel.ColActivityId], out long actId);
         // Copying (5) and invention (8) output a blueprint COPY (lighter "bpc" icon); research
         // (3/4) outputs the original blueprint; everything else is a normal item.
         var prodVariant = actId switch { 5 or 8 => "bpc", 3 or 4 => "bp", _ => "icon" };

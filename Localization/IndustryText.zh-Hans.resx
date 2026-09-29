@@ -278,7 +278,7 @@
     <value>保存并重新计算</value>
   </data>
   <data name="LeaveACellBlankNote" xml:space="preserve">
-    <value>单元格留空，则该值保持为计算值。设定的值会在所有用到它的地方“替换”计算值。蓝图的合同价值是蓝图拷贝的“每流程”价格。数值单位为 ISK；逗号会被忽略。</value>
+    <value>单元格留空，则该值保持为计算值。设定的值会在所有用到它的地方“替换”计算值。蓝图的合同价值是蓝图拷贝的“每流程”价格。数值单位为 ISK。</value>
   </data>
   <data name="ColType" xml:space="preserve">
     <value>类型</value>

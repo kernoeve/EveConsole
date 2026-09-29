@@ -304,7 +304,7 @@ public partial class AssetBrowserView : ReactiveUserControl<AssetBrowserViewMode
         if (items is null || items.Count == 0) return;
 
         var sample  = items.FirstOrDefault(r => r[colName].Length > 0)?[colName] ?? "";
-        bool numeric = double.TryParse(sample.Replace(",", ""), out _);
+        bool numeric = NumberText.TryParse(sample, out double _);
 
         var sorted = numeric
             ? (desc ? items.OrderByDescending(r => ParseNum(r[colName])) : items.OrderBy(r => ParseNum(r[colName])))
@@ -325,8 +325,9 @@ public partial class AssetBrowserView : ReactiveUserControl<AssetBrowserViewMode
         }
     }
 
+    // The cells as the grid wrote them, in the interface's number format — "1 234,5" in French.
     private static double ParseNum(string s) =>
-        double.TryParse(s.Replace(",", ""), out var v) ? v : double.MinValue;
+        NumberText.TryParse(s, out double v) ? v : double.MinValue;
 
     private void UpdateSortHeaders(DataGrid grid)
     {

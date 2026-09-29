@@ -278,7 +278,7 @@
     <value>저장 후 다시 계산</value>
   </data>
   <data name="LeaveACellBlankNote" xml:space="preserve">
-    <value>칸을 비워 두면 그 값은 계산된 값을 그대로 씁니다. 값을 입력하면 그 값이 쓰이는 모든 곳에서 계산된 값을 '대체'합니다. 블루프린트의 계약 가치는 '1회당' BPC 가격입니다. 값의 단위는 ISK이며, 쉼표는 무시합니다.</value>
+    <value>칸을 비워 두면 그 값은 계산된 값을 그대로 씁니다. 값을 입력하면 그 값이 쓰이는 모든 곳에서 계산된 값을 '대체'합니다. 블루프린트의 계약 가치는 '1회당' BPC 가격입니다. 값의 단위는 ISK입니다.</value>
   </data>
   <data name="ColType" xml:space="preserve">
     <value>종류</value>

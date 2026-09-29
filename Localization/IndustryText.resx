@@ -369,7 +369,7 @@
     <comment>Button or option in PriceOverrideView.</comment>
   </data>
   <data name="LeaveACellBlankNote" xml:space="preserve">
-    <value>Leave a cell blank to leave that value computed. A set value REPLACES the computed value everywhere it is used. Contract Value on a blueprint is the PER-RUN BPC price. Values are in ISK; commas are ignored.</value>
+    <value>Leave a cell blank to leave that value computed. A set value REPLACES the computed value everywhere it is used. Contract Value on a blueprint is the PER-RUN BPC price. Values are in ISK.</value>
     <comment>Note in PriceOverrideView.</comment>
   </data>
   <data name="ColType" xml:space="preserve">

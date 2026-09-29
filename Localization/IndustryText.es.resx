@@ -278,7 +278,7 @@
     <value>Guardar y recalcular</value>
   </data>
   <data name="LeaveACellBlankNote" xml:space="preserve">
-    <value>Deja una celda en blanco para que ese valor se siga calculando. Un valor definido SUSTITUYE al calculado en todos los sitios donde se usa. El valor de contrato de un plano es el precio de la BPC POR ITERACIÓN. Los valores están en ISK; las comas se ignoran.</value>
+    <value>Deja una celda en blanco para que ese valor se siga calculando. Un valor definido SUSTITUYE al calculado en todos los sitios donde se usa. El valor de contrato de un plano es el precio de la BPC POR ITERACIÓN. Los valores están en ISK.</value>
   </data>
   <data name="ColType" xml:space="preserve">
     <value>Tipo</value>

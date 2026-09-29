@@ -1010,7 +1010,12 @@ public sealed class AlarmsViewModel : ReactiveObject
             var suffix   = spec.TryGetProperty("suffix",   out var su) ? su.GetString() : null;
             var optional = spec.TryGetProperty("optional", out var op) && op.ValueKind == JsonValueKind.True;
             var dflt     = spec.TryGetProperty("default",  out var df)
-                ? df.ValueKind == JsonValueKind.String ? df.GetString() : df.GetRawText()
+                ? df.ValueKind switch
+                  {
+                      JsonValueKind.String => df.GetString(),
+                      JsonValueKind.Number => Shown(df),
+                      _                    => df.GetRawText(),
+                  }
                 : null;
             var unitsName = spec.TryGetProperty("units", out var un) && un.ValueKind == JsonValueKind.String ? un.GetString() : null;
             var unitsDflt = unitsName is not null && props.TryGetProperty(unitsName, out var us)
@@ -1302,7 +1307,7 @@ public sealed class AlarmsViewModel : ReactiveObject
 
                 case "threshold":
                     field.Text = v.ValueKind == JsonValueKind.Number
-                        ? v.GetRawText()
+                        ? Shown(v)
                         : v.ValueKind == JsonValueKind.String ? v.GetString() ?? "" : "";
                     field.Flag = field.Text.Length > 0;
                     break;
@@ -1319,7 +1324,7 @@ public sealed class AlarmsViewModel : ReactiveObject
                 case "integer":
                 case "number":
                     field.Text = v.ValueKind == JsonValueKind.Number
-                        ? v.GetRawText()
+                        ? Shown(v)
                         : v.ValueKind == JsonValueKind.String ? v.GetString() ?? "" : "";
                     break;
 
@@ -1349,6 +1354,14 @@ public sealed class AlarmsViewModel : ReactiveObject
         }
     }
 
+    /// <summary>A stored number as its field shows it: in the interface's number format, which is
+    /// how <see cref="NumberText"/> reads the field back. Left as JSON writes it, 0.125 would come
+    /// back from a German field as 125, "." grouping thousands there.</summary>
+    private static string Shown(JsonElement number) =>
+        number.TryGetInt64(out var whole) ? whole.ToString(CultureInfo.CurrentCulture)
+      : number.TryGetDouble(out var d)    ? d.ToString(CultureInfo.CurrentCulture)
+      : number.GetRawText();
+
     private string BuildConfigJson()
     {
         var o = new JsonObject();
@@ -1367,18 +1380,18 @@ public sealed class AlarmsViewModel : ReactiveObject
 
                 // Present only when armed: an unticked threshold is no threshold.
                 case "threshold":
-                    if (field.Flag && long.TryParse(field.Text?.Replace(",", ""), out var th)) o[field.Name] = th;
+                    if (field.Flag && NumberText.TryParse(field.Text, out long th)) o[field.Name] = th;
                     break;
 
                 // long, not int: an ISK price runs well past 2.1 billion, and int.TryParse
                 // would simply fail and drop the field, leaving an alarm that matches nothing.
                 case "integer":
-                    if (long.TryParse(field.Text?.Replace(",", ""), out var i)) o[field.Name] = i;
+                    if (NumberText.TryParse(field.Text, out long i)) o[field.Name] = i;
                     break;
 
                 case "number":
-                    if (double.TryParse(field.Text?.Replace(",", ""),
-                            NumberStyles.Any, CultureInfo.InvariantCulture, out var d))
+                    // As typed in the interface's format — "1,5" is one and a half in French.
+                    if (NumberText.TryParse(field.Text, out double d))
                         o[field.Name] = d;
                     break;
 
@@ -1405,7 +1418,7 @@ public sealed class AlarmsViewModel : ReactiveObject
                     if (!string.IsNullOrWhiteSpace(field.Text)) o[field.Name] = field.Text;
                     // The number travels whatever the choice, so it is still there when the
                     // choice comes back; the check ignores it under "Any".
-                    if (field.UnitsName is { } unitsName && long.TryParse(field.UnitsText?.Replace(",", ""), out var units))
+                    if (field.UnitsName is { } unitsName && NumberText.TryParse(field.UnitsText, out long units))
                         o[unitsName] = units;
                     break;
             }

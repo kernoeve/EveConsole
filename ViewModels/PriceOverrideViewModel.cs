@@ -13,8 +13,8 @@ using EveConsole.Localization;
 namespace EveConsole.ViewModels;
 
 // One editable row in the Price Override grid. The three value cells are exposed as text so blank
-// means "no override" (null) and typos don't throw binding exceptions; parsing is culture-invariant
-// and tolerant of thousands separators.
+// means "no override" (null) and typos don't throw binding exceptions; they are written and read in
+// the interface's number format (NumberText).
 public class PriceOverrideRow : ReactiveObject
 {
     public int    TypeId   { get; }
@@ -38,15 +38,12 @@ public class PriceOverrideRow : ReactiveObject
         _contractValueText = Fmt(contract);
     }
 
-    private static string Fmt(decimal? v) => v.HasValue ? v.Value.ToString("0.##", CultureInfo.InvariantCulture) : "";
+    // In the interface's own number format, both ways — "1234,5" in French. NumberText also reads
+    // English, so a value pasted from elsewhere goes in too.
+    private static string Fmt(decimal? v) => v.HasValue ? v.Value.ToString("0.##", CultureInfo.CurrentCulture) : "";
 
-    private static decimal? Parse(string? s)
-    {
-        if (string.IsNullOrWhiteSpace(s)) return null;
-        var cleaned = s.Replace(",", "").Replace("_", "").Trim();
-        return decimal.TryParse(cleaned, NumberStyles.Any, CultureInfo.InvariantCulture, out var d) && d >= 0
-            ? d : (decimal?)null;
-    }
+    private static decimal? Parse(string? s) =>
+        NumberText.TryParse(s, out decimal d) && d >= 0 ? d : null;
 
     private string _buildCostText;
     public string BuildCostText

@@ -295,8 +295,8 @@ public class IndustryBrowserViewModel : ReactiveObject
         {
             var byJobId = new Dictionary<int, GridRow>();
             foreach (var r in rows)
-                if (int.TryParse(r["Job Id"].Replace(",", ""), out var id))
-                    byJobId[id] = r;
+                if (NumberText.TryParse(r["Job Id"], out long id) && id is >= int.MinValue and <= int.MaxValue)
+                    byJobId[(int)id] = r;
 
             if (byJobId.Count == 0) return;
 
@@ -420,11 +420,11 @@ public class IndustryBrowserViewModel : ReactiveObject
 
             // Collect IDs that SdeTypes/Characters couldn't resolve — feed ESI /universe/names/
             var installerVal = dict.GetValueOrDefault("Installer", "");
-            if (long.TryParse(installerVal.Replace(",", ""), out var instId))
+            if (NumberText.TryParse(installerVal, out long instId))
                 unresolvedIds.Add(instId);
 
             var productVal = dict.GetValueOrDefault("Product", "");
-            if (long.TryParse(productVal.Replace(",", ""), out var prodTypeId))
+            if (NumberText.TryParse(productVal, out long prodTypeId))
                 unresolvedIds.Add(prodTypeId);
 
             // The SDE names a person reads, in the interface language, relabelled in place like
@@ -472,7 +472,7 @@ public class IndustryBrowserViewModel : ReactiveObject
         else
         {
             var sample = rows.FirstOrDefault(r => r[column].Length > 0)?[column] ?? "";
-            bool numeric = double.TryParse(sample.Replace(",", ""), out _);
+            bool numeric = NumberText.TryParse(sample, out double _);
             sorted = numeric
                 ? (descending ? rows.OrderByDescending(r => ParseNum(r[column]))
                               : rows.OrderBy(r => ParseNum(r[column])))
@@ -497,8 +497,9 @@ public class IndustryBrowserViewModel : ReactiveObject
         return secs < 0 ? 0L : secs;
     }
 
+    // The cells as the grid wrote them, in the interface's number format — "1 234,5" in French.
     private static double ParseNum(string s) =>
-        double.TryParse(s.Replace(",", ""), out var v) ? v : double.MinValue;
+        NumberText.TryParse(s, out double v) ? v : double.MinValue;
 
     // ── Name resolution ───────────────────────────────────────────────────────
 
