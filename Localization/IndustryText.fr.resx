@@ -1,0 +1,1087 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="OwnerType" xml:space="preserve">
+    <value>Type de propriétaire</value>
+  </data>
+  <data name="Owner" xml:space="preserve">
+    <value>Propriétaire</value>
+  </data>
+  <data name="Installer" xml:space="preserve">
+    <value>Installateur</value>
+  </data>
+  <data name="StartDate" xml:space="preserve">
+    <value>Date de début</value>
+  </data>
+  <data name="EndDate" xml:space="preserve">
+    <value>Date de fin</value>
+  </data>
+  <data name="CompletedBy" xml:space="preserve">
+    <value>Terminé par</value>
+  </data>
+  <data name="Activity" xml:space="preserve">
+    <value>Activité</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Statut</value>
+  </data>
+  <data name="Runs" xml:space="preserve">
+    <value>Cycles</value>
+  </data>
+  <data name="Items" xml:space="preserve">
+    <value>Objets</value>
+  </data>
+  <data name="SuccessChance" xml:space="preserve">
+    <value>Probabilité de réussite</value>
+  </data>
+  <data name="TimeLeft" xml:space="preserve">
+    <value>Temps restant</value>
+  </data>
+  <data name="Cost" xml:space="preserve">
+    <value>Coût</value>
+  </data>
+  <data name="OwnerLabel" xml:space="preserve">
+    <value>Propriétaire :</value>
+  </data>
+  <data name="ActivityLabel" xml:space="preserve">
+    <value>Activité :</value>
+  </data>
+  <data name="StatusLabel" xml:space="preserve">
+    <value>Statut :</value>
+  </data>
+  <data name="StartedLabel" xml:space="preserve">
+    <value>Début :</value>
+  </data>
+  <data name="HintFrom" xml:space="preserve">
+    <value>Du…</value>
+  </data>
+  <data name="HintThru" xml:space="preserve">
+    <value>Au…</value>
+  </data>
+  <data name="SearchLabel" xml:space="preserve">
+    <value>Rechercher :</value>
+  </data>
+  <data name="HintBlueprintOrProduct" xml:space="preserve">
+    <value>plan ou produit…</value>
+  </data>
+  <data name="Apply" xml:space="preserve">
+    <value>Appliquer</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>Effacer</value>
+  </data>
+  <data name="TitleIndustryJobs" xml:space="preserve">
+    <value>Travaux d'industrie</value>
+  </data>
+  <data name="Calculate" xml:space="preserve">
+    <value>Calculer</value>
+  </data>
+  <data name="PriceAt" xml:space="preserve">
+    <value>Prix à</value>
+  </data>
+  <data name="Min30dIskVol" xml:space="preserve">
+    <value>Vol. ISK min. 30 j</value>
+  </data>
+  <data name="HintNoFilter" xml:space="preserve">
+    <value>Aucun filtre</value>
+  </data>
+  <data name="Min30dUnitVol" xml:space="preserve">
+    <value>Vol. unités min. 30 j</value>
+  </data>
+  <data name="SkipFaction" xml:space="preserve">
+    <value>Ignorer les objets de faction</value>
+  </data>
+  <data name="SkipNonBpoTraceableItems" xml:space="preserve">
+    <value>Ignorer les objets non issus d'un BPO</value>
+  </data>
+  <data name="TipOnlyItemsWhoseBlueprint" xml:space="preserve">
+    <value>Uniquement les objets dont le plan est un BPO achetable, ou est inventé à partir d'un BPO (p. ex. T2 à partir d'un BPO T1). Exclut les objets de faction ou à BPC limités sans BPO obtenable, les objets de scénario, d'officier et deadspace, ainsi que les objets d'événements « Durée limitée » dont le BPO ne peut plus être acheté en jeu.</value>
+  </data>
+  <data name="ExcludeGroups" xml:space="preserve">
+    <value>Exclure des groupes</value>
+  </data>
+  <data name="TipRemoveThisExclusion" xml:space="preserve">
+    <value>Retirer cette exclusion</value>
+  </data>
+  <data name="AddGroup" xml:space="preserve">
+    <value>+ Ajouter un groupe</value>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>Objet</value>
+  </data>
+  <data name="TipOpenInTheItemBrowser" xml:space="preserve">
+    <value>Ouvrir dans l'explorateur d'objets</value>
+  </data>
+  <data name="ColBuildCost" xml:space="preserve">
+    <value>Coût de constr.</value>
+  </data>
+  <data name="ColSellPrice" xml:space="preserve">
+    <value>Prix de vente</value>
+  </data>
+  <data name="ColProfitUnit" xml:space="preserve">
+    <value>Bénéfice / unité</value>
+  </data>
+  <data name="ColMargin" xml:space="preserve">
+    <value>Marge</value>
+  </data>
+  <data name="ColBuildTime" xml:space="preserve">
+    <value>Temps de prod.</value>
+  </data>
+  <data name="ColSlotDays" xml:space="preserve">
+    <value>Jours-créneau</value>
+  </data>
+  <data name="ColProfitSlotDay" xml:space="preserve">
+    <value>Bénéf./jour-créneau</value>
+  </data>
+  <data name="ColUnitsSold30d" xml:space="preserve">
+    <value>Qté vendue 30 j</value>
+  </data>
+  <data name="ColIskSold30d" xml:space="preserve">
+    <value>ISK vendus 30 j</value>
+  </data>
+  <data name="ScanningForIndustryOpportunities" xml:space="preserve">
+    <value>Recherche d'opportunités industrielles…</value>
+  </data>
+  <data name="TitleIndustryOpportunities" xml:space="preserve">
+    <value>Opportunités industrielles</value>
+  </data>
+  <data name="IndyParksLabel" xml:space="preserve">
+    <value>Parcs industriels</value>
+  </data>
+  <data name="NewPark" xml:space="preserve">
+    <value>+ Nouveau parc</value>
+  </data>
+  <data name="Import" xml:space="preserve">
+    <value>Importer</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Supprimer</value>
+  </data>
+  <data name="CreateOrSelectAnNote" xml:space="preserve">
+    <value>Créez un parc industriel ou sélectionnez-en un dans la liste.</value>
+  </data>
+  <data name="ParkNameLabel" xml:space="preserve">
+    <value>Nom du parc</value>
+  </data>
+  <data name="SetDefault" xml:space="preserve">
+    <value>★ Définir par défaut</value>
+  </data>
+  <data name="ExportPark" xml:space="preserve">
+    <value>Exporter le parc</value>
+  </data>
+  <data name="StructuresLabel" xml:space="preserve">
+    <value>Structures</value>
+  </data>
+  <data name="HintSystem" xml:space="preserve">
+    <value>Système…</value>
+  </data>
+  <data name="SkipMoonRefineries" xml:space="preserve">
+    <value>Ignorer les raffineries lunaires</value>
+  </data>
+  <data name="TipAthanorsAndTatarasAnchored" xml:space="preserve">
+    <value>Les Athanor et Tatara ancrées sur une lune servent généralement à l'extraction lunaire, pas à l'industrie</value>
+  </data>
+  <data name="AddMissingInSystem" xml:space="preserve">
+    <value>+ Ajouter les manquantes du système</value>
+  </data>
+  <data name="TipAddsTheIndustrialStructures" xml:space="preserve">
+    <value>Ajoute les structures industrielles de ce système que ce parc n'a pas encore. Les structures déjà liées ici sont comptées et laissées telles quelles : appuyer de nouveau après en avoir ajouté une à la main ne crée donc aucun doublon.</value>
+  </data>
+  <data name="AddStructure" xml:space="preserve">
+    <value>+ Ajouter une structure</value>
+  </data>
+  <data name="HintStructureName" xml:space="preserve">
+    <value>Nom de la structure…</value>
+  </data>
+  <data name="Default" xml:space="preserve">
+    <value>Par défaut</value>
+  </data>
+  <data name="TipCatchAllFacilityItems" xml:space="preserve">
+    <value>Installation fourre-tout. Les objets qu'aucune attribution de catégorie ne couvre sont planifiés ici sans bonus d'optimisation, pour que le calcul aboutisse au lieu d'échouer. Une seule installation par parc.</value>
+  </data>
+  <data name="HintSolarSystem" xml:space="preserve">
+    <value>Système solaire…</value>
+  </data>
+  <data name="TaxPercentageLabel" xml:space="preserve">
+    <value>Taux de taxe :</value>
+  </data>
+  <data name="ActualFacilityLabel" xml:space="preserve">
+    <value>Installation réelle</value>
+  </data>
+  <data name="TipOpenThisStationOrStructure" xml:space="preserve">
+    <value>Ouvrir cette station ou cette structure</value>
+  </data>
+  <data name="Unlink" xml:space="preserve">
+    <value>Délier</value>
+  </data>
+  <data name="HintSearchStationOrStructureTo" xml:space="preserve">
+    <value>Rechercher une station ou une structure à lier…</value>
+  </data>
+  <data name="Search" xml:space="preserve">
+    <value>Rechercher</value>
+  </data>
+  <data name="RigsLabel" xml:space="preserve">
+    <value>Modules d'optimisation</value>
+  </data>
+  <data name="HintEmpty" xml:space="preserve">
+    <value>— vide —</value>
+  </data>
+  <data name="ServiceModulesLabel" xml:space="preserve">
+    <value>Modules de service</value>
+  </data>
+  <data name="HintAddAServiceModule" xml:space="preserve">
+    <value>— ajouter un module de service —</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Ajouter</value>
+  </data>
+  <data name="ProductionAssignmentsLabel" xml:space="preserve">
+    <value>Attributions de production</value>
+  </data>
+  <data name="AutoAssignFromRigs" xml:space="preserve">
+    <value>Attribuer d'après les optimisations</value>
+  </data>
+  <data name="TipFillsEmptyCategoriesFrom" xml:space="preserve">
+    <value>Remplit les catégories vides d'après les modules d'optimisation de chaque structure. Les choix existants sont conservés.</value>
+  </data>
+  <data name="AssignWhichStructureHandlesNote" xml:space="preserve">
+    <value>Attribuez à chaque catégorie de production la structure qui la prend en charge.</value>
+  </data>
+  <data name="HintNotAssigned" xml:space="preserve">
+    <value>— non attribué —</value>
+  </data>
+  <data name="ItemExceptionsLabel" xml:space="preserve">
+    <value>Exceptions par objet</value>
+  </data>
+  <data name="OverrideTheCategoryAssignmentNote" xml:space="preserve">
+    <value>Remplace l'attribution de catégorie pour un objet donné.</value>
+  </data>
+  <data name="HintSearchForAnItem" xml:space="preserve">
+    <value>Rechercher un objet pour ajouter une exception…</value>
+  </data>
+  <data name="FmtSlot" xml:space="preserve">
+    <value>Emplacement {0} :</value>
+  </data>
+  <data name="TitleIndyParks" xml:space="preserve">
+    <value>Parcs industriels</value>
+  </data>
+  <data name="AddType" xml:space="preserve">
+    <value>+ Ajouter un type</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>Retirer</value>
+  </data>
+  <data name="SaveRecalculate" xml:space="preserve">
+    <value>Enregistrer et recalculer</value>
+  </data>
+  <data name="LeaveACellBlankNote" xml:space="preserve">
+    <value>Laissez une cellule vide pour que cette valeur reste calculée. Une valeur saisie REMPLACE la valeur calculée partout où elle est utilisée. La valeur en contrat d'un plan est le prix du BPC PAR CYCLE. Les valeurs sont en ISK.</value>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="ColTypeId" xml:space="preserve">
+    <value>ID de type</value>
+  </data>
+  <data name="ColMarketValue" xml:space="preserve">
+    <value>Valeur marchande</value>
+  </data>
+  <data name="ColContractValuePerRunFor" xml:space="preserve">
+    <value>Valeur en contrat (par cycle pour les BPC)</value>
+  </data>
+  <data name="ProductionQueue" xml:space="preserve">
+    <value>File de production</value>
+  </data>
+  <data name="IndyPark" xml:space="preserve">
+    <value>Parc industriel</value>
+  </data>
+  <data name="AddItem" xml:space="preserve">
+    <value>Ajouter un objet</value>
+  </data>
+  <data name="HintTypeToSearchItems" xml:space="preserve">
+    <value>Tapez pour rechercher des objets…</value>
+  </data>
+  <data name="Quantity" xml:space="preserve">
+    <value>Quantité</value>
+  </data>
+  <data name="MeLevel" xml:space="preserve">
+    <value>Niveau ME</value>
+  </data>
+  <data name="AddToQueue" xml:space="preserve">
+    <value>Ajouter à la file</value>
+  </data>
+  <data name="IncludeFinalBpcCost" xml:space="preserve">
+    <value>Inclure le coût du BPC final</value>
+  </data>
+  <data name="TipAddTheFinalProducts" xml:space="preserve">
+    <value>Ajoute la copie de plan de construction du produit final (prix en contrat) comme intrant. Toujours incluse pour les objets de faction ou disponibles uniquement en BPC ; facultative pour les objets à BPO standard.</value>
+  </data>
+  <data name="TipOpenInItemBrowser" xml:space="preserve">
+    <value>Ouvrir dans l'explorateur d'objets</value>
+  </data>
+  <data name="AddItemsToTheNote" xml:space="preserve">
+    <value>Ajoutez des objets à la file et cliquez sur Calculer pour voir les résultats.</value>
+  </data>
+  <data name="TabSummary" xml:space="preserve">
+    <value>Résumé</value>
+  </data>
+  <data name="PlannedInTheParksNote" xml:space="preserve">
+    <value>Planifiés dans l'installation par défaut du parc, sans bonus d'optimisation : ces coûts peuvent donc être surestimés.</value>
+  </data>
+  <data name="BlueprintCopiesTradeOnlyNote" xml:space="preserve">
+    <value>Les copies de plans de construction ne s'échangent que par contrat : un mois calme ne laisse donc aucun prix actuel. Le prix le plus récent enregistré est utilisé ; à défaut, le plan compte pour 0 ISK et le coût de construction est sous-estimé d'autant.</value>
+  </data>
+  <data name="CostSummary" xml:space="preserve">
+    <value>Récapitulatif des coûts</value>
+  </data>
+  <data name="RawMaterialsLabel" xml:space="preserve">
+    <value>Matières premières :</value>
+  </data>
+  <data name="JobCostsLabel" xml:space="preserve">
+    <value>Coûts des travaux :</value>
+  </data>
+  <data name="LeftoverValueLabel" xml:space="preserve">
+    <value>Valeur des surplus :</value>
+  </data>
+  <data name="NetCostLabel" xml:space="preserve">
+    <value>Coût net :</value>
+  </data>
+  <data name="RawMaterialVolumeLabel" xml:space="preserve">
+    <value>Volume des matières premières :</value>
+  </data>
+  <data name="TipPackedVolumeOfThe" xml:space="preserve">
+    <value>Volume emballé de la liste d'achats. Les produits intermédiaires sont exclus — ils sont produits sur place plutôt qu'apportés.</value>
+  </data>
+  <data name="FinalProducts" xml:space="preserve">
+    <value>Produits finaux</value>
+  </data>
+  <data name="BuildMarket" xml:space="preserve">
+    <value>construction / marché</value>
+  </data>
+  <data name="TabRawMaterials" xml:space="preserve">
+    <value>Matières premières</value>
+  </data>
+  <data name="MissingVsLabel" xml:space="preserve">
+    <value>Manquants par rapport à :</value>
+  </data>
+  <data name="Station" xml:space="preserve">
+    <value>Station</value>
+  </data>
+  <data name="TipCompareAgainstStockAt" xml:space="preserve">
+    <value>Comparer au stock de l'installation liée à chaque travail, en additionnant la demande de tous les travaux qui partagent cette structure</value>
+  </data>
+  <data name="AllAssets" xml:space="preserve">
+    <value>Tous les biens</value>
+  </data>
+  <data name="TipCompareAgainstEverythingYou" xml:space="preserve">
+    <value>Comparer à tout ce que vous possédez, où que ce soit</value>
+  </data>
+  <data name="ShoppingList" xml:space="preserve">
+    <value>Liste d'achats</value>
+  </data>
+  <data name="TipCopyItemNameAnd" xml:space="preserve">
+    <value>Copier le nom et la quantité des objets (séparés par des tabulations) dans le presse-papiers</value>
+  </data>
+  <data name="ShoppingListMissing" xml:space="preserve">
+    <value>Liste d'achats (manquants)</value>
+  </data>
+  <data name="TipCopyOnlyTheItems" xml:space="preserve">
+    <value>Copier uniquement les objets qui manquent aux besoins de la planification, pour la quantité manquante</value>
+  </data>
+  <data name="Export" xml:space="preserve">
+    <value>Exporter</value>
+  </data>
+  <data name="TipExportAllColumnsTo" xml:space="preserve">
+    <value>Exporter toutes les colonnes vers le presse-papiers ou un fichier</value>
+  </data>
+  <data name="MenuCopyToClipboard" xml:space="preserve">
+    <value>Copier dans le presse-papiers</value>
+  </data>
+  <data name="MenuExportAsCsv" xml:space="preserve">
+    <value>Exporter en CSV</value>
+  </data>
+  <data name="MenuTabDelimited" xml:space="preserve">
+    <value>Séparé par des tabulations</value>
+  </data>
+  <data name="ColMaterial" xml:space="preserve">
+    <value>Matériau</value>
+  </data>
+  <data name="ColQuantity" xml:space="preserve">
+    <value>Quantité</value>
+  </data>
+  <data name="ColMissing" xml:space="preserve">
+    <value>Manquant</value>
+  </data>
+  <data name="ColUnitPrice" xml:space="preserve">
+    <value>Prix unitaire</value>
+  </data>
+  <data name="ColTotalCost" xml:space="preserve">
+    <value>Coût total</value>
+  </data>
+  <data name="TabIntermediates" xml:space="preserve">
+    <value>Intermédiaires</value>
+  </data>
+  <data name="DoubleClickRowToNote" xml:space="preserve">
+    <value>Double-cliquez sur une ligne pour l'ouvrir dans l'explorateur d'objets</value>
+  </data>
+  <data name="ColNeeded" xml:space="preserve">
+    <value>Requis</value>
+  </data>
+  <data name="ColProduced" xml:space="preserve">
+    <value>Produit</value>
+  </data>
+  <data name="ColLeftover" xml:space="preserve">
+    <value>Surplus</value>
+  </data>
+  <data name="ColBuildValue" xml:space="preserve">
+    <value>Valeur constr.</value>
+  </data>
+  <data name="ColLeftoverValue" xml:space="preserve">
+    <value>Valeur surplus</value>
+  </data>
+  <data name="TabLeftovers" xml:space="preserve">
+    <value>Surplus</value>
+  </data>
+  <data name="ColSource" xml:space="preserve">
+    <value>Source</value>
+  </data>
+  <data name="ColTotalValue" xml:space="preserve">
+    <value>Valeur totale</value>
+  </data>
+  <data name="TabFinalProducts" xml:space="preserve">
+    <value>Produits finaux</value>
+  </data>
+  <data name="ColReq" xml:space="preserve">
+    <value>Demandé</value>
+  </data>
+  <data name="ColMatCost" xml:space="preserve">
+    <value>Coût mat.</value>
+  </data>
+  <data name="ColJobCost" xml:space="preserve">
+    <value>Coût travail</value>
+  </data>
+  <data name="ColUnitCost" xml:space="preserve">
+    <value>Coût unitaire</value>
+  </data>
+  <data name="ColMarketUnit" xml:space="preserve">
+    <value>Marché/unité</value>
+  </data>
+  <data name="ColProfit" xml:space="preserve">
+    <value>Bénéfice</value>
+  </data>
+  <data name="TabJobs" xml:space="preserve">
+    <value>Travaux</value>
+  </data>
+  <data name="TipPackedVolumeThisJob" xml:space="preserve">
+    <value>Volume emballé que consomme ce travail — ce qui doit parvenir à l'installation.</value>
+  </data>
+  <data name="TipPackedVolumeThisJob2" xml:space="preserve">
+    <value>Volume emballé que produit ce travail — ce qui en sort.</value>
+  </data>
+  <data name="TipOpenInTheStructureBrowser" xml:space="preserve">
+    <value>Ouvrir dans l'explorateur de structures</value>
+  </data>
+  <data name="TipOpenOnTheMap" xml:space="preserve">
+    <value>Ouvrir sur la carte</value>
+  </data>
+  <data name="Materials" xml:space="preserve">
+    <value>Matériaux</value>
+  </data>
+  <data name="TipCopyEveryBoughtMaterial" xml:space="preserve">
+    <value>Copier tous les matériaux achetés pour ce travail (nom et quantité, séparés par des tabulations)</value>
+  </data>
+  <data name="TipCopyOnlyTheBought" xml:space="preserve">
+    <value>Copier uniquement les matériaux achetés qui manquent à l'installation liée à ce travail</value>
+  </data>
+  <data name="Material" xml:space="preserve">
+    <value>Matériau</value>
+  </data>
+  <data name="BaseRun" xml:space="preserve">
+    <value>Base/cycle</value>
+  </data>
+  <data name="EffRun" xml:space="preserve">
+    <value>Eff./cycle</value>
+  </data>
+  <data name="Total" xml:space="preserve">
+    <value>Total</value>
+  </data>
+  <data name="Missing" xml:space="preserve">
+    <value>Manquant</value>
+  </data>
+  <data name="TipShortfallAgainstStockAt" xml:space="preserve">
+    <value>Manque par rapport au stock de l'installation liée à ce travail. Un tiret cadratin signifie que la structure du parc n'est liée à aucune installation.</value>
+  </data>
+  <data name="Source" xml:space="preserve">
+    <value>Source</value>
+  </data>
+  <data name="FormulaSdeBaseResult" xml:space="preserve">
+    <value>Formule (base SDE → résultat)</value>
+  </data>
+  <data name="FmtRequested" xml:space="preserve">
+    <value>Demandé : {0:N0}</value>
+  </data>
+  <data name="FmtProduced" xml:space="preserve">
+    <value>Produit : {0:N0}</value>
+  </data>
+  <data name="FmtMatIsk" xml:space="preserve">
+    <value>Mat. : {0:N0} ISK</value>
+  </data>
+  <data name="FmtJobsIsk" xml:space="preserve">
+    <value>Travaux : {0:N0} ISK</value>
+  </data>
+  <data name="FmtUnitCostIsk" xml:space="preserve">
+    <value>Coût unitaire : {0:N2} ISK</value>
+  </data>
+  <data name="FmtMarketUnit" xml:space="preserve">
+    <value>Marché : {0:N2}/unité</value>
+  </data>
+  <data name="FmtProfitIsk" xml:space="preserve">
+    <value>Bénéfice : {0:N0} ISK</value>
+  </data>
+  <data name="FmtMargin" xml:space="preserve">
+    <value>Marge : {0:F1} %</value>
+  </data>
+  <data name="FmtItemsToPurchaseDouble" xml:space="preserve">
+    <value>{0} objets à acheter — double-cliquez sur une ligne pour l'ouvrir dans l'explorateur d'objets</value>
+  </data>
+  <data name="FmtLeftoverItemsValuedAt" xml:space="preserve">
+    <value>{0} objets en surplus, évalués au coût de construction — double-cliquez pour ouvrir dans l'explorateur d'objets</value>
+  </data>
+  <data name="FmtRuns" xml:space="preserve">
+    <value>Cycles : {0}</value>
+  </data>
+  <data name="FmtOut" xml:space="preserve">
+    <value>Sortie : {0:N0}</value>
+  </data>
+  <data name="FmtLeftover" xml:space="preserve">
+    <value>Surplus : {0:N0}</value>
+  </data>
+  <data name="FmtInM" xml:space="preserve">
+    <value>Entrée : {0:N0} m³</value>
+  </data>
+  <data name="FmtOutM" xml:space="preserve">
+    <value>Sortie : {0:N0} m³</value>
+  </data>
+  <data name="FmtJobIsk" xml:space="preserve">
+    <value>Travail : {0:N0} ISK</value>
+  </data>
+  <data name="TitleProductionCalculator" xml:space="preserve">
+    <value>Calculateur de production</value>
+  </data>
+  <data name="OverrideStatusNone" xml:space="preserve">
+    <value>Aucun prix personnalisé. Ajoutez un type pour fixer sa valeur de construction, de marché ou en contrat.</value>
+  </data>
+  <data name="OverrideStatusCount" xml:space="preserve">
+    <value>{0} prix personnalisé(s).</value>
+  </data>
+  <data name="OverrideStatusAdded" xml:space="preserve">
+    <value>Ajout de {0}. Saisissez une valeur et appuyez sur {1}.</value>
+  </data>
+  <data name="OverrideStatusRemoved" xml:space="preserve">
+    <value>Retrait de {0}. Enregistrez et recalculez pour actualiser les coûts.</value>
+  </data>
+  <data name="OverrideStatusSaving" xml:space="preserve">
+    <value>Enregistré — recalcul des coûts de construction…</value>
+  </data>
+  <data name="OverrideStatusSaved" xml:space="preserve">
+    <value>{0} prix personnalisé(s) enregistré(s) et coûts de construction recalculés à {1:t}.</value>
+  </data>
+  <data name="OverrideStatusSaveFailed" xml:space="preserve">
+    <value>Échec de l'enregistrement : {0}</value>
+  </data>
+  <data name="ModeBuildSellOrder" xml:space="preserve">
+    <value>Produire et vendre par ordre de vente</value>
+  </data>
+  <data name="ModeBuildSellToBuyOrder" xml:space="preserve">
+    <value>Produire et vendre aux ordres d'achat</value>
+  </data>
+  <data name="OppsStatusStart" xml:space="preserve">
+    <value>Sélectionnez une configuration de marché, puis cliquez sur Calculer.</value>
+  </data>
+  <data name="OppsErrNoConfig" xml:space="preserve">
+    <value>Veuillez sélectionner une configuration de marché pour les prix.</value>
+  </data>
+  <data name="OppsErrMinIskVolume" xml:space="preserve">
+    <value>Veuillez saisir un volume ISK minimum valide (ou laisser vide pour ne pas filtrer).</value>
+  </data>
+  <data name="OppsErrMinUnitVolume" xml:space="preserve">
+    <value>Veuillez saisir un nombre d'unités minimum valide (ou laisser vide pour ne pas filtrer).</value>
+  </data>
+  <data name="OppsStatusCalculating" xml:space="preserve">
+    <value>Calcul…</value>
+  </data>
+  <data name="OppsRegionUnresolved" xml:space="preserve">
+    <value>non déterminée</value>
+  </data>
+  <data name="OppsErrNoRegion" xml:space="preserve">
+    <value>Impossible de déterminer la région de cette configuration de marché — les filtres de volume sur 30 jours ont besoin d'une région pour consulter l'historique du marché.</value>
+  </data>
+  <data name="OppsStatusNone" xml:space="preserve">
+    <value>Aucune opportunité de production rentable trouvée pour cette configuration de marché.</value>
+  </data>
+  <data name="OppsRegionNumbered" xml:space="preserve">
+    <value>Région {0}</value>
+  </data>
+  <data name="CalcMissingByStation" xml:space="preserve">
+    <value>La colonne Manquant compte le stock de l'installation liée à chaque travail</value>
+  </data>
+  <data name="CalcMissingByAssets" xml:space="preserve">
+    <value>La colonne Manquant compte tous vos biens, où qu'ils soient</value>
+  </data>
+  <data name="CalcWarnNoAssignment" xml:space="preserve">
+    <value>{0} objet(s) sans structure attribuée dans ce parc</value>
+  </data>
+  <data name="CalcWarnBlueprintPrices" xml:space="preserve">
+    <value>{0} prix de plans obsolète(s) ou manquant(s)</value>
+  </data>
+  <data name="CalcStatusCalculating" xml:space="preserve">
+    <value>Calcul…</value>
+  </data>
+  <data name="CalcStatusDone" xml:space="preserve">
+    <value>Terminé — {0} travaux, {1} matières premières</value>
+  </data>
+  <data name="FileTypeText" xml:space="preserve">
+    <value>Texte</value>
+  </data>
+  <data name="TitleExportRawMaterials" xml:space="preserve">
+    <value>Exporter les matières premières</value>
+  </data>
+  <data name="TitleRemovalConfirmation" xml:space="preserve">
+    <value>Confirmation de suppression</value>
+  </data>
+  <data name="TitleImportPark" xml:space="preserve">
+    <value>Importer un parc</value>
+  </data>
+  <data name="TipNpcFixedTax" xml:space="preserve">
+    <value>Les stations PNJ appliquent une taxe d'installation fixe de {0} %.</value>
+  </data>
+  <data name="TipNameFromLink" xml:space="preserve">
+    <value>Nom donné par l'installation liée. Déliez-la pour renommer la structure.</value>
+  </data>
+  <data name="TipTypeFromLink" xml:space="preserve">
+    <value>Défini par la coque de l'installation liée.</value>
+  </data>
+  <data name="TipSystemFromLink" xml:space="preserve">
+    <value>Défini par l'installation liée. Déliez-la pour choisir un autre système.</value>
+  </data>
+  <data name="TipSecurityFromLinkedSystem" xml:space="preserve">
+    <value>Classe de sécurité déterminée par le système de l'installation liée.</value>
+  </data>
+  <data name="TipSecurityFromSystem" xml:space="preserve">
+    <value>Classe de sécurité déterminée par la sécurité du système lui-même. Effacez ou changez le système pour la choisir à la main.</value>
+  </data>
+  <data name="FittingNpcUnlinked" xml:space="preserve">
+    <value>Station PNJ — elle n'accepte aucun module d'optimisation. Liez la station pour afficher les services qu'elle propose.</value>
+  </data>
+  <data name="FittingNpcLinked" xml:space="preserve">
+    <value>Station PNJ — elle n'accepte aucun module d'optimisation, et ses modules de service représentent les services propres à la station.</value>
+  </data>
+  <data name="FittingFromAssets" xml:space="preserve">
+    <value>D'après les biens — le jeu indique le montage de cette structure : il ne peut donc pas être modifié ici.</value>
+  </data>
+  <data name="FittingByHand" xml:space="preserve">
+    <value>Saisi à la main — ce montage est aussi enregistré sur la structure liée.</value>
+  </data>
+  <data name="FacilityNotLinked" xml:space="preserve">
+    <value>Non liée — pas de contrôle des optimisations pour les travaux ici</value>
+  </data>
+  <data name="CategoryLargeShips" xml:space="preserve">
+    <value>Grands vaisseaux</value>
+  </data>
+  <data name="CategoryMediumShips" xml:space="preserve">
+    <value>Vaisseaux intermédiaires</value>
+  </data>
+  <data name="CategorySmallShips" xml:space="preserve">
+    <value>Petits vaisseaux</value>
+  </data>
+  <data name="CategoryCapitalShips" xml:space="preserve">
+    <value>Vaisseaux capitaux</value>
+  </data>
+  <data name="CategoryAdvLargeShips" xml:space="preserve">
+    <value>Grands vaisseaux avancés</value>
+  </data>
+  <data name="CategoryAdvMediumShips" xml:space="preserve">
+    <value>Vaisseaux intermédiaires avancés</value>
+  </data>
+  <data name="CategoryAdvSmallShips" xml:space="preserve">
+    <value>Petits vaisseaux avancés</value>
+  </data>
+  <data name="CategoryCapitalComponents" xml:space="preserve">
+    <value>Composants capitaux</value>
+  </data>
+  <data name="CategoryAdvComponents" xml:space="preserve">
+    <value>Composants avancés</value>
+  </data>
+  <data name="CategoryCapAdvComponents" xml:space="preserve">
+    <value>Composants capitaux avancés</value>
+  </data>
+  <data name="CategoryDronesFighters" xml:space="preserve">
+    <value>Drones et chasseurs</value>
+  </data>
+  <data name="CategoryAmmoCharges" xml:space="preserve">
+    <value>Munitions et charges</value>
+  </data>
+  <data name="CategoryModulesEquipment" xml:space="preserve">
+    <value>Modules et équipement</value>
+  </data>
+  <data name="CategoryStructuresFuel" xml:space="preserve">
+    <value>Structures, composants et blocs de carburant</value>
+  </data>
+  <data name="CategoryCompositeReactions" xml:space="preserve">
+    <value>Réactions composites</value>
+  </data>
+  <data name="CategoryMoonReactions" xml:space="preserve">
+    <value>Réactions lunaires</value>
+  </data>
+  <data name="CategoryBioGasReactions" xml:space="preserve">
+    <value>Réactions biochimiques et en phase gazeuse</value>
+  </data>
+  <data name="CategoryBpResearch" xml:space="preserve">
+    <value>Recherche sur plans</value>
+  </data>
+  <data name="CategoryBpCopying" xml:space="preserve">
+    <value>Copie de plans</value>
+  </data>
+  <data name="CategoryBpInvention" xml:space="preserve">
+    <value>Invention de plans</value>
+  </data>
+  <data name="CategoryRefineOre" xml:space="preserve">
+    <value>Retraitement du minerai standard</value>
+  </data>
+  <data name="CategoryRefineMoonOre" xml:space="preserve">
+    <value>Retraitement du minerai lunaire</value>
+  </data>
+  <data name="CategoryRefineIce" xml:space="preserve">
+    <value>Retraitement de la glace</value>
+  </data>
+  <data name="CategoryDecompressGas" xml:space="preserve">
+    <value>Décompression du gaz</value>
+  </data>
+  <data name="DefaultParkName" xml:space="preserve">
+    <value>Nouveau parc</value>
+  </data>
+  <data name="ServiceTypeNumbered" xml:space="preserve">
+    <value>Type {0}</value>
+  </data>
+  <data name="StatusPickParkFirst" xml:space="preserve">
+    <value>Choisissez d'abord un parc.</value>
+  </data>
+  <data name="BulkUnavailable" xml:space="preserve">
+    <value>L'ajout groupé n'est pas disponible.</value>
+  </data>
+  <data name="BulkPickSystem" xml:space="preserve">
+    <value>Choisissez un système dans la liste.</value>
+  </data>
+  <data name="BulkNoneKnown" xml:space="preserve">
+    <value>Aucune structure industrielle connue dans {0}. Seules les structures dont l'application a déjà résolu le nom peuvent être ajoutées.</value>
+  </data>
+  <data name="DefaultStructureName" xml:space="preserve">
+    <value>Nouvelle structure</value>
+  </data>
+  <data name="OppsNoteHistoryPriced" xml:space="preserve">
+    <value>* {0} évalué(s) d'après la moyenne sur 30 jours (aucun ordre de vente)</value>
+  </data>
+  <data name="OppsNoteVolumeRegion" xml:space="preserve">
+    <value>Région du volume sur 30 j : {0}</value>
+  </data>
+  <data name="OppsStatusProfitableOne" xml:space="preserve">
+    <value>{0} objet rentable · prix selon {1}</value>
+  </data>
+  <data name="OppsStatusProfitableOther" xml:space="preserve">
+    <value>{0} objets rentables · prix selon {1}</value>
+  </data>
+  <data name="StructureTypeNpcStation" xml:space="preserve">
+    <value>Station PNJ</value>
+  </data>
+  <data name="SecurityHighSec" xml:space="preserve">
+    <value>Haute sécurité</value>
+  </data>
+  <data name="SecurityLowSec" xml:space="preserve">
+    <value>Basse sécurité</value>
+  </data>
+  <data name="SecurityNullSec" xml:space="preserve">
+    <value>Sécurité nulle</value>
+  </data>
+  <data name="SecurityWormhole" xml:space="preserve">
+    <value>Trou de ver</value>
+  </data>
+  <data name="ConfirmDeletePark" xml:space="preserve">
+    <value>Supprimer le parc « {0} » ?</value>
+  </data>
+  <data name="ConfirmDeleteParkStructuresOne" xml:space="preserve">
+    <value>Sont supprimés avec lui : {0} structure et ses modules d'optimisation et de service, ses attributions de catégorie et ses exceptions par objet. Cette action est irréversible.</value>
+  </data>
+  <data name="ConfirmDeleteParkStructuresOther" xml:space="preserve">
+    <value>Sont supprimés avec lui : ses {0} structures et leurs modules d'optimisation et de service, ses attributions de catégorie et ses exceptions par objet. Cette action est irréversible.</value>
+  </data>
+  <data name="ConfirmDeleteParkNoStructures" xml:space="preserve">
+    <value>Ses attributions de catégorie et ses exceptions par objet sont supprimées avec lui. Cette action est irréversible.</value>
+  </data>
+  <data name="ConfirmDeleteParkNewDefault" xml:space="preserve">
+    <value>C'est le parc par défaut : « {0} » deviendra donc le parc par défaut.</value>
+  </data>
+  <data name="AutoAssignNothing" xml:space="preserve">
+    <value>Rien à attribuer</value>
+  </data>
+  <data name="AutoAssignAssigned" xml:space="preserve">
+    <value>{0} catégorie(s) attribuée(s)</value>
+  </data>
+  <data name="AutoAssignAlreadySet" xml:space="preserve">
+    <value>{0} déjà définie(s)</value>
+  </data>
+  <data name="AutoAssignAmbiguous" xml:space="preserve">
+    <value>{0} avec plusieurs structures optimisées, laissée(s) à votre choix ({1})</value>
+  </data>
+  <data name="AutoAssignNoMatch" xml:space="preserve">
+    <value>{0} sans structure optimisée</value>
+  </data>
+  <data name="AutoAssignSummary" xml:space="preserve">
+    <value>{0}.</value>
+  </data>
+  <data name="BulkNothingNew" xml:space="preserve">
+    <value>Rien de nouveau à ajouter dans {0} — {1} déjà dans ce parc.</value>
+  </data>
+  <data name="BulkNothingNewSkipped" xml:space="preserve">
+    <value>Rien de nouveau à ajouter dans {0} — {1} déjà dans ce parc, {2} raffinerie(s) lunaire(s) ignorée(s).</value>
+  </data>
+  <data name="BulkAdded" xml:space="preserve">
+    <value>{0} structure(s) ajoutée(s) depuis {1}.</value>
+  </data>
+  <data name="BulkAddedAlready" xml:space="preserve">
+    <value>{0} structure(s) ajoutée(s) depuis {1}, {2} déjà présente(s).</value>
+  </data>
+  <data name="BulkAddedSkipped" xml:space="preserve">
+    <value>{0} structure(s) ajoutée(s) depuis {1}, {2} raffinerie(s) lunaire(s) ignorée(s).</value>
+  </data>
+  <data name="BulkAddedAlreadySkipped" xml:space="preserve">
+    <value>{0} structure(s) ajoutée(s) depuis {1}, {2} déjà présente(s), {3} raffinerie(s) lunaire(s) ignorée(s).</value>
+  </data>
+  <data name="ConfirmRemoveStructure" xml:space="preserve">
+    <value>Retirer « {0} » de ce parc ?</value>
+  </data>
+  <data name="ConfirmRemoveStructureDetail" xml:space="preserve">
+    <value>Ses modules d'optimisation et de service sont supprimés ici, et toute catégorie ou exception par objet qui lui envoie du travail se retrouve sans attribution. La structure dans le jeu n'est pas affectée.</value>
+  </data>
+  <data name="OwnerAll" xml:space="preserve">
+    <value>Tous les propriétaires</value>
+  </data>
+  <data name="ColTimeRemaining" xml:space="preserve">
+    <value>Temps restant</value>
+  </data>
+  <data name="ColProduct" xml:space="preserve">
+    <value>Produit</value>
+  </data>
+  <data name="ColSuccessfulRuns" xml:space="preserve">
+    <value>Cycles réussis</value>
+  </data>
+  <data name="ColItemsProduced" xml:space="preserve">
+    <value>Objets produits</value>
+  </data>
+  <data name="ColFacility" xml:space="preserve">
+    <value>Installation</value>
+  </data>
+  <data name="ColNote" xml:space="preserve">
+    <value>Note</value>
+  </data>
+  <data name="ColCreated" xml:space="preserve">
+    <value>Début</value>
+  </data>
+  <data name="ColCompleted" xml:space="preserve">
+    <value>Fin</value>
+  </data>
+  <data name="ActivityAll" xml:space="preserve">
+    <value>Toutes les activités</value>
+  </data>
+  <data name="ActivityManufacturing" xml:space="preserve">
+    <value>Production</value>
+  </data>
+  <data name="ActivityTeResearch" xml:space="preserve">
+    <value>Recherche TE</value>
+  </data>
+  <data name="ActivityMeResearch" xml:space="preserve">
+    <value>Recherche ME</value>
+  </data>
+  <data name="ActivityCopying" xml:space="preserve">
+    <value>Copie</value>
+  </data>
+  <data name="ActivityInvention" xml:space="preserve">
+    <value>Invention</value>
+  </data>
+  <data name="ActivityReverseEngineering" xml:space="preserve">
+    <value>Rétro-ing.</value>
+  </data>
+  <data name="ActivityReactions" xml:space="preserve">
+    <value>Réactions</value>
+  </data>
+  <data name="StatusFilterAll" xml:space="preserve">
+    <value>Tous les statuts</value>
+  </data>
+  <data name="StatusFilterActive" xml:space="preserve">
+    <value>actif</value>
+  </data>
+  <data name="StatusFilterPaused" xml:space="preserve">
+    <value>en pause</value>
+  </data>
+  <data name="StatusFilterReady" xml:space="preserve">
+    <value>prêt</value>
+  </data>
+  <data name="StatusFilterDelivered" xml:space="preserve">
+    <value>livré</value>
+  </data>
+  <data name="StatusFilterCancelled" xml:space="preserve">
+    <value>annulé</value>
+  </data>
+  <data name="StatusFilterReverted" xml:space="preserve">
+    <value>rétabli</value>
+  </data>
+  <data name="JobStatusActive" xml:space="preserve">
+    <value>Actif</value>
+  </data>
+  <data name="JobStatusPaused" xml:space="preserve">
+    <value>En pause</value>
+  </data>
+  <data name="JobStatusReady" xml:space="preserve">
+    <value>Prêt</value>
+  </data>
+  <data name="JobStatusDelivered" xml:space="preserve">
+    <value>Livré</value>
+  </data>
+  <data name="JobStatusCancelled" xml:space="preserve">
+    <value>Annulé</value>
+  </data>
+  <data name="JobStatusReverted" xml:space="preserve">
+    <value>Rétabli</value>
+  </data>
+  <data name="JobsCountOne" xml:space="preserve">
+    <value>{0:N0} travail</value>
+  </data>
+  <data name="JobsCountOther" xml:space="preserve">
+    <value>{0:N0} travaux</value>
+  </data>
+  <data name="JobsActiveCount" xml:space="preserve">
+    <value>{0} actif(s)</value>
+  </data>
+  <data name="MenuCopy" xml:space="preserve">
+    <value>Copier</value>
+  </data>
+  <data name="MenuCopyWithHeaders" xml:space="preserve">
+    <value>Copier avec les en-têtes</value>
+  </data>
+  <data name="OwnerTypePlayer" xml:space="preserve">
+    <value>Personnage</value>
+  </data>
+  <data name="OwnerTypeCorp" xml:space="preserve">
+    <value>Corporation</value>
+  </data>
+  <data name="RigNoteNoRigs" xml:space="preserve">
+    <value>{0} : aucun module d'optimisation industriel monté</value>
+  </data>
+  <data name="RigNoteNotRiggedFor" xml:space="preserve">
+    <value>{0} : aucune optimisation pour {1}</value>
+  </data>
+  <data name="RigCatSmallShips" xml:space="preserve">
+    <value>les petits vaisseaux</value>
+  </data>
+  <data name="RigCatMediumShips" xml:space="preserve">
+    <value>les vaisseaux intermédiaires</value>
+  </data>
+  <data name="RigCatLargeShips" xml:space="preserve">
+    <value>les grands vaisseaux</value>
+  </data>
+  <data name="RigCatAdvSmallShips" xml:space="preserve">
+    <value>les petits vaisseaux avancés</value>
+  </data>
+  <data name="RigCatAdvMediumShips" xml:space="preserve">
+    <value>les vaisseaux intermédiaires avancés</value>
+  </data>
+  <data name="RigCatAdvLargeShips" xml:space="preserve">
+    <value>les grands vaisseaux avancés</value>
+  </data>
+  <data name="RigCatCapitalShips" xml:space="preserve">
+    <value>les vaisseaux capitaux</value>
+  </data>
+  <data name="RigCatDronesFighters" xml:space="preserve">
+    <value>les drones et les chasseurs</value>
+  </data>
+  <data name="RigCatEquipment" xml:space="preserve">
+    <value>l'équipement</value>
+  </data>
+  <data name="RigCatAmmunition" xml:space="preserve">
+    <value>les munitions</value>
+  </data>
+  <data name="RigCatCapitalComponents" xml:space="preserve">
+    <value>les composants capitaux</value>
+  </data>
+  <data name="RigCatAdvComponents" xml:space="preserve">
+    <value>les composants avancés</value>
+  </data>
+  <data name="RigCatStructuresFuel" xml:space="preserve">
+    <value>les structures et le carburant</value>
+  </data>
+  <data name="RigCatGasReactions" xml:space="preserve">
+    <value>les réactions de gaz</value>
+  </data>
+  <data name="RigCatMoonReactions" xml:space="preserve">
+    <value>les réactions lunaires</value>
+  </data>
+  <data name="RigCatCompositeReactions" xml:space="preserve">
+    <value>les réactions composites</value>
+  </data>
+  <data name="RigCatReactions" xml:space="preserve">
+    <value>les réactions</value>
+  </data>
+  <data name="TypeIdNumbered" xml:space="preserve">
+    <value>ID de type {0}</value>
+  </data>
+  <data name="FormulaRecalc" xml:space="preserve">
+    <value>ceil({0:N0} × {1:F4} × {2:N0} cycles) → {3:N0}</value>
+  </data>
+  <data name="BpcPriceNeverSeen" xml:space="preserve">
+    <value>{0} — jamais vu en contrat ; compté pour 0 ISK</value>
+  </data>
+  <data name="FormulaBpc" xml:space="preserve">
+    <value>1 BPC par cycle au prix en contrat (ME{0})</value>
+  </data>
+  <data name="SourceIntermediate" xml:space="preserve">
+    <value>Intermédiaire</value>
+  </data>
+  <data name="SourceFinalProduct" xml:space="preserve">
+    <value>Produit final</value>
+  </data>
+  <data name="SourceBuy" xml:space="preserve">
+    <value>Acheter</value>
+  </data>
+  <data name="SourceBuild" xml:space="preserve">
+    <value>Produire</value>
+  </data>
+  <data name="JobModifiers" xml:space="preserve">
+    <value>ME -{0:F0} %  Optim. -{1:F2} %  Structure -{2:F1} %  → ×{3:F4}</value>
+  </data>
+  <data name="FormulaMaterial" xml:space="preserve">
+    <value>ceil({0:N0} × {1:F4} × {2:N0} cycles) = ceil({3:N2} × {2:N0}) → {4:N0}</value>
+  </data>
+  <data name="BpcTypeName" xml:space="preserve">
+    <value>{0} (BPC)</value>
+  </data>
+  <data name="BpcPriceStale" xml:space="preserve">
+    <value>{0} — {1:N0} ISK par cycle, d'après un contrat terminé le {2:yyyy-MM-dd} ; aucun proposé depuis</value>
+  </data>
+  <data name="BpcPriceStaleUndated" xml:space="preserve">
+    <value>{0} — {1:N0} ISK par cycle, d'après un contrat terminé il y a un certain temps ; aucun proposé depuis</value>
+  </data>
+  <data name="WarnUnrecognizedPlannedIn" xml:space="preserve">
+    <value>{0} (type non reconnu — mettez à jour ItemCategoryKey ; planifié dans {1} sans bonus d'optimisation)</value>
+  </data>
+  <data name="WarnUnrecognizedUnplanned" xml:space="preserve">
+    <value>{0} (type non reconnu — mettez à jour ItemCategoryKey ; planifié sans structure ni bonus — définissez une installation fourre-tout pour ce parc)</value>
+  </data>
+  <data name="WarnUnassignedPlannedIn" xml:space="preserve">
+    <value>{0} (catégorie « {1} » non attribuée dans ce parc ; planifié dans {2} sans bonus d'optimisation)</value>
+  </data>
+  <data name="WarnUnassignedUnplanned" xml:space="preserve">
+    <value>{0} (catégorie « {1} » non attribuée dans ce parc ; planifié sans structure ni bonus — définissez une installation fourre-tout pour ce parc)</value>
+  </data>
+</root>
