@@ -150,7 +150,12 @@ public sealed record StandingProjectGridRow(
     double? Adm = null,
     /// <summary>When a project matching this line was last COMPLETED, so an absent one can be
     /// read as "gone since" rather than merely absent. Null where none ever was.</summary>
-    DateTimeOffset? LastDone = null);
+    DateTimeOffset? LastDone = null,
+    /// <summary>TargetDisplay as the screen words it, where only this service can: an ADM rule
+    /// with its region or constellation in the interface language. Empty on every other row —
+    /// StandingProjectRowVm words those from the ids. ⚠️ For the screen alone: the scheduled
+    /// posts and the worklist print TargetDisplay.</summary>
+    string TargetShown = "");
 
 // ── Service ───────────────────────────────────────────────────────────────────
 
@@ -1398,7 +1403,9 @@ public class CorpActivityService
         long VictimCharId = 0, long FbCharId = 0,
         // Where it happened, so the system and region names link the way they do in the Killmail
         // tool. Both are already looked up to produce the names above.
-        int SolarSystemId = 0, int RegionId = 0);
+        int SolarSystemId = 0, int RegionId = 0,
+        // The names above are English; the row view model words them from these ids.
+        int ConstellationId = 0);
     public sealed record Activity24hSummary(int PlayerCount, decimal TotalIncome, decimal TotalExpense);
 
     public async Task<Activity24hSummary> Get24hSummaryAsync(long corpId, CancellationToken ct = default)
@@ -1646,7 +1653,7 @@ public class CorpActivityService
                 fb?.CorporationId ?? 0L, fb?.AllianceId ?? 0L,
                 Res(fb?.CharacterId), Res(fb?.CorporationId), Res(fb?.AllianceId),
                 isk, r.VictimCharId, fb?.CharacterId ?? 0L,
-                r.SolarSystemId, sys?.RegionId ?? 0);
+                r.SolarSystemId, sys?.RegionId ?? 0, sys?.ConstellationId ?? 0);
         }).ToList();
     }
 
@@ -1865,7 +1872,7 @@ public class CorpActivityService
                 fb?.CorporationId ?? 0L, fb?.AllianceId ?? 0L,
                 Res(fb?.CharacterId), Res(fb?.CorporationId), Res(fb?.AllianceId),
                 isk, r.VictimCharId, fb?.CharacterId ?? 0L,
-                r.SolarSystemId, sys?.RegionId ?? 0);
+                r.SolarSystemId, sys?.RegionId ?? 0, sys?.ConstellationId ?? 0);
         }).ToList();
     }
 
@@ -1965,7 +1972,7 @@ public class CorpActivityService
                 fb?.CorporationId ?? 0L, fb?.AllianceId ?? 0L,
                 Res(fb?.CharacterId), Res(fb?.CorporationId), Res(fb?.AllianceId),
                 isk, r.VictimCharId, fb?.CharacterId ?? 0L,
-                r.SolarSystemId, sys?.RegionId ?? 0);
+                r.SolarSystemId, sys?.RegionId ?? 0, sys?.ConstellationId ?? 0);
         }).ToList();
     }
 
@@ -2703,13 +2710,26 @@ public class CorpActivityService
                                     : [];
                         }
 
-                        var minAdm     = sp.MinAdm ?? 6.0;
-                        var scopeLabel = sp.ScopeType switch
+                        var minAdm = sp.MinAdm ?? 6.0;
+                        string Scope(string name) => sp.ScopeType switch
                         {
-                            "region_adm"   => string.Format(CorpText.ScopeRegionAdm, sp.ScopeEntityName, minAdm),
-                            "alliance_sov" => string.Format(CorpText.ScopeAllianceSov, sp.ScopeEntityName, minAdm),
-                            _              => string.Format(CorpText.ScopeConstellationAdm, sp.ScopeEntityName, minAdm),
+                            "region_adm"   => string.Format(CorpText.ScopeRegionAdm, name, minAdm),
+                            "alliance_sov" => string.Format(CorpText.ScopeAllianceSov, name, minAdm),
+                            _              => string.Format(CorpText.ScopeConstellationAdm, name, minAdm),
                         };
+                        var scopeLabel = Scope(sp.ScopeEntityName);
+
+                        // The same rule with its region or constellation in the interface language,
+                        // for the screen alone: the posts and the worklist print scopeLabel. An
+                        // alliance belongs to players, and has no other name.
+                        var scopeShown = Scope(sp.ScopeEntityId is int scopeId
+                            ? sp.ScopeType switch
+                              {
+                                  "region_adm"        => SdeNames.Region(scopeId, sp.ScopeEntityName),
+                                  "constellation_adm" => SdeNames.Constellation(scopeId, sp.ScopeEntityName),
+                                  _                   => sp.ScopeEntityName,
+                              }
+                            : sp.ScopeEntityName);
 
                         // All three scopes filter the same way. The scope chooses WHICH systems are
                         // in question; the ADM chooses which of those currently need something
@@ -2734,6 +2754,7 @@ public class CorpActivityService
                                 ProjectType         : StandingProjectReport.DestroyNpc,
                                 TypeDisplay         : CorpText.DestroyNpc,
                                 TargetDisplay       : scopeLabel,
+                                TargetShown         : scopeShown,
                                 DestDisplay         : "",
                                 ExpandedSystemId    : null,
                                 // ⚠️ Three ways to reach zero systems, and they are not the same
@@ -2765,6 +2786,7 @@ public class CorpActivityService
                                     ProjectType         : StandingProjectReport.DestroyNpc,
                                     TypeDisplay         : CorpText.DestroyNpc,
                                     TargetDisplay       : scopeLabel,
+                                    TargetShown         : scopeShown,
                                     DestDisplay         : sys.Name,
                                     ExpandedSystemId    : sys.SystemId,
                                     Adm                 : adm.TryGetValue(sys.SystemId, out var qAdm)

@@ -60,17 +60,21 @@ public class KillmailListRowVm : ReactiveObject
         DateText          = r.KillMailTime.UtcDateTime.ToString("yyyy-MM-dd");
         TimeText          = r.KillMailTime.UtcDateTime.ToString("HH:mm");
         TotalIskText      = r.TotalIsk > 0 ? FmtIsk(r.TotalIsk) : "";
-        ShipName          = r.ShipName;
+
+        // The hull and the places in the interface language, and a corporation where it is an
+        // NPC's — a rat's, or a pilot's starter corporation. Only for reading: every link on the
+        // row goes by id. Pilots, their corporations and alliances stay as ESI names them.
+        ShipName          = SdeNames.Type(r.VictimShipTypeId, r.ShipName);
         SystemId          = r.SystemId;
-        SystemName        = r.SystemName;
-        ConstellationName = r.ConstellationName;
+        SystemName        = SdeNames.SolarSystem(r.SystemId, r.SystemName);
+        ConstellationName = SdeNames.Constellation(r.ConstellationId, r.ConstellationName);
         RegionId          = r.RegionId;
-        RegionName        = r.RegionName;
+        RegionName        = SdeNames.Region(r.RegionId, r.RegionName);
         VictimName        = r.VictimName;
-        VictimCorp        = r.VictimCorp;
+        VictimCorp        = SdeNames.NpcCorporation(r.VictimCorpId, r.VictimCorp);
         VictimAlliance    = r.VictimAlliance;
         FbName            = r.FbName;
-        FbCorp            = r.FbCorp;
+        FbCorp            = SdeNames.NpcCorporation(r.FbCorpId, r.FbCorp);
         FbAlliance        = r.FbAlliance;
         _victimShipTypeId = r.VictimShipTypeId;
         _victimCharId     = r.VictimCharId;
@@ -262,11 +266,13 @@ public class KillmailAttackerVm : ReactiveObject
 
     public KillmailAttackerVm(KillmailAttackerRow r)
     {
+        // The ship, the weapon and an NPC's corporation in the interface language; the links and
+        // icons go by id. A pilot and their alliance stay as ESI names them.
         CharName      = r.CharName;
-        CorpName      = r.CorpName;
+        CorpName      = SdeNames.NpcCorporation(r.CorporationId, r.CorpName);
         AllianceName  = r.AllianceName;
-        ShipName      = r.ShipName;
-        WeaponName    = r.WeaponName;
+        ShipName      = SdeNames.Type(r.ShipTypeId, r.ShipName);
+        WeaponName    = SdeNames.Type(r.WeaponTypeId, r.WeaponName);
         DamageDone    = r.DamageDone;
         DamageText    = $"{r.DamageDone:N0}";
         FinalBlow     = r.FinalBlow;
@@ -355,14 +361,17 @@ public class KillmailDetailVm : ReactiveObject
         _victimAllianceId = d.VictimAllianceId;
         _victimShipTypeId = d.VictimShipTypeId;
 
-        ShipName       = d.ShipName;
+        // The hull, the place and an NPC victim corporation in the interface language. The
+        // nearest-celestial line stays as it is: planets, moons and gates keep their English.
+        var system     = SdeNames.SolarSystem(d.SystemId, d.SystemName);
+        var region     = SdeNames.Region(d.RegionId, d.RegionName);
+        ShipName       = SdeNames.Type(d.VictimShipTypeId, d.ShipName);
         VictimName     = d.VictimName;
-        VictimCorp     = d.VictimCorp;
+        VictimCorp     = SdeNames.NpcCorporation(d.VictimCorpId, d.VictimCorp);
         VictimAlliance = d.VictimAlliance;
         TimeText       = d.KillMailTime.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss");
         SystemId       = d.SystemId;
-        SystemText     = string.IsNullOrEmpty(d.RegionName)
-            ? d.SystemName : $"{d.SystemName}  ({d.RegionName})";
+        SystemText     = string.IsNullOrEmpty(d.RegionName) ? system : $"{system}  ({region})";
         LocationText   = d.LocationText;
         DamageTakenText= string.Format(CorpText.DamageTaken, d.VictimDamageTaken);
         DestroyedText  = FmtIsk(d.DestroyedIsk);
@@ -568,11 +577,16 @@ public class KillmailBrowserViewModel : ReactiveObject
         HasMore     = false;
         try
         {
+            // The rows name ships, places and NPC corporations in the interface language, and
+            // the filters find those names — so the names are awaited before either.
+            await SdeNames.EnsureLoadedAsync(ct);
+
             var page = await _service.GetListAsync(
                 _offset, KillmailBrowserService.PageSize,
                 _filterFrom is { } f ? DateOnly.FromDateTime(f) : null,
                 _filterThru is { } t ? DateOnly.FromDateTime(t) : null,
-                _filterChar, _filterCorp, _filterShip, _filterSystem, ct: ct);
+                _filterChar, _filterCorp, _filterShip, _filterSystem,
+                matchShownNames: true, ct: ct);
 
             var rows = page.Rows.Select(r => new KillmailListRowVm(r)).ToList();
             KillmailRows.Clear();
@@ -602,7 +616,8 @@ public class KillmailBrowserViewModel : ReactiveObject
                 _offset, KillmailBrowserService.PageSize,
                 _filterFrom is { } f ? DateOnly.FromDateTime(f) : null,
                 _filterThru is { } t ? DateOnly.FromDateTime(t) : null,
-                _filterChar, _filterCorp, _filterShip, _filterSystem, ct: ct);
+                _filterChar, _filterCorp, _filterShip, _filterSystem,
+                matchShownNames: true, ct: ct);
 
             var newRows = page.Rows.Select(r => new KillmailListRowVm(r)).ToList();
             foreach (var r in newRows) KillmailRows.Add(r);
@@ -655,6 +670,9 @@ public class KillmailBrowserViewModel : ReactiveObject
     {
         try
         {
+            // The item lists are worded and ordered in the service, the header here — both in
+            // the interface language, so the names come first.
+            await SdeNames.EnsureLoadedAsync(ct);
             var data = await _service.GetDetailAsync(killMailId, ct);
             Detail = data is not null ? new KillmailDetailVm(data) : null;
         }

@@ -47,11 +47,16 @@ public class EntityTabViewModel : ReactiveObject
     /// <summary>
     /// Feeds the AutoCompleteBox. Also records how many matched in total, so the tab can
     /// say when the dropdown was truncated rather than letting 300 look like all of them.
+    ///
+    /// <para>The tab's own search: NPC names as the game shows them in the interface language,
+    /// found by those or by the English. Awaits the names first, so the very first search
+    /// after start does not list English.</para>
     /// </summary>
     public Func<string?, CancellationToken, Task<IEnumerable<object>>> Populator =>
         async (text, ct) =>
         {
-            var hits = await _service.SearchWithEsiAsync(Kind, text ?? "", ct);
+            await SdeNames.EnsureLoadedAsync(ct);
+            var hits = await _service.SearchShownAsync(Kind, text ?? "", ct);
 
             if (hits.Count >= EntityBrowserService.MaxMatches)
             {
@@ -101,7 +106,13 @@ public class EntityTabViewModel : ReactiveObject
     // ── About ─────────────────────────────────────────────────────────────────
 
     private string _name = "";
+
+    /// <summary>The entity as the header shows it — an NPC's in the interface language.</summary>
     public string Name { get => _name; private set => this.RaiseAndSetIfChanged(ref _name, value); }
+
+    /// <summary>The same name in English, as the local tables hold it: what ESI's answer is
+    /// compared with. ⚠️ Never <see cref="Name"/>, which is only for reading.</summary>
+    private string _englishName = "";
 
     private string _subtitle = "";
     public string Subtitle { get => _subtitle; private set => this.RaiseAndSetIfChanged(ref _subtitle, value); }
@@ -365,21 +376,28 @@ public class EntityTabViewModel : ReactiveObject
 
         try
         {
+            // Everything below words SDE names in the interface language — the header here, the
+            // facts and every list in the service — so the names are awaited once, first.
+            await SdeNames.EnsureLoadedAsync(ct);
+
             var detail = await _service.DetailAsync(Kind, id, ct);
             if (detail is null || ct.IsCancellationRequested) return;
+
+            var shown = EntityBrowserService.ShownName(Kind, id, detail.Name);
 
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 _loadedId = id;
 
                 // Keep the picker in step with what a link loaded, so the box does not
-                // still read the previous entity.
-                _selectedMatch = new EntityMatch(id, detail.Name, "");
+                // still read the previous entity. It reads what the dropdown would have shown.
+                _selectedMatch = new EntityMatch(id, shown, "");
                 this.RaisePropertyChanged(nameof(SelectedMatch));
-                _searchText = detail.Name;
+                _searchText = shown;
                 this.RaisePropertyChanged(nameof(SearchText));
 
-                Name        = detail.Name;
+                _englishName = detail.Name;
+                Name         = shown;
                 Subtitle    = detail.Subtitle;
                 Description = detail.Description;
                 Image = null; CorpLogo = null; AllianceLogo = null; HasAffiliation = false;
@@ -438,17 +456,20 @@ public class EntityTabViewModel : ReactiveObject
 
                 // The local name cache can have no row for an entity reached by id alone, in
                 // which case the header is showing "Unknown 90000001". ESI just told us what it
-                // is actually called.
-                if (!string.IsNullOrWhiteSpace(esiName) && Name != esiName)
+                // is actually called. ⚠️ Compared in English — ESI's is English, and the header
+                // is not, for an NPC corporation.
+                if (!string.IsNullOrWhiteSpace(esiName) && _englishName != esiName)
                 {
-                    Name = esiName!;
+                    _englishName = esiName!;
+                    var shown    = EntityBrowserService.ShownName(Kind, id, esiName!);
+                    Name = shown;
 
                     // The picker was filled from the same unknown name, so it has to follow —
                     // otherwise the box still reads "Unknown 3004245" beside a header that now
                     // has the real one.
-                    _selectedMatch = new EntityMatch(id, esiName!, "");
+                    _selectedMatch = new EntityMatch(id, shown, "");
                     this.RaisePropertyChanged(nameof(SelectedMatch));
-                    _searchText = esiName!;
+                    _searchText = shown;
                     this.RaisePropertyChanged(nameof(SearchText));
                 }
 

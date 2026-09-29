@@ -325,12 +325,30 @@ public sealed class StandingProjectRowVm
         Action<long> onEdit,
         Action<long> onDelete)
     {
+        // The row as this screen reads it: the item, the system and an ADM rule's region or
+        // constellation in the interface language. A delivery's station keeps ESI's English.
+        // ⚠️ Only the words: the row itself is what the scheduled posts print, and ItemTypeName
+        // below stays English because the Item Browser is opened with it.
+        var shown = row with
+        {
+            TargetDisplay = row.TargetShown.Length > 0 ? row.TargetShown
+                          : row.ItemTypeId is int item ? SdeNames.Type(item, row.TargetDisplay)
+                          // A system named outright, rather than one an ADM rule picked.
+                          : row.ExpandedSystemId is int named && row.DestDisplay.Length == 0
+                              ? SdeNames.SolarSystem(named, row.TargetDisplay)
+                          : row.TargetDisplay,
+            // The system an ADM rule picked.
+            DestDisplay   = row.ItemTypeId is null && row.ExpandedSystemId is int picked && row.DestDisplay.Length > 0
+                              ? SdeNames.SolarSystem(picked, row.DestDisplay)
+                              : row.DestDisplay,
+        };
+
         DbId            = row.DbId;
         TypeDisplay     = row.TypeDisplay;
-        DescriptionText = row.TargetDisplay;
-        LocationText    = row.DestDisplay;
+        DescriptionText = shown.TargetDisplay;
+        LocationText    = shown.DestDisplay;
 
-        SummaryText = StandingProjectReport.Summary(row);
+        SummaryText = StandingProjectReport.Summary(shown);
         LocationId      = row.StationId ?? 0;
         LocationIsNpc   = row.StationIsNpc;
 
@@ -432,7 +450,9 @@ public sealed class MiningLedgerRowVm
         CharacterName        = r.CharacterName;
         CharacterId          = r.CharacterId;
         TypeId               = r.TypeId;
-        TypeName             = r.TypeName;
+        // The ore in the interface language; the column sorts and copies what it shows, and the
+        // link goes by TypeId.
+        TypeName             = SdeNames.Type(r.TypeId, r.TypeName);
         Quantity             = r.Quantity;
         QuantityText         = r.Quantity.ToString("N0");
         ReprocessedValue     = r.ReprocessedValue;
@@ -548,13 +568,21 @@ public sealed class WalletDetailRowVm
     public bool HasPartyLink => PartyId > 0 && Name.Length > 0;
     public void OpenParty() => EntityNavigator.Instance.Entity(EntityLinks.KindOf(PartyId), PartyId);
 
+    /// <summary>The other party as the name cache holds it, in English. <see cref="Name"/> is
+    /// what the grid shows — an NPC's in the interface language — and the name filter looks at
+    /// both, since names get pasted from outside the game in English.</summary>
+    internal string EnglishName { get; }
+
     public WalletDetailRowVm(WalletDetailRow r)
     {
         PartyId    = r.PartyId;
         When       = r.Date;
         WhenText   = r.Date.UtcDateTime.ToString("yyyy-MM-dd HH:mm");
         TypeName   = CorpActivityViewModel.FormatRefType(r.RefType);
-        Name       = r.PartyName;
+        EnglishName = r.PartyName;
+        // CONCORD paying out a bounty, an agent a mission reward: the other party is an NPC as
+        // often as a player, and an NPC is named in the interface language.
+        Name       = EntityLinks.ShownName(r.PartyId, r.PartyName);
         AmountRaw  = r.Amount;
         AmountText = CorpActivityViewModel.FormatIskStatic(r.Amount);
         ReasonText = r.Reason;
@@ -696,15 +724,19 @@ public sealed class Activity24hKillRowVm : ReactiveObject
         IsLoss            = r.IsLoss;
         DateText          = r.Time.UtcDateTime.ToString("yyyy-MM-dd");
         TimeText          = r.Time.UtcDateTime.ToString("HH:mm");
-        ShipName          = r.ShipName;
-        SystemName        = r.SystemName;
-        ConstellationName = r.ConstellationName;
-        RegionName        = r.RegionName;
+
+        // The hull and the places in the interface language, and a corporation where it is an
+        // NPC's — a rat's, or a pilot's starter corporation. Only for reading: every link on the
+        // row goes by id. Pilots, their corporations and alliances stay as ESI names them.
+        ShipName          = SdeNames.Type(r.VictimShipTypeId, r.ShipName);
+        SystemName        = SdeNames.SolarSystem(r.SolarSystemId, r.SystemName);
+        ConstellationName = SdeNames.Constellation(r.ConstellationId, r.ConstellationName);
+        RegionName        = SdeNames.Region(r.RegionId, r.RegionName);
         VictimName        = r.VictimName;
-        VictimCorp        = r.VictimCorp;
+        VictimCorp        = SdeNames.NpcCorporation(r.VictimCorpId, r.VictimCorp);
         VictimAlliance    = r.VictimAlliance;
         FbName            = r.FbName;
-        FbCorp            = r.FbCorp;
+        FbCorp            = SdeNames.NpcCorporation(r.FbCorpId, r.FbCorp);
         FbAlliance        = r.FbAlliance;
         _victimShipTypeId = r.VictimShipTypeId;
         _solarSystemId    = r.SolarSystemId;
@@ -1574,6 +1606,11 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         var excludeIds = _excludeSvc.GetExcludeIds();
         try
         {
+            // The kill, mining, wallet and project rows word SDE names in the interface language,
+            // so the names are awaited once, before the first of them is built. The later
+            // refreshes find them loaded.
+            await SdeNames.EnsureLoadedAsync(ct);
+
             await RunStep("wallet",           CorpText.StepWallet,          () => LoadWalletAsync(corpId, ct));
             await RunStep("daily chart",      CorpText.StepDailyChart,      () => LoadDailyChartAsync(corpId, ct));
             await RunStep("kills",            CorpText.StepKills,           () => LoadKillsTabAsync(corpId, ct));
@@ -2273,8 +2310,10 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         var vms = rows.Select(r => new WalletDetailRowVm(r));
         if (!string.IsNullOrWhiteSpace(name))
         {
+            // What the grid shows, or the English — an NPC party reads in the interface language.
             var needle = name.Trim();
-            vms = vms.Where(v => v.Name.Contains(needle, StringComparison.OrdinalIgnoreCase));
+            vms = vms.Where(v => v.Name.Contains(needle, StringComparison.OrdinalIgnoreCase)
+                              || v.EnglishName.Contains(needle, StringComparison.OrdinalIgnoreCase));
         }
         return vms.ToList();
     }
@@ -2745,6 +2784,22 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
                 return Resolve(targetId);
             }
 
+            // An id's name as the panel shows it: an SDE entity's in the interface language, told
+            // apart by the key that holds the id. Players, their corporations and alliances,
+            // stations and structures read as they were resolved.
+            string Shown(string key, long id) => key switch
+            {
+                "type_id"          => SdeNames.Type(id, Resolve(id)),
+                "group_id"         => SdeNames.Group(id, Resolve(id)),
+                "solar_system_id"  => SdeNames.SolarSystem(id, Resolve(id)),
+                "constellation_id" => SdeNames.Constellation(id, Resolve(id)),
+                "region_id"        => SdeNames.Region(id, Resolve(id)),
+                "faction_id"       => SdeNames.Faction(id, Resolve(id)),
+                "corporation_id"   => SdeNames.NpcCorporation(id, Resolve(id)),
+                "character_id"     => SdeNames.Agent(id, Resolve(id)),
+                _                  => Resolve(id),
+            };
+
             // Resolve an array where each element has one of several possible ID keys
             string ResolveList(JsonElement arr, params string[] keys)
             {
@@ -2752,7 +2807,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
                 {
                     foreach (var key in keys)
                         if (el.TryGetProperty(key, out var v) && v.ValueKind == JsonValueKind.Number)
-                            return Resolve(v.GetInt64());
+                            return Shown(key, v.GetInt64());
                     return null;
                 }).Where(s => s is not null);
                 return string.Join(", ", parts);
@@ -2910,14 +2965,14 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
                                 el.ValueKind == JsonValueKind.Object
                                     ? string.Join("/", el.EnumerateObject()
                                         .Where(p => p.Value.ValueKind == JsonValueKind.Number)
-                                        .Select(p => Resolve(p.Value.GetInt64())))
+                                        .Select(p => Shown(p.Name, p.Value.GetInt64())))
                                     : el.ToString());
                             var joined = string.Join(", ", vals.Where(v => !string.IsNullOrEmpty(v)));
                             if (!string.IsNullOrEmpty(joined)) fields.Add(new(prop.Name, joined));
                         }
                         else if (prop.Value.ValueKind == JsonValueKind.Number)
                         {
-                            fields.Add(new(prop.Name, Resolve(prop.Value.GetInt64())));
+                            fields.Add(new(prop.Name, Shown(prop.Name, prop.Value.GetInt64())));
                         }
                     }
                     break;
