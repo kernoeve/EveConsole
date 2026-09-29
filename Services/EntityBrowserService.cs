@@ -3,6 +3,7 @@ using EveConsole.Data;
 using EveConsole.Models;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -293,7 +294,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
             }
 
             return local
-                .Concat(names.Select(n => new EntityMatch(n.Id, n.Name, "via ESI")))
+                .Concat(names.Select(n => new EntityMatch(n.Id, n.Name, CorpText.SearchViaEsi)))
                 .OrderBy(m => m.Name.StartsWith(q, StringComparison.OrdinalIgnoreCase) ? 0 : 1)
                 .ThenBy(m => m.Name.Length)
                 .ThenBy(m => m.Name)
@@ -326,28 +327,28 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                     if (c is null) break;
 
                     var corpName = await NameOfAsync(c.CorporationId, ct);
-                    facts.Add(new("Corporation", corpName ?? c.CorporationId.ToString("N0"),
+                    facts.Add(new(CorpText.FactCorporation, corpName ?? c.CorporationId.ToString("N0"),
                                   EntityKind.PlayerCorp, c.CorporationId));
                     if (c.AllianceId is { } aid)
-                        facts.Add(new("Alliance", await NameOfAsync(aid, ct) ?? aid.ToString("N0"),
+                        facts.Add(new(CorpText.FactAlliance, await NameOfAsync(aid, ct) ?? aid.ToString("N0"),
                                       EntityKind.Alliance, aid));
                     if (c.SecurityStatus is { } sec)
-                        facts.Add(new("Security status", sec.ToString("0.00")));
+                        facts.Add(new(CorpText.FactSecurityStatus, sec.ToString("0.00")));
                     if (c.FactionId is { } fid)
-                        facts.Add(new("Faction", await NameOfAsync(fid, ct) ?? fid.ToString("N0"),
+                        facts.Add(new(CorpText.FactFaction, await NameOfAsync(fid, ct) ?? fid.ToString("N0"),
                                       EntityKind.Faction, fid));
                     if (!string.IsNullOrWhiteSpace(c.Gender))
-                        facts.Add(new("Gender", char.ToUpper(c.Gender![0]) + c.Gender[1..]));
+                        facts.Add(new(CorpText.FactGender, GenderText(c.Gender!)));
                     if (c.RaceId is { } race)
-                        facts.Add(new("Race", await RaceNameAsync(race, ct) ?? race.ToString()));
+                        facts.Add(new(CorpText.FactRace, await RaceNameAsync(race, ct) ?? race.ToString()));
                     if (c.BloodlineId is { } bl)
-                        facts.Add(new("Bloodline", await BloodlineNameAsync(bl, ct) ?? bl.ToString()));
+                        facts.Add(new(CorpText.FactBloodline, await BloodlineNameAsync(bl, ct) ?? bl.ToString()));
                     if (c.AchievementScore is { } score)
-                        facts.Add(new("Achievement score", score.ToString("N0")));
+                        facts.Add(new(CorpText.FactAchievementScore, score.ToString("N0")));
                     if (c.Birthday is { } b)
-                        facts.Add(new("Born", b.ToLocalTime().ToString("d MMM yyyy")));
+                        facts.Add(new(CorpText.FactBorn, b.ToLocalTime().ToString("d MMM yyyy")));
                     if (!string.IsNullOrWhiteSpace(c.Title))
-                        facts.Add(new("Title", c.Title!));
+                        facts.Add(new(CorpText.FactTitle, c.Title!));
 
                     await CacheNameAsync(c.Name, id, CategoryOf(kind), ct);
                     return (facts, StripHtml(c.Description), c.Name);
@@ -358,19 +359,19 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                     var c = await esi.GetPublicAsync<EsiPublicCorporation>($"corporations/{id}/", ct);
                     if (c is null) break;
 
-                    if (!string.IsNullOrWhiteSpace(c.Ticker)) facts.Add(new("Ticker", $"[{c.Ticker}]"));
-                    facts.Add(new("Members", c.MemberCount.ToString("N0")));
-                    facts.Add(new("CEO", await NameOfAsync(c.CeoId, ct) ?? c.CeoId.ToString("N0"),
+                    if (!string.IsNullOrWhiteSpace(c.Ticker)) facts.Add(new(CorpText.FactTicker, $"[{c.Ticker}]"));
+                    facts.Add(new(CorpText.FactMembers, c.MemberCount.ToString("N0")));
+                    facts.Add(new(CorpText.FactCeo, await NameOfAsync(c.CeoId, ct) ?? c.CeoId.ToString("N0"),
                                   EntityKind.Pilot, c.CeoId));
                     if (c.AllianceId is { } aid)
-                        facts.Add(new("Alliance", await NameOfAsync(aid, ct) ?? aid.ToString("N0"),
+                        facts.Add(new(CorpText.FactAlliance, await NameOfAsync(aid, ct) ?? aid.ToString("N0"),
                                       EntityKind.Alliance, aid));
                     if (c.DateFounded is { } d)
-                        facts.Add(new("Founded", d.ToLocalTime().ToString("d MMM yyyy")));
-                    if (c.TaxRate is { } t) facts.Add(new("Tax rate", $"{t * 100:0.#}%"));
-                    if (c.WarEligible is true) facts.Add(new("War eligible", "Yes"));
+                        facts.Add(new(CorpText.FactFounded, d.ToLocalTime().ToString("d MMM yyyy")));
+                    if (c.TaxRate is { } t) facts.Add(new(CorpText.FactTaxRate, $"{t * 100:0.#}%"));
+                    if (c.WarEligible is true) facts.Add(new(CorpText.FactWarEligible, CorpText.FactYes));
                     if (!string.IsNullOrWhiteSpace(c.Url) && c.Url != "http://")
-                        facts.Add(new("URL", c.Url!, Url: c.Url));
+                        facts.Add(new(CorpText.FactUrl, c.Url!, Url: c.Url));
 
                     await CacheNameAsync(c.Name, id, CategoryOf(kind), ct);
                     return (facts, StripHtml(c.Description), c.Name);
@@ -381,17 +382,17 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                     var a = await esi.GetPublicAsync<EsiPublicAlliance>($"alliances/{id}/", ct);
                     if (a is null) break;
 
-                    if (!string.IsNullOrWhiteSpace(a.Ticker)) facts.Add(new("Ticker", $"[{a.Ticker}]"));
-                    facts.Add(new("Creator", await NameOfAsync(a.CreatorId, ct) ?? a.CreatorId.ToString("N0"),
+                    if (!string.IsNullOrWhiteSpace(a.Ticker)) facts.Add(new(CorpText.FactTicker, $"[{a.Ticker}]"));
+                    facts.Add(new(CorpText.FactCreator, await NameOfAsync(a.CreatorId, ct) ?? a.CreatorId.ToString("N0"),
                                   EntityKind.Pilot, a.CreatorId));
-                    facts.Add(new("Creator corp",
+                    facts.Add(new(CorpText.FactCreatorCorp,
                                   await NameOfAsync(a.CreatorCorporationId, ct) ?? a.CreatorCorporationId.ToString("N0"),
                                   EntityKind.PlayerCorp, a.CreatorCorporationId));
                     if (a.ExecutorCorporationId is { } ex)
-                        facts.Add(new("Executor corp", await NameOfAsync(ex, ct) ?? ex.ToString("N0"),
+                        facts.Add(new(CorpText.FactExecutorCorp, await NameOfAsync(ex, ct) ?? ex.ToString("N0"),
                                       EntityKind.PlayerCorp, ex));
                     if (a.DateFounded is { } d)
-                        facts.Add(new("Founded", d.ToLocalTime().ToString("d MMM yyyy")));
+                        facts.Add(new(CorpText.FactFounded, d.ToLocalTime().ToString("d MMM yyyy")));
 
                     await CacheNameAsync(a.Name, id, CategoryOf(kind), ct);
                     name = a.Name;
@@ -420,7 +421,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
 
             var names = await ResolveNamesAsync(ids.Select(i => (long)i).ToList(), "corporation", ct);
             return ids
-                .Select(i => new EntityMemberRow(i, names.GetValueOrDefault(i, $"Corporation {i}"), ""))
+                .Select(i => new EntityMemberRow(i, names.GetValueOrDefault(i, string.Format(CorpText.FallbackCorporationName, i)), ""))
                 .OrderBy(r => r.Name)
                 .ToList();
         }
@@ -453,15 +454,15 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
             {
                 var r    = ordered[i];
                 var name = r.AllianceId is > 0
-                    ? names.GetValueOrDefault(r.AllianceId.Value, $"Alliance {r.AllianceId}")
-                    : "— no alliance —";
+                    ? names.GetValueOrDefault(r.AllianceId.Value, string.Format(CorpText.FallbackAllianceName, r.AllianceId))
+                    : CorpText.HistoryNoAlliance;
 
                 // The record has no end date; a membership ran until the next one began.
-                var until = i == 0 ? "present" : ordered[i - 1].StartDate.ToLocalTime().ToString("d MMM yyyy");
+                var until = i == 0 ? CorpText.HistoryPresent : ordered[i - 1].StartDate.ToLocalTime().ToString("d MMM yyyy");
                 var from  = r.StartDate.ToLocalTime().ToString("d MMM yyyy");
                 var days  = ((i == 0 ? DateTimeOffset.UtcNow : ordered[i - 1].StartDate) - r.StartDate).Days;
 
-                result.Add(new EntityHistoryRow(name, from, until, days < 0 ? "" : $"{days:N0} day(s)",
+                result.Add(new EntityHistoryRow(name, from, until, days < 0 ? "" : string.Format(CorpText.HistoryDays, days),
                                                 r.IsDeleted == true, r.AllianceId ?? 0));
             }
             return result;
@@ -529,10 +530,10 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
 
             var ordered = rows.OrderByDescending(r => r.StartDate).ToList();
             return ordered.Select((r, i) => new EntityHistoryRow(
-                names.GetValueOrDefault(r.CorporationId, $"Corporation {r.CorporationId}"),
+                names.GetValueOrDefault(r.CorporationId, string.Format(CorpText.FallbackCorporationName, r.CorporationId)),
                 r.StartDate.ToLocalTime().ToString("d MMM yyyy"),
-                i == 0 ? "present" : ordered[i - 1].StartDate.ToLocalTime().ToString("d MMM yyyy"),
-                $"{((i == 0 ? DateTimeOffset.UtcNow : ordered[i - 1].StartDate) - r.StartDate).Days:N0} day(s)",
+                i == 0 ? CorpText.HistoryPresent : ordered[i - 1].StartDate.ToLocalTime().ToString("d MMM yyyy"),
+                string.Format(CorpText.HistoryDays, ((i == 0 ? DateTimeOffset.UtcNow : ordered[i - 1].StartDate) - r.StartDate).Days),
                 r.IsDeleted == true,
                 r.CorporationId)).ToList();
         }
@@ -883,6 +884,15 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
         return System.Net.WebUtility.HtmlDecode(text).Trim();
     }
 
+    /// <summary>A character's gender as a word. Keyed on ESI's value ("male", "female"); anything
+    /// else ESI might send shows as it came, capitalised.</summary>
+    private static string GenderText(string gender) => gender switch
+    {
+        "male"   => CorpText.GenderMale,
+        "female" => CorpText.GenderFemale,
+        _        => char.ToUpper(gender[0]) + gender[1..],
+    };
+
     private static string CategoryOf(EntityKind kind) => kind switch
     {
         EntityKind.Pilot      => "character",
@@ -959,12 +969,12 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                 if (r is null) return null;
 
                 return new EntityDetail(id, r.Name,
-                    r.IsOurs > 0 ? "One of your characters" : "Player character",
+                    r.IsOurs > 0 ? CorpText.SubtitleOurCharacter : CorpText.SubtitlePlayerCharacter,
                     "",
                     [
-                        new("Character ID",   id.ToString("N0")),
-                        new("Killmails on",   $"{r.Kills:N0} kill(s), {r.Losses:N0} loss(es)"),
-                        new("Last seen",      Pretty(r.LastSeen)),
+                        new(CorpText.FactCharacterId, id.ToString("N0")),
+                        new(CorpText.FactKillmailsOn, string.Format(CorpText.FactKillsLosses, r.Kills, r.Losses)),
+                        new(CorpText.FactLastSeen,    Pretty(r.LastSeen)),
                     ], url);
             }
 
@@ -995,13 +1005,13 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                 if (r is null) return null;
 
                 return new EntityDetail(id, r.Name,
-                    corp ? (r.IsOurs > 0 ? "One of your corporations" : "Player corporation")
-                         : "Player alliance",
+                    corp ? (r.IsOurs > 0 ? CorpText.SubtitleOurCorporation : CorpText.SubtitlePlayerCorporation)
+                         : CorpText.SubtitlePlayerAlliance,
                     "",
                     [
-                        new(corp ? "Corporation ID" : "Alliance ID", id.ToString("N0")),
-                        new(corp ? "Pilots seen"    : "Corporations seen", $"{r.Members:N0}"),
-                        new("Killmails on", $"{r.Kills:N0} kill(s), {r.Losses:N0} loss(es)"),
+                        new(corp ? CorpText.FactCorporationId : CorpText.FactAllianceId, id.ToString("N0")),
+                        new(corp ? CorpText.FactPilotsSeen : CorpText.FactCorporationsSeen, $"{r.Members:N0}"),
+                        new(CorpText.FactKillmailsOn, string.Format(CorpText.FactKillsLosses, r.Kills, r.Losses)),
                     ], url);
             }
 
@@ -1026,15 +1036,15 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                     """, AppDb.Param("@id", id)).ToListAsync(ct)).FirstOrDefault();
                 if (r is null) return null;
 
-                return new EntityDetail(id, r.Name, $"Level {r.Level} {r.Division} agent", "",
+                return new EntityDetail(id, r.Name, string.Format(CorpText.SubtitleAgent, r.Level, r.Division), "",
                     [
-                        new("Agent ID",     id.ToString("N0")),
-                        new("Corporation",  r.Corporation, EntityKind.NpcCorp, r.CorporationId),
-                        new("Faction",      r.Faction,     EntityKind.Faction, r.FactionId),
-                        new("Station",      r.Station, EntityKind.Station, r.StationId),
-                        new("Division",     r.Division),
-                        new("Agent type",   r.AgentType),
-                        new("Locator",      r.IsLocator ? "Yes" : "No"),
+                        new(CorpText.FactAgentId,     id.ToString("N0")),
+                        new(CorpText.FactCorporation, r.Corporation, EntityKind.NpcCorp, r.CorporationId),
+                        new(CorpText.FactFaction,     r.Faction,     EntityKind.Faction, r.FactionId),
+                        new(CorpText.FactStation,     r.Station, EntityKind.Station, r.StationId),
+                        new(CorpText.FactDivision,    r.Division),
+                        new(CorpText.FactAgentType,   r.AgentType),
+                        new(CorpText.FactLocator,     r.IsLocator ? CorpText.FactYes : CorpText.FactNo),
                     ], url);
             }
 
@@ -1074,38 +1084,38 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
 
                 var facts = new List<EntityFact>
                 {
-                    new("Corporation ID", id.ToString("N0")),
-                    new("Faction",        r.Faction, EntityKind.Faction, r.FactionId),
+                    new(CorpText.FactCorporationId, id.ToString("N0")),
+                    new(CorpText.FactFaction,       r.Faction, EntityKind.Faction, r.FactionId),
                 };
 
-                if (ticker.Length > 0) facts.Add(new("Ticker", ticker));
+                if (ticker.Length > 0) facts.Add(new(CorpText.FactTicker, ticker));
 
                 // ⚠️ The headquarters is NOT one of the "Stations" beside it, and the two
                 // disagreeing is the normal case rather than a fault. A militia corporation owns
                 // no station and is still based somewhere: Malakim Zealots run out of an
                 // Archangels station in G-0Q86.
-                if (hqName.Length > 0) facts.Add(new("Headquarters", hqName, EntityKind.Station, hqId));
+                if (hqName.Length > 0) facts.Add(new(CorpText.FactHeadquarters, hqName, EntityKind.Station, hqId));
 
-                facts.Add(new("Stations", r.Stations.ToString("N0")));
-                facts.Add(new("Agents",   r.Agents.ToString("N0")));
+                facts.Add(new(CorpText.FactStations, r.Stations.ToString("N0")));
+                facts.Add(new(CorpText.FactAgents,   r.Agents.ToString("N0")));
 
-                if (p is { MemberCount: > 0 }) facts.Add(new("Members", p.MemberCount.ToString("N0")));
-                if (tax > 0)                   facts.Add(new("Tax rate", tax.ToString("P1")));
+                if (p is { MemberCount: > 0 }) facts.Add(new(CorpText.FactMembers, p.MemberCount.ToString("N0")));
+                if (tax > 0)                   facts.Add(new(CorpText.FactTaxRate, tax.ToString("P1")));
 
                 // What it takes to join — the question anyone reading a militia corporation's page
                 // is actually asking.
                 if (r.JoinStanding != 0 || r.MinSecurity != 0)
-                    facts.Add(new("To join", $"standing {r.JoinStanding:N1}, security {r.MinSecurity:N1} or better"));
+                    facts.Add(new(CorpText.FactToJoin, string.Format(CorpText.FactToJoinValue, r.JoinStanding, r.MinSecurity)));
 
-                facts.Add(new("LP store",   r.LpOffers > 0 ? $"{r.LpOffers:N0} offer(s)" : "none"));
-                facts.Add(new("Your LP",    r.LpHeld   > 0 ? $"{r.LpHeld:N0}" : "—"));
-                facts.Add(new("ISK per LP", r.IskPerLp > 0 ? r.IskPerLp.ToString("N0") : "—"));
+                facts.Add(new(CorpText.FactLpStore,  r.LpOffers > 0 ? string.Format(CorpText.FactLpOffers, r.LpOffers) : CorpText.FactLpStoreNone));
+                facts.Add(new(CorpText.FactYourLp,   r.LpHeld   > 0 ? $"{r.LpHeld:N0}" : "—"));
+                facts.Add(new(CorpText.FactIskPerLp, r.IskPerLp > 0 ? r.IskPerLp.ToString("N0") : "—"));
 
-                if (p is { Url.Length: > 0 }) facts.Add(new("Website", p.Url, Url: p.Url));
+                if (p is { Url.Length: > 0 }) facts.Add(new(CorpText.FactWebsite, p.Url, Url: p.Url));
 
                 // The Description tab shows itself as soon as there is one to show.
                 return new EntityDetail(id, r.Name,
-                    $"NPC corporation{(r.Faction.Length > 0 ? " · " + r.Faction : "")}",
+                    CorpText.SubtitleNpcCorp + (r.Faction.Length > 0 ? " · " + r.Faction : ""),
                     about, facts, url);
             }
 
@@ -1125,13 +1135,13 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                     """, AppDb.Param("@id", id)).ToListAsync(ct)).FirstOrDefault();
                 if (r is null) return null;
 
-                return new EntityDetail(id, r.Name, "Faction", r.Description,
+                return new EntityDetail(id, r.Name, CorpText.SubtitleFaction, r.Description,
                     [
-                        new("Faction ID",   id.ToString("N0")),
-                        new("Militia corp", r.MilitiaCorp.Length > 0 ? r.MilitiaCorp : "—",
+                        new(CorpText.FactFactionId,    id.ToString("N0")),
+                        new(CorpText.FactMilitiaCorp,  r.MilitiaCorp.Length > 0 ? r.MilitiaCorp : "—",
                             r.MilitiaCorpId > 0 ? EntityKind.NpcCorp : null, r.MilitiaCorpId),
-                        new("Home system",  r.HomeSystem, SystemId: r.HomeSystemId),
-                        new("Corporations", r.Corporations.ToString("N0")),
+                        new(CorpText.FactHomeSystem,   r.HomeSystem, SystemId: r.HomeSystemId),
+                        new(CorpText.FactCorporations, r.Corporations.ToString("N0")),
                     ], url);
             }
 
@@ -1168,18 +1178,18 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                     ? $"https://images.evetech.net/types/{r.StationTypeId}/render?size=128"
                     : null;
 
-                return new EntityDetail(id, r.Name, "NPC station", "",
+                return new EntityDetail(id, r.Name, CorpText.SubtitleNpcStation, "",
                     [
-                        new("Station ID",    id.ToString("N0")),
-                        new("System",        r.System,        SystemId: r.SolarSystemId),
-                        new("Constellation", r.Constellation),
-                        new("Region",        r.Region,        RegionId: r.RegionId),
-                        new("Security",      $"{SecurityColors.Text(r.Security)}  (true {SecurityColors.TrueText(r.Security)})"),
-                        new("Corporation",   r.Corporation,   EntityKind.NpcCorp, r.CorporationId),
-                        new("Faction",       r.Faction,       EntityKind.Faction, r.FactionId),
-                        new("Type",          r.StationType),
-                        new("Agents",        r.Agents.ToString("N0")),
-                        new("Reprocessing",  $"{r.ReprocessingEfficiency * 100:0.#}% · {r.ReprocessingTax * 100:0.#}% tax"),
+                        new(CorpText.FactStationId,     id.ToString("N0")),
+                        new(CorpText.FactSystem,        r.System,        SystemId: r.SolarSystemId),
+                        new(CorpText.FactConstellation, r.Constellation),
+                        new(CorpText.FactRegion,        r.Region,        RegionId: r.RegionId),
+                        new(CorpText.FactSecurity,      string.Format(CorpText.FactSecurityValue, SecurityColors.Text(r.Security), SecurityColors.TrueText(r.Security))),
+                        new(CorpText.FactCorporation,   r.Corporation,   EntityKind.NpcCorp, r.CorporationId),
+                        new(CorpText.FactFaction,       r.Faction,       EntityKind.Faction, r.FactionId),
+                        new(CorpText.FactType,          r.StationType),
+                        new(CorpText.FactAgents,        r.Agents.ToString("N0")),
+                        new(CorpText.FactReprocessing,  string.Format(CorpText.FactReprocessingValue, r.ReprocessingEfficiency * 100, r.ReprocessingTax * 100)),
                     ], stationImg);
             }
         }

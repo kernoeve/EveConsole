@@ -322,8 +322,14 @@ public sealed class MessageBlockVm : ReactiveObject
     /// <para>Changing the type or the filter rewrites the box while that is true, so a title
     /// nobody edited keeps describing what is actually being reported. Once it has been changed
     /// — to anything, including blank — it is left alone.</para>
+    ///
+    /// <para>⚠️ The default in ANY interface language, not only this run's: a section saved in
+    /// one language still holds that language's default when it is reopened in another.</para>
     /// </summary>
-    private bool FollowsDefault => SectionTitle == DefaultTitle;
+    private bool FollowsDefault =>
+        StandingProjectReport.IsDefaultTitle(SectionTitle,
+                                             ProjectType?.Key ?? StandingProjectReport.DestroyNpc,
+                                             ProjectFilter?.Key ?? EveConsole.Services.ProjectFilters.All);
 
     /// <summary>The title this section writes for itself, and what the box is filled with.</summary>
     public string DefaultTitle =>

@@ -7,6 +7,7 @@ using System.Text;
 // needed. A scheduled post that formatted its own fences differently from the button on the
 // screen would be worse than the tidier namespace.
 using EveConsole.ViewModels;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -47,8 +48,12 @@ public static class MonthlySummaryReport
         // ⚠️ Renamed on the way in, so every line downstream already carries the heading the
         // reader chose. Renaming at print time instead would leave the grid and the export
         // showing different words for the same section.
-        void Header(string t) =>
-            lines.Add(new SummaryLine(titles?.SummaryTitleForDefault(t) ?? t, IsHeader: true));
+        //
+        // ⚠️ By the section's KEY (see CorpReportTitles.SummarySections), never by its words:
+        // the default words are in the interface language.
+        void Header(string key) =>
+            lines.Add(new SummaryLine(titles?.SummaryTitle(key) ?? CorpReportTitles.SummaryDefault(key),
+                                      IsHeader: true));
 
         // ISK line: value, signed absolute change, and the same change as a percentage.
         void Isk(string label, decimal cur, decimal prev, string? color = null, bool total = false) =>
@@ -64,53 +69,53 @@ public static class MonthlySummaryReport
         var w  = c.Wallet;
         var pw = p.Wallet;
 
-        Header("Income");
+        Header("income");
         // No "Mining tax" line: EVE has no corp mining-tax wallet entry, and this corp has
         // never had one. Mining is billed manually and lands in Donations, which cannot be
         // separated from other donations.
-        Isk("Ratting tax",  w?.RattingTax     ?? 0m, pw?.RattingTax     ?? 0m);
-        Isk("Industry tax", w?.IndustryTax    ?? 0m, pw?.IndustryTax    ?? 0m);
-        Isk("Donations",    w?.Donations      ?? 0m, pw?.Donations      ?? 0m);
-        Isk("Contracts",    w?.ContractIncome ?? 0m, pw?.ContractIncome ?? 0m);
-        Isk("Market",       w?.MarketIncome   ?? 0m, pw?.MarketIncome   ?? 0m);
-        Isk("Other",        w?.OtherIncome    ?? 0m, pw?.OtherIncome    ?? 0m);
-        Isk("Total income", c.TotalIncome,           p.TotalIncome, total: true);
+        Isk(CorpText.SummaryRowRattingTax,  w?.RattingTax     ?? 0m, pw?.RattingTax     ?? 0m);
+        Isk(CorpText.SummaryRowIndustryTax, w?.IndustryTax    ?? 0m, pw?.IndustryTax    ?? 0m);
+        Isk(CorpText.SummaryRowDonations,   w?.Donations      ?? 0m, pw?.Donations      ?? 0m);
+        Isk(CorpText.SummaryRowContracts,   w?.ContractIncome ?? 0m, pw?.ContractIncome ?? 0m);
+        Isk(CorpText.SummaryRowMarket,      w?.MarketIncome   ?? 0m, pw?.MarketIncome   ?? 0m);
+        Isk(CorpText.SummaryRowOther,       w?.OtherIncome    ?? 0m, pw?.OtherIncome    ?? 0m);
+        Isk(CorpText.SummaryRowTotalIncome, c.TotalIncome,           p.TotalIncome, total: true);
 
-        Header("Expenses");
-        Isk("Market",          w?.MarketExpense   ?? 0m, pw?.MarketExpense   ?? 0m);
-        Isk("Contracts",       w?.ContractExpense ?? 0m, pw?.ContractExpense ?? 0m);
-        Isk("Project payouts", w?.ProjectPayouts  ?? 0m, pw?.ProjectPayouts  ?? 0m);
-        Isk("Withdrawals",     w?.AccountWithdraw ?? 0m, pw?.AccountWithdraw ?? 0m);
-        Isk("Other",           w?.OtherExpense    ?? 0m, pw?.OtherExpense    ?? 0m);
-        Isk("Total expenses",  c.TotalExpense,           p.TotalExpense, total: true);
+        Header("expenses");
+        Isk(CorpText.SummaryRowMarket,         w?.MarketExpense   ?? 0m, pw?.MarketExpense   ?? 0m);
+        Isk(CorpText.SummaryRowContracts,      w?.ContractExpense ?? 0m, pw?.ContractExpense ?? 0m);
+        Isk(CorpText.SummaryRowProjectPayouts, w?.ProjectPayouts  ?? 0m, pw?.ProjectPayouts  ?? 0m);
+        Isk(CorpText.SummaryRowWithdrawals,    w?.AccountWithdraw ?? 0m, pw?.AccountWithdraw ?? 0m);
+        Isk(CorpText.SummaryRowOther,          w?.OtherExpense    ?? 0m, pw?.OtherExpense    ?? 0m);
+        Isk(CorpText.SummaryRowTotalExpenses,  c.TotalExpense,           p.TotalExpense, total: true);
 
-        Header("Net");
-        Isk("Net position", c.Net, p.Net, c.Net >= 0 ? "#70ad47" : "#cc6666");
+        Header("net");
+        Isk(CorpText.SummaryRowNetPosition, c.Net, p.Net, c.Net >= 0 ? "#70ad47" : "#cc6666");
 
-        Header("Combat");
-        Count("Kills",  c.Kills,  p.Kills);
-        Count("Losses", c.Losses, p.Losses);
-        Isk("ISK destroyed", c.IskDestroyed, p.IskDestroyed);
-        Isk("ISK lost",      c.IskLost,      p.IskLost);
+        Header("combat");
+        Count(CorpText.SummaryRowKills,  c.Kills,  p.Kills);
+        Count(CorpText.SummaryRowLosses, c.Losses, p.Losses);
+        Isk(CorpText.SummaryRowIskDestroyed, c.IskDestroyed, p.IskDestroyed);
+        Isk(CorpText.SummaryRowIskLost,      c.IskLost,      p.IskLost);
         lines.Add(new SummaryLine(
-            "ISK efficiency",
+            CorpText.SummaryRowIskEfficiency,
             c.IskEfficiency is { } e ? $"{e:F1}%" : "—",
             c.IskEfficiency is { } e1 && p.IskEfficiency is { } e0
-                ? $"{(e1 - e0 > 0 ? "+" : "")}{e1 - e0:F1} pts" : "",
+                ? string.Format(CorpText.SummaryChangePoints, (e1 - e0 > 0 ? "+" : ""), e1 - e0) : "",
             ValueColor: c.IskEfficiency is { } e2 ? (e2 >= 50 ? "#70ad47" : "#cc6666") : "#ccccdd"));
 
-        Header("Mining");
-        Count("Units mined", c.UnitsMined,  p.UnitsMined);
-        Isk("Mined value",   c.MiningValue, p.MiningValue);
+        Header("mining");
+        Count(CorpText.SummaryRowUnitsMined, c.UnitsMined,  p.UnitsMined);
+        Isk(CorpText.SummaryRowMinedValue,   c.MiningValue, p.MiningValue);
 
-        Header("Corp Projects");
-        Count("Created",       c.ProjectsCreated,        p.ProjectsCreated);
-        Isk("Created value",   c.ProjectsCreatedValue,   p.ProjectsCreatedValue);
-        Count("Completed",     c.ProjectsCompleted,      p.ProjectsCompleted);
-        Isk("Completed value", c.ProjectsCompletedValue, p.ProjectsCompletedValue);
+        Header("projects");
+        Count(CorpText.SummaryRowCreated,      c.ProjectsCreated,        p.ProjectsCreated);
+        Isk(CorpText.SummaryRowCreatedValue,   c.ProjectsCreatedValue,   p.ProjectsCreatedValue);
+        Count(CorpText.SummaryRowCompleted,    c.ProjectsCompleted,      p.ProjectsCompleted);
+        Isk(CorpText.SummaryRowCompletedValue, c.ProjectsCompletedValue, p.ProjectsCompletedValue);
 
-        Header("Members");
-        Count("Active players", c.PlayersActive, p.PlayersActive);
+        Header("members");
+        Count(CorpText.SummaryRowActivePlayers, c.PlayersActive, p.PlayersActive);
 
         return lines;
     }
@@ -129,14 +134,14 @@ public static class MonthlySummaryReport
         var fmt   = OutputFormat.ByName(formatName);
         var plain = fmt.Name == "Plain Text";
 
-        const string subtitle = "Change columns compare against the previous month.";
+        var subtitle = CorpText.SummaryExportSubtitle;
 
         var sb = new StringBuilder();
         sb.AppendLine(plain ? header : fmt.Bold(header));
         sb.AppendLine(new string('=', Math.Max(header.Length, 32)));
         sb.AppendLine(plain ? subtitle : fmt.Bold(subtitle));
 
-        string[] columnNames = ["Item", "Amount", "Change", "%"];
+        string[] columnNames = [CorpText.SummaryColItem, CorpText.SummaryColAmount, CorpText.Change, "%"];
 
         // Widths measured across every value row AND the header, so all sections share one column
         // grid and the headings fit inside it.
@@ -203,8 +208,9 @@ public static class MonthlySummaryReport
     /// <summary>The title line, built the one way so the screen and a scheduled post agree.</summary>
     public static string Header(string? corpName, string monthName, int year, string prefix = "")
     {
-        var tail = $"Monthly Summary — {monthName} {year}";
-        var line = string.IsNullOrWhiteSpace(corpName) ? tail : $"{corpName} — {tail}";
+        var line = string.IsNullOrWhiteSpace(corpName)
+            ? string.Format(CorpText.SummaryHeader, monthName, year)
+            : string.Format(CorpText.SummaryHeaderCorp, corpName, monthName, year);
 
         // Prepended verbatim with one space. Whatever punctuation belongs after it is the
         // author's to type, since only they know whether it reads as a label or a sentence.

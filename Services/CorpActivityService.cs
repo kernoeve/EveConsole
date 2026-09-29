@@ -3,6 +3,7 @@ using EveConsole.Api;
 using EveConsole.Data;
 using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -112,6 +113,10 @@ public sealed record SdeConstellationResult(int ConstellationId, string Name) { 
 
 public sealed record StandingProjectGridRow(
     long   DbId,
+    /// <summary>The definition's type as stored: <see cref="StandingProjectReport.DeliverItem"/> or
+    /// <see cref="StandingProjectReport.DestroyNpc"/>. ⚠️ Compare this, never TypeDisplay, which is
+    /// the same thing in the interface language.</summary>
+    string ProjectType,
     string TypeDisplay,
     string TargetDisplay,
     string DestDisplay,
@@ -1633,8 +1638,8 @@ public class CorpActivityService
                 r.KillMailId, r.KillMailTime,
                 r.VictimCorpId == corpId,
                 r.VictimShipTypeId,
-                shipNames.TryGetValue(r.VictimShipTypeId, out var sn) ? sn : $"Type {r.VictimShipTypeId}",
-                sys?.Name ?? $"System {r.SolarSystemId}", constellationName, regionName,
+                shipNames.TryGetValue(r.VictimShipTypeId, out var sn) ? sn : string.Format(CommonText.TypeNumbered, r.VictimShipTypeId),
+                sys?.Name ?? string.Format(CorpText.FallbackSystemName, r.SolarSystemId), constellationName, regionName,
                 sys?.Security ?? 0.0,
                 r.VictimCorpId, r.VictimAllianceId ?? 0L,
                 Res(r.VictimCharId), Res(r.VictimCorpId), Res(r.VictimAllianceId),
@@ -1850,8 +1855,8 @@ public class CorpActivityService
                 r.KillMailId, r.KillMailTime,
                 r.VictimCorpId == corpId,
                 r.VictimShipTypeId,
-                shipNames.TryGetValue(r.VictimShipTypeId, out var sn) ? sn : $"Type {r.VictimShipTypeId}",
-                sys?.Name ?? $"System {r.SolarSystemId}",
+                shipNames.TryGetValue(r.VictimShipTypeId, out var sn) ? sn : string.Format(CommonText.TypeNumbered, r.VictimShipTypeId),
+                sys?.Name ?? string.Format(CorpText.FallbackSystemName, r.SolarSystemId),
                 sys is not null && constellationMap.TryGetValue(sys.ConstellationId, out var cn) ? cn : "",
                 sys is not null && regionMap.TryGetValue(sys.RegionId, out var rn) ? rn : "",
                 sys?.Security ?? 0.0,
@@ -1950,8 +1955,8 @@ public class CorpActivityService
                 r.KillMailId, r.KillMailTime,
                 charSet.Contains(r.VictimCharId),
                 r.VictimShipTypeId,
-                shipNames.TryGetValue(r.VictimShipTypeId, out var sn) ? sn : $"Type {r.VictimShipTypeId}",
-                sys?.Name ?? $"System {r.SolarSystemId}",
+                shipNames.TryGetValue(r.VictimShipTypeId, out var sn) ? sn : string.Format(CommonText.TypeNumbered, r.VictimShipTypeId),
+                sys?.Name ?? string.Format(CorpText.FallbackSystemName, r.SolarSystemId),
                 sys is not null && constellationMap.TryGetValue(sys.ConstellationId, out var cn) ? cn : "",
                 sys is not null && regionMap.TryGetValue(sys.RegionId, out var rn) ? rn : "",
                 sys?.Security ?? 0.0,
@@ -2472,7 +2477,7 @@ public class CorpActivityService
             SovAdmUnavailable = dict.Count == 0;
             if (SovAdmUnavailable)
             {
-                SovAdmError = "the sovereignty endpoint returned no occupancy levels";
+                SovAdmError = CorpText.SovAdmNoLevels;
                 return _sovAdmCache ?? [];
             }
 
@@ -2612,7 +2617,8 @@ public class CorpActivityService
                 var deliverPct = match is not null ? RemainingPct(deliverRemaining, match.ProgressDesired) : -1.0;
                 rows.Add(new StandingProjectGridRow(
                     DbId                : sp.Id,
-                    TypeDisplay         : "Deliver Item",
+                    ProjectType         : StandingProjectReport.DeliverItem,
+                    TypeDisplay         : CorpText.DeliverItem,
                     TargetDisplay       : sp.ItemTypeName ?? "",
                     DestDisplay         : sp.StationName,
                     ExpandedSystemId    : null,
@@ -2645,7 +2651,8 @@ public class CorpActivityService
                         var sysPct = match is not null ? RemainingPct(sysRemaining, match.ProgressDesired) : -1.0;
                         rows.Add(new StandingProjectGridRow(
                             DbId                : sp.Id,
-                            TypeDisplay         : "Destroy NPC",
+                            ProjectType         : StandingProjectReport.DestroyNpc,
+                            TypeDisplay         : CorpText.DestroyNpc,
                             TargetDisplay       : sp.SolarSystemName,
                             DestDisplay         : "",
                             ExpandedSystemId    : sp.SolarSystemId,
@@ -2699,9 +2706,9 @@ public class CorpActivityService
                         var minAdm     = sp.MinAdm ?? 6.0;
                         var scopeLabel = sp.ScopeType switch
                         {
-                            "region_adm"   => $"Region: {sp.ScopeEntityName} (ADM < {minAdm:F1})",
-                            "alliance_sov" => $"Sov: {sp.ScopeEntityName} (ADM < {minAdm:F1})",
-                            _              => $"Const: {sp.ScopeEntityName} (ADM < {minAdm:F1})",
+                            "region_adm"   => string.Format(CorpText.ScopeRegionAdm, sp.ScopeEntityName, minAdm),
+                            "alliance_sov" => string.Format(CorpText.ScopeAllianceSov, sp.ScopeEntityName, minAdm),
+                            _              => string.Format(CorpText.ScopeConstellationAdm, sp.ScopeEntityName, minAdm),
                         };
 
                         // All three scopes filter the same way. The scope chooses WHICH systems are
@@ -2724,7 +2731,8 @@ public class CorpActivityService
                         {
                             rows.Add(new StandingProjectGridRow(
                                 DbId                : sp.Id,
-                                TypeDisplay         : "Destroy NPC",
+                                ProjectType         : StandingProjectReport.DestroyNpc,
+                                TypeDisplay         : CorpText.DestroyNpc,
                                 TargetDisplay       : scopeLabel,
                                 DestDisplay         : "",
                                 ExpandedSystemId    : null,
@@ -2754,7 +2762,8 @@ public class CorpActivityService
                                 var admPct = match is not null ? RemainingPct(admRemaining, match.ProgressDesired) : -1.0;
                                 rows.Add(new StandingProjectGridRow(
                                     DbId                : sp.Id,
-                                    TypeDisplay         : "Destroy NPC",
+                                    ProjectType         : StandingProjectReport.DestroyNpc,
+                                    TypeDisplay         : CorpText.DestroyNpc,
                                     TargetDisplay       : scopeLabel,
                                     DestDisplay         : sys.Name,
                                     ExpandedSystemId    : sys.SystemId,
@@ -2922,7 +2931,7 @@ public class CorpActivityService
 
     private static string FormatRemaining(long remaining)
     {
-        if (remaining <= 0) return "Complete";
+        if (remaining <= 0) return CorpText.RemainingComplete;
         if (remaining >= 1_000_000_000) return $"{remaining / 1_000_000_000.0:F2}B";
         if (remaining >= 1_000_000)     return $"{remaining / 1_000_000.0:F2}M";
         if (remaining >= 1_000)         return $"{remaining / 1_000.0:F1}K";

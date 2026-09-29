@@ -2,6 +2,7 @@ using EveConsole.Api;
 using EveConsole.Data;
 using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -443,7 +444,7 @@ public class KillmailBrowserService(
         var grouped = GroupItemsBySlot(items, typeNames, prices, marketGroupNames, blueprintIds, bpcPerRun, ref destroyedIsk, ref droppedIsk);
         var shipPrice = prices.TryGetValue(detail.VictimShipTypeId, out var sp) ? sp : 0;
         destroyedIsk += shipPrice;
-        grouped.Add(new KillmailSlotGroupRow("Ship",
+        grouped.Add(new KillmailSlotGroupRow(CorpText.SlotShip,
             [new KillmailSubGroupRow("", [new KillmailItemRow(detail.VictimShipTypeId, shipName, 1, 0, shipPrice, false, false)])]));
 
         // Attackers
@@ -517,7 +518,7 @@ public class KillmailBrowserService(
 
             var result = chain.Count switch
             {
-                0 => ("Other", "Other"),
+                0 => (NoMarketGroup, NoMarketGroup),
                 1 => (chain[0].Name, chain[0].Name),
                 _ => (chain[0].Name, $"{chain[0].Name} > {chain[1].Name}"),
             };
@@ -527,7 +528,7 @@ public class KillmailBrowserService(
 
         return typeGroups.ToDictionary(
             t => t.TypeId,
-            t => t.MarketGroupId.HasValue ? ResolveChain(t.MarketGroupId.Value) : ("Other", "Other"));
+            t => t.MarketGroupId.HasValue ? ResolveChain(t.MarketGroupId.Value) : (NoMarketGroup, NoMarketGroup));
     }
 
     private static List<KillmailSlotGroupRow> GroupItemsBySlot(
@@ -550,7 +551,7 @@ public class KillmailBrowserService(
             var isBlueprint = blueprintIds.Contains(item.ItemTypeId);
             var isBpc = item.Singleton == 2 && isBlueprint;
             var isBpo = isBlueprint && !isBpc;
-            if (isBpc) name += " (Copy)"; // the one visual cue this was missing entirely
+            if (isBpc) name = string.Format(CorpText.KillmailItemCopy, name); // the one visual cue this was missing entirely
 
             var unitPrc  = isBpc
                 ? bpcPerRun.GetValueOrDefault(item.ItemTypeId)
@@ -593,16 +594,17 @@ public class KillmailBrowserService(
                 string SubGroupKey(KillmailItemRow i)
                 {
                     if (i.IsBpo || i.IsBpc) return BlueprintsGroupName;
-                    var (_, display) = marketGroupNames.GetValueOrDefault(i.TypeId, ("Other", "Other"));
+                    var (_, display) = marketGroupNames.GetValueOrDefault(i.TypeId, (NoMarketGroup, NoMarketGroup));
                     return display;
                 }
 
                 subGroups = groupItems
                     .GroupBy(SubGroupKey)
-                    .OrderBy(g => g.Key == "Other" ? 1 : 0)
+                    .OrderBy(g => g.Key == NoMarketGroup ? 1 : 0)
                     .ThenBy(g => g.Key, StringComparer.OrdinalIgnoreCase)
                     .Select(g => new KillmailSubGroupRow(
-                        g.Key, g.OrderBy(i => i.TypeName, StringComparer.OrdinalIgnoreCase).ToList()))
+                        g.Key == NoMarketGroup ? CorpText.KillmailGroupOther : g.Key,
+                        g.OrderBy(i => i.TypeName, StringComparer.OrdinalIgnoreCase).ToList()))
                     .ToList();
             }
             else
@@ -611,7 +613,7 @@ public class KillmailBrowserService(
                     groupItems.OrderBy(i => i.TypeName, StringComparer.OrdinalIgnoreCase).ToList())];
             }
 
-            result.Add(new KillmailSlotGroupRow(groupName, subGroups));
+            result.Add(new KillmailSlotGroupRow(SlotLabel(groupName), subGroups));
         }
 
         return result;
@@ -622,6 +624,10 @@ public class KillmailBrowserService(
     // fixed bucket for every blueprint item rather than resolved per-item (see
     // SubGroupKey above for why).
     private const string BlueprintsGroupName = "Blueprints & Reactions";
+
+    /// <summary>The Cargo Hold sub-group of items with no market group. ⚠️ A key, compared and
+    /// sorted on; shown as <see cref="CorpText.KillmailGroupOther"/>.</summary>
+    private const string NoMarketGroup = "Other";
 
     // Slot display order. Corrected against CCP's authoritative flag list
     // (esi/eve-glue location_flag.py) after finding two real mismatches: LoSlot0-7 are
@@ -667,5 +673,42 @@ public class KillmailBrowserService(
         181               => "Ice Hold",
         182               => "Asteroid Hold",
         _                 => "Other",
+    };
+
+    /// <summary>
+    /// What a slot group is called on screen.
+    ///
+    /// <para>⚠️ The names above are KEYS, not display text: items are grouped under them, the
+    /// groups are ordered by them and Cargo Hold is picked out by one. They become words only
+    /// here, on the way out, so none of that depends on the interface language.</para>
+    /// </summary>
+    private static string SlotLabel(string group) => group switch
+    {
+        "High Slots"           => CorpText.SlotHigh,
+        "Mid Slots"            => CorpText.SlotMid,
+        "Low Slots"            => CorpText.SlotLow,
+        "Rig Slots"            => CorpText.SlotRig,
+        "Subsystem Slots"      => CorpText.SlotSubsystem,
+        "Drone Bay"            => CorpText.SlotDroneBay,
+        "Fighter Bay"          => CorpText.SlotFighterBay,
+        "Fighter Tubes"        => CorpText.SlotFighterTubes,
+        "Ship Hangar"          => CorpText.SlotShipHangar,
+        "Fleet Hangar"         => CorpText.SlotFleetHangar,
+        "Fuel Bay"             => CorpText.SlotFuelBay,
+        "Ore Hold"             => CorpText.SlotOreHold,
+        "Ice Hold"             => CorpText.SlotIceHold,
+        "Asteroid Hold"        => CorpText.SlotAsteroidHold,
+        "Gas Hold"             => CorpText.SlotGasHold,
+        "Mineral Hold"         => CorpText.SlotMineralHold,
+        "Salvage Hold"         => CorpText.SlotSalvageHold,
+        "Ship Hold"            => CorpText.SlotShipHold,
+        "Small Ship Hold"      => CorpText.SlotSmallShipHold,
+        "Medium Ship Hold"     => CorpText.SlotMediumShipHold,
+        "Large Ship Hold"      => CorpText.SlotLargeShipHold,
+        "Industrial Ship Hold" => CorpText.SlotIndustrialShipHold,
+        "Ammo Hold"            => CorpText.SlotAmmoHold,
+        "Cargo Hold"           => CorpText.SlotCargoHold,
+        "Other"                => CorpText.KillmailGroupOther,
+        _                      => group,
     };
 }
