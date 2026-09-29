@@ -864,6 +864,34 @@
     <value>Contract {0} is not stored on this side — it may be a public listing, or not yet polled.</value>
     <comment>Status line. {0} is a contract number.</comment>
   </data>
+  <data name="ContractContentsAndMore" xml:space="preserve">
+    <value>{0} +{1} more</value>
+    <comment>Contracts → Contents column when a contract offers several items. {0} is the first item's name, {1} the number of the other items.</comment>
+  </data>
+  <data name="ContractContentsItems" xml:space="preserve">
+    <value>{0} item(s)</value>
+    <comment>Contracts → Contents column when a contract only asks for items. {0} is how many.</comment>
+  </data>
+  <data name="ContractContentsCourier" xml:space="preserve">
+    <value>(courier)</value>
+    <comment>Contracts → Contents column of a courier contract, which carries a package rather than listed items.</comment>
+  </data>
+  <data name="ContractItemBpc" xml:space="preserve">
+    <value>BPC</value>
+    <comment>Contract items → Details: the item is a blueprint copy. The game's abbreviation; keep it unless your language's client shows another.</comment>
+  </data>
+  <data name="ContractItemBpo" xml:space="preserve">
+    <value>BPO</value>
+    <comment>Contract items → Details: the item is a blueprint original. The game's abbreviation; keep it unless your language's client shows another.</comment>
+  </data>
+  <data name="ContractItemRuns" xml:space="preserve">
+    <value>{0} runs</value>
+    <comment>Contract items → Details: how many runs a blueprint copy has left. {0} is the number.</comment>
+  </data>
+  <data name="ContractItemAssembled" xml:space="preserve">
+    <value>assembled</value>
+    <comment>Contract items → Details: the item is assembled rather than packaged.</comment>
+  </data>
   <data name="NotAvailable" xml:space="preserve">
     <value>Not available.</value>
     <comment>Shown when the contracts service is not available.</comment>

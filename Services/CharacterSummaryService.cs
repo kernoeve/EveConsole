@@ -154,15 +154,15 @@ public class CharacterSummaryService(IDbContextFactory<AppDbContext> dbFactory, 
                 // player corporation has no SDE name and comes back as it is.
                 SdeNames.NpcCorporation(c.CorporationId,
                     corps.GetValueOrDefault(c.CorporationId)
-                        ?? _corpNames.GetValueOrDefault(c.CorporationId, $"Corp {c.CorporationId}")),
-                c.AllianceId is { } a ? _allianceNames.GetValueOrDefault(a, $"Alliance {a}") : "",
+                        ?? _corpNames.GetValueOrDefault(c.CorporationId, string.Format(CharactersText.SummaryCorpNumbered, c.CorporationId))),
+                c.AllianceId is { } a ? _allianceNames.GetValueOrDefault(a, string.Format(CharactersText.SummaryAllianceNumbered, a)) : "",
                 s?.Online ?? false,
                 s?.OnlineCheckedAt,
                 Where(s, places),
                 ShipText(s, ships),
                 pods.GetValueOrDefault(c.Id),
                 clones.GetValueOrDefault(c.Id)?.HomeLocationId is { } home
-                    ? places.GetValueOrDefault(home, $"Location {home}")
+                    ? places.GetValueOrDefault(home, string.Format(CharactersText.SummaryLocationNumbered, home))
                     : "",
                 q.Length,
                 q.Ends,
@@ -215,10 +215,12 @@ public class CharacterSummaryService(IDbContextFactory<AppDbContext> dbFactory, 
     private static string Where(CharacterStatus? s, Dictionary<long, string> places)
     {
         if (s is null) return "";
-        if (s.StationId   is { } st) return places.GetValueOrDefault(st, $"Station {st}");
-        if (s.StructureId is { } sr) return places.GetValueOrDefault(sr, $"Structure {sr}");
+        if (s.StationId   is { } st) return places.GetValueOrDefault(st, string.Format(CharactersText.SummaryStationNumbered, st));
+        if (s.StructureId is { } sr) return places.GetValueOrDefault(sr, string.Format(CharactersText.SummaryStructureNumbered, sr));
         if (s.SolarSystemId is { } sys)
-            return places.TryGetValue(sys, out var n) ? $"{SdeNames.SolarSystem(sys, n)} (in space)" : $"System {sys}";
+            return places.TryGetValue(sys, out var n)
+                ? string.Format(CharactersText.SummaryInSpace, SdeNames.SolarSystem(sys, n))
+                : string.Format(CharactersText.SummarySystemNumbered, sys);
         return "";
     }
 
@@ -230,8 +232,9 @@ public class CharacterSummaryService(IDbContextFactory<AppDbContext> dbFactory, 
     private static string ShipText(CharacterStatus? s, Dictionary<int, string> ships)
     {
         if (s?.ShipTypeId is not { } shipType) return "";
-        var english = ships.GetValueOrDefault(shipType, $"Type {shipType}");
-        var hull    = SdeNames.Type(shipType, english);
+        var english = ships.GetValueOrDefault(shipType);
+        var hull    = english is null ? string.Format(CharactersText.SummaryTypeNumbered, shipType)
+                                      : SdeNames.Type(shipType, english);
         return !string.IsNullOrWhiteSpace(s.ShipName) && s.ShipName != english
             ? $"{hull} · {s.ShipName}"
             : hull;

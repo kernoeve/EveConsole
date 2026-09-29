@@ -283,6 +283,30 @@
   <data name="EntityNumbered" xml:space="preserve">
     <value>实体 #{0}</value>
   </data>
+  <data name="SummaryInSpace" xml:space="preserve">
+    <value>{0}（太空中）</value>
+  </data>
+  <data name="SummaryStationNumbered" xml:space="preserve">
+    <value>空间站 {0}</value>
+  </data>
+  <data name="SummaryStructureNumbered" xml:space="preserve">
+    <value>建筑 {0}</value>
+  </data>
+  <data name="SummarySystemNumbered" xml:space="preserve">
+    <value>星系 {0}</value>
+  </data>
+  <data name="SummaryLocationNumbered" xml:space="preserve">
+    <value>地点 {0}</value>
+  </data>
+  <data name="SummaryTypeNumbered" xml:space="preserve">
+    <value>类型 {0}</value>
+  </data>
+  <data name="SummaryCorpNumbered" xml:space="preserve">
+    <value>军团 {0}</value>
+  </data>
+  <data name="SummaryAllianceNumbered" xml:space="preserve">
+    <value>联盟 {0}</value>
+  </data>
   <data name="StatusSelectCharacter" xml:space="preserve">
     <value>请选择一个角色。</value>
   </data>

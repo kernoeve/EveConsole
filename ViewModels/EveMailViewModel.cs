@@ -376,7 +376,7 @@ public class EveMailViewModel : ReactiveObject
                 : new List<EveMailLabelOption>();
             RebuildFolders(customLabels);
 
-            StatusText = $"{Mails.Count} messages";
+            StatusText = Plurals.Format(CommsText.ResourceManager, nameof(CommsText.MailCountOther), Mails.Count);
         }
         catch (Exception ex)
         {

@@ -200,6 +200,14 @@
     <value>Alliance</value>
     <comment>Mail folder: alliance mail.</comment>
   </data>
+  <data name="MailCountOne" xml:space="preserve">
+    <value>{0:N0} message</value>
+    <comment>EVE mail → status line: how many mails are listed, when it is one. {0} is the number.</comment>
+  </data>
+  <data name="MailCountOther" xml:space="preserve">
+    <value>{0:N0} messages</value>
+    <comment>EVE mail → status line: how many mails are listed. {0} is the number.</comment>
+  </data>
   <data name="MailBodyLoadError" xml:space="preserve">
     <value>(Error loading body: {0})</value>
     <comment>Shown in place of a mail's text. {0} is the error.</comment>

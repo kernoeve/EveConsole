@@ -388,6 +388,38 @@
     <value>Entity #{0}</value>
     <comment>Something whose name is not known. {0} is its id.</comment>
   </data>
+  <data name="SummaryInSpace" xml:space="preserve">
+    <value>{0} (in space)</value>
+    <comment>Character summary → Location column, for a character undocked. {0} is the solar system's name.</comment>
+  </data>
+  <data name="SummaryStationNumbered" xml:space="preserve">
+    <value>Station {0}</value>
+    <comment>Character summary → a station whose name is not known yet. {0} is its id number.</comment>
+  </data>
+  <data name="SummaryStructureNumbered" xml:space="preserve">
+    <value>Structure {0}</value>
+    <comment>Character summary → a player structure whose name is not known. {0} is its id number.</comment>
+  </data>
+  <data name="SummarySystemNumbered" xml:space="preserve">
+    <value>System {0}</value>
+    <comment>Character summary → a solar system whose name is not known. {0} is its id number.</comment>
+  </data>
+  <data name="SummaryLocationNumbered" xml:space="preserve">
+    <value>Location {0}</value>
+    <comment>Character summary → Home column, a place whose name is not known. {0} is its id number.</comment>
+  </data>
+  <data name="SummaryTypeNumbered" xml:space="preserve">
+    <value>Type {0}</value>
+    <comment>Character summary → Ship column, a hull whose name is not known. {0} is its type id.</comment>
+  </data>
+  <data name="SummaryCorpNumbered" xml:space="preserve">
+    <value>Corp {0}</value>
+    <comment>Character summary → a corporation whose name is not known. {0} is its id number.</comment>
+  </data>
+  <data name="SummaryAllianceNumbered" xml:space="preserve">
+    <value>Alliance {0}</value>
+    <comment>Character summary → an alliance whose name is not known. {0} is its id number.</comment>
+  </data>
   <data name="StatusSelectCharacter" xml:space="preserve">
     <value>Select a character.</value>
     <comment>Status line when no character is selected.</comment>

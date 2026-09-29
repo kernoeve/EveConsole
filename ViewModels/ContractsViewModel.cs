@@ -197,14 +197,14 @@ public class ContractItemRowVm : ReactiveObject
 
         var notes = new List<string>();
         if (it.IsBlueprintCopy == true || (it.RawQuantity is < -1))
-            notes.Add("BPC");
+            notes.Add(MarketText.ContractItemBpc);
         else if (it.RawQuantity == -1)
-            notes.Add("BPO");
-        if (it.Runs is > 0) notes.Add($"{it.Runs} runs");
+            notes.Add(MarketText.ContractItemBpo);
+        if (it.Runs is > 0) notes.Add(string.Format(MarketText.ContractItemRuns, it.Runs));
         if (it.MaterialEfficiency is > 0 || it.TimeEfficiency is > 0)
             notes.Add($"ME {it.MaterialEfficiency ?? 0} / TE {it.TimeEfficiency ?? 0}");
-        if (it.IsSingleton) notes.Add("assembled");
-        Details = string.Join(", ", notes);
+        if (it.IsSingleton) notes.Add(MarketText.ContractItemAssembled);
+        Details = string.Join(CommonText.ListSeparator, notes);
     }
 }
 
@@ -504,13 +504,14 @@ public class ContractRowVm
         else if (included.Count > 1)
         {
             // The summary leads with the first item's name, so that is what the link opens.
-            Contents       = $"{ContractFmt.ItemName(included[0].TypeId, typeNames)} +{included.Count - 1} more";
+            Contents       = string.Format(MarketText.ContractContentsAndMore,
+                                 ContractFmt.ItemName(included[0].TypeId, typeNames), included.Count - 1);
             ContentsTypeId = included[0].TypeId;
         }
         else if (items.Count > 0)
-            Contents = $"{items.Count} item(s)";
+            Contents = string.Format(MarketText.ContractContentsItems, items.Count);
         else
-            Contents = c.Type == "courier" ? "(courier)" : "—";
+            Contents = c.Type == "courier" ? MarketText.ContractContentsCourier : "—";
 
         SearchText = string.Join(" ",
             new[] { c.Title ?? "" }.Concat(items.Select(Name))).ToLowerInvariant();

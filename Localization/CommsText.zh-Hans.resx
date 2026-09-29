@@ -151,6 +151,9 @@
   <data name="MailFolderAlliance" xml:space="preserve">
     <value>联盟</value>
   </data>
+  <data name="MailCountOther" xml:space="preserve">
+    <value>{0:N0} 封邮件</value>
+  </data>
   <data name="MailBodyLoadError" xml:space="preserve">
     <value>（加载正文时出错：{0}）</value>
   </data>

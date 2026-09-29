@@ -649,6 +649,27 @@
   <data name="ContractNotStored" xml:space="preserve">
     <value>本地没有存储合同 {0}——它可能是公开合同，或尚未轮询到。</value>
   </data>
+  <data name="ContractContentsAndMore" xml:space="preserve">
+    <value>{0} 及另外 {1} 项</value>
+  </data>
+  <data name="ContractContentsItems" xml:space="preserve">
+    <value>{0} 件物品</value>
+  </data>
+  <data name="ContractContentsCourier" xml:space="preserve">
+    <value>（快递）</value>
+  </data>
+  <data name="ContractItemBpc" xml:space="preserve">
+    <value>BPC</value>
+  </data>
+  <data name="ContractItemBpo" xml:space="preserve">
+    <value>BPO</value>
+  </data>
+  <data name="ContractItemRuns" xml:space="preserve">
+    <value>{0} 流程</value>
+  </data>
+  <data name="ContractItemAssembled" xml:space="preserve">
+    <value>已组装</value>
+  </data>
   <data name="NotAvailable" xml:space="preserve">
     <value>不可用。</value>
   </data>
