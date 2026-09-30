@@ -131,7 +131,7 @@
         <Border DockPanel.Dock="Top" IsVisible="{Binding HasFinderSlot}" Margin="0 0 0 6" Padding="8 3"
                 Background="{DynamicResource SurfaceRaisedBrush}" CornerRadius="3">
           <Grid ColumnDefinitions="*,Auto">
-            <TextBlock Text="{Binding FinderSlotText}" FontSize="11" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
+            <TextBlock Text="{Binding FinderSlotText}" FontSize="11" TextWrapping="Wrap" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
             <Button Grid.Column="1" Classes="remove" Content="✕" Command="{Binding ClearFinderSlotCommand}"
                     ToolTip.Tip="{x:Static loc:FittingText.TipShowEverySlot}" />
           </Grid>

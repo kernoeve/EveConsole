@@ -13,6 +13,9 @@
   <data name="NavGroupStructures" xml:space="preserve">
     <value>구조물 / 항법</value>
   </data>
+  <data name="NavGroupShips" xml:space="preserve">
+    <value>함선</value>
+  </data>
   <data name="NavGroupIndustry" xml:space="preserve">
     <value>산업</value>
   </data>
@@ -66,6 +69,9 @@
   </data>
   <data name="NavProductionCalc" xml:space="preserve">
     <value>생산 계산기</value>
+  </data>
+  <data name="NavFitting" xml:space="preserve">
+    <value>피팅</value>
   </data>
   <data name="NavPriceOverrides" xml:space="preserve">
     <value>가격 수동 지정</value>

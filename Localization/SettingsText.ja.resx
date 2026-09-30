@@ -2929,6 +2929,9 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
   <data name="ImportStageDogmaEffects" xml:space="preserve">
     <value>ドグマ効果</value>
   </data>
+  <data name="ImportStageDogmaEffectModifiers" xml:space="preserve">
+    <value>ドグマ効果の修正値</value>
+  </data>
   <data name="ImportStageTypeDogma" xml:space="preserve">
     <value>タイプのドグマ</value>
   </data>

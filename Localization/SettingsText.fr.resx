@@ -2929,6 +2929,9 @@ L'application va redémarrer.</value>
   <data name="ImportStageDogmaEffects" xml:space="preserve">
     <value>Effets Dogma</value>
   </data>
+  <data name="ImportStageDogmaEffectModifiers" xml:space="preserve">
+    <value>Modificateurs d'effets Dogma</value>
+  </data>
   <data name="ImportStageTypeDogma" xml:space="preserve">
     <value>Dogma des types</value>
   </data>

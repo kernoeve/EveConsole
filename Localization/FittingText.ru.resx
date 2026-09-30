@@ -1,0 +1,943 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TitleFitting" xml:space="preserve">
+    <value>Оснащение</value>
+  </data>
+  <data name="ItemsHeading" xml:space="preserve">
+    <value>Предметы</value>
+  </data>
+  <data name="FilterAll" xml:space="preserve">
+    <value>Все</value>
+  </data>
+  <data name="FilterModules" xml:space="preserve">
+    <value>Модули</value>
+  </data>
+  <data name="FilterRigs" xml:space="preserve">
+    <value>Модификаторы</value>
+  </data>
+  <data name="FilterSubsystems" xml:space="preserve">
+    <value>Подсистемы</value>
+  </data>
+  <data name="FilterCharges" xml:space="preserve">
+    <value>Заряды</value>
+  </data>
+  <data name="FilterDrones" xml:space="preserve">
+    <value>Дроны</value>
+  </data>
+  <data name="FilterImplants" xml:space="preserve">
+    <value>Имплантаты</value>
+  </data>
+  <data name="FilterBoosters" xml:space="preserve">
+    <value>Стимуляторы</value>
+  </data>
+  <data name="FilterOtherItems" xml:space="preserve">
+    <value>Прочее</value>
+  </data>
+  <data name="SearchWatermark" xml:space="preserve">
+    <value>Поиск по названию или группе…</value>
+  </data>
+  <data name="FitsOnly" xml:space="preserve">
+    <value>Только подходящее этому корпусу</value>
+  </data>
+  <data name="TipShowEverySlot" xml:space="preserve">
+    <value>Показать модули для всех разъёмов</value>
+  </data>
+  <data name="AddToFit" xml:space="preserve">
+    <value>Добавить в оснастку</value>
+  </data>
+  <data name="AddToCargo" xml:space="preserve">
+    <value>Добавить в груз</value>
+  </data>
+  <data name="TipAddToCargo" xml:space="preserve">
+    <value>Положить выбранный предмет в грузовой отсек — перевозить можно что угодно</value>
+  </data>
+  <data name="FinderHigh" xml:space="preserve">
+    <value>Большой</value>
+  </data>
+  <data name="FinderMid" xml:space="preserve">
+    <value>Средний</value>
+  </data>
+  <data name="FinderLow" xml:space="preserve">
+    <value>Малый</value>
+  </data>
+  <data name="FinderService" xml:space="preserve">
+    <value>Служба</value>
+  </data>
+  <data name="FinderRig" xml:space="preserve">
+    <value>Модификатор</value>
+  </data>
+  <data name="FinderSubsystem" xml:space="preserve">
+    <value>Подсистема</value>
+  </data>
+  <data name="FinderCharge" xml:space="preserve">
+    <value>Заряд</value>
+  </data>
+  <data name="FinderDrone" xml:space="preserve">
+    <value>Дрон</value>
+  </data>
+  <data name="FinderFighter" xml:space="preserve">
+    <value>Истребитель</value>
+  </data>
+  <data name="KindImplant" xml:space="preserve">
+    <value>Имплантат</value>
+  </data>
+  <data name="KindBooster" xml:space="preserve">
+    <value>Стимулятор</value>
+  </data>
+  <data name="FinderOnlyHigh" xml:space="preserve">
+    <value>Только модули для разъёмов большой мощности</value>
+  </data>
+  <data name="FinderOnlyMid" xml:space="preserve">
+    <value>Только модули для разъёмов средней мощности</value>
+  </data>
+  <data name="FinderOnlyLow" xml:space="preserve">
+    <value>Только модули для разъёмов малой мощности</value>
+  </data>
+  <data name="FinderOnlyRig" xml:space="preserve">
+    <value>Только модификаторы</value>
+  </data>
+  <data name="FinderOnlySubsystem" xml:space="preserve">
+    <value>Только подсистемы</value>
+  </data>
+  <data name="FinderOnlyService" xml:space="preserve">
+    <value>Только служебные модули</value>
+  </data>
+  <data name="ToggleItems" xml:space="preserve">
+    <value>☰ Предметы</value>
+  </data>
+  <data name="TipToggleItems" xml:space="preserve">
+    <value>Показать или скрыть список предметов</value>
+  </data>
+  <data name="NewFitLabel" xml:space="preserve">
+    <value>Новая оснастка</value>
+  </data>
+  <data name="HullWatermark" xml:space="preserve">
+    <value>Корпус — введите название или класс…</value>
+  </data>
+  <data name="PasteEft" xml:space="preserve">
+    <value>Вставить EFT…</value>
+  </data>
+  <data name="FromGame" xml:space="preserve">
+    <value>Из игры…</value>
+  </data>
+  <data name="TipFromGame" xml:space="preserve">
+    <value>Открыть оснастку, сохранённую в игре одним из ваших персонажей или одной из корпораций</value>
+  </data>
+  <data name="SavedFitsPlaceholder" xml:space="preserve">
+    <value>Сохранённые оснастки…</value>
+  </data>
+  <data name="TipSavedFits" xml:space="preserve">
+    <value>Открыть оснастку, сохранённую в EVE Console</value>
+  </data>
+  <data name="SavedFitLabel" xml:space="preserve">
+    <value>{0}  ({1})</value>
+  </data>
+  <data name="DeleteSaved" xml:space="preserve">
+    <value>Удалить</value>
+  </data>
+  <data name="TipDeleteSaved" xml:space="preserve">
+    <value>Удалить сохранённую оснастку, выбранную в списке</value>
+  </data>
+  <data name="EmptyToolHint" xml:space="preserve">
+    <value>Начните оснастку с выбора корпуса, вставьте готовую или откройте оснастку из игры или из сохранённых. Каждая открывается в отдельной вкладке.</value>
+  </data>
+  <data name="DropSideBySide" xml:space="preserve">
+    <value>Отпустите здесь, чтобы видеть две оснастки рядом</value>
+  </data>
+  <data name="TabNewFit" xml:space="preserve">
+    <value>Новая оснастка</value>
+  </data>
+  <data name="TipTab" xml:space="preserve">
+    <value>Перетащите, чтобы изменить порядок, или на правую половину, чтобы видеть две оснастки рядом</value>
+  </data>
+  <data name="TipTabDirty" xml:space="preserve">
+    <value>Изменена после открытия или сохранения</value>
+  </data>
+  <data name="TipCloseFit" xml:space="preserve">
+    <value>Закрыть эту оснастку</value>
+  </data>
+  <data name="PilotLabel" xml:space="preserve">
+    <value>Пилот</value>
+  </data>
+  <data name="TipPilot" xml:space="preserve">
+    <value>С чьими навыками рассчитываются показатели</value>
+  </data>
+  <data name="PilotAllV" xml:space="preserve">
+    <value>Все V</value>
+  </data>
+  <data name="PilotAll0" xml:space="preserve">
+    <value>Все 0</value>
+  </data>
+  <data name="FitNameWatermark" xml:space="preserve">
+    <value>Название оснастки</value>
+  </data>
+  <data name="NewFitName" xml:space="preserve">
+    <value>Новый {0}</value>
+  </data>
+  <data name="DefaultFitName" xml:space="preserve">
+    <value>Оснастка {0}</value>
+  </data>
+  <data name="GameFitDescription" xml:space="preserve">
+    <value>Сохранено из EVE Console</value>
+  </data>
+  <data name="GameFitNoName" xml:space="preserve">
+    <value>Оснастка</value>
+  </data>
+  <data name="CopyEft" xml:space="preserve">
+    <value>Копировать EFT</value>
+  </data>
+  <data name="TipCopyEft" xml:space="preserve">
+    <value>Скопировать эту оснастку в буфер обмена в формате EFT</value>
+  </data>
+  <data name="SaveFit" xml:space="preserve">
+    <value>Сохранить…</value>
+  </data>
+  <data name="TipSaveFit" xml:space="preserve">
+    <value>Сохранить в EVE Console или в оснастки персонажа в игре</value>
+  </data>
+  <data name="GameSource" xml:space="preserve">
+    <value>Из оснасток персонажа {0} в игре: {1}</value>
+  </data>
+  <data name="SlotGroupHigh" xml:space="preserve">
+    <value>Разъёмы большой мощности  {0} / {1}</value>
+  </data>
+  <data name="SlotGroupMid" xml:space="preserve">
+    <value>Разъёмы средней мощности  {0} / {1}</value>
+  </data>
+  <data name="SlotGroupLow" xml:space="preserve">
+    <value>Разъёмы малой мощности  {0} / {1}</value>
+  </data>
+  <data name="SlotGroupRig" xml:space="preserve">
+    <value>Разъёмы для модификаторов  {0} / {1}</value>
+  </data>
+  <data name="SlotGroupSubsystem" xml:space="preserve">
+    <value>Разъёмы подсистем  {0} / {1}</value>
+  </data>
+  <data name="SlotGroupService" xml:space="preserve">
+    <value>Служебные разъёмы  {0} / {1}</value>
+  </data>
+  <data name="EmptyRowHigh" xml:space="preserve">
+    <value>[Пустой разъём большой мощности]</value>
+  </data>
+  <data name="EmptyRowMid" xml:space="preserve">
+    <value>[Пустой разъём средней мощности]</value>
+  </data>
+  <data name="EmptyRowLow" xml:space="preserve">
+    <value>[Пустой разъём малой мощности]</value>
+  </data>
+  <data name="EmptyRowRig" xml:space="preserve">
+    <value>[Пустой разъём для модификатора]</value>
+  </data>
+  <data name="EmptyRowSubsystem" xml:space="preserve">
+    <value>[Пустой разъём подсистемы]</value>
+  </data>
+  <data name="EmptyRowService" xml:space="preserve">
+    <value>[Пустой служебный разъём]</value>
+  </data>
+  <data name="StateOff" xml:space="preserve">
+    <value>ВЫКЛ</value>
+  </data>
+  <data name="StateOn" xml:space="preserve">
+    <value>ВКЛ</value>
+  </data>
+  <data name="StateAct" xml:space="preserve">
+    <value>АКТ</value>
+  </data>
+  <data name="StateHeat" xml:space="preserve">
+    <value>НАГР</value>
+  </data>
+  <data name="TipStateOffline" xml:space="preserve">
+    <value>Выключен — нажмите, чтобы включить</value>
+  </data>
+  <data name="TipStateOnlineActivate" xml:space="preserve">
+    <value>Включён — нажмите, чтобы активировать</value>
+  </data>
+  <data name="TipStateOnlineOffline" xml:space="preserve">
+    <value>Включён — нажмите, чтобы выключить</value>
+  </data>
+  <data name="TipStateActive" xml:space="preserve">
+    <value>Работает — нажмите, чтобы выключить</value>
+  </data>
+  <data name="TipStateOverheated" xml:space="preserve">
+    <value>Перегружен — нажмите, чтобы выключить</value>
+  </data>
+  <data name="HeatButton" xml:space="preserve">
+    <value>НАГР</value>
+  </data>
+  <data name="TipHeatStop" xml:space="preserve">
+    <value>Перегружен — нажмите, чтобы выключить перегрузку</value>
+  </data>
+  <data name="TipHeatStart" xml:space="preserve">
+    <value>Нажмите, чтобы включить перегрузку</value>
+  </data>
+  <data name="NoCharge" xml:space="preserve">
+    <value>Без заряда</value>
+  </data>
+  <data name="TipModuleValue" xml:space="preserve">
+    <value>Рыночная стоимость модуля</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>Убрать</value>
+  </data>
+  <data name="TipChooseModule" xml:space="preserve">
+    <value>Нажмите, чтобы выбрать модуль для этого разъёма</value>
+  </data>
+  <data name="StateNameOffline" xml:space="preserve">
+    <value>Выключен</value>
+  </data>
+  <data name="StateNameOnline" xml:space="preserve">
+    <value>Включён</value>
+  </data>
+  <data name="StateNameActive" xml:space="preserve">
+    <value>Работает</value>
+  </data>
+  <data name="StateNameOverheated" xml:space="preserve">
+    <value>Перегружен</value>
+  </data>
+  <data name="MenuPutOnline" xml:space="preserve">
+    <value>Включить</value>
+  </data>
+  <data name="MenuPutOffline" xml:space="preserve">
+    <value>Выключить</value>
+  </data>
+  <data name="MenuActivate" xml:space="preserve">
+    <value>Активировать</value>
+  </data>
+  <data name="MenuDeactivate" xml:space="preserve">
+    <value>Деактивировать</value>
+  </data>
+  <data name="MenuOverheat" xml:space="preserve">
+    <value>Включить перегрузку</value>
+  </data>
+  <data name="MenuStopOverheating" xml:space="preserve">
+    <value>Выключить перегрузку</value>
+  </data>
+  <data name="MenuUnload" xml:space="preserve">
+    <value>Выгрузить заряд: {0}</value>
+  </data>
+  <data name="DronesHeading" xml:space="preserve">
+    <value>Дроны и истребители</value>
+  </data>
+  <data name="InBay" xml:space="preserve">
+    <value>в отсеке</value>
+  </data>
+  <data name="Launched" xml:space="preserve">
+    <value>запущено</value>
+  </data>
+  <data name="InTube" xml:space="preserve">
+    <value>на полосе</value>
+  </data>
+  <data name="TipInTube" xml:space="preserve">
+    <value>Выпущен — в урон оснастки засчитываются отряды на взлётных полосах</value>
+  </data>
+  <data name="TipStackValue" xml:space="preserve">
+    <value>Рыночная стоимость всей стопки</value>
+  </data>
+  <data name="ClassLight" xml:space="preserve">
+    <value>Лёгкие</value>
+  </data>
+  <data name="ClassSupport" xml:space="preserve">
+    <value>Поддержка</value>
+  </data>
+  <data name="ClassHeavy" xml:space="preserve">
+    <value>Тяжёлые</value>
+  </data>
+  <data name="TipSquadronLight" xml:space="preserve">
+    <value>Отряд лёгких истребителей, не более {0}</value>
+  </data>
+  <data name="TipSquadronSupport" xml:space="preserve">
+    <value>Отряд истребителей поддержки, не более {0}</value>
+  </data>
+  <data name="TipSquadronHeavy" xml:space="preserve">
+    <value>Отряд тяжёлых истребителей, не более {0}</value>
+  </data>
+  <data name="TipSquadron" xml:space="preserve">
+    <value>Отряд истребителей, не более {0}</value>
+  </data>
+  <data name="AbilityAttack" xml:space="preserve">
+    <value>Атака</value>
+  </data>
+  <data name="AbilityMissiles" xml:space="preserve">
+    <value>Ракетная атака</value>
+  </data>
+  <data name="AbilityBomb" xml:space="preserve">
+    <value>Бомба</value>
+  </data>
+  <data name="AbilityKamikaze" xml:space="preserve">
+    <value>Камикадзе</value>
+  </data>
+  <data name="AbilityEnergyNeutralizer" xml:space="preserve">
+    <value>Нейтрализация энергии</value>
+  </data>
+  <data name="AbilityStasisWebifier" xml:space="preserve">
+    <value>Генератор стазис-поля</value>
+  </data>
+  <data name="AbilityWarpDisruptor" xml:space="preserve">
+    <value>Варп-глушитель</value>
+  </data>
+  <data name="AbilityEcm" xml:space="preserve">
+    <value>РЭБ</value>
+  </data>
+  <data name="AbilityTackle" xml:space="preserve">
+    <value>Захват</value>
+  </data>
+  <data name="AbilityEvasiveManeuvers" xml:space="preserve">
+    <value>Боевое маневрирование</value>
+  </data>
+  <data name="AbilityAfterburner" xml:space="preserve">
+    <value>Форсажный ускоритель</value>
+  </data>
+  <data name="AbilityMicrowarpdrive" xml:space="preserve">
+    <value>Микроварп-ускоритель</value>
+  </data>
+  <data name="AbilityMicroJumpDrive" xml:space="preserve">
+    <value>Маневровый гипердвигатель</value>
+  </data>
+  <data name="TipAbilityCounted" xml:space="preserve">
+    <value>{0}: учитывается в уроне в секунду, пока включено</value>
+  </data>
+  <data name="TipAbilityNoEffect" xml:space="preserve">
+    <value>{0}: не влияет на показатели оснастки</value>
+  </data>
+  <data name="CargoHeading" xml:space="preserve">
+    <value>Грузовой отсек</value>
+  </data>
+  <data name="Quantity" xml:space="preserve">
+    <value>кол-во</value>
+  </data>
+  <data name="ImplantsHeading" xml:space="preserve">
+    <value>Имплантаты и стимуляторы</value>
+  </data>
+  <data name="ResourcesHeading" xml:space="preserve">
+    <value>Ресурсы</value>
+  </data>
+  <data name="Cpu" xml:space="preserve">
+    <value>ЦПУ</value>
+  </data>
+  <data name="Powergrid" xml:space="preserve">
+    <value>Реактор</value>
+  </data>
+  <data name="Calibration" xml:space="preserve">
+    <value>Калибровка</value>
+  </data>
+  <data name="Hardpoints" xml:space="preserve">
+    <value>Орудия: {0} / {1}    Пусковые установки: {2} / {3}</value>
+  </data>
+  <data name="CargoLine" xml:space="preserve">
+    <value>Груз: {0:N1} / {1:N0} m³</value>
+  </data>
+  <data name="DroneLine" xml:space="preserve">
+    <value>Отсек для дронов: {0:0} / {1:0} m³    Канал управления: {2:0} / {3:0} Мбит/с</value>
+  </data>
+  <data name="FighterLine" xml:space="preserve">
+    <value>Отсек для истребителей: {0:N0} / {1:N0} m³    Взлётные полосы: {2} / {3}</value>
+  </data>
+  <data name="FighterSlotsLight" xml:space="preserve">
+    <value>Лёгкие: {0} / {1}</value>
+  </data>
+  <data name="FighterSlotsSupport" xml:space="preserve">
+    <value>Поддержка: {0} / {1}</value>
+  </data>
+  <data name="FighterSlotsHeavy" xml:space="preserve">
+    <value>Тяжёлые: {0} / {1}</value>
+  </data>
+  <data name="ValueHeading" xml:space="preserve">
+    <value>Стоимость</value>
+  </data>
+  <data name="ValueHull" xml:space="preserve">
+    <value>Корпус: {0}</value>
+  </data>
+  <data name="ValueModules" xml:space="preserve">
+    <value>Модули: {0}</value>
+  </data>
+  <data name="ValueDrones" xml:space="preserve">
+    <value>Дроны: {0}</value>
+  </data>
+  <data name="ValueCargo" xml:space="preserve">
+    <value>Груз: {0}</value>
+  </data>
+  <data name="ValueImplants" xml:space="preserve">
+    <value>Имплантаты и стимуляторы: {0} (принадлежат пилоту, в итог не входят)</value>
+  </data>
+  <data name="ValueNoPrices" xml:space="preserve">
+    <value>Рыночных цен пока нет — выберите рынок для оценки имущества в «Настройки → Рынок».</value>
+  </data>
+  <data name="ValuePrices" xml:space="preserve">
+    <value>Цены: {0}</value>
+  </data>
+  <data name="ValuePricesUnpricedOne" xml:space="preserve">
+    <value>Цены: {1} — {0} предмет без цены</value>
+  </data>
+  <data name="ValuePricesUnpricedOther" xml:space="preserve">
+    <value>Цены: {1} — {0} предмета без цены</value>
+  </data>
+  <data name="ValuePricesUnpricedFew" xml:space="preserve">
+    <value>Цены: {1} — {0} предмета без цены</value>
+  </data>
+  <data name="ValuePricesUnpricedMany" xml:space="preserve">
+    <value>Цены: {1} — {0} предметов без цены</value>
+  </data>
+  <data name="PriceBasisWithMarket" xml:space="preserve">
+    <value>{0}, {1}</value>
+  </data>
+  <data name="OffenseHeading" xml:space="preserve">
+    <value>Огневая мощь</value>
+  </data>
+  <data name="Dps0" xml:space="preserve">
+    <value>{0:N0} урона/с</value>
+  </data>
+  <data name="DpsWeapons" xml:space="preserve">
+    <value>Оружие: {0:N1}</value>
+  </data>
+  <data name="DpsDrones" xml:space="preserve">
+    <value>Дроны: {0:N1}</value>
+  </data>
+  <data name="DpsFighters" xml:space="preserve">
+    <value>Истребители: {0:N1}</value>
+  </data>
+  <data name="DpsVolley" xml:space="preserve">
+    <value>Залп: {0:N0}</value>
+  </data>
+  <data name="DamageMix" xml:space="preserve">
+    <value>ЭМ {0:P0} · Терм. {1:P0} · Кин. {2:P0} · Фуг. {3:P0}</value>
+  </data>
+  <data name="Dps1" xml:space="preserve">
+    <value>{0:N1} урона/с</value>
+  </data>
+  <data name="AbilityDps" xml:space="preserve">
+    <value>{0}: {1:N0} урона/с</value>
+  </data>
+  <data name="AbilityAlpha" xml:space="preserve">
+    <value>{0}: {1:N0} за удар</value>
+  </data>
+  <data name="DetailCalibration" xml:space="preserve">
+    <value>Калибровка: {0:0}</value>
+  </data>
+  <data name="DetailCpu" xml:space="preserve">
+    <value>ЦПУ: {0:0.##}</value>
+  </data>
+  <data name="DetailPg" xml:space="preserve">
+    <value>Реактор: {0:0.##}</value>
+  </data>
+  <data name="DetailRepairShield" xml:space="preserve">
+    <value>Щиты: {0:N1} ед. пр./с</value>
+  </data>
+  <data name="DetailRepairArmor" xml:space="preserve">
+    <value>Броня: {0:N1} ед. пр./с</value>
+  </data>
+  <data name="DetailRepairHull" xml:space="preserve">
+    <value>Корпус: {0:N1} ед. пр./с</value>
+  </data>
+  <data name="DefenseHeading" xml:space="preserve">
+    <value>Оборона</value>
+  </data>
+  <data name="Against" xml:space="preserve">
+    <value>Против</value>
+  </data>
+  <data name="ProfileEven" xml:space="preserve">
+    <value>Равномерный (по 25%)</value>
+  </data>
+  <data name="ProfileCustom" xml:space="preserve">
+    <value>Свой</value>
+  </data>
+  <data name="DamageEm" xml:space="preserve">
+    <value>ЭМ</value>
+  </data>
+  <data name="DamageThermal" xml:space="preserve">
+    <value>Термический</value>
+  </data>
+  <data name="DamageKinetic" xml:space="preserve">
+    <value>Кинет.</value>
+  </data>
+  <data name="DamageExplosive" xml:space="preserve">
+    <value>Фугасный</value>
+  </data>
+  <data name="TipCustomProfile" xml:space="preserve">
+    <value>Доли каждого типа урона относительно друг друга — в любом масштабе</value>
+  </data>
+  <data name="EhpLine" xml:space="preserve">
+    <value>{0:N0} эфф. ЗП</value>
+  </data>
+  <data name="TipEhp" xml:space="preserve">
+    <value>Эффективный запас прочности при равном уроне всех четырёх типов</value>
+  </data>
+  <data name="ColHp" xml:space="preserve">
+    <value>ЗП</value>
+  </data>
+  <data name="ColEm" xml:space="preserve">
+    <value>ЭМ</value>
+  </data>
+  <data name="ColTh" xml:space="preserve">
+    <value>Терм.</value>
+  </data>
+  <data name="ColKin" xml:space="preserve">
+    <value>Кин.</value>
+  </data>
+  <data name="ColExp" xml:space="preserve">
+    <value>Фуг.</value>
+  </data>
+  <data name="ColEhp" xml:space="preserve">
+    <value>Эфф.</value>
+  </data>
+  <data name="LayerShield" xml:space="preserve">
+    <value>Щиты</value>
+  </data>
+  <data name="LayerArmor" xml:space="preserve">
+    <value>Броня</value>
+  </data>
+  <data name="LayerHull" xml:space="preserve">
+    <value>Корпус</value>
+  </data>
+  <data name="RegenLine" xml:space="preserve">
+    <value>Регенерация щитов: до {0:N1} ед. пр./с (эфф.: {1:N0}/с)    Полная подзарядка: {2}</value>
+  </data>
+  <data name="RepairShield" xml:space="preserve">
+    <value>Накачка щитов: {0:N1} ед. пр./с (эфф.: {1:N0}/с)</value>
+  </data>
+  <data name="RepairArmor" xml:space="preserve">
+    <value>Ремонт брони: {0:N1} ед. пр./с (эфф.: {1:N0}/с)</value>
+  </data>
+  <data name="RepairHull" xml:space="preserve">
+    <value>Ремонт корпуса: {0:N1} ед. пр./с (эфф.: {1:N0}/с)</value>
+  </data>
+  <data name="RepairCapRunsOut" xml:space="preserve">
+    <value>Ремонт, расходующий энергию накопителя, прекратится, когда она закончится ({0})</value>
+  </data>
+  <data name="CapacitorHeading" xml:space="preserve">
+    <value>Накопитель</value>
+  </data>
+  <data name="CapStable" xml:space="preserve">
+    <value>Стабилен на уровне {0:0.0}%</value>
+  </data>
+  <data name="CapLasts" xml:space="preserve">
+    <value>Хватит на {0}</value>
+  </data>
+  <data name="CapFlow" xml:space="preserve">
+    <value>Расход: {0:0.0} ГДж/с    Пиковая подзарядка: {1:0.0} ГДж/с</value>
+  </data>
+  <data name="CapBoosters" xml:space="preserve">
+    <value>Системы подкачки: +{0:0.0} ГДж/с</value>
+  </data>
+  <data name="NavigationHeading" xml:space="preserve">
+    <value>Навигация</value>
+  </data>
+  <data name="NavLine" xml:space="preserve">
+    <value>Разгон: {0:0.00} с    Сигнатура: {1:N0} м    Варп: {2:0.##} а. е./с</value>
+  </data>
+  <data name="MassLine" xml:space="preserve">
+    <value>Масса: {0:N0} кг    Инертность: {1:0.###}</value>
+  </data>
+  <data name="TargetingHeading" xml:space="preserve">
+    <value>Захват целей</value>
+  </data>
+  <data name="TargetingLine" xml:space="preserve">
+    <value>Дальность: {0:0.#} км    Разрешение: {1:N0} мм    Целей: {2:0}</value>
+  </data>
+  <data name="SensorRadar" xml:space="preserve">
+    <value>Радар: {0:0.#}</value>
+  </data>
+  <data name="SensorLadar" xml:space="preserve">
+    <value>Ладар: {0:0.#}</value>
+  </data>
+  <data name="SensorMagnetometric" xml:space="preserve">
+    <value>Магнитометрия: {0:0.#}</value>
+  </data>
+  <data name="SensorGravimetric" xml:space="preserve">
+    <value>Гравиметрия: {0:0.#}</value>
+  </data>
+  <data name="DurationHours" xml:space="preserve">
+    <value>{0} ч {1} мин</value>
+  </data>
+  <data name="DurationMinutes" xml:space="preserve">
+    <value>{0} мин {1} с</value>
+  </data>
+  <data name="DurationSeconds" xml:space="preserve">
+    <value>{0:0.0} с</value>
+  </data>
+  <data name="StatusLoadingGameData" xml:space="preserve">
+    <value>Загрузка игровых данных…</value>
+  </data>
+  <data name="StatusNoGameData" xml:space="preserve">
+    <value>Игровых данных пока нет — импортируйте SDE в «Настройки → SDE» и снова откройте этот инструмент.</value>
+  </data>
+  <data name="StatusGameDataUpdating" xml:space="preserve">
+    <value>Игровые данные дополняются для расчёта оснастки (ход видно в «Настройки → SDE»). Когда обновление закончится, снова откройте этот инструмент.</value>
+  </data>
+  <data name="StatusStart" xml:space="preserve">
+    <value>Начните оснастку с выбора корпуса, вставьте готовую или откройте оснастку из игры или из сохранённых.</value>
+  </data>
+  <data name="StatusLoadFailed" xml:space="preserve">
+    <value>Не удалось загрузить игровые данные: {0}</value>
+  </data>
+  <data name="StatusStartFitFirst" xml:space="preserve">
+    <value>Сначала создайте оснастку.</value>
+  </data>
+  <data name="StatusPickHullFirst" xml:space="preserve">
+    <value>Сначала выберите корпус.</value>
+  </data>
+  <data name="StatusNewFit" xml:space="preserve">
+    <value>Новая оснастка: {0}. Добавьте модули из списка «Предметы».</value>
+  </data>
+  <data name="StatusNewFitPickHull" xml:space="preserve">
+    <value>Новая оснастка. Выберите корпус.</value>
+  </data>
+  <data name="StatusImported" xml:space="preserve">
+    <value>Импортировано: {0}.</value>
+  </data>
+  <data name="StatusImportedUnrecognised" xml:space="preserve">
+    <value>Импортировано, но не распознано: {0}</value>
+  </data>
+  <data name="StatusNoCharacters" xml:space="preserve">
+    <value>Нет персонажей, у которых можно прочитать оснастки.</value>
+  </data>
+  <data name="StatusImportedFromGame" xml:space="preserve">
+    <value>Импортировано из игры: {0}.</value>
+  </data>
+  <data name="StatusOpened" xml:space="preserve">
+    <value>Открыто: {0}.</value>
+  </data>
+  <data name="StatusChooseSavedToDelete" xml:space="preserve">
+    <value>Выберите сохранённую оснастку, которую нужно удалить.</value>
+  </data>
+  <data name="StatusDeleted" xml:space="preserve">
+    <value>Удалено: {0}.</value>
+  </data>
+  <data name="StatusAdded" xml:space="preserve">
+    <value>Добавлено: {0}.</value>
+  </data>
+  <data name="StatusAddedSquadron" xml:space="preserve">
+    <value>Добавлен отряд: {0} × {1}.</value>
+  </data>
+  <data name="StatusAlreadyPluggedIn" xml:space="preserve">
+    <value>Уже установлено: {0}.</value>
+  </data>
+  <data name="StatusNothingCanLoad" xml:space="preserve">
+    <value>Этот заряд не подходит ни одному установленному модулю: {0}.</value>
+  </data>
+  <data name="StatusLoadedCharge" xml:space="preserve">
+    <value>Заряжено: {0}.</value>
+  </data>
+  <data name="StatusLoadedChargeInModulesOne" xml:space="preserve">
+    <value>Заряд {1} загружен в {0} модуль.</value>
+  </data>
+  <data name="StatusLoadedChargeInModulesOther" xml:space="preserve">
+    <value>Заряд {1} загружен в {0} модуля.</value>
+  </data>
+  <data name="StatusLoadedChargeInModulesFew" xml:space="preserve">
+    <value>Заряд {1} загружен в {0} модуля.</value>
+  </data>
+  <data name="StatusLoadedChargeInModulesMany" xml:space="preserve">
+    <value>Заряд {1} загружен в {0} модулей.</value>
+  </data>
+  <data name="StatusInCargo" xml:space="preserve">
+    <value>В грузовом отсеке: {0}.</value>
+  </data>
+  <data name="StatusChooseHigh" xml:space="preserve">
+    <value>Выберите модуль для разъёма большой мощности в списке «Предметы».</value>
+  </data>
+  <data name="StatusChooseMid" xml:space="preserve">
+    <value>Выберите модуль для разъёма средней мощности в списке «Предметы».</value>
+  </data>
+  <data name="StatusChooseLow" xml:space="preserve">
+    <value>Выберите модуль для разъёма малой мощности в списке «Предметы».</value>
+  </data>
+  <data name="StatusChooseRig" xml:space="preserve">
+    <value>Выберите модификатор в списке «Предметы».</value>
+  </data>
+  <data name="StatusChooseSubsystem" xml:space="preserve">
+    <value>Выберите подсистему в списке «Предметы».</value>
+  </data>
+  <data name="StatusChooseService" xml:space="preserve">
+    <value>Выберите служебный модуль в списке «Предметы».</value>
+  </data>
+  <data name="StatusCalculationFailed" xml:space="preserve">
+    <value>Ошибка расчёта: {0}</value>
+  </data>
+  <data name="StatusDronesCutBack" xml:space="preserve">
+    <value>Запущенных дронов и истребителей оставлено столько, сколько может контролировать пилот и выпустить корпус.</value>
+  </data>
+  <data name="StatusNothingToCopy" xml:space="preserve">
+    <value>Пока нечего копировать.</value>
+  </data>
+  <data name="StatusCopiedEft" xml:space="preserve">
+    <value>Оснастка скопирована в буфер обмена в формате EFT.</value>
+  </data>
+  <data name="StatusNothingToSave" xml:space="preserve">
+    <value>Пока нечего сохранять.</value>
+  </data>
+  <data name="StatusSavedInApp" xml:space="preserve">
+    <value>Сохранено в EVE Console: {0}.</value>
+  </data>
+  <data name="StatusGameUnreachable" xml:space="preserve">
+    <value>Отсюда нет связи с игрой.</value>
+  </data>
+  <data name="StatusSavingToGame" xml:space="preserve">
+    <value>Сохранение в оснастки персонажа {0}…</value>
+  </data>
+  <data name="StatusSavedToGame" xml:space="preserve">
+    <value>Сохранено в оснастки персонажа {0} в игре.</value>
+  </data>
+  <data name="StatusNotFromGame" xml:space="preserve">
+    <value>Эта оснастка открыта не из игры.</value>
+  </data>
+  <data name="StatusUpdatingInGame" xml:space="preserve">
+    <value>Обновление оснастки персонажа {0}…</value>
+  </data>
+  <data name="StatusUpdatedInGame" xml:space="preserve">
+    <value>Обновлено в оснастках персонажа {1}: {0}.</value>
+  </data>
+  <data name="StatusSavedButOldNotRemoved" xml:space="preserve">
+    <value>Новая оснастка сохранена, но старую удалить не удалось (HTTP {0}). Удалите старую в игре.</value>
+  </data>
+  <data name="StatusCharacterNotInApp" xml:space="preserve">
+    <value>Этого персонажа нет в EVE Console.</value>
+  </data>
+  <data name="StatusTokenExpired" xml:space="preserve">
+    <value>Токен персонажа {0} истёк — авторизуйтесь заново в «Настройки → Токены ESI».</value>
+  </data>
+  <data name="StatusNoWriteScope" xml:space="preserve">
+    <value>Персонаж {0} не предоставил область доступа для записи оснасток — обновите персонажа в «Настройки → Токены ESI».</value>
+  </data>
+  <data name="NotSavedNoPlace" xml:space="preserve">
+    <value>Не сохранено (в оснастке для них нет места): {0}.</value>
+  </data>
+  <data name="SkippedUnknownType" xml:space="preserve">
+    <value>тип {0}</value>
+  </data>
+  <data name="TitleSaveFit" xml:space="preserve">
+    <value>Сохранение оснастки</value>
+  </data>
+  <data name="SaveNameLabel" xml:space="preserve">
+    <value>Название</value>
+  </data>
+  <data name="SaveToLabel" xml:space="preserve">
+    <value>Куда сохранить</value>
+  </data>
+  <data name="SaveNote" xml:space="preserve">
+    <value>Оснастки корпорации отсюда сохранить нельзя: ESI не позволяет их записывать, это может только игровой клиент. Имплантаты принадлежат пилоту и в игровую оснастку не входят.</value>
+  </data>
+  <data name="SaveConfirm" xml:space="preserve">
+    <value>Сохранить</value>
+  </data>
+  <data name="SaveTargetApp" xml:space="preserve">
+    <value>EVE Console (это приложение)</value>
+  </data>
+  <data name="SaveTargetReplace" xml:space="preserve">
+    <value>В игре: заменить «{0}» в оснастках персонажа {1}</value>
+  </data>
+  <data name="SaveTargetNew" xml:space="preserve">
+    <value>В игре: новая оснастка персонажа {0}</value>
+  </data>
+  <data name="SaveWhyTokenExpired" xml:space="preserve">
+    <value>токен истёк — авторизуйтесь заново в «Настройки → Токены ESI»</value>
+  </data>
+  <data name="SaveWhyNoScope" xml:space="preserve">
+    <value>не предоставлена область доступа для записи оснасток — обновите персонажа в «Настройки → Токены ESI»</value>
+  </data>
+  <data name="SaveErrNoName" xml:space="preserve">
+    <value>Укажите название оснастки.</value>
+  </data>
+  <data name="SaveErrNoTarget" xml:space="preserve">
+    <value>Выберите, куда сохранить.</value>
+  </data>
+  <data name="SaveErrCannotSave" xml:space="preserve">
+    <value>В оснастки этого персонажа сохранить нельзя.</value>
+  </data>
+  <data name="TitleImportFit" xml:space="preserve">
+    <value>Импорт оснастки</value>
+  </data>
+  <data name="EftPasteNote" xml:space="preserve">
+    <value>Вставьте оснастку в формате EFT — так её копирует окно оснащения в игре и так ею делятся сайты с оснастками. Первая строка называет корпус: [Rifter, Моя оснастка].</value>
+  </data>
+  <data name="ImportButton" xml:space="preserve">
+    <value>Импортировать</value>
+  </data>
+  <data name="EftErrStart" xml:space="preserve">
+    <value>Оснастка EFT начинается с [Корабль, Название оснастки].</value>
+  </data>
+  <data name="EftErrFirstLine" xml:space="preserve">
+    <value>Оснастка EFT начинается со строки вида [Корабль, Название оснастки].</value>
+  </data>
+  <data name="EftErrUnknownShip" xml:space="preserve">
+    <value>Неизвестный корабль: {0}</value>
+  </data>
+  <data name="GameErrUnreachable" xml:space="preserve">
+    <value>Не удалось связаться с игрой.</value>
+  </data>
+  <data name="GameErrNoScope" xml:space="preserve">
+    <value>Этот персонаж не предоставил область доступа для записи оснасток — авторизуйте его заново в «Настройки → Токены ESI».</value>
+  </data>
+  <data name="GameErrRefused" xml:space="preserve">
+    <value>Игра отклонила оснастку (HTTP {0}).</value>
+  </data>
+  <data name="WhyNotNoSlot" xml:space="preserve">
+    <value>{0}: не устанавливается в разъём.</value>
+  </data>
+  <data name="NoFreeHigh" xml:space="preserve">
+    <value>Нет свободного разъёма большой мощности.</value>
+  </data>
+  <data name="NoFreeMid" xml:space="preserve">
+    <value>Нет свободного разъёма средней мощности.</value>
+  </data>
+  <data name="NoFreeLow" xml:space="preserve">
+    <value>Нет свободного разъёма малой мощности.</value>
+  </data>
+  <data name="NoFreeRig" xml:space="preserve">
+    <value>Нет свободного разъёма для модификатора.</value>
+  </data>
+  <data name="NoFreeSubsystem" xml:space="preserve">
+    <value>Нет свободного разъёма подсистемы.</value>
+  </data>
+  <data name="NoFreeService" xml:space="preserve">
+    <value>Нет свободного служебного разъёма.</value>
+  </data>
+  <data name="WhyNotNoTurret" xml:space="preserve">
+    <value>Нет свободной точки монтажа орудий.</value>
+  </data>
+  <data name="WhyNotNoLauncher" xml:space="preserve">
+    <value>Нет свободной точки монтажа пусковых установок.</value>
+  </data>
+  <data name="WhyNotRigSize" xml:space="preserve">
+    <value>Размер модификатора не подходит к корпусу.</value>
+  </data>
+  <data name="WhyNotSubsystemHull" xml:space="preserve">
+    <value>Эта подсистема предназначена для другого корпуса.</value>
+  </data>
+  <data name="WhyNotSubsystemFilled" xml:space="preserve">
+    <value>Подсистема этого типа уже установлена.</value>
+  </data>
+  <data name="WhyNotHull" xml:space="preserve">
+    <value>{0}: нельзя установить на корабль {1}.</value>
+  </data>
+  <data name="WhyNotMaxGroup" xml:space="preserve">
+    <value>Модулей этой группы можно установить не более {0:0}.</value>
+  </data>
+  <data name="WhyNotMaxType" xml:space="preserve">
+    <value>Таких модулей можно установить не более {0:0}.</value>
+  </data>
+  <data name="TitleLoadFitFromGame" xml:space="preserve">
+    <value>Загрузка оснастки из игры</value>
+  </data>
+  <data name="LoadFit" xml:space="preserve">
+    <value>Загрузить оснастку</value>
+  </data>
+  <data name="LegendCharacter" xml:space="preserve">
+    <value>Персонаж</value>
+  </data>
+  <data name="LegendCorporation" xml:space="preserve">
+    <value>Корпорация</value>
+  </data>
+  <data name="TipOwnerFilter" xml:space="preserve">
+    <value>Показать оснастки одного персонажа или одной корпорации</value>
+  </data>
+  <data name="OwnerEveryone" xml:space="preserve">
+    <value>Все</value>
+  </data>
+  <data name="OwnerCorp" xml:space="preserve">
+    <value>{0} (корп.)</value>
+  </data>
+</root>

@@ -2929,6 +2929,9 @@ Die Anwendung wird neu gestartet.</value>
   <data name="ImportStageDogmaEffects" xml:space="preserve">
     <value>Dogma-Effekte</value>
   </data>
+  <data name="ImportStageDogmaEffectModifiers" xml:space="preserve">
+    <value>Dogma-Effektmodifikatoren</value>
+  </data>
   <data name="ImportStageTypeDogma" xml:space="preserve">
     <value>Typ-Dogma</value>
   </data>

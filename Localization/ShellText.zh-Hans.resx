@@ -13,6 +13,9 @@
   <data name="NavGroupStructures" xml:space="preserve">
     <value>建筑 / 导航</value>
   </data>
+  <data name="NavGroupShips" xml:space="preserve">
+    <value>舰船</value>
+  </data>
   <data name="NavGroupIndustry" xml:space="preserve">
     <value>工业</value>
   </data>
@@ -66,6 +69,9 @@
   </data>
   <data name="NavProductionCalc" xml:space="preserve">
     <value>生产计算器</value>
+  </data>
+  <data name="NavFitting" xml:space="preserve">
+    <value>装配</value>
   </data>
   <data name="NavPriceOverrides" xml:space="preserve">
     <value>价格覆盖</value>

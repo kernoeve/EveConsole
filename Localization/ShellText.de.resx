@@ -13,6 +13,9 @@
   <data name="NavGroupStructures" xml:space="preserve">
     <value>Strukturen / Navigation</value>
   </data>
+  <data name="NavGroupShips" xml:space="preserve">
+    <value>Schiffe</value>
+  </data>
   <data name="NavGroupIndustry" xml:space="preserve">
     <value>Industrie</value>
   </data>
@@ -66,6 +69,9 @@
   </data>
   <data name="NavProductionCalc" xml:space="preserve">
     <value>Produktionsrechner</value>
+  </data>
+  <data name="NavFitting" xml:space="preserve">
+    <value>Ausrüstung</value>
   </data>
   <data name="NavPriceOverrides" xml:space="preserve">
     <value>Preisvorgaben</value>

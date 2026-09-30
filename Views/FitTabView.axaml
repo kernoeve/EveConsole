@@ -203,7 +203,7 @@
         <StackPanel IsVisible="{Binding HasStats}">
 
           <TextBlock Text="{x:Static loc:FittingText.ResourcesHeading}" Classes="section" />
-          <Grid ColumnDefinitions="90,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
+          <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
             <TextBlock Grid.Row="0" Text="{x:Static loc:FittingText.Cpu}" Classes="line" />
             <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding CpuText}" Classes="line" Classes.over="{Binding CpuOver}" HorizontalAlignment="Right" />
             <ProgressBar Grid.Row="1" Grid.ColumnSpan="2" Value="{Binding CpuFraction}" Classes.over="{Binding CpuOver}" Margin="0 1 0 5" />
@@ -260,7 +260,7 @@
             </StackPanel>
           </Grid>
           <TextBlock Text="{Binding EhpText}" Classes="big" ToolTip.Tip="{x:Static loc:FittingText.TipEhp}" />
-          <Grid ColumnDefinitions="52,*,*,*,*,*,*" Margin="0 4 0 0">
+          <Grid ColumnDefinitions="64,*,*,*,*,*,*" Margin="0 4 0 0">
             <TextBlock Grid.Column="1" Text="{x:Static loc:FittingText.ColHp}"  Classes="line" HorizontalAlignment="Right" />
             <TextBlock Grid.Column="2" Text="{x:Static loc:FittingText.ColEm}"  Classes="line" HorizontalAlignment="Right" />
             <TextBlock Grid.Column="3" Text="{x:Static loc:FittingText.ColTh}"  Classes="line" HorizontalAlignment="Right" />
@@ -271,7 +271,7 @@
           <ItemsControl ItemsSource="{Binding TankRows}">
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="vm:TankLayerRow">
-                <Grid ColumnDefinitions="52,*,*,*,*,*,*">
+                <Grid ColumnDefinitions="64,*,*,*,*,*,*">
                   <TextBlock Grid.Column="0" Text="{Binding Layer}"     FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
                   <TextBlock Grid.Column="1" Text="{Binding Hp}"        FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Right" />
                   <TextBlock Grid.Column="2" Text="{Binding Em}"        FontSize="11" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Right" />
