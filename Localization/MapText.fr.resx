@@ -1762,7 +1762,7 @@ ou tels qu'un autre outil les exporte</value>
     <value>Ajoutés {0} · déjà connus {1} · non lus {2} (laissés dans la zone)</value>
   </data>
   <data name="LegendJumpBridge" xml:space="preserve">
-    <value>Pont de saut — plus pâle si ESI ne montre qu'une porte</value>
+    <value>Pont de saut — chaque moitié dans la couleur de zone de son extrémité ; plus pâle si ESI ne montre qu'une porte</value>
   </data>
   <data name="BridgeAllianceId" xml:space="preserve">
     <value>Alliance {0}</value>
@@ -1787,5 +1787,37 @@ ou tels qu'un autre outil les exporte</value>
   </data>
   <data name="BridgesRulesNote" xml:space="preserve">
     <value>Depuis le 22 septembre 2026, un pont ne peut être utilisé que par l'alliance qui détient la souveraineté là où le saut commence, et pas par les vaisseaux capitaux (sauf Rorquals et cargos). Chaque saut consomme le capaciteur du pont, d'autant plus que le saut aboutit loin de la capitale de cette alliance : gratuit jusqu'à 5 al (zone 1), puis 2×, 6×, 9× et 15× le coût de base du vaisseau tous les 5 al.</value>
+  </data>
+  <data name="OverlaySovZones" xml:space="preserve">
+    <value>Zones de souveraineté</value>
+  </data>
+  <data name="SovZoneCaption" xml:space="preserve">
+    <value>Z{0} · {1}</value>
+  </data>
+  <data name="NodeSovZone" xml:space="preserve">
+    <value>{0}
+Zone {1} : {2:0.0} al de la capitale, {3}</value>
+  </data>
+  <data name="NodeSovNoCapital" xml:space="preserve">
+    <value>{0}
+Pas de système capitale, donc pas de zone</value>
+  </data>
+  <data name="LegendZone1" xml:space="preserve">
+    <value>Z1 : jusqu'à 5 al, gratuit</value>
+  </data>
+  <data name="LegendZone2" xml:space="preserve">
+    <value>Z2 : 5–10 al, 2×</value>
+  </data>
+  <data name="LegendZone3" xml:space="preserve">
+    <value>Z3 : 10–15 al, 6×</value>
+  </data>
+  <data name="LegendZone4" xml:space="preserve">
+    <value>Z4 : 15–20 al, 9×</value>
+  </data>
+  <data name="LegendZone5" xml:space="preserve">
+    <value>Z5 : au-delà de 20 al, 15×</value>
+  </data>
+  <data name="LegendZoneNoCapital" xml:space="preserve">
+    <value>Le détenteur n'a pas de système capitale</value>
   </data>
 </root>

@@ -1846,7 +1846,7 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
     <value>Добавлено {0} · уже известно {1} · не прочитано {2} (остались в поле)</value>
   </data>
   <data name="LegendJumpBridge" xml:space="preserve">
-    <value>Прыжковый мост — бледнее, если ESI показывает только один конец</value>
+    <value>Прыжковый мост — каждая половина в цвете зоны своего конца; бледнее, если ESI показывает только один конец</value>
   </data>
   <data name="BridgeAllianceId" xml:space="preserve">
     <value>Альянс {0}</value>
@@ -1871,5 +1871,37 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   </data>
   <data name="BridgesRulesNote" xml:space="preserve">
     <value>С 22 сентября 2026 года мостом может пользоваться только альянс, владеющий суверенитетом в системе, откуда начинается прыжок, и не капитальные корабли (кроме «Рорквалов» и грузовозов). Каждый прыжок расходует конденсатор моста — тем больше, чем дальше от столицы этого альянса он заканчивается: до 5 св. л. бесплатно (зона 1), затем каждые 5 св. л. — ×2, ×6, ×9 и ×15 от базовой стоимости корабля.</value>
+  </data>
+  <data name="OverlaySovZones" xml:space="preserve">
+    <value>Зоны суверенитета</value>
+  </data>
+  <data name="SovZoneCaption" xml:space="preserve">
+    <value>З{0} · {1}</value>
+  </data>
+  <data name="NodeSovZone" xml:space="preserve">
+    <value>{0}
+Зона {1}: {2:0.0} св. л. от столицы, {3}</value>
+  </data>
+  <data name="NodeSovNoCapital" xml:space="preserve">
+    <value>{0}
+Нет столичной системы, поэтому нет зоны</value>
+  </data>
+  <data name="LegendZone1" xml:space="preserve">
+    <value>З1: до 5 св. л., бесплатно</value>
+  </data>
+  <data name="LegendZone2" xml:space="preserve">
+    <value>З2: 5–10 св. л., ×2</value>
+  </data>
+  <data name="LegendZone3" xml:space="preserve">
+    <value>З3: 10–15 св. л., ×6</value>
+  </data>
+  <data name="LegendZone4" xml:space="preserve">
+    <value>З4: 15–20 св. л., ×9</value>
+  </data>
+  <data name="LegendZone5" xml:space="preserve">
+    <value>З5: дальше 20 св. л., ×15</value>
+  </data>
+  <data name="LegendZoneNoCapital" xml:space="preserve">
+    <value>У владельца нет столичной системы</value>
   </data>
 </root>

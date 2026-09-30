@@ -1762,7 +1762,7 @@ oder wie ein anderes Tool sie exportiert</value>
     <value>Hinzugefügt {0} · schon bekannt {1} · nicht gelesen {2} (bleiben im Feld)</value>
   </data>
   <data name="LegendJumpBridge" xml:space="preserve">
-    <value>Sprungbrücke – blasser, wenn ESI nur ein Tor zeigt</value>
+    <value>Sprungbrücke – jede Hälfte in der Zonenfarbe ihres Endes; blasser, wenn ESI nur ein Tor zeigt</value>
   </data>
   <data name="BridgeAllianceId" xml:space="preserve">
     <value>Allianz {0}</value>
@@ -1787,5 +1787,37 @@ oder wie ein anderes Tool sie exportiert</value>
   </data>
   <data name="BridgesRulesNote" xml:space="preserve">
     <value>Seit dem 22. September 2026 kann eine Brücke nur von der Allianz genutzt werden, die im Startsystem des Sprungs die Souveränität hält, und nicht von Großkampfschiffen (außer Rorquals und Frachtern). Jeder Sprung verbraucht Kondensator der Brücke – umso mehr, je weiter vom Hauptstadtsystem der Allianz er endet: bis 5 Lj kostenlos (Zone 1), danach alle 5 Lj das 2-, 6-, 9- und 15-Fache der Grundkosten des Schiffs.</value>
+  </data>
+  <data name="OverlaySovZones" xml:space="preserve">
+    <value>Souveränitätszonen</value>
+  </data>
+  <data name="SovZoneCaption" xml:space="preserve">
+    <value>Z{0} · {1}</value>
+  </data>
+  <data name="NodeSovZone" xml:space="preserve">
+    <value>{0}
+Zone {1}: {2:0.0} Lj von der Hauptstadt, {3}</value>
+  </data>
+  <data name="NodeSovNoCapital" xml:space="preserve">
+    <value>{0}
+Kein Hauptstadtsystem, daher keine Zone</value>
+  </data>
+  <data name="LegendZone1" xml:space="preserve">
+    <value>Z1: bis 5 Lj, kostenlos</value>
+  </data>
+  <data name="LegendZone2" xml:space="preserve">
+    <value>Z2: 5–10 Lj, 2×</value>
+  </data>
+  <data name="LegendZone3" xml:space="preserve">
+    <value>Z3: 10–15 Lj, 6×</value>
+  </data>
+  <data name="LegendZone4" xml:space="preserve">
+    <value>Z4: 15–20 Lj, 9×</value>
+  </data>
+  <data name="LegendZone5" xml:space="preserve">
+    <value>Z5: über 20 Lj, 15×</value>
+  </data>
+  <data name="LegendZoneNoCapital" xml:space="preserve">
+    <value>Halter hat kein Hauptstadtsystem</value>
   </data>
 </root>

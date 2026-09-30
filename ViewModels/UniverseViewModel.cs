@@ -88,13 +88,18 @@ public class UniverseViewModel : ReactiveObject
     /// the same thing as last time, not to be reset to Security.</summary>
     // Local: which overlay is showing is a fact about this window, not about the map.
 
+    /// <summary>Each claimed system's Ansiblex zone, for the Sovereignty zones overlay.</summary>
+    private readonly Func<System.Threading.CancellationToken, Task<IReadOnlyDictionary<int, SystemZone>>>? _zones;
+
     public UniverseViewModel(
         UniverseMapService     map,
         MapStatsService?       stats = null,
-        AppPreferencesService? prefs = null)
+        AppPreferencesService? prefs = null,
+        Func<System.Threading.CancellationToken, Task<IReadOnlyDictionary<int, SystemZone>>>? zones = null)
     {
         _map   = map;
         _stats = stats;
+        _zones = zones;
 
         // The label shown, the key saved and switched on, and the English name the AI agent asks
         // for it by (see OverlayModeVm).
@@ -104,6 +109,8 @@ public class UniverseViewModel : ReactiveObject
             new(MapText.OverlayConstellation,         "constellation",  "Constellation"),   // regions, at universe level
             new(MapText.OverlaySovereignty,           "sovereignty",    "Sovereignty"),
             new(MapText.OverlaySovereigntyAdm,        "adm",            "Sovereignty ADM"),
+            // Ansiblex zones: each claimed system by its distance from its holder's capital.
+            new(MapText.OverlaySovZones,              "sovzones",       "Sovereignty zones"),
             new(MapText.OverlayIndustryManufacturing, "industry:manufacturing",                   "Industry — manufacturing"),
             new(MapText.OverlayIndustryReactions,     "industry:reaction",                        "Industry — reactions"),
             new(MapText.OverlayIndustryMeResearch,    "industry:researching_material_efficiency", "Industry — ME research"),
@@ -765,6 +772,10 @@ public class UniverseViewModel : ReactiveObject
                 await BuildAdmOverlayAsync(g, styles, legend, byRegion);
                 break;
 
+            case "sovzones":
+                await BuildSovZonesOverlayAsync(g, styles, legend, byRegion);
+                break;
+
             case { } k when k.StartsWith("industry:"):
                 await BuildIndustryOverlayAsync(g, styles, legend, k[9..], byRegion);
                 break;
@@ -982,6 +993,56 @@ public class UniverseViewModel : ReactiveObject
 
         var held = sov.Values.Count(s => s.AllianceId is not null);
         legend.Add(new LegendEntryVm(string.Format(MapText.LegendSovSummary, ranked.Count, held), unclaimed));
+        legend.Add(new LegendEntryVm(MapText.LegendUnclaimedNpc, unclaimed));
+    }
+
+    /// <summary>
+    /// Ansiblex zones: each claimed system coloured by how far it lies from its holder's capital
+    /// system — the zone a bridge jump landing there is charged at since 2026-09-22 — with the
+    /// zone and the holder in the caption. The colours are the bridge halves' own.
+    /// </summary>
+    private async Task BuildSovZonesOverlayAsync(
+        MapGraph g, Dictionary<int, MapNodeStyle> styles, List<LegendEntryVm> legend, bool byRegion)
+    {
+        if (_zones is null) return;
+        var zones = await _zones(System.Threading.CancellationToken.None);
+
+        var unclaimed = Color.Parse("#3a3a48");
+        var noCapital = Color.Parse("#6b6b80");
+
+        foreach (var n in g.Nodes)
+        {
+            // A region has no single holder or zone; the overlay is read system by system.
+            if (byRegion)
+            {
+                styles[n.Id] = new MapNodeStyle(unclaimed, Detail: MapText.TipOpenRegionForSovereignty);
+                continue;
+            }
+
+            if (!zones.TryGetValue(n.Id, out var z))
+            {
+                styles[n.Id] = new MapNodeStyle(unclaimed, Detail: MapText.SovUnclaimed);
+                continue;
+            }
+
+            var holder = z.AllianceName;
+            styles[n.Id] = z.Zone == 0
+                ? new MapNodeStyle(noCapital,
+                    Caption: string.Format(MapText.SovZoneCaption, "?", ShortHolder(holder)),
+                    Detail:  string.Format(MapText.NodeSovNoCapital, holder))
+                : new MapNodeStyle(MapCanvas.ZoneColors[z.Zone],
+                    Caption: string.Format(MapText.SovZoneCaption, z.Zone, ShortHolder(holder)),
+                    Detail:  string.Format(MapText.NodeSovZone, holder, z.Zone, z.DistanceLy ?? 0,
+                                           SdeNames.SolarSystem(z.CapitalSystemId, z.CapitalName),
+                                           JumpBridgeService.ZoneMultiplier(z.Zone)));
+        }
+
+        legend.Add(new LegendEntryVm(MapText.LegendZone1, MapCanvas.ZoneColors[1]));
+        legend.Add(new LegendEntryVm(MapText.LegendZone2, MapCanvas.ZoneColors[2]));
+        legend.Add(new LegendEntryVm(MapText.LegendZone3, MapCanvas.ZoneColors[3]));
+        legend.Add(new LegendEntryVm(MapText.LegendZone4, MapCanvas.ZoneColors[4]));
+        legend.Add(new LegendEntryVm(MapText.LegendZone5, MapCanvas.ZoneColors[5]));
+        legend.Add(new LegendEntryVm(MapText.LegendZoneNoCapital, noCapital));
         legend.Add(new LegendEntryVm(MapText.LegendUnclaimedNpc, unclaimed));
     }
 

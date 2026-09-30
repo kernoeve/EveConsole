@@ -1762,7 +1762,7 @@ o como los exporta otra herramienta</value>
     <value>Añadidos {0} · ya conocidos {1} · no leídos {2} (quedan en el cuadro)</value>
   </data>
   <data name="LegendJumpBridge" xml:space="preserve">
-    <value>Puente de salto: más tenue si ESI solo muestra una puerta</value>
+    <value>Puente de salto: cada mitad en el color de zona de su extremo; más tenue si ESI solo muestra una puerta</value>
   </data>
   <data name="BridgeAllianceId" xml:space="preserve">
     <value>Alianza {0}</value>
@@ -1787,5 +1787,37 @@ o como los exporta otra herramienta</value>
   </data>
   <data name="BridgesRulesNote" xml:space="preserve">
     <value>Desde el 22 de septiembre de 2026 un puente solo lo puede usar la alianza que tiene la soberanía donde empieza el salto, y no las naves capitales (salvo Rorquals y cargueros). Cada salto gasta condensador del puente, más cuanto más lejos de la capital de esa alianza termina: gratis hasta 5 al (zona 1) y después 2×, 6×, 9× y 15× el coste base de la nave cada 5 al más.</value>
+  </data>
+  <data name="OverlaySovZones" xml:space="preserve">
+    <value>Zonas de soberanía</value>
+  </data>
+  <data name="SovZoneCaption" xml:space="preserve">
+    <value>Z{0} · {1}</value>
+  </data>
+  <data name="NodeSovZone" xml:space="preserve">
+    <value>{0}
+Zona {1}: {2:0.0} al de la capital, {3}</value>
+  </data>
+  <data name="NodeSovNoCapital" xml:space="preserve">
+    <value>{0}
+Sin sistema capital, así que sin zona</value>
+  </data>
+  <data name="LegendZone1" xml:space="preserve">
+    <value>Z1: hasta 5 al, gratis</value>
+  </data>
+  <data name="LegendZone2" xml:space="preserve">
+    <value>Z2: 5–10 al, 2×</value>
+  </data>
+  <data name="LegendZone3" xml:space="preserve">
+    <value>Z3: 10–15 al, 6×</value>
+  </data>
+  <data name="LegendZone4" xml:space="preserve">
+    <value>Z4: 15–20 al, 9×</value>
+  </data>
+  <data name="LegendZone5" xml:space="preserve">
+    <value>Z5: más de 20 al, 15×</value>
+  </data>
+  <data name="LegendZoneNoCapital" xml:space="preserve">
+    <value>El titular no tiene sistema capital</value>
   </data>
 </root>

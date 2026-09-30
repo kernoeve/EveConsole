@@ -2346,7 +2346,7 @@ or as another tool exports them</value>
     <comment>After an import. {0} added, {1} already in the list, {2} lines naming fewer than two systems, which stay in the box.</comment>
   </data>
   <data name="LegendJumpBridge" xml:space="preserve">
-    <value>Jump bridge — fainter when ESI shows only one gate</value>
+    <value>Jump bridge — each half in the zone colour of its end; fainter when ESI shows only one gate</value>
     <comment>Map legend, beside the dashed violet line.</comment>
   </data>
   <data name="BridgeAllianceId" xml:space="preserve">
@@ -2380,5 +2380,47 @@ or as another tool exports them</value>
   <data name="BridgesRulesNote" xml:space="preserve">
     <value>Since 22 September 2026 a bridge can be used only by the alliance holding sovereignty where the jump starts, and not by capital ships (Rorquals and freighters excepted). Each jump draws on the bridge's capacitor, more the further from that alliance's capital the jump lands: free within 5 ly (zone 1), then 2×, 6×, 9× and 15× the ship's base cost every 5 ly further.</value>
     <comment>Rules summary at the top of the jump bridges tab.</comment>
+  </data>
+  <data name="OverlaySovZones" xml:space="preserve">
+    <value>Sovereignty zones</value>
+    <comment>Map overlay: each claimed system coloured by its Ansiblex zone (distance from its holder's capital).</comment>
+  </data>
+  <data name="SovZoneCaption" xml:space="preserve">
+    <value>Z{0} · {1}</value>
+    <comment>Map box caption, Sovereignty zones overlay. {0} the zone number (or ?), {1} the holder, shortened. Z is short for zone.</comment>
+  </data>
+  <data name="NodeSovZone" xml:space="preserve">
+    <value>{0}
+Zone {1}: {2:0.0} ly from the capital, {3}</value>
+    <comment>Map hover, Sovereignty zones overlay. {0} holder, {1} zone, {2} light-years from the holder's capital, {3} the capital system.</comment>
+  </data>
+  <data name="NodeSovNoCapital" xml:space="preserve">
+    <value>{0}
+No capital system, so no zone</value>
+    <comment>Map hover, Sovereignty zones overlay: the holder has not set a capital. {0} holder.</comment>
+  </data>
+  <data name="LegendZone1" xml:space="preserve">
+    <value>Z1: within 5 ly, free</value>
+    <comment>Legend, zone 1.</comment>
+  </data>
+  <data name="LegendZone2" xml:space="preserve">
+    <value>Z2: 5–10 ly, 2×</value>
+    <comment>Legend, zone 2: the bridge jump costs twice the ship's base capacitor cost.</comment>
+  </data>
+  <data name="LegendZone3" xml:space="preserve">
+    <value>Z3: 10–15 ly, 6×</value>
+    <comment>Legend, zone 3.</comment>
+  </data>
+  <data name="LegendZone4" xml:space="preserve">
+    <value>Z4: 15–20 ly, 9×</value>
+    <comment>Legend, zone 4.</comment>
+  </data>
+  <data name="LegendZone5" xml:space="preserve">
+    <value>Z5: beyond 20 ly, 15×</value>
+    <comment>Legend, zone 5.</comment>
+  </data>
+  <data name="LegendZoneNoCapital" xml:space="preserve">
+    <value>Holder has no capital system</value>
+    <comment>Legend: claimed, but the holder has no capital, so no zone.</comment>
   </data>
 </root>

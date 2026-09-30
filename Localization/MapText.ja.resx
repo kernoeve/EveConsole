@@ -1720,7 +1720,7 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
     <value>追加 {0} · 登録済み {1} · 読めなかった行 {2}(ボックスに残ります)</value>
   </data>
   <data name="LegendJumpBridge" xml:space="preserve">
-    <value>ジャンプブリッジ — ESIで片方のゲートしか見えない場合は薄く表示</value>
+    <value>ジャンプブリッジ — 各半分はその端のゾーン色。ESIで片方のゲートしか見えない場合は薄く表示</value>
   </data>
   <data name="BridgeAllianceId" xml:space="preserve">
     <value>アライアンス {0}</value>
@@ -1745,5 +1745,37 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   </data>
   <data name="BridgesRulesNote" xml:space="preserve">
     <value>2026年9月22日以降、ブリッジを使えるのはジャンプ開始地点の主権を持つアライアンスのみで、キャピタル艦は使えません(ロークァルと輸送艦は例外)。各ジャンプはブリッジのキャパシタを消費し、そのアライアンスの首都から着地点が遠いほど多くなります。5光年以内は無料(ゾーン1)、以降5光年ごとに艦船の基本コストの2倍、6倍、9倍、15倍です。</value>
+  </data>
+  <data name="OverlaySovZones" xml:space="preserve">
+    <value>主権ゾーン</value>
+  </data>
+  <data name="SovZoneCaption" xml:space="preserve">
+    <value>Z{0} · {1}</value>
+  </data>
+  <data name="NodeSovZone" xml:space="preserve">
+    <value>{0}
+ゾーン{1}: 首都から{2:0.0}光年、{3}</value>
+  </data>
+  <data name="NodeSovNoCapital" xml:space="preserve">
+    <value>{0}
+首都星系がないためゾーンなし</value>
+  </data>
+  <data name="LegendZone1" xml:space="preserve">
+    <value>Z1: 5光年以内、無料</value>
+  </data>
+  <data name="LegendZone2" xml:space="preserve">
+    <value>Z2: 5~10光年、2倍</value>
+  </data>
+  <data name="LegendZone3" xml:space="preserve">
+    <value>Z3: 10~15光年、6倍</value>
+  </data>
+  <data name="LegendZone4" xml:space="preserve">
+    <value>Z4: 15~20光年、9倍</value>
+  </data>
+  <data name="LegendZone5" xml:space="preserve">
+    <value>Z5: 20光年超、15倍</value>
+  </data>
+  <data name="LegendZoneNoCapital" xml:space="preserve">
+    <value>保有者に首都星系がない</value>
   </data>
 </root>

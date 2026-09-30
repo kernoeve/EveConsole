@@ -148,7 +148,9 @@ public sealed class MapToolViewModel : ReactiveObject
     /// <summary>Adds a map of New Eden to the active side and shows it.</summary>
     public UniverseTabViewModel NewUniverseTab()
     {
-        var map = new UniverseViewModel(_map, _stats, _prefs) { OpenSystemRequested = OpenSystem };
+        var map = new UniverseViewModel(_map, _stats, _prefs,
+                                        _bridges is null ? null : ct => _bridges.GetZonesAsync(ct))
+                  { OpenSystemRequested = OpenSystem };
         var tab = new UniverseTabViewModel(this, map);
         Add(tab);
         if (_snapshot is { } live) tab.ApplyLive(live);
@@ -412,8 +414,13 @@ public sealed class MapToolViewModel : ReactiveObject
         if (b.IsManual)
             lines.Add(b.Note is { Length: > 0 } note ? $"{MapText.BridgeAddedByHand} · {note}" : MapText.BridgeAddedByHand);
         lines.Add(BridgeRowVm.AccessText(b));
+        // Each half in the zone of its end: the zone a jump LANDING there is in — for the half
+        // at A, the jump from B.
+        var intoA = b.Directions?.FirstOrDefault(d => d.ToSystemId == b.SystemA)?.Zone ?? 0;
+        var intoB = b.Directions?.FirstOrDefault(d => d.ToSystemId == b.SystemB)?.Zone ?? 0;
         return new MapBridgeLine(b.SystemA, b.SystemB, string.Format(MapText.BridgeTitle, a, z),
-                                 string.Join("\n", lines), Complete: !b.FromEsi || b.BothEnds || b.IsManual);
+                                 string.Join("\n", lines), Complete: !b.FromEsi || b.BothEnds || b.IsManual,
+                                 ZoneFrom: intoA, ZoneTo: intoB);
     }).ToList();
 
     private async Task LiveLoopAsync(CancellationToken ct)

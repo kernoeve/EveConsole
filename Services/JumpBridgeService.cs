@@ -54,6 +54,11 @@ public sealed record JumpBridge(
 
 public sealed record JumpBridgeList(IReadOnlyList<JumpBridge> Bridges, IReadOnlyList<BridgeGate> Unread);
 
+/// <summary>A claimed system's Ansiblex zone: how far it lies from its holder's capital.</summary>
+/// <param name="Zone">1 to 5; 0 when the holder has no capital.</param>
+public sealed record SystemZone(long AllianceId, string AllianceName, int CapitalSystemId, string CapitalName,
+                                double? DistanceLy, int Zone);
+
 public sealed record BridgeImportResult(int Added, int AlreadyThere, IReadOnlyList<string> NotRead);
 
 /// <summary>
@@ -137,6 +142,39 @@ public sealed class JumpBridgeService(
     }
 
     private Dictionary<int, (double X, double Y, double Z)>? _positions;
+
+    /// <summary>Straight-line light-years between two systems, from their true 3D positions.</summary>
+    private double? DistanceLy(int a, int b)
+    {
+        if (a <= 0 || b <= 0 || _positions is null
+            || !_positions.TryGetValue(a, out var p) || !_positions.TryGetValue(b, out var q)) return null;
+        var dx = p.X - q.X; var dy = p.Y - q.Y; var dz = p.Z - q.Z;
+        return Math.Sqrt(dx * dx + dy * dy + dz * dz) / MetresPerLightYear;
+    }
+
+    /// <summary>
+    /// Every claimed system's zone: its distance from its holder's capital. A jump landing there
+    /// costs that zone's multiple of the ship's base cost — for a jump by that holder, from a
+    /// system that holder owns.
+    /// </summary>
+    public async Task<IReadOnlyDictionary<int, SystemZone>> GetZonesAsync(CancellationToken ct = default)
+    {
+        using var db = dbFactory.CreateDbContext();
+        var (_, systemNames) = await SystemsAsync(db, ct);
+        if (await SovereigntyAsync(ct) is not { } sov) return new Dictionary<int, SystemZone>();
+
+        var allianceNames = await AllianceNamesAsync(db, sov.Holder.Values.Distinct().ToList(), ct);
+        var zones = new Dictionary<int, SystemZone>(sov.Holder.Count);
+        foreach (var (system, alliance) in sov.Holder)
+        {
+            var capital = sov.Capital.GetValueOrDefault(alliance);
+            var ly      = DistanceLy(capital, system);
+            zones[system] = new SystemZone(alliance, allianceNames.GetValueOrDefault(alliance) ?? "",
+                capital, capital > 0 ? systemNames.GetValueOrDefault(capital) ?? "" : "",
+                ly, ly is double d ? ZoneFor(d) : 0);
+        }
+        return zones;
+    }
 
     /// <summary>Raised after a hand-entered bridge is added or removed, so the maps redraw.</summary>
     public event Action? Changed;
@@ -245,12 +283,7 @@ public sealed class JumpBridgeService(
             if (sov is not { } s) return null;
             var alliance = s.Holder.GetValueOrDefault(from);
             var capital  = alliance > 0 ? s.Capital.GetValueOrDefault(alliance) : 0;
-            double? ly = null;
-            if (capital > 0 && _positions!.TryGetValue(capital, out var c) && _positions.TryGetValue(to, out var e))
-            {
-                var dx = c.X - e.X; var dy = c.Y - e.Y; var dz = c.Z - e.Z;
-                ly = Math.Sqrt(dx * dx + dy * dy + dz * dz) / MetresPerLightYear;
-            }
+            var ly = DistanceLy(capital, to);
             return new BridgeDirection(from, to, alliance, allianceNames.GetValueOrDefault(alliance) ?? "",
                 capital, capital > 0 ? systemNames.GetValueOrDefault(capital) ?? "" : "",
                 ly, ly is double d ? ZoneFor(d) : 0);

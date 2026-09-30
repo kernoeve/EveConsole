@@ -1720,7 +1720,7 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
     <value>已添加 {0} · 已存在 {1} · 未读取 {2}（留在框中）</value>
   </data>
   <data name="LegendJumpBridge" xml:space="preserve">
-    <value>跳桥——ESI 只显示一端时较淡</value>
+    <value>跳桥——每一半以其端点的区域颜色显示；ESI 只显示一端时较淡</value>
   </data>
   <data name="BridgeAllianceId" xml:space="preserve">
     <value>联盟 {0}</value>
@@ -1745,5 +1745,37 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   </data>
   <data name="BridgesRulesNote" xml:space="preserve">
     <value>自 2026 年 9 月 22 日起，跳桥只能由跳跃起点星系的主权联盟使用，旗舰级舰船不能使用（长须鲸和货舰除外）。每次跳跃都会消耗跳桥的电容，落点离该联盟首都越远消耗越多：5 光年内免费（1 区），此后每远 5 光年分别为舰船基础消耗的 2 倍、6 倍、9 倍和 15 倍。</value>
+  </data>
+  <data name="OverlaySovZones" xml:space="preserve">
+    <value>主权区域</value>
+  </data>
+  <data name="SovZoneCaption" xml:space="preserve">
+    <value>Z{0} · {1}</value>
+  </data>
+  <data name="NodeSovZone" xml:space="preserve">
+    <value>{0}
+{1} 区：距首都 {2:0.0} 光年，{3}</value>
+  </data>
+  <data name="NodeSovNoCapital" xml:space="preserve">
+    <value>{0}
+没有首都星系，因此没有区域</value>
+  </data>
+  <data name="LegendZone1" xml:space="preserve">
+    <value>Z1：5 光年内，免费</value>
+  </data>
+  <data name="LegendZone2" xml:space="preserve">
+    <value>Z2：5–10 光年，2 倍</value>
+  </data>
+  <data name="LegendZone3" xml:space="preserve">
+    <value>Z3：10–15 光年，6 倍</value>
+  </data>
+  <data name="LegendZone4" xml:space="preserve">
+    <value>Z4：15–20 光年，9 倍</value>
+  </data>
+  <data name="LegendZone5" xml:space="preserve">
+    <value>Z5：20 光年以上，15 倍</value>
+  </data>
+  <data name="LegendZoneNoCapital" xml:space="preserve">
+    <value>持有者没有首都星系</value>
   </data>
 </root>

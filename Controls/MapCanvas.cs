@@ -40,7 +40,11 @@ public sealed record MapMarkRow(string Text, long CharacterId = 0, int ShipTypeI
 
 /// <summary>A jump bridge drawn as an arc between two systems, and what its hover says.</summary>
 /// <param name="Complete">Both gates are known; false draws it fainter.</param>
-public sealed record MapBridgeLine(int FromId, int ToId, string Title, string Detail, bool Complete);
+/// <param name="ZoneFrom">The zone of the half at <see cref="FromId"/>: the zone a jump landing
+/// there is in. 0 when not known, drawn in the plain bridge colour.</param>
+/// <param name="ZoneTo">The same for the half at <see cref="ToId"/>.</param>
+public sealed record MapBridgeLine(int FromId, int ToId, string Title, string Detail, bool Complete,
+                                   int ZoneFrom = 0, int ZoneTo = 0);
 
 /// <summary>Where the view is looking: the world point at its centre and the zoom. Held by the
 /// view model so a tab keeps its place when the view is rebuilt.</summary>
@@ -938,10 +942,36 @@ public class MapCanvas : Control
 
     // ── Jump bridges ─────────────────────────────────────────────────────────
 
-    private static readonly IPen BridgePen = new ImmutablePen(
-        new ImmutableSolidColorBrush(Color.Parse("#c084fc")), 1.8, new ImmutableDashStyle([4, 3], 0));
-    private static readonly IPen BridgeFaintPen = new ImmutablePen(
-        new ImmutableSolidColorBrush(Color.Parse("#80c084fc")), 1.4, new ImmutableDashStyle([2, 4], 0));
+    /// <summary>
+    /// Ansiblex zone colours, index = zone (0 = not known): blue for free through red for 15×.
+    /// One table for the bridge halves, the Sovereignty zones overlay and its legend, so the
+    /// three always agree.
+    /// </summary>
+    internal static readonly Color[] ZoneColors =
+    [
+        Color.Parse("#c084fc"),   // not known — the plain bridge violet
+        Color.Parse("#3b82f6"),   // 1: within 5 ly, free
+        Color.Parse("#22c55e"),   // 2: 2×
+        Color.Parse("#eab308"),   // 3: 6×
+        Color.Parse("#f97316"),   // 4: 9×
+        Color.Parse("#ef4444"),   // 5: 15×
+    ];
+
+    private static readonly Dictionary<(int Zone, bool Faint), IPen> BridgePens = new();
+
+    /// <summary>A dashed pen in a zone's colour; fainter and sparser for a one-ended bridge.</summary>
+    private static IPen BridgePen(int zone, bool faint)
+    {
+        zone = zone is >= 0 and <= 5 ? zone : 0;
+        if (BridgePens.TryGetValue((zone, faint), out var pen)) return pen;
+        var c = ZoneColors[zone];
+        pen = faint
+            ? new ImmutablePen(new ImmutableSolidColorBrush(Color.FromArgb(0x80, c.R, c.G, c.B)), 1.4, new ImmutableDashStyle([2, 4], 0))
+            : new ImmutablePen(new ImmutableSolidColorBrush(c), 1.8, new ImmutableDashStyle([4, 3], 0));
+        BridgePens[(zone, faint)] = pen;
+        return pen;
+    }
+
     private static readonly IPen BridgeHoverPen = new ImmutablePen(
         new ImmutableSolidColorBrush(Color.Parse("#e9d5ff")), 2.6);
 
@@ -971,15 +1001,14 @@ public class MapCanvas : Control
             var dy  = pb.Y - pa.Y;
             var control = new Point(mid.X - dy * 0.2, mid.Y + dx * 0.2);
 
-            var geo = new StreamGeometry();
-            using (var s = geo.Open())
-            {
-                s.BeginFigure(pa, false);
-                s.QuadraticBezierTo(control, pb);
-                s.EndFigure(false);
-            }
-            var pen = ReferenceEquals(b, _bridgeHover) ? BridgeHoverPen : b.Complete ? BridgePen : BridgeFaintPen;
-            ctx.DrawGeometry(null, pen, geo);
+            // Two halves, split at the middle of the curve: each end's half in the zone a jump
+            // landing there is in, since a bridge's two directions can cost differently.
+            var m     = new Point(0.25 * pa.X + 0.5 * control.X + 0.25 * pb.X, 0.25 * pa.Y + 0.5 * control.Y + 0.25 * pb.Y);
+            var nearA = new Point((pa.X + control.X) / 2, (pa.Y + control.Y) / 2);
+            var nearB = new Point((control.X + pb.X) / 2, (control.Y + pb.Y) / 2);
+            var hover = ReferenceEquals(b, _bridgeHover);
+            DrawHalf(ctx, pa, nearA, m, hover ? BridgeHoverPen : BridgePen(b.ZoneFrom, !b.Complete));
+            DrawHalf(ctx, m, nearB, pb, hover ? BridgeHoverPen : BridgePen(b.ZoneTo,   !b.Complete));
 
             var points = new Point[17];
             for (var i = 0; i <= 16; i++)
@@ -991,6 +1020,18 @@ public class MapCanvas : Control
             }
             _bridgeHits.Add((b, points));
         }
+    }
+
+    private static void DrawHalf(DrawingContext ctx, Point from, Point control, Point to, IPen pen)
+    {
+        var geo = new StreamGeometry();
+        using (var s = geo.Open())
+        {
+            s.BeginFigure(from, false);
+            s.QuadraticBezierTo(control, to);
+            s.EndFigure(false);
+        }
+        ctx.DrawGeometry(null, pen, geo);
     }
 
     /// <summary>The bridge whose arc passes within a few pixels of the pointer.</summary>
