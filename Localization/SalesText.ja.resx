@@ -1817,4 +1817,21 @@
   <data name="WebSyncDeclined" xml:space="preserve">
     <value>拒否しました。</value>
   </data>
+  <data name="PostToDiscord" xml:space="preserve">
+    <value>Discordに投稿</value>
+  </data>
+  <data name="DiscordNotConfigured" xml:space="preserve">
+    <value>「販売の投稿」用のDiscord Webhookが設定されていません。</value>
+  </data>
+  <data name="DiscordAlreadyPosted" xml:space="preserve">
+    <value>「{0}」は{1}にDiscordへ投稿済みです。
+
+</value>
+  </data>
+  <data name="DiscordPosting" xml:space="preserve">
+    <value>Discordに投稿中…</value>
+  </data>
+  <data name="DiscordPostFailed" xml:space="preserve">
+    <value>「{0}」のDiscordへの投稿に失敗しました：{1}</value>
+  </data>
 </root>

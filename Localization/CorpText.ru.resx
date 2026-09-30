@@ -1807,4 +1807,25 @@
   <data name="FactReprocessingValue" xml:space="preserve">
     <value>{0:0.#}% · налог {1:0.#}%</value>
   </data>
+  <data name="PostToDiscord" xml:space="preserve">
+    <value>Опубликовать в Discord</value>
+  </data>
+  <data name="DiscordNoDestination" xml:space="preserve">
+    <value>Для этого не выбран веб-хук Discord — выберите его в разделе «Настройки → Discord».</value>
+  </data>
+  <data name="Top10AlreadyPostedDiscord" xml:space="preserve">
+    <value>Этот список топ-10 уже был опубликован в Discord {0}.</value>
+  </data>
+  <data name="SummaryAlreadyPostedDiscord" xml:space="preserve">
+    <value>Эта месячная сводка уже была опубликована в Discord {0}.</value>
+  </data>
+  <data name="DiscordPosting" xml:space="preserve">
+    <value>Публикация в Discord…</value>
+  </data>
+  <data name="DiscordPostFailed" xml:space="preserve">
+    <value>Не удалось опубликовать в Discord: {0}</value>
+  </data>
+  <data name="DiscordPostedPartly" xml:space="preserve">
+    <value>Опубликовано сообщений в {2}: {0} из {1}; следующее Discord отклонил: {3}</value>
+  </data>
 </root>

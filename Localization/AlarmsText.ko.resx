@@ -1342,4 +1342,22 @@
   <data name="IskTenThousands" xml:space="preserve">
     <value>{0:0.##}만 ISK</value>
   </data>
+  <data name="TaskTypeSlackOrDiscordPost" xml:space="preserve">
+    <value>Slack 또는 Discord에 게시</value>
+  </data>
+  <data name="DiscordDestination" xml:space="preserve">
+    <value>Discord: {0}</value>
+  </data>
+  <data name="ErrNoDestinationsAny" xml:space="preserve">
+    <value>아직 채널이나 웹후크가 없습니다 — 설정의 Slack 또는 Discord에서 추가하십시오.</value>
+  </data>
+  <data name="SlackAndDiscordDestinationsNote" xml:space="preserve">
+    <value>설정에 지정된 Slack 채널과 웹후크, 이어서 Discord 웹후크가 하나의 목록에 표시됩니다.</value>
+  </data>
+  <data name="RunDiscordRefused" xml:space="preserve">
+    <value>Discord가 거부했습니다: {0}</value>
+  </data>
+  <data name="RunPostedPartDiscord" xml:space="preserve">
+    <value>메시지 {1}개 중 {0}개를 게시했지만({2:N0}자) Discord가 다음 메시지를 거부했습니다: {3}.</value>
+  </data>
 </root>

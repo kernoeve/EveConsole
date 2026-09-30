@@ -1342,4 +1342,22 @@
   <data name="IskTenThousands" xml:space="preserve">
     <value>{0:0.##} 万 ISK</value>
   </data>
+  <data name="TaskTypeSlackOrDiscordPost" xml:space="preserve">
+    <value>发布到 Slack 或 Discord</value>
+  </data>
+  <data name="DiscordDestination" xml:space="preserve">
+    <value>Discord：{0}</value>
+  </data>
+  <data name="ErrNoDestinationsAny" xml:space="preserve">
+    <value>还没有频道或 Webhook——请在“设置 → Slack”或“设置 → Discord”中添加。</value>
+  </data>
+  <data name="SlackAndDiscordDestinationsNote" xml:space="preserve">
+    <value>按“设置”中的配置，先列出 Slack 频道和 Webhook，再列出 Discord Webhook——合并在一个列表中。</value>
+  </data>
+  <data name="RunDiscordRefused" xml:space="preserve">
+    <value>Discord 拒绝了发布：{0}</value>
+  </data>
+  <data name="RunPostedPartDiscord" xml:space="preserve">
+    <value>已发布 {1} 条消息中的 {0} 条（{2:N0} 个字符）；Discord 拒绝了下一条：{3}。</value>
+  </data>
 </root>

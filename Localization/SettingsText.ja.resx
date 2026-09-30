@@ -3262,4 +3262,76 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
   <data name="PurposeConversation" xml:space="preserve">
     <value>会話</value>
   </data>
+  <data name="TabDiscord" xml:space="preserve">
+    <value>Discord</value>
+  </data>
+  <data name="DiscordIntegration" xml:space="preserve">
+    <value>Discord連携</value>
+  </data>
+  <data name="DiscordIntroNote" xml:space="preserve">
+    <value>Webhookを使って、EVE ConsoleからDiscordのチャンネルに投稿できます。ボットもサインインも不要です。「Discordに投稿」ボタンを押すか、スケジュールされたタスクを設定するまでは何も投稿されません。また、アプリの各部分は、下でWebhookを設定するまでそのボタンを表示しません。</value>
+  </data>
+  <data name="DiscordHowToNote" xml:space="preserve">
+    <value>サーバーの管理者が、Discordのチャンネルの「チャンネルの編集」→「連携サービス」→「ウェブフック」でWebhookを作成し、そのURLをコピーします。ここで名前を付けると、下の一覧やスケジューラーで選択できるようになります。</value>
+  </data>
+  <data name="DiscordSecretNote" xml:space="preserve">
+    <value>⚠ WebhookのURLはパスワードと同じように扱ってください。URLを知っている人は誰でもそのチャンネルに投稿できます。EVE ConsoleはURLの全体を表示せず、ログにも書き込みません。漏えいした場合は、Discordでそのwebhookを削除し、ここで新しいものを追加してください。</value>
+  </data>
+  <data name="DiscordTest" xml:space="preserve">
+    <value>テスト</value>
+  </data>
+  <data name="DiscordWebhookNeedsNameUrl" xml:space="preserve">
+    <value>Webhookには名前とURLが必要です。</value>
+  </data>
+  <data name="DiscordWebhookNotDiscord" xml:space="preserve">
+    <value>DiscordのWebhook URLではありません。URLはhttps://discord.com/api/webhooks/で始まります。</value>
+  </data>
+  <data name="DiscordWebhookIsSlack" xml:space="preserve">
+    <value>SlackのWebhookです。代わりにSlackタブで追加してください。</value>
+  </data>
+  <data name="DiscordNone" xml:space="preserve">
+    <value>（なし）</value>
+  </data>
+  <data name="DiscordTesting" xml:space="preserve">
+    <value>「{0}」をテスト中…</value>
+  </data>
+  <data name="DiscordTestSent" xml:space="preserve">
+    <value>Discordが「{0}」のテストメッセージを受け付けました — チャンネルを確認してください。</value>
+  </data>
+  <data name="DiscordTestFailed" xml:space="preserve">
+    <value>「{0}」のテストに失敗しました：{1}</value>
+  </data>
+  <data name="DiscordTestMessage" xml:space="preserve">
+    <value>EVE Consoleからのテストメッセージです：このWebhookは動作しています。</value>
+  </data>
+  <data name="DiscordWhereEachPosts" xml:space="preserve">
+    <value>各機能の投稿先</value>
+  </data>
+  <data name="DiscordPickWebhookNote" xml:space="preserve">
+    <value>EVE Consoleの各機能の投稿先となるWebhookを選択します。「Discordに投稿」ボタンは、Webhookを設定するとはじめて表示されます。Slackは専用のタブで設定し、そのボタンは別に表示されます。</value>
+  </data>
+  <data name="DiscordErrNoWebhook" xml:space="preserve">
+    <value>この投稿用のDiscord Webhookが設定されていません。</value>
+  </data>
+  <data name="DiscordErrWebhookRemoved" xml:space="preserve">
+    <value>そのDiscord Webhookは「設定」から削除されています。</value>
+  </data>
+  <data name="DiscordErrNothingToPost" xml:space="preserve">
+    <value>投稿するものがありません。</value>
+  </data>
+  <data name="DiscordErrNotAWebhook" xml:space="preserve">
+    <value>保存されているリンクはDiscordのWebhook URLではありません — 「設定」の「Discord」で新しいものを貼り付けてください。</value>
+  </data>
+  <data name="DiscordErrWebhookGone" xml:space="preserve">
+    <value>DiscordがこのWebhookを受け付けなくなりました。削除された可能性があります — 「設定」の「Discord」で新しいリンクを貼り付けてください。</value>
+  </data>
+  <data name="DiscordErrUnreachable" xml:space="preserve">
+    <value>Discordに接続できませんでした。</value>
+  </data>
+  <data name="DiscordErrRateLimited" xml:space="preserve">
+    <value>Discordから何度も速度を落とすよう求められました — 1分ほど待ってからもう一度お試しください。</value>
+  </data>
+  <data name="DiscordErrHttp" xml:space="preserve">
+    <value>Discordに拒否されました（HTTP {0}）：{1}</value>
+  </data>
 </root>
