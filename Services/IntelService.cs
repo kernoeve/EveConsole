@@ -89,6 +89,29 @@ public sealed class IntelService(
         var channels = settings.ChatIntelChannels;
         if (channels.Count == 0) return 0;
 
+        // A pass already running (a re-parse from Settings) is doing this work: skip rather than
+        // queue, so the chat import this is hooked to is not held up behind it.
+        if (!await _pass.WaitAsync(0, ct)) return 0;
+        try
+        {
+            return await ProcessNewCoreAsync(channels, ct);
+        }
+        finally
+        {
+            _pass.Release();
+        }
+    }
+
+    /// <summary>
+    /// One intel pass at a time. ⚠️ Two passes read the same watermark and the same "already
+    /// parsed" set, then both insert reports for the same messages — the second fails on the
+    /// unique ChatMessageId (seen 2026-09-30: a re-parse from Settings alongside the live pass
+    /// that follows every chat scan).
+    /// </summary>
+    private readonly SemaphoreSlim _pass = new(1, 1);
+
+    private async Task<int> ProcessNewCoreAsync(IReadOnlyList<string> channels, CancellationToken ct)
+    {
         var written = await RunAsync(channels, once: false, null, ct);
 
         // Killmails arrive on their own schedule, from another client's background work, so
@@ -203,6 +226,21 @@ public sealed class IntelService(
         var channels = settings.ChatIntelChannels;
         if (channels.Count == 0) return 0;
 
+        // Waits for a live pass to finish (see _pass); the live passes then skip until this is done.
+        await _pass.WaitAsync(ct);
+        try
+        {
+            return await BackfillCoreAsync(channels, progress, ct);
+        }
+        finally
+        {
+            _pass.Release();
+        }
+    }
+
+    private async Task<int> BackfillCoreAsync(
+        IReadOnlyList<string> channels, IProgress<string>? progress, CancellationToken ct)
+    {
         using (var db = dbFactory.CreateDbContext())
         {
             // The horizon of what a re-parse can actually reproduce.

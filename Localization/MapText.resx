@@ -2182,4 +2182,12 @@ Owned by {3}</value>
     <value>Character {0}</value>
     <comment>Map hover: a pilot whose name has not been looked up yet. {0} is the character's id.</comment>
   </data>
+  <data name="SidePanel" xml:space="preserve">
+    <value>Details</value>
+    <comment>Toggle button at the right of the map's toolbar: shows or hides the details and legend panel.</comment>
+  </data>
+  <data name="TipSidePanel" xml:space="preserve">
+    <value>Show or hide the details and legend on the right</value>
+    <comment>Tooltip on the Details toggle.</comment>
+  </data>
 </root>

@@ -318,6 +318,22 @@ public class UniverseViewModel : ReactiveObject
         private set => this.RaiseAndSetIfChanged(ref _title, value);
     }
 
+    /// <summary>
+    /// Whether the details and legend on the right are shown. Hidden, the map takes the whole
+    /// tab — worth most on one side of a split. Each tab has its own; the last choice is what a
+    /// new tab starts with.
+    /// </summary>
+    private bool _showSidePanel = UiState.GetBool(UiState.UniverseSidePanel, true);
+    public bool ShowSidePanel
+    {
+        get => _showSidePanel;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _showSidePanel, value);
+            UiState.SetBool(UiState.UniverseSidePanel, value);
+        }
+    }
+
     /// <summary>Hostiles and own characters, per system and per region. Pushed in by the map
     /// tool, which reads them once for every open tab.</summary>
     private IReadOnlyDictionary<int, MapMarkers>? _markers;

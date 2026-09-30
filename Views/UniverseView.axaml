@@ -66,7 +66,7 @@
     <!-- ── Toolbar ──────────────────────────────────────────────────── -->
     <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="12 8"
             BorderThickness="0 0 0 1" BorderBrush="{DynamicResource BorderSubtleBrush}">
-      <Grid ColumnDefinitions="Auto,Auto,Auto,*">
+      <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto">
         <TextBlock Grid.Column="0" Text="{x:Static loc:MapText.OverlayLabel}" Classes="flabel"
                    VerticalAlignment="Center" Margin="0 0 6 0" />
         <ComboBox Grid.Column="1" ItemsSource="{Binding OverlayModes}"
@@ -80,6 +80,11 @@
         <TextBlock Grid.Column="3" Text="{Binding Status}" FontSize="11" Foreground="{DynamicResource TextDimBrush}"
                    VerticalAlignment="Center" Margin="16 0 0 0"
                    TextTrimming="CharacterEllipsis" />
+
+        <!-- Shows or hides the details and legend on the right, so the map can have the room. -->
+        <ToggleButton Grid.Column="4" IsChecked="{Binding ShowSidePanel}" Content="{x:Static loc:MapText.SidePanel}"
+                      ToolTip.Tip="{x:Static loc:MapText.TipSidePanel}"
+                      Padding="10 4" FontSize="11" Margin="12 0 0 0" />
       </Grid>
     </Border>
 
@@ -111,7 +116,8 @@
     <Rectangle Grid.Row="3" Fill="{DynamicResource BorderSubtleBrush}" />
 
     <!-- ── Map + side panel ─────────────────────────────────────────── -->
-    <Grid Grid.Row="4" ColumnDefinitions="*,1,220">
+    <!-- The panel's column sizes to its content, so hiding it gives the map the whole width. -->
+    <Grid Grid.Row="4" ColumnDefinitions="*,Auto,Auto">
 
       <!-- A system's page opens in a tab of its own (the map tool's), so this is always the map. -->
       <ctrl:MapCanvas Grid.Column="0"
@@ -124,9 +130,10 @@
                       FocusBounds="{Binding FocusBounds, Mode=TwoWay}"
                       ActivateCommand="{Binding DrillDownCommand}" />
 
-      <Rectangle Grid.Column="1" Fill="{DynamicResource BorderSubtleBrush}" />
+      <Rectangle Grid.Column="1" Width="1" Fill="{DynamicResource BorderSubtleBrush}" IsVisible="{Binding ShowSidePanel}" />
 
-      <Border Grid.Column="2" Background="{DynamicResource SurfaceBaseBrush}" Padding="12 10">
+      <Border Grid.Column="2" Width="220" Background="{DynamicResource SurfaceBaseBrush}" Padding="12 10"
+              IsVisible="{Binding ShowSidePanel}">
         <StackPanel Spacing="10">
 
           <StackPanel IsVisible="{Binding DetailTitle, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">

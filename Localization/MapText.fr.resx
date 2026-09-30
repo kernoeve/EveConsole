@@ -1638,4 +1638,10 @@ Propriétaire : {3}</value>
   <data name="LiveCharacterId" xml:space="preserve">
     <value>Personnage {0}</value>
   </data>
+  <data name="SidePanel" xml:space="preserve">
+    <value>Détails</value>
+  </data>
+  <data name="TipSidePanel" xml:space="preserve">
+    <value>Afficher ou masquer les détails et la légende à droite</value>
+  </data>
 </root>

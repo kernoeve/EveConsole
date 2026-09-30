@@ -1596,4 +1596,10 @@
   <data name="LiveCharacterId" xml:space="preserve">
     <value>角色 {0}</value>
   </data>
+  <data name="SidePanel" xml:space="preserve">
+    <value>详情</value>
+  </data>
+  <data name="TipSidePanel" xml:space="preserve">
+    <value>显示或隐藏右侧的详情和图例</value>
+  </data>
 </root>

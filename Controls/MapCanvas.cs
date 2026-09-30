@@ -4,6 +4,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
 using Avalonia.Media.Immutable;
 using Avalonia.Threading;
 using EveConsole.Services;
@@ -27,7 +28,13 @@ public sealed record MapNodeStyle(Color Fill, string? Caption = null, string? De
 /// </summary>
 public sealed record MapMarkers(
     int Hostiles, string? HostileTitle, string? HostileDetail,
-    int Own,      string? OwnTitle,     string? OwnDetail);
+    int Own,      string? OwnTitle,     string? OwnDetail,
+    IReadOnlyList<MapMarkRow>? HostileRows = null,
+    IReadOnlyList<MapMarkRow>? OwnRows     = null);
+
+/// <summary>One line of a mark's hover, with the pictures drawn in front of it: the pilot's
+/// portrait and the ship's icon. Zero for either leaves its place empty, so lines stay aligned.</summary>
+public sealed record MapMarkRow(string Text, long CharacterId = 0, int ShipTypeId = 0);
 
 /// <summary>Where the view is looking: the world point at its centre and the zoom. Held by the
 /// view model so a tab keeps its place when the view is rebuilt.</summary>
@@ -297,9 +304,9 @@ public class MapCanvas : Control
     /// carries no text, so without this the only way to learn it is the legend — and a legend you
     /// have to look away to read is one you stop reading.</para>
     /// </summary>
-    private readonly List<(Rect Rect, string Title, string Detail)> _badgeTips = new();
+    private readonly List<(Rect Rect, string Title, string Detail, IReadOnlyList<MapMarkRow>? Rows)> _badgeTips = new();
 
-    private (string Title, string Detail)? _badgeHover;
+    private (string Title, string Detail, IReadOnlyList<MapMarkRow>? Rows)? _badgeHover;
 
     /// <summary>Same, for system boxes. Only populated while the boxes are being drawn.</summary>
     private readonly Dictionary<int, Rect> _nodeRects = new();
@@ -672,7 +679,7 @@ public class MapCanvas : Control
         _pendingMarks.Clear();
 
         // A badge tooltip wins: the cursor is on the mark, so that is what the question is about.
-        if (_badgeHover is { } badge)  DrawTooltipBox(ctx, badge.Title, badge.Detail);
+        if (_badgeHover is { } badge)  DrawTooltipBox(ctx, badge.Title, badge.Detail, badge.Rows);
         else if (_hover is not null)   DrawTooltip(ctx, _hover);
     }
 
@@ -885,7 +892,7 @@ public class MapCanvas : Control
             // reliably hittable, and a mark that needs a steady hand to read is a mark nobody
             // reads. The drawn size stays honest to the rank; only the catch area grows.
             var entry = DockLegend.First(d => d.Dock == b.Dock);
-            _badgeTips.Add((bar.Inflate(new Thickness(0, 4)), entry.Label, entry.Detail));
+            _badgeTips.Add((bar.Inflate(new Thickness(0, 4)), entry.Label, entry.Detail, null));
         }
 
         // ── Below: services, one row, in fixed legend order ──
@@ -902,7 +909,7 @@ public class MapCanvas : Control
         {
             var r = new Rect(x0 + i * (size + gap), y0, size, size);
             ctx.DrawRectangle(marks[i].Brush, BadgePen, r);
-            _badgeTips.Add((r, marks[i].Label, marks[i].Detail));
+            _badgeTips.Add((r, marks[i].Label, marks[i].Detail, null));
         }
     }
 
@@ -934,7 +941,7 @@ public class MapCanvas : Control
             ctx.DrawEllipse(Palette.Bad, MarkPen, c, r, r);
             ctx.DrawText(text, new Point(c.X - text.Width / 2, c.Y - text.Height / 2));
             if (m.HostileTitle is { } title)
-                _badgeTips.Add((new Rect(c.X - r - 2, c.Y - r - 2, r * 2 + 4, r * 2 + 4), title, m.HostileDetail ?? ""));
+                _badgeTips.Add((new Rect(c.X - r - 2, c.Y - r - 2, r * 2 + 4, r * 2 + 4), title, m.HostileDetail ?? "", m.HostileRows));
         }
 
         if (m.Own > 0)
@@ -947,7 +954,7 @@ public class MapCanvas : Control
             ctx.DrawRectangle(Palette.Info, MarkPen, new RoundedRect(rect, 2));
             ctx.DrawText(text, new Point(cx - text.Width / 2, y - text.Height / 2));
             if (m.OwnTitle is { } title)
-                _badgeTips.Add((rect.Inflate(2), title, m.OwnDetail ?? ""));
+                _badgeTips.Add((rect.Inflate(2), title, m.OwnDetail ?? "", m.OwnRows));
         }
     }
 
@@ -988,10 +995,19 @@ public class MapCanvas : Control
     }
 
     /// <summary>The tooltip itself, shared by nodes and badges so both look and place the same.</summary>
-    private void DrawTooltipBox(DrawingContext ctx, string titleText, string? detail)
+    private void DrawTooltipBox(DrawingContext ctx, string titleText, string? detail,
+                                IReadOnlyList<MapMarkRow>? rows = null)
     {
         var title = new FormattedText(titleText, CultureInfo.CurrentCulture,
             FlowDirection.LeftToRight, Face, 11.5, TipTextBrush);
+
+        // Rows with pictures replace the plain body when a mark supplies them.
+        if (rows is { Count: > 0 })
+        {
+            DrawRowsTooltip(ctx, title, rows);
+            return;
+        }
+
         var body = string.IsNullOrEmpty(detail) ? null : new FormattedText(
             detail, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Face, 10.5, LabelBrush);
 
@@ -1011,6 +1027,73 @@ public class MapCanvas : Control
         ctx.DrawRectangle(TipBackBrush, TipPen, rect);
         ctx.DrawText(title, new Point(x + pad, y + pad));
         if (body is not null) ctx.DrawText(body, new Point(x + pad, y + pad + title.Height + 3));
+    }
+
+    // ── Pictures in the mark hovers ──────────────────────────────────────────
+
+    private const double RowIcon = 20;
+
+    /// <summary>A mark's hover as rows: portrait, ship icon, then the line.</summary>
+    private void DrawRowsTooltip(DrawingContext ctx, FormattedText title, IReadOnlyList<MapMarkRow> rows)
+    {
+        const double pad = 7, gap = 4, rowGap = 2;
+
+        var texts = rows.Select(r => new FormattedText(r.Text, CultureInfo.CurrentCulture,
+            FlowDirection.LeftToRight, Face, 10.5, LabelBrush)).ToList();
+
+        // Every row keeps both picture slots, pictures or not, so the text starts in one column.
+        var textX = RowIcon * 2 + gap * 2;
+        var rowH  = Math.Max(RowIcon, texts.Max(t => t.Height)) + rowGap;
+        var w = Math.Max(title.Width, textX + texts.Max(t => t.Width)) + pad * 2;
+        var h = title.Height + 4 + rowH * rows.Count + pad * 2;
+
+        var x = _hoverAt.X + 14;
+        var y = _hoverAt.Y + 14;
+        if (x + w > Bounds.Width)  x = _hoverAt.X - w - 14;
+        if (y + h > Bounds.Height) y = _hoverAt.Y - h - 14;
+        x = Math.Max(0, x);
+        y = Math.Max(0, y);
+
+        ctx.DrawRectangle(TipBackBrush, TipPen, new RoundedRect(new Rect(x, y, w, h), 3));
+        ctx.DrawText(title, new Point(x + pad, y + pad));
+
+        var top = y + pad + title.Height + 4;
+        for (var i = 0; i < rows.Count; i++)
+        {
+            var ry = top + i * rowH;
+            var lx = x + pad;
+            if (rows[i].CharacterId > 0 &&
+                Picture($"https://images.evetech.net/characters/{rows[i].CharacterId}/portrait?size=32") is { } portrait)
+                ctx.DrawImage(portrait, new Rect(lx, ry, RowIcon, RowIcon));
+            if (rows[i].ShipTypeId > 0 &&
+                Picture($"https://images.evetech.net/types/{rows[i].ShipTypeId}/icon?size=32") is { } ship)
+                ctx.DrawImage(ship, new Rect(lx + RowIcon + gap, ry, RowIcon, RowIcon));
+            ctx.DrawText(texts[i], new Point(lx + textX, ry + (RowIcon - texts[i].Height) / 2));
+        }
+    }
+
+    /// <summary>Pictures already fetched, shared by every map. A miss starts the fetch (through
+    /// the app's image cache, on disk as well) and repaints this map when it lands; until then
+    /// the slot is left empty rather than holding the hover up.</summary>
+    private static readonly Dictionary<string, Bitmap> Pictures = new();
+    private static readonly HashSet<string> Fetching = new();
+
+    private Bitmap? Picture(string url)
+    {
+        if (Pictures.TryGetValue(url, out var bitmap)) return bitmap;
+        if (!Fetching.Add(url)) return null;
+
+        _ = EveImageCache.GetAsync(url).ContinueWith(t => Dispatcher.UIThread.Post(() =>
+        {
+            Fetching.Remove(url);
+            // A failure is not remembered: the next hover asks again.
+            if (t.IsCompletedSuccessfully && t.Result is { } fetched)
+            {
+                Pictures[url] = fetched;
+                InvalidateVisual();
+            }
+        }), TaskScheduler.Default);
+        return null;
     }
 
     // ── Interaction ──────────────────────────────────────────────────────────
@@ -1093,9 +1176,9 @@ public class MapCanvas : Control
 
         // Badges first. They sit outside the box so they never overlap a node's own hit area,
         // but the cursor being on one means the question is about the mark, not the system.
-        (string Title, string Detail)? badge = null;
+        (string Title, string Detail, IReadOnlyList<MapMarkRow>? Rows)? badge = null;
         foreach (var t in _badgeTips)
-            if (t.Rect.Contains(pos)) { badge = (t.Title, t.Detail); break; }
+            if (t.Rect.Contains(pos)) { badge = (t.Title, t.Detail, t.Rows); break; }
 
         var hit = badge is null ? HitTest(pos) : null;
         _hoverAt = pos;

@@ -1596,4 +1596,10 @@
   <data name="LiveCharacterId" xml:space="preserve">
     <value>キャラクター{0}</value>
   </data>
+  <data name="SidePanel" xml:space="preserve">
+    <value>詳細</value>
+  </data>
+  <data name="TipSidePanel" xml:space="preserve">
+    <value>右側の詳細と凡例を表示または非表示にします。</value>
+  </data>
 </root>

@@ -1596,4 +1596,10 @@
   <data name="LiveCharacterId" xml:space="preserve">
     <value>캐릭터 {0}</value>
   </data>
+  <data name="SidePanel" xml:space="preserve">
+    <value>세부 정보</value>
+  </data>
+  <data name="TipSidePanel" xml:space="preserve">
+    <value>오른쪽의 세부 정보와 범례를 표시하거나 숨깁니다.</value>
+  </data>
 </root>

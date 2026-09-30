@@ -419,13 +419,16 @@ public sealed class MapToolViewModel : ReactiveObject
             live.Hostiles.TryGetValue(id, out var h);
             live.Own.TryGetValue(id, out var o);
 
+            var hostileRows = h is null ? null : HostileRows(h, now);
+            var ownRows     = o is null ? null : OwnRows(o);
             result[id] = new MapMarkers(
                 h?.Count ?? 0,
                 h is null ? null : string.Format(MapText.LiveHostilesTitle, h.Count, node.Label),
-                h is null ? null : HostileLines(h, now),
+                hostileRows is null ? null : string.Join("\n", hostileRows.Select(r => r.Text)),
                 o?.Count ?? 0,
                 o is null ? null : string.Format(MapText.LiveOwnTitle, o.Count, node.Label),
-                o is null ? null : OwnLines(o));
+                ownRows is null ? null : string.Join("\n", ownRows.Select(r => r.Text)),
+                hostileRows, ownRows);
         }
 
         // Regions: the sum, and which systems it is in.
@@ -455,9 +458,11 @@ public sealed class MapToolViewModel : ReactiveObject
         return result;
     }
 
-    private static string HostileLines(SystemHostiles h, DateTimeOffset now)
+    /// <summary>A hover's lines for one system's hostiles, each carrying the pilot and ship so
+    /// the map can put the portrait and the ship's icon in front of it.</summary>
+    private static List<MapMarkRow> HostileRows(SystemHostiles h, DateTimeOffset now)
     {
-        var lines = h.Pilots.Take(MaxListed).Select(p =>
+        var rows = h.Pilots.Take(MaxListed).Select(p =>
         {
             var ship    = p.Ship is { Length: > 0 } s ? s : MapText.LiveShipUnknown;
             var minutes = (int)Math.Max(0, (now - p.At).TotalMinutes);
@@ -465,17 +470,18 @@ public sealed class MapToolViewModel : ReactiveObject
             var source  = p.FromKillmail ? MapText.LiveSourceKillmail
                         : p.NoVisual     ? MapText.LiveSourceIntelNoVisual
                         :                  MapText.LiveSourceIntel;
-            return string.Format(MapText.LiveHostileLine, p.Name, ship, ago, source);
+            return new MapMarkRow(string.Format(MapText.LiveHostileLine, p.Name, ship, ago, source),
+                                  p.CharacterId, p.ShipTypeId ?? 0);
         }).ToList();
 
         if (h.Pilots.Count > MaxListed)
-            lines.Add(string.Format(MapText.LiveMore, h.Pilots.Count - MaxListed));
+            rows.Add(new MapMarkRow(string.Format(MapText.LiveMore, h.Pilots.Count - MaxListed)));
         if (h.Unidentified > 0)
-            lines.Add(string.Format(MapText.LiveUnidentified, h.Unidentified));
-        return string.Join("\n", lines);
+            rows.Add(new MapMarkRow(string.Format(MapText.LiveUnidentified, h.Unidentified)));
+        return rows;
     }
 
-    private static string OwnLines(IReadOnlyList<OwnPilot> own) => string.Join("\n", own.Take(MaxListed).Select(o =>
+    private static List<MapMarkRow> OwnRows(IReadOnlyList<OwnPilot> own) => own.Take(MaxListed).Select(o =>
     {
         var ship = o.Hull is { Length: > 0 } hull
             ? (o.ShipName is { Length: > 0 } name && name != hull ? $"{hull} ({name})" : hull)
@@ -483,8 +489,8 @@ public sealed class MapToolViewModel : ReactiveObject
         var where = !o.Docked            ? MapText.LiveInSpace
                   : o.Place is { } place ? string.Format(MapText.LiveDockedAt, place)
                   :                        MapText.LiveDocked;
-        return string.Format(MapText.LiveOwnLine, o.Name, ship, where);
-    }));
+        return new MapMarkRow(string.Format(MapText.LiveOwnLine, o.Name, ship, where), o.CharacterId, o.ShipTypeId ?? 0);
+    }).ToList();
 }
 
 /// <summary>One side of the map tool: a strip of tabs and the one on show.</summary>

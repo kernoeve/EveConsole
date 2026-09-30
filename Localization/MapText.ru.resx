@@ -1722,4 +1722,10 @@
   <data name="LiveCharacterId" xml:space="preserve">
     <value>Персонаж {0}</value>
   </data>
+  <data name="SidePanel" xml:space="preserve">
+    <value>Сведения</value>
+  </data>
+  <data name="TipSidePanel" xml:space="preserve">
+    <value>Показать или скрыть сведения и легенду справа</value>
+  </data>
 </root>

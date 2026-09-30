@@ -23,7 +23,8 @@ public sealed record SystemHostiles(int SystemId, IReadOnlyList<LivePilot> Pilot
 }
 
 /// <summary>One of the user's own characters, online, and where it is.</summary>
-public sealed record OwnPilot(string Name, int SystemId, string? Hull, string? ShipName, bool Docked, string? Place);
+public sealed record OwnPilot(string Name, int SystemId, string? Hull, string? ShipName, bool Docked, string? Place,
+                              long CharacterId = 0, int? ShipTypeId = null);
 
 public sealed record LiveMapSnapshot(
     IReadOnlyDictionary<int, SystemHostiles>          Hostiles,
@@ -227,7 +228,7 @@ public sealed class LiveIntelService(
                 .OrderBy(c => c.Name, StringComparer.CurrentCultureIgnoreCase)
                 .Select(c => new OwnPilot(c.Name, bySystem.Key,
                     c.ShipTypeId is int t && c.Hull is { } hull ? SdeNames.Type(t, hull) : c.Hull,
-                    c.ShipName, c.Docked, c.Place))
+                    c.ShipName, c.Docked, c.Place, c.CharacterId, c.ShipTypeId))
                 .ToList();
 
         return new LiveMapSnapshot(hostiles, own, now);
