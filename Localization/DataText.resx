@@ -1514,11 +1514,11 @@
   </data>
   <data name="ZkbBackfillStopped" xml:space="preserve">
     <value>zKillboard backfill: stopped at {0} — {1}</value>
-    <comment>Background Processes, the zKillboard backfill's status when it failed. {0} is how far it got (its own progress text), {1} the error, in whatever language the system wrote it.</comment>
+    <comment>Background Processes, the zKillboard backfill's status when zKillboard refused its requests. {0} is how far it got (its own progress text, which may itself contain a dash), {1} why it stopped: ZkbLimitedUntil.</comment>
   </data>
   <data name="ZkbGapFillWaiting" xml:space="preserve">
     <value>zKillboard gap-fill: waiting, caught up through {0:yyyy-MM-dd} — {1}</value>
-    <comment>Background Processes, the zKillboard gap-fill's status when a day's download failed. {0:yyyy-MM-dd} is the last complete day, written as ZkbGapFillDone writes it; {1} the error, in whatever language the system wrote it.</comment>
+    <comment>Background Processes, the zKillboard gap-fill's status when zKillboard refused its requests. {0:yyyy-MM-dd} is the last complete day, written as ZkbGapFillDone writes it; {1} why it is waiting: ZkbLimitedUntil.</comment>
   </data>
   <data name="ZkbServesNoFurther" xml:space="preserve">
     <value>zKillboard serves no further back than page {0}</value>

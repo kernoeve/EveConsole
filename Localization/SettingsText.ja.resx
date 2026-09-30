@@ -94,9 +94,6 @@
   <data name="LanguageSystemDefault" xml:space="preserve">
     <value>システムの既定（{0}）</value>
   </data>
-  <data name="LanguagePreview" xml:space="preserve">
-    <value>{0}（プレビュー）</value>
-  </data>
   <data name="LanguagePreviewNote" xml:space="preserve">
     <value>プレビュー：アプリの一部はまだ翻訳されておらず、英語で表示されます。</value>
   </data>
@@ -2490,6 +2487,27 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
   </data>
   <data name="RetentionRemovedKillmails" xml:space="preserve">
     <value>{1:N0}日より古いキルレポートを{0:N0}件削除しました。ファイルは圧縮するまで小さくなりません — 「データベース → データベースを縮小」を参照してください。</value>
+  </data>
+  <data name="RetentionPurgingKillmails" xml:space="preserve">
+    <value>削除中… キルレポート{1:N0}件中{0:N0}件を削除済み</value>
+  </data>
+  <data name="RetentionIntroNote" xml:space="preserve">
+    <value>忘れても差し支えないデータを、EVE Consoleがどれだけの期間保持するかを設定します。既定で削除するのはAIアシスタント自身の記録だけで、その他のルールはオンにするまでオフのままです。有効にしたルールは1日1回実行されます。削除すると行はなくなりますが、SQLiteは解放されたページをドライブに返さずに再利用するため、ファイル自体は圧縮するまで小さくなりません — 「データベース → データベースを縮小」を参照してください。容量が実際に何に使われているかは、「データベース → ストレージの内訳」で確認できます。</value>
+  </data>
+  <data name="RetentionKillmailsNote" xml:space="preserve">
+    <value>キルと、それに付随するすべてのもの（攻撃者、アイテム、参照、zKillboardのフラグ）を削除します。キルレポートとそのインデックスは一般的なデータベースで最も大きな部分を占めるため（測定した4 GBのファイルの61%）、実際に容量を取り戻せるのはこれらのルールです。ルールを2つに分けているのは、自分の履歴を他の人の分より長く残せるようにするためで、どちらもオンにするまでオフです。⚠️ 削除したキルはローカルからは失われます。取り戻すにはESIかzKillboardから再取得する必要があり、ESIが提供するのは最近のものだけです。</value>
+  </data>
+  <data name="RetentionOurKillmails" xml:space="preserve">
+    <value>キャラクター・コーポ</value>
+  </data>
+  <data name="RetentionOurKillmailsNote" xml:space="preserve">
+    <value>自分のキャラクターと、追加したすべてのコーポレーションのキルとロスです — 個人コーポレーションに指定したものだけではありません。そのいずれかが犠牲者であるか攻撃者に含まれていれば、そのキルはここに数えられます。</value>
+  </data>
+  <data name="RetentionOtherKillmails" xml:space="preserve">
+    <value>その他</value>
+  </data>
+  <data name="RetentionOtherKillmailsNote" xml:space="preserve">
+    <value>それ以外のすべての人のキルです — zKillboardのフィードや、見ていただけの戦闘など。測定したデータベースではキルの98%を占めるため、容量を取り戻せるのはこのルールです。</value>
   </data>
   <data name="RetentionRemovedPriceHistory" xml:space="preserve">
     <value>{1:N0}日より古い行を{0:N0}件削除しました。ファイルは圧縮するまで小さくなりません — 「データベース → データベースを縮小」を参照してください。</value>

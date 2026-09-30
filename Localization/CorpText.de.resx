@@ -382,6 +382,123 @@
   <data name="TabKillsLosses" xml:space="preserve">
     <value>Abschüsse / Verluste</value>
   </data>
+  <data name="KillsLoadMore" xml:space="preserve">
+    <value>200 weitere von zKillboard laden</value>
+  </data>
+  <data name="KillsTryAgain" xml:space="preserve">
+    <value>zKillboard erneut versuchen</value>
+  </data>
+  <data name="KillsAsking" xml:space="preserve">
+    <value>Die hier nicht gespeicherten Abschüsse werden bei zKillboard abgefragt…</value>
+  </data>
+  <data name="KillsLoadingPage" xml:space="preserve">
+    <value>{0:N0} angezeigt – Seite {1} wird von zKillboard geladen. Eine Seite, die zKillboard in letzter Zeit nicht ausgeliefert hat, kann eine Minute dauern.</value>
+  </data>
+  <data name="KillsProblemStoredOnly" xml:space="preserve">
+    <value>{0} – daher sind dies nur die hier gespeicherten Abschüsse.</value>
+  </data>
+  <data name="KillsProblemPage" xml:space="preserve">
+    <value>{0} – {1:N0} angezeigt, Seite {2} nicht geladen.</value>
+  </data>
+  <data name="KillsNoneAnywhere" xml:space="preserve">
+    <value>Keine Abschussberichte für diese Entität, weder hier noch auf zKillboard.</value>
+  </data>
+  <data name="KillsStoredNoneOnZkb" xml:space="preserve">
+    <value>{0:N0} hier gespeichert; zKillboard hat keine für diese Entität.</value>
+  </data>
+  <data name="KillsEverything" xml:space="preserve">
+    <value>{0:N0} Abschüsse und Verluste – alles, was zKillboard hat.</value>
+  </data>
+  <data name="KillsBackTo" xml:space="preserve">
+    <value>{0:N0} Abschüsse und Verluste zurück bis {1:yyyy-MM-dd HH:mm} – mit zKillboard vervollständigt, {2:N0} davon abgerufen, die hier nicht gespeichert waren.</value>
+  </data>
+  <data name="KillsPageLimit" xml:space="preserve">
+    <value>Weiter zurück liefert zKillboard nichts: Seine Grenze liegt bei Seite {0}.</value>
+  </data>
+  <data name="KillsPageFailed" xml:space="preserve">
+    <value>Laden der zKillboard-Seite fehlgeschlagen: {0}</value>
+  </data>
+  <data name="ZkbStatsLoading" xml:space="preserve">
+    <value>zKillboard-Statistik wird geladen…</value>
+  </data>
+  <data name="ZkbStatsProblem" xml:space="preserve">
+    <value>{0}, daher kann keine Statistik angezeigt werden.</value>
+  </data>
+  <data name="ZkbStatsNone" xml:space="preserve">
+    <value>zKillboard hat keine Abschüsse oder Verluste für diese Entität.</value>
+  </data>
+  <data name="ZkbStatsFailed" xml:space="preserve">
+    <value>Laden der zKillboard-Statistik fehlgeschlagen: {0}</value>
+  </data>
+  <data name="ZkbAllTime" xml:space="preserve">
+    <value>Gesamt</value>
+  </data>
+  <data name="ZkbDays90" xml:space="preserve">
+    <value>90 Tage</value>
+  </data>
+  <data name="ZkbDays7" xml:space="preserve">
+    <value>7 Tage</value>
+  </data>
+  <data name="ZkbDestroyed" xml:space="preserve">
+    <value>Zerstört</value>
+  </data>
+  <data name="ZkbLost" xml:space="preserve">
+    <value>Verloren</value>
+  </data>
+  <data name="ZkbRank" xml:space="preserve">
+    <value>Rang</value>
+  </data>
+  <data name="ZkbEfficiency" xml:space="preserve">
+    <value>Eff.</value>
+  </data>
+  <data name="ZkbShips" xml:space="preserve">
+    <value>Schiffe</value>
+  </data>
+  <data name="ZkbPoints" xml:space="preserve">
+    <value>Punkte</value>
+  </data>
+  <data name="ZkbIsk" xml:space="preserve">
+    <value>ISK</value>
+  </data>
+  <data name="ZkbRankOverall" xml:space="preserve">
+    <value>Rang #{0:N0}</value>
+  </data>
+  <data name="ZkbDangerous" xml:space="preserve">
+    <value>Gefährlich {0} %</value>
+  </data>
+  <data name="ZkbSnuggly" xml:space="preserve">
+    <value>{0} % Knuffig</value>
+  </data>
+  <data name="ZkbGang" xml:space="preserve">
+    <value>Gruppe {0} %</value>
+  </data>
+  <data name="ZkbSolo" xml:space="preserve">
+    <value>{0} % Solo</value>
+  </data>
+  <data name="ZkbAverageGang" xml:space="preserve">
+    <value>Ø Gruppengröße {0:0.#}</value>
+  </data>
+  <data name="ZkbSoloKillsOther" xml:space="preserve">
+    <value>{0:N0} Soloabschüsse</value>
+  </data>
+  <data name="ZkbSoloKillsOne" xml:space="preserve">
+    <value>{0:N0} Soloabschuss</value>
+  </data>
+  <data name="ZkbSoloLossesOther" xml:space="preserve">
+    <value>{0:N0} Soloverluste</value>
+  </data>
+  <data name="ZkbSoloLossesOne" xml:space="preserve">
+    <value>{0:N0} Soloverlust</value>
+  </data>
+  <data name="ZkbNone90" xml:space="preserve">
+    <value>Keine Abschüsse oder Verluste in den letzten 90 Tagen.</value>
+  </data>
+  <data name="ZkbNone7" xml:space="preserve">
+    <value>Keine Abschüsse oder Verluste in den letzten 7 Tagen.</value>
+  </data>
+  <data name="ZkbNoneAllTime" xml:space="preserve">
+    <value>Keine Abschüsse oder Verluste auf zKillboard.</value>
+  </data>
   <data name="ColName2" xml:space="preserve">
     <value>Name</value>
   </data>

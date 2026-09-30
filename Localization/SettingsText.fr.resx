@@ -94,9 +94,6 @@
   <data name="LanguageSystemDefault" xml:space="preserve">
     <value>Langue du système ({0})</value>
   </data>
-  <data name="LanguagePreview" xml:space="preserve">
-    <value>{0} (aperçu)</value>
-  </data>
   <data name="LanguagePreviewNote" xml:space="preserve">
     <value>Aperçu : certaines parties de l'application ne sont pas encore traduites et s'affichent en anglais.</value>
   </data>
@@ -2490,6 +2487,27 @@ L'application va redémarrer.</value>
   </data>
   <data name="RetentionRemovedKillmails" xml:space="preserve">
     <value>{0:N0} rapports de victimes de plus de {1:N0} jours supprimés. Le fichier ne rétrécira qu'après un compactage — voir Base de données → Compacter la base de données.</value>
+  </data>
+  <data name="RetentionPurgingKillmails" xml:space="preserve">
+    <value>Purge en cours… {0:N0} sur {1:N0} rapports de victimes supprimés</value>
+  </data>
+  <data name="RetentionIntroNote" xml:space="preserve">
+    <value>Durée de conservation des données qu'EVE Console peut se permettre d'oublier. Seule l'activité de l'assistant est purgée par défaut — toutes les autres règles restent désactivées tant que vous ne les activez pas — et une règle activée s'exécute une fois par jour. La purge supprime des lignes, mais SQLite réutilise les pages libérées au lieu de les restituer au système : le fichier lui-même ne rétrécit donc qu'après un compactage — voir Base de données → Compacter la base de données. Base de données → Répartition du stockage montre ce qui occupe réellement l'espace.</value>
+  </data>
+  <data name="RetentionKillmailsNote" xml:space="preserve">
+    <value>Supprime les rapports de victimes et tout ce qui s'y rattache — assaillants, objets, références et indicateurs zKillboard. Les rapports de victimes et leurs index sont ce qui occupe le plus de place dans une base de données typique (61 % d'un fichier mesuré à 4 Go) : ce sont donc ces règles qui libèrent réellement de l'espace. Deux règles, afin que votre propre historique puisse être conservé plus longtemps que celui des autres ; chacune reste désactivée tant que vous ne l'activez pas. ⚠️ Les rapports supprimés disparaissent de la base locale ; pour les retrouver, il faut les récupérer de nouveau depuis ESI ou zKillboard, et ESI ne fournit que les plus récents.</value>
+  </data>
+  <data name="RetentionOurKillmails" xml:space="preserve">
+    <value>Personnages / corporations</value>
+  </data>
+  <data name="RetentionOurKillmailsNote" xml:space="preserve">
+    <value>Destructions et pertes de vos personnages, et de chaque corporation que vous avez ajoutée — pas seulement les corporations personnelles. Un rapport compte ici dès que l'un d'eux est la victime ou figure parmi les assaillants.</value>
+  </data>
+  <data name="RetentionOtherKillmails" xml:space="preserve">
+    <value>Autres</value>
+  </data>
+  <data name="RetentionOtherKillmailsNote" xml:space="preserve">
+    <value>Les rapports de victimes de tous les autres — le flux zKillboard, les combats auxquels vous avez seulement assisté. 98 % des rapports d'une base de données mesurée : c'est donc cette règle qui libère vraiment de l'espace.</value>
   </data>
   <data name="RetentionRemovedPriceHistory" xml:space="preserve">
     <value>{0:N0} lignes de plus de {1:N0} jours supprimées. Le fichier ne rétrécira qu'après un compactage — voir Base de données → Compacter la base de données.</value>

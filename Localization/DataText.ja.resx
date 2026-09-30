@@ -1111,6 +1111,39 @@
   <data name="ZkbFirehoseSkipped" xml:space="preserve">
     <value>zKillboardファイアホース：空のシーケンス{0:N0}をスキップ（最新{1:N0}）</value>
   </data>
+  <data name="ZkbFirehoseLimited" xml:space="preserve">
+    <value>zKillboardファイアホース：zKillboardがこのマシンからのリクエストを制限しています — {0:t}に再試行します</value>
+  </data>
+  <data name="ZkbLimitedUntil" xml:space="preserve">
+    <value>zKillboardが{0:t}までこのマシンからのリクエストを制限している</value>
+  </data>
+  <data name="ZkbFirehoseRetrying" xml:space="preserve">
+    <value>zKillboardファイアホース：zKillboardに接続できませんでした — {0}秒後に再試行します</value>
+  </data>
+  <data name="ZkbBackfillStopped" xml:space="preserve">
+    <value>zKillboardの過去分の取得：停止（{0}） — {1}</value>
+  </data>
+  <data name="ZkbGapFillWaiting" xml:space="preserve">
+    <value>zKillboardの欠落の補完：待機中（{0:yyyy-MM-dd}まで補完済み） — {1}</value>
+  </data>
+  <data name="ZkbServesNoFurther" xml:space="preserve">
+    <value>zKillboardが{0}ページ目までしか提供しない</value>
+  </data>
+  <data name="ZkbAnsweredHttp" xml:space="preserve">
+    <value>zKillboardがHTTP {0}を返した</value>
+  </data>
+  <data name="ZkbSaid" xml:space="preserve">
+    <value>zKillboardが「{0}」と応答した</value>
+  </data>
+  <data name="ZkbNoAnswerInTime" xml:space="preserve">
+    <value>zKillboardが2分以内に応答しなかった</value>
+  </data>
+  <data name="ZkbUnreachable" xml:space="preserve">
+    <value>zKillboardに接続できなかった</value>
+  </data>
+  <data name="ZkbUnexpectedAnswer" xml:space="preserve">
+    <value>zKillboardが予期しない応答を返した</value>
+  </data>
   <data name="ZkbFirehoseCaughtUp" xml:space="preserve">
     <value>zKillboardファイアホース：最新に追いつきました（シーケンス{0:N0}）</value>
   </data>

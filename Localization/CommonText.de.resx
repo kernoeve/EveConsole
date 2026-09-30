@@ -274,6 +274,33 @@
   <data name="ClauseSeparator" xml:space="preserve">
     <value>, </value>
   </data>
+  <data name="LanguageEnglish" xml:space="preserve">
+    <value>Englisch</value>
+  </data>
+  <data name="LanguageChineseSimplified" xml:space="preserve">
+    <value>Vereinfachtes Chinesisch</value>
+  </data>
+  <data name="LanguageGerman" xml:space="preserve">
+    <value>Deutsch</value>
+  </data>
+  <data name="LanguageSpanish" xml:space="preserve">
+    <value>Spanisch</value>
+  </data>
+  <data name="LanguageFrench" xml:space="preserve">
+    <value>Französisch</value>
+  </data>
+  <data name="LanguageJapanese" xml:space="preserve">
+    <value>Japanisch</value>
+  </data>
+  <data name="LanguageKorean" xml:space="preserve">
+    <value>Koreanisch</value>
+  </data>
+  <data name="LanguageRussian" xml:space="preserve">
+    <value>Russisch</value>
+  </data>
+  <data name="LanguageLocalAndNative" xml:space="preserve">
+    <value>{0} ({1})</value>
+  </data>
   <data name="DateMonthDay" xml:space="preserve">
     <value>d. MMM</value>
   </data>

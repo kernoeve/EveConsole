@@ -94,9 +94,6 @@
   <data name="LanguageSystemDefault" xml:space="preserve">
     <value>Predeterminado del sistema ({0})</value>
   </data>
-  <data name="LanguagePreview" xml:space="preserve">
-    <value>{0} (vista previa)</value>
-  </data>
   <data name="LanguagePreviewNote" xml:space="preserve">
     <value>Vista previa: partes de la aplicación aún no están traducidas y se muestran en inglés.</value>
   </data>
@@ -2490,6 +2487,27 @@ La aplicación se reiniciará.</value>
   </data>
   <data name="RetentionRemovedKillmails" xml:space="preserve">
     <value>Se han eliminado {0:N0} informes de muertes de más de {1:N0} días. El archivo no se reducirá hasta que se compacte: consulta Base de datos → Compactar base de datos.</value>
+  </data>
+  <data name="RetentionPurgingKillmails" xml:space="preserve">
+    <value>Purgando… informes de muertes eliminados: {0:N0} de {1:N0}</value>
+  </data>
+  <data name="RetentionIntroNote" xml:space="preserve">
+    <value>Cuánto tiempo conserva EVE Console los datos que puede permitirse olvidar. Por defecto solo se purga el registro de actividad del asistente (las demás reglas están desactivadas hasta que las actives), y cada regla activada se ejecuta una vez al día. La purga elimina filas, pero SQLite reutiliza las páginas liberadas en lugar de devolverlas, así que el archivo en sí solo se reduce tras una compactación: consulta Base de datos → Compactar base de datos. Base de datos → Desglose del almacenamiento muestra qué ocupa realmente el espacio.</value>
+  </data>
+  <data name="RetentionKillmailsNote" xml:space="preserve">
+    <value>Elimina las muertes y todo lo asociado a ellas: atacantes, objetos, referencias e indicadores de zKillboard. Los informes de muertes y sus índices son lo que más ocupa en una base de datos típica (el 61 % de un archivo medido de 4 GB), así que estas son las reglas que de verdad recuperan espacio. Hay dos reglas para que tu propio historial pueda conservarse más tiempo que el de los demás; cada una está desactivada hasta que la actives. ⚠️ Las muertes eliminadas desaparecen de tu base de datos; para recuperarlas hay que volver a descargarlas de ESI o de zKillboard, y ESI solo ofrece las recientes.</value>
+  </data>
+  <data name="RetentionOurKillmails" xml:space="preserve">
+    <value>Personajes / corporaciones</value>
+  </data>
+  <data name="RetentionOurKillmailsNote" xml:space="preserve">
+    <value>Muertes y pérdidas de tus personajes y de todas las corporaciones que hayas añadido, no solo las marcadas como personales. Una muerte cuenta aquí cuando cualquiera de ellos es la víctima o está entre los atacantes.</value>
+  </data>
+  <data name="RetentionOtherKillmails" xml:space="preserve">
+    <value>Otros</value>
+  </data>
+  <data name="RetentionOtherKillmailsNote" xml:space="preserve">
+    <value>Las muertes de todos los demás: las del flujo de zKillboard y las de combates que solo has presenciado. Son el 98 % de las muertes de una base de datos medida, así que esta es la regla que recupera espacio.</value>
   </data>
   <data name="RetentionRemovedPriceHistory" xml:space="preserve">
     <value>Se han eliminado {0:N0} filas de más de {1:N0} días. El archivo no se reducirá hasta que se compacte: consulta Base de datos → Compactar base de datos.</value>

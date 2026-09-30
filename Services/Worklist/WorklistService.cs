@@ -417,21 +417,22 @@ public class WorklistService(
                         ? Math.Max(buy.Priority, freed.Max(f => touched.First(j => j.Key == f.Key).Priority))
                         : buy.Priority,
 
-                    Detail = buy.Detail
-                           + (freed.Count > 0
-                                ? " " + Listed(WorklistText.BuyReleasesJobs, WorklistText.BuyReleasesJobsMore, freed)
-                                : "")
-                           // ⚠️ "More" only after a count of released jobs. Alone it read as a
-                           // further demand on top of the ones the reason lists, when the job it
-                           // meant was one of them — stopped by other shortages as well. And not
-                           // "short of other things": a job whose material is merely at another
-                           // station waits on a haul, not on anything missing.
-                           + (waiting.Count > freed.Count
-                                ? " " + Plurals.Format(WorklistText.ResourceManager,
-                                      freed.Count > 0 ? nameof(WorklistText.BuyOthersWaitingMoreOther)
-                                                      : nameof(WorklistText.BuyOthersWaitingOther),
-                                      waiting.Count - freed.Count)
-                                : ""),
+                    Detail = Sentences.Join(
+                             Sentences.Join(buy.Detail,
+                                 freed.Count > 0
+                                     ? Listed(WorklistText.BuyReleasesJobs, WorklistText.BuyReleasesJobsMore, freed)
+                                     : ""),
+                             // ⚠️ "More" only after a count of released jobs. Alone it read as a
+                             // further demand on top of the ones the reason lists, when the job it
+                             // meant was one of them — stopped by other shortages as well. And not
+                             // "short of other things": a job whose material is merely at another
+                             // station waits on a haul, not on anything missing.
+                             waiting.Count > freed.Count
+                                 ? Plurals.Format(WorklistText.ResourceManager,
+                                       freed.Count > 0 ? nameof(WorklistText.BuyOthersWaitingMoreOther)
+                                                       : nameof(WorklistText.BuyOthersWaitingOther),
+                                       waiting.Count - freed.Count)
+                                 : ""),
                 };
             }
         }

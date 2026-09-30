@@ -1510,6 +1510,24 @@
   <data name="BuyReleasesJobsMore" xml:space="preserve">
     <value>Débloque {0:N0} travail(aux) arrêté(s) : {1}, et {2:N0} de plus.</value>
   </data>
+  <data name="BuyOthersWaitingOther" xml:space="preserve">
+    <value>{0:N0} travaux en attente de cet achat dépendent aussi d'autre chose.</value>
+  </data>
+  <data name="BuyOthersWaitingOne" xml:space="preserve">
+    <value>{0:N0} travail en attente de cet achat dépend aussi d'autre chose.</value>
+  </data>
+  <data name="BuyOthersWaitingMoreOther" xml:space="preserve">
+    <value>{0:N0} autres travaux en attente de cet achat dépendent aussi d'autre chose.</value>
+  </data>
+  <data name="BuyOthersWaitingMoreOne" xml:space="preserve">
+    <value>{0:N0} autre travail en attente de cet achat dépend aussi d'autre chose.</value>
+  </data>
+  <data name="MergedDetailSumPooled" xml:space="preserve">
+    <value>{0:N0} au total : {1} = {2:N0} demandés en tout, moins les {3:N0} déjà disponibles, en cours d'achat ou récupérables. Les motifs qui suivent déduisent chacun ces mêmes {3:N0} de leur propre demande : leurs manques additionnés ne donnent donc pas le total. {4}</value>
+  </data>
+  <data name="MergedDetailSum" xml:space="preserve">
+    <value>{0:N0} au total : {1} = {2:N0} demandés en tout. {3}</value>
+  </data>
   <data name="TitleTagBpoBpc" xml:space="preserve">
     <value>BPO/BPC</value>
   </data>

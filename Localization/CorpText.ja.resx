@@ -382,6 +382,117 @@
   <data name="TabKillsLosses" xml:space="preserve">
     <value>キル・ロス</value>
   </data>
+  <data name="KillsLoadMore" xml:space="preserve">
+    <value>zKillboardからさらに200件読み込む</value>
+  </data>
+  <data name="KillsTryAgain" xml:space="preserve">
+    <value>zKillboardからもう一度読み込む</value>
+  </data>
+  <data name="KillsAsking" xml:space="preserve">
+    <value>ここに保存されていないキルをzKillboardに問い合わせ中…</value>
+  </data>
+  <data name="KillsLoadingPage" xml:space="preserve">
+    <value>{0:N0}件を表示中 — zKillboardから{1}ページ目を読み込んでいます。最近提供されていないページは、1分ほどかかることがあります。</value>
+  </data>
+  <data name="KillsProblemStoredOnly" xml:space="preserve">
+    <value>{0}ため、表示しているのはここに保存されているキルだけです。</value>
+  </data>
+  <data name="KillsProblemPage" xml:space="preserve">
+    <value>{0}ため、{2}ページ目は読み込まれていません（{1:N0}件を表示中）。</value>
+  </data>
+  <data name="KillsNoneAnywhere" xml:space="preserve">
+    <value>このエンティティのキルレポートは、ここにもzKillboardにもありません。</value>
+  </data>
+  <data name="KillsStoredNoneOnZkb" xml:space="preserve">
+    <value>ここに{0:N0}件保存されていますが、zKillboardにはこのエンティティのものは1件もありません。</value>
+  </data>
+  <data name="KillsEverything" xml:space="preserve">
+    <value>キル・ロス{0:N0}件 — zKillboardにあるものはこれですべてです。</value>
+  </data>
+  <data name="KillsBackTo" xml:space="preserve">
+    <value>{1:yyyy-MM-dd HH:mm}以降のキル・ロス{0:N0}件 — zKillboardから漏れなく補完しました（ここに保存されていなかった{2:N0}件を取得）。</value>
+  </data>
+  <data name="KillsPageLimit" xml:space="preserve">
+    <value>zKillboardが提供するのはここまでです：ページの上限は{0}です。</value>
+  </data>
+  <data name="KillsPageFailed" xml:space="preserve">
+    <value>zKillboardのページの読み込みに失敗しました：{0}</value>
+  </data>
+  <data name="ZkbStatsLoading" xml:space="preserve">
+    <value>zKillboardの統計を読み込み中…</value>
+  </data>
+  <data name="ZkbStatsProblem" xml:space="preserve">
+    <value>{0}ため、表示できる統計はありません。</value>
+  </data>
+  <data name="ZkbStatsNone" xml:space="preserve">
+    <value>zKillboardにはこのエンティティのキルもロスもありません。</value>
+  </data>
+  <data name="ZkbStatsFailed" xml:space="preserve">
+    <value>zKillboardの統計の読み込みに失敗しました：{0}</value>
+  </data>
+  <data name="ZkbAllTime" xml:space="preserve">
+    <value>全期間</value>
+  </data>
+  <data name="ZkbDays90" xml:space="preserve">
+    <value>90日</value>
+  </data>
+  <data name="ZkbDays7" xml:space="preserve">
+    <value>7日</value>
+  </data>
+  <data name="ZkbDestroyed" xml:space="preserve">
+    <value>破壊</value>
+  </data>
+  <data name="ZkbLost" xml:space="preserve">
+    <value>損失</value>
+  </data>
+  <data name="ZkbRank" xml:space="preserve">
+    <value>順位</value>
+  </data>
+  <data name="ZkbEfficiency" xml:space="preserve">
+    <value>効率</value>
+  </data>
+  <data name="ZkbShips" xml:space="preserve">
+    <value>艦船</value>
+  </data>
+  <data name="ZkbPoints" xml:space="preserve">
+    <value>ポイント</value>
+  </data>
+  <data name="ZkbIsk" xml:space="preserve">
+    <value>ISK</value>
+  </data>
+  <data name="ZkbRankOverall" xml:space="preserve">
+    <value>総合{0:N0}位</value>
+  </data>
+  <data name="ZkbDangerous" xml:space="preserve">
+    <value>危険度{0}%</value>
+  </data>
+  <data name="ZkbSnuggly" xml:space="preserve">
+    <value>ほのぼの度{0}%</value>
+  </data>
+  <data name="ZkbGang" xml:space="preserve">
+    <value>集団{0}%</value>
+  </data>
+  <data name="ZkbSolo" xml:space="preserve">
+    <value>ソロ{0}%</value>
+  </data>
+  <data name="ZkbAverageGang" xml:space="preserve">
+    <value>平均集団規模{0:0.#}人</value>
+  </data>
+  <data name="ZkbSoloKillsOther" xml:space="preserve">
+    <value>ソロキル{0:N0}件</value>
+  </data>
+  <data name="ZkbSoloLossesOther" xml:space="preserve">
+    <value>ソロロス{0:N0}件</value>
+  </data>
+  <data name="ZkbNone90" xml:space="preserve">
+    <value>過去90日間にキルもロスもありません。</value>
+  </data>
+  <data name="ZkbNone7" xml:space="preserve">
+    <value>過去7日間にキルもロスもありません。</value>
+  </data>
+  <data name="ZkbNoneAllTime" xml:space="preserve">
+    <value>zKillboardにはキルもロスもありません。</value>
+  </data>
   <data name="ColName2" xml:space="preserve">
     <value>名前</value>
   </data>

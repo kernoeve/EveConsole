@@ -94,9 +94,6 @@
   <data name="LanguageSystemDefault" xml:space="preserve">
     <value>Systemstandard ({0})</value>
   </data>
-  <data name="LanguagePreview" xml:space="preserve">
-    <value>{0} (Vorschau)</value>
-  </data>
   <data name="LanguagePreviewNote" xml:space="preserve">
     <value>Vorschau: Teile der App sind noch nicht übersetzt und erscheinen auf Englisch.</value>
   </data>
@@ -2490,6 +2487,27 @@ Die Anwendung wird neu gestartet.</value>
   </data>
   <data name="RetentionRemovedKillmails" xml:space="preserve">
     <value>{0:N0} Abschussberichte entfernt, die älter als {1:N0} Tage waren. Die Datei wird erst kleiner, wenn sie komprimiert wird – siehe Datenbank → Datenbank verkleinern.</value>
+  </data>
+  <data name="RetentionPurgingKillmails" xml:space="preserve">
+    <value>Wird bereinigt… {0:N0} von {1:N0} Abschussberichten entfernt</value>
+  </data>
+  <data name="RetentionIntroNote" xml:space="preserve">
+    <value>Wie lange EVE Console Daten aufbewahrt, auf die sie verzichten kann. Standardmäßig werden nur die eigenen Aufzeichnungen des KI-Assistenten bereinigt – jede andere Regel ist aus, bis Sie sie einschalten –, und eine aktivierte Regel läuft einmal täglich. Das Bereinigen entfernt Zeilen, doch SQLite verwendet die frei gewordenen Seiten wieder, statt sie an das System zurückzugeben; die Datei selbst wird daher erst kleiner, wenn sie komprimiert wird – siehe Datenbank → Datenbank verkleinern. Datenbank → Speicheraufteilung zeigt, wo der Platz tatsächlich geblieben ist.</value>
+  </data>
+  <data name="RetentionKillmailsNote" xml:space="preserve">
+    <value>Entfernt den Abschuss und alles, was daran hängt – Angreifer, Gegenstände, Referenzen und zKillboard-Markierungen. Abschussberichte und ihre Indizes sind der größte Posten in einer typischen Datenbank (61 % einer gemessenen 4-GB-Datei); diese Regeln sind es also, die tatsächlich Platz zurückgewinnen. Zwei Regeln, damit Ihr eigener Verlauf länger aufbewahrt werden kann als der aller anderen; jede ist aus, bis Sie sie einschalten. ⚠️ Gelöschte Abschüsse sind lokal verloren; zurückholen lassen sie sich nur durch erneuten Abruf von ESI oder zKillboard, und ESI liefert nur neuere.</value>
+  </data>
+  <data name="RetentionOurKillmails" xml:space="preserve">
+    <value>Charaktere / Corps</value>
+  </data>
+  <data name="RetentionOurKillmailsNote" xml:space="preserve">
+    <value>Abschüsse und Verluste Ihrer Charaktere und jeder Corporation, die Sie hinzugefügt haben – nicht nur der als persönlich markierten. Ein Abschuss zählt hierzu, wenn einer von ihnen das Opfer ist oder zu den Angreifern gehört.</value>
+  </data>
+  <data name="RetentionOtherKillmails" xml:space="preserve">
+    <value>Alle anderen</value>
+  </data>
+  <data name="RetentionOtherKillmailsNote" xml:space="preserve">
+    <value>Die Abschüsse aller anderen – aus dem zKillboard-Import, aus Kämpfen, denen Sie nur zugesehen haben. 98 % der Abschüsse in einer gemessenen Datenbank; diese Regel ist es also, die Platz zurückgewinnt.</value>
   </data>
   <data name="RetentionRemovedPriceHistory" xml:space="preserve">
     <value>{0:N0} Zeilen entfernt, die älter als {1:N0} Tage waren. Die Datei wird erst kleiner, wenn sie komprimiert wird – siehe Datenbank → Datenbank verkleinern.</value>

@@ -1510,6 +1510,24 @@
   <data name="BuyReleasesJobsMore" xml:space="preserve">
     <value>Desbloquea {0:N0} trabajo(s) detenido(s): {1} y {2:N0} más.</value>
   </data>
+  <data name="BuyOthersWaitingOther" xml:space="preserve">
+    <value>{0:N0} trabajos que esperan esta compra también están a la espera de otra cosa.</value>
+  </data>
+  <data name="BuyOthersWaitingOne" xml:space="preserve">
+    <value>{0:N0} trabajo que espera esta compra también está a la espera de otra cosa.</value>
+  </data>
+  <data name="BuyOthersWaitingMoreOther" xml:space="preserve">
+    <value>{0:N0} trabajos más que esperan esta compra también están a la espera de otra cosa.</value>
+  </data>
+  <data name="BuyOthersWaitingMoreOne" xml:space="preserve">
+    <value>{0:N0} trabajo más que espera esta compra también está a la espera de otra cosa.</value>
+  </data>
+  <data name="MergedDetailSumPooled" xml:space="preserve">
+    <value>{0:N0} en total: entre todos necesitan {1} = {2:N0}, menos lo que ya hay disponible, en pedido o recuperable ({3:N0}). Cada uno de los motivos siguientes descuenta esa misma cantidad ({3:N0}) de su propia necesidad, así que sus déficits no suman el total. {4}</value>
+  </data>
+  <data name="MergedDetailSum" xml:space="preserve">
+    <value>{0:N0} en total: entre todos necesitan {1} = {2:N0}. {3}</value>
+  </data>
   <data name="TitleTagBpoBpc" xml:space="preserve">
     <value>BPO/BPC</value>
   </data>

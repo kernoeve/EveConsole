@@ -355,6 +355,9 @@
   <data name="OnlineOfTotal" xml:space="preserve">
     <value>{0} / {1} 在线</value>
   </data>
+  <data name="NoCharactersOnline" xml:space="preserve">
+    <value>无角色在线</value>
+  </data>
   <data name="LocationUnknown" xml:space="preserve">
     <value>位置未知</value>
   </data>

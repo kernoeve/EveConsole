@@ -96,7 +96,7 @@
   </data>
   <data name="LanguageSystemDefault" xml:space="preserve">
     <value>System default ({0})</value>
-    <comment>{0} is the language the system setting comes to, in that language's own name.</comment>
+    <comment>The first entry of the Language list. {0} is the language the system setting comes to, named in this language (CommonText.Language…).</comment>
   </data>
   <data name="LanguagePreviewNote" xml:space="preserve">
     <value>Preview: parts of the app are not translated yet and show in English.</value>

@@ -1111,6 +1111,39 @@
   <data name="ZkbFirehoseSkipped" xml:space="preserve">
     <value>zKillboard 전체 스트림: 빈 시퀀스 {0:N0} 건너뜀 (최신 {1:N0})</value>
   </data>
+  <data name="ZkbFirehoseLimited" xml:space="preserve">
+    <value>zKillboard 전체 스트림: zKillboard가 이 컴퓨터의 요청을 제한하는 중 — {0:t}에 다시 시도</value>
+  </data>
+  <data name="ZkbLimitedUntil" xml:space="preserve">
+    <value>zKillboard가 {0:t}까지 이 컴퓨터의 요청을 제한하는 중</value>
+  </data>
+  <data name="ZkbFirehoseRetrying" xml:space="preserve">
+    <value>zKillboard 전체 스트림: zKillboard에 연결할 수 없음 — {0}초 후 다시 시도</value>
+  </data>
+  <data name="ZkbBackfillStopped" xml:space="preserve">
+    <value>zKillboard 과거 데이터 채우기: 중지됨 ({0}) — {1}</value>
+  </data>
+  <data name="ZkbGapFillWaiting" xml:space="preserve">
+    <value>zKillboard 공백 채우기: 대기 중, {0:yyyy-MM-dd}까지 따라잡음 — {1}</value>
+  </data>
+  <data name="ZkbServesNoFurther" xml:space="preserve">
+    <value>zKillboard는 {0}페이지까지만 제공함</value>
+  </data>
+  <data name="ZkbAnsweredHttp" xml:space="preserve">
+    <value>zKillboard가 HTTP {0} 응답을 보냄</value>
+  </data>
+  <data name="ZkbSaid" xml:space="preserve">
+    <value>zKillboard 메시지: {0}</value>
+  </data>
+  <data name="ZkbNoAnswerInTime" xml:space="preserve">
+    <value>zKillboard가 2분 안에 응답하지 않음</value>
+  </data>
+  <data name="ZkbUnreachable" xml:space="preserve">
+    <value>zKillboard에 연결할 수 없음</value>
+  </data>
+  <data name="ZkbUnexpectedAnswer" xml:space="preserve">
+    <value>zKillboard가 예상치 못한 응답을 보냄</value>
+  </data>
   <data name="ZkbFirehoseCaughtUp" xml:space="preserve">
     <value>zKillboard 전체 스트림: 따라잡음 (시퀀스 {0:N0})</value>
   </data>

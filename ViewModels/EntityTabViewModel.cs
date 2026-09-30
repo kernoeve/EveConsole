@@ -834,8 +834,9 @@ public class EntityTabViewModel : ReactiveObject
                 // than leaving a reader to wonder where it went.
                 var last = page >= ZkillboardApiClient.MaxEntityPage;
                 CanLoadMoreKills = !last;
-                KillsStatus = string.Format(CorpText.KillsBackTo, Kills.Count, result.Oldest!.Value.ToLocalTime(), _zkbStored)
-                            + (last ? " " + string.Format(CorpText.KillsPageLimit, ZkillboardApiClient.MaxEntityPage) : "");
+                KillsStatus = Sentences.Join(
+                    string.Format(CorpText.KillsBackTo, Kills.Count, result.Oldest!.Value.ToLocalTime(), _zkbStored),
+                    last ? string.Format(CorpText.KillsPageLimit, ZkillboardApiClient.MaxEntityPage) : "");
             });
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested) { }

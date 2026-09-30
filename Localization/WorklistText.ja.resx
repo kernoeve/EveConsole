@@ -1504,6 +1504,18 @@
   <data name="BuyReleasesJobsMore" xml:space="preserve">
     <value>止まっているジョブ{0:N0}件を開始できるようにします：{1}、ほか{2:N0}件。</value>
   </data>
+  <data name="BuyOthersWaitingOther" xml:space="preserve">
+    <value>この購入を待っているジョブ{0:N0}件は、別のものも待っています。</value>
+  </data>
+  <data name="BuyOthersWaitingMoreOther" xml:space="preserve">
+    <value>この購入を待っているほかのジョブ{0:N0}件は、別のものも待っています。</value>
+  </data>
+  <data name="MergedDetailSumPooled" xml:space="preserve">
+    <value>合計{0:N0}個：必要数は合わせて{1} = {2:N0}個で、ここから所持分・注文済み分・回収可能分の計{3:N0}個を差し引いています。以下の各理由はいずれも同じ{3:N0}個を自身の必要数から差し引いているため、それぞれの不足数を足しても合計にはなりません。{4}</value>
+  </data>
+  <data name="MergedDetailSum" xml:space="preserve">
+    <value>合計{0:N0}個：必要数は合わせて{1} = {2:N0}個です。{3}</value>
+  </data>
   <data name="TitleTagBpoBpc" xml:space="preserve">
     <value>BPO/BPC</value>
   </data>

@@ -1522,6 +1522,36 @@
   <data name="BuyReleasesJobsMore" xml:space="preserve">
     <value>Разблокирует остановленные проекты ({0:N0}): {1} и ещё {2:N0}.</value>
   </data>
+  <data name="BuyOthersWaitingOther" xml:space="preserve">
+    <value>{0:N0} проекта ждут не только этой покупки, но и чего-то другого.</value>
+  </data>
+  <data name="BuyOthersWaitingOne" xml:space="preserve">
+    <value>{0:N0} проект ждёт не только этой покупки, но и чего-то другого.</value>
+  </data>
+  <data name="BuyOthersWaitingFew" xml:space="preserve">
+    <value>{0:N0} проекта ждут не только этой покупки, но и чего-то другого.</value>
+  </data>
+  <data name="BuyOthersWaitingMany" xml:space="preserve">
+    <value>{0:N0} проектов ждут не только этой покупки, но и чего-то другого.</value>
+  </data>
+  <data name="BuyOthersWaitingMoreOther" xml:space="preserve">
+    <value>Ещё {0:N0} проекта ждут не только этой покупки, но и чего-то другого.</value>
+  </data>
+  <data name="BuyOthersWaitingMoreOne" xml:space="preserve">
+    <value>Ещё {0:N0} проект ждёт не только этой покупки, но и чего-то другого.</value>
+  </data>
+  <data name="BuyOthersWaitingMoreFew" xml:space="preserve">
+    <value>Ещё {0:N0} проекта ждут не только этой покупки, но и чего-то другого.</value>
+  </data>
+  <data name="BuyOthersWaitingMoreMany" xml:space="preserve">
+    <value>Ещё {0:N0} проектов ждут не только этой покупки, но и чего-то другого.</value>
+  </data>
+  <data name="MergedDetailSumPooled" xml:space="preserve">
+    <value>Всего {0:N0}: общая потребность {1} = {2:N0} за вычетом того, что уже в наличии, в ордерах или может быть получено из имеющихся запасов ({3:N0}). Каждая из приведённых далее причин вычитает эти же {3:N0} из своей потребности, поэтому сумма их нехваток не равна итогу. {4}</value>
+  </data>
+  <data name="MergedDetailSum" xml:space="preserve">
+    <value>Всего {0:N0}: общая потребность {1} = {2:N0}. {3}</value>
+  </data>
   <data name="TitleTagBpoBpc" xml:space="preserve">
     <value>BPO/BPC</value>
   </data>

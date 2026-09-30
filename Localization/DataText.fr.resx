@@ -1126,6 +1126,39 @@
   <data name="ZkbFirehoseSkipped" xml:space="preserve">
     <value>Flux zKillboard : séquence vide {0:N0} ignorée (tête {1:N0})</value>
   </data>
+  <data name="ZkbFirehoseLimited" xml:space="preserve">
+    <value>Flux zKillboard : zKillboard limite les requêtes de cet ordinateur — prochain essai à {0:t}</value>
+  </data>
+  <data name="ZkbLimitedUntil" xml:space="preserve">
+    <value>zKillboard limite les requêtes de cet ordinateur jusqu'à {0:t}</value>
+  </data>
+  <data name="ZkbFirehoseRetrying" xml:space="preserve">
+    <value>Flux zKillboard : impossible de joindre zKillboard — nouvel essai dans {0} s</value>
+  </data>
+  <data name="ZkbBackfillStopped" xml:space="preserve">
+    <value>Rattrapage zKillboard : arrêté ({0}) — {1}</value>
+  </data>
+  <data name="ZkbGapFillWaiting" xml:space="preserve">
+    <value>Comblement zKillboard : en attente, à jour jusqu'au {0:yyyy-MM-dd} — {1}</value>
+  </data>
+  <data name="ZkbServesNoFurther" xml:space="preserve">
+    <value>zKillboard ne remonte pas au-delà de la page {0}</value>
+  </data>
+  <data name="ZkbAnsweredHttp" xml:space="preserve">
+    <value>zKillboard a répondu par le code HTTP {0}</value>
+  </data>
+  <data name="ZkbSaid" xml:space="preserve">
+    <value>zKillboard a répondu : {0}</value>
+  </data>
+  <data name="ZkbNoAnswerInTime" xml:space="preserve">
+    <value>zKillboard n'a pas répondu dans un délai de deux minutes</value>
+  </data>
+  <data name="ZkbUnreachable" xml:space="preserve">
+    <value>zKillboard n'a pas pu être joint</value>
+  </data>
+  <data name="ZkbUnexpectedAnswer" xml:space="preserve">
+    <value>zKillboard a envoyé une réponse inattendue</value>
+  </data>
   <data name="ZkbFirehoseCaughtUp" xml:space="preserve">
     <value>Flux zKillboard : à jour (séquence {0:N0})</value>
   </data>

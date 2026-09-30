@@ -1504,6 +1504,18 @@
   <data name="BuyReleasesJobsMore" xml:space="preserve">
     <value>멈춘 작업 {0:N0}개를 풀어 줍니다: {1} 외 {2:N0}개.</value>
   </data>
+  <data name="BuyOthersWaitingOther" xml:space="preserve">
+    <value>이 항목을 기다리는 작업 {0:N0}개는 다른 것도 함께 기다리고 있습니다.</value>
+  </data>
+  <data name="BuyOthersWaitingMoreOther" xml:space="preserve">
+    <value>이 항목을 기다리는 작업이 {0:N0}개 더 있지만, 다른 것도 함께 기다리고 있습니다.</value>
+  </data>
+  <data name="MergedDetailSumPooled" xml:space="preserve">
+    <value>총 {0:N0}개: 모두 합쳐 {1} = {2:N0}개가 필요하고, 여기서 이미 보유 중이거나 주문 중이거나 회수할 수 있는 {3:N0}개를 뺐습니다. 이어지는 사유는 각각 같은 {3:N0}개를 자기 몫에서 뺀 것이므로, 사유별 부족분을 더해도 총량과 맞지 않습니다. {4}</value>
+  </data>
+  <data name="MergedDetailSum" xml:space="preserve">
+    <value>총 {0:N0}개: 모두 합쳐 {1} = {2:N0}개가 필요합니다. {3}</value>
+  </data>
   <data name="TitleTagBpoBpc" xml:space="preserve">
     <value>BPO/BPC</value>
   </data>

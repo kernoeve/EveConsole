@@ -355,6 +355,9 @@
   <data name="OnlineOfTotal" xml:space="preserve">
     <value>Онлайн: {0} из {1}</value>
   </data>
+  <data name="NoCharactersOnline" xml:space="preserve">
+    <value>Нет персонажей онлайн</value>
+  </data>
   <data name="LocationUnknown" xml:space="preserve">
     <value>местоположение неизвестно</value>
   </data>

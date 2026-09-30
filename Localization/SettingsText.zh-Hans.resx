@@ -94,9 +94,6 @@
   <data name="LanguageSystemDefault" xml:space="preserve">
     <value>跟随系统（{0}）</value>
   </data>
-  <data name="LanguagePreview" xml:space="preserve">
-    <value>{0}（预览）</value>
-  </data>
   <data name="LanguagePreviewNote" xml:space="preserve">
     <value>预览：应用的部分内容尚未翻译，将以英文显示。</value>
   </data>
@@ -2490,6 +2487,27 @@ SQLite 数据库只会被读取，不会被修改。大型数据库需要一些�
   </data>
   <data name="RetentionRemovedKillmails" xml:space="preserve">
     <value>已删除早于 {1:N0} 天的 {0:N0} 份击毁报告。文件本身只有在压缩之后才会变小——见“数据库 → 压缩数据库”。</value>
+  </data>
+  <data name="RetentionPurgingKillmails" xml:space="preserve">
+    <value>正在清除…已删除 {0:N0} / {1:N0} 份击毁报告</value>
+  </data>
+  <data name="RetentionIntroNote" xml:space="preserve">
+    <value>此处设置 EVE Console 将可以舍弃的数据保留多久。默认只清除 AI 助手的活动记录，其他规则在你开启之前都处于关闭状态；已启用的规则每天运行一次。清除会删除数据行，但 SQLite 会重复利用释放出的页，而不是把它们归还给磁盘，因此文件本身只有在压缩之后才会变小——见“数据库 → 压缩数据库”。“数据库 → 存储明细”会显示空间实际用在了哪里。</value>
+  </data>
+  <data name="RetentionKillmailsNote" xml:space="preserve">
+    <value>删除击毁报告及其关联的全部内容——攻击者、物品、引用和 zKillboard 标记。击毁报告及其索引是典型数据库中占用空间最大的部分（在一个实测 4 GB 的文件中占 61%），因此真正能回收空间的正是这些规则。之所以分成两条规则，是为了让你自己的历史可以比其他所有人的保留得更久；每条规则在你开启之前都处于关闭状态。⚠️ 已删除的击毁报告在本地将不复存在；要找回它们，只能重新从 ESI 或 zKillboard 获取，而 ESI 只提供近期的击毁报告。</value>
+  </data>
+  <data name="RetentionOurKillmails" xml:space="preserve">
+    <value>角色 / 军团</value>
+  </data>
+  <data name="RetentionOurKillmailsNote" xml:space="preserve">
+    <value>你的角色以及你添加的每个军团（不只是标记为个人军团的那些）的击毁和损失。只要其中任何一方是受害者或攻击者之一，该击毁就归入此规则。</value>
+  </data>
+  <data name="RetentionOtherKillmails" xml:space="preserve">
+    <value>其他</value>
+  </data>
+  <data name="RetentionOtherKillmailsNote" xml:space="preserve">
+    <value>其他所有人的击毁——例如 zKillboard 数据流带来的击毁、你只是旁观的战斗。在一个实测的数据库中，它们占全部击毁的 98%，因此能回收空间的正是这条规则。</value>
   </data>
   <data name="RetentionRemovedPriceHistory" xml:space="preserve">
     <value>已删除早于 {1:N0} 天的 {0:N0} 行数据。文件本身只有在压缩之后才会变小——见“数据库 → 压缩数据库”。</value>

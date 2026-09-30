@@ -94,9 +94,6 @@
   <data name="LanguageSystemDefault" xml:space="preserve">
     <value>시스템 기본값 ({0})</value>
   </data>
-  <data name="LanguagePreview" xml:space="preserve">
-    <value>{0} (미리 보기)</value>
-  </data>
   <data name="LanguagePreviewNote" xml:space="preserve">
     <value>미리 보기: 앱의 일부가 아직 번역되지 않아 영어로 표시됩니다.</value>
   </data>
@@ -2490,6 +2487,27 @@ SQLite 데이터베이스는 읽기만 하고 변경하지 않습니다. 데이�
   </data>
   <data name="RetentionRemovedKillmails" xml:space="preserve">
     <value>{1:N0}일보다 오래된 킬 메일 {0:N0}개를 삭제했습니다. 파일은 압축하기 전까지 작아지지 않습니다 — 데이터베이스 → 데이터베이스 축소를 참조하십시오.</value>
+  </data>
+  <data name="RetentionPurgingKillmails" xml:space="preserve">
+    <value>삭제 중… 킬 메일 {1:N0}개 중 {0:N0}개 삭제됨</value>
+  </data>
+  <data name="RetentionIntroNote" xml:space="preserve">
+    <value>EVE Console이 잊어도 되는 데이터를 얼마나 오래 보관할지 정합니다. 기본적으로는 AI 도우미의 활동 기록만 삭제되며, 다른 규칙은 모두 직접 켜기 전까지 꺼져 있습니다. 활성화된 규칙은 하루에 한 번 실행됩니다. 삭제하면 행이 제거되지만, SQLite는 비워진 페이지를 드라이브에 돌려주지 않고 재사용하므로 파일 자체는 압축한 뒤에야 작아집니다 — 데이터베이스 → 데이터베이스 축소를 참조하십시오. 공간이 실제로 어디에 쓰였는지는 데이터베이스 → 저장 공간 내역에서 확인할 수 있습니다.</value>
+  </data>
+  <data name="RetentionKillmailsNote" xml:space="preserve">
+    <value>킬과 그에 딸린 모든 것(공격자, 아이템, 참조, zKillboard 플래그)을 삭제합니다. 킬 메일과 그 인덱스는 일반적인 데이터베이스에서 가장 큰 부분(측정한 4 GB 파일의 61%)을 차지하므로, 실제로 공간을 되찾아 주는 것은 이 규칙들입니다. 규칙이 두 개로 나뉘어 있으므로 자신의 기록을 다른 모든 사람의 기록보다 오래 보관할 수 있습니다. 각 규칙은 직접 켜기 전까지 꺼져 있습니다. ⚠️ 삭제한 킬은 로컬에서 사라집니다. 되찾으려면 ESI나 zKillboard에서 다시 가져와야 하며, ESI는 최근 킬만 제공합니다.</value>
+  </data>
+  <data name="RetentionOurKillmails" xml:space="preserve">
+    <value>내 캐릭터 / 코퍼레이션</value>
+  </data>
+  <data name="RetentionOurKillmailsNote" xml:space="preserve">
+    <value>자신의 캐릭터, 그리고 추가한 모든 코퍼레이션의 킬과 손실입니다 — 개인 코퍼레이션으로 표시한 것만이 아닙니다. 이들 중 하나라도 피해자이거나 공격자에 포함된 킬이 여기에 해당합니다.</value>
+  </data>
+  <data name="RetentionOtherKillmails" xml:space="preserve">
+    <value>그 외</value>
+  </data>
+  <data name="RetentionOtherKillmailsNote" xml:space="preserve">
+    <value>다른 모든 사람의 킬로, zKillboard에서 받아 온 킬이나 지켜보기만 한 전투가 여기에 속합니다. 측정한 데이터베이스에서는 킬의 98%가 이쪽이었으므로, 공간을 되찾아 주는 것은 이 규칙입니다.</value>
   </data>
   <data name="RetentionRemovedPriceHistory" xml:space="preserve">
     <value>{1:N0}일보다 오래된 행 {0:N0}개를 삭제했습니다. 파일은 압축하기 전까지 작아지지 않습니다 — 데이터베이스 → 데이터베이스 축소를 참조하십시오.</value>

@@ -910,7 +910,7 @@
   </data>
   <data name="StoreLanguageSameAsApp" xml:space="preserve">
     <value>Same as the app ({0})</value>
-    <comment>Stores, General tab, Language drop-down: the first choice, which follows the app's interface language. {0} is that language's own name, e.g. Deutsch.</comment>
+    <comment>Stores, General tab, Language drop-down: the first choice, which follows the app's interface language. {0} is that language, named in this language (CommonText.Language…).</comment>
   </data>
   <data name="StoreLanguageNote" xml:space="preserve">
     <value>What buyers read: the store's mail, and the item names on its web site. "Same as the app" follows the interface language of the computer that serves the store.</value>

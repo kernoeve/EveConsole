@@ -382,6 +382,117 @@
   <data name="TabKillsLosses" xml:space="preserve">
     <value>击毁 / 损失</value>
   </data>
+  <data name="KillsLoadMore" xml:space="preserve">
+    <value>从 zKillboard 再加载 200 条</value>
+  </data>
+  <data name="KillsTryAgain" xml:space="preserve">
+    <value>重试 zKillboard</value>
+  </data>
+  <data name="KillsAsking" xml:space="preserve">
+    <value>正在向 zKillboard 获取本地未存储的击毁…</value>
+  </data>
+  <data name="KillsLoadingPage" xml:space="preserve">
+    <value>已显示 {0:N0} 条——正在从 zKillboard 加载第 {1} 页。zKillboard 近期没有提供过的页面，可能要等一分钟左右。</value>
+  </data>
+  <data name="KillsProblemStoredOnly" xml:space="preserve">
+    <value>{0}——因此这里只列出本地已存储的击毁。</value>
+  </data>
+  <data name="KillsProblemPage" xml:space="preserve">
+    <value>{0}——已显示 {1:N0} 条，第 {2} 页未加载。</value>
+  </data>
+  <data name="KillsNoneAnywhere" xml:space="preserve">
+    <value>本地和 zKillboard 上都没有此实体的击毁报告。</value>
+  </data>
+  <data name="KillsStoredNoneOnZkb" xml:space="preserve">
+    <value>本地已存储 {0:N0} 条；zKillboard 上没有此实体的记录。</value>
+  </data>
+  <data name="KillsEverything" xml:space="preserve">
+    <value>共 {0:N0} 条击毁和损失——即 zKillboard 上的全部记录。</value>
+  </data>
+  <data name="KillsBackTo" xml:space="preserve">
+    <value>共 {0:N0} 条击毁和损失，回溯至 {1:yyyy-MM-dd HH:mm}——已按 zKillboard 补全，新获取 {2:N0} 条本地原先没有的记录。</value>
+  </data>
+  <data name="KillsPageLimit" xml:space="preserve">
+    <value>zKillboard 最多只能回溯到这里：其页数上限为 {0}。</value>
+  </data>
+  <data name="KillsPageFailed" xml:space="preserve">
+    <value>zKillboard 页面加载失败：{0}</value>
+  </data>
+  <data name="ZkbStatsLoading" xml:space="preserve">
+    <value>正在加载 zKillboard 统计数据…</value>
+  </data>
+  <data name="ZkbStatsProblem" xml:space="preserve">
+    <value>{0}，因此没有可显示的统计数据。</value>
+  </data>
+  <data name="ZkbStatsNone" xml:space="preserve">
+    <value>zKillboard 上没有此实体的击毁或损失。</value>
+  </data>
+  <data name="ZkbStatsFailed" xml:space="preserve">
+    <value>zKillboard 统计数据加载失败：{0}</value>
+  </data>
+  <data name="ZkbAllTime" xml:space="preserve">
+    <value>全部</value>
+  </data>
+  <data name="ZkbDays90" xml:space="preserve">
+    <value>90 天</value>
+  </data>
+  <data name="ZkbDays7" xml:space="preserve">
+    <value>7 天</value>
+  </data>
+  <data name="ZkbDestroyed" xml:space="preserve">
+    <value>击毁</value>
+  </data>
+  <data name="ZkbLost" xml:space="preserve">
+    <value>损失</value>
+  </data>
+  <data name="ZkbRank" xml:space="preserve">
+    <value>排名</value>
+  </data>
+  <data name="ZkbEfficiency" xml:space="preserve">
+    <value>效率</value>
+  </data>
+  <data name="ZkbShips" xml:space="preserve">
+    <value>舰船</value>
+  </data>
+  <data name="ZkbPoints" xml:space="preserve">
+    <value>积分</value>
+  </data>
+  <data name="ZkbIsk" xml:space="preserve">
+    <value>ISK</value>
+  </data>
+  <data name="ZkbRankOverall" xml:space="preserve">
+    <value>总排名 #{0:N0}</value>
+  </data>
+  <data name="ZkbDangerous" xml:space="preserve">
+    <value>危险 {0}%</value>
+  </data>
+  <data name="ZkbSnuggly" xml:space="preserve">
+    <value>{0}% 人畜无害</value>
+  </data>
+  <data name="ZkbGang" xml:space="preserve">
+    <value>组队 {0}%</value>
+  </data>
+  <data name="ZkbSolo" xml:space="preserve">
+    <value>{0}% 单人</value>
+  </data>
+  <data name="ZkbAverageGang" xml:space="preserve">
+    <value>平均组队人数 {0:0.#}</value>
+  </data>
+  <data name="ZkbSoloKillsOther" xml:space="preserve">
+    <value>单人击毁 {0:N0} 次</value>
+  </data>
+  <data name="ZkbSoloLossesOther" xml:space="preserve">
+    <value>被单人击毁 {0:N0} 次</value>
+  </data>
+  <data name="ZkbNone90" xml:space="preserve">
+    <value>最近 90 天没有击毁或损失。</value>
+  </data>
+  <data name="ZkbNone7" xml:space="preserve">
+    <value>最近 7 天没有击毁或损失。</value>
+  </data>
+  <data name="ZkbNoneAllTime" xml:space="preserve">
+    <value>zKillboard 上没有任何击毁或损失。</value>
+  </data>
   <data name="ColName2" xml:space="preserve">
     <value>名称</value>
   </data>

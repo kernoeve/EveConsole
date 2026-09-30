@@ -382,6 +382,117 @@
   <data name="TabKillsLosses" xml:space="preserve">
     <value>킬 / 손실</value>
   </data>
+  <data name="KillsLoadMore" xml:space="preserve">
+    <value>zKillboard에서 200건 더 불러오기</value>
+  </data>
+  <data name="KillsTryAgain" xml:space="preserve">
+    <value>zKillboard 다시 시도</value>
+  </data>
+  <data name="KillsAsking" xml:space="preserve">
+    <value>이곳에 저장되지 않은 킬을 zKillboard에 요청하는 중…</value>
+  </data>
+  <data name="KillsLoadingPage" xml:space="preserve">
+    <value>{0:N0}건 표시됨 — zKillboard에서 {1}페이지를 불러오는 중입니다. 최근에 제공된 적 없는 페이지는 1분 정도 걸릴 수 있습니다.</value>
+  </data>
+  <data name="KillsProblemStoredOnly" xml:space="preserve">
+    <value>{0} — 따라서 이곳에 저장된 킬만 표시됩니다.</value>
+  </data>
+  <data name="KillsProblemPage" xml:space="preserve">
+    <value>{0} — {1:N0}건을 표시하고 있으며, {2}페이지는 불러오지 못했습니다.</value>
+  </data>
+  <data name="KillsNoneAnywhere" xml:space="preserve">
+    <value>이 개체의 킬 메일이 이곳에도 zKillboard에도 없습니다.</value>
+  </data>
+  <data name="KillsStoredNoneOnZkb" xml:space="preserve">
+    <value>이곳에는 {0:N0}건이 저장되어 있지만, zKillboard에는 이 개체의 킬 메일이 없습니다.</value>
+  </data>
+  <data name="KillsEverything" xml:space="preserve">
+    <value>킬과 손실 {0:N0}건 — zKillboard에 있는 전부입니다.</value>
+  </data>
+  <data name="KillsBackTo" xml:space="preserve">
+    <value>{1:yyyy-MM-dd HH:mm} 이후의 킬과 손실 {0:N0}건 — zKillboard 기준으로 빠짐이 없으며, 이곳에 저장되지 않았던 {2:N0}건을 가져왔습니다.</value>
+  </data>
+  <data name="KillsPageLimit" xml:space="preserve">
+    <value>zKillboard는 {0}페이지까지만 제공하므로, 이보다 이전 기록은 가져올 수 없습니다.</value>
+  </data>
+  <data name="KillsPageFailed" xml:space="preserve">
+    <value>zKillboard 페이지 불러오기 실패: {0}</value>
+  </data>
+  <data name="ZkbStatsLoading" xml:space="preserve">
+    <value>zKillboard 통계 불러오는 중…</value>
+  </data>
+  <data name="ZkbStatsProblem" xml:space="preserve">
+    <value>{0} — 따라서 표시할 통계가 없습니다.</value>
+  </data>
+  <data name="ZkbStatsNone" xml:space="preserve">
+    <value>zKillboard에 이 개체의 킬이나 손실이 없습니다.</value>
+  </data>
+  <data name="ZkbStatsFailed" xml:space="preserve">
+    <value>zKillboard 통계 불러오기 실패: {0}</value>
+  </data>
+  <data name="ZkbAllTime" xml:space="preserve">
+    <value>전체 기간</value>
+  </data>
+  <data name="ZkbDays90" xml:space="preserve">
+    <value>90일</value>
+  </data>
+  <data name="ZkbDays7" xml:space="preserve">
+    <value>7일</value>
+  </data>
+  <data name="ZkbDestroyed" xml:space="preserve">
+    <value>파괴</value>
+  </data>
+  <data name="ZkbLost" xml:space="preserve">
+    <value>손실</value>
+  </data>
+  <data name="ZkbRank" xml:space="preserve">
+    <value>순위</value>
+  </data>
+  <data name="ZkbEfficiency" xml:space="preserve">
+    <value>효율</value>
+  </data>
+  <data name="ZkbShips" xml:space="preserve">
+    <value>함선</value>
+  </data>
+  <data name="ZkbPoints" xml:space="preserve">
+    <value>포인트</value>
+  </data>
+  <data name="ZkbIsk" xml:space="preserve">
+    <value>ISK</value>
+  </data>
+  <data name="ZkbRankOverall" xml:space="preserve">
+    <value>종합 {0:N0}위</value>
+  </data>
+  <data name="ZkbDangerous" xml:space="preserve">
+    <value>위험 {0}%</value>
+  </data>
+  <data name="ZkbSnuggly" xml:space="preserve">
+    <value>{0}% 순둥이</value>
+  </data>
+  <data name="ZkbGang" xml:space="preserve">
+    <value>그룹 {0}%</value>
+  </data>
+  <data name="ZkbSolo" xml:space="preserve">
+    <value>{0}% 솔로</value>
+  </data>
+  <data name="ZkbAverageGang" xml:space="preserve">
+    <value>평균 그룹 규모 {0:0.#}명</value>
+  </data>
+  <data name="ZkbSoloKillsOther" xml:space="preserve">
+    <value>솔로 킬 {0:N0}건</value>
+  </data>
+  <data name="ZkbSoloLossesOther" xml:space="preserve">
+    <value>솔로 손실 {0:N0}건</value>
+  </data>
+  <data name="ZkbNone90" xml:space="preserve">
+    <value>최근 90일 동안 킬이나 손실이 없습니다.</value>
+  </data>
+  <data name="ZkbNone7" xml:space="preserve">
+    <value>최근 7일 동안 킬이나 손실이 없습니다.</value>
+  </data>
+  <data name="ZkbNoneAllTime" xml:space="preserve">
+    <value>zKillboard에 킬이나 손실이 없습니다.</value>
+  </data>
   <data name="ColName2" xml:space="preserve">
     <value>이름</value>
   </data>

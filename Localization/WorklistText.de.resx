@@ -1510,6 +1510,24 @@
   <data name="BuyReleasesJobsMore" xml:space="preserve">
     <value>Gibt gestoppte Aufträge frei ({0:N0}): {1} und {2:N0} weitere.</value>
   </data>
+  <data name="BuyOthersWaitingOther" xml:space="preserve">
+    <value>{0:N0} Aufträge, die hierauf warten, warten auch auf etwas anderes.</value>
+  </data>
+  <data name="BuyOthersWaitingOne" xml:space="preserve">
+    <value>{0:N0} Auftrag, der hierauf wartet, wartet auch auf etwas anderes.</value>
+  </data>
+  <data name="BuyOthersWaitingMoreOther" xml:space="preserve">
+    <value>{0:N0} weitere Aufträge, die hierauf warten, warten auch auf etwas anderes.</value>
+  </data>
+  <data name="BuyOthersWaitingMoreOne" xml:space="preserve">
+    <value>{0:N0} weiterer Auftrag, der hierauf wartet, wartet auch auf etwas anderes.</value>
+  </data>
+  <data name="MergedDetailSumPooled" xml:space="preserve">
+    <value>Insgesamt {0:N0}: {1} = {2:N0} zusammen benötigt, abzüglich der {3:N0}, die bereits vorhanden, bestellt oder rückgewinnbar sind. Jeder folgende Grund zieht dieselben {3:N0} von seinem eigenen Bedarf ab, daher ergeben seine Fehlmenge und die der anderen zusammen nicht die Gesamtmenge. {4}</value>
+  </data>
+  <data name="MergedDetailSum" xml:space="preserve">
+    <value>Insgesamt {0:N0}: {1} = {2:N0} zusammen benötigt. {3}</value>
+  </data>
   <data name="TitleTagBpoBpc" xml:space="preserve">
     <value>BPO/BPC</value>
   </data>
