@@ -1,5 +1,7 @@
 using System.Collections.Concurrent;
 using EveConsole.Data;
+using EveConsole.Localization;
+using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace EveConsole.Services.Fitting;
@@ -67,6 +69,14 @@ public sealed class DogmaData
     /// <summary>Every published skill, for an "all skills at level N" character.</summary>
     public IReadOnlyList<int> SkillTypeIds { get; }
     public int SdeBuild { get; }
+    /// <summary>
+    /// Each fighter type's ability slots as the game lists them, with names, charges and
+    /// cooldowns (<see cref="FighterSlotData"/>). Empty until an SDE import has filled the tables —
+    /// an install that has not re-imported since they were added, where fighters still work from
+    /// their dogma effects alone.
+    /// </summary>
+    public IReadOnlyDictionary<int, IReadOnlyList<FighterSlotData>> FighterSlots { get; private init; } =
+        new Dictionary<int, IReadOnlyList<FighterSlotData>>();
 
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private readonly ConcurrentDictionary<int, DogmaTypeInfo> _types = new();
@@ -113,7 +123,28 @@ public sealed class DogmaData
                             select t.TypeId).ToListAsync(ct);
 
         var build = await db.SdeBuildInfos.AsNoTracking().Select(b => b.BuildNumber).FirstOrDefaultAsync(ct);
-        return new DogmaData(dbFactory, attributes, effects, skills, build);
+        return new DogmaData(dbFactory, attributes, effects, skills, build)
+        {
+            FighterSlots = await LoadFighterSlotsAsync(db, ct),
+        };
+    }
+
+    private static async Task<Dictionary<int, IReadOnlyList<FighterSlotData>>> LoadFighterSlotsAsync(AppDbContext db, CancellationToken ct)
+    {
+        var abilities = await db.SdeFighterAbilities.AsNoTracking().ToDictionaryAsync(a => a.AbilityId, ct);
+        var slots     = await db.SdeFighterTypeAbilities.AsNoTracking().ToListAsync(ct);
+        // The tooltip in the interface language, once per ability; there are a few dozen.
+        var tips = new Dictionary<int, string>();
+        foreach (var a in abilities.Values)
+            tips[a.AbilityId] = await SdeTexts.GetAsync(SdeTextKind.FighterAbilityTooltip, a.AbilityId, a.Tooltip, ct);
+        return slots.Where(s => abilities.ContainsKey(s.AbilityId))
+            .GroupBy(s => s.TypeId)
+            .ToDictionary(g => g.Key, g => (IReadOnlyList<FighterSlotData>)g.OrderBy(s => s.Slot).Select(s =>
+            {
+                var a = abilities[s.AbilityId];
+                return new FighterSlotData(s.Slot, a.AbilityId, a.Name, tips[a.AbilityId],
+                    s.CooldownSeconds, s.ChargeCount, s.RearmSeconds, a.DisallowInHighSec, a.DisallowInLowSec);
+            }).ToList());
     }
 
     public DogmaAttributeInfo? Attribute(string name) => AttributesByName.GetValueOrDefault(name);

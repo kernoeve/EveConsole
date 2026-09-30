@@ -508,6 +508,27 @@
   <data name="AbilityAlpha" xml:space="preserve">
     <value>{0} {1:N0} alpha</value>
   </data>
+  <data name="TipAbilityChargesOne" xml:space="preserve">
+    <value>{0} charge, réarmement de {1:0.#} s par charge</value>
+  </data>
+  <data name="TipAbilityChargesOther" xml:space="preserve">
+    <value>{0} charges, réarmement de {1:0.#} s par charge</value>
+  </data>
+  <data name="TipAbilityCooldown" xml:space="preserve">
+    <value>Délai de réutilisation de {0:0} s</value>
+  </data>
+  <data name="TipAbilityNotInHighSec" xml:space="preserve">
+    <value>Inutilisable en haute sécurité</value>
+  </data>
+  <data name="TipAbilityNotInEmpire" xml:space="preserve">
+    <value>Inutilisable en haute et basse sécurité</value>
+  </data>
+  <data name="DpsFightersSustained" xml:space="preserve">
+    <value>Chasseurs {0:N1} ({1:N1} en continu)</value>
+  </data>
+  <data name="TipFighterSustained" xml:space="preserve">
+    <value>En continu : chaque escadron combat jusqu'à épuiser les charges des aptitudes actives, puis se réarme et se ravitaille dans son tube avant de repartir. Le trajet aller-retour vers la cible n'est pas compté.</value>
+  </data>
   <data name="DetailCalibration" xml:space="preserve">
     <value>Étalonnage {0:0}</value>
   </data>

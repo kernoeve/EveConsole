@@ -2941,6 +2941,9 @@ L'application va redémarrer.</value>
   <data name="ImportStageTypeDogmaEffects" xml:space="preserve">
     <value>Effets Dogma des types</value>
   </data>
+  <data name="ImportStageFighterAbilities" xml:space="preserve">
+    <value>Aptitudes des chasseurs</value>
+  </data>
   <data name="ImportStageBlueprints" xml:space="preserve">
     <value>Plans de construction</value>
   </data>

@@ -508,6 +508,27 @@
   <data name="AbilityAlpha" xml:space="preserve">
     <value>{0} {1:N0} Alpha</value>
   </data>
+  <data name="TipAbilityChargesOne" xml:space="preserve">
+    <value>{0} Ladung, Nachladen {1:0.#} s je Ladung</value>
+  </data>
+  <data name="TipAbilityChargesOther" xml:space="preserve">
+    <value>{0} Ladungen, Nachladen {1:0.#} s je Ladung</value>
+  </data>
+  <data name="TipAbilityCooldown" xml:space="preserve">
+    <value>Abklingzeit {0:0} s</value>
+  </data>
+  <data name="TipAbilityNotInHighSec" xml:space="preserve">
+    <value>In Hochsicherheit nicht nutzbar</value>
+  </data>
+  <data name="TipAbilityNotInEmpire" xml:space="preserve">
+    <value>In Hoch- und Niedersicherheit nicht nutzbar</value>
+  </data>
+  <data name="DpsFightersSustained" xml:space="preserve">
+    <value>Jäger {0:N1} ({1:N1} dauerhaft)</value>
+  </data>
+  <data name="TipFighterSustained" xml:space="preserve">
+    <value>Dauerhaft: Jede Staffel kämpft, bis die Ladungen der eingeschalteten Fähigkeiten verbraucht sind, und wird dann im Startrohr nachgeladen und betankt, bevor sie zurückkehrt. Der Flug zum Ziel und zurück ist nicht eingerechnet.</value>
+  </data>
   <data name="DetailCalibration" xml:space="preserve">
     <value>Kalibrierung {0:0}</value>
   </data>

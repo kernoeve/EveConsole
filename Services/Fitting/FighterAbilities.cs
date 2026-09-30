@@ -1,4 +1,5 @@
 using EveConsole.Localization;
+using EveConsole.Models;
 
 namespace EveConsole.Services.Fitting;
 
@@ -8,10 +9,22 @@ public enum FighterAbilityKind { Attack, Missiles, Bomb, Kamikaze, Utility, Prop
 /// <summary>A squadron's size class, which decides the launch slot it needs.</summary>
 public enum FighterClass { Light, Support, Heavy, StandupLight, StandupSupport, StandupHeavy }
 
+/// <summary>
+/// One of a fighter type's ability slots as the game lists it (fighterAbilities.yaml and
+/// fighterAbilitiesByType.yaml): the ability, its English name and its tooltip in the interface
+/// language, and its limits — a cooldown, or charges spent one per use and rearmed in the tube.
+/// </summary>
+public sealed record FighterSlotData(int Slot, int AbilityId, string Name, string Tooltip,
+    double? CooldownSeconds, int? ChargeCount, double? RearmSeconds, bool NotInHighSec, bool NotInLowSec);
+
 /// <summary>One ability a fighter type has, by the dogma effect behind it. <paramref name="Label"/>
-/// is its name in the interface language, for showing only.</summary>
-public sealed record FighterAbility(int EffectId, string Label, FighterAbilityKind Kind)
+/// is its name in the interface language, for showing only. <paramref name="Game"/> is what the
+/// game data says of it beyond the effect — its name, charges, cooldown — where the SDE has it.</summary>
+public sealed record FighterAbility(int EffectId, string Label, FighterAbilityKind Kind, FighterSlotData? Game = null)
 {
+    /// <summary>Uses before the squadron must rearm, or null if unlimited.</summary>
+    public int? Charges => Game?.ChargeCount is > 0 ? Game.ChargeCount : null;
+
     public bool DealsDamage => Kind is FighterAbilityKind.Attack or FighterAbilityKind.Missiles
                                     or FighterAbilityKind.Bomb or FighterAbilityKind.Kamikaze;
 
@@ -56,14 +69,64 @@ public static class FighterAbilities
         ["fighterAbilityMicroJumpDrive"]   = (FittingText.AbilityMicroJumpDrive,    FighterAbilityKind.Propulsion),
     };
 
-    /// <summary>The abilities of <paramref name="type"/>: damage first, then the rest.</summary>
-    public static IReadOnlyList<FighterAbility> Of(DogmaData data, DogmaTypeInfo type) =>
-        type.EffectIds
+    /// <summary>
+    /// The abilities of <paramref name="type"/>: damage first, then the rest. Named as the game
+    /// names them, with their charges and cooldowns, where the SDE's fighter ability tables have
+    /// the type; by our own labels otherwise.
+    /// </summary>
+    public static IReadOnlyList<FighterAbility> Of(DogmaData data, DogmaTypeInfo type)
+    {
+        var effects = type.EffectIds
             .Select(id => data.Effects.TryGetValue(id, out var fx) && ByEffect.TryGetValue(fx.Name, out var a)
-                ? new FighterAbility(id, a.Label, a.Kind) : null)
-            .OfType<FighterAbility>()
+                ? (Id: id, a.Label, a.Kind) : default)
+            .Where(x => x.Id != 0)
+            .ToList();
+        var bySlot = data.FighterSlots.TryGetValue(type.Id, out var slots) ? SlotsToEffects(effects, slots) : null;
+        return effects
+            .Select(e => bySlot?.GetValueOrDefault(e.Id) is { } game
+                ? new FighterAbility(e.Id, SdeNames.Get(SdeNameKind.FighterAbility, game.AbilityId, game.Name), e.Kind, game)
+                : new FighterAbility(e.Id, e.Label, e.Kind))
             .OrderBy(a => a.Kind)
             .ToList();
+    }
+
+    /// <summary>
+    /// Which dogma effect each of the game's ability slots is. The slot data names abilities, not
+    /// effects, so they are matched by the slot's role: slot 1 is the squadron's movement ability,
+    /// slot 0 its standing weapon — the attack, else its missiles, else its electronic warfare —
+    /// and slot 2 whatever is left, the secondary. Checked against every fighter in the SDE, this
+    /// gives each ability the same effect wherever it appears. A type that does not fit the
+    /// pattern gets no match, and keeps our labels.
+    /// </summary>
+    private static Dictionary<int, FighterSlotData>? SlotsToEffects(
+        List<(int Id, string Label, FighterAbilityKind Kind)> effects, IReadOnlyList<FighterSlotData> slots)
+    {
+        if (slots.Count != effects.Count) return null;
+        var left = effects.ToList();
+        var map  = new Dictionary<int, FighterSlotData>();
+        (int Id, string Label, FighterAbilityKind Kind)? Take(Func<(int Id, string Label, FighterAbilityKind Kind), bool> pick)
+        {
+            var i = left.FindIndex(e => pick(e));
+            if (i < 0) return null;
+            var e = left[i];
+            left.RemoveAt(i);
+            return e;
+        }
+        foreach (var slot in slots.OrderBy(s => s.Slot == 1 ? 0 : s.Slot == 0 ? 1 : 2))
+        {
+            var match = slot.Slot switch
+            {
+                1 => Take(e => e.Kind == FighterAbilityKind.Propulsion),
+                0 => Take(e => e.Kind == FighterAbilityKind.Attack)
+                     ?? Take(e => e.Kind == FighterAbilityKind.Missiles)
+                     ?? Take(e => e.Kind == FighterAbilityKind.Utility),
+                _ => left.Count == 1 ? Take(_ => true) : null,
+            };
+            if (match is null) return null;
+            map[match.Value.Id] = slot;
+        }
+        return map;
+    }
 
     /// <summary>The effect ids switched on by default for <paramref name="type"/>.</summary>
     public static IReadOnlyList<int> Defaults(DogmaData data, DogmaTypeInfo type) =>

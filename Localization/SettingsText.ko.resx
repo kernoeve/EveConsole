@@ -2941,6 +2941,9 @@ SQLite 데이터베이스는 읽기만 하고 변경하지 않습니다. 데이�
   <data name="ImportStageTypeDogmaEffects" xml:space="preserve">
     <value>종류별 도그마 효과</value>
   </data>
+  <data name="ImportStageFighterAbilities" xml:space="preserve">
+    <value>파이터 능력</value>
+  </data>
   <data name="ImportStageBlueprints" xml:space="preserve">
     <value>블루프린트</value>
   </data>

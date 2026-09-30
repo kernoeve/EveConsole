@@ -148,6 +148,43 @@ public class SdeDogmaEffect
 /// carrying the effect, using <see cref="Operation"/>". The fitting engine is these rows run in
 /// order; an effect with none needs code of its own.
 /// </summary>
+/// <summary>
+/// A fighter ability as the game describes it (fighterAbilities.yaml): its name, what it does, and
+/// where it may be used. Which fighter has it, and with how many charges, is
+/// <see cref="SdeFighterTypeAbility"/>. The name and tooltip in other languages are SdeNames and
+/// SdeTexts rows.
+/// </summary>
+public class SdeFighterAbility
+{
+    public int     AbilityId         { get; set; }
+    public string  Name              { get; set; } = "";
+    public string  Tooltip           { get; set; } = "";
+    /// <summary>untargeted, itemTargeted or pointTargeted.</summary>
+    public string  TargetMode        { get; set; } = "";
+    public int?    IconId            { get; set; }
+    public bool    DisallowInHighSec { get; set; }
+    public bool    DisallowInLowSec  { get; set; }
+}
+
+/// <summary>
+/// One ability slot of a fighter type (fighterAbilitiesByType.yaml): the ability, and its cooldown
+/// or charges. Slot 0 is the squadron's standing weapon, slot 1 its movement ability, slot 2 its
+/// secondary — the order the game gives them, which is also how they are matched to the dogma
+/// effects that carry their numbers (see FighterAbilities).
+/// </summary>
+public class SdeFighterTypeAbility
+{
+    public int     TypeId          { get; set; }
+    public int     Slot            { get; set; }
+    public int     AbilityId       { get; set; }
+    /// <summary>Seconds before it can be used again, for abilities that have one.</summary>
+    public double? CooldownSeconds { get; set; }
+    /// <summary>Uses before the squadron must rearm, for abilities that have them.</summary>
+    public int?    ChargeCount     { get; set; }
+    /// <summary>Seconds in the tube to rearm each charge.</summary>
+    public double? RearmSeconds    { get; set; }
+}
+
 public class SdeDogmaEffectModifier
 {
     public int     EffectId             { get; set; }
@@ -657,6 +694,7 @@ public enum SdeNameKind
     // nor ESI has a station's name in another language, so the import BUILDS those from the
     // station's parts, the way the game client does — see Localization/LocationNames.cs.
     Station                = 22,
+    FighterAbility         = 23,  // SdeFighterAbilities.Name
 }
 
 /// <summary>
@@ -702,6 +740,7 @@ public enum SdeTextKind
     RaceDescription           = 5,  // SdeRaces.Description
     CertificateDescription    = 6,  // SdeCertificates.Description
     MetaGroupDescription      = 7,  // SdeMetaGroups.Description
+    FighterAbilityTooltip     = 8,  // SdeFighterAbilities.Tooltip
 }
 
 /// <summary>

@@ -505,6 +505,24 @@
   <data name="AbilityAlpha" xml:space="preserve">
     <value>{0} 单次伤害 {1:N0}</value>
   </data>
+  <data name="TipAbilityChargesOther" xml:space="preserve">
+    <value>{0} 发弹药，每发重新装填 {1:0.#} 秒</value>
+  </data>
+  <data name="TipAbilityCooldown" xml:space="preserve">
+    <value>冷却时间 {0:0} 秒</value>
+  </data>
+  <data name="TipAbilityNotInHighSec" xml:space="preserve">
+    <value>高安不可使用</value>
+  </data>
+  <data name="TipAbilityNotInEmpire" xml:space="preserve">
+    <value>高安和低安不可使用</value>
+  </data>
+  <data name="DpsFightersSustained" xml:space="preserve">
+    <value>铁骑舰载机 {0:N1}（持续 {1:N1}）</value>
+  </data>
+  <data name="TipFighterSustained" xml:space="preserve">
+    <value>持续：每个中队作战直到开启的技能弹药耗尽，然后在发射管中重新装填并加油后再返回。往返目标的飞行时间不计入。</value>
+  </data>
   <data name="DetailCalibration" xml:space="preserve">
     <value>校准值 {0:0}</value>
   </data>

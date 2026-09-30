@@ -505,6 +505,24 @@
   <data name="AbilityAlpha" xml:space="preserve">
     <value>{0}：アルファ{1:N0}</value>
   </data>
+  <data name="TipAbilityChargesOther" xml:space="preserve">
+    <value>チャージ{0}発、1発あたり再装填{1:0.#}秒</value>
+  </data>
+  <data name="TipAbilityCooldown" xml:space="preserve">
+    <value>クールダウン{0:0}秒</value>
+  </data>
+  <data name="TipAbilityNotInHighSec" xml:space="preserve">
+    <value>ハイセクでは使用不可</value>
+  </data>
+  <data name="TipAbilityNotInEmpire" xml:space="preserve">
+    <value>ハイセク・ローセクでは使用不可</value>
+  </data>
+  <data name="DpsFightersSustained" xml:space="preserve">
+    <value>艦載戦闘機{0:N1}（持続{1:N1}）</value>
+  </data>
+  <data name="TipFighterSustained" xml:space="preserve">
+    <value>持続：各中隊はオンにしたアビリティのチャージを使い切るまで戦い、その後チューブで再装填と燃料補給を行ってから戻ります。ターゲットとの往復の飛行時間は含みません。</value>
+  </data>
   <data name="DetailCalibration" xml:space="preserve">
     <value>キャリブレーション{0:0}</value>
   </data>

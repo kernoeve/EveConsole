@@ -508,6 +508,27 @@
   <data name="AbilityAlpha" xml:space="preserve">
     <value>{0} {1:N0} alfa</value>
   </data>
+  <data name="TipAbilityChargesOne" xml:space="preserve">
+    <value>{0} carga; recarga de {1:0.#} s por carga</value>
+  </data>
+  <data name="TipAbilityChargesOther" xml:space="preserve">
+    <value>{0} cargas; recarga de {1:0.#} s por carga</value>
+  </data>
+  <data name="TipAbilityCooldown" xml:space="preserve">
+    <value>Espera de {0:0} s</value>
+  </data>
+  <data name="TipAbilityNotInHighSec" xml:space="preserve">
+    <value>No utilizable en seguridad alta</value>
+  </data>
+  <data name="TipAbilityNotInEmpire" xml:space="preserve">
+    <value>No utilizable en seguridad alta ni baja</value>
+  </data>
+  <data name="DpsFightersSustained" xml:space="preserve">
+    <value>Cazas {0:N1} ({1:N1} sostenido)</value>
+  </data>
+  <data name="TipFighterSustained" xml:space="preserve">
+    <value>Sostenido: cada escuadrón combate hasta gastar las cargas de las habilidades activadas y después se recarga y reabastece en su tubo antes de volver. No se cuenta el vuelo de ida y vuelta al objetivo.</value>
+  </data>
   <data name="DetailCalibration" xml:space="preserve">
     <value>Calibración {0:0}</value>
   </data>

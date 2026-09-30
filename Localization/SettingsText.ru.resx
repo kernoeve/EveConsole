@@ -2941,6 +2941,9 @@ EVE Console сразу перезапустится, потому что баз�
   <data name="ImportStageTypeDogmaEffects" xml:space="preserve">
     <value>Эффекты Dogma типов</value>
   </data>
+  <data name="ImportStageFighterAbilities" xml:space="preserve">
+    <value>Способности истребителей</value>
+  </data>
   <data name="ImportStageBlueprints" xml:space="preserve">
     <value>Чертежи</value>
   </data>

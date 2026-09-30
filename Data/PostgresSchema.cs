@@ -275,6 +275,29 @@ public static class PostgresSchema
         ALTER TABLE "SdeDogmaEffects" ADD COLUMN IF NOT EXISTS "FittingUsageChanceAttributeId" INTEGER NULL
         """,
         """
+        CREATE TABLE IF NOT EXISTS "SdeFighterAbilities" (
+            "AbilityId"         INTEGER          NOT NULL,
+            "Name"              TEXT             NOT NULL DEFAULT '',
+            "Tooltip"           TEXT             NOT NULL DEFAULT '',
+            "TargetMode"        TEXT             NOT NULL DEFAULT '',
+            "IconId"            INTEGER          NULL,
+            "DisallowInHighSec" BOOLEAN          NOT NULL DEFAULT FALSE,
+            "DisallowInLowSec"  BOOLEAN          NOT NULL DEFAULT FALSE,
+            CONSTRAINT "PK_SdeFighterAbilities" PRIMARY KEY ("AbilityId")
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS "SdeFighterTypeAbilities" (
+            "TypeId"          INTEGER          NOT NULL,
+            "Slot"            INTEGER          NOT NULL,
+            "AbilityId"       INTEGER          NOT NULL,
+            "CooldownSeconds" DOUBLE PRECISION NULL,
+            "ChargeCount"     INTEGER          NULL,
+            "RearmSeconds"    DOUBLE PRECISION NULL,
+            CONSTRAINT "PK_SdeFighterTypeAbilities" PRIMARY KEY ("TypeId", "Slot")
+        )
+        """,
+        """
         CREATE TABLE IF NOT EXISTS "SdeDogmaEffectModifiers" (
             "EffectId"             INTEGER NOT NULL,
             "Ordinal"              INTEGER NOT NULL,

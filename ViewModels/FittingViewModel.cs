@@ -217,9 +217,21 @@ public sealed class FighterAbilityToggleVm(FighterAbility ability, bool on) : Re
     public FighterAbility Ability { get; } = ability;
     public string Label => Ability.Label;
     public bool DealsDamage => Ability.DealsDamage;
-    public string Tip => Ability.DealsDamage
-        ? string.Format(FittingText.TipAbilityCounted, Ability.Label)
-        : string.Format(FittingText.TipAbilityNoEffect, Ability.Label);
+    /// <summary>What the game says the ability does, its charges or cooldown, where it may not be
+    /// used, and whether it counts in the numbers — each on its own line.</summary>
+    public string Tip => string.Join(Environment.NewLine, new[]
+    {
+        Ability.Game?.Tooltip is { Length: > 0 } said ? said : null,
+        Ability.Charges is { } n
+            ? Plurals.Format(FittingText.ResourceManager, nameof(FittingText.TipAbilityChargesOther), n, Ability.Game!.RearmSeconds ?? 0)
+            : null,
+        Ability.Game?.CooldownSeconds is double cooldown and > 0 ? string.Format(FittingText.TipAbilityCooldown, cooldown) : null,
+        Ability.Game is { NotInLowSec: true } ? FittingText.TipAbilityNotInEmpire
+            : Ability.Game is { NotInHighSec: true } ? FittingText.TipAbilityNotInHighSec : null,
+        Ability.DealsDamage
+            ? string.Format(FittingText.TipAbilityCounted, Ability.Label)
+            : string.Format(FittingText.TipAbilityNoEffect, Ability.Label),
+    }.OfType<string>());
     private bool _isOn = on;
     public bool IsOn { get => _isOn; set => this.RaiseAndSetIfChanged(ref _isOn, value); }
 }
@@ -306,6 +318,8 @@ public sealed class FitSnapshot
     public double Ehp;
     public CapacitorResult? Cap;
     public DamageBreakdown WeaponDps = DamageBreakdown.Zero, DroneDps = DamageBreakdown.Zero, FighterDps = DamageBreakdown.Zero, Volley = DamageBreakdown.Zero;
+    /// <summary>Fighter DPS over a whole sortie, rearming in the tubes included.</summary>
+    public double FighterSustained;
     public Dictionary<int, string> DroneDetail = new();    // by drone/squadron index
     public double Speed, Align, Signature, Warp, Mass, Agility;
     public double Range, ScanRes, MaxTargets, Sensor;
@@ -1785,6 +1799,7 @@ public class FitTabViewModel : ReactiveObject
         snap.Cap = s.Capacitor();
         var weapons = s.Weapons();
         snap.WeaponDps = s.WeaponDps(weapons); snap.DroneDps = s.DroneDps(weapons); snap.FighterDps = s.FighterDps(weapons);
+        snap.FighterSustained = s.FighterSustainedDps(weapons);
         snap.Volley = s.Volley(weapons);
 
         snap.FighterBay = s.FighterBayUsed; snap.FighterBayOut = s.FighterBay;
@@ -1879,8 +1894,15 @@ public class FitTabViewModel : ReactiveObject
     public string DpsText         => Stats is { } s ? string.Format(FittingText.Dps0, s.WeaponDps.Total + s.DroneDps.Total + s.FighterDps.Total) : "";
     public string DpsSplitText    => Stats is { } s
         ? string.Format(FittingText.DpsWeapons, s.WeaponDps.Total) + "    " + string.Format(FittingText.DpsDrones, s.DroneDps.Total)
-          + (s.FighterDps.Total > 0 || s.TubesOut > 0 ? "    " + string.Format(FittingText.DpsFighters, s.FighterDps.Total) : "")
+          + (s.FighterDps.Total > 0 || s.TubesOut > 0 ? "    " + FightersDpsText(s) : "")
           + "    " + string.Format(FittingText.DpsVolley, s.Volley.Total) : "";
+    /// <summary>Fighter DPS, and beside it the figure with rearming counted when that is lower.</summary>
+    private static string FightersDpsText(FitSnapshot s) => HasSustained(s)
+        ? string.Format(FittingText.DpsFightersSustained, s.FighterDps.Total, s.FighterSustained)
+        : string.Format(FittingText.DpsFighters, s.FighterDps.Total);
+    private static bool HasSustained(FitSnapshot s) => s.FighterDps.Total - s.FighterSustained > 0.05;
+    /// <summary>How the sustained fighter figure is reached, when it is shown.</summary>
+    public string? DpsSplitTip    => Stats is { } s && HasSustained(s) ? FittingText.TipFighterSustained : null;
     public string DamageTypesText => Stats is { } s && s.WeaponDps.Total + s.DroneDps.Total + s.FighterDps.Total > 0
         ? DamageMix(s.WeaponDps + s.DroneDps + s.FighterDps) : "";
     public string SpeedText       => Stats is { } s ? $"{s.Speed:N0} m/s" : "";
@@ -1917,7 +1939,7 @@ public class FitTabViewModel : ReactiveObject
         foreach (var p in new[] { nameof(CpuText), nameof(CpuFraction), nameof(CpuOver), nameof(PowerText), nameof(PowerFraction), nameof(PowerOver),
                      nameof(CalibText), nameof(CalibFraction), nameof(CalibOver), nameof(HardpointsText), nameof(HardpointsOver), nameof(DroneText), nameof(DroneOver), nameof(HasDroneBay), nameof(HasFighterBay), nameof(FighterText), nameof(FighterOver), nameof(CargoText), nameof(CargoOver),
                      nameof(TankRows), nameof(EhpText), nameof(RegenText), nameof(RepairText), nameof(HasRepairs), nameof(CapText), nameof(CapStateText), nameof(CapStable), nameof(CapFlowText),
-                     nameof(DpsText), nameof(DpsSplitText), nameof(DamageTypesText), nameof(SpeedText), nameof(NavText), nameof(MassText),
+                     nameof(DpsText), nameof(DpsSplitText), nameof(DpsSplitTip), nameof(DamageTypesText), nameof(SpeedText), nameof(NavText), nameof(MassText),
                      nameof(TargetingText), nameof(SensorText) })
             this.RaisePropertyChanged(p);
     }

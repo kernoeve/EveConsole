@@ -32,7 +32,8 @@ public enum WeaponKind { Turret, Missile, Smartbomb, Drone, Fighter }
 /// <summary>One weapon, drone stack or fighter ability: what one volley does and how often it
 /// fires. A fighter squadron has one per damaging ability switched on, named by <paramref name="Label"/>;
 /// a one-off strike (kamikaze) has no cycle, and counts in the volley but not the DPS.</summary>
-public sealed record WeaponDamage(DogmaItem Item, WeaponKind Kind, DamageBreakdown Volley, double CycleSeconds, string? Label = null)
+public sealed record WeaponDamage(DogmaItem Item, WeaponKind Kind, DamageBreakdown Volley, double CycleSeconds, string? Label = null,
+    FighterAbility? Ability = null)
 {
     public DamageBreakdown Dps => CycleSeconds > 0 ? Volley * (1 / CycleSeconds) : DamageBreakdown.Zero;
 }
@@ -248,7 +249,7 @@ public sealed class FitStats
                 _                           => Named("fighterAbilityKamikaze"),
             };
             if (a.Kind == FighterAbilityKind.Kamikaze) cycle = 0;
-            yield return new WeaponDamage(f, WeaponKind.Fighter, one * f.ActiveCount, cycle, a.Label);
+            yield return new WeaponDamage(f, WeaponKind.Fighter, one * f.ActiveCount, cycle, a.Label, a);
         }
     }
 
@@ -314,6 +315,30 @@ public sealed class FitStats
 
     public DamageBreakdown WeaponDps(IReadOnlyList<WeaponDamage>? weapons = null) =>
         (weapons ?? Weapons()).Where(w => w.Kind is not (WeaponKind.Drone or WeaponKind.Fighter)).Aggregate(DamageBreakdown.Zero, (a, w) => a + w.Dps);
+    /// <summary>
+    /// Fighter damage per second over a whole sortie, rearming included. A squadron fights until
+    /// the charges of the abilities it has switched on are spent — its standing attack firing all
+    /// the while — then returns to its tube, rearms every charge it spent and refuels, and goes
+    /// again. Damage over the fight divided by fight plus turnaround. The flight out and back is
+    /// not counted, so this is the most a squadron can keep up, not what a fight at range sees.
+    /// A squadron with no charged ability switched on never needs to come back: its figure is its DPS.
+    /// </summary>
+    public double FighterSustainedDps(IReadOnlyList<WeaponDamage>? weapons = null)
+    {
+        var total = 0.0;
+        foreach (var squadron in (weapons ?? Weapons()).Where(w => w.Kind == WeaponKind.Fighter && w.CycleSeconds > 0).GroupBy(w => w.Item))
+        {
+            var charged = squadron.Where(w => w.Ability?.Charges is not null).ToList();
+            if (charged.Count == 0) { total += squadron.Sum(w => w.Dps.Total); continue; }
+            var fight  = charged.Max(w => w.Ability!.Charges!.Value * w.CycleSeconds);
+            var damage = squadron.Sum(w => w.Ability?.Charges is { } n ? w.Volley.Total * n : w.Dps.Total * fight);
+            var rearm  = charged.Max(w => w.Ability!.Charges!.Value * (w.Ability.Game?.RearmSeconds ?? 0));
+            var refuel = _e.Value(squadron.Key, "fighterRefuelingTime") / 1000;
+            total += damage / (fight + rearm + refuel);
+        }
+        return total;
+    }
+
     public DamageBreakdown FighterDps(IReadOnlyList<WeaponDamage>? weapons = null) =>
         (weapons ?? Weapons()).Where(w => w.Kind == WeaponKind.Fighter).Aggregate(DamageBreakdown.Zero, (a, w) => a + w.Dps);
     public DamageBreakdown DroneDps(IReadOnlyList<WeaponDamage>? weapons = null) =>

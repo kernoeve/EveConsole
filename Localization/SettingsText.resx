@@ -3875,6 +3875,10 @@ The application will restart.</value>
     <value>Type Dogma Effects</value>
     <comment>Settings → SDE import progress, stage: each item type's effects.</comment>
   </data>
+  <data name="ImportStageFighterAbilities" xml:space="preserve">
+    <value>Fighter Abilities</value>
+    <comment>Settings → SDE import progress, stage: fighter abilities, and each fighter type's ability slots.</comment>
+  </data>
   <data name="ImportStageBlueprints" xml:space="preserve">
     <value>Blueprints</value>
     <comment>Settings → SDE / Hoboleaks import progress, stage: blueprints. Use the game's own word.</comment>

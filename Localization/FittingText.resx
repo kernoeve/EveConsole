@@ -676,6 +676,34 @@
     <value>{0} {1:N0} alpha</value>
     <comment>Fitting tool, under a fighter squadron: the damage of a one-off strike (a bomb, a kamikaze run). {0} is the ability's name, {1} the damage. "alpha" is players' word for a single volley's damage.</comment>
   </data>
+  <data name="TipAbilityChargesOne" xml:space="preserve">
+    <value>{0} charge, rearmed at {1:0.#} s each</value>
+    <comment>Fitting tool: tooltip on a fighter ability with limited uses. {0} is how many uses (charges) a squadron has before it must rearm in its launch tube; {1} the seconds to rearm each one.</comment>
+  </data>
+  <data name="TipAbilityChargesOther" xml:space="preserve">
+    <value>{0} charges, rearmed at {1:0.#} s each</value>
+    <comment>Fitting tool: as TipAbilityChargesOne, for other counts.</comment>
+  </data>
+  <data name="TipAbilityCooldown" xml:space="preserve">
+    <value>{0:0} s cooldown</value>
+    <comment>Fitting tool: tooltip on a fighter ability: seconds before it can be used again. {0} is the number.</comment>
+  </data>
+  <data name="TipAbilityNotInHighSec" xml:space="preserve">
+    <value>Not usable in high-sec</value>
+    <comment>Fitting tool: tooltip on a fighter ability the game does not allow in high-security space.</comment>
+  </data>
+  <data name="TipAbilityNotInEmpire" xml:space="preserve">
+    <value>Not usable in high-sec or low-sec</value>
+    <comment>Fitting tool: tooltip on a fighter ability the game allows only in null-sec and wormhole space (a heavy fighter's bomb).</comment>
+  </data>
+  <data name="DpsFightersSustained" xml:space="preserve">
+    <value>Fighters {0:N1} ({1:N1} sustained)</value>
+    <comment>Fitting tool, OFFENSE: fighter damage per second while every ability fires ({0}), and averaged over the time the squadrons spend rearming in their tubes ({1}). Shown instead of DpsFighters when the two differ.</comment>
+  </data>
+  <data name="TipFighterSustained" xml:space="preserve">
+    <value>Sustained: each squadron fights until the charges of the abilities switched on are spent, then rearms and refuels in its tube before going back. The flight to and from the target is not counted.</value>
+    <comment>Fitting tool, OFFENSE: tooltip explaining the sustained fighter damage figure (DpsFightersSustained).</comment>
+  </data>
   <data name="DetailCalibration" xml:space="preserve">
     <value>Calibration {0:0}</value>
     <comment>Fitting tool, under a rig: the calibration it uses. {0} is the number.</comment>

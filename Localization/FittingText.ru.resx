@@ -514,6 +514,33 @@
   <data name="AbilityAlpha" xml:space="preserve">
     <value>{0}: {1:N0} за удар</value>
   </data>
+  <data name="TipAbilityChargesOne" xml:space="preserve">
+    <value>{0} заряд, перезарядка {1:0.#} с на заряд</value>
+  </data>
+  <data name="TipAbilityChargesFew" xml:space="preserve">
+    <value>{0} заряда, перезарядка {1:0.#} с на заряд</value>
+  </data>
+  <data name="TipAbilityChargesMany" xml:space="preserve">
+    <value>{0} зарядов, перезарядка {1:0.#} с на заряд</value>
+  </data>
+  <data name="TipAbilityChargesOther" xml:space="preserve">
+    <value>{0} заряда, перезарядка {1:0.#} с на заряд</value>
+  </data>
+  <data name="TipAbilityCooldown" xml:space="preserve">
+    <value>Восстановление {0:0} с</value>
+  </data>
+  <data name="TipAbilityNotInHighSec" xml:space="preserve">
+    <value>Нельзя использовать в хай-секе</value>
+  </data>
+  <data name="TipAbilityNotInEmpire" xml:space="preserve">
+    <value>Нельзя использовать в хай-секе и лоу-секе</value>
+  </data>
+  <data name="DpsFightersSustained" xml:space="preserve">
+    <value>Истребители: {0:N1} (с перезарядкой {1:N1})</value>
+  </data>
+  <data name="TipFighterSustained" xml:space="preserve">
+    <value>С перезарядкой: каждый отряд сражается, пока не израсходует заряды включённых способностей, затем перезаряжается и дозаправляется во взлётной полосе и возвращается в бой. Полёт к цели и обратно не учитывается.</value>
+  </data>
   <data name="DetailCalibration" xml:space="preserve">
     <value>Калибровка: {0:0}</value>
   </data>

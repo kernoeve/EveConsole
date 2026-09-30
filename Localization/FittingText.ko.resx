@@ -505,6 +505,24 @@
   <data name="AbilityAlpha" xml:space="preserve">
     <value>{0} {1:N0} 알파</value>
   </data>
+  <data name="TipAbilityChargesOther" xml:space="preserve">
+    <value>차지 {0}개, 차지당 재장전 {1:0.#}초</value>
+  </data>
+  <data name="TipAbilityCooldown" xml:space="preserve">
+    <value>쿨다운 {0:0}초</value>
+  </data>
+  <data name="TipAbilityNotInHighSec" xml:space="preserve">
+    <value>하이 시큐리티에서 사용 불가</value>
+  </data>
+  <data name="TipAbilityNotInEmpire" xml:space="preserve">
+    <value>하이 시큐리티와 로우 시큐리티에서 사용 불가</value>
+  </data>
+  <data name="DpsFightersSustained" xml:space="preserve">
+    <value>파이터 {0:N1} (지속 {1:N1})</value>
+  </data>
+  <data name="TipFighterSustained" xml:space="preserve">
+    <value>지속: 각 편대는 켜진 능력의 차지를 모두 쓸 때까지 싸운 뒤 사출관에서 재장전과 재급유를 마치고 복귀합니다. 목표까지 오가는 비행 시간은 포함하지 않습니다.</value>
+  </data>
   <data name="DetailCalibration" xml:space="preserve">
     <value>교정치 {0:0}</value>
   </data>

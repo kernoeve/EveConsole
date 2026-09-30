@@ -226,7 +226,7 @@
 
           <TextBlock Text="{x:Static loc:FittingText.OffenseHeading}" Classes="section" />
           <TextBlock Text="{Binding DpsText}" Classes="big" />
-          <TextBlock Text="{Binding DpsSplitText}" Classes="line" />
+          <TextBlock Text="{Binding DpsSplitText}" Classes="line" ToolTip.Tip="{Binding DpsSplitTip}" />
           <TextBlock Text="{Binding DamageTypesText}" Classes="line" />
 
           <TextBlock Text="{x:Static loc:FittingText.DefenseHeading}" Classes="section" />

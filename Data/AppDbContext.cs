@@ -143,6 +143,8 @@ public class AppDbContext : DbContext
     public DbSet<SdeDogmaAttribute>     SdeDogmaAttributes     => Set<SdeDogmaAttribute>();
     public DbSet<SdeDogmaEffect>        SdeDogmaEffects        => Set<SdeDogmaEffect>();
     public DbSet<SdeDogmaEffectModifier> SdeDogmaEffectModifiers => Set<SdeDogmaEffectModifier>();
+    public DbSet<SdeFighterAbility>     SdeFighterAbilities    => Set<SdeFighterAbility>();
+    public DbSet<SdeFighterTypeAbility> SdeFighterTypeAbilities => Set<SdeFighterTypeAbility>();
     public DbSet<SavedFit>              SavedFits              => Set<SavedFit>();
     public DbSet<SdeTypeDogmaAttribute> SdeTypeDogmaAttributes => Set<SdeTypeDogmaAttribute>();
     public DbSet<SdeTypeDogmaEffect>    SdeTypeDogmaEffects    => Set<SdeTypeDogmaEffect>();
@@ -398,6 +400,13 @@ public class AppDbContext : DbContext
             e.HasKey(x => x.Id);
             e.HasIndex(x => x.ShipTypeId); });
 
+        mb.Entity<SdeFighterAbility>(e => {
+            e.HasKey(x => x.AbilityId);
+            e.Property(x => x.AbilityId).ValueGeneratedNever(); });
+        mb.Entity<SdeFighterTypeAbility>(e => {
+            e.HasKey(x => new { x.TypeId, x.Slot });
+            e.Property(x => x.TypeId).ValueGeneratedNever();
+            e.Property(x => x.Slot).ValueGeneratedNever(); });
         mb.Entity<SdeDogmaEffectModifier>(e => {
             e.HasKey(x => new { x.EffectId, x.Ordinal });
             e.Property(x => x.EffectId).ValueGeneratedNever();

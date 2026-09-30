@@ -2941,6 +2941,9 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
   <data name="ImportStageTypeDogmaEffects" xml:space="preserve">
     <value>タイプのドグマ効果</value>
   </data>
+  <data name="ImportStageFighterAbilities" xml:space="preserve">
+    <value>艦載戦闘機のアビリティ</value>
+  </data>
   <data name="ImportStageBlueprints" xml:space="preserve">
     <value>ブループリント</value>
   </data>
