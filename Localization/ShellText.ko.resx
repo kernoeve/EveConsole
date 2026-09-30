@@ -166,6 +166,9 @@
   <data name="DropToDetach" xml:space="preserve">
     <value>놓으면 별도의 창에서 엽니다</value>
   </data>
+  <data name="TipToggleNav" xml:space="preserve">
+    <value>탐색 표시/숨기기</value>
+  </data>
   <data name="TabAlarms" xml:space="preserve">
     <value>알람</value>
   </data>

@@ -192,6 +192,10 @@
     <value>Release to open in its own window</value>
     <comment>Main window: shown over a tool while its tab is dragged down into it; letting go there opens the tool in a window of its own.</comment>
   </data>
+  <data name="TipToggleNav" xml:space="preserve">
+    <value>Show or hide the navigation</value>
+    <comment>Main window, title bar: tooltip on the ☰ button that shows or hides the list of tools on the left.</comment>
+  </data>
   <data name="TabAlarms" xml:space="preserve">
     <value>Alarms</value>
     <comment>User-defined alarms (undocks, notifications, and so on).</comment>

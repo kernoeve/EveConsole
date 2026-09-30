@@ -166,6 +166,9 @@
   <data name="DropToDetach" xml:space="preserve">
     <value>Relâcher pour l'ouvrir dans sa propre fenêtre</value>
   </data>
+  <data name="TipToggleNav" xml:space="preserve">
+    <value>Afficher ou masquer la navigation</value>
+  </data>
   <data name="TabAlarms" xml:space="preserve">
     <value>Alarmes</value>
   </data>

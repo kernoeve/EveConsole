@@ -21,6 +21,20 @@
       <Grid ColumnDefinitions="*,Auto,Auto">
 
         <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+          <!-- Shows or hides the navigation on the left, for the width. -->
+          <Button Command="{Binding ToggleNavCommand}" Content="☰" FontSize="16"
+                  Background="Transparent" BorderThickness="0" Padding="4 0 4 2" Margin="-6 0 0 0"
+                  Foreground="{DynamicResource TextMutedBrush}" Cursor="Hand" VerticalAlignment="Center"
+                  ToolTip.Tip="{x:Static loc:ShellText.TipToggleNav}">
+            <Button.Styles>
+              <Style Selector="Button:pointerover /template/ ContentPresenter">
+                <Setter Property="Background" Value="Transparent" />
+              </Style>
+              <Style Selector="Button:pointerover">
+                <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+              </Style>
+            </Button.Styles>
+          </Button>
           <!-- logo_mark.png, not logo.png: the full logo has the "EVE Console"
                wordmark composited into its bottom eighth, which at 30px is under
                four pixels tall — illegible, and redundant beside the text label
@@ -445,26 +459,51 @@
     </Border>
 
     <!-- ── Body: sidebar + content + agent panel ───────────────────────── -->
-    <Grid ColumnDefinitions="190,1,*">
+    <Grid ColumnDefinitions="Auto,Auto,*">
 
-      <!-- Left navigation sidebar -->
-      <Border Grid.Column="0" Background="{DynamicResource SurfaceBaseBrush}">
+      <!-- Left navigation sidebar — hidden by the title bar's ☰, for the width. -->
+      <Border Grid.Column="0" Width="190" Background="{DynamicResource SurfaceBaseBrush}" IsVisible="{Binding IsNavVisible}">
         <ScrollViewer VerticalScrollBarVisibility="Auto"
                       HorizontalScrollBarVisibility="Disabled">
           <ItemsControl x:CompileBindings="False" ItemsSource="{Binding NavGroups}"
                         Margin="0 10 0 10">
             <ItemsControl.ItemTemplate>
               <DataTemplate>
-                <StackPanel Margin="0 0 0 14">
+                <StackPanel Margin="0 0 0 8">
 
-                  <!-- Group label -->
-                  <TextBlock Text="{Binding Title}"
-                             FontSize="9" FontWeight="SemiBold"
-                             Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1.5"
-                             Margin="14 0 14 3" />
+                  <!-- Group label: click to fold the section away or open it again. Remembered
+                       on this machine. Folded, a dot says one of its tools is open. -->
+                  <Button x:CompileBindings="False" Command="{Binding ToggleCommand}"
+                          Background="Transparent" BorderThickness="0" Cursor="Hand"
+                          HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                          Padding="14 3 14 3" Margin="0 0 0 1">
+                    <Button.Styles>
+                      <Style Selector="Button:pointerover /template/ ContentPresenter">
+                        <Setter Property="Background" Value="Transparent" />
+                      </Style>
+                      <Style Selector="Button:pointerover TextBlock">
+                        <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+                      </Style>
+                    </Button.Styles>
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <!-- Drawn, not a ▸/▾ character: not every font has those. -->
+                      <Panel Width="8" Height="8" VerticalAlignment="Center">
+                        <Path Data="M 1 0 L 6 4 L 1 8 Z" Fill="{DynamicResource TextFaintBrush}"
+                              IsVisible="{Binding !IsExpanded}" />
+                        <Path Data="M 0 2 L 8 2 L 4 7 Z" Fill="{DynamicResource TextFaintBrush}"
+                              IsVisible="{Binding IsExpanded}" />
+                      </Panel>
+                      <TextBlock Text="{Binding Title}"
+                                 FontSize="9" FontWeight="SemiBold"
+                                 Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1.5"
+                                 VerticalAlignment="Center" />
+                      <Ellipse Width="5" Height="5" Fill="{DynamicResource AccentBrush}"
+                               VerticalAlignment="Center" IsVisible="{Binding ShowsOpenMark}" />
+                    </StackPanel>
+                  </Button>
 
                   <!-- Tool entries -->
-                  <ItemsControl x:CompileBindings="False" ItemsSource="{Binding Items}">
+                  <ItemsControl x:CompileBindings="False" ItemsSource="{Binding Items}" IsVisible="{Binding IsExpanded}">
                     <ItemsControl.ItemTemplate>
                       <DataTemplate>
                         <Button x:CompileBindings="False"
@@ -503,7 +542,7 @@
       </Border>
 
       <!-- Sidebar divider -->
-      <Rectangle Grid.Column="1" Fill="{DynamicResource SurfaceHoverBrush}" />
+      <Rectangle Grid.Column="1" Width="1" Fill="{DynamicResource SurfaceHoverBrush}" IsVisible="{Binding IsNavVisible}" />
 
       <!-- Content area + agent panel -->
       <Grid Grid.Column="2" ColumnDefinitions="*,Auto">

@@ -780,6 +780,24 @@ public class MainWindowViewModel : ReactiveObject
     public ReactiveCommand<string,  Unit> OpenToolCommand { get; }
     public ReactiveCommand<ToolTab, Unit> CloseTabCommand { get; }
 
+    private const string NavVisibleKey = "nav.visible";
+    private bool _isNavVisible = ReadNavVisible();
+    private static bool ReadNavVisible() { try { return UiState.GetBool(NavVisibleKey, true); } catch { return true; } }
+
+    /// <summary>The navigation on the left, hidden to give the tools the width. Remembered on this
+    /// machine; the button at the left of the title bar brings it back.</summary>
+    public bool IsNavVisible
+    {
+        get => _isNavVisible;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _isNavVisible, value);
+            try { UiState.SetBool(NavVisibleKey, value); } catch { }
+        }
+    }
+    public ReactiveCommand<Unit, Unit> ToggleNavCommand => _toggleNav ??= ReactiveCommand.Create(() => { IsNavVisible = !IsNavVisible; });
+    private ReactiveCommand<Unit, Unit>? _toggleNav;
+
     public void OpenTool(string toolId)
     {
         var existing = AllTabs.FirstOrDefault(t => t.Id == toolId);
@@ -1344,29 +1362,29 @@ public class MainWindowViewModel : ReactiveObject
 
         NavGroup[] groups =
         [
-            new(ShellText.NavGroupGeneral,
+            new("general", ShellText.NavGroupGeneral,
             [
                 new NavItem("overview",    ShellText.NavOverview),
                 new NavItem("worklist",    ShellText.NavWorklist),
                 new NavItem("characters",  ShellText.NavCharacters),
             ]),
-            new(ShellText.NavGroupAssets,
+            new("assets", ShellText.NavGroupAssets,
             [
                 new NavItem("assets",     ShellText.NavAssets),
                 new NavItem("items",      ShellText.NavItemBrowser),
                 new NavItem("inv_levels", ShellText.NavInventoryLevels),
             ]),
-            new(ShellText.NavGroupShips,
+            new("ships", ShellText.NavGroupShips,
             [
                 new NavItem("fitting", ShellText.NavFitting),
             ]),
-            new(ShellText.NavGroupStructures,
+            new("structures", ShellText.NavGroupStructures,
             [
                 new NavItem("structure_browser", ShellText.NavStructureBrowser),
                 new NavItem("universe",          ShellText.NavUniverseMap),
                 new NavItem("jump_planner",      ShellText.NavJumpPlanner),
             ]),
-            new(ShellText.NavGroupIndustry,
+            new("industry", ShellText.NavGroupIndustry,
             [
                 new NavItem("industry",      ShellText.NavIndustryJobs),
                 new NavItem("indy_parks",    ShellText.NavIndyParks),
@@ -1374,7 +1392,7 @@ public class MainWindowViewModel : ReactiveObject
                 new NavItem("price_overrides", ShellText.NavPriceOverrides),
                 new NavItem("industry_opps", ShellText.NavIndustryOpportunities),
             ]),
-            new(ShellText.NavGroupMarket,
+            new("market", ShellText.NavGroupMarket,
             [
                 new NavItem("market_viewer", ShellText.NavMarketOverview),
                 new NavItem("item_valuation", ShellText.NavItemValuation),
@@ -1388,25 +1406,25 @@ public class MainWindowViewModel : ReactiveObject
                 new NavItem("sale_posting",  ShellText.NavSalePosting),
                 new NavItem("stores",        ShellText.NavStores),
             ]),
-            new(ShellText.NavGroupFinance,
+            new("finance", ShellText.NavGroupFinance,
             [
                 new NavItem("net_worth",     ShellText.NavNetWorth),
                 new NavItem("income_expense",ShellText.NavIncomeExpense),
                 new NavItem("wallet",        ShellText.NavWallet),
             ]),
-            new(ShellText.NavGroupCorp,
+            new("corp", ShellText.NavGroupCorp,
             [
                 new NavItem("corp_activity", ShellText.NavCorpActivity),
                 new NavItem("killmails",     ShellText.NavKillmails),
                 new NavItem("player_entities", ShellText.NavPlayerEntities),
                 new NavItem("npc_entities",    ShellText.NavNpcEntities),
             ]),
-            new(ShellText.NavGroupCommunication,
+            new("communication", ShellText.NavGroupCommunication,
             [
                 new NavItem("eve_mail", ShellText.NavEveMail),
                 new NavItem("notifications", ShellText.NavNotifications),
             ]),
-            new(ShellText.NavGroupData,
+            new("data", ShellText.NavGroupData,
             [
                 // Alarms is reached from the alarm light beside the settings gear, not from
                 // here — it is a status indicator first and a tool second.
