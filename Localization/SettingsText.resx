@@ -1762,10 +1762,6 @@
     <value>Method</value>
     <comment>Column header in SettingsWindow.</comment>
   </data>
-  <data name="HowLongEveConsoleNote" xml:space="preserve">
-    <value>How long EVE Console keeps data it can afford to forget. Every rule here is off until you turn it on, and each runs once at startup. Purging removes rows, but SQLite reuses the freed pages rather than returning them, so the file itself only gets smaller after a compaction — see Database → Shrink Database. Database → Storage Breakdown shows where the space actually went.</value>
-    <comment>Note in SettingsWindow.</comment>
-  </data>
   <data name="ErrorLog" xml:space="preserve">
     <value>Error Log</value>
     <comment>Text in SettingsWindow.</comment>
@@ -1785,10 +1781,6 @@
   <data name="KillMails" xml:space="preserve">
     <value>Kill Mails</value>
     <comment>Text in SettingsWindow.</comment>
-  </data>
-  <data name="RemovesTheKillAndNote" xml:space="preserve">
-    <value>Removes the kill and everything attached to it — attackers, items, references and zKillboard flags. Kill mails and their indexes are the largest thing in a typical database (61% of a measured 4 GB file), so this is the rule that actually reclaims space. ⚠️ Deleted kills are gone locally; getting them back means re-fetching from ESI or zKillboard, and ESI only serves recent ones.</value>
-    <comment>Note in SettingsWindow.</comment>
   </data>
   <data name="PurgeKillMailsOlderThan" xml:space="preserve">
     <value>Purge kill mails older than</value>
@@ -3286,6 +3278,30 @@ The application will restart.</value>
   <data name="RetentionPurgingKillmails" xml:space="preserve">
     <value>Purging… {0:N0} of {1:N0} killmails removed</value>
     <comment>Data Retention tab, Kill Mails status while a purge runs (it can take minutes). {0} is the killmails removed so far, {1} how many are to go in all.</comment>
+  </data>
+  <data name="RetentionIntroNote" xml:space="preserve">
+    <value>How long EVE Console keeps data it can afford to forget. Only the agent's own record is purged by default — every other rule is off until you turn it on — and an enabled rule runs once a day. Purging removes rows, but SQLite reuses the freed pages rather than returning them, so the file itself only gets smaller after a compaction — see Database → Shrink Database. Database → Storage Breakdown shows where the space actually went.</value>
+    <comment>Data Retention tab, the note at the top. Database → Shrink Database and Database → Storage Breakdown name a Settings tab and its buttons: use their names in this language.</comment>
+  </data>
+  <data name="RetentionKillmailsNote" xml:space="preserve">
+    <value>Removes the kill and everything attached to it — attackers, items, references and zKillboard flags. Kill mails and their indexes are the largest thing in a typical database (61% of a measured 4 GB file), so these are the rules that actually reclaim space. Two rules, so your own history can be kept longer than everyone else's; each is off until you turn it on. ⚠️ Deleted kills are gone locally; getting them back means re-fetching from ESI or zKillboard, and ESI only serves recent ones.</value>
+    <comment>Data Retention tab, the note above the two kill mail rules (RetentionOurKillmails, RetentionOtherKillmails).</comment>
+  </data>
+  <data name="RetentionOurKillmails" xml:space="preserve">
+    <value>Characters / Corps</value>
+    <comment>Data Retention tab, heading of the first kill mail rule: the kills of your own characters and corporations.</comment>
+  </data>
+  <data name="RetentionOurKillmailsNote" xml:space="preserve">
+    <value>Kills and losses of your characters, and of every corporation you have added — not only the ones marked personal. A kill counts here when any of them is the victim or among the attackers.</value>
+    <comment>Data Retention tab, under RetentionOurKillmails.</comment>
+  </data>
+  <data name="RetentionOtherKillmails" xml:space="preserve">
+    <value>Others</value>
+    <comment>Data Retention tab, heading of the second kill mail rule: everyone else's kills.</comment>
+  </data>
+  <data name="RetentionOtherKillmailsNote" xml:space="preserve">
+    <value>Everyone else's kills — the zKillboard feed, fights you only watched. 98% of the kills in a measured database, so this is the rule that reclaims space.</value>
+    <comment>Data Retention tab, under RetentionOtherKillmails.</comment>
   </data>
   <data name="RetentionRemovedPriceHistory" xml:space="preserve">
     <value>Removed {0:N0} rows older than {1:N0} days. The file will not get smaller until it is compacted — see Database → Shrink Database.</value>

@@ -1483,9 +1483,6 @@
   <data name="WaitTipAlsoBehind" xml:space="preserve">
     <value>对于此货物清单上的某些物品，它还排在另一个任务之后。</value>
   </data>
-  <data name="MergedDetailPooled" xml:space="preserve">
-    <value>共 {0:N0}——各来源合计需要 {1:N0}，减去已有、已挂买单或可精炼/解压得到的 {2:N0}（只计一次）。{3}</value>
-  </data>
   <data name="MergedDetail" xml:space="preserve">
     <value>共 {0:N0}。{1}</value>
   </data>
@@ -1506,9 +1503,6 @@
   </data>
   <data name="BuyReleasesJobsMore" xml:space="preserve">
     <value>可让 {0:N0} 个停下的任务开始：{1}，另有 {2:N0} 个。</value>
-  </data>
-  <data name="BuyOthersWantIt" xml:space="preserve">
-    <value>另有 {0:N0} 个任务需要它，但还缺其他东西。</value>
   </data>
   <data name="TitleTagBpoBpc" xml:space="preserve">
     <value>BPO/BPC</value>

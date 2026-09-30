@@ -1483,9 +1483,6 @@
   <data name="WaitTipAlsoBehind" xml:space="preserve">
     <value>このマニフェストにあるものについて、別のジョブの後ろでも待っています。</value>
   </data>
-  <data name="MergedDetailPooled" xml:space="preserve">
-    <value>合計{0:N0}個 — 全体で{1:N0}個が必要で、そこから所持済み・注文済み・回収可能な{2:N0}個を重複なく差し引いています。{3}</value>
-  </data>
   <data name="MergedDetail" xml:space="preserve">
     <value>合計{0:N0}個。{1}</value>
   </data>
@@ -1506,9 +1503,6 @@
   </data>
   <data name="BuyReleasesJobsMore" xml:space="preserve">
     <value>止まっているジョブ{0:N0}件を開始できるようにします：{1}、ほか{2:N0}件。</value>
-  </data>
-  <data name="BuyOthersWantIt" xml:space="preserve">
-    <value>ほかにジョブ{0:N0}件がこれを必要としていますが、他のものも不足しています。</value>
   </data>
   <data name="TitleTagBpoBpc" xml:space="preserve">
     <value>BPO/BPC</value>

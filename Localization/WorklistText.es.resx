@@ -1489,9 +1489,6 @@
   <data name="WaitTipAlsoBehind" xml:space="preserve">
     <value>También está detrás de otro trabajo por algo de este manifiesto.</value>
   </data>
-  <data name="MergedDetailPooled" xml:space="preserve">
-    <value>{0:N0} en total — entre todos quieren {1:N0}, menos {2:N0} ya disponibles, pedidos o recuperables, contados una sola vez. {3}</value>
-  </data>
   <data name="MergedDetail" xml:space="preserve">
     <value>{0:N0} en total. {1}</value>
   </data>
@@ -1512,9 +1509,6 @@
   </data>
   <data name="BuyReleasesJobsMore" xml:space="preserve">
     <value>Desbloquea {0:N0} trabajo(s) detenido(s): {1} y {2:N0} más.</value>
-  </data>
-  <data name="BuyOthersWantIt" xml:space="preserve">
-    <value>{0:N0} trabajo(s) más quieren esto, pero también carecen de otras cosas.</value>
   </data>
   <data name="TitleTagBpoBpc" xml:space="preserve">
     <value>BPO/BPC</value>

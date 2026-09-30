@@ -1348,9 +1348,6 @@
   <data name="ColMethod" xml:space="preserve">
     <value>Methode</value>
   </data>
-  <data name="HowLongEveConsoleNote" xml:space="preserve">
-    <value>Wie lange EVE Console Daten aufbewahrt, auf die sie verzichten kann. Jede Regel hier ist aus, bis Sie sie einschalten, und jede läuft einmal beim Start. Das Bereinigen entfernt Zeilen, aber SQLite verwendet die frei gewordenen Seiten wieder, statt sie zurückzugeben, daher wird die Datei selbst erst nach einer Komprimierung kleiner – siehe Datenbank → Datenbank verkleinern. Datenbank → Speicheraufteilung zeigt, wo der Platz tatsächlich geblieben ist.</value>
-  </data>
   <data name="ErrorLog" xml:space="preserve">
     <value>Fehlerprotokoll</value>
   </data>
@@ -1365,9 +1362,6 @@
   </data>
   <data name="KillMails" xml:space="preserve">
     <value>Abschussberichte</value>
-  </data>
-  <data name="RemovesTheKillAndNote" xml:space="preserve">
-    <value>Entfernt den Abschuss und alles, was dazugehört – Angreifer, Gegenstände, Verweise und zKillboard-Markierungen. Abschussberichte und ihre Indizes sind das Größte in einer typischen Datenbank (61 % einer gemessenen 4-GB-Datei), daher ist dies die Regel, die wirklich Platz zurückgewinnt. ⚠️ Gelöschte Abschüsse sind lokal weg; um sie zurückzubekommen, müssen sie erneut von ESI oder zKillboard abgerufen werden, und ESI liefert nur neuere.</value>
   </data>
   <data name="PurgeKillMailsOlderThan" xml:space="preserve">
     <value>Abschussberichte löschen, wenn älter als</value>

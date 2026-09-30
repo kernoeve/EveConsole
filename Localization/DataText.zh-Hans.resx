@@ -1105,9 +1105,6 @@
   <data name="ZkbFirehoseIdle" xml:space="preserve">
     <value>zKillboard 实时数据流：空闲（“{0}”范围改用定时轮询）</value>
   </data>
-  <data name="ZkbFirehoseUnreachable" xml:space="preserve">
-    <value>zKillboard 实时数据流：无法连接 zKillboard，正在重试</value>
-  </data>
   <data name="ZkbFirehoseSequence" xml:space="preserve">
     <value>zKillboard 实时数据流：序号 {0:N0}——本次启动后已导入 {1:N0} 条击毁</value>
   </data>

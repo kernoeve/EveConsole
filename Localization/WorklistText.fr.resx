@@ -1489,9 +1489,6 @@
   <data name="WaitTipAlsoBehind" xml:space="preserve">
     <value>Il est aussi derrière un autre travail pour un élément de ce manifeste.</value>
   </data>
-  <data name="MergedDetailPooled" xml:space="preserve">
-    <value>{0:N0} au total — {1:N0} demandés par l'ensemble, moins {2:N0} déjà disponibles, en cours d'achat ou récupérables, comptés une seule fois. {3}</value>
-  </data>
   <data name="MergedDetail" xml:space="preserve">
     <value>{0:N0} au total. {1}</value>
   </data>
@@ -1512,9 +1509,6 @@
   </data>
   <data name="BuyReleasesJobsMore" xml:space="preserve">
     <value>Débloque {0:N0} travail(aux) arrêté(s) : {1}, et {2:N0} de plus.</value>
-  </data>
-  <data name="BuyOthersWantIt" xml:space="preserve">
-    <value>{0:N0} autre(s) travail(aux) en ont besoin mais manquent aussi d'autres choses.</value>
   </data>
   <data name="TitleTagBpoBpc" xml:space="preserve">
     <value>BPO/BPC</value>

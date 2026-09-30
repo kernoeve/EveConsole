@@ -1348,9 +1348,6 @@
   <data name="ColMethod" xml:space="preserve">
     <value>Méthode</value>
   </data>
-  <data name="HowLongEveConsoleNote" xml:space="preserve">
-    <value>Durée pendant laquelle EVE Console conserve les données qu'il peut se permettre d'oublier. Chaque règle est désactivée jusqu'à ce que vous l'activiez, et chacune s'exécute une fois au démarrage. La purge supprime des lignes, mais SQLite réutilise les pages libérées au lieu de les rendre : le fichier lui-même ne rétrécit qu'après un compactage — voir Base de données → Compacter la base de données. Base de données → Répartition du stockage montre où l'espace est réellement passé.</value>
-  </data>
   <data name="ErrorLog" xml:space="preserve">
     <value>Journal des erreurs</value>
   </data>
@@ -1365,9 +1362,6 @@
   </data>
   <data name="KillMails" xml:space="preserve">
     <value>Rapports de victimes</value>
-  </data>
-  <data name="RemovesTheKillAndNote" xml:space="preserve">
-    <value>Supprime la destruction et tout ce qui s'y rattache — assaillants, objets, références et marqueurs zKillboard. Les rapports de victimes et leurs index sont ce qui pèse le plus dans une base de données typique (61 % d'un fichier mesuré à 4 Go) : c'est donc la règle qui libère réellement de l'espace. ⚠️ Les destructions supprimées disparaissent localement ; pour les récupérer, il faut les télécharger de nouveau depuis ESI ou zKillboard, et ESI ne fournit que les plus récentes.</value>
   </data>
   <data name="PurgeKillMailsOlderThan" xml:space="preserve">
     <value>Purger les rapports de victimes de plus de</value>

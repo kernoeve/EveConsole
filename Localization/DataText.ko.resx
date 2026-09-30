@@ -1105,9 +1105,6 @@
   <data name="ZkbFirehoseIdle" xml:space="preserve">
     <value>zKillboard 전체 스트림: 대기 중 (“{0}” 범위는 대신 주기적 폴링을 사용함)</value>
   </data>
-  <data name="ZkbFirehoseUnreachable" xml:space="preserve">
-    <value>zKillboard 전체 스트림: zKillboard에 연결할 수 없어 다시 시도하는 중</value>
-  </data>
   <data name="ZkbFirehoseSequence" xml:space="preserve">
     <value>zKillboard 전체 스트림: 시퀀스 {0:N0} — 이번 세션에 {1:N0}개 가져옴</value>
   </data>

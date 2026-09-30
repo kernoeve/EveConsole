@@ -1105,9 +1105,6 @@
   <data name="ZkbFirehoseIdle" xml:space="preserve">
     <value>zKillboardファイアホース：アイドル（「{0}」では代わりに定期ポーリングを使います）</value>
   </data>
-  <data name="ZkbFirehoseUnreachable" xml:space="preserve">
-    <value>zKillboardファイアホース：zKillboardに接続できません。再試行中</value>
-  </data>
   <data name="ZkbFirehoseSequence" xml:space="preserve">
     <value>zKillboardファイアホース：シーケンス{0:N0} — このセッションで{1:N0}件取り込み済み</value>
   </data>

@@ -1348,9 +1348,6 @@
   <data name="ColMethod" xml:space="preserve">
     <value>Método</value>
   </data>
-  <data name="HowLongEveConsoleNote" xml:space="preserve">
-    <value>Cuánto tiempo conserva EVE Console los datos que puede permitirse olvidar. Todas las reglas de aquí están desactivadas hasta que las actives, y cada una se ejecuta una vez al iniciar. La purga elimina filas, pero SQLite reutiliza las páginas liberadas en lugar de devolverlas, así que el archivo solo se reduce tras una compactación: consulta Base de datos → Compactar base de datos. Base de datos → Desglose del almacenamiento muestra en qué se ha ido realmente el espacio.</value>
-  </data>
   <data name="ErrorLog" xml:space="preserve">
     <value>Registro de errores</value>
   </data>
@@ -1365,9 +1362,6 @@
   </data>
   <data name="KillMails" xml:space="preserve">
     <value>Informes de muertes</value>
-  </data>
-  <data name="RemovesTheKillAndNote" xml:space="preserve">
-    <value>Elimina la muerte y todo lo asociado a ella: atacantes, objetos, referencias y marcas de zKillboard. Los informes de muertes y sus índices son lo que más ocupa en una base de datos típica (el 61 % de un archivo medido de 4 GB), así que esta es la regla que de verdad recupera espacio. ⚠️ Las muertes eliminadas desaparecen localmente; recuperarlas implica volver a descargarlas de ESI o de zKillboard, y ESI solo sirve las recientes.</value>
   </data>
   <data name="PurgeKillMailsOlderThan" xml:space="preserve">
     <value>Purgar los informes de muertes de más de</value>

@@ -1540,12 +1540,6 @@
   <data name="FactCharacterId" xml:space="preserve">
     <value>キャラクターID</value>
   </data>
-  <data name="FactKillmailsOn" xml:space="preserve">
-    <value>登場するキルレポート</value>
-  </data>
-  <data name="FactKillsLosses" xml:space="preserve">
-    <value>キル{0:N0}件、ロス{1:N0}件</value>
-  </data>
   <data name="FactLastSeen" xml:space="preserve">
     <value>最終確認</value>
   </data>
@@ -1563,12 +1557,6 @@
   </data>
   <data name="FactAllianceId" xml:space="preserve">
     <value>アライアンスID</value>
-  </data>
-  <data name="FactPilotsSeen" xml:space="preserve">
-    <value>確認されたパイロット</value>
-  </data>
-  <data name="FactCorporationsSeen" xml:space="preserve">
-    <value>確認されたコーポレーション</value>
   </data>
   <data name="SubtitleAgent" xml:space="preserve">
     <value>レベル{0}の{1}エージェント</value>

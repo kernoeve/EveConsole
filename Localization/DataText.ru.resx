@@ -1150,9 +1150,6 @@
   <data name="ZkbFirehoseIdle" xml:space="preserve">
     <value>Поток zKillboard: не используется (в режиме «{0}» вместо него работает опрос по интервалу)</value>
   </data>
-  <data name="ZkbFirehoseUnreachable" xml:space="preserve">
-    <value>Поток zKillboard: не удалось связаться с zKillboard, повтор</value>
-  </data>
   <data name="ZkbFirehoseSequence" xml:space="preserve">
     <value>Поток zKillboard: позиция {0:N0} — импортировано за сеанс: {1:N0}</value>
   </data>

@@ -1120,9 +1120,6 @@
   <data name="ZkbFirehoseIdle" xml:space="preserve">
     <value>Flux zKillboard : en veille (« {0} » utilise plutôt la collecte périodique)</value>
   </data>
-  <data name="ZkbFirehoseUnreachable" xml:space="preserve">
-    <value>Flux zKillboard : impossible de joindre zKillboard, nouvel essai</value>
-  </data>
   <data name="ZkbFirehoseSequence" xml:space="preserve">
     <value>Flux zKillboard : séquence {0:N0} — {1:N0} importée(s) durant cette session</value>
   </data>

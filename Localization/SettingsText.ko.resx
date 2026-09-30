@@ -1348,9 +1348,6 @@
   <data name="ColMethod" xml:space="preserve">
     <value>방식</value>
   </data>
-  <data name="HowLongEveConsoleNote" xml:space="preserve">
-    <value>EVE Console이 잊어도 되는 데이터를 얼마나 오래 보관할지 정합니다. 여기의 모든 규칙은 켜기 전까지 꺼져 있으며, 각 규칙은 시작할 때 한 번 실행됩니다. 삭제하면 행은 제거되지만 SQLite는 비워진 페이지를 돌려주지 않고 재사용하므로, 파일 자체는 압축한 뒤에야 작아집니다 — 데이터베이스 → 데이터베이스 축소를 참조하십시오. 데이터베이스 → 저장 공간 내역에서 공간이 실제로 어디에 쓰였는지 볼 수 있습니다.</value>
-  </data>
   <data name="ErrorLog" xml:space="preserve">
     <value>오류 로그</value>
   </data>
@@ -1365,9 +1362,6 @@
   </data>
   <data name="KillMails" xml:space="preserve">
     <value>킬 메일</value>
-  </data>
-  <data name="RemovesTheKillAndNote" xml:space="preserve">
-    <value>킬과 그에 딸린 모든 것(공격자, 아이템, 참조, zKillboard 표시)을 삭제합니다. 일반적인 데이터베이스에서 킬 메일과 그 인덱스가 가장 큰 비중을 차지하므로 (측정한 4 GB 파일의 61%), 실제로 공간을 확보하는 규칙은 이것입니다. ⚠️ 삭제된 킬은 로컬에서 사라지며, 되살리려면 ESI나 zKillboard에서 다시 가져와야 하는데 ESI는 최근 킬만 제공합니다.</value>
   </data>
   <data name="PurgeKillMailsOlderThan" xml:space="preserve">
     <value>다음보다 오래된 킬 메일 삭제:</value>

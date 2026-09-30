@@ -1483,9 +1483,6 @@
   <data name="WaitTipAlsoBehind" xml:space="preserve">
     <value>이 적재 목록의 무언가를 두고 다른 작업 뒤에서도 대기하고 있습니다.</value>
   </data>
-  <data name="MergedDetailPooled" xml:space="preserve">
-    <value>총 {0:N0}개 — 모두 합쳐 {1:N0}개가 필요하며, 이미 보유 중이거나 주문 중이거나 회수 가능한 {2:N0}개를 한 번만 빼서 계산했습니다. {3}</value>
-  </data>
   <data name="MergedDetail" xml:space="preserve">
     <value>총 {0:N0}개. {1}</value>
   </data>
@@ -1506,9 +1503,6 @@
   </data>
   <data name="BuyReleasesJobsMore" xml:space="preserve">
     <value>멈춘 작업 {0:N0}개를 풀어 줍니다: {1} 외 {2:N0}개.</value>
-  </data>
-  <data name="BuyOthersWantIt" xml:space="preserve">
-    <value>작업 {0:N0}개가 더 이것을 원하지만 다른 것도 부족합니다.</value>
   </data>
   <data name="TitleTagBpoBpc" xml:space="preserve">
     <value>BPO/BPC</value>

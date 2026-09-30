@@ -1348,9 +1348,6 @@
   <data name="ColMethod" xml:space="preserve">
     <value>方式</value>
   </data>
-  <data name="HowLongEveConsoleNote" xml:space="preserve">
-    <value>EVE Consoleが、失っても支障のないデータをどれだけの期間保持するかを設定します。ここのルールはすべてオンにするまで無効で、それぞれ起動時に1回実行されます。削除すると行はなくなりますが、SQLiteは解放されたページを返さずに再利用するため、ファイル自体が小さくなるのは圧縮した後だけです — 「データベース → データベースを縮小」を参照してください。「データベース → ストレージの内訳」で、実際に容量が何に使われたかを確認できます。</value>
-  </data>
   <data name="ErrorLog" xml:space="preserve">
     <value>エラーログ</value>
   </data>
@@ -1365,9 +1362,6 @@
   </data>
   <data name="KillMails" xml:space="preserve">
     <value>キルレポート</value>
-  </data>
-  <data name="RemovesTheKillAndNote" xml:space="preserve">
-    <value>キルと、それに付随するすべて（攻撃者、アイテム、参照、zKillboardのフラグ）を削除します。一般的なデータベースで最も大きいのはキルレポートとそのインデックスです（測定した4 GBのファイルの61%）。そのため、実際に容量を取り戻せるのはこのルールです。⚠️ 削除したキルはローカルから消えます。取り戻すにはESIまたはzKillboardから再取得する必要があり、ESIが提供するのは最近のものだけです。</value>
   </data>
   <data name="PurgeKillMailsOlderThan" xml:space="preserve">
     <value>次の日数より古いキルレポートを削除：</value>

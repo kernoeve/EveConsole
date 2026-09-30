@@ -1546,12 +1546,6 @@
   <data name="FactCharacterId" xml:space="preserve">
     <value>ID du personnage</value>
   </data>
-  <data name="FactKillmailsOn" xml:space="preserve">
-    <value>Rapports de victimes</value>
-  </data>
-  <data name="FactKillsLosses" xml:space="preserve">
-    <value>{0:N0} destruction(s), {1:N0} perte(s)</value>
-  </data>
   <data name="FactLastSeen" xml:space="preserve">
     <value>Vu pour la dernière fois</value>
   </data>
@@ -1569,12 +1563,6 @@
   </data>
   <data name="FactAllianceId" xml:space="preserve">
     <value>ID de l'alliance</value>
-  </data>
-  <data name="FactPilotsSeen" xml:space="preserve">
-    <value>Pilotes vus</value>
-  </data>
-  <data name="FactCorporationsSeen" xml:space="preserve">
-    <value>Corporations vues</value>
   </data>
   <data name="SubtitleAgent" xml:space="preserve">
     <value>Agent {1} de niveau {0}</value>

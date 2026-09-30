@@ -1120,9 +1120,6 @@
   <data name="ZkbFirehoseIdle" xml:space="preserve">
     <value>Flujo en tiempo real de zKillboard: en espera («{0}» usa en su lugar el sondeo periódico)</value>
   </data>
-  <data name="ZkbFirehoseUnreachable" xml:space="preserve">
-    <value>Flujo en tiempo real de zKillboard: no se ha podido contactar con zKillboard; reintentando</value>
-  </data>
   <data name="ZkbFirehoseSequence" xml:space="preserve">
     <value>Flujo en tiempo real de zKillboard: secuencia {0:N0} — {1:N0} importadas en esta sesión</value>
   </data>

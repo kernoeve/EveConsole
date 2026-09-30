@@ -508,6 +508,154 @@
     <value>Kills / Losses</value>
     <comment>Tab in EntityTabView.</comment>
   </data>
+  <data name="KillsLoadMore" xml:space="preserve">
+    <value>Load 200 more from zKillboard</value>
+    <comment>Entity viewer, Kills / Losses tab: the button that pages in the next 200 kills from zKillboard.</comment>
+  </data>
+  <data name="KillsTryAgain" xml:space="preserve">
+    <value>Try zKillboard again</value>
+    <comment>Entity viewer, Kills / Losses tab: the same button after a page failed to load.</comment>
+  </data>
+  <data name="KillsAsking" xml:space="preserve">
+    <value>Asking zKillboard for the kills not stored here…</value>
+    <comment>Entity viewer, Kills / Losses tab: status while the first page loads.</comment>
+  </data>
+  <data name="KillsLoadingPage" xml:space="preserve">
+    <value>{0:N0} shown — loading page {1} from zKillboard. A page it has not served lately can take a minute.</value>
+    <comment>Entity viewer, Kills / Losses tab: status while a further page loads. {0} the kills shown so far, {1} the page number.</comment>
+  </data>
+  <data name="KillsProblemStoredOnly" xml:space="preserve">
+    <value>{0} — so these are only the kills stored here.</value>
+    <comment>Entity viewer, Kills / Losses tab: the first page from zKillboard failed. {0} is why (a clause such as DataText.ZkbUnreachable).</comment>
+  </data>
+  <data name="KillsProblemPage" xml:space="preserve">
+    <value>{0} — {1:N0} shown, page {2} not loaded.</value>
+    <comment>Entity viewer, Kills / Losses tab: a further page failed. {0} is why (a clause such as DataText.ZkbUnreachable), {1} the kills shown, {2} the page number.</comment>
+  </data>
+  <data name="KillsNoneAnywhere" xml:space="preserve">
+    <value>No killmails for this entity, here or on zKillboard.</value>
+    <comment>Entity viewer, Kills / Losses tab: neither this database nor zKillboard has a kill for the pilot, corporation or alliance.</comment>
+  </data>
+  <data name="KillsStoredNoneOnZkb" xml:space="preserve">
+    <value>{0:N0} stored here; zKillboard has none for this entity.</value>
+    <comment>Entity viewer, Kills / Losses tab. {0} the kills this database holds.</comment>
+  </data>
+  <data name="KillsEverything" xml:space="preserve">
+    <value>{0:N0} kills and losses — everything zKillboard has.</value>
+    <comment>Entity viewer, Kills / Losses tab, when zKillboard has no more pages. {0} the kills shown.</comment>
+  </data>
+  <data name="KillsBackTo" xml:space="preserve">
+    <value>{0:N0} kills and losses back to {1:yyyy-MM-dd HH:mm} — complete from zKillboard, {2:N0} fetched that were not stored here.</value>
+    <comment>Entity viewer, Kills / Losses tab, after a page loaded. {0} the kills shown, {1:yyyy-MM-dd HH:mm} the date and time of the oldest (keep the format), {2} how many zKillboard supplied that this database did not have.</comment>
+  </data>
+  <data name="KillsPageLimit" xml:space="preserve">
+    <value>zKillboard serves no further back than this: its page limit is {0}.</value>
+    <comment>Entity viewer, Kills / Losses tab, a sentence after KillsBackTo once the last page zKillboard will serve is in. {0} is that page number.</comment>
+  </data>
+  <data name="KillsPageFailed" xml:space="preserve">
+    <value>zKillboard page failed: {0}</value>
+    <comment>Entity viewer, Kills / Losses tab. {0} is the error, in whatever language the system wrote it.</comment>
+  </data>
+  <data name="ZkbStatsLoading" xml:space="preserve">
+    <value>Loading zKillboard stats…</value>
+    <comment>Entity viewer header: while zKillboard's figures for the pilot, corporation or alliance load.</comment>
+  </data>
+  <data name="ZkbStatsProblem" xml:space="preserve">
+    <value>{0}, so there are no stats to show.</value>
+    <comment>Entity viewer header. {0} is why zKillboard's figures could not be loaded (a clause such as DataText.ZkbUnreachable).</comment>
+  </data>
+  <data name="ZkbStatsNone" xml:space="preserve">
+    <value>zKillboard has no kills or losses for this entity.</value>
+    <comment>Entity viewer header, when zKillboard knows the entity but has no kill for it.</comment>
+  </data>
+  <data name="ZkbStatsFailed" xml:space="preserve">
+    <value>zKillboard stats failed: {0}</value>
+    <comment>Entity viewer header. {0} is the error, in whatever language the system wrote it.</comment>
+  </data>
+  <data name="ZkbAllTime" xml:space="preserve">
+    <value>All time</value>
+    <comment>Entity viewer, zKillboard panel: the period button for all of zKillboard's figures. Small; keep it short.</comment>
+  </data>
+  <data name="ZkbDays90" xml:space="preserve">
+    <value>90 days</value>
+    <comment>Entity viewer, zKillboard panel: the period button for the last 90 days. Small; keep it short.</comment>
+  </data>
+  <data name="ZkbDays7" xml:space="preserve">
+    <value>7 days</value>
+    <comment>Entity viewer, zKillboard panel: the period button for the last 7 days. Small; keep it short.</comment>
+  </data>
+  <data name="ZkbDestroyed" xml:space="preserve">
+    <value>Destroyed</value>
+    <comment>Entity viewer, zKillboard panel: column heading, what the entity destroyed. Narrow column.</comment>
+  </data>
+  <data name="ZkbLost" xml:space="preserve">
+    <value>Lost</value>
+    <comment>Entity viewer, zKillboard panel: column heading, what the entity lost. Narrow column.</comment>
+  </data>
+  <data name="ZkbRank" xml:space="preserve">
+    <value>Rank</value>
+    <comment>Entity viewer, zKillboard panel: column heading, zKillboard's ranking for the figure beside it. Narrow column.</comment>
+  </data>
+  <data name="ZkbEfficiency" xml:space="preserve">
+    <value>Eff.</value>
+    <comment>Entity viewer, zKillboard panel: column heading, destroyed as a share of destroyed and lost (zKillboard's "Eff. %"). A very narrow column: an abbreviation.</comment>
+  </data>
+  <data name="ZkbShips" xml:space="preserve">
+    <value>Ships</value>
+    <comment>Entity viewer, zKillboard panel: row label, ships destroyed and lost. A column 52 pixels wide.</comment>
+  </data>
+  <data name="ZkbPoints" xml:space="preserve">
+    <value>Points</value>
+    <comment>Entity viewer, zKillboard panel: row label, zKillboard's points destroyed and lost. A column 52 pixels wide.</comment>
+  </data>
+  <data name="ZkbIsk" xml:space="preserve">
+    <value>ISK</value>
+    <comment>Entity viewer, zKillboard panel: row label, ISK destroyed and lost. Keep ISK.</comment>
+  </data>
+  <data name="ZkbRankOverall" xml:space="preserve">
+    <value>Rank #{0:N0}</value>
+    <comment>Entity viewer, zKillboard panel: zKillboard's overall rank for the period. {0} is the rank.</comment>
+  </data>
+  <data name="ZkbDangerous" xml:space="preserve">
+    <value>Dangerous {0}%</value>
+    <comment>Entity viewer, zKillboard panel: left end of zKillboard's danger bar. {0} is a whole percentage. zKillboard's own word (its site is English only); translate the meaning. A column 92 pixels wide.</comment>
+  </data>
+  <data name="ZkbSnuggly" xml:space="preserve">
+    <value>{0}% Snuggly</value>
+    <comment>Entity viewer, zKillboard panel: right end of the danger bar, the opposite of ZkbDangerous. zKillboard's playful word for harmless; translate the meaning, playfully if the language allows. A column 80 pixels wide.</comment>
+  </data>
+  <data name="ZkbGang" xml:space="preserve">
+    <value>Gang {0}%</value>
+    <comment>Entity viewer, zKillboard panel: left end of zKillboard's gang bar, the share of kills made in a group. {0} is a whole percentage. A column 92 pixels wide.</comment>
+  </data>
+  <data name="ZkbSolo" xml:space="preserve">
+    <value>{0}% Solo</value>
+    <comment>Entity viewer, zKillboard panel: right end of the gang bar, the share of kills made alone. A column 80 pixels wide.</comment>
+  </data>
+  <data name="ZkbAverageGang" xml:space="preserve">
+    <value>average gang {0:0.#}</value>
+    <comment>Entity viewer, zKillboard panel, the line under the bars: the average number of attackers on a kill. {0} is that number, one decimal at most. Followed by " · " and ZkbSoloKills… (lower case start in English: it is the start of a line of small print).</comment>
+  </data>
+  <data name="ZkbSoloKillsOther" xml:space="preserve">
+    <value>{0:N0} solo kill(s)</value>
+    <comment>Entity viewer, zKillboard panel, small print under the bars: kills made alone. English keeps one form for every count; a language that needs forms by count adds them (…One, …Few, …Many). Followed by a list separator and ZkbSoloLosses…</comment>
+  </data>
+  <data name="ZkbSoloLossesOther" xml:space="preserve">
+    <value>{0:N0} solo loss(es)</value>
+    <comment>Entity viewer, zKillboard panel, small print under the bars: losses to a single attacker. English keeps one form for every count; a language that needs forms by count adds them (…One, …Few, …Many).</comment>
+  </data>
+  <data name="ZkbNone90" xml:space="preserve">
+    <value>No kills or losses in the last 90 days.</value>
+    <comment>Entity viewer, zKillboard panel, instead of the table when the 90-day period is empty.</comment>
+  </data>
+  <data name="ZkbNone7" xml:space="preserve">
+    <value>No kills or losses in the last 7 days.</value>
+    <comment>Entity viewer, zKillboard panel, instead of the table when the 7-day period is empty.</comment>
+  </data>
+  <data name="ZkbNoneAllTime" xml:space="preserve">
+    <value>No kills or losses on zKillboard.</value>
+    <comment>Entity viewer, zKillboard panel, instead of the table when zKillboard has nothing at all.</comment>
+  </data>
   <data name="ColName2" xml:space="preserve">
     <value>Name</value>
     <comment>Column header in EntityTabView.</comment>
@@ -2060,14 +2208,6 @@
     <value>Character ID</value>
     <comment>Entity viewer, fact label: a character's id number.</comment>
   </data>
-  <data name="FactKillmailsOn" xml:space="preserve">
-    <value>Killmails on</value>
-    <comment>Entity viewer, fact label: how many killmails the pilot, corporation or alliance appears on.</comment>
-  </data>
-  <data name="FactKillsLosses" xml:space="preserve">
-    <value>{0:N0} kill(s), {1:N0} loss(es)</value>
-    <comment>Entity viewer, value of "Killmails on". {0} is the number of kills, {1} the number of losses.</comment>
-  </data>
   <data name="FactLastSeen" xml:space="preserve">
     <value>Last seen</value>
     <comment>Entity viewer, fact label: when a pilot last appeared on a killmail.</comment>
@@ -2091,14 +2231,6 @@
   <data name="FactAllianceId" xml:space="preserve">
     <value>Alliance ID</value>
     <comment>Entity viewer, fact label: an alliance's id number.</comment>
-  </data>
-  <data name="FactPilotsSeen" xml:space="preserve">
-    <value>Pilots seen</value>
-    <comment>Entity viewer, fact label: how many different pilots of this corporation appear on killmails.</comment>
-  </data>
-  <data name="FactCorporationsSeen" xml:space="preserve">
-    <value>Corporations seen</value>
-    <comment>Entity viewer, fact label: how many different corporations of this alliance appear on killmails.</comment>
   </data>
   <data name="SubtitleAgent" xml:space="preserve">
     <value>Level {0} {1} agent</value>

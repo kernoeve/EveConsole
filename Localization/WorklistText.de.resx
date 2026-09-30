@@ -1489,9 +1489,6 @@
   <data name="WaitTipAlsoBehind" xml:space="preserve">
     <value>Er wartet außerdem hinter einem anderen Auftrag auf etwas von dieser Ladeliste.</value>
   </data>
-  <data name="MergedDetailPooled" xml:space="preserve">
-    <value>Insgesamt {0:N0} – zusammen werden {1:N0} gebraucht, abzüglich {2:N0}, die bereits vorhanden, bestellt oder rückgewinnbar sind, einmal gezählt. {3}</value>
-  </data>
   <data name="MergedDetail" xml:space="preserve">
     <value>Insgesamt {0:N0}. {1}</value>
   </data>
@@ -1512,9 +1509,6 @@
   </data>
   <data name="BuyReleasesJobsMore" xml:space="preserve">
     <value>Gibt gestoppte Aufträge frei ({0:N0}): {1} und {2:N0} weitere.</value>
-  </data>
-  <data name="BuyOthersWantIt" xml:space="preserve">
-    <value>Weitere Aufträge ({0:N0}) brauchen dies, denen aber auch anderes fehlt.</value>
   </data>
   <data name="TitleTagBpoBpc" xml:space="preserve">
     <value>BPO/BPC</value>

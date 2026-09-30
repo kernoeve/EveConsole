@@ -427,8 +427,10 @@ public class WorklistService(
                            // "short of other things": a job whose material is merely at another
                            // station waits on a haul, not on anything missing.
                            + (waiting.Count > freed.Count
-                                ? $" {waiting.Count - freed.Count:N0} {(freed.Count > 0 ? "more " : "")}job(s) " +
-                                  "waiting on this also wait on something else."
+                                ? " " + Plurals.Format(WorklistText.ResourceManager,
+                                      freed.Count > 0 ? nameof(WorklistText.BuyOthersWaitingMoreOther)
+                                                      : nameof(WorklistText.BuyOthersWaitingOther),
+                                      waiting.Count - freed.Count)
                                 : ""),
                 };
             }
@@ -538,6 +540,9 @@ public class WorklistService(
             // The title is screen text; the English TypeName goes on unchanged below it.
             var shown = SdeNames.Type(lead.Item.TypeId, lead.Item.TypeName);
 
+            // Each contributor's demand, written as the sum the detail spells out: "87 + 66".
+            string Terms() => string.Join(" + ", parts.Select(p => p.Item.GrossDemand!.Value.ToString("N0")));
+
             var merged = lead.Item with
             {
                 // Keyed off the merge key, so the combined task keeps one identity across
@@ -560,15 +565,11 @@ public class WorklistService(
                 // term by term: "153 wanted between them" alone still sent a reader adding the
                 // two shortfalls (58 + 37 = 95) against a total of 124, since nothing on the row
                 // said the 153 was the job's 87 and the rule's 66.
-                Detail    = pooled
-                    ? $"{total:N0} in total: {string.Join(" + ", parts.Select(p => p.Item.GrossDemand!.Value.ToString("N0")))} " +
-                      $"= {demand:N0} wanted between them" +
-                      (supply > 0
-                          ? $", less the {supply:N0} already on hand, on order or recoverable. Each reason " +
-                            $"that follows counts those same {supply:N0} against itself, so its shortfall and " +
-                            $"the others' do not add up to the total. {reasons}"
-                          : $". {reasons}")
-                    : $"{total:N0} in total. {reasons}",
+                Detail    = !pooled
+                    ? string.Format(WorklistText.MergedDetail, total, reasons)
+                    : supply > 0
+                        ? string.Format(WorklistText.MergedDetailSumPooled, total, Terms(), demand, supply, reasons)
+                        : string.Format(WorklistText.MergedDetailSum, total, Terms(), demand, reasons),
                 Priority  = parts.Max(p => p.Item.Priority),
                 Readiness = blocked is not null ? blocked.Readiness : lead.Item.Readiness,
                 BlockedBy = blocked?.BlockedBy ?? "",

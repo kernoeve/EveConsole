@@ -1558,12 +1558,6 @@
   <data name="FactCharacterId" xml:space="preserve">
     <value>ID персонажа</value>
   </data>
-  <data name="FactKillmailsOn" xml:space="preserve">
-    <value>В отчётах о боях</value>
-  </data>
-  <data name="FactKillsLosses" xml:space="preserve">
-    <value>Побед: {0:N0}, потерь: {1:N0}</value>
-  </data>
   <data name="FactLastSeen" xml:space="preserve">
     <value>Последнее появление</value>
   </data>
@@ -1581,12 +1575,6 @@
   </data>
   <data name="FactAllianceId" xml:space="preserve">
     <value>ID альянса</value>
-  </data>
-  <data name="FactPilotsSeen" xml:space="preserve">
-    <value>Замечено пилотов</value>
-  </data>
-  <data name="FactCorporationsSeen" xml:space="preserve">
-    <value>Замечено корпораций</value>
   </data>
   <data name="SubtitleAgent" xml:space="preserve">
     <value>Агент уровня {0} ({1})</value>

@@ -439,6 +439,10 @@
     <value>{0} of {1} Online</value>
     <comment>Title bar, beside the EVE clock: how many of the user's characters are logged in. {0} is how many are online, {1} how many characters there are.</comment>
   </data>
+  <data name="NoCharactersOnline" xml:space="preserve">
+    <value>No Characters Online</value>
+    <comment>Main window header, instead of OnlineOfTotal ("3 of 24 Online") when none of your characters is logged in. Title case in English, as OnlineOfTotal is.</comment>
+  </data>
   <data name="LocationUnknown" xml:space="preserve">
     <value>location unknown</value>
     <comment>Title bar, online characters tooltip: where a character is, when it is not known.</comment>

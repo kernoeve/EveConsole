@@ -1120,9 +1120,6 @@
   <data name="ZkbFirehoseIdle" xml:space="preserve">
     <value>zKillboard-Datenstrom: im Leerlauf („{0}“ nutzt stattdessen die Intervallabfrage)</value>
   </data>
-  <data name="ZkbFirehoseUnreachable" xml:space="preserve">
-    <value>zKillboard-Datenstrom: zKillboard nicht erreichbar, neuer Versuch folgt</value>
-  </data>
   <data name="ZkbFirehoseSequence" xml:space="preserve">
     <value>zKillboard-Datenstrom: Sequenz {0:N0} – {1:N0} in dieser Sitzung importiert</value>
   </data>

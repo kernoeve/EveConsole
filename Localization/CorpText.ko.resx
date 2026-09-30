@@ -1540,12 +1540,6 @@
   <data name="FactCharacterId" xml:space="preserve">
     <value>캐릭터 ID</value>
   </data>
-  <data name="FactKillmailsOn" xml:space="preserve">
-    <value>킬 메일 등장</value>
-  </data>
-  <data name="FactKillsLosses" xml:space="preserve">
-    <value>킬 {0:N0}건, 손실 {1:N0}건</value>
-  </data>
   <data name="FactLastSeen" xml:space="preserve">
     <value>마지막 목격</value>
   </data>
@@ -1563,12 +1557,6 @@
   </data>
   <data name="FactAllianceId" xml:space="preserve">
     <value>얼라이언스 ID</value>
-  </data>
-  <data name="FactPilotsSeen" xml:space="preserve">
-    <value>목격된 파일럿</value>
-  </data>
-  <data name="FactCorporationsSeen" xml:space="preserve">
-    <value>목격된 코퍼레이션</value>
   </data>
   <data name="SubtitleAgent" xml:space="preserve">
     <value>레벨 {0} {1} 에이전트</value>

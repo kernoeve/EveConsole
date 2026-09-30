@@ -1492,10 +1492,6 @@
     <value>zKillboard firehose: idle (“{0}” uses the interval poll instead)</value>
     <comment>zKillboard live capture status: the firehose is idle because the scope named in {0} (My characters &amp; corp) uses the interval poll.</comment>
   </data>
-  <data name="ZkbFirehoseUnreachable" xml:space="preserve">
-    <value>zKillboard firehose: could not reach zKillboard, retrying</value>
-    <comment>zKillboard live capture status: zKillboard could not be reached; it will try again.</comment>
-  </data>
   <data name="ZkbFirehoseSequence" xml:space="preserve">
     <value>zKillboard firehose: sequence {0:N0} — {1:N0} imported this session</value>
     <comment>zKillboard live capture status. {0} is the position in zKillboard's kill stream, {1} the number of kills imported since the app started.</comment>
@@ -1503,6 +1499,50 @@
   <data name="ZkbFirehoseSkipped" xml:space="preserve">
     <value>zKillboard firehose: skipped empty sequence {0:N0} (head {1:N0})</value>
     <comment>zKillboard live capture status. {0} is the stream position that was skipped because it stayed empty, {1} the newest position zKillboard reports.</comment>
+  </data>
+  <data name="ZkbFirehoseLimited" xml:space="preserve">
+    <value>zKillboard firehose: zKillboard is limiting this machine's requests — next try at {0:t}</value>
+    <comment>Background Processes, the zKillboard firehose's status when zKillboard refuses this computer's requests for a while. {0} is the time it tries again. Keep zKillboard; "firehose" is the feed's name in this app's zKillboard settings.</comment>
+  </data>
+  <data name="ZkbLimitedUntil" xml:space="preserve">
+    <value>zKillboard is limiting this machine's requests until {0:t}</value>
+    <comment>Why a zKillboard download stopped, placed in the backfill and gap-fill statuses (ZkbBackfillStopped, ZkbGapFillWaiting). {0} is the time the limit ends. A clause, no full stop.</comment>
+  </data>
+  <data name="ZkbFirehoseRetrying" xml:space="preserve">
+    <value>zKillboard firehose: could not reach zKillboard — trying again in {0}s</value>
+    <comment>Background Processes, the zKillboard firehose's status after a failed request. {0} is a number of seconds.</comment>
+  </data>
+  <data name="ZkbBackfillStopped" xml:space="preserve">
+    <value>zKillboard backfill: stopped at {0} — {1}</value>
+    <comment>Background Processes, the zKillboard backfill's status when it failed. {0} is how far it got (its own progress text), {1} the error, in whatever language the system wrote it.</comment>
+  </data>
+  <data name="ZkbGapFillWaiting" xml:space="preserve">
+    <value>zKillboard gap-fill: waiting, caught up through {0:yyyy-MM-dd} — {1}</value>
+    <comment>Background Processes, the zKillboard gap-fill's status when a day's download failed. {0:yyyy-MM-dd} is the last complete day, written as ZkbGapFillDone writes it; {1} the error, in whatever language the system wrote it.</comment>
+  </data>
+  <data name="ZkbServesNoFurther" xml:space="preserve">
+    <value>zKillboard serves no further back than page {0}</value>
+    <comment>Why a page of an entity's kills from zKillboard was not loaded: zKillboard refuses pages past {0}. A clause, no full stop: it is put into sentences such as CorpText.KillsProblemPage and CorpText.ZkbStatsProblem.</comment>
+  </data>
+  <data name="ZkbAnsweredHttp" xml:space="preserve">
+    <value>zKillboard answered HTTP {0}</value>
+    <comment>Why zKillboard's kills or stats could not be loaded. {0} is an HTTP status code such as 503. A clause, no full stop: it is put into sentences such as CorpText.KillsProblemPage and CorpText.ZkbStatsProblem.</comment>
+  </data>
+  <data name="ZkbSaid" xml:space="preserve">
+    <value>zKillboard said: {0}</value>
+    <comment>Why zKillboard's kills could not be loaded: {0} is zKillboard's own error message, in English. A clause, no full stop: it is put into sentences such as CorpText.KillsProblemPage.</comment>
+  </data>
+  <data name="ZkbNoAnswerInTime" xml:space="preserve">
+    <value>zKillboard did not answer within two minutes</value>
+    <comment>Why zKillboard's kills or stats could not be loaded. A clause, no full stop: it is put into sentences such as CorpText.KillsProblemPage and CorpText.ZkbStatsProblem.</comment>
+  </data>
+  <data name="ZkbUnreachable" xml:space="preserve">
+    <value>zKillboard could not be reached</value>
+    <comment>Why zKillboard's kills or stats could not be loaded. A clause, no full stop: it is put into sentences such as CorpText.KillsProblemPage and CorpText.ZkbStatsProblem.</comment>
+  </data>
+  <data name="ZkbUnexpectedAnswer" xml:space="preserve">
+    <value>zKillboard sent an unexpected answer</value>
+    <comment>Why zKillboard's kills or stats could not be loaded. A clause, no full stop: it is put into sentences such as CorpText.KillsProblemPage and CorpText.ZkbStatsProblem.</comment>
   </data>
   <data name="ZkbFirehoseCaughtUp" xml:space="preserve">
     <value>zKillboard firehose: caught up (sequence {0:N0})</value>

@@ -543,7 +543,7 @@ public class MainWindowViewModel : ReactiveObject
             var online = rows.Where(r => r.Online).OrderBy(r => r.Name).ToList();
 
             // Nobody on is worth saying in words: "0 of 24 Online" makes the reader do the sum.
-            var text = online.Count > 0 ? string.Format(ShellText.OnlineOfTotal, online.Count, rows.Count) : "No Characters Online";
+            var text = online.Count > 0 ? string.Format(ShellText.OnlineOfTotal, online.Count, rows.Count) : ShellText.NoCharactersOnline;
 
             var list = online.Select(r =>
             {

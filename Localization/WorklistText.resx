@@ -1984,10 +1984,6 @@
     <value>It is also behind another job for something on this manifest.</value>
     <comment>Added to the tooltip beside a job in a Worklist row's "waiting on this" panel.</comment>
   </data>
-  <data name="MergedDetailPooled" xml:space="preserve">
-    <value>{0:N0} in total — {1:N0} wanted between them, less {2:N0} already on hand, on order or recoverable, counted once. {3}</value>
-    <comment>Worklist task detail for purchases of one item merged from several sources. {0} is the units to buy, {1} what they want between them, {2} the stock counted against that, {3} each source's own reason, separated by bullets.</comment>
-  </data>
   <data name="MergedDetail" xml:space="preserve">
     <value>{0:N0} in total. {1}</value>
     <comment>Worklist task detail for purchases of one item merged from several sources. {0} is the units to buy, {1} each source's own reason, separated by bullets.</comment>
@@ -2016,9 +2012,21 @@
     <value>Releases {0:N0} stopped job(s): {1}, and {2:N0} more.</value>
     <comment>Added to a Worklist purchase's detail. {0} is the stopped jobs this purchase lets start, {1} a comma-separated list of what the first three make, {2} how many more.</comment>
   </data>
-  <data name="BuyOthersWantIt" xml:space="preserve">
-    <value>{0:N0} more job(s) want this but are short of other things too.</value>
-    <comment>Added to a Worklist purchase's detail. {0} is the stopped jobs that want the item and still lack other things.</comment>
+  <data name="BuyOthersWaitingOther" xml:space="preserve">
+    <value>{0:N0} job(s) waiting on this also wait on something else.</value>
+    <comment>Worklist, a buy row's detail: {0} jobs that need this purchase but are also held up by something else. English keeps one form for every count; a language that needs forms by count adds them (…One, …Few, …Many).</comment>
+  </data>
+  <data name="BuyOthersWaitingMoreOther" xml:space="preserve">
+    <value>{0:N0} more job(s) waiting on this also wait on something else.</value>
+    <comment>Worklist, a buy row's detail, after the jobs this purchase releases (BuyReleasesJobs): {0} further jobs that need it but are also held up by something else. English keeps one form for every count; a language that needs forms by count adds them (…One, …Few, …Many).</comment>
+  </data>
+  <data name="MergedDetailSumPooled" xml:space="preserve">
+    <value>{0:N0} in total: {1} = {2:N0} wanted between them, less the {3:N0} already on hand, on order or recoverable. Each reason that follows counts those same {3:N0} against itself, so its shortfall and the others' do not add up to the total. {4}</value>
+    <comment>Worklist, one row for a purchase several jobs or rules share. {0} the units to buy, {1} each one's demand written as a sum ("87 + 66"), {2} their total demand, {3} the units already on hand, on order or recoverable, {4} the reasons that follow, as sentences.</comment>
+  </data>
+  <data name="MergedDetailSum" xml:space="preserve">
+    <value>{0:N0} in total: {1} = {2:N0} wanted between them. {3}</value>
+    <comment>Worklist, one row for a purchase several jobs or rules share, when none of it is on hand. {0} the units to buy, {1} each one's demand written as a sum ("87 + 66"), {2} their total demand, {3} the reasons that follow, as sentences.</comment>
   </data>
   <data name="TitleTagBpoBpc" xml:space="preserve">
     <value>BPO/BPC</value>

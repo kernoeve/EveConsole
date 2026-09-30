@@ -425,7 +425,7 @@ public class EntityTabViewModel : ReactiveObject
                 StartZkbIfWanted();
 
                 ZkbStats       = null;
-                ZkbStatsStatus = HasKills ? "Loading zKillboard stats…" : "";
+                ZkbStatsStatus = HasKills ? CorpText.ZkbStatsLoading : "";
             });
 
             // Everything below is optional detail — the About pane is already usable, so
@@ -662,12 +662,12 @@ public class EntityTabViewModel : ReactiveObject
                 if (ct.IsCancellationRequested || _loadedId != id) return;
                 if (answer.Problem is { } problem)
                 {
-                    ZkbStatsStatus = $"{problem}, so there are no stats to show.";
+                    ZkbStatsStatus = string.Format(CorpText.ZkbStatsProblem, problem);
                     return;
                 }
                 if (answer.Stats is not { } stats)
                 {
-                    ZkbStatsStatus = "zKillboard has no kills or losses for this entity.";
+                    ZkbStatsStatus = CorpText.ZkbStatsNone;
                     return;
                 }
                 ZkbStats       = new ZkbStatsVm(stats, ZkbUrl(Kind, id));
@@ -679,7 +679,7 @@ public class EntityTabViewModel : ReactiveObject
         {
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                if (_loadedId == id) ZkbStatsStatus = $"zKillboard stats failed: {ex.Message}";
+                if (_loadedId == id) ZkbStatsStatus = string.Format(CorpText.ZkbStatsFailed, ex.Message);
             });
         }
     }
@@ -714,8 +714,8 @@ public class EntityTabViewModel : ReactiveObject
         }
     }
 
-    private const string MoreKillsText  = "Load 200 more from zKillboard";
-    private const string RetryKillsText = "Try zKillboard again";
+    private static string MoreKillsText  => CorpText.KillsLoadMore;
+    private static string RetryKillsText => CorpText.KillsTryAgain;
 
     /// <summary>The Load more button: shown while zKillboard may hold older kills.</summary>
     private bool _canLoadMoreKills;
@@ -769,9 +769,8 @@ public class EntityTabViewModel : ReactiveObject
         _zkbBusyFor      = id;
         CanLoadMoreKills = false;
         KillsStatus      = page == 1
-            ? "Asking zKillboard for the kills not stored here…"
-            : $"{Kills.Count:N0} shown — loading page {page} from zKillboard. A page it has not served "
-            + "lately can take a minute.";
+            ? CorpText.KillsAsking
+            : string.Format(CorpText.KillsLoadingPage, Kills.Count, page);
 
         // Where the last page stopped; page one runs to the present.
         var previous = _zkbOldest;
@@ -799,9 +798,10 @@ public class EntityTabViewModel : ReactiveObject
 
                 if (!result.Reached)
                 {
-                    KillsStatus = $"{result.Problem ?? "zKillboard could not be reached"} — "
-                                + (page == 1 ? "so these are only the kills stored here."
-                                             : $"{Kills.Count:N0} shown, page {page} not loaded.");
+                    var why = result.Problem ?? DataText.ZkbUnreachable;
+                    KillsStatus = page == 1
+                        ? string.Format(CorpText.KillsProblemStoredOnly, why)
+                        : string.Format(CorpText.KillsProblemPage, why, Kills.Count, page);
                     LoadMoreKillsText = RetryKillsText;
                     CanLoadMoreKills  = true;
                     return;
@@ -814,9 +814,9 @@ public class EntityTabViewModel : ReactiveObject
                     CanLoadMoreKills = false;
                     KillsStatus = page == 1
                         ? (Kills.Count == 0
-                            ? "No killmails for this entity, here or on zKillboard."
-                            : $"{Kills.Count:N0} stored here; zKillboard has none for this entity.")
-                        : $"{Kills.Count:N0} kills and losses — everything zKillboard has.";
+                            ? CorpText.KillsNoneAnywhere
+                            : string.Format(CorpText.KillsStoredNoneOnZkb, Kills.Count))
+                        : string.Format(CorpText.KillsEverything, Kills.Count);
                     return;
                 }
 
@@ -834,9 +834,8 @@ public class EntityTabViewModel : ReactiveObject
                 // than leaving a reader to wonder where it went.
                 var last = page >= ZkillboardApiClient.MaxEntityPage;
                 CanLoadMoreKills = !last;
-                KillsStatus = $"{Kills.Count:N0} kills and losses back to {result.Oldest!.Value.ToLocalTime():yyyy-MM-dd HH:mm} — "
-                            + $"complete from zKillboard, {_zkbStored:N0} fetched that were not stored here."
-                            + (last ? $" zKillboard serves no further back than this: its page limit is {ZkillboardApiClient.MaxEntityPage}." : "");
+                KillsStatus = string.Format(CorpText.KillsBackTo, Kills.Count, result.Oldest!.Value.ToLocalTime(), _zkbStored)
+                            + (last ? " " + string.Format(CorpText.KillsPageLimit, ZkillboardApiClient.MaxEntityPage) : "");
             });
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested) { }
@@ -845,7 +844,7 @@ public class EntityTabViewModel : ReactiveObject
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 if (_loadedId != id) return;
-                KillsStatus       = $"zKillboard page failed: {ex.Message}";
+                KillsStatus       = string.Format(CorpText.KillsPageFailed, ex.Message);
                 LoadMoreKillsText = RetryKillsText;
                 CanLoadMoreKills  = true;
             });

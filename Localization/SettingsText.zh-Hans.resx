@@ -1348,9 +1348,6 @@
   <data name="ColMethod" xml:space="preserve">
     <value>统计方式</value>
   </data>
-  <data name="HowLongEveConsoleNote" xml:space="preserve">
-    <value>EVE Console 对可以舍弃的数据保留多久。这里的每条规则在你开启之前都是关闭的，并且每条都会在启动时运行一次。清除会删除行，但 SQLite 会重复利用释放出的页，而不是把它们归还，因此文件本身只有在压缩之后才会变小——见“数据库 → 压缩数据库”。“数据库 → 存储明细”会显示空间实际用在了哪里。</value>
-  </data>
   <data name="ErrorLog" xml:space="preserve">
     <value>错误日志</value>
   </data>
@@ -1365,9 +1362,6 @@
   </data>
   <data name="KillMails" xml:space="preserve">
     <value>击毁报告</value>
-  </data>
-  <data name="RemovesTheKillAndNote" xml:space="preserve">
-    <value>删除击毁记录及其附带的所有内容——攻击者、物品、引用和 zKillboard 标记。击毁报告及其索引是典型数据库中最大的部分（在一个实测 4 GB 的文件中占 61%），所以这才是真正能回收空间的规则。⚠️ 删除的击毁在本地就没有了；要找回只能从 ESI 或 zKillboard 重新获取，而 ESI 只提供近期的击毁。</value>
   </data>
   <data name="PurgeKillMailsOlderThan" xml:space="preserve">
     <value>清除旧击毁报告，仅保留最近</value>

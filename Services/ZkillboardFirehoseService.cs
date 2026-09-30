@@ -128,7 +128,7 @@ public sealed class ZkillboardFirehoseService(
         // a time so a change of setting still gets noticed, then start again with one request.
         if (api.R2Z2PausedUntil is { } until)
         {
-            StatusText   = $"zKillboard firehose: zKillboard is limiting this machine's requests — next try at {until.ToLocalTime():t}";
+            StatusText   = string.Format(DataText.ZkbFirehoseLimited, until.ToLocalTime());
             _batching    = false;
             _foundInARow = 0;
 
@@ -211,7 +211,7 @@ public sealed class ZkillboardFirehoseService(
     {
         _failuresInARow++;
         var secs = Math.Min(LongestRetrySecs, NoNewBackoffSecs << Math.Min(_failuresInARow - 1, 5));
-        StatusText = $"zKillboard firehose: could not reach zKillboard — trying again in {secs}s";
+        StatusText = string.Format(DataText.ZkbFirehoseRetrying, secs);
         await Task.Delay(TimeSpan.FromSeconds(secs), ct);
     }
 
