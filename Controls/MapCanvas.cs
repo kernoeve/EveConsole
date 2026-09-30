@@ -32,9 +32,11 @@ public sealed record MapMarkers(
     IReadOnlyList<MapMarkRow>? HostileRows = null,
     IReadOnlyList<MapMarkRow>? OwnRows     = null);
 
-/// <summary>One line of a mark's hover, with the pictures drawn in front of it: the pilot's
-/// portrait and the ship's icon. Zero for either leaves its place empty, so lines stay aligned.</summary>
-public sealed record MapMarkRow(string Text, long CharacterId = 0, int ShipTypeId = 0);
+/// <summary>One line of a mark's hover: the pilot's portrait in front of it, and the ship's icon
+/// just before the ship's name in it.</summary>
+/// <param name="ShipAt">Where in <see cref="Text"/> the ship's name starts, so the icon goes
+/// beside the name whichever order a language puts the words in; -1 for no ship.</param>
+public sealed record MapMarkRow(string Text, long CharacterId = 0, int ShipTypeId = 0, int ShipAt = -1);
 
 /// <summary>A jump bridge drawn as an arc between two systems, and what its hover says.</summary>
 /// <param name="Complete">Both gates are known; false draws it fainter.</param>
@@ -1137,13 +1139,21 @@ public class MapCanvas : Control
     {
         const double pad = 7, gap = 4, rowGap = 2;
 
-        var texts = rows.Select(r => new FormattedText(r.Text, CultureInfo.CurrentCulture,
-            FlowDirection.LeftToRight, Face, 10.5, LabelBrush)).ToList();
+        FormattedText Text(string s) => new(s, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Face, 10.5, LabelBrush);
 
-        // Every row keeps both picture slots, pictures or not, so the text starts in one column.
-        var textX = RowIcon * 2 + gap * 2;
-        var rowH  = Math.Max(RowIcon, texts.Max(t => t.Height)) + rowGap;
-        var w = Math.Max(title.Width, textX + texts.Max(t => t.Width)) + pad * 2;
+        // Each line in two parts round the ship's icon: what comes before the ship's name, and
+        // the name onwards. A line without a ship is one part, with no icon.
+        var parts = rows.Select(r => r.ShipTypeId > 0 && r.ShipAt >= 0 && r.ShipAt <= r.Text.Length
+                ? (Before: Text(r.Text[..r.ShipAt]), After: Text(r.Text[r.ShipAt..]), Icon: true)
+                : (Before: Text(r.Text), After: (FormattedText?)null, Icon: false))
+            .ToList();
+        double LineWidth((FormattedText Before, FormattedText? After, bool Icon) p) =>
+            p.Before.Width + (p.Icon ? gap + RowIcon + gap : 0) + (p.After?.Width ?? 0);
+
+        // The portrait's slot is kept on every row, picture or not, so the text starts in one column.
+        var textX = RowIcon + gap * 2;
+        var rowH  = Math.Max(RowIcon, parts.Max(p => p.Before.Height)) + rowGap;
+        var w = Math.Max(title.Width, textX + parts.Max(LineWidth)) + pad * 2;
         var h = title.Height + 4 + rowH * rows.Count + pad * 2;
 
         var x = _hoverAt.X + 14;
@@ -1164,10 +1174,18 @@ public class MapCanvas : Control
             if (rows[i].CharacterId > 0 &&
                 Picture($"https://images.evetech.net/characters/{rows[i].CharacterId}/portrait?size=32") is { } portrait)
                 ctx.DrawImage(portrait, new Rect(lx, ry, RowIcon, RowIcon));
-            if (rows[i].ShipTypeId > 0 &&
-                Picture($"https://images.evetech.net/types/{rows[i].ShipTypeId}/icon?size=32") is { } ship)
-                ctx.DrawImage(ship, new Rect(lx + RowIcon + gap, ry, RowIcon, RowIcon));
-            ctx.DrawText(texts[i], new Point(lx + textX, ry + (RowIcon - texts[i].Height) / 2));
+
+            var (before, after, icon) = parts[i];
+            var tx = lx + textX;
+            var ty = ry + (RowIcon - before.Height) / 2;
+            ctx.DrawText(before, new Point(tx, ty));
+            if (!icon || after is null) continue;
+
+            // The ship's icon, just before its name.
+            var ix = tx + before.Width + gap;
+            if (Picture($"https://images.evetech.net/types/{rows[i].ShipTypeId}/icon?size=32") is { } ship)
+                ctx.DrawImage(ship, new Rect(ix, ry, RowIcon, RowIcon));
+            ctx.DrawText(after, new Point(ix + RowIcon + gap, ty));
         }
     }
 

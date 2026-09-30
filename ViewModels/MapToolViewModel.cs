@@ -541,8 +541,8 @@ public sealed class MapToolViewModel : ReactiveObject
             var source  = p.FromKillmail ? MapText.LiveSourceKillmail
                         : p.NoVisual     ? MapText.LiveSourceIntelNoVisual
                         :                  MapText.LiveSourceIntel;
-            return new MapMarkRow(string.Format(MapText.LiveHostileLine, p.Name, ship, ago, source),
-                                  p.CharacterId, p.ShipTypeId ?? 0);
+            var (text, at) = WithShipAt(MapText.LiveHostileLine, ship, p.Name, ShipMark, ago, source);
+            return new MapMarkRow(text, p.CharacterId, p.ShipTypeId ?? 0, at);
         }).ToList();
 
         if (h.Pilots.Count > MaxListed)
@@ -560,8 +560,24 @@ public sealed class MapToolViewModel : ReactiveObject
         var where = !o.Docked            ? MapText.LiveInSpace
                   : o.Place is { } place ? string.Format(MapText.LiveDockedAt, place)
                   :                        MapText.LiveDocked;
-        return new MapMarkRow(string.Format(MapText.LiveOwnLine, o.Name, ship, where), o.CharacterId, o.ShipTypeId ?? 0);
+        var (text, at) = WithShipAt(MapText.LiveOwnLine, ship, o.Name, ShipMark, where);
+        return new MapMarkRow(text, o.CharacterId, o.ShipTypeId ?? 0, at);
     }).ToList();
+
+    /// <summary>Stands in for the ship's name while a line is formatted, to find where it lands.</summary>
+    private const string ShipMark = "\u0001";
+
+    /// <summary>
+    /// Formats a hover line and says where the ship's name starts in it, so the map can put the
+    /// ship's icon just before the name. Found by formatting with a mark in the name's place — a
+    /// translation may put the words in any order.
+    /// </summary>
+    private static (string Text, int ShipAt) WithShipAt(string format, string ship, params object[] args)
+    {
+        var marked = string.Format(format, args);
+        var at     = marked.IndexOf(ShipMark, StringComparison.Ordinal);
+        return (marked.Replace(ShipMark, ship), at);
+    }
 }
 
 /// <summary>One side of the map tool: a strip of tabs and the one on show.</summary>
