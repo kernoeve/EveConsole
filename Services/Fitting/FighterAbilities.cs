@@ -1,3 +1,5 @@
+using EveConsole.Localization;
+
 namespace EveConsole.Services.Fitting;
 
 /// <summary>What a fighter ability does, as far as the fitting numbers are concerned.</summary>
@@ -6,7 +8,8 @@ public enum FighterAbilityKind { Attack, Missiles, Bomb, Kamikaze, Utility, Prop
 /// <summary>A squadron's size class, which decides the launch slot it needs.</summary>
 public enum FighterClass { Light, Support, Heavy, StandupLight, StandupSupport, StandupHeavy }
 
-/// <summary>One ability a fighter type has, by the dogma effect behind it.</summary>
+/// <summary>One ability a fighter type has, by the dogma effect behind it. <paramref name="Label"/>
+/// is its name in the interface language, for showing only.</summary>
 public sealed record FighterAbility(int EffectId, string Label, FighterAbilityKind Kind)
 {
     public bool DealsDamage => Kind is FighterAbilityKind.Attack or FighterAbilityKind.Missiles
@@ -23,7 +26,7 @@ public sealed record FighterAbility(int EffectId, string Label, FighterAbilityKi
 
 /// <summary>
 /// Fighter abilities, read from the dogma effects a fighter type carries. The effects' own names
-/// are internal ("fighterAbilityAttackM"), so the labels here are ours.
+/// are internal ("fighterAbilityAttackM"), so the labels here are ours, in FittingText.
 /// </summary>
 /// <remarks>
 /// The abilities' damage comes from attributes on the fighter named after the ability —
@@ -34,21 +37,23 @@ public sealed record FighterAbility(int EffectId, string Label, FighterAbilityKi
 /// </remarks>
 public static class FighterAbilities
 {
+    // Keyed on the effect's name; the label is only shown. The interface language is settled for
+    // a run, so reading the labels once is enough.
     private static readonly Dictionary<string, (string Label, FighterAbilityKind Kind)> ByEffect = new()
     {
-        ["fighterAbilityAttackM"]          = ("Attack",             FighterAbilityKind.Attack),
-        ["fighterAbilityMissiles"]         = ("Missiles",           FighterAbilityKind.Missiles),
-        ["fighterAbilityLaunchBomb"]       = ("Bomb",               FighterAbilityKind.Bomb),
-        ["fighterAbilityKamikaze"]         = ("Kamikaze",           FighterAbilityKind.Kamikaze),
-        ["fighterAbilityEnergyNeutralizer"] = ("Energy neutralizer", FighterAbilityKind.Utility),
-        ["fighterAbilityStasisWebifier"]   = ("Stasis webifier",    FighterAbilityKind.Utility),
-        ["fighterAbilityWarpDisruption"]   = ("Warp disruptor",     FighterAbilityKind.Utility),
-        ["fighterAbilityECM"]              = ("ECM",                FighterAbilityKind.Utility),
-        ["fighterAbilityTackle"]           = ("Tackle",             FighterAbilityKind.Utility),
-        ["fighterAbilityEvasiveManeuvers"] = ("Evasive maneuvers",  FighterAbilityKind.Propulsion),
-        ["fighterAbilityAfterburner"]      = ("Afterburner",        FighterAbilityKind.Propulsion),
-        ["fighterAbilityMicroWarpDrive"]   = ("Microwarpdrive",     FighterAbilityKind.Propulsion),
-        ["fighterAbilityMicroJumpDrive"]   = ("Micro jump drive",   FighterAbilityKind.Propulsion),
+        ["fighterAbilityAttackM"]          = (FittingText.AbilityAttack,            FighterAbilityKind.Attack),
+        ["fighterAbilityMissiles"]         = (FittingText.AbilityMissiles,          FighterAbilityKind.Missiles),
+        ["fighterAbilityLaunchBomb"]       = (FittingText.AbilityBomb,              FighterAbilityKind.Bomb),
+        ["fighterAbilityKamikaze"]         = (FittingText.AbilityKamikaze,          FighterAbilityKind.Kamikaze),
+        ["fighterAbilityEnergyNeutralizer"] = (FittingText.AbilityEnergyNeutralizer, FighterAbilityKind.Utility),
+        ["fighterAbilityStasisWebifier"]   = (FittingText.AbilityStasisWebifier,    FighterAbilityKind.Utility),
+        ["fighterAbilityWarpDisruption"]   = (FittingText.AbilityWarpDisruptor,     FighterAbilityKind.Utility),
+        ["fighterAbilityECM"]              = (FittingText.AbilityEcm,               FighterAbilityKind.Utility),
+        ["fighterAbilityTackle"]           = (FittingText.AbilityTackle,            FighterAbilityKind.Utility),
+        ["fighterAbilityEvasiveManeuvers"] = (FittingText.AbilityEvasiveManeuvers,  FighterAbilityKind.Propulsion),
+        ["fighterAbilityAfterburner"]      = (FittingText.AbilityAfterburner,       FighterAbilityKind.Propulsion),
+        ["fighterAbilityMicroWarpDrive"]   = (FittingText.AbilityMicrowarpdrive,    FighterAbilityKind.Propulsion),
+        ["fighterAbilityMicroJumpDrive"]   = (FittingText.AbilityMicroJumpDrive,    FighterAbilityKind.Propulsion),
     };
 
     /// <summary>The abilities of <paramref name="type"/>: damage first, then the rest.</summary>
@@ -88,11 +93,12 @@ public static class FighterAbilities
         _                           => "fighterStandupHeavySlots",
     };
 
+    /// <summary>The class as shown beside a squadron: light, support or heavy.</summary>
     public static string ClassName(FighterClass c) => c switch
     {
-        FighterClass.Light or FighterClass.StandupLight     => "Light",
-        FighterClass.Support or FighterClass.StandupSupport => "Support",
-        _                                                    => "Heavy",
+        FighterClass.Light or FighterClass.StandupLight     => FittingText.ClassLight,
+        FighterClass.Support or FighterClass.StandupSupport => FittingText.ClassSupport,
+        _                                                    => FittingText.ClassHeavy,
     };
 
     /// <summary>Most fighters a squadron of <paramref name="type"/> can hold.</summary>

@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using EveConsole.Controls;
+using EveConsole.Localization;
 using EveConsole.Services.Fitting;
 using EveConsole.ViewModels;
 
@@ -34,20 +35,20 @@ public partial class FitTabView : UserControl
         if (row.CanToggle)
         {
             items.Add(row.IsOff
-                ? Item("Put online", () => vm.SetState(row, ModuleState.Online))
-                : Item("Put offline", () => vm.SetState(row, ModuleState.Offline)));
+                ? Item(FittingText.MenuPutOnline, () => vm.SetState(row, ModuleState.Online))
+                : Item(FittingText.MenuPutOffline, () => vm.SetState(row, ModuleState.Offline)));
             if (row.CanActivate)
                 items.Add(row.State >= ModuleState.Active
-                    ? Item("Deactivate", () => vm.SetState(row, ModuleState.Online))
-                    : Item("Activate", () => vm.SetState(row, ModuleState.Active)));
+                    ? Item(FittingText.MenuDeactivate, () => vm.SetState(row, ModuleState.Online))
+                    : Item(FittingText.MenuActivate, () => vm.SetState(row, ModuleState.Active)));
             if (row.CanOverheat)
                 items.Add(row.IsHeated
-                    ? Item("Stop overheating", () => vm.SetState(row, ModuleState.Active))
-                    : Item("Overheat", () => vm.SetState(row, ModuleState.Overheated)));
+                    ? Item(FittingText.MenuStopOverheating, () => vm.SetState(row, ModuleState.Active))
+                    : Item(FittingText.MenuOverheat, () => vm.SetState(row, ModuleState.Overheated)));
         }
         if (row.Charge is { } charge)
-            items.Add(Item($"Unload {charge.Name}", () => row.Charge = null));
-        items.Add(Item("Remove", () => vm.Remove(row)));
+            items.Add(Item(string.Format(FittingText.MenuUnload, charge.DisplayName), () => row.Charge = null));
+        items.Add(Item(FittingText.Remove, () => vm.Remove(row)));
 
         var menu = new ContextMenu { ItemsSource = items };
         menu.Open(Ring);

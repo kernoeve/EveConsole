@@ -4,6 +4,7 @@
              xmlns:fit="using:EveConsole.Services.Fitting"
              xmlns:ctl="using:EveConsole.Controls"
              xmlns:views="using:EveConsole.Views"
+             xmlns:loc="using:EveConsole.Localization"
              x:Class="EveConsole.Views.FittingView"
              x:DataType="vm:FittingViewModel">
 
@@ -119,12 +120,12 @@
     <!-- ══ Items: what goes on a fit. Hidden with the button on the new-fit bar. ══ -->
     <Border Grid.Column="0" Width="300" IsVisible="{Binding FinderVisible}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="0 0 1 0" Padding="10">
       <DockPanel>
-        <TextBlock DockPanel.Dock="Top" Text="Items" FontWeight="SemiBold" FontSize="13"
+        <TextBlock DockPanel.Dock="Top" Text="{x:Static loc:FittingText.ItemsHeading}" FontWeight="SemiBold" FontSize="13"
                    Foreground="{DynamicResource AccentBrush}" Margin="0 0 0 8" />
         <ComboBox DockPanel.Dock="Top" ItemsSource="{x:Static vm:FittingViewModel.KindFilters}"
-                  SelectedItem="{Binding KindFilter}" HorizontalAlignment="Stretch" Margin="0 0 0 6" />
-        <TextBox DockPanel.Dock="Top" Text="{Binding SearchText}" Watermark="Search by name or group…" Margin="0 0 0 6" />
-        <CheckBox DockPanel.Dock="Top" IsChecked="{Binding FitsOnly}" Content="Only what fits this hull"
+                  SelectedItem="{Binding SelectedKindFilter}" HorizontalAlignment="Stretch" Margin="0 0 0 6" />
+        <TextBox DockPanel.Dock="Top" Text="{Binding SearchText}" Watermark="{x:Static loc:FittingText.SearchWatermark}" Margin="0 0 0 6" />
+        <CheckBox DockPanel.Dock="Top" IsChecked="{Binding FitsOnly}" Content="{x:Static loc:FittingText.FitsOnly}"
                   FontSize="11" Foreground="{DynamicResource TextMutedBrush}" Margin="0 0 0 6" />
         <!-- Set by clicking an empty slot on the ring. -->
         <Border DockPanel.Dock="Top" IsVisible="{Binding HasFinderSlot}" Margin="0 0 0 6" Padding="8 3"
@@ -132,23 +133,24 @@
           <Grid ColumnDefinitions="*,Auto">
             <TextBlock Text="{Binding FinderSlotText}" FontSize="11" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
             <Button Grid.Column="1" Classes="remove" Content="✕" Command="{Binding ClearFinderSlotCommand}"
-                    ToolTip.Tip="Show every slot" />
+                    ToolTip.Tip="{x:Static loc:FittingText.TipShowEverySlot}" />
           </Grid>
         </Border>
         <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*,6,*" Margin="0 6 0 0">
-          <Button Grid.Column="0" Classes="tool" Content="Add to fit" Command="{Binding AddSelectedCommand}"
+          <Button Grid.Column="0" Classes="tool" Content="{x:Static loc:FittingText.AddToFit}" Command="{Binding AddSelectedCommand}"
                   HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
-          <Button Grid.Column="2" Classes="tool" Content="Add to cargo" Command="{Binding AddToCargoCommand}"
+          <Button Grid.Column="2" Classes="tool" Content="{x:Static loc:FittingText.AddToCargo}" Command="{Binding AddToCargoCommand}"
                   HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
-                  ToolTip.Tip="Put the selected item in the cargo hold — anything can be carried" />
+                  ToolTip.Tip="{x:Static loc:FittingText.TipAddToCargo}" />
         </Grid>
+        <!-- Names in the interface language; the list's search matches them and the English. -->
         <ListBox ItemsSource="{Binding SearchResults}" SelectedItem="{Binding SelectedResult}"
                  DoubleTapped="OnResultDoubleTapped"
                  Background="Transparent" BorderThickness="0">
           <ListBox.ItemTemplate>
             <DataTemplate x:DataType="fit:CatalogEntry">
-              <Grid ColumnDefinitions="*,Auto" ToolTip.Tip="{Binding GroupName}">
-                <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="12" TextTrimming="CharacterEllipsis"
+              <Grid ColumnDefinitions="*,Auto" ToolTip.Tip="{Binding DisplayGroupName}">
+                <TextBlock Grid.Column="0" Text="{Binding DisplayName}" FontSize="12" TextTrimming="CharacterEllipsis"
                            Foreground="{DynamicResource TextPrimaryBrush}" />
                 <TextBlock Grid.Column="1" Text="{Binding SlotLabel}" FontSize="10" Margin="8 0 0 0"
                            Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
@@ -168,33 +170,33 @@
         <WrapPanel Orientation="Horizontal">
           <ToggleButton Classes="tool" IsChecked="{Binding FinderVisible}" Margin="0 0 12 4" Padding="8 4"
                         Background="{DynamicResource SurfaceRaisedBrush}" FontSize="11"
-                        ToolTip.Tip="Show or hide the item list">
-            <TextBlock Text="☰ Items" />
+                        ToolTip.Tip="{x:Static loc:FittingText.TipToggleItems}">
+            <TextBlock Text="{x:Static loc:FittingText.ToggleItems}" />
           </ToggleButton>
-          <TextBlock Text="NEW FIT" Classes="section" Margin="0 0 8 4" VerticalAlignment="Center" />
+          <TextBlock Text="{x:Static loc:FittingText.NewFitLabel}" Classes="section" Margin="0 0 8 4" VerticalAlignment="Center" />
           <AutoCompleteBox x:Name="HullPicker" Width="260" Margin="0 0 6 4" FontSize="12"
-                           Watermark="Hull — type a name or class…"
+                           Watermark="{x:Static loc:FittingText.HullWatermark}"
                            ItemsSource="{Binding Hulls}" FilterMode="Custom" ItemFilter="{Binding HullFilter}"
                            MinimumPrefixLength="1" MaxDropDownHeight="420"
-                           ValueMemberBinding="{Binding Name, x:DataType=fit:CatalogEntry}"
+                           ValueMemberBinding="{Binding DisplayName, x:DataType=fit:CatalogEntry}"
                            SelectionChanged="OnHullPicked">
             <AutoCompleteBox.ItemTemplate>
               <DataTemplate x:DataType="fit:CatalogEntry">
                 <Grid ColumnDefinitions="*,Auto">
-                  <TextBlock Text="{Binding Name}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
-                  <TextBlock Grid.Column="1" Text="{Binding GroupName}" FontSize="10" Margin="10 0 0 0"
+                  <TextBlock Text="{Binding DisplayName}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
+                  <TextBlock Grid.Column="1" Text="{Binding DisplayGroupName}" FontSize="10" Margin="10 0 0 0"
                              Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
                 </Grid>
               </DataTemplate>
             </AutoCompleteBox.ItemTemplate>
           </AutoCompleteBox>
-          <Button Classes="tool" Content="Paste EFT…"     Command="{Binding ImportEftCommand}" Margin="0 0 6 4" />
-          <Button Classes="tool" Content="From the game…" Command="{Binding ImportEsiCommand}" Margin="0 0 12 4"
-                  ToolTip.Tip="Open one of your characters' or corporations' saved fittings" />
-          <ComboBox ItemsSource="{Binding SavedFits}" SelectedItem="{Binding SelectedSaved}" PlaceholderText="Saved fits…"
-                    MinWidth="200" Margin="0 0 6 4" FontSize="11" ToolTip.Tip="Open a fit saved in EVE Console" />
-          <Button Classes="tool" Content="Delete" Command="{Binding DeleteSavedCommand}" Margin="0 0 0 4"
-                  ToolTip.Tip="Delete the saved fit chosen in the list" />
+          <Button Classes="tool" Content="{x:Static loc:FittingText.PasteEft}" Command="{Binding ImportEftCommand}" Margin="0 0 6 4" />
+          <Button Classes="tool" Content="{x:Static loc:FittingText.FromGame}" Command="{Binding ImportEsiCommand}" Margin="0 0 12 4"
+                  ToolTip.Tip="{x:Static loc:FittingText.TipFromGame}" />
+          <ComboBox ItemsSource="{Binding SavedFits}" SelectedItem="{Binding SelectedSaved}" PlaceholderText="{x:Static loc:FittingText.SavedFitsPlaceholder}"
+                    MinWidth="200" Margin="0 0 6 4" FontSize="11" ToolTip.Tip="{x:Static loc:FittingText.TipSavedFits}" />
+          <Button Classes="tool" Content="{x:Static loc:FittingText.DeleteSaved}" Command="{Binding DeleteSavedCommand}" Margin="0 0 0 4"
+                  ToolTip.Tip="{x:Static loc:FittingText.TipDeleteSaved}" />
         </WrapPanel>
       </Border>
 
@@ -202,7 +204,7 @@
                  Foreground="{DynamicResource TextMutedBrush}" Margin="14 4 14 8" />
 
       <Panel>
-        <TextBlock Text="Start a fit from a hull, paste one, or open one from the game or your saved fits. Each opens in its own tab."
+        <TextBlock Text="{x:Static loc:FittingText.EmptyToolHint}"
                    IsVisible="{Binding !HasTab}" FontSize="13" Foreground="{DynamicResource TextMutedBrush}"
                    TextWrapping="Wrap" TextAlignment="Center" Margin="40 0"
                    HorizontalAlignment="Center" VerticalAlignment="Center" />
@@ -221,7 +223,7 @@
           <Border Grid.Column="1" x:Name="SplitDropZone" DragDrop.AllowDrop="True" Margin="0 34 0 0"
                   Background="{DynamicResource SurfaceOverlayBrush}" BorderBrush="{DynamicResource AccentBrush}"
                   BorderThickness="2" CornerRadius="4">
-            <TextBlock Text="Drop here to see two fits side by side" FontSize="14"
+            <TextBlock Text="{x:Static loc:FittingText.DropSideBySide}" FontSize="14"
                        Foreground="{DynamicResource TextBrightBrush}"
                        HorizontalAlignment="Center" VerticalAlignment="Center" />
           </Border>

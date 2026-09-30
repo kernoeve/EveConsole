@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using EveConsole.Localization;
 using EveConsole.ViewModels;
 
 namespace EveConsole.Views;
@@ -20,9 +21,9 @@ public partial class SaveFitDialog : Window
     private void OnSaveClick(object? sender, RoutedEventArgs e)
     {
         var name = NameBox.Text?.Trim() ?? "";
-        if (name.Length == 0) { Show("A fit needs a name."); return; }
-        if (Targets.SelectedItem is not SaveTarget target) { Show("Choose where to save it."); return; }
-        if (!target.Enabled) { Show(target.Why ?? "That character cannot be saved to."); return; }
+        if (name.Length == 0) { Show(FittingText.SaveErrNoName); return; }
+        if (Targets.SelectedItem is not SaveTarget target) { Show(FittingText.SaveErrNoTarget); return; }
+        if (!target.Enabled) { Show(target.Why ?? FittingText.SaveErrCannotSave); return; }
         Close(new SaveChoice(name, target));
     }
 

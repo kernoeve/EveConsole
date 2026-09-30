@@ -171,7 +171,11 @@ public sealed class DogmaData
         }
     }
 
-    /// <summary>Type ids for names, case-insensitive, published types preferred.</summary>
+    /// <summary>
+    /// Type ids for names, case-insensitive, published types preferred. A name the English list
+    /// does not know is looked for among the names in the game client's other languages, so a fit
+    /// copied from a German or a Chinese client reads too; where both know a name, the English wins.
+    /// </summary>
     public async Task<Dictionary<string, int>> FindTypesByNameAsync(IEnumerable<string> names, CancellationToken ct = default)
     {
         var wanted = names.Select(n => n.Trim()).Where(n => n.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
@@ -186,6 +190,24 @@ public sealed class DogmaData
                 .Where(t => list.Contains(t.Name))
                 .Select(t => new { t.TypeId, t.Name, t.Published }).ToListAsync(ct);
             foreach (var r in rows.OrderByDescending(r => r.Published))
+                found.TryAdd(r.Name, r.TypeId);
+        }
+
+        // By exact name, as the client writes them, in one query for the lot — and only for what
+        // the English did not find, so an English fit, every saved one among them, costs nothing.
+        // ⚠️ Looked up, not loaded: every language's type names in memory would be several hundred
+        // thousand strings kept for a rare paste. Item Valuation reads a list the same way
+        // (AppraisalService.OtherLanguageNamesAsync).
+        var missing = wanted.Where(n => !found.ContainsKey(n)).ToList();
+        foreach (var chunk in missing.Chunk(500))
+        {
+            var list = chunk.ToList();
+            var rows = await (from n in db.SdeNames.AsNoTracking()
+                              join t in db.SdeTypes.AsNoTracking() on n.Id equals (long)t.TypeId
+                              where n.Kind == Models.SdeNameKind.Type && list.Contains(n.Name)
+                              select new { n.Name, t.TypeId, t.Published }).ToListAsync(ct);
+            // Published first, then the lower type id, when two types share a name.
+            foreach (var r in rows.OrderByDescending(r => r.Published).ThenBy(r => r.TypeId))
                 found.TryAdd(r.Name, r.TypeId);
         }
         return found;

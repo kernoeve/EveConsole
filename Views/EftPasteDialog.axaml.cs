@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -27,7 +28,7 @@ public partial class EftPasteDialog : Window
         var text = EftBox.Text ?? "";
         if (!text.TrimStart().StartsWith('['))
         {
-            ErrorText.Text      = "An EFT fit starts with [Ship, Fit name].";
+            ErrorText.Text      = FittingText.EftErrStart;
             ErrorText.IsVisible = true;
             return;
         }

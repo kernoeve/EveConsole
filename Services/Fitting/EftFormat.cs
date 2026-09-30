@@ -1,3 +1,5 @@
+using EveConsole.Localization;
+
 namespace EveConsole.Services.Fitting;
 
 /// <summary>
@@ -11,16 +13,23 @@ namespace EveConsole.Services.Fitting;
 /// </code>
 /// Blank lines separate sections by convention only; the slot is read from the item, not from
 /// where it sits.
+///
+/// <para>⚠️ Written in English, whatever the interface language: other tools and the game read
+/// it. Read in any of the game client's languages — a fit copied from a German client names its
+/// items in German (<see cref="DogmaData.FindTypesByNameAsync"/>) — but the format's own words,
+/// "[Empty High slot]" and "/OFFLINE", only as English writes them.</para>
 /// </summary>
 public static class EftFormat
 {
     public sealed record ParseResult(FitDefinition Fit, IReadOnlyList<string> Unknown);
 
+    /// <summary>The fit in <paramref name="text"/>. Throws <see cref="FormatException"/> with a
+    /// sentence for the status line when the text is no EFT fit, or its hull is not known.</summary>
     public static async Task<ParseResult> ParseAsync(string text, DogmaData data, CancellationToken ct = default)
     {
         var lines = text.Replace("\r", "").Split('\n').Select(l => l.Trim()).Where(l => l.Length > 0).ToList();
         if (lines.Count == 0 || !lines[0].StartsWith('[') || !lines[0].EndsWith(']'))
-            throw new FormatException("An EFT fit starts with a line like [Ship, Fit name].");
+            throw new FormatException(FittingText.EftErrFirstLine);
 
         var head     = lines[0][1..^1];
         var comma    = head.IndexOf(',');
@@ -50,7 +59,7 @@ public static class EftFormat
             entries.Select(e => e.Name).Concat(entries.Where(e => e.Charge is not null).Select(e => e.Charge!)).Append(shipName), ct);
         var unknown = new List<string>();
         if (!ids.TryGetValue(shipName, out var shipId))
-            throw new FormatException($"Unknown ship: {shipName}");
+            throw new FormatException(string.Format(FittingText.EftErrUnknownShip, shipName));
 
         await data.LoadTypesAsync(ids.Values, ct);
         var fit = new FitDefinition { ShipTypeId = shipId, Name = fitName };
@@ -91,6 +100,7 @@ public static class EftFormat
     /// <summary>
     /// The fit as EFT text: low, mid and high slots, rigs, subsystems, then drones, implants and
     /// boosters, then cargo — each section separated by a blank line, the order the client writes.
+    /// English item names in every interface language: this is what tools and the game read.
     /// </summary>
     public static string Write(FitDefinition fit, DogmaData data)
     {

@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using EveConsole.Api;
+using EveConsole.Localization;
 using EveConsole.Models;
 
 namespace EveConsole.Services.Fitting;
@@ -35,10 +36,12 @@ public static class GameFittings
     /// loaded and not already in the cargo, one full load per module is added to it — which is
     /// where the game keeps them and where importing looks for them.
     /// </summary>
-    public static List<EsiFittingItem> ToItems(FitDefinition fit, DogmaData data, out IReadOnlyList<string> skipped)
+    /// <param name="skipped">The type ids a fitting has no place for — implants, boosters, a
+    /// module with no slot — for the caller to name.</param>
+    public static List<EsiFittingItem> ToItems(FitDefinition fit, DogmaData data, out IReadOnlyList<int> skipped)
     {
         var items = new List<EsiFittingItem>();
-        var skip  = new List<string>();
+        var skip  = new List<int>();
         var index = new Dictionary<FitSlot, int>();
         foreach (var m in fit.Modules)
         {
@@ -49,7 +52,7 @@ public static class GameFittings
                 FitSlot.High => "HiSlot", FitSlot.Mid => "MedSlot", FitSlot.Low => "LoSlot", FitSlot.Rig => "RigSlot",
                 FitSlot.Subsystem => "SubSystemSlot", FitSlot.Service => "ServiceSlot", _ => null,
             };
-            if (prefix is null) { skip.Add(t.Name); continue; }
+            if (prefix is null) { skip.Add(m.TypeId); continue; }
             var n = index.GetValueOrDefault(slot);
             index[slot] = n + 1;
             items.Add(new EsiFittingItem(m.TypeId, $"{prefix}{n}", 1));
@@ -78,16 +81,18 @@ public static class GameFittings
             items.Add(new EsiFittingItem(typeId, "Cargo", qty));
 
         // Implants and boosters are the pilot's, not the ship's; a saved fitting has no place for them.
-        skip.AddRange(fit.Implants.Concat(fit.Boosters).Select(id => data.TryType(id, out var t) ? t.Name : $"type {id}"));
+        skip.AddRange(fit.Implants.Concat(fit.Boosters));
         skipped = skip;
         return items;
     }
 
     /// <summary>Saves <paramref name="fit"/> as a new fitting on <paramref name="characterId"/>. The new
-    /// fitting's id, or the reason it could not be saved.</summary>
+    /// fitting's id, or the reason it could not be saved, in a sentence for the status line.</summary>
+    /// <param name="description">The fitting's description in the game, written as it is.</param>
     public static async Task<(int? FittingId, string? Error)> CreateAsync(EsiClient esi, long characterId, FitDefinition fit,
         DogmaData data, string description, CancellationToken ct = default)
     {
+        // English: the name of a fitting with none, written into the game.
         var name = fit.Name.Trim().Length > 0 ? fit.Name.Trim() : "Fit";
         var body = new EsiFittingCreate(name.Length > MaxName ? name[..MaxName] : name,
             description.Length > MaxDescription ? description[..MaxDescription] : description,
@@ -97,16 +102,17 @@ public static class GameFittings
             ? (created.FittingId, null)
             : (null, status switch
             {
-                0   => "The game could not be reached.",
-                401 or 403 => "This character has not granted the fittings write scope — re-authorise it in Settings → ESI Tokens.",
-                _   => $"The game refused the fitting (HTTP {status}).",
+                0   => FittingText.GameErrUnreachable,
+                401 or 403 => FittingText.GameErrNoScope,
+                _   => string.Format(FittingText.GameErrRefused, status),
             });
     }
 
-    /// <summary>Deletes fitting <paramref name="fittingId"/> from <paramref name="characterId"/>; null on success.</summary>
-    public static async Task<string?> DeleteAsync(EsiClient esi, long characterId, int fittingId, CancellationToken ct = default)
+    /// <summary>Deletes fitting <paramref name="fittingId"/> from <paramref name="characterId"/>: null
+    /// once it is gone, else the HTTP status the game refused with (0 when it could not be reached).</summary>
+    public static async Task<int?> DeleteAsync(EsiClient esi, long characterId, int fittingId, CancellationToken ct = default)
     {
         var status = await esi.DeleteAuthAsync(characterId, $"characters/{characterId}/fittings/{fittingId}/", ct);
-        return status is >= 200 and < 300 or 404 ? null : $"The old fitting could not be removed (HTTP {status}).";
+        return status is >= 200 and < 300 or 404 ? null : status;
     }
 }

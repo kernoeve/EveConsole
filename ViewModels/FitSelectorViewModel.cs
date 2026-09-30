@@ -25,6 +25,9 @@ public record FitGroupOption(int GroupId, string GroupName)
 
 public record FitSelectorResult(EsiFittingData Fitting, int TargetGroupId);
 
+/// <summary>Whose fittings the picker lists: a character's own, or a corporation's.</summary>
+public sealed record FitOwner(FitSource Source, string Name);
+
 // ── Tree node ─────────────────────────────────────────────────────────────────
 
 public class FitTreeNode : ReactiveObject
@@ -92,31 +95,32 @@ public class FitSelectorViewModel : ReactiveObject
 
     // ── Owner filter ──────────────────────────────────────────────────────────
 
-    public const string EveryOwner = "Everyone";
-
     /// <summary>A fitting's owner as the picker names it: a character's name, or a corporation's
     /// followed by "(corp)" — a character and a corporation can share a name.</summary>
-    public static string OwnerLabel(FitEntry e) => e.Source == FitSource.Corp ? $"{e.OwnerName} (corp)" : e.OwnerName;
+    public static string OwnerLabel(FitEntry e) => e.Source == FitSource.Corp ? string.Format(FittingText.OwnerCorp, e.OwnerName) : e.OwnerName;
 
-    /// <summary>Everyone, then each character with fittings, then each corporation.</summary>
-    public ObservableCollection<string> Owners { get; } = [EveryOwner];
+    /// <summary>Everyone (null), then each character with fittings, then each corporation. Chosen
+    /// and matched by the owner itself; the label is only shown.</summary>
+    public ObservableCollection<Choice<FitOwner?>> Owners { get; } = [new(null, FittingText.OwnerEveryone)];
 
-    private string _selectedOwner = EveryOwner;
-    public string SelectedOwner
+    private FitOwner? _selectedOwner;
+    public Choice<FitOwner?> SelectedOwner
     {
-        get => _selectedOwner;
+        get => Owners.FirstOrDefault(o => o.Value == _selectedOwner) ?? Owners[0];
         set
         {
-            var v = string.IsNullOrEmpty(value) ? EveryOwner : value;
-            if (v == _selectedOwner) return;
-            this.RaiseAndSetIfChanged(ref _selectedOwner, v);
+            // A detaching ComboBox sets null; that is not a choice.
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            if (value.Value == _selectedOwner) return;
+            _selectedOwner = value.Value;
+            this.RaisePropertyChanged();
             if (_allFits is not null) _ = BuildTreeAsync(Filtered(), CancellationToken.None);
         }
     }
 
     private List<FitEntry>? _allFits;
-    private List<FitEntry> Filtered() =>
-        _selectedOwner == EveryOwner ? _allFits! : _allFits!.Where(f => OwnerLabel(f) == _selectedOwner).ToList();
+    private List<FitEntry> Filtered() => _selectedOwner is not { } owner ? _allFits!
+        : _allFits!.Where(f => f.Source == owner.Source && f.OwnerName == owner.Name).ToList();
     public ObservableCollection<FitGroupOption> Groups      { get; } = [];
     public ObservableCollection<FitDetailLine>  DetailLines { get; } = [];
 
@@ -165,8 +169,8 @@ public class FitSelectorViewModel : ReactiveObject
 
     /// <summary>The window's title and its confirm button: adding a fit's items to a group, or
     /// opening the fit in the fitting tool.</summary>
-    public string WindowTitle => ChooseGroup ? "Add Items From Fit" : "Load Fit From the Game";
-    public string ConfirmText => ChooseGroup ? "Add Items" : "Load Fit";
+    public string WindowTitle => ChooseGroup ? CommonText.TitleAddItemsFromFit : FittingText.TitleLoadFitFromGame;
+    public string ConfirmText => ChooseGroup ? CommonText.AddItems2 : FittingText.LoadFit;
 
     public bool CanConfirm     => _selectedNode?.IsFit == true && (!ChooseGroup || _selectedGroup != null);
 
@@ -198,9 +202,9 @@ public class FitSelectorViewModel : ReactiveObject
         {
             var fits = await _svc.FetchAllFitsAsync(_characters, _corporations, ct);
             _allFits = fits;
-            foreach (var owner in fits.OrderBy(f => f.Source).ThenBy(f => f.OwnerName, StringComparer.OrdinalIgnoreCase)
-                                      .Select(OwnerLabel).Distinct())
-                Owners.Add(owner);
+            foreach (var f in fits.OrderBy(f => f.Source).ThenBy(f => f.OwnerName, StringComparer.OrdinalIgnoreCase)
+                                  .DistinctBy(f => (f.Source, f.OwnerName)))
+                Owners.Add(new(new FitOwner(f.Source, f.OwnerName), OwnerLabel(f)));
             StatusText = CommonText.BuildingFitTree;
             await BuildTreeAsync(fits, ct);
         }

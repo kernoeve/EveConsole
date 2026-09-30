@@ -5,6 +5,7 @@ using System.Reactive.Linq;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using EveConsole.Data;
+using EveConsole.Localization;
 using EveConsole.Models;
 using EveConsole.Services;
 using EveConsole.Services.Fitting;
@@ -42,9 +43,21 @@ public sealed class FittingModuleRowVm : ReactiveObject
 {
     public FitSlot Slot    { get; }
     public int     TypeId  { get; }
+    /// <summary>The module's English name — what the ring is handed; it names slots itself.</summary>
     public string  Name    { get; }
+    /// <summary>The module's name in the interface language, for the list. Display only.</summary>
+    public string  DisplayName => SdeNames.Type(TypeId, Name);
     public bool    IsEmpty => TypeId == 0;
-    public string  EmptyText => $"[Empty {FittingCatalog.SlotName(Slot)} slot]";
+    public string  EmptyText => Slot switch
+    {
+        FitSlot.High      => FittingText.EmptyRowHigh,
+        FitSlot.Mid       => FittingText.EmptyRowMid,
+        FitSlot.Low       => FittingText.EmptyRowLow,
+        FitSlot.Rig       => FittingText.EmptyRowRig,
+        FitSlot.Subsystem => FittingText.EmptyRowSubsystem,
+        FitSlot.Service   => FittingText.EmptyRowService,
+        _                 => "",
+    };
     public bool    CanActivate { get; init; }
     public bool    CanOverheat { get; init; }
     /// <summary>Rigs and subsystems are always on; there is nothing to switch.</summary>
@@ -66,20 +79,29 @@ public sealed class FittingModuleRowVm : ReactiveObject
     public bool IsHeated => _state == ModuleState.Overheated;
     public string StateLabel => State switch
     {
-        ModuleState.Offline    => "OFF",
-        ModuleState.Online     => "ON",
-        ModuleState.Active     => "ACT",
-        ModuleState.Overheated => "HEAT",
+        ModuleState.Offline    => FittingText.StateOff,
+        ModuleState.Online     => FittingText.StateOn,
+        ModuleState.Active     => FittingText.StateAct,
+        ModuleState.Overheated => FittingText.StateHeat,
         _                      => "",
     };
     public string StateTip => State switch
     {
-        ModuleState.Offline    => "Offline — click to put online",
-        ModuleState.Online     => CanActivate ? "Online — click to activate" : "Online — click to take offline",
-        ModuleState.Active     => "Active — click to take offline",
-        _                      => "Overheated — click to take offline",
+        ModuleState.Offline    => FittingText.TipStateOffline,
+        ModuleState.Online     => CanActivate ? FittingText.TipStateOnlineActivate : FittingText.TipStateOnlineOffline,
+        ModuleState.Active     => FittingText.TipStateActive,
+        _                      => FittingText.TipStateOverheated,
     };
-    public string HeatTip => IsHeated ? "Overheated — click to stop" : "Click to overheat";
+    public string HeatTip => IsHeated ? FittingText.TipHeatStop : FittingText.TipHeatStart;
+
+    /// <summary>The state as the ring's tooltip names it.</summary>
+    public string StateName => State switch
+    {
+        ModuleState.Offline    => FittingText.StateNameOffline,
+        ModuleState.Active     => FittingText.StateNameActive,
+        ModuleState.Overheated => FittingText.StateNameOverheated,
+        _                      => FittingText.StateNameOnline,
+    };
 
     private IReadOnlyList<CatalogEntry> _charges = [];
     public IReadOnlyList<CatalogEntry> Charges
@@ -133,6 +155,8 @@ public sealed class FittingDroneRowVm : ReactiveObject
 {
     public int    TypeId { get; }
     public string Name   { get; }
+    /// <summary>The drone's or fighter's name in the interface language, for the list. Display only.</summary>
+    public string DisplayName => SdeNames.Type(TypeId, Name);
     private int _count, _active;
     public int Count
     {
@@ -159,9 +183,17 @@ public sealed class FittingDroneRowVm : ReactiveObject
     public bool Launched { get => _active > 0; set => Active = value ? _count : 0; }
     /// <summary>For a squadron: the most fighters it holds.</summary>
     public int MaxSquadron { get; init; } = int.MaxValue;
-    /// <summary>For a squadron: its launch slot class ("Light", "Support", "Heavy").</summary>
-    public string ClassLabel { get; init; } = "";
-    public string SquadronTip => $"{ClassLabel} squadron of up to {MaxSquadron}";
+    /// <summary>For a squadron: its launch slot class, when the type names one.</summary>
+    public FighterClass? Class { get; init; }
+    /// <summary>For a squadron: its class as shown ("Light", "Support", "Heavy").</summary>
+    public string ClassLabel => Class is { } c ? FighterAbilities.ClassName(c) : "";
+    public string SquadronTip => Class switch
+    {
+        FighterClass.Light or FighterClass.StandupLight     => string.Format(FittingText.TipSquadronLight, MaxSquadron),
+        FighterClass.Support or FighterClass.StandupSupport => string.Format(FittingText.TipSquadronSupport, MaxSquadron),
+        FighterClass.Heavy or FighterClass.StandupHeavy     => string.Format(FittingText.TipSquadronHeavy, MaxSquadron),
+        _                                                    => string.Format(FittingText.TipSquadron, MaxSquadron),
+    };
     public ObservableCollection<FighterAbilityToggleVm> Abilities { get; } = [];
     private string _detail = "";
     /// <summary>What the stack or squadron does once launched — its DPS, per ability for a squadron.</summary>
@@ -186,8 +218,8 @@ public sealed class FighterAbilityToggleVm(FighterAbility ability, bool on) : Re
     public string Label => Ability.Label;
     public bool DealsDamage => Ability.DealsDamage;
     public string Tip => Ability.DealsDamage
-        ? $"{Ability.Label}: counted in the DPS while on"
-        : $"{Ability.Label}: no effect on the fit's numbers";
+        ? string.Format(FittingText.TipAbilityCounted, Ability.Label)
+        : string.Format(FittingText.TipAbilityNoEffect, Ability.Label);
     private bool _isOn = on;
     public bool IsOn { get => _isOn; set => this.RaiseAndSetIfChanged(ref _isOn, value); }
 }
@@ -196,6 +228,8 @@ public sealed class FittingCargoRowVm : ReactiveObject
 {
     public int    TypeId { get; }
     public string Name   { get; }
+    /// <summary>The item's name in the interface language, for the list. Display only.</summary>
+    public string DisplayName => SdeNames.Type(TypeId, Name);
     private int _quantity;
     public int Quantity
     {
@@ -211,8 +245,10 @@ public sealed class FittingCargoRowVm : ReactiveObject
     public FittingCargoRowVm(int typeId, string name, int quantity) { TypeId = typeId; Name = name; _quantity = Math.Max(1, quantity); }
 }
 
-/// <summary>A damage profile to judge the tank against: even, one type, or the user's own mix.</summary>
-public sealed record DamageProfileOption(string Name, DamageProfile? Profile)
+/// <summary>A damage profile to judge the tank against: even, one type, or the user's own mix.
+/// <paramref name="Key"/> is what the choice is remembered by, the same in every language;
+/// <paramref name="Name"/> is shown.</summary>
+public sealed record DamageProfileOption(string Key, string Name, DamageProfile? Profile)
 {
     public bool IsCustom => Profile is null;
     public override string ToString() => Name;
@@ -222,8 +258,10 @@ public sealed class FittingImplantRowVm(int typeId, string name, bool booster)
 {
     public int    TypeId    { get; } = typeId;
     public string Name      { get; } = name;
+    /// <summary>The implant's or booster's name in the interface language, for the list. Display only.</summary>
+    public string DisplayName => SdeNames.Type(TypeId, Name);
     public bool   IsBooster { get; } = booster;
-    public string Kind      => IsBooster ? "Booster" : "Implant";
+    public string Kind      => IsBooster ? FittingText.KindBooster : FittingText.KindImplant;
     public ReactiveCommand<Unit, Unit>? RemoveCommand { get; set; }
 }
 
@@ -245,9 +283,11 @@ public sealed record SkillSourceOption(string Name, long? CharacterId, int AllLe
     public override string ToString() => Name;
 }
 
+/// <param name="Name">The fit's name, the user's own.</param>
+/// <param name="ShipName">The hull's name as shown.</param>
 public sealed record SavedFitOption(long Id, string Name, string ShipName)
 {
-    public override string ToString() => $"{Name}  ({ShipName})";
+    public override string ToString() => string.Format(FittingText.SavedFitLabel, Name, ShipName);
 }
 
 public sealed record TankLayerRow(string Layer, string Hp, string Em, string Thermal, string Kinetic, string Explosive, string Ehp);
@@ -260,7 +300,7 @@ public sealed class FitSnapshot
     public double DroneBay, DroneBayOut, Bandwidth, BandwidthOut;
     public double FighterBay, FighterBayOut; public int Tubes, TubesOut;
     /// <summary>Launch slots per squadron class the hull has, or is using: (class, in tubes, slots).</summary>
-    public List<(string Class, int Used, int Out)> FighterSlots = [];
+    public List<(FighterClass Class, int Used, int Out)> FighterSlots = [];
     public Dictionary<FitSlot, int> Slots = new();
     public List<TankLayerRow> Tank = [];
     public double Ehp;
@@ -268,7 +308,9 @@ public sealed class FitSnapshot
     public DamageBreakdown WeaponDps = DamageBreakdown.Zero, DroneDps = DamageBreakdown.Zero, FighterDps = DamageBreakdown.Zero, Volley = DamageBreakdown.Zero;
     public Dictionary<int, string> DroneDetail = new();    // by drone/squadron index
     public double Speed, Align, Signature, Warp, Mass, Agility;
-    public double Range, ScanRes, MaxTargets, Sensor; public string SensorType = "";
+    public double Range, ScanRes, MaxTargets, Sensor;
+    /// <summary>The strongest sensor's attribute, which says its type (radar, ladar…).</summary>
+    public string SensorAttribute = "";
     public Dictionary<int, string> ModuleDetail = new();   // by module index
     public TankRates? Rates;
     public double ShieldRecharge;
@@ -320,7 +362,7 @@ public class FittingViewModel : ReactiveObject
         AddToCargoCommand  = Guarded(ReactiveCommand.Create(() =>
         {
             if (SelectedResult is not { } r) return;
-            if (SelectedTab is not { HasShip: true } tab) { Status = "Start a fit first."; return; }
+            if (SelectedTab is not { HasShip: true } tab) { Status = FittingText.StatusStartFitFirst; return; }
             tab.AddToCargo(r, 1);
         }));
 
@@ -504,14 +546,14 @@ public class FittingViewModel : ReactiveObject
     {
         if (_loaded || _loading) return;
         _loading = true;
-        Status = "Loading game data…";
+        Status = FittingText.StatusLoadingGameData;
         try
         {
             Data    = await Task.Run(() => DogmaData.LoadAsync(DbFactory));
             Catalog = await Task.Run(() => FittingCatalog.LoadAsync(Data, DbFactory));
             if (Data.Effects.Count == 0 || Catalog.Entries.Count == 0)
             {
-                Status = "No game data yet — import the SDE in Settings → SDE, then reopen this tool.";
+                Status = FittingText.StatusNoGameData;
                 return;
             }
             // An SDE imported by a build before this tool has the effects but not their rules,
@@ -519,38 +561,38 @@ public class FittingViewModel : ReactiveObject
             // by itself after upgrading; say so rather than show numbers that look plausible.
             if (Data.Effects.Values.All(e => e.Modifiers.Count == 0))
             {
-                Status = "The game data is being updated for fitting (Settings → SDE shows the progress). Reopen this tool when it finishes.";
+                Status = FittingText.StatusGameDataUpdating;
                 Data = null;
                 return;
             }
             SkillSources.Clear();
-            SkillSources.Add(new SkillSourceOption("All V", null, 5));
-            SkillSources.Add(new SkillSourceOption("All 0", null, 0));
+            SkillSources.Add(new SkillSourceOption(FittingText.PilotAllV, null, 5));
+            SkillSources.Add(new SkillSourceOption(FittingText.PilotAll0, null, 0));
             await using (var db = await DbFactory.CreateDbContextAsync())
                 foreach (var c in (await db.Characters.AsNoTracking().Select(c => new { c.Id, c.Name }).ToListAsync()).OrderBy(c => c.Name))
                     SkillSources.Add(new SkillSourceOption(c.Name, c.Id, 0));
             await LoadSavedListAsync();
             Hulls.Clear();
-            foreach (var h in Catalog.Entries.Where(e => e.Kind == CatalogKind.Hull).OrderBy(e => e.Name, StringComparer.OrdinalIgnoreCase))
+            foreach (var h in Catalog.Entries.Where(e => e.Kind == CatalogKind.Hull).OrderBy(e => e.DisplayName, StringComparer.CurrentCulture))
                 Hulls.Add(h);
 
             IsReady = true;
-            Status  = "Start a fit from a hull, paste one, or open one from the game or your saved fits.";
+            Status  = FittingText.StatusStart;
             await RunSearchAsync();
         }
-        catch (Exception ex) { Status = $"Could not load game data: {ex.Message}"; }
+        catch (Exception ex) { Status = string.Format(FittingText.StatusLoadFailed, ex.Message); }
         finally { _loading = false; }
     }
 
     // ── Finder ──────────────────────────────────────────────────────────────────
 
-    /// <summary>Every hull, for the new-fit picker.</summary>
+    /// <summary>Every hull, for the new-fit picker, in the order of the names it shows.</summary>
     public ObservableCollection<CatalogEntry> Hulls { get; } = [];
 
-    /// <summary>The new-fit picker matches every word against the hull's name or its class.</summary>
+    /// <summary>The new-fit picker matches every word against the hull's name or its class, as
+    /// shown or in English.</summary>
     public Avalonia.Controls.AutoCompleteFilterPredicate<object?> HullFilter { get; } = (text, item) =>
-        item is CatalogEntry e && (text ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries)
-            .All(w => e.Name.Contains(w, StringComparison.OrdinalIgnoreCase) || e.GroupName.Contains(w, StringComparison.OrdinalIgnoreCase));
+        item is CatalogEntry e && (text ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries).All(e.Matches);
 
     /// <summary>A new fit on <paramref name="hull"/>, in a tab of its own.</summary>
     public async Task NewFitAsync(CatalogEntry hull)
@@ -558,17 +600,50 @@ public class FittingViewModel : ReactiveObject
         if (Data is null || hull.Kind != CatalogKind.Hull) return;
         await Data.LoadTypesAsync([hull.TypeId]);
         await NewTab().StartAsync(hull);
-        Status = $"New {hull.Name} fit. Add modules from Items.";
+        Status = string.Format(FittingText.StatusNewFit, hull.DisplayName);
     }
 
-    public static IReadOnlyList<string> KindFilters { get; } =
-        ["All", "Modules", "Rigs", "Subsystems", "Charges", "Drones", "Implants", "Boosters", "Other items"];
+    /// <summary>The finder's categories. <see cref="KindFilter"/> holds the key, which
+    /// <see cref="RunSearchAsync"/> and <see cref="PointFinderAt"/> go by; only the label is shown.</summary>
+    public static IReadOnlyList<Choice<string>> KindFilters { get; } =
+    [
+        new("All",         FittingText.FilterAll),
+        new("Modules",     FittingText.FilterModules),
+        new("Rigs",        FittingText.FilterRigs),
+        new("Subsystems",  FittingText.FilterSubsystems),
+        new("Charges",     FittingText.FilterCharges),
+        new("Drones",      FittingText.FilterDrones),
+        new("Implants",    FittingText.FilterImplants),
+        new("Boosters",    FittingText.FilterBoosters),
+        new("Other items", FittingText.FilterOtherItems),
+    ];
 
     private string _searchText = "";
     public string SearchText { get => _searchText; set => this.RaiseAndSetIfChanged(ref _searchText, value); }
 
     private string _kindFilter = "All";
-    public string KindFilter { get => _kindFilter; set => this.RaiseAndSetIfChanged(ref _kindFilter, value); }
+    /// <summary>The finder's category, by key: a value of <see cref="KindFilters"/>.</summary>
+    public string KindFilter
+    {
+        get => _kindFilter;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _kindFilter, value);
+            this.RaisePropertyChanged(nameof(SelectedKindFilter));
+        }
+    }
+
+    /// <summary>The category pick list's choice.</summary>
+    public Choice<string> SelectedKindFilter
+    {
+        get => KindFilters.FirstOrDefault(o => o.Value == _kindFilter) ?? KindFilters[0];
+        set
+        {
+            // A detaching ComboBox sets null; that is not a choice.
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            KindFilter = value.Value;
+        }
+    }
 
     private bool _fitsOnly = true;
     /// <summary>Only modules, rigs and subsystems the current hull could take.</summary>
@@ -653,7 +728,16 @@ public class FittingViewModel : ReactiveObject
         }
     }
     public bool   HasFinderSlot  => _finderSlot is not null;
-    public string FinderSlotText => _finderSlot is { } s ? $"{char.ToUpper(FittingCatalog.SlotName(s)[0])}{FittingCatalog.SlotName(s)[1..]} slot modules only" : "";
+    public string FinderSlotText => _finderSlot switch
+    {
+        FitSlot.High      => FittingText.FinderOnlyHigh,
+        FitSlot.Mid       => FittingText.FinderOnlyMid,
+        FitSlot.Low       => FittingText.FinderOnlyLow,
+        FitSlot.Rig       => FittingText.FinderOnlyRig,
+        FitSlot.Subsystem => FittingText.FinderOnlySubsystem,
+        FitSlot.Service   => FittingText.FinderOnlyService,
+        _                 => "",
+    };
     public ReactiveCommand<Unit, Unit> ClearFinderSlotCommand => _clearFinderSlot ??= ReactiveCommand.Create(() => { FinderSlot = null; });
     private ReactiveCommand<Unit, Unit>? _clearFinderSlot;
 
@@ -680,7 +764,7 @@ public class FittingViewModel : ReactiveObject
     {
         if (Data is null || Catalog is null) return;
         if (entry.Kind == CatalogKind.Hull) { await NewFitAsync(entry); return; }
-        if (SelectedTab is not { HasShip: true } tab) { Status = "Pick a hull first."; return; }
+        if (SelectedTab is not { HasShip: true } tab) { Status = FittingText.StatusPickHullFirst; return; }
         await tab.AddAsync(entry);
     }
 
@@ -705,13 +789,15 @@ public class FittingViewModel : ReactiveObject
         if (string.IsNullOrWhiteSpace(text)) return;
         var parsed = await EftFormat.ParseAsync(text, Data);
         await NewTab().LoadFitAsync(parsed.Fit);
-        Status = parsed.Unknown.Count == 0 ? $"Imported {parsed.Fit.Name}." : $"Imported, but not recognised: {string.Join(", ", parsed.Unknown)}";
+        Status = parsed.Unknown.Count == 0
+            ? string.Format(FittingText.StatusImported, parsed.Fit.Name)
+            : string.Format(FittingText.StatusImportedUnrecognised, string.Join(CommonText.ListSeparator, parsed.Unknown));
     }
 
     private async Task ImportEsiAsync()
     {
         if (Data is null || Catalog is null) return;
-        if (Fittings is null || Characters is null || Corporations is null) { Status = "No characters to read fittings from."; return; }
+        if (Fittings is null || Characters is null || Corporations is null) { Status = FittingText.StatusNoCharacters; return; }
         var picker = new FitSelectorViewModel(Fittings, DbFactory, Characters, Corporations, [], 0) { ChooseGroup = false };
         var esi = await PickEsiFit.Handle(picker);
         if (esi is null) return;
@@ -727,7 +813,7 @@ public class FittingViewModel : ReactiveObject
             if (tab.SelectedSkillSource?.CharacterId is null && SkillSources.FirstOrDefault(s => s.CharacterId == owner.Id) is { } pilot)
                 tab.SelectedSkillSource = pilot;
         }
-        Status = $"Imported {esi.Name} from the game.";
+        Status = string.Format(FittingText.StatusImportedFromGame, esi.Name);
     }
 
     // ── Saved fits ──────────────────────────────────────────────────────────────
@@ -754,7 +840,7 @@ public class FittingViewModel : ReactiveObject
         var rows = await db.SavedFits.AsNoTracking().Select(f => new { f.Id, f.Name, f.ShipTypeId }).ToListAsync();
         SavedFits.Clear();
         foreach (var r in rows.OrderBy(r => r.Name, StringComparer.OrdinalIgnoreCase))
-            SavedFits.Add(new SavedFitOption(r.Id, r.Name, Catalog?.Find(r.ShipTypeId)?.Name ?? ""));
+            SavedFits.Add(new SavedFitOption(r.Id, r.Name, Catalog?.Find(r.ShipTypeId)?.DisplayName ?? ""));
     }
 
     private async Task OpenSavedAsync(SavedFitOption option)
@@ -768,17 +854,17 @@ public class FittingViewModel : ReactiveObject
         await tab.LoadFitAsync(parsed.Fit);
         tab.FitName = row.Name;
         tab.MarkSavedInApp(row.Id);
-        Status = $"Opened {row.Name}.";
+        Status = string.Format(FittingText.StatusOpened, row.Name);
     }
 
     private async Task DeleteSavedAsync()
     {
-        if (SelectedSaved is not { } sel) { Status = "Choose a saved fit to delete."; return; }
+        if (SelectedSaved is not { } sel) { Status = FittingText.StatusChooseSavedToDelete; return; }
         await using var db = await DbFactory.CreateDbContextAsync();
         await db.SavedFits.Where(f => f.Id == sel.Id).ExecuteDeleteAsync();
         _selectedSaved = null; this.RaisePropertyChanged(nameof(SelectedSaved));
         await LoadSavedListAsync();
-        Status = $"Deleted {sel.Name}.";
+        Status = string.Format(FittingText.StatusDeleted, sel.Name);
     }
 }
 
@@ -857,7 +943,7 @@ public class FitTabViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> SaveCommand    { get; }
 
     /// <summary>The tab's label: the fit's name, else the hull's.</summary>
-    public string TabTitle => FitName.Trim().Length > 0 ? FitName.Trim() : ShipName.Length > 0 ? ShipName : "New fit";
+    public string TabTitle => FitName.Trim().Length > 0 ? FitName.Trim() : ShipName.Length > 0 ? ShipName : FittingText.TabNewFit;
     /// <summary>Changed since it was loaded or saved — the dot on the tab.</summary>
     public bool TabDirty => IsDirty;
     public ReactiveCommand<Unit, Unit> CloseCommand { get; }
@@ -866,11 +952,12 @@ public class FitTabViewModel : ReactiveObject
     private bool _isSelected;
     public bool IsSelected { get => _isSelected; set => this.RaiseAndSetIfChanged(ref _isSelected, value); }
 
-    /// <summary>A new fit on <paramref name="hull"/>.</summary>
+    /// <summary>A new fit on <paramref name="hull"/>. The name it starts with is the user's to
+    /// change, so it is worded in the interface language like the rest of the screen.</summary>
     public async Task StartAsync(CatalogEntry hull)
     {
         SetShip(hull.TypeId);
-        FitName = $"New {hull.Name}";
+        FitName = string.Format(FittingText.NewFitName, hull.DisplayName);
         RebuildSlots();
         await RecalculateAsync(CancellationToken.None);
         MarkClean();
@@ -887,6 +974,7 @@ public class FitTabViewModel : ReactiveObject
     // ── Header: hull, name, pilot ───────────────────────────────────────────────
 
     private string _shipName = "";
+    /// <summary>The hull's name in the interface language. Display only: the fit holds the type id.</summary>
     public string ShipName { get => _shipName; private set => this.RaiseAndSetIfChanged(ref _shipName, value); }
     public bool HasShip => _shipTypeId != 0;
 
@@ -918,7 +1006,7 @@ public class FitTabViewModel : ReactiveObject
         switch (entry.Kind)
         {
             case CatalogKind.Module or CatalogKind.Rig or CatalogKind.Subsystem:
-                if (_shipTypeId == 0) { Status = "Pick a hull first."; return; }
+                if (_shipTypeId == 0) { Status = FittingText.StatusPickHullFirst; return; }
                 // Checked against the fit as it is now, not the last debounced calculation, which
                 // may not include a module added a moment ago.
                 _recalcCts?.Cancel();
@@ -929,7 +1017,7 @@ public class FitTabViewModel : ReactiveObject
                     return;
                 }
                 await AddModuleAsync(entry.TypeId, EftFormat.DefaultState(_data, type), null);
-                Status = $"Added {entry.Name}.";
+                Status = string.Format(FittingText.StatusAdded, entry.DisplayName);
                 break;
 
             case CatalogKind.Charge:
@@ -939,24 +1027,24 @@ public class FitTabViewModel : ReactiveObject
             case CatalogKind.Drone:
                 if (Drones.FirstOrDefault(d => d.TypeId == entry.TypeId) is { } existing) existing.Count++;
                 else AddDrone(entry.TypeId, entry.Name, 1, 1);
-                Status = $"Added {entry.Name}.";
+                Status = string.Format(FittingText.StatusAdded, entry.DisplayName);
                 break;
 
             // A full squadron each time, into a tube if one is free.
             case CatalogKind.Fighter:
                 var size = FighterAbilities.MaxSquadron(_data, _data.Type(entry.TypeId));
                 _droneEdited = AddDrone(entry.TypeId, entry.Name, size, size);
-                Status = $"Added a squadron of {size} {entry.Name}.";
+                Status = string.Format(FittingText.StatusAddedSquadron, size, entry.DisplayName);
                 break;
 
             case CatalogKind.Implant or CatalogKind.Booster:
-                if (Implants.Any(i => i.TypeId == entry.TypeId)) { Status = $"{entry.Name} is already plugged in."; return; }
+                if (Implants.Any(i => i.TypeId == entry.TypeId)) { Status = string.Format(FittingText.StatusAlreadyPluggedIn, entry.DisplayName); return; }
                 AddImplant(entry.TypeId, entry.Name, entry.Kind == CatalogKind.Booster);
-                Status = $"Added {entry.Name}.";
+                Status = string.Format(FittingText.StatusAdded, entry.DisplayName);
                 break;
 
             case CatalogKind.Item:
-                if (_shipTypeId == 0) { Status = "Pick a hull first."; return; }
+                if (_shipTypeId == 0) { Status = FittingText.StatusPickHullFirst; return; }
                 AddToCargo(entry, 1);
                 break;
         }
@@ -967,7 +1055,7 @@ public class FitTabViewModel : ReactiveObject
     private void SetShip(int typeId)
     {
         _shipTypeId = typeId;
-        ShipName = _catalog?.Find(typeId)?.Name ?? _data?.Type(typeId).Name ?? "";
+        ShipName = SdeNames.Type(typeId, _catalog?.Find(typeId)?.Name ?? _data?.Type(typeId).Name ?? "");
         this.RaisePropertyChanged(nameof(HasShip));
         _ = LoadShipIconAsync(typeId);
     }
@@ -1023,9 +1111,11 @@ public class FitTabViewModel : ReactiveObject
         var targets = SelectedModule is { IsEmpty: false } sel && sel.Charges.Any(c => c.TypeId == charge.TypeId)
             ? [sel]
             : _modules.Where(m => m.Charges.Any(c => c.TypeId == charge.TypeId)).ToList();
-        if (targets.Count == 0) { Status = $"Nothing fitted can load {charge.Name}."; return; }
+        if (targets.Count == 0) { Status = string.Format(FittingText.StatusNothingCanLoad, charge.DisplayName); return; }
         foreach (var t in targets) t.Charge = t.Charges.First(c => c.TypeId == charge.TypeId);
-        Status = targets.Count == 1 ? $"Loaded {charge.Name}." : $"Loaded {charge.Name} in {targets.Count} modules.";
+        Status = targets.Count == 1
+            ? string.Format(FittingText.StatusLoadedCharge, charge.DisplayName)
+            : Plurals.Format(FittingText.ResourceManager, nameof(FittingText.StatusLoadedChargeInModulesOther), targets.Count, charge.DisplayName);
         await Task.CompletedTask;
     }
 
@@ -1034,7 +1124,7 @@ public class FitTabViewModel : ReactiveObject
     {
         if (Cargo.FirstOrDefault(c => c.TypeId == entry.TypeId) is { } stack) stack.Quantity += quantity;
         else AddCargo(entry.TypeId, entry.Name, quantity);
-        Status = $"{entry.Name} in the cargo hold.";
+        Status = string.Format(FittingText.StatusInCargo, entry.DisplayName);
         ScheduleRecalc();
     }
 
@@ -1055,7 +1145,7 @@ public class FitTabViewModel : ReactiveObject
         {
             IsFighter   = fighter,
             MaxSquadron = type is null ? int.MaxValue : FighterAbilities.MaxSquadron(_data!, type),
-            ClassLabel  = type is not null && FighterAbilities.ClassOf(_data!, type) is { } c ? FighterAbilities.ClassName(c) : "",
+            Class       = type is null ? null : FighterAbilities.ClassOf(_data!, type),
         };
         if (type is not null)
             foreach (var a in FighterAbilities.Of(_data!, type))
@@ -1091,7 +1181,7 @@ public class FitTabViewModel : ReactiveObject
         this.RaisePropertyChanged(nameof(HasShip));
         RebuildSlots();
         Stats = null;
-        if (announce) Status = "New fit. Pick a hull.";
+        if (announce) Status = FittingText.StatusNewFitPickHull;
     }
 
     // ── The ring ────────────────────────────────────────────────────────────────
@@ -1123,9 +1213,10 @@ public class FitTabViewModel : ReactiveObject
                     ModuleState.Overheated => Controls.SlotActivity.Overheated,
                     _                      => Controls.SlotActivity.Online,
                 };
-                var detail = r.IsEmpty ? "Click to choose a module for this slot"
-                    : string.Join("  ·  ", new[] { r.CanToggle ? r.State.ToString() : null, r.Charge?.Name, r.Detail }
+                var detail = r.IsEmpty ? FittingText.TipChooseModule
+                    : string.Join("  ·  ", new[] { r.CanToggle ? r.StateName : null, r.Charge?.DisplayName, r.Detail }
                         .Where(x => !string.IsNullOrEmpty(x)));
+                // The English name: the ring names the module in the interface language itself.
                 slots.Add(new Controls.FittingSlot(band, i, r.TypeId, r.Name, r.Icon, false, activity, r.ChargeIcon, detail, r));
             }
         RingSlots = slots;
@@ -1147,7 +1238,15 @@ public class FitTabViewModel : ReactiveObject
         if (slot.Tag is FittingModuleRowVm empty)
         {
             Tool.PointFinderAt(empty.Slot);
-            Status     = $"Choose a {FittingCatalog.SlotName(empty.Slot)} slot module from Items.";
+            Status     = empty.Slot switch
+            {
+                FitSlot.High      => FittingText.StatusChooseHigh,
+                FitSlot.Mid       => FittingText.StatusChooseMid,
+                FitSlot.Low       => FittingText.StatusChooseLow,
+                FitSlot.Rig       => FittingText.StatusChooseRig,
+                FitSlot.Subsystem => FittingText.StatusChooseSubsystem,
+                _                 => FittingText.StatusChooseService,
+            };
         }
     }
 
@@ -1185,11 +1284,22 @@ public class FitTabViewModel : ReactiveObject
             var total  = counts.GetValueOrDefault(slot);
             if (total == 0 && fitted.Count == 0) continue;
             var rows = fitted.Concat(Enumerable.Range(0, Math.Max(0, total - fitted.Count)).Select(_ => new FittingModuleRowVm(slot))).ToList();
-            var name = slot == FitSlot.Mid ? "Mid" : char.ToUpper(FittingCatalog.SlotName(slot)[0]) + FittingCatalog.SlotName(slot)[1..];
-            SlotGroups.Add(new FittingSlotGroupVm($"{name} slots  {fitted.Count} / {total}", rows, fitted.Count > total));
+            SlotGroups.Add(new FittingSlotGroupVm(SlotGroupTitle(slot, fitted.Count, total), rows, fitted.Count > total));
         }
         RebuildRing();
     }
+
+    /// <summary>A slot section's heading: "High slots  2 / 8". One sentence per slot, as another
+    /// language cannot always make "high slots" out of "high" and "slots".</summary>
+    private static string SlotGroupTitle(FitSlot slot, int fitted, int total) => slot switch
+    {
+        FitSlot.High      => string.Format(FittingText.SlotGroupHigh, fitted, total),
+        FitSlot.Mid       => string.Format(FittingText.SlotGroupMid, fitted, total),
+        FitSlot.Low       => string.Format(FittingText.SlotGroupLow, fitted, total),
+        FitSlot.Rig       => string.Format(FittingText.SlotGroupRig, fitted, total),
+        FitSlot.Subsystem => string.Format(FittingText.SlotGroupSubsystem, fitted, total),
+        _                 => string.Format(FittingText.SlotGroupService, fitted, total),
+    };
 
     // ── Writing to the game ─────────────────────────────────────────────────────
 
@@ -1208,7 +1318,7 @@ public class FitTabViewModel : ReactiveObject
         }
     }
     public bool   HasGameSource  => _gameSource is not null;
-    public string GameSourceText => _gameSource is { } g ? $"From {g.CharacterName}'s fittings in the game: {g.Name}" : "";
+    public string GameSourceText => _gameSource is { } g ? string.Format(FittingText.GameSource, g.CharacterName, g.Name) : "";
 
     // ── Saving: where, and whether there is anything unsaved ────────────────────
 
@@ -1250,18 +1360,18 @@ public class FitTabViewModel : ReactiveObject
     /// </summary>
     private async Task<List<SaveTarget>> SaveTargetsAsync()
     {
-        var targets = new List<SaveTarget> { new(SaveKind.App, "EVE Console (this app)") };
+        var targets = new List<SaveTarget> { new(SaveKind.App, FittingText.SaveTargetApp) };
         if (_gameSource is { } src)
-            targets.Add(new(SaveKind.GameUpdate, $"In game: replace \"{src.Name}\" in {src.CharacterName}'s fittings", src.CharacterId));
+            targets.Add(new(SaveKind.GameUpdate, string.Format(FittingText.SaveTargetReplace, src.Name, src.CharacterName), src.CharacterId));
 
         await using var db = await _dbFactory.CreateDbContextAsync();
         var chars = await db.Characters.AsNoTracking().Select(c => new { c.Id, c.Name, c.GrantedScopes, c.RefreshToken }).ToListAsync();
         foreach (var c in chars.OrderBy(c => c.Name))
         {
-            var why = c.RefreshToken.Length == 0 ? "token expired — re-authorise in Settings → ESI Tokens"
-                    : !c.GrantedScopes.Split(' ').Contains(GameFittings.WriteScope) ? "fittings write scope not granted — update the character in Settings → ESI Tokens"
+            var why = c.RefreshToken.Length == 0 ? FittingText.SaveWhyTokenExpired
+                    : !c.GrantedScopes.Split(' ').Contains(GameFittings.WriteScope) ? FittingText.SaveWhyNoScope
                     : null;
-            targets.Add(new(SaveKind.GameNew, $"In game: new fitting on {c.Name}", c.Id, why is null, why));
+            targets.Add(new(SaveKind.GameNew, string.Format(FittingText.SaveTargetNew, c.Name), c.Id, why is null, why));
         }
         return targets;
     }
@@ -1269,13 +1379,13 @@ public class FitTabViewModel : ReactiveObject
     /// <summary>Asks where to save, and saves there. True when it was saved.</summary>
     public async Task<bool> SaveInteractiveAsync()
     {
-        if (_data is null || _shipTypeId == 0) { Status = "Nothing to save yet."; return false; }
+        if (_data is null || _shipTypeId == 0) { Status = FittingText.StatusNothingToSave; return false; }
         var targets = await SaveTargetsAsync();
         var suggested = _gameSource is not null ? targets.First(t => t.Kind == SaveKind.GameUpdate)
             : SelectedSkillSource?.CharacterId is { } pilot && _lastSavedToApp is null
                 ? targets.FirstOrDefault(t => t.Kind == SaveKind.GameNew && t.CharacterId == pilot && t.Enabled) ?? targets[0]
                 : targets[0];
-        var name = FitName.Trim().Length > 0 ? FitName.Trim() : $"{ShipName} fit";
+        var name = FitName.Trim().Length > 0 ? FitName.Trim() : string.Format(FittingText.DefaultFitName, ShipName);
         var choice = await Tool.AskSave.Handle(new SaveRequest(name, targets, suggested));
         if (choice is null) return false;
         FitName = choice.Name;
@@ -1290,20 +1400,23 @@ public class FitTabViewModel : ReactiveObject
 
     private long? _lastSavedToApp;
 
+    // English: the description a fitting saved from here carries in the game.
+    private const string GameDescription = "Saved from EVE Console";
+
     /// <summary>Saves as a new fitting on <paramref name="characterId"/>.</summary>
     private async Task<bool> SaveToGameAsync(long characterId)
     {
-        if (_data is null || _esi is null) { Status = "The game cannot be reached from here."; return false; }
+        if (_data is null || _esi is null) { Status = FittingText.StatusGameUnreachable; return false; }
         if (await WritableCharacterAsync(characterId) is not { } ch) return false;
 
         var fit = CurrentFit();
         GameFittings.ToItems(fit, _data, out var skipped);
-        Status = $"Saving to {ch.Name}'s fittings…";
-        var (fittingId, error) = await GameFittings.CreateAsync(_esi, ch.Id, fit, _data, "Saved from EVE Console");
+        Status = string.Format(FittingText.StatusSavingToGame, ch.Name);
+        var (fittingId, error) = await GameFittings.CreateAsync(_esi, ch.Id, fit, _data, GameDescription);
         if (error is not null) { Status = error; return false; }
         CurrentGameSource = new GameSource(ch.Id, ch.Name, fittingId!.Value, fit.Name);
         MarkClean();
-        Status = $"Saved to {ch.Name}'s fittings in the game." + Skipped(skipped);
+        Status = Sentences.Join(string.Format(FittingText.StatusSavedToGame, ch.Name), Skipped(skipped));
         return true;
     }
 
@@ -1313,20 +1426,20 @@ public class FitTabViewModel : ReactiveObject
     /// </summary>
     private async Task<bool> UpdateInGameAsync()
     {
-        if (_data is null || _esi is null || CurrentGameSource is not { } src) { Status = "This fit was not opened from the game."; return false; }
+        if (_data is null || _esi is null || CurrentGameSource is not { } src) { Status = FittingText.StatusNotFromGame; return false; }
         if (await WritableCharacterAsync(src.CharacterId) is not { } ch) return false;
 
         var fit = CurrentFit();
         GameFittings.ToItems(fit, _data, out var skipped);
-        Status = $"Updating {ch.Name}'s fitting…";
-        var (fittingId, error) = await GameFittings.CreateAsync(_esi, ch.Id, fit, _data, "Saved from EVE Console");
+        Status = string.Format(FittingText.StatusUpdatingInGame, ch.Name);
+        var (fittingId, error) = await GameFittings.CreateAsync(_esi, ch.Id, fit, _data, GameDescription);
         if (error is not null) { Status = error; return false; }
-        var deleteError = await GameFittings.DeleteAsync(_esi, ch.Id, src.FittingId);
+        var deleteRefused = await GameFittings.DeleteAsync(_esi, ch.Id, src.FittingId);
         CurrentGameSource = new GameSource(ch.Id, ch.Name, fittingId!.Value, fit.Name);
         MarkClean();
-        Status = deleteError is null
-            ? $"Updated {fit.Name} in {ch.Name}'s fittings." + Skipped(skipped)
-            : $"Saved the new fitting, but {deleteError[0..1].ToLower()}{deleteError[1..]} Delete the old one in the game.";
+        Status = deleteRefused is { } refused
+            ? string.Format(FittingText.StatusSavedButOldNotRemoved, refused)
+            : Sentences.Join(string.Format(FittingText.StatusUpdatedInGame, fit.Name, ch.Name), Skipped(skipped));
         return true;
     }
 
@@ -1336,18 +1449,22 @@ public class FitTabViewModel : ReactiveObject
         await using var db = await _dbFactory.CreateDbContextAsync();
         var ch = await db.Characters.AsNoTracking().Where(c => c.Id == characterId)
             .Select(c => new { c.Id, c.Name, c.GrantedScopes, c.RefreshToken }).FirstOrDefaultAsync();
-        if (ch is null) { Status = "That character is not in EVE Console."; return null; }
-        if (ch.RefreshToken.Length == 0) { Status = $"{ch.Name}'s token has expired — re-authorise in Settings → ESI Tokens."; return null; }
+        if (ch is null) { Status = FittingText.StatusCharacterNotInApp; return null; }
+        if (ch.RefreshToken.Length == 0) { Status = string.Format(FittingText.StatusTokenExpired, ch.Name); return null; }
         if (!ch.GrantedScopes.Split(' ').Contains(GameFittings.WriteScope))
         {
-            Status = $"{ch.Name} has not granted the fittings write scope — update the character in Settings → ESI Tokens.";
+            Status = string.Format(FittingText.StatusNoWriteScope, ch.Name);
             return null;
         }
         return (ch.Id, ch.Name);
     }
 
-    private static string Skipped(IReadOnlyList<string> skipped) =>
-        skipped.Count == 0 ? "" : $" Not saved (a fitting has no place for them): {string.Join(", ", skipped)}.";
+    /// <summary>What a fitting had no place for, named in a sentence to follow the status; "" when nothing.</summary>
+    private string Skipped(IReadOnlyList<int> skipped) =>
+        skipped.Count == 0 ? "" : string.Format(FittingText.NotSavedNoPlace, string.Join(CommonText.ListSeparator,
+            skipped.Select(id => _data is not null && _data.TryType(id, out var t)
+                ? SdeNames.Type(id, t.Name)
+                : string.Format(FittingText.SkippedUnknownType, id))));
 
     // ── Value ───────────────────────────────────────────────────────────────────
 
@@ -1386,27 +1503,32 @@ public class FitTabViewModel : ReactiveObject
         if (prices.ByType.Count == 0)
         {
             ValueText = ""; ValueBreakdown = "";
-            ValueBasis = "No market prices yet — choose an asset value market in Settings → Market.";
+            ValueBasis = FittingText.ValueNoPrices;
             return;
         }
         ValueText      = $"{IskText.Compact(hull + fitted + bays + cargo)} ISK";
-        ValueBreakdown = $"Hull {IskText.Compact(hull)}    Modules {IskText.Compact(fitted)}"
-                       + (bays  > 0 ? $"    Drones {IskText.Compact(bays)}" : "")
-                       + (cargo > 0 ? $"    Cargo {IskText.Compact(cargo)}" : "")
-                       + (implant > 0 ? $"\nImplants and boosters {IskText.Compact(implant)} (the pilot's, not in the total)" : "");
-        ValueBasis     = $"Prices: {prices.Basis}" + (unpriced > 0 ? $" — {unpriced} item(s) have no price" : "");
+        ValueBreakdown = string.Format(FittingText.ValueHull, IskText.Compact(hull))
+                       + "    " + string.Format(FittingText.ValueModules, IskText.Compact(fitted))
+                       + (bays  > 0 ? "    " + string.Format(FittingText.ValueDrones, IskText.Compact(bays)) : "")
+                       + (cargo > 0 ? "    " + string.Format(FittingText.ValueCargo, IskText.Compact(cargo)) : "")
+                       + (implant > 0 ? "\n" + string.Format(FittingText.ValueImplants, IskText.Compact(implant)) : "");
+        ValueBasis     = unpriced > 0
+            ? Plurals.Format(FittingText.ResourceManager, nameof(FittingText.ValuePricesUnpricedOther), unpriced, prices.Basis)
+            : string.Format(FittingText.ValuePrices, prices.Basis);
     }
 
     // ── Damage profile ──────────────────────────────────────────────────────────
 
+    /// <summary>The profiles to pick from. The key — the English name, as the choice has always
+    /// been remembered — is what is saved and looked up; the name is only shown.</summary>
     public IReadOnlyList<DamageProfileOption> DamageProfiles { get; } =
     [
-        new("Even (25% each)", DamageProfile.Uniform),
-        new("EM",        new DamageProfile(100, 0, 0, 0)),
-        new("Thermal",   new DamageProfile(0, 100, 0, 0)),
-        new("Kinetic",   new DamageProfile(0, 0, 100, 0)),
-        new("Explosive", new DamageProfile(0, 0, 0, 100)),
-        new("Custom",    null),
+        new("Even (25% each)", FittingText.ProfileEven,     DamageProfile.Uniform),
+        new("EM",              FittingText.DamageEm,        new DamageProfile(100, 0, 0, 0)),
+        new("Thermal",         FittingText.DamageThermal,   new DamageProfile(0, 100, 0, 0)),
+        new("Kinetic",         FittingText.DamageKinetic,   new DamageProfile(0, 0, 100, 0)),
+        new("Explosive",       FittingText.DamageExplosive, new DamageProfile(0, 0, 0, 100)),
+        new("Custom",          FittingText.ProfileCustom,   null),
     ];
 
     private const string ProfileKey = "fitting.damage_profile";
@@ -1441,8 +1563,8 @@ public class FitTabViewModel : ReactiveObject
     private void ProfileChanged()
     {
         if (_restoringProfile) return;
-        // Remembered per machine, as the other tools remember their choices: "name|em|th|kin|exp".
-        try { UiState.Set(ProfileKey, FormattableString.Invariant($"{_selectedProfile?.Name}|{CustomEm}|{CustomThermal}|{CustomKinetic}|{CustomExplosive}")); } catch { }
+        // Remembered per machine, as the other tools remember their choices: "key|em|th|kin|exp".
+        try { UiState.Set(ProfileKey, FormattableString.Invariant($"{_selectedProfile?.Key}|{CustomEm}|{CustomThermal}|{CustomKinetic}|{CustomExplosive}")); } catch { }
         ScheduleRecalc();
     }
 
@@ -1457,7 +1579,7 @@ public class FitTabViewModel : ReactiveObject
                 decimal Num(string s) => decimal.TryParse(s, System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var d) ? d : 25;
                 CustomEm = Num(parts[1]); CustomThermal = Num(parts[2]); CustomKinetic = Num(parts[3]); CustomExplosive = Num(parts[4]);
             }
-            SelectedProfile = DamageProfiles.FirstOrDefault(p => p.Name == parts[0]) ?? DamageProfiles[0];
+            SelectedProfile = DamageProfiles.FirstOrDefault(p => p.Key == parts[0]) ?? DamageProfiles[0];
         }
         catch { SelectedProfile = DamageProfiles[0]; }
         finally { _restoringProfile = false; }
@@ -1504,7 +1626,7 @@ public class FitTabViewModel : ReactiveObject
 
     private async Task<SkillSet> SkillsAsync()
     {
-        var src = SelectedSkillSource ?? new SkillSourceOption("All V", null, 5);
+        var src = SelectedSkillSource ?? new SkillSourceOption(FittingText.PilotAllV, null, 5);
         if (src.CharacterId is not { } id) return SkillSet.AllAt(_data!, src.AllLevel);
         if (_skillCache.TryGetValue(id, out var cached)) return cached;
         await using var db = await _dbFactory.CreateDbContextAsync();
@@ -1542,7 +1664,7 @@ public class FitTabViewModel : ReactiveObject
             Tool.TabCalculated(this);
         }
         catch (OperationCanceledException) { }
-        catch (Exception ex) { Status = $"Calculation failed: {ex.Message}"; }
+        catch (Exception ex) { Status = string.Format(FittingText.StatusCalculationFailed, ex.Message); }
     }
 
     private bool _trimmingDrones;
@@ -1562,7 +1684,7 @@ public class FitTabViewModel : ReactiveObject
         var edited = _droneEdited;
         _droneEdited = null;
         var changed = TrimDrones(e, edited) | TrimFighters(e, edited);
-        if (changed) Status = "Launched drones and fighters cut back to what the pilot can control and the hull can launch.";
+        if (changed) Status = FittingText.StatusDronesCutBack;
         return changed;
     }
 
@@ -1648,7 +1770,7 @@ public class FitTabViewModel : ReactiveObject
         snap.Launchers = e.Modules.Count(m => m.Type.EffectIds.Any(id => e.Data.Effects.TryGetValue(id, out var fx) && fx.Name == "launcherFitted"));
 
         static string Pct(double resonance) => $"{(1 - resonance) * 100:0.0}%";
-        foreach (var (name, layer) in new[] { ("Shield", s.Shield), ("Armor", s.Armor), ("Hull", s.Hull) })
+        foreach (var (name, layer) in new[] { (FittingText.LayerShield, s.Shield), (FittingText.LayerArmor, s.Armor), (FittingText.LayerHull, s.Hull) })
             snap.Tank.Add(new TankLayerRow(name, $"{layer.Hp:N0}", Pct(layer.EmResonance), Pct(layer.ThermalResonance),
                 Pct(layer.KineticResonance), Pct(layer.ExplosiveResonance), $"{layer.Ehp(profile):N0}"));
         snap.Ehp = s.Ehp(profile);
@@ -1668,33 +1790,40 @@ public class FitTabViewModel : ReactiveObject
         snap.Tubes = s.FighterTubesUsed; snap.TubesOut = s.FighterTubes;
         foreach (var c in Enum.GetValues<FighterClass>())
             if (s.FighterSlots(c) is var n && s.FighterSlotsUsed(c) is var used && (n > 0 || used > 0))
-                snap.FighterSlots.Add((FighterAbilities.ClassName(c), used, n));
+                snap.FighterSlots.Add((c, used, n));
         for (var i = 0; i < e.Drones.Count; i++)
         {
             var d = e.Drones[i];
             var mine = weapons.Where(w => w.Item == d).ToList();
             snap.DroneDetail[i] = d.Kind == DogmaItemKind.Fighter
-                ? string.Join(" · ", mine.Select(w => w.CycleSeconds > 0 ? $"{w.Label} {w.Dps.Total:N0} DPS" : $"{w.Label} {w.Volley.Total:N0} alpha"))
-                : mine.Sum(w => w.Dps.Total) is var dps and > 0 ? $"{dps:N1} DPS" : "";
+                ? string.Join(" · ", mine.Select(w => w.CycleSeconds > 0
+                    ? string.Format(FittingText.AbilityDps, w.Label, w.Dps.Total)
+                    : string.Format(FittingText.AbilityAlpha, w.Label, w.Volley.Total)))
+                : mine.Sum(w => w.Dps.Total) is var dps and > 0 ? string.Format(FittingText.Dps1, dps) : "";
         }
 
-        var sensors = new[] { ("Radar", "scanRadarStrength"), ("Ladar", "scanLadarStrength"), ("Magnetometric", "scanMagnetometricStrength"), ("Gravimetric", "scanGravimetricStrength") }
-            .Select(x => (x.Item1, Value: e.Value(e.Ship, x.Item2))).OrderByDescending(x => x.Value).First();
-        snap.Sensor = sensors.Value; snap.SensorType = sensors.Item1;
+        var sensors = new[] { "scanRadarStrength", "scanLadarStrength", "scanMagnetometricStrength", "scanGravimetricStrength" }
+            .Select(a => (Attribute: a, Value: e.Value(e.Ship, a))).OrderByDescending(x => x.Value).First();
+        snap.Sensor = sensors.Value; snap.SensorAttribute = sensors.Attribute;
 
         var byModule = weapons.Where(w => w.Kind is not (WeaponKind.Drone or WeaponKind.Fighter)).ToDictionary(w => w.Item, w => w);
         for (var i = 0; i < e.Modules.Count; i++)
         {
             var m = e.Modules[i];
             var parts = new List<string>();
-            if (m.Kind == DogmaItemKind.Rig) parts.Add($"Calibration {e.Value(m, "upgradeCost"):0}");
+            if (m.Kind == DogmaItemKind.Rig) parts.Add(string.Format(FittingText.DetailCalibration, e.Value(m, "upgradeCost")));
             else
             {
-                if (e.Value(m, "cpu") is var cpu and > 0) parts.Add($"CPU {cpu:0.##}");
-                if (e.Value(m, "power") is var pg and > 0) parts.Add($"PG {pg:0.##}");
+                if (e.Value(m, "cpu") is var cpu and > 0) parts.Add(string.Format(FittingText.DetailCpu, cpu));
+                if (e.Value(m, "power") is var pg and > 0) parts.Add(string.Format(FittingText.DetailPg, pg));
             }
-            if (byModule.TryGetValue(m, out var w)) parts.Add($"{w.Dps.Total:N1} DPS");
-            if (repairs.FirstOrDefault(r => r.Item == m) is { } rep) parts.Add($"{rep.PerSecond:N1} {rep.Layer.ToString().ToLower()} HP/s");
+            if (byModule.TryGetValue(m, out var w)) parts.Add(string.Format(FittingText.Dps1, w.Dps.Total));
+            if (repairs.FirstOrDefault(r => r.Item == m) is { } rep) parts.Add(string.Format(rep.Layer switch
+            {
+                TankLayer.Shield => FittingText.DetailRepairShield,
+                TankLayer.Armor  => FittingText.DetailRepairArmor,
+                _                => FittingText.DetailRepairHull,
+            }, rep.PerSecond));
             snap.ModuleDetail[i] = string.Join(" · ", parts);
         }
         return snap;
@@ -1710,61 +1839,77 @@ public class FitTabViewModel : ReactiveObject
     public string CalibText       => Stats is { } s ? $"{s.Calib:0} / {s.CalibOut:0}" : "—";
     public double CalibFraction   => Stats is { CalibOut: > 0 } s ? Math.Min(1, s.Calib / s.CalibOut) : 0;
     public bool   CalibOver       => Stats is { } s && s.Calib > s.CalibOut + 1e-9;
-    public string HardpointsText  => Stats is { } s ? $"Turrets {s.Turrets} / {s.TurretsOut}    Launchers {s.Launchers} / {s.LaunchersOut}" : "";
+    public string HardpointsText  => Stats is { } s ? string.Format(FittingText.Hardpoints, s.Turrets, s.TurretsOut, s.Launchers, s.LaunchersOut) : "";
     public bool   HardpointsOver  => Stats is { } s && (s.Turrets > s.TurretsOut || s.Launchers > s.LaunchersOut);
-    public string CargoText       => Stats is { } s ? $"Cargo {s.Cargo:N1} / {s.CargoOut:N0} m³" : "";
+    public string CargoText       => Stats is { } s ? string.Format(FittingText.CargoLine, s.Cargo, s.CargoOut) : "";
     public bool   CargoOver       => Stats is { } s && s.Cargo > s.CargoOut + 1e-9;
-    public string DroneText       => Stats is { } s ? $"Drone bay {s.DroneBay:0} / {s.DroneBayOut:0} m³    Bandwidth {s.Bandwidth:0} / {s.BandwidthOut:0} Mbit/s" : "";
+    public string DroneText       => Stats is { } s ? string.Format(FittingText.DroneLine, s.DroneBay, s.DroneBayOut, s.Bandwidth, s.BandwidthOut) : "";
     public bool   DroneOver       => Stats is { } s && (s.DroneBay > s.DroneBayOut + 1e-9 || s.Bandwidth > s.BandwidthOut + 1e-9);
     /// <summary>A carrier has no drone bay; the drone line shows only where there is one, or drones in it.</summary>
     public bool   HasDroneBay     => Stats is { } s && (s.DroneBayOut > 0 || s.BandwidthOut > 0 || s.DroneBay > 0);
     public bool   HasFighterBay   => Stats is { } s && (s.FighterBayOut > 0 || s.TubesOut > 0 || s.FighterBay > 0);
     public string FighterText     => Stats is { } s
-        ? $"Fighter bay {s.FighterBay:N0} / {s.FighterBayOut:N0} m³    Tubes {s.Tubes} / {s.TubesOut}"
-          + string.Concat(s.FighterSlots.Select(c => $"    {c.Class} {c.Used} / {c.Out}")) : "";
+        ? string.Format(FittingText.FighterLine, s.FighterBay, s.FighterBayOut, s.Tubes, s.TubesOut)
+          + string.Concat(s.FighterSlots.Select(c => "    " + FighterSlotsText(c.Class, c.Used, c.Out))) : "";
     public bool   FighterOver     => Stats is { } s && (s.FighterBay > s.FighterBayOut + 1e-9 || s.Tubes > s.TubesOut
                                         || s.FighterSlots.Any(c => c.Used > c.Out));
     public IReadOnlyList<TankLayerRow> TankRows => Stats?.Tank ?? [];
-    public string EhpText         => Stats is { } s ? $"{s.Ehp:N0} EHP" : "";
+    public string EhpText         => Stats is { } s ? string.Format(FittingText.EhpLine, s.Ehp) : "";
     /// <summary>Peak shield regeneration and recharge time — what a passive shield tank lives on.</summary>
     public string RegenText       => Stats is { Rates: { } r } s && r.PassiveShield > 0
-        ? $"Shield regen {r.PassiveShield:N1} HP/s at peak ({r.PassiveShield / s.ShieldTaken:N0} EHP/s)    Recharge {FormatDuration(s.ShieldRecharge)}" : "";
+        ? string.Format(FittingText.RegenLine, r.PassiveShield, r.PassiveShield / s.ShieldTaken, FormatDuration(s.ShieldRecharge)) : "";
     /// <summary>What active modules repair, per layer, raw and effective against even damage.</summary>
     public string RepairText      => Stats is { Rates: { } r } s ? string.Join(Environment.NewLine, new[]
         {
-            r.ShieldBoost > 0 ? $"Shield boost {r.ShieldBoost:N1} HP/s ({r.ShieldBoost / s.ShieldTaken:N0} EHP/s)" : null,
-            r.ArmorRepair > 0 ? $"Armor repair {r.ArmorRepair:N1} HP/s ({r.ArmorRepair / s.ArmorTaken:N0} EHP/s)" : null,
-            r.HullRepair  > 0 ? $"Hull repair {r.HullRepair:N1} HP/s ({r.HullRepair / s.HullTaken:N0} EHP/s)" : null,
+            r.ShieldBoost > 0 ? string.Format(FittingText.RepairShield, r.ShieldBoost, r.ShieldBoost / s.ShieldTaken) : null,
+            r.ArmorRepair > 0 ? string.Format(FittingText.RepairArmor, r.ArmorRepair, r.ArmorRepair / s.ArmorTaken) : null,
+            r.HullRepair  > 0 ? string.Format(FittingText.RepairHull, r.HullRepair, r.HullRepair / s.HullTaken) : null,
             (r.ShieldBoost + r.ArmorRepair + r.HullRepair) > 0 && s.Cap is { Stable: false } c
-                ? $"Repairs that use capacitor stop when it runs out ({FormatDuration(c.LastsSeconds)})" : null,
+                ? string.Format(FittingText.RepairCapRunsOut, FormatDuration(c.LastsSeconds)) : null,
         }.OfType<string>()) : "";
     public bool HasRepairs        => Stats is { Rates: { } r } && r.ShieldBoost + r.ArmorRepair + r.HullRepair > 0;
     public string CapText         => Stats?.Cap is { } c ? $"{c.Capacity:N0} GJ" : "";
     public string CapStateText    => Stats?.Cap is { } c
-        ? c.Stable ? $"Stable at {c.StableFraction * 100:0.0}%" : $"Lasts {FormatDuration(c.LastsSeconds)}" : "";
+        ? c.Stable ? string.Format(FittingText.CapStable, c.StableFraction * 100) : string.Format(FittingText.CapLasts, FormatDuration(c.LastsSeconds)) : "";
     public bool   CapStable       => Stats?.Cap?.Stable ?? true;
     public string CapFlowText     => Stats?.Cap is { } c
-        ? $"Use {c.Drain:0.0} GJ/s    Peak recharge {c.PeakRecharge:0.0} GJ/s" + (c.Injection > 0 ? $"    Boosters +{c.Injection:0.0} GJ/s" : "") : "";
-    public string DpsText         => Stats is { } s ? $"{(s.WeaponDps.Total + s.DroneDps.Total + s.FighterDps.Total):N0} DPS" : "";
+        ? string.Format(FittingText.CapFlow, c.Drain, c.PeakRecharge)
+          + (c.Injection > 0 ? "    " + string.Format(FittingText.CapBoosters, c.Injection) : "") : "";
+    public string DpsText         => Stats is { } s ? string.Format(FittingText.Dps0, s.WeaponDps.Total + s.DroneDps.Total + s.FighterDps.Total) : "";
     public string DpsSplitText    => Stats is { } s
-        ? $"Weapons {s.WeaponDps.Total:N1}    Drones {s.DroneDps.Total:N1}"
-          + (s.FighterDps.Total > 0 || s.TubesOut > 0 ? $"    Fighters {s.FighterDps.Total:N1}" : "")
-          + $"    Volley {s.Volley.Total:N0}" : "";
+        ? string.Format(FittingText.DpsWeapons, s.WeaponDps.Total) + "    " + string.Format(FittingText.DpsDrones, s.DroneDps.Total)
+          + (s.FighterDps.Total > 0 || s.TubesOut > 0 ? "    " + string.Format(FittingText.DpsFighters, s.FighterDps.Total) : "")
+          + "    " + string.Format(FittingText.DpsVolley, s.Volley.Total) : "";
     public string DamageTypesText => Stats is { } s && s.WeaponDps.Total + s.DroneDps.Total + s.FighterDps.Total > 0
         ? DamageMix(s.WeaponDps + s.DroneDps + s.FighterDps) : "";
     public string SpeedText       => Stats is { } s ? $"{s.Speed:N0} m/s" : "";
-    public string NavText         => Stats is { } s ? $"Align {s.Align:0.00} s    Signature {s.Signature:N0} m    Warp {s.Warp:0.##} AU/s" : "";
-    public string MassText        => Stats is { } s ? $"Mass {s.Mass:N0} kg    Inertia {s.Agility:0.###}" : "";
-    public string TargetingText   => Stats is { } s ? $"Range {s.Range / 1000:0.#} km    Scan res {s.ScanRes:N0} mm    Targets {s.MaxTargets:0}" : "";
-    public string SensorText      => Stats is { } s ? $"{s.SensorType} {s.Sensor:0.#}" : "";
+    public string NavText         => Stats is { } s ? string.Format(FittingText.NavLine, s.Align, s.Signature, s.Warp) : "";
+    public string MassText        => Stats is { } s ? string.Format(FittingText.MassLine, s.Mass, s.Agility) : "";
+    public string TargetingText   => Stats is { } s ? string.Format(FittingText.TargetingLine, s.Range / 1000, s.ScanRes, s.MaxTargets) : "";
+    /// <summary>The strongest sensor, by its type.</summary>
+    public string SensorText      => Stats is { } s ? string.Format(s.SensorAttribute switch
+        {
+            "scanLadarStrength"         => FittingText.SensorLadar,
+            "scanMagnetometricStrength" => FittingText.SensorMagnetometric,
+            "scanGravimetricStrength"   => FittingText.SensorGravimetric,
+            _                           => FittingText.SensorRadar,
+        }, s.Sensor) : "";
+
+    /// <summary>A class's launch slots, in use and on the hull: "Light 1 / 2".</summary>
+    private static string FighterSlotsText(FighterClass c, int used, int slots) => c switch
+    {
+        FighterClass.Light or FighterClass.StandupLight     => string.Format(FittingText.FighterSlotsLight, used, slots),
+        FighterClass.Support or FighterClass.StandupSupport => string.Format(FittingText.FighterSlotsSupport, used, slots),
+        _                                                    => string.Format(FittingText.FighterSlotsHeavy, used, slots),
+    };
 
     private static string DamageMix(DamageBreakdown d) =>
-        d.Total <= 0 ? "" : $"EM {d.Em / d.Total:P0} · Th {d.Thermal / d.Total:P0} · Kin {d.Kinetic / d.Total:P0} · Exp {d.Explosive / d.Total:P0}";
+        d.Total <= 0 ? "" : string.Format(FittingText.DamageMix, d.Em / d.Total, d.Thermal / d.Total, d.Kinetic / d.Total, d.Explosive / d.Total);
 
     private static string FormatDuration(double seconds) =>
-        seconds >= 3600 ? $"{(int)(seconds / 3600)} h {(int)(seconds % 3600 / 60)} m"
-        : seconds >= 60 ? $"{(int)(seconds / 60)} m {(int)(seconds % 60)} s"
-        : $"{seconds:0.0} s";
+        seconds >= 3600 ? string.Format(FittingText.DurationHours, (int)(seconds / 3600), (int)(seconds % 3600 / 60))
+        : seconds >= 60 ? string.Format(FittingText.DurationMinutes, (int)(seconds / 60), (int)(seconds % 60))
+        : string.Format(FittingText.DurationSeconds, seconds);
 
     private void RaiseStatText()
     {
@@ -1780,9 +1925,10 @@ public class FitTabViewModel : ReactiveObject
 
     public async Task CopyEftAsync()
     {
-        if (_data is null || _shipTypeId == 0) { Status = "Nothing to copy yet."; return; }
+        if (_data is null || _shipTypeId == 0) { Status = FittingText.StatusNothingToCopy; return; }
+        // English, as the game and other tools read EFT.
         await Tool.CopyText.Handle(EftFormat.Write(CurrentFit(), _data));
-        Status = "Fit copied to the clipboard as EFT text.";
+        Status = FittingText.StatusCopiedEft;
     }
 
     /// <summary>Replaces the fit being edited with <paramref name="fit"/>.</summary>
@@ -1811,8 +1957,8 @@ public class FitTabViewModel : ReactiveObject
     /// <summary>Saves in EVE Console, under the fit's name: the same name on the same hull replaces it.</summary>
     private async Task<bool> SaveToAppAsync()
     {
-        if (_data is null || _shipTypeId == 0) { Status = "Nothing to save yet."; return false; }
-        var name = FitName.Trim().Length > 0 ? FitName.Trim() : $"{ShipName} fit";
+        if (_data is null || _shipTypeId == 0) { Status = FittingText.StatusNothingToSave; return false; }
+        var name = FitName.Trim().Length > 0 ? FitName.Trim() : string.Format(FittingText.DefaultFitName, ShipName);
         await using var db = await _dbFactory.CreateDbContextAsync();
         // Saving under the name of a fit already saved for this hull replaces it; a new name adds one.
         var row = await db.SavedFits.FirstOrDefaultAsync(f => f.Name == name && f.ShipTypeId == _shipTypeId);
@@ -1824,7 +1970,7 @@ public class FitTabViewModel : ReactiveObject
         _lastSavedToApp = row.Id;
         await Tool.LoadSavedListAsync();
         MarkClean();
-        Status = $"Saved {name} in EVE Console.";
+        Status = string.Format(FittingText.StatusSavedInApp, name);
         return true;
     }
 }

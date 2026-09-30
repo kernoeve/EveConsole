@@ -79,12 +79,12 @@
                        Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" Margin="0 0 14 0" />
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
               <Ellipse Width="8" Height="8" Fill="#c8a84b" VerticalAlignment="Center" />
-              <TextBlock Text="Character" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 8 0" />
+              <TextBlock Text="{x:Static loc:FittingText.LegendCharacter}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 8 0" />
               <Ellipse Width="8" Height="8" Fill="#5599cc" VerticalAlignment="Center" />
-              <TextBlock Text="Corporation" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+              <TextBlock Text="{x:Static loc:FittingText.LegendCorporation}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
             </StackPanel>
             <ComboBox Grid.Column="2" ItemsSource="{Binding Owners}" SelectedItem="{Binding SelectedOwner}"
-                      MinWidth="180" FontSize="11" ToolTip.Tip="Show one character's or corporation's fittings" />
+                      MinWidth="180" FontSize="11" ToolTip.Tip="{x:Static loc:FittingText.TipOwnerFilter}" />
           </Grid>
 
           <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto">

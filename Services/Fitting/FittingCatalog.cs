@@ -1,4 +1,6 @@
 using EveConsole.Data;
+using EveConsole.Localization;
+using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace EveConsole.Services.Fitting;
@@ -8,22 +10,40 @@ namespace EveConsole.Services.Fitting;
 public enum CatalogKind { Hull, Module, Rig, Subsystem, Charge, Drone, Fighter, Implant, Booster, Item }
 
 /// <summary>One thing the fitting tool can put on a fit, as the finder lists it.</summary>
-public sealed record CatalogEntry(int TypeId, string Name, string GroupName, CatalogKind Kind, FitSlot Slot, int? MetaGroupId)
+/// <param name="Name">The SDE's English name: what fits are stored, exported and matched by.</param>
+/// <param name="GroupName">Likewise English.</param>
+public sealed record CatalogEntry(int TypeId, string Name, int GroupId, string GroupName, CatalogKind Kind, FitSlot Slot, int? MetaGroupId)
 {
+    /// <summary>The item's name in the interface language, for showing. Display only.</summary>
+    public string DisplayName      => SdeNames.Type(TypeId, Name);
+
+    /// <summary>The item's group in the interface language, for showing. Display only.</summary>
+    public string DisplayGroupName => SdeNames.Group(GroupId, GroupName);
+
     public string SlotLabel => Kind switch
     {
-        CatalogKind.Hull      => GroupName,
-        CatalogKind.Module    => Slot switch { FitSlot.High => "High", FitSlot.Mid => "Mid", FitSlot.Low => "Low", FitSlot.Service => "Service", _ => "" },
-        CatalogKind.Rig       => "Rig",
-        CatalogKind.Subsystem => "Subsystem",
-        CatalogKind.Charge    => "Charge",
-        CatalogKind.Drone     => "Drone",
-        CatalogKind.Fighter   => "Fighter",
-        CatalogKind.Implant   => "Implant",
-        CatalogKind.Booster   => "Booster",
-        _                     => GroupName,
+        CatalogKind.Hull      => DisplayGroupName,
+        CatalogKind.Module    => Slot switch
+        {
+            FitSlot.High => FittingText.FinderHigh, FitSlot.Mid => FittingText.FinderMid, FitSlot.Low => FittingText.FinderLow,
+            FitSlot.Service => FittingText.FinderService, _ => "",
+        },
+        CatalogKind.Rig       => FittingText.FinderRig,
+        CatalogKind.Subsystem => FittingText.FinderSubsystem,
+        CatalogKind.Charge    => FittingText.FinderCharge,
+        CatalogKind.Drone     => FittingText.FinderDrone,
+        CatalogKind.Fighter   => FittingText.FinderFighter,
+        CatalogKind.Implant   => FittingText.KindImplant,
+        CatalogKind.Booster   => FittingText.KindBooster,
+        _                     => DisplayGroupName,
     };
-    public override string ToString() => Name;
+
+    /// <summary>Whether a word typed in a search box is in the item's name or its group's — as
+    /// shown, or in English, which people paste from websites and chat.</summary>
+    public bool Matches(string word) =>
+        SdeNames.Matches(SdeNameKind.Type, TypeId, Name, word) || SdeNames.Matches(SdeNameKind.Group, GroupId, GroupName, word);
+
+    public override string ToString() => DisplayName;
 }
 
 /// <summary>
@@ -54,7 +74,7 @@ public sealed class FittingCatalog
         var rows = await (from t in db.SdeTypes.AsNoTracking()
                           join g in db.SdeGroups.AsNoTracking() on t.GroupId equals g.GroupId
                           where t.Published
-                          select new { t.TypeId, t.Name, GroupName = g.Name, g.CategoryId, t.MetaGroupId }).ToListAsync(ct);
+                          select new { t.TypeId, t.Name, t.GroupId, GroupName = g.Name, g.CategoryId, t.MetaGroupId }).ToListAsync(ct);
 
         // The slot a module takes is one of its effects; read them for every module at once.
         var slotEffects = new Dictionary<int, FitSlot>();
@@ -86,23 +106,23 @@ public sealed class FittingCatalog
                                             => slot == FitSlot.Rig ? CatalogKind.Rig : CatalogKind.Module,
                 _                           => CatalogKind.Item,
             };
-            return new CatalogEntry(r.TypeId, r.Name, r.GroupName, kind, slot, r.MetaGroupId);
+            return new CatalogEntry(r.TypeId, r.Name, r.GroupId, r.GroupName, kind, slot, r.MetaGroupId);
         })
         // A module with no slot cannot be fitted (fleet-only and deprecated items); it can still be carried.
-        .Select(e => e.Kind is CatalogKind.Module or CatalogKind.Rig && e.Slot == FitSlot.None ? e with { Kind = CatalogKind.Item } : e)
-        .OrderBy(e => e.Name, StringComparer.OrdinalIgnoreCase)
-        .ToList();
+        .Select(e => e.Kind is CatalogKind.Module or CatalogKind.Rig && e.Slot == FitSlot.None ? e with { Kind = CatalogKind.Item } : e);
 
-        return new FittingCatalog(data, dbFactory, entries);
+        // In the order of the names the finder shows. Waits (once, briefly) for the interface
+        // language's names, so the list is not sorted by the English it would then stop showing.
+        await SdeNames.EnsureLoadedAsync(ct);
+        return new FittingCatalog(data, dbFactory, entries.OrderBy(e => e.DisplayName, StringComparer.CurrentCulture).ToList());
     }
 
-    /// <summary>Entries whose name contains every word of <paramref name="text"/>.</summary>
+    /// <summary>Entries whose name or group contains every word of <paramref name="text"/>, as
+    /// shown or in English.</summary>
     public IEnumerable<CatalogEntry> Search(string text, IReadOnlySet<CatalogKind>? kinds = null)
     {
         var words = text.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        return Entries.Where(e => (kinds is null || kinds.Contains(e.Kind))
-            && words.All(w => e.Name.Contains(w, StringComparison.OrdinalIgnoreCase)
-                           || e.GroupName.Contains(w, StringComparison.OrdinalIgnoreCase)));
+        return Entries.Where(e => (kinds is null || kinds.Contains(e.Kind)) && words.All(e.Matches));
     }
 
     // ── Charges ─────────────────────────────────────────────────────────────────
@@ -144,15 +164,17 @@ public sealed class FittingCatalog
                 if (size is { } want && sizeId is { } sid && t.Attr(sid) is { } has && has != want) return false;
                 return capacity <= 0 || (t.Attr(DogmaData.AttrVolume) ?? 0) <= capacity + 1e-9;
             })
-            .DistinctBy(c => c.TypeId).OrderBy(c => c.Name).ToList();
+            // In the order of the names a module's charge list shows.
+            .DistinctBy(c => c.TypeId).OrderBy(c => c.DisplayName, StringComparer.CurrentCulture).ToList();
     }
 
     // ── Fitting rules ───────────────────────────────────────────────────────────
 
     /// <summary>
     /// Whether <paramref name="typeId"/> may be added to the fit <paramref name="engine"/>
-    /// describes, and if not, why. Checks the slot and hardpoints left, rig size, the hulls the
-    /// item is restricted to, a subsystem's hull and position, and per-fit limits by group and type.
+    /// describes, and if not, why — in a sentence for the status line. Checks the slot and
+    /// hardpoints left, rig size, the hulls the item is restricted to, a subsystem's hull and
+    /// position, and per-fit limits by group and type.
     /// </summary>
     public async Task<string?> WhyNotAsync(DogmaEngine engine, int typeId, CancellationToken ct = default)
     {
@@ -161,41 +183,41 @@ public sealed class FittingCatalog
         var ship  = engine.Ship.Type;
         var stats = new FitStats(engine);
         var slot  = DogmaEngine.SlotOf(_data, type);
-        if (slot == FitSlot.None) return $"{type.Name} is not fitted to a slot.";
+        if (slot == FitSlot.None) return string.Format(FittingText.WhyNotNoSlot, SdeNames.Type(type.Id, type.Name));
 
         if (stats.SlotsUsed(slot) >= stats.Slots(slot))
-            return $"No free {SlotName(slot)} slot.";
+            return NoFreeSlot(slot);
 
         bool Has(string effect) => type.EffectIds.Any(id => _data.Effects.TryGetValue(id, out var fx) && fx.Name == effect);
         if (Has("turretFitted") && Hardpoints(engine, "turretFitted") >= stats.TurretHardpoints)
-            return "No free turret hardpoint.";
+            return FittingText.WhyNotNoTurret;
         if (Has("launcherFitted") && Hardpoints(engine, "launcherFitted") >= stats.LauncherHardpoints)
-            return "No free launcher hardpoint.";
+            return FittingText.WhyNotNoLauncher;
 
         if (slot == FitSlot.Rig && _data.Attribute("rigSize")?.Id is { } rigSize
             && type.Attr(rigSize) is { } rs && engine.Value(engine.Ship, rigSize) is var shipRs && shipRs > 0 && rs != shipRs)
-            return "Rig size does not match the hull.";
+            return FittingText.WhyNotRigSize;
 
         if (slot == FitSlot.Subsystem)
         {
             if (_data.Attribute("fitsToShipType")?.Id is { } fits && type.Attr(fits) is { } hull && (int)hull != ship.Id)
-                return "This subsystem belongs to a different hull.";
+                return FittingText.WhyNotSubsystemHull;
             if (_data.Attribute("subSystemSlot")?.Id is { } pos && type.Attr(pos) is { } p
                 && engine.Modules.Any(m => m.Slot == FitSlot.Subsystem && m.Type.Attr(pos) == p))
-                return "That subsystem position is already filled.";
+                return FittingText.WhyNotSubsystemFilled;
         }
 
         var groups = _data.AttributesByName.Values.Where(a => a.Name.StartsWith("canFitShipGroup")).Select(a => type.Attr(a.Id)).OfType<double>().Select(v => (int)v).ToList();
         var hulls  = _data.AttributesByName.Values.Where(a => a.Name.StartsWith("canFitShipType")).Select(a => type.Attr(a.Id)).OfType<double>().Select(v => (int)v).ToList();
         if ((groups.Count > 0 || hulls.Count > 0) && !groups.Contains(ship.GroupId) && !hulls.Contains(ship.Id))
-            return $"{type.Name} cannot be fitted to a {ship.Name}.";
+            return string.Format(FittingText.WhyNotHull, SdeNames.Type(type.Id, type.Name), SdeNames.Type(ship.Id, ship.Name));
 
         if (_data.Attribute("maxGroupFitted")?.Id is { } mg && type.Attr(mg) is { } maxGroup
             && engine.Modules.Count(m => m.Type.GroupId == type.GroupId) >= maxGroup)
-            return $"Only {maxGroup:0} of this group can be fitted.";
+            return string.Format(FittingText.WhyNotMaxGroup, maxGroup);
         if (_data.Attribute("maxTypeFitted")?.Id is { } mt && type.Attr(mt) is { } maxType
             && engine.Modules.Count(m => m.Type.Id == type.Id) >= maxType)
-            return $"Only {maxType:0} of this module can be fitted.";
+            return string.Format(FittingText.WhyNotMaxType, maxType);
 
         return null;
     }
@@ -203,9 +225,15 @@ public sealed class FittingCatalog
     private int Hardpoints(DogmaEngine e, string effect) => e.Modules.Count(m =>
         m.Type.EffectIds.Any(id => _data.Effects.TryGetValue(id, out var fx) && fx.Name == effect));
 
-    public static string SlotName(FitSlot s) => s switch
+    /// <summary>Every slot of this kind taken — a sentence per slot, since "high" and "slot" are
+    /// not words another language can put together the way English does.</summary>
+    private static string NoFreeSlot(FitSlot s) => s switch
     {
-        FitSlot.High => "high", FitSlot.Mid => "mid", FitSlot.Low => "low", FitSlot.Rig => "rig",
-        FitSlot.Subsystem => "subsystem", FitSlot.Service => "service", _ => "",
+        FitSlot.High      => FittingText.NoFreeHigh,
+        FitSlot.Mid       => FittingText.NoFreeMid,
+        FitSlot.Low       => FittingText.NoFreeLow,
+        FitSlot.Rig       => FittingText.NoFreeRig,
+        FitSlot.Subsystem => FittingText.NoFreeSubsystem,
+        _                 => FittingText.NoFreeService,
     };
 }

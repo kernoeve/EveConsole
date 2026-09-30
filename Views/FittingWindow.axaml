@@ -2,9 +2,10 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:views="clr-namespace:EveConsole.Views"
         xmlns:vm="clr-namespace:EveConsole.ViewModels"
+        xmlns:loc="using:EveConsole.Localization"
         x:Class="EveConsole.Views.FittingWindow"
         x:DataType="vm:FittingViewModel"
-        Title="Fitting"
+        Title="{x:Static loc:FittingText.TitleFitting}"
         Width="1400" Height="860"
         MinWidth="1000" MinHeight="560"
         Background="{DynamicResource SurfaceBaseBrush}">

@@ -1,10 +1,12 @@
 using EveConsole.Data;
+using EveConsole.Localization;
 using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace EveConsole.Services.Fitting;
 
-/// <summary>Unit prices for a fit's items, on the same basis the app values assets with.</summary>
+/// <summary>Unit prices for a fit's items, on the same basis the app values assets with.
+/// <paramref name="Basis"/> says which, for showing: the price type and the market.</summary>
 public sealed record FitPrices(IReadOnlyDictionary<int, double> ByType, string Basis)
 {
     public static readonly FitPrices None = new(new Dictionary<int, double>(), "");
@@ -34,7 +36,9 @@ public static class FitPricing
                 MarketPriceType.Sell => p.SellPrice,
                 _                    => p.Midpoint,
             }, ct);
+        // The market as its source is named — the user's to rename.
         var market = await db.MarketPricingConfigs.AsNoTracking().Where(c => c.Id == configId).Select(c => c.LocationName).FirstOrDefaultAsync(ct);
-        return new FitPrices(byType, $"{MarketPriceType.Label(priceType)}{(market is null ? "" : $", {market}")}");
+        var label  = MarketPriceType.Label(priceType);
+        return new FitPrices(byType, market is null ? label : string.Format(FittingText.PriceBasisWithMarket, label, market));
     }
 }
