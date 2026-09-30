@@ -671,7 +671,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                                                vm.CharacterVm, vm.SdeVm, vm.UpdateVm, vm.MarketVm, vm.TimerVm,
                                                vm.AgentVm.Service, vm.PriceHistorySettingsVm,
                                                vm.AlertSettingsVm, vm.PollingSettingsVm,
-                                               vm.CorpTop10SettingsVm, dbVm, vm.SlackSettingsVm,
+                                               vm.CorpTop10SettingsVm, dbVm, vm.SlackSettingsVm, vm.DiscordSettingsVm,
                                                vm.GameLogSettingsVm, vm.ChatLogSettingsVm, vm.ZkbSettingsVm,
                                                vm.MapStatsSettingsVm, vm.OtherSettingsVm, vm.DataRetentionVm,
                                                vm.TtsService, vm.SpeechInputService, vm.HotkeyService);
@@ -679,9 +679,12 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         settingsWin.WireDatabase(dbVm, this);
         if (initialTab is not null) settingsWin.SelectTab(initialTab);
         await settingsWin.ShowDialog(this);
-        // Slack token / channel may have changed — re-evaluate the post buttons' visibility.
+        // Slack token / channel or a Discord webhook may have changed — re-evaluate the post
+        // buttons' visibility.
         vm.CorpActivityVm.RefreshSlackState();
         vm.SalePostingVm.RefreshSlackState();
+        vm.CorpActivityVm.RefreshDiscordState();
+        vm.SalePostingVm.RefreshDiscordState();
     }
 
     private void OnResolveNamesClick(object? sender, RoutedEventArgs e)

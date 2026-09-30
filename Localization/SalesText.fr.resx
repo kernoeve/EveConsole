@@ -1853,4 +1853,21 @@ Rien n'est détruit : ses commandes restent dans le suivi des commandes, et ses
   <data name="WebSyncDeclined" xml:space="preserve">
     <value>Refusée.</value>
   </data>
+  <data name="PostToDiscord" xml:space="preserve">
+    <value>Publier sur Discord</value>
+  </data>
+  <data name="DiscordNotConfigured" xml:space="preserve">
+    <value>Aucun webhook Discord configuré pour la publication des ventes.</value>
+  </data>
+  <data name="DiscordAlreadyPosted" xml:space="preserve">
+    <value>L'annonce « {0} » a déjà été publiée sur Discord {1}.
+
+</value>
+  </data>
+  <data name="DiscordPosting" xml:space="preserve">
+    <value>Publication sur Discord…</value>
+  </data>
+  <data name="DiscordPostFailed" xml:space="preserve">
+    <value>Échec de la publication Discord sur « {0} » : {1}</value>
+  </data>
 </root>

@@ -1119,6 +1119,14 @@ public class App : Application
                         "Url"  TEXT    NOT NULL DEFAULT ''
                     )
                     """);
+                // Discord's named webhooks, the same shape as Slack's. Mirrored in PostgresSchema.
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "DiscordWebhooks" (
+                        "Id"   INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "Name" TEXT    NOT NULL DEFAULT '',
+                        "Url"  TEXT    NOT NULL DEFAULT ''
+                    )
+                    """);
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "StoreSenders" (
                         "Id"         INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -4037,6 +4045,15 @@ public class App : Application
             client.DefaultRequestHeaders.Add("User-Agent", "EveConsole/1.0 (EVE Online companion app)");
         });
 
+        // Named HTTP client for Discord channel webhooks. No BaseAddress: every webhook is its own
+        // absolute URL, and no Authorization header — the link is the whole credential. A timeout
+        // of its own, since a chart upload is a request somebody is sitting in front of.
+        services.AddHttpClient("discord", client =>
+        {
+            client.DefaultRequestHeaders.Add("User-Agent", "EveConsole/1.0 (https://github.com/kernoeve/EveConsole)");
+            client.Timeout = TimeSpan.FromSeconds(30);
+        });
+
         // Named HTTP client for zKillboard (zkillboard.com + r2z2.zkillboard.com). No
         // BaseAddress — the API and history/firehose endpoints live on different hosts,
         // so callers use absolute URLs. Automatic gzip decompression since daily dumps
@@ -4087,6 +4104,7 @@ public class App : Application
         services.AddSingleton<AppPreferencesService>();
         services.AddSingleton<SlackAuthService>();
         services.AddSingleton<SlackService>();
+        services.AddSingleton<DiscordService>();
         services.AddSingleton<ScheduledBlockRenderer>();
         services.AddSingleton<SchedulerService>();
         services.AddSingleton<DatabaseBackupService>();

@@ -1369,4 +1369,22 @@
   <data name="IskTenThousands" xml:space="preserve">
     <value>{0:0.##} dizaines de milliers d'ISK</value>
   </data>
+  <data name="TaskTypeSlackOrDiscordPost" xml:space="preserve">
+    <value>Publier sur Slack ou Discord</value>
+  </data>
+  <data name="DiscordDestination" xml:space="preserve">
+    <value>Discord : {0}</value>
+  </data>
+  <data name="ErrNoDestinationsAny" xml:space="preserve">
+    <value>Aucun canal ni webhook pour l'instant — ajoutez-en un dans Paramètres, Slack ou Discord.</value>
+  </data>
+  <data name="SlackAndDiscordDestinationsNote" xml:space="preserve">
+    <value>Les canaux et webhooks Slack, puis les webhooks Discord, définis dans les paramètres, en une seule liste.</value>
+  </data>
+  <data name="RunDiscordRefused" xml:space="preserve">
+    <value>Discord a refusé : {0}</value>
+  </data>
+  <data name="RunPostedPartDiscord" xml:space="preserve">
+    <value>{0} message(s) publié(s) sur {1} ({2:N0} caractères) ; Discord a refusé le suivant : {3}.</value>
+  </data>
 </root>

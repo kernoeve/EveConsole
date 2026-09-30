@@ -1853,4 +1853,21 @@ No se destruye nada: sus encargos se quedan en Seguimiento de encargos, y se con
   <data name="WebSyncDeclined" xml:space="preserve">
     <value>Rechazado.</value>
   </data>
+  <data name="PostToDiscord" xml:space="preserve">
+    <value>Publicar en Discord</value>
+  </data>
+  <data name="DiscordNotConfigured" xml:space="preserve">
+    <value>No hay ningún webhook de Discord configurado para la publicación de ventas.</value>
+  </data>
+  <data name="DiscordAlreadyPosted" xml:space="preserve">
+    <value>«{0}» ya se publicó en Discord {1}.
+
+</value>
+  </data>
+  <data name="DiscordPosting" xml:space="preserve">
+    <value>Publicando en Discord…</value>
+  </data>
+  <data name="DiscordPostFailed" xml:space="preserve">
+    <value>Error al publicar en Discord en «{0}»: {1}</value>
+  </data>
 </root>

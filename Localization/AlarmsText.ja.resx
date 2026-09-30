@@ -1342,4 +1342,22 @@
   <data name="IskTenThousands" xml:space="preserve">
     <value>{0:0.##}万ISK</value>
   </data>
+  <data name="TaskTypeSlackOrDiscordPost" xml:space="preserve">
+    <value>SlackまたはDiscordに投稿</value>
+  </data>
+  <data name="DiscordDestination" xml:space="preserve">
+    <value>Discord：{0}</value>
+  </data>
+  <data name="ErrNoDestinationsAny" xml:space="preserve">
+    <value>チャンネルもWebhookもまだありません — 「設定」の「Slack」または「Discord」で追加してください。</value>
+  </data>
+  <data name="SlackAndDiscordDestinationsNote" xml:space="preserve">
+    <value>「設定」で設定したSlackのチャンネルとWebhook、続いてDiscordのWebhookを、1つの一覧にまとめています。</value>
+  </data>
+  <data name="RunDiscordRefused" xml:space="preserve">
+    <value>Discordに拒否されました：{0}</value>
+  </data>
+  <data name="RunPostedPartDiscord" xml:space="preserve">
+    <value>{1}件中{0}件のメッセージ（{2:N0}文字）を投稿しましたが、次のメッセージはDiscordに拒否されました：{3}。</value>
+  </data>
 </root>

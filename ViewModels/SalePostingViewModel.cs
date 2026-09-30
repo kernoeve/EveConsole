@@ -996,6 +996,7 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
     public ReactiveCommand<Unit, Unit> OpenInItemBrowserCommand  { get; }
     public ReactiveCommand<Unit, Unit> RenderRefreshCommand      { get; }
     public ReactiveCommand<Unit, Unit> PostToSlackCommand        { get; }
+    public ReactiveCommand<Unit, Unit> PostToDiscordCommand      { get; }
 
     // Dialog delegates — wired by the view (ShowDialog decoupling).
     public Func<Task<PostingDialogResult?>>?                        ShowAddPostingDialog;
@@ -1008,11 +1009,12 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
 
     public SalePostingViewModel(SalePostingService svc, IDbContextFactory<AppDbContext> dbFactory,
         BatchAddService? batchSvc = null, SlackService? slack = null,
-        ExportFormatSettings? exportFormat = null)
+        ExportFormatSettings? exportFormat = null, DiscordService? discord = null)
     {
         _svc          = svc;
         _batchSvc     = batchSvc;
         _slack        = slack;
+        _discord      = discord;
         _exportFormat = exportFormat;
 
         // Restored before the dropdown binds, so the saved choice is what the user sees.
@@ -1025,6 +1027,7 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
         OpenInItemBrowserCommand  = ReactiveCommand.Create(OpenSelectedInItemBrowser);
         RenderRefreshCommand      = ReactiveCommand.CreateFromTask(RenderSelectedAsync);
         PostToSlackCommand        = ReactiveCommand.CreateFromTask(PostSelectedToSlackAsync);
+        PostToDiscordCommand      = ReactiveCommand.CreateFromTask(PostSelectedToDiscordAsync);
 
         _ = InitAsync();
 
@@ -1310,6 +1313,83 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
             SlackStatus = string.Format(SalesText.SlackPosted, SlackDestination, DateTimeOffset.Now);
         }
         finally { IsPostingToSlack = false; }
+    }
+
+    // ── Discord ──────────────────────────────────────────────────────────────
+    // A button of its own beside Slack's, shown only once a Discord webhook is set for Sale
+    // Posting. Re-checked when the Settings window closes (see MainWindow.OpenSettingsAsync).
+
+    private readonly DiscordService? _discord;
+
+    public bool IsDiscordConfigured => _discord?.IsConfigured(DiscordService.AreaSalePosting) == true;
+
+    /// <summary>The webhook a post would go to, by its name, for the button's tooltip.</summary>
+    public string DiscordHookText => _discord?.WebhookName(DiscordService.AreaSalePosting) ?? "";
+
+    private string _discordStatus = "";
+    public string DiscordStatus { get => _discordStatus; private set => this.RaiseAndSetIfChanged(ref _discordStatus, value); }
+
+    private bool _isPostingToDiscord;
+    public bool IsPostingToDiscord { get => _isPostingToDiscord; private set => this.RaiseAndSetIfChanged(ref _isPostingToDiscord, value); }
+
+    public void RefreshDiscordState()
+    {
+        this.RaisePropertyChanged(nameof(IsDiscordConfigured));
+        this.RaisePropertyChanged(nameof(DiscordHookText));
+    }
+
+    /// <summary>
+    /// Posts the selected posting's blocks to Discord, one message per block, in order.
+    ///
+    /// <para>⚠️ Rendered as Discord, whatever the preview's format is set to: what arrives is what
+    /// "copy as Discord" gives for the same posting. A webhook cannot thread, so there is no
+    /// parent message — every block after the first is simply the next message, as on a Slack
+    /// webhook. A block too long for one message goes in parts, cut where the splitter allows.</para>
+    /// </summary>
+    private async Task PostSelectedToDiscordAsync()
+    {
+        if (_discord is null) return;
+        if (_selectedPostingForTab is not SalePostingRow pr) { DiscordStatus = SalesText.SlackSelectPosting; return; }
+        if (!_discord.IsConfigured(DiscordService.AreaSalePosting)) { DiscordStatus = SalesText.DiscordNotConfigured; return; }
+
+        // Per posting, like Slack's guard, and kept apart from it: posting to one says nothing
+        // about whether the other has it.
+        var guardKey = $"{DiscordService.AreaSalePosting}.{pr.PostingId}";
+        if (_discord.LastPostAt(guardKey) is { } last
+            && DateTimeOffset.UtcNow - last < SlackRepostWindow
+            && ConfirmSlackRepost is not null)
+        {
+            var confirmed = await ConfirmSlackRepost(
+                string.Format(SalesText.DiscordAlreadyPosted, pr.PostingName, NotificationSummary.Age(last)) +
+                SalesText.SlackPostAgain);
+            if (!confirmed) { DiscordStatus = SalesText.SlackPostCancelled; return; }
+        }
+
+        IsPostingToDiscord = true;
+        DiscordStatus = SalesText.DiscordPosting;
+        try
+        {
+            var fmt   = OutputFormat.ByName("Discord");
+            var posts = (await _svc.LoadPostsAsync(pr.PostingId)).OrderBy(p => p.Ordinal).ToList();
+            if (posts.Count == 0) { DiscordStatus = SalesText.SlackNothingToPost; return; }
+
+            int posted = 0;
+            foreach (var post in posts)
+            {
+                var markup = fmt.Finalize(SalePostingRenderer.Render(Snapshot(pr), fmt, post));
+                if (string.IsNullOrWhiteSpace(markup)) continue;
+
+                var sent = await _discord.PostAreaAsync(DiscordService.AreaSalePosting, markup);
+                if (!sent.AllPosted) { DiscordStatus = string.Format(SalesText.DiscordPostFailed, post.Name, sent.Error); return; }
+                posted++;
+            }
+
+            if (posted == 0) { DiscordStatus = SalesText.SlackAllEmpty; return; }
+            await _discord.SetLastPostAsync(guardKey, DateTimeOffset.UtcNow);
+            DiscordStatus = string.Format(SalesText.SlackPosted,
+                _discord.WebhookName(DiscordService.AreaSalePosting), DateTimeOffset.Now);
+        }
+        finally { IsPostingToDiscord = false; }
     }
 
     /// <summary>

@@ -1925,4 +1925,21 @@
   <data name="WebSyncDeclined" xml:space="preserve">
     <value>Заказ отклонён.</value>
   </data>
+  <data name="PostToDiscord" xml:space="preserve">
+    <value>Опубликовать в Discord</value>
+  </data>
+  <data name="DiscordNotConfigured" xml:space="preserve">
+    <value>Для объявлений о продаже не выбран веб-хук Discord.</value>
+  </data>
+  <data name="DiscordAlreadyPosted" xml:space="preserve">
+    <value>Объявление «{0}» уже публиковалось в Discord {1}.
+
+</value>
+  </data>
+  <data name="DiscordPosting" xml:space="preserve">
+    <value>Публикация в Discord…</value>
+  </data>
+  <data name="DiscordPostFailed" xml:space="preserve">
+    <value>Не удалось опубликовать в Discord блок «{0}»: {1}</value>
+  </data>
 </root>
