@@ -2066,4 +2066,120 @@ Owned by {3}</value>
     <value>{0:N0}/h Superionic Ice</value>
     <comment>System page, Celestials tab, Reagent column: what an ice planet yields per hour (/h). {0} is the amount; Superionic Ice is the game's item name.</comment>
   </data>
+  <data name="SearchConstellationIn" xml:space="preserve">
+    <value>Constellation · {0}</value>
+    <comment>Map tool search: the small line under a suggestion that is a constellation. {0} is its region.</comment>
+  </data>
+  <data name="LiveMarksLabel" xml:space="preserve">
+    <value>LIVE MARKS</value>
+    <comment>Label in UniverseView's side panel, above the legend of the live marks on the map.</comment>
+  </data>
+  <data name="LiveMarkHostiles" xml:space="preserve">
+    <value>Hostiles placed here in the last 5 minutes, by intel or a killmail. Hover for who they are and what they fly.</value>
+    <comment>Legend beside the red round mark on the map.</comment>
+  </data>
+  <data name="LiveMarkOwn" xml:space="preserve">
+    <value>Your characters online here. Hover for their ships and whether they are docked.</value>
+    <comment>Legend beside the blue square mark on the map.</comment>
+  </data>
+  <data name="TipMapTab" xml:space="preserve">
+    <value>Drag along the strip to reorder, or onto the right half to see two tabs side by side.</value>
+    <comment>Tooltip on a tab of the map tool.</comment>
+  </data>
+  <data name="TipCloseMapTab" xml:space="preserve">
+    <value>Close this tab</value>
+    <comment>Tooltip on a map tool tab's close button.</comment>
+  </data>
+  <data name="NewUniverseTab" xml:space="preserve">
+    <value>+ New map</value>
+    <comment>Button above the map tool's tabs: opens a map of New Eden in a new tab.</comment>
+  </data>
+  <data name="TipNewUniverseTab" xml:space="preserve">
+    <value>Open a map of New Eden in a new tab</value>
+    <comment>Tooltip on the New map button.</comment>
+  </data>
+  <data name="HintSystemConstellationRegion" xml:space="preserve">
+    <value>system, constellation or region</value>
+    <comment>Hint in the map tool's empty search box.</comment>
+  </data>
+  <data name="TipMapSearch" xml:space="preserve">
+    <value>Opens what you pick in a new tab: a system's page, or a map framed on the constellation or region.</value>
+    <comment>Tooltip on the map tool's search box.</comment>
+  </data>
+  <data name="EmptyMapToolHint" xml:space="preserve">
+    <value>No tabs open. Add a map with + New map, or search for a system, constellation or region.</value>
+    <comment>Shown in the map tool when every tab is closed. '+ New map' is the button's text (NewUniverseTab).</comment>
+  </data>
+  <data name="DropSideBySide" xml:space="preserve">
+    <value>Drop here to see two tabs side by side</value>
+    <comment>Target shown on the right half of the map tool while a tab is dragged.</comment>
+  </data>
+  <data name="LiveHostilesTitle" xml:space="preserve">
+    <value>Hostiles in {1}: {0}</value>
+    <comment>Map hover on the red mark. {0} is the number of hostiles, {1} the system or region.</comment>
+  </data>
+  <data name="LiveOwnTitle" xml:space="preserve">
+    <value>Your characters in {1}: {0}</value>
+    <comment>Map hover on the blue mark. {0} is the number of characters, {1} the system or region.</comment>
+  </data>
+  <data name="LiveSystemCount" xml:space="preserve">
+    <value>{0}: {1}</value>
+    <comment>Map hover on a region's mark, one line per system. {0} is the system, {1} the number.</comment>
+  </data>
+  <data name="LiveHostileLine" xml:space="preserve">
+    <value>{0} — {1} · {2} · {3}</value>
+    <comment>Map hover, one line per hostile pilot. {0} pilot, {1} ship, {2} how long ago (LiveJustNow or LiveMinutesAgo), {3} what placed them (LiveSource...).</comment>
+  </data>
+  <data name="LiveShipUnknown" xml:space="preserve">
+    <value>ship unknown</value>
+    <comment>Map hover: in place of a ship nobody reported.</comment>
+  </data>
+  <data name="LiveJustNow" xml:space="preserve">
+    <value>just now</value>
+    <comment>Map hover: placed less than a minute ago.</comment>
+  </data>
+  <data name="LiveMinutesAgo" xml:space="preserve">
+    <value>{0} min ago</value>
+    <comment>Map hover: placed {0} minutes ago.</comment>
+  </data>
+  <data name="LiveSourceKillmail" xml:space="preserve">
+    <value>killmail</value>
+    <comment>Map hover: the pilot was placed by a killmail.</comment>
+  </data>
+  <data name="LiveSourceIntel" xml:space="preserve">
+    <value>intel</value>
+    <comment>Map hover: the pilot was placed by an intel report.</comment>
+  </data>
+  <data name="LiveSourceIntelNoVisual" xml:space="preserve">
+    <value>intel, no visual</value>
+    <comment>Map hover: placed by an intel report that said NV (in local, not seen on grid).</comment>
+  </data>
+  <data name="LiveMore" xml:space="preserve">
+    <value>…and {0} more</value>
+    <comment>Map hover: pilots beyond the ones listed. {0} is how many.</comment>
+  </data>
+  <data name="LiveUnidentified" xml:space="preserve">
+    <value>+{0} not named</value>
+    <comment>Map hover: pilots an intel report counted without naming. {0} is how many.</comment>
+  </data>
+  <data name="LiveOwnLine" xml:space="preserve">
+    <value>{0} — {1} · {2}</value>
+    <comment>Map hover, one line per own character. {0} character, {1} ship, {2} where (LiveInSpace, LiveDocked or LiveDockedAt).</comment>
+  </data>
+  <data name="LiveInSpace" xml:space="preserve">
+    <value>in space</value>
+    <comment>Map hover: the character is undocked.</comment>
+  </data>
+  <data name="LiveDockedAt" xml:space="preserve">
+    <value>docked at {0}</value>
+    <comment>Map hover: docked. {0} is the station or structure.</comment>
+  </data>
+  <data name="LiveDocked" xml:space="preserve">
+    <value>docked</value>
+    <comment>Map hover: docked where the name is not known.</comment>
+  </data>
+  <data name="LiveCharacterId" xml:space="preserve">
+    <value>Character {0}</value>
+    <comment>Map hover: a pilot whose name has not been looked up yet. {0} is the character's id.</comment>
+  </data>
 </root>

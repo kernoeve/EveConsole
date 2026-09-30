@@ -1551,4 +1551,91 @@ Besitzer: {3}</value>
   <data name="ReagentSuperionicIcePerHour" xml:space="preserve">
     <value>{0:N0}/h Superionic Ice</value>
   </data>
+  <data name="SearchConstellationIn" xml:space="preserve">
+    <value>Konstellation · {0}</value>
+  </data>
+  <data name="LiveMarksLabel" xml:space="preserve">
+    <value>Live-Markierungen</value>
+  </data>
+  <data name="LiveMarkHostiles" xml:space="preserve">
+    <value>Feinde, die in den letzten 5 Minuten hier gemeldet wurden – per Intel oder Abschussbericht. Zeigen Sie darauf, um zu sehen, wer es ist und was geflogen wird.</value>
+  </data>
+  <data name="LiveMarkOwn" xml:space="preserve">
+    <value>Ihre Charaktere, die hier online sind. Zeigen Sie darauf, um Schiff und Andockstatus zu sehen.</value>
+  </data>
+  <data name="TipMapTab" xml:space="preserve">
+    <value>Entlang der Leiste ziehen, um die Reihenfolge zu ändern, oder auf die rechte Hälfte, um zwei Tabs nebeneinander zu sehen.</value>
+  </data>
+  <data name="TipCloseMapTab" xml:space="preserve">
+    <value>Diesen Tab schließen</value>
+  </data>
+  <data name="NewUniverseTab" xml:space="preserve">
+    <value>+ Neue Karte</value>
+  </data>
+  <data name="TipNewUniverseTab" xml:space="preserve">
+    <value>Eine Karte von New Eden in einem neuen Tab öffnen</value>
+  </data>
+  <data name="HintSystemConstellationRegion" xml:space="preserve">
+    <value>System, Konstellation oder Region</value>
+  </data>
+  <data name="TipMapSearch" xml:space="preserve">
+    <value>Öffnet die Auswahl in einem neuen Tab: die Seite eines Systems oder eine Karte, die auf die Konstellation oder Region ausgerichtet ist.</value>
+  </data>
+  <data name="EmptyMapToolHint" xml:space="preserve">
+    <value>Keine Tabs geöffnet. Fügen Sie mit „+ Neue Karte“ eine Karte hinzu oder suchen Sie nach einem System, einer Konstellation oder einer Region.</value>
+  </data>
+  <data name="DropSideBySide" xml:space="preserve">
+    <value>Hier ablegen, um zwei Tabs nebeneinander zu sehen</value>
+  </data>
+  <data name="LiveHostilesTitle" xml:space="preserve">
+    <value>Feinde in {1}: {0}</value>
+  </data>
+  <data name="LiveOwnTitle" xml:space="preserve">
+    <value>Ihre Charaktere in {1}: {0}</value>
+  </data>
+  <data name="LiveSystemCount" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="LiveHostileLine" xml:space="preserve">
+    <value>{0} – {1} · {2} · {3}</value>
+  </data>
+  <data name="LiveShipUnknown" xml:space="preserve">
+    <value>Schiff unbekannt</value>
+  </data>
+  <data name="LiveJustNow" xml:space="preserve">
+    <value>gerade eben</value>
+  </data>
+  <data name="LiveMinutesAgo" xml:space="preserve">
+    <value>vor {0} Min.</value>
+  </data>
+  <data name="LiveSourceKillmail" xml:space="preserve">
+    <value>Abschussbericht</value>
+  </data>
+  <data name="LiveSourceIntel" xml:space="preserve">
+    <value>Intel</value>
+  </data>
+  <data name="LiveSourceIntelNoVisual" xml:space="preserve">
+    <value>Intel, NV</value>
+  </data>
+  <data name="LiveMore" xml:space="preserve">
+    <value>…und {0} weitere</value>
+  </data>
+  <data name="LiveUnidentified" xml:space="preserve">
+    <value>+{0} ohne Namen</value>
+  </data>
+  <data name="LiveOwnLine" xml:space="preserve">
+    <value>{0} – {1} · {2}</value>
+  </data>
+  <data name="LiveInSpace" xml:space="preserve">
+    <value>im All</value>
+  </data>
+  <data name="LiveDockedAt" xml:space="preserve">
+    <value>angedockt in {0}</value>
+  </data>
+  <data name="LiveDocked" xml:space="preserve">
+    <value>angedockt</value>
+  </data>
+  <data name="LiveCharacterId" xml:space="preserve">
+    <value>Charakter {0}</value>
+  </data>
 </root>

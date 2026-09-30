@@ -1509,4 +1509,91 @@
   <data name="ReagentSuperionicIcePerHour" xml:space="preserve">
     <value>超离子冰 {0:N0}/小时</value>
   </data>
+  <data name="SearchConstellationIn" xml:space="preserve">
+    <value>星座 · {0}</value>
+  </data>
+  <data name="LiveMarksLabel" xml:space="preserve">
+    <value>实时标记</value>
+  </data>
+  <data name="LiveMarkHostiles" xml:space="preserve">
+    <value>过去 5 分钟内经情报或击毁报告确认位于此处的敌对人员。悬停查看是谁、驾驶什么舰船。</value>
+  </data>
+  <data name="LiveMarkOwn" xml:space="preserve">
+    <value>你在此处在线的角色。悬停查看舰船以及是否停靠。</value>
+  </data>
+  <data name="TipMapTab" xml:space="preserve">
+    <value>沿标签栏拖动可调整顺序，拖到右半边可并排查看两个标签页。</value>
+  </data>
+  <data name="TipCloseMapTab" xml:space="preserve">
+    <value>关闭此标签页</value>
+  </data>
+  <data name="NewUniverseTab" xml:space="preserve">
+    <value>+ 新地图</value>
+  </data>
+  <data name="TipNewUniverseTab" xml:space="preserve">
+    <value>在新标签页中打开新伊甸地图</value>
+  </data>
+  <data name="HintSystemConstellationRegion" xml:space="preserve">
+    <value>星系、星座或星域</value>
+  </data>
+  <data name="TipMapSearch" xml:space="preserve">
+    <value>在新标签页中打开所选内容：星系页面，或以该星座或星域为中心的地图。</value>
+  </data>
+  <data name="EmptyMapToolHint" xml:space="preserve">
+    <value>没有打开的标签页。用“+ 新地图”添加地图，或搜索星系、星座或星域。</value>
+  </data>
+  <data name="DropSideBySide" xml:space="preserve">
+    <value>拖放到此处以并排查看两个标签页</value>
+  </data>
+  <data name="LiveHostilesTitle" xml:space="preserve">
+    <value>{1} 的敌对人员：{0}</value>
+  </data>
+  <data name="LiveOwnTitle" xml:space="preserve">
+    <value>你在 {1} 的角色：{0}</value>
+  </data>
+  <data name="LiveSystemCount" xml:space="preserve">
+    <value>{0}：{1}</value>
+  </data>
+  <data name="LiveHostileLine" xml:space="preserve">
+    <value>{0}——{1} · {2} · {3}</value>
+  </data>
+  <data name="LiveShipUnknown" xml:space="preserve">
+    <value>舰船未知</value>
+  </data>
+  <data name="LiveJustNow" xml:space="preserve">
+    <value>刚刚</value>
+  </data>
+  <data name="LiveMinutesAgo" xml:space="preserve">
+    <value>{0} 分钟前</value>
+  </data>
+  <data name="LiveSourceKillmail" xml:space="preserve">
+    <value>击毁报告</value>
+  </data>
+  <data name="LiveSourceIntel" xml:space="preserve">
+    <value>情报</value>
+  </data>
+  <data name="LiveSourceIntelNoVisual" xml:space="preserve">
+    <value>情报，NV</value>
+  </data>
+  <data name="LiveMore" xml:space="preserve">
+    <value>……另有 {0} 人</value>
+  </data>
+  <data name="LiveUnidentified" xml:space="preserve">
+    <value>+{0} 人未具名</value>
+  </data>
+  <data name="LiveOwnLine" xml:space="preserve">
+    <value>{0}——{1} · {2}</value>
+  </data>
+  <data name="LiveInSpace" xml:space="preserve">
+    <value>在太空中</value>
+  </data>
+  <data name="LiveDockedAt" xml:space="preserve">
+    <value>停靠于 {0}</value>
+  </data>
+  <data name="LiveDocked" xml:space="preserve">
+    <value>已停靠</value>
+  </data>
+  <data name="LiveCharacterId" xml:space="preserve">
+    <value>角色 {0}</value>
+  </data>
 </root>

@@ -22,6 +22,18 @@ namespace EveConsole.Controls;
 public sealed record MapNodeStyle(Color Fill, string? Caption = null, string? Detail = null);
 
 /// <summary>
+/// Live marks on one node: hostiles believed to be there now, and the user's own characters.
+/// Each carries the text its hover shows, so the canvas stays ignorant of intel.
+/// </summary>
+public sealed record MapMarkers(
+    int Hostiles, string? HostileTitle, string? HostileDetail,
+    int Own,      string? OwnTitle,     string? OwnDetail);
+
+/// <summary>Where the view is looking: the world point at its centre and the zoom. Held by the
+/// view model so a tab keeps its place when the view is rebuilt.</summary>
+public sealed record MapCamera(double CenterX, double CenterY, double Scale);
+
+/// <summary>
 /// Pan/zoom node-and-link map, drawn directly rather than with one visual per node — a region
 /// map is up to 189 systems and the universe map 70 regions, which is far cheaper to paint in
 /// one pass than to lay out as controls.
@@ -73,6 +85,33 @@ public class MapCanvas : Control
     public static readonly StyledProperty<ICommand?> ActivateCommandProperty =
         AvaloniaProperty.Register<MapCanvas, ICommand?>(nameof(ActivateCommand));
 
+    /// <summary>Hostiles and own characters per node id (systems, and regions on the zoomed-out
+    /// tier). Drawn on every form of node — dot, box, region — since "somebody is there" matters
+    /// at any zoom.</summary>
+    public static readonly StyledProperty<IReadOnlyDictionary<int, MapMarkers>?> MarkersProperty =
+        AvaloniaProperty.Register<MapCanvas, IReadOnlyDictionary<int, MapMarkers>?>(nameof(Markers));
+
+    public IReadOnlyDictionary<int, MapMarkers>? Markers
+    {
+        get => GetValue(MarkersProperty);
+        set => SetValue(MarkersProperty, value);
+    }
+
+    /// <summary>
+    /// The view's position, two-way. Written back after every pan, zoom and framing, and applied
+    /// when set from outside — so a map tab rebuilt after moving to the other side of a split, or
+    /// after switching tabs, comes back where it was instead of re-framing all of New Eden.
+    /// </summary>
+    public static readonly StyledProperty<MapCamera?> CameraProperty =
+        AvaloniaProperty.Register<MapCanvas, MapCamera?>(
+            nameof(Camera), defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
+
+    public MapCamera? Camera
+    {
+        get => GetValue(CameraProperty);
+        set => SetValue(CameraProperty, value);
+    }
+
     public MapGraph? Graph
     {
         get => GetValue(GraphProperty);
@@ -99,7 +138,7 @@ public class MapCanvas : Control
 
     static MapCanvas()
     {
-        AffectsRender<MapCanvas>(GraphProperty, OverlayProperty, SelectedIdProperty, BadgesProperty);
+        AffectsRender<MapCanvas>(GraphProperty, OverlayProperty, SelectedIdProperty, BadgesProperty, MarkersProperty);
     }
 
     public MapCanvas()
@@ -273,8 +312,19 @@ public class MapCanvas : Control
         base.OnPropertyChanged(change);
         if (change.Property == GraphProperty)
         {
-            _needsFit = true;
-            _hover    = null;
+            // A graph arriving for a view that already has a place (a rebuilt tab, a refresh)
+            // keeps it; only a view with none yet frames the whole graph.
+            _needsFit      = Camera is null;
+            _fitScaleStale = true;
+            _hover         = null;
+        }
+        else if (change.Property == CameraProperty && !_publishingCamera && Camera is { } cam)
+        {
+            _cx       = cam.CenterX;
+            _cy       = cam.CenterY;
+            _scale    = cam.Scale;
+            _needsFit = false;
+            InvalidateVisual();
         }
         else if (change.Property == FocusBoundsProperty && FocusBounds is { } area)
         {
@@ -288,6 +338,20 @@ public class MapCanvas : Control
 
     /// <summary>Area waiting to be framed on the next paint.</summary>
     private Rect? _pendingFocus;
+
+    /// <summary>The fit scale bounds the zoom, so it is needed even when the view was restored
+    /// from a camera rather than fitted. Worked out on the next paint, which knows the bounds.</summary>
+    private bool _fitScaleStale = true;
+
+    private bool _publishingCamera;
+
+    /// <summary>Hands the current position back to the view model.</summary>
+    private void PublishCamera()
+    {
+        _publishingCamera = true;
+        try { SetCurrentValue(CameraProperty, new MapCamera(_cx, _cy, _scale)); }
+        finally { _publishingCamera = false; }
+    }
 
     /// <summary>Centres on an area and zooms so it fills most of the view.</summary>
     private void ApplyFocus(Rect area)
@@ -306,12 +370,26 @@ public class MapCanvas : Control
         // Cleared so the same region can be asked for again, and so a later pan is not snapped
         // back on the next repaint.
         SetCurrentValue(FocusBoundsProperty, null);
+        PublishCamera();
     }
 
     /// <summary>Frames the entire graph with a small margin. Deferred to render time because it
     /// needs the final bounds, which are not known when the graph is assigned.</summary>
     private void Fit()
     {
+        if (!ComputeFit(out var cx, out var cy)) return;
+        _cx       = cx;
+        _cy       = cy;
+        _scale    = _fitScale;
+        _needsFit = false;
+        PublishCamera();
+    }
+
+    /// <summary>The framing of the whole graph, and <see cref="_fitScale"/> with it, without
+    /// moving the view.</summary>
+    private bool ComputeFit(out double cx, out double cy)
+    {
+        cx = cy = 0;
         var g = Graph;
         // On a continuous map, frame the regions: their extent is the cluster, and fitting to
         // every system would open at a zoom where the system tier is already showing.
@@ -319,7 +397,7 @@ public class MapCanvas : Control
             ? g.Nodes.Where(n => n.Tier == 0).ToList()
             : g?.Nodes;
 
-        if (nodes is null || nodes.Count == 0 || Bounds.Width <= 0 || Bounds.Height <= 0) return;
+        if (nodes is null || nodes.Count == 0 || Bounds.Width <= 0 || Bounds.Height <= 0) return false;
 
         double minX = double.MaxValue, maxX = double.MinValue;
         double minY = double.MaxValue, maxY = double.MinValue;
@@ -331,8 +409,8 @@ public class MapCanvas : Control
             if (n.Y > maxY) maxY = n.Y;
         }
 
-        _cx = (minX + maxX) / 2;
-        _cy = (minY + maxY) / 2;
+        cx = (minX + maxX) / 2;
+        cy = (minY + maxY) / 2;
 
         // A single-node graph, or one collapsed onto a line, has no extent on some axis;
         // fall back to a scale that at least puts it on screen rather than dividing by zero.
@@ -344,8 +422,8 @@ public class MapCanvas : Control
         if (double.IsInfinity(_fitScale) || _fitScale <= 0 || _fitScale == double.MaxValue)
             _fitScale = 1;
 
-        _scale    = _fitScale;
-        _needsFit = false;
+        _fitScaleStale = false;
+        return true;
     }
 
     /// <summary>Reframes the whole graph. Bound to the toolbar's reset button.</summary>
@@ -517,6 +595,7 @@ public class MapCanvas : Control
             _builtBoxGraph = g;
             RebuildBoxLabels(g, overlay);
         }
+        if (_fitScaleStale) ComputeFit(out _, out _);
         if (_pendingFocus is { } area) { ApplyFocus(area); _pendingFocus = null; }
         else if (_needsFit) Fit();
 
@@ -579,7 +658,18 @@ public class MapCanvas : Control
 
             if (useBoxes) DrawSystemBox(ctx, n, p, fill, style);
             else          DrawDot(ctx, n, p, fill, style, showDotLabels);
+
+            if (Markers?.TryGetValue(n.Id, out var marks) == true)
+                _pendingMarks.Add((marks, useBoxes && _nodeRects.TryGetValue(n.Id, out var box)
+                    ? box
+                    : new Rect(p.X - NodeRadius, p.Y - NodeRadius, NodeRadius * 2, NodeRadius * 2), useBoxes));
         }
+
+        // Live marks in a pass of their own, after every node: drawn with their node, a
+        // neighbour's box painted later covered them — on the region tier, where boxes crowd,
+        // most of a mark could vanish under the next region.
+        foreach (var (marks, anchor, isBox) in _pendingMarks) DrawMarkers(ctx, marks, anchor, isBox);
+        _pendingMarks.Clear();
 
         // A badge tooltip wins: the cursor is on the mark, so that is what the question is about.
         if (_badgeHover is { } badge)  DrawTooltipBox(ctx, badge.Title, badge.Detail);
@@ -816,6 +906,51 @@ public class MapCanvas : Control
         }
     }
 
+    // ── Live markers ─────────────────────────────────────────────────────────
+    //
+    // ⚠️ Drawn after the node, in screen space, so they stay the same size at every zoom and
+    // sit on top of whatever is under them. Hostiles are a round red mark on the right, own
+    // characters a square mark on the left: shape and side as well as colour, so the two never
+    // read as each other.
+
+    private readonly List<(MapMarkers Marks, Rect Anchor, bool IsBox)> _pendingMarks = new();
+
+    private static readonly IBrush MarkInk = new ImmutableSolidColorBrush(Color.Parse("#ffffff"));
+    private static readonly IPen   MarkPen = new ImmutablePen(new ImmutableSolidColorBrush(Color.Parse("#0b0b10")), 1.5);
+
+    private void DrawMarkers(DrawingContext ctx, MapMarkers m, Rect anchor, bool isBox)
+    {
+        // Beside a box, vertically centred, clear of the docking bar above it and the services
+        // below. Above a dot, where its label (to the right) does not run.
+        var y = isBox ? anchor.Center.Y : anchor.Top - 5;
+
+        if (m.Hostiles > 0)
+        {
+            var text = new FormattedText(m.Hostiles.ToString(CultureInfo.CurrentCulture), CultureInfo.CurrentCulture,
+                FlowDirection.LeftToRight, BoldFace, 9.5, MarkInk);
+            var r  = Math.Max(7.5, text.Width / 2 + 4);
+            var cx = isBox ? anchor.Right + r + 3 : anchor.Right + r - 3;
+            var c  = new Point(cx, y);
+            ctx.DrawEllipse(Palette.Bad, MarkPen, c, r, r);
+            ctx.DrawText(text, new Point(c.X - text.Width / 2, c.Y - text.Height / 2));
+            if (m.HostileTitle is { } title)
+                _badgeTips.Add((new Rect(c.X - r - 2, c.Y - r - 2, r * 2 + 4, r * 2 + 4), title, m.HostileDetail ?? ""));
+        }
+
+        if (m.Own > 0)
+        {
+            var text = new FormattedText(m.Own.ToString(CultureInfo.CurrentCulture), CultureInfo.CurrentCulture,
+                FlowDirection.LeftToRight, BoldFace, 9.5, MarkInk);
+            var half = Math.Max(7, text.Width / 2 + 3.5);
+            var cx   = isBox ? anchor.Left - half - 3 : anchor.Left - half + 3;
+            var rect = new Rect(cx - half, y - 7, half * 2, 14);
+            ctx.DrawRectangle(Palette.Info, MarkPen, new RoundedRect(rect, 2));
+            ctx.DrawText(text, new Point(cx - text.Width / 2, y - text.Height / 2));
+            if (m.OwnTitle is { } title)
+                _badgeTips.Add((rect.Inflate(2), title, m.OwnDetail ?? ""));
+        }
+    }
+
     /// <summary>
     /// A two-line box naming the system and the region it leads to. Sized in screen space, so
     /// it stays readable at any zoom, and recorded in <see cref="_gateRects"/> so clicks match
@@ -980,10 +1115,19 @@ public class MapCanvas : Control
         _dragging = false;
         e.Pointer.Capture(null);
 
-        if (_dragMoved) return;
+        if (_dragMoved) { PublishCamera(); return; }
 
         var hit = HitTest(e.GetPosition(this));
         if (hit is not null) SelectedId = hit.Id;
+    }
+
+    /// <summary>A hover belongs to where the pointer was on the old layout; after a resize (a
+    /// split opening or closing) it would be drawn where nothing is under the pointer.</summary>
+    protected override void OnSizeChanged(SizeChangedEventArgs e)
+    {
+        base.OnSizeChanged(e);
+        _hover      = null;
+        _badgeHover = null;
     }
 
     protected override void OnPointerExited(PointerEventArgs e)
@@ -1013,6 +1157,7 @@ public class MapCanvas : Control
         _cy = wy - (pos.Y - Bounds.Height / 2) / _scale;
 
         e.Handled = true;
+        PublishCamera();
         InvalidateVisual();
     }
 }

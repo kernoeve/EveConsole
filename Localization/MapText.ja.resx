@@ -1509,4 +1509,91 @@
   <data name="ReagentSuperionicIcePerHour" xml:space="preserve">
     <value>超イオンアイス{0:N0}/h</value>
   </data>
+  <data name="SearchConstellationIn" xml:space="preserve">
+    <value>コンステレーション · {0}</value>
+  </data>
+  <data name="LiveMarksLabel" xml:space="preserve">
+    <value>ライブ表示</value>
+  </data>
+  <data name="LiveMarkHostiles" xml:space="preserve">
+    <value>過去5分間にインテルまたはキルレポートでここにいると分かった敵対者です。カーソルを合わせると、誰が何に乗っているかを表示します。</value>
+  </data>
+  <data name="LiveMarkOwn" xml:space="preserve">
+    <value>ここでオンラインのあなたのキャラクターです。カーソルを合わせると、艦船と入港中かどうかを表示します。</value>
+  </data>
+  <data name="TipMapTab" xml:space="preserve">
+    <value>バーに沿ってドラッグすると並べ替え、右半分にドラッグすると2つのタブを並べて表示します。</value>
+  </data>
+  <data name="TipCloseMapTab" xml:space="preserve">
+    <value>このタブを閉じる</value>
+  </data>
+  <data name="NewUniverseTab" xml:space="preserve">
+    <value>+ 新しいマップ</value>
+  </data>
+  <data name="TipNewUniverseTab" xml:space="preserve">
+    <value>ニューエデンのマップを新しいタブで開きます。</value>
+  </data>
+  <data name="HintSystemConstellationRegion" xml:space="preserve">
+    <value>システム、コンステレーション、リージョン</value>
+  </data>
+  <data name="TipMapSearch" xml:space="preserve">
+    <value>選んだものを新しいタブで開きます。システムのページ、またはコンステレーションやリージョンに合わせたマップです。</value>
+  </data>
+  <data name="EmptyMapToolHint" xml:space="preserve">
+    <value>開いているタブはありません。「+ 新しいマップ」でマップを追加するか、システム、コンステレーション、リージョンを検索してください。</value>
+  </data>
+  <data name="DropSideBySide" xml:space="preserve">
+    <value>ここにドロップすると2つのタブを並べて表示します</value>
+  </data>
+  <data name="LiveHostilesTitle" xml:space="preserve">
+    <value>{1}の敵対者: {0}</value>
+  </data>
+  <data name="LiveOwnTitle" xml:space="preserve">
+    <value>{1}のあなたのキャラクター: {0}</value>
+  </data>
+  <data name="LiveSystemCount" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="LiveHostileLine" xml:space="preserve">
+    <value>{0} — {1} · {2} · {3}</value>
+  </data>
+  <data name="LiveShipUnknown" xml:space="preserve">
+    <value>艦船不明</value>
+  </data>
+  <data name="LiveJustNow" xml:space="preserve">
+    <value>たった今</value>
+  </data>
+  <data name="LiveMinutesAgo" xml:space="preserve">
+    <value>{0}分前</value>
+  </data>
+  <data name="LiveSourceKillmail" xml:space="preserve">
+    <value>キルレポート</value>
+  </data>
+  <data name="LiveSourceIntel" xml:space="preserve">
+    <value>インテル</value>
+  </data>
+  <data name="LiveSourceIntelNoVisual" xml:space="preserve">
+    <value>インテル、NV</value>
+  </data>
+  <data name="LiveMore" xml:space="preserve">
+    <value>…ほか{0}人</value>
+  </data>
+  <data name="LiveUnidentified" xml:space="preserve">
+    <value>+{0}人(名前なし)</value>
+  </data>
+  <data name="LiveOwnLine" xml:space="preserve">
+    <value>{0} — {1} · {2}</value>
+  </data>
+  <data name="LiveInSpace" xml:space="preserve">
+    <value>宇宙空間</value>
+  </data>
+  <data name="LiveDockedAt" xml:space="preserve">
+    <value>{0}に入港中</value>
+  </data>
+  <data name="LiveDocked" xml:space="preserve">
+    <value>入港中</value>
+  </data>
+  <data name="LiveCharacterId" xml:space="preserve">
+    <value>キャラクター{0}</value>
+  </data>
 </root>

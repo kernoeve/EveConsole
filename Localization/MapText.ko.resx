@@ -1509,4 +1509,91 @@
   <data name="ReagentSuperionicIcePerHour" xml:space="preserve">
     <value>초이온성 아이스 {0:N0}/시간</value>
   </data>
+  <data name="SearchConstellationIn" xml:space="preserve">
+    <value>성좌 · {0}</value>
+  </data>
+  <data name="LiveMarksLabel" xml:space="preserve">
+    <value>실시간 표시</value>
+  </data>
+  <data name="LiveMarkHostiles" xml:space="preserve">
+    <value>최근 5분 동안 인텔 또는 킬 메일로 이곳에서 확인된 적대 세력입니다. 마우스를 올리면 누가 무엇을 타고 있는지 표시합니다.</value>
+  </data>
+  <data name="LiveMarkOwn" xml:space="preserve">
+    <value>이곳에서 접속 중인 내 캐릭터입니다. 마우스를 올리면 함선과 정박 여부를 표시합니다.</value>
+  </data>
+  <data name="TipMapTab" xml:space="preserve">
+    <value>막대를 따라 끌면 순서를 바꾸고, 오른쪽 절반으로 끌면 탭 두 개를 나란히 봅니다.</value>
+  </data>
+  <data name="TipCloseMapTab" xml:space="preserve">
+    <value>이 탭 닫기</value>
+  </data>
+  <data name="NewUniverseTab" xml:space="preserve">
+    <value>+ 새 지도</value>
+  </data>
+  <data name="TipNewUniverseTab" xml:space="preserve">
+    <value>뉴에덴 지도를 새 탭으로 엽니다.</value>
+  </data>
+  <data name="HintSystemConstellationRegion" xml:space="preserve">
+    <value>항성계, 성좌 또는 지역</value>
+  </data>
+  <data name="TipMapSearch" xml:space="preserve">
+    <value>선택한 항목을 새 탭으로 엽니다. 항성계 페이지 또는 성좌나 지역에 맞춘 지도입니다.</value>
+  </data>
+  <data name="EmptyMapToolHint" xml:space="preserve">
+    <value>열린 탭이 없습니다. + 새 지도로 지도를 추가하거나 항성계, 성좌 또는 지역을 검색하십시오.</value>
+  </data>
+  <data name="DropSideBySide" xml:space="preserve">
+    <value>여기에 놓으면 탭 두 개를 나란히 봅니다</value>
+  </data>
+  <data name="LiveHostilesTitle" xml:space="preserve">
+    <value>{1}의 적대 세력: {0}</value>
+  </data>
+  <data name="LiveOwnTitle" xml:space="preserve">
+    <value>{1}의 내 캐릭터: {0}</value>
+  </data>
+  <data name="LiveSystemCount" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="LiveHostileLine" xml:space="preserve">
+    <value>{0} — {1} · {2} · {3}</value>
+  </data>
+  <data name="LiveShipUnknown" xml:space="preserve">
+    <value>함선 알 수 없음</value>
+  </data>
+  <data name="LiveJustNow" xml:space="preserve">
+    <value>방금</value>
+  </data>
+  <data name="LiveMinutesAgo" xml:space="preserve">
+    <value>{0}분 전</value>
+  </data>
+  <data name="LiveSourceKillmail" xml:space="preserve">
+    <value>킬 메일</value>
+  </data>
+  <data name="LiveSourceIntel" xml:space="preserve">
+    <value>인텔</value>
+  </data>
+  <data name="LiveSourceIntelNoVisual" xml:space="preserve">
+    <value>인텔, NV</value>
+  </data>
+  <data name="LiveMore" xml:space="preserve">
+    <value>…외 {0}명</value>
+  </data>
+  <data name="LiveUnidentified" xml:space="preserve">
+    <value>+{0}명 이름 없음</value>
+  </data>
+  <data name="LiveOwnLine" xml:space="preserve">
+    <value>{0} — {1} · {2}</value>
+  </data>
+  <data name="LiveInSpace" xml:space="preserve">
+    <value>비행 중</value>
+  </data>
+  <data name="LiveDockedAt" xml:space="preserve">
+    <value>{0}에 정박 중</value>
+  </data>
+  <data name="LiveDocked" xml:space="preserve">
+    <value>정박 중</value>
+  </data>
+  <data name="LiveCharacterId" xml:space="preserve">
+    <value>캐릭터 {0}</value>
+  </data>
 </root>

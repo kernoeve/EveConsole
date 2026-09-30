@@ -1635,4 +1635,91 @@
   <data name="ReagentSuperionicIcePerHour" xml:space="preserve">
     <value>Суперионный лёд: {0:N0}/ч</value>
   </data>
+  <data name="SearchConstellationIn" xml:space="preserve">
+    <value>Созвездие · {0}</value>
+  </data>
+  <data name="LiveMarksLabel" xml:space="preserve">
+    <value>Отметки в реальном времени</value>
+  </data>
+  <data name="LiveMarkHostiles" xml:space="preserve">
+    <value>Противники, замеченные здесь за последние 5 минут — по разведке или отчёту о бое. Наведите курсор, чтобы увидеть, кто это и на чём летает.</value>
+  </data>
+  <data name="LiveMarkOwn" xml:space="preserve">
+    <value>Ваши персонажи в сети в этой системе. Наведите курсор, чтобы увидеть корабль и находится ли персонаж в доке.</value>
+  </data>
+  <data name="TipMapTab" xml:space="preserve">
+    <value>Перетащите вдоль полосы, чтобы изменить порядок, или на правую половину, чтобы видеть две вкладки рядом.</value>
+  </data>
+  <data name="TipCloseMapTab" xml:space="preserve">
+    <value>Закрыть вкладку</value>
+  </data>
+  <data name="NewUniverseTab" xml:space="preserve">
+    <value>+ Новая карта</value>
+  </data>
+  <data name="TipNewUniverseTab" xml:space="preserve">
+    <value>Открыть карту Нового Эдема в новой вкладке</value>
+  </data>
+  <data name="HintSystemConstellationRegion" xml:space="preserve">
+    <value>система, созвездие или сектор</value>
+  </data>
+  <data name="TipMapSearch" xml:space="preserve">
+    <value>Открывает выбранное в новой вкладке: страницу системы или карту созвездия или сектора.</value>
+  </data>
+  <data name="EmptyMapToolHint" xml:space="preserve">
+    <value>Нет открытых вкладок. Добавьте карту кнопкой «+ Новая карта» или найдите систему, созвездие или сектор.</value>
+  </data>
+  <data name="DropSideBySide" xml:space="preserve">
+    <value>Отпустите здесь, чтобы видеть две вкладки рядом</value>
+  </data>
+  <data name="LiveHostilesTitle" xml:space="preserve">
+    <value>Противники ({1}): {0}</value>
+  </data>
+  <data name="LiveOwnTitle" xml:space="preserve">
+    <value>Ваши персонажи ({1}): {0}</value>
+  </data>
+  <data name="LiveSystemCount" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="LiveHostileLine" xml:space="preserve">
+    <value>{0} — {1} · {2} · {3}</value>
+  </data>
+  <data name="LiveShipUnknown" xml:space="preserve">
+    <value>корабль неизвестен</value>
+  </data>
+  <data name="LiveJustNow" xml:space="preserve">
+    <value>только что</value>
+  </data>
+  <data name="LiveMinutesAgo" xml:space="preserve">
+    <value>{0} мин назад</value>
+  </data>
+  <data name="LiveSourceKillmail" xml:space="preserve">
+    <value>отчёт о бое</value>
+  </data>
+  <data name="LiveSourceIntel" xml:space="preserve">
+    <value>разведка</value>
+  </data>
+  <data name="LiveSourceIntelNoVisual" xml:space="preserve">
+    <value>разведка, NV</value>
+  </data>
+  <data name="LiveMore" xml:space="preserve">
+    <value>…и ещё {0}</value>
+  </data>
+  <data name="LiveUnidentified" xml:space="preserve">
+    <value>+{0} без имени</value>
+  </data>
+  <data name="LiveOwnLine" xml:space="preserve">
+    <value>{0} — {1} · {2}</value>
+  </data>
+  <data name="LiveInSpace" xml:space="preserve">
+    <value>в космосе</value>
+  </data>
+  <data name="LiveDockedAt" xml:space="preserve">
+    <value>в доке: {0}</value>
+  </data>
+  <data name="LiveDocked" xml:space="preserve">
+    <value>в доке</value>
+  </data>
+  <data name="LiveCharacterId" xml:space="preserve">
+    <value>Персонаж {0}</value>
+  </data>
 </root>
