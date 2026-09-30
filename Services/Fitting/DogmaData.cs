@@ -136,7 +136,8 @@ public sealed class DogmaData
         // The tooltip in the interface language, once per ability; there are a few dozen.
         var tips = new Dictionary<int, string>();
         foreach (var a in abilities.Values)
-            tips[a.AbilityId] = await SdeTexts.GetAsync(SdeTextKind.FighterAbilityTooltip, a.AbilityId, a.Tooltip, ct);
+            tips[a.AbilityId] = FighterAbilities.PlainTooltip(
+                await SdeTexts.GetAsync(SdeTextKind.FighterAbilityTooltip, a.AbilityId, a.Tooltip, ct));
         return slots.Where(s => abilities.ContainsKey(s.AbilityId))
             .GroupBy(s => s.TypeId)
             .ToDictionary(g => g.Key, g => (IReadOnlyList<FighterSlotData>)g.OrderBy(s => s.Slot).Select(s =>

@@ -128,6 +128,15 @@ public static class FighterAbilities
         return map;
     }
 
+    /// <summary>
+    /// An ability's tooltip as plain lines. The game's text is written for its own renderer, and
+    /// not alike in every language: the Korean breaks lines with <c>&lt;br&gt;</c> tags, German and
+    /// French with blank lines, English with single ones. Markup becomes line breaks, and blank
+    /// lines fold away, so every language reads the same in a tooltip.
+    /// </summary>
+    public static string PlainTooltip(string text) =>
+        System.Text.RegularExpressions.Regex.Replace(EveMailMarkup.ToPlainText(text), @"\n\s*\n", "\n").Trim();
+
     /// <summary>The effect ids switched on by default for <paramref name="type"/>.</summary>
     public static IReadOnlyList<int> Defaults(DogmaData data, DogmaTypeInfo type) =>
         Of(data, type).Where(a => a.OnByDefault).Select(a => a.EffectId).ToList();
