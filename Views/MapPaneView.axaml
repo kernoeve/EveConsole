@@ -100,6 +100,11 @@
             <views:UniverseView DataContext="{Binding Map}" />
           </Panel>
         </DataTemplate>
+        <DataTemplate DataType="vm:BridgesTabViewModel">
+          <Panel IsVisible="{Binding IsSelected}">
+            <views:JumpBridgesView />
+          </Panel>
+        </DataTemplate>
         <DataTemplate DataType="vm:SystemTabViewModel">
           <Panel IsVisible="{Binding IsSelected}">
             <views:SystemPageView DataContext="{Binding Page}" />

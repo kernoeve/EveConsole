@@ -1602,4 +1602,124 @@
   <data name="TipSidePanel" xml:space="preserve">
     <value>显示或隐藏右侧的详情和图例</value>
   </data>
+  <data name="JumpBridgesTab" xml:space="preserve">
+    <value>跳桥</value>
+  </data>
+  <data name="TipJumpBridgesTab" xml:space="preserve">
+    <value>所有已知跳桥（来自 ESI 或手动添加），以及添加更多</value>
+  </data>
+  <data name="JumpBridgesToggle" xml:space="preserve">
+    <value>跳桥</value>
+  </data>
+  <data name="TipJumpBridgesToggle" xml:space="preserve">
+    <value>在地图上显示或隐藏跳桥</value>
+  </data>
+  <data name="BridgeTitle" xml:space="preserve">
+    <value>跳桥：{0} ⇄ {1}</value>
+  </data>
+  <data name="BridgeFuelUntil" xml:space="preserve">
+    <value>燃料至 {0}</value>
+  </data>
+  <data name="BridgeOneGate" xml:space="preserve">
+    <value>ESI 只显示 {0} 的门</value>
+  </data>
+  <data name="BridgeAddedByHand" xml:space="preserve">
+    <value>手动添加</value>
+  </data>
+  <data name="BridgesSummary" xml:space="preserve">
+    <value>跳桥：{0} · 来自 ESI：{1} · 手动添加：{2}</value>
+  </data>
+  <data name="BridgesNote" xml:space="preserve">
+    <value>来自 ESI 的跳桥是你添加了令牌的军团的安塞波跳桥，通往其名称所指之处（“A » B”）。其余的请手动添加：其他军团和盟友的跳桥。此处只能删除手动添加的跳桥。</value>
+  </data>
+  <data name="BridgesNone" xml:space="preserve">
+    <value>尚无已知跳桥。</value>
+  </data>
+  <data name="BridgesUnreadLabel" xml:space="preserve">
+    <value>名称未说明去向的门</value>
+  </data>
+  <data name="BridgeUnreadLine" xml:space="preserve">
+    <value>{0}（位于 {1}）</value>
+  </data>
+  <data name="BridgeNoName" xml:space="preserve">
+    <value>（无名称）</value>
+  </data>
+  <data name="BridgeColFrom" xml:space="preserve">
+    <value>星系</value>
+  </data>
+  <data name="BridgeColTo" xml:space="preserve">
+    <value>星系</value>
+  </data>
+  <data name="BridgeColSource" xml:space="preserve">
+    <value>来源</value>
+  </data>
+  <data name="BridgeColFuel" xml:space="preserve">
+    <value>燃料</value>
+  </data>
+  <data name="BridgeColGates" xml:space="preserve">
+    <value>门</value>
+  </data>
+  <data name="BridgeSourceEsiBoth" xml:space="preserve">
+    <value>ESI，两端</value>
+  </data>
+  <data name="BridgeSourceEsiOne" xml:space="preserve">
+    <value>ESI，一端</value>
+  </data>
+  <data name="BridgeSourceManual" xml:space="preserve">
+    <value>手动</value>
+  </data>
+  <data name="BridgeSourceBoth" xml:space="preserve">
+    <value>ESI 及手动</value>
+  </data>
+  <data name="BridgeFuelDays" xml:space="preserve">
+    <value>{0} 天（{1}）</value>
+  </data>
+  <data name="TipOpenSystemTab" xml:space="preserve">
+    <value>在标签页中打开此星系</value>
+  </data>
+  <data name="TipRemoveBridge" xml:space="preserve">
+    <value>删除此跳桥</value>
+  </data>
+  <data name="AddBridgeLabel" xml:space="preserve">
+    <value>添加跳桥</value>
+  </data>
+  <data name="HintBridgeFrom" xml:space="preserve">
+    <value>一端（星系）</value>
+  </data>
+  <data name="HintBridgeTo" xml:space="preserve">
+    <value>另一端（星系）</value>
+  </data>
+  <data name="HintBridgeNote" xml:space="preserve">
+    <value>备注（可选）</value>
+  </data>
+  <data name="AddBridge" xml:space="preserve">
+    <value>添加</value>
+  </data>
+  <data name="BridgePickBoth" xml:space="preserve">
+    <value>请为两端各选一个星系。</value>
+  </data>
+  <data name="BridgeAdded" xml:space="preserve">
+    <value>已添加 {0} ⇄ {1}。</value>
+  </data>
+  <data name="BridgeNotAdded" xml:space="preserve">
+    <value>该跳桥已在列表中，或两端是同一星系。</value>
+  </data>
+  <data name="PasteBridgesLabel" xml:space="preserve">
+    <value>粘贴列表</value>
+  </data>
+  <data name="HintPasteBridges" xml:space="preserve">
+    <value>每行一座跳桥，例如：
+QZ-X77 » XQ1-Z2 - Home run
+XQ1-Z2 &lt;-&gt; 9-97XQ
+或其他工具的导出格式</value>
+  </data>
+  <data name="ImportBridges" xml:space="preserve">
+    <value>导入</value>
+  </data>
+  <data name="BridgesImported" xml:space="preserve">
+    <value>已添加 {0} · 已存在 {1} · 未读取 {2}（留在框中）</value>
+  </data>
+  <data name="LegendJumpBridge" xml:space="preserve">
+    <value>跳桥——ESI 只显示一端时较淡</value>
+  </data>
 </root>

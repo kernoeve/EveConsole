@@ -17,6 +17,11 @@
                 Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
                 BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" Padding="10 4" FontSize="11" />
 
+        <Button Command="{Binding ShowBridgesTabCommand}" Content="{x:Static loc:MapText.JumpBridgesTab}"
+                ToolTip.Tip="{x:Static loc:MapText.TipJumpBridgesTab}" IsVisible="{Binding HasBridges}"
+                Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
+                BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" Padding="10 4" FontSize="11" />
+
         <!-- Filtering is done by the query, not by the box, so FilterMode is None; otherwise it
              would filter the already-filtered results again on the display string. -->
         <AutoCompleteBox Text="{Binding SearchText}"

@@ -1728,4 +1728,124 @@
   <data name="TipSidePanel" xml:space="preserve">
     <value>Показать или скрыть сведения и легенду справа</value>
   </data>
+  <data name="JumpBridgesTab" xml:space="preserve">
+    <value>Прыжковые мосты</value>
+  </data>
+  <data name="TipJumpBridgesTab" xml:space="preserve">
+    <value>Все известные прыжковые мосты — из ESI или добавленные вручную — и добавление новых</value>
+  </data>
+  <data name="JumpBridgesToggle" xml:space="preserve">
+    <value>Прыжковые мосты</value>
+  </data>
+  <data name="TipJumpBridgesToggle" xml:space="preserve">
+    <value>Показать или скрыть прыжковые мосты на карте</value>
+  </data>
+  <data name="BridgeTitle" xml:space="preserve">
+    <value>Прыжковый мост: {0} ⇄ {1}</value>
+  </data>
+  <data name="BridgeFuelUntil" xml:space="preserve">
+    <value>топливо до {0}</value>
+  </data>
+  <data name="BridgeOneGate" xml:space="preserve">
+    <value>ESI показывает только ворота в {0}</value>
+  </data>
+  <data name="BridgeAddedByHand" xml:space="preserve">
+    <value>Добавлен вручную</value>
+  </data>
+  <data name="BridgesSummary" xml:space="preserve">
+    <value>Прыжковые мосты: {0} · из ESI: {1} · вручную: {2}</value>
+  </data>
+  <data name="BridgesNote" xml:space="preserve">
+    <value>Мосты из ESI — это «Ансиблексы» корпораций, для которых вы добавили токен; они ведут туда, куда указывает их название («A » B»). Остальные добавьте вручную: мосты других корпораций и союзников. Удалить здесь можно только мосты, добавленные вручную.</value>
+  </data>
+  <data name="BridgesNone" xml:space="preserve">
+    <value>Прыжковые мосты пока неизвестны.</value>
+  </data>
+  <data name="BridgesUnreadLabel" xml:space="preserve">
+    <value>Ворота, по названию которых не понять, куда они ведут</value>
+  </data>
+  <data name="BridgeUnreadLine" xml:space="preserve">
+    <value>{0} (в {1})</value>
+  </data>
+  <data name="BridgeNoName" xml:space="preserve">
+    <value>(без названия)</value>
+  </data>
+  <data name="BridgeColFrom" xml:space="preserve">
+    <value>Система</value>
+  </data>
+  <data name="BridgeColTo" xml:space="preserve">
+    <value>Система</value>
+  </data>
+  <data name="BridgeColSource" xml:space="preserve">
+    <value>Источник</value>
+  </data>
+  <data name="BridgeColFuel" xml:space="preserve">
+    <value>Топливо</value>
+  </data>
+  <data name="BridgeColGates" xml:space="preserve">
+    <value>Ворота</value>
+  </data>
+  <data name="BridgeSourceEsiBoth" xml:space="preserve">
+    <value>ESI, оба конца</value>
+  </data>
+  <data name="BridgeSourceEsiOne" xml:space="preserve">
+    <value>ESI, один конец</value>
+  </data>
+  <data name="BridgeSourceManual" xml:space="preserve">
+    <value>Вручную</value>
+  </data>
+  <data name="BridgeSourceBoth" xml:space="preserve">
+    <value>ESI и вручную</value>
+  </data>
+  <data name="BridgeFuelDays" xml:space="preserve">
+    <value>{0} дн. ({1})</value>
+  </data>
+  <data name="TipOpenSystemTab" xml:space="preserve">
+    <value>Открыть систему во вкладке</value>
+  </data>
+  <data name="TipRemoveBridge" xml:space="preserve">
+    <value>Удалить мост</value>
+  </data>
+  <data name="AddBridgeLabel" xml:space="preserve">
+    <value>Добавить мост</value>
+  </data>
+  <data name="HintBridgeFrom" xml:space="preserve">
+    <value>один конец (система)</value>
+  </data>
+  <data name="HintBridgeTo" xml:space="preserve">
+    <value>другой конец (система)</value>
+  </data>
+  <data name="HintBridgeNote" xml:space="preserve">
+    <value>заметка (необязательно)</value>
+  </data>
+  <data name="AddBridge" xml:space="preserve">
+    <value>Добавить</value>
+  </data>
+  <data name="BridgePickBoth" xml:space="preserve">
+    <value>Выберите систему для каждого конца.</value>
+  </data>
+  <data name="BridgeAdded" xml:space="preserve">
+    <value>Добавлен мост {0} ⇄ {1}.</value>
+  </data>
+  <data name="BridgeNotAdded" xml:space="preserve">
+    <value>Этот мост уже в списке, или оба конца — одна и та же система.</value>
+  </data>
+  <data name="PasteBridgesLabel" xml:space="preserve">
+    <value>Вставить список</value>
+  </data>
+  <data name="HintPasteBridges" xml:space="preserve">
+    <value>Один мост на строку, например:
+QZ-X77 » XQ1-Z2 - Home run
+XQ1-Z2 &lt;-&gt; 9-97XQ
+или в формате экспорта другой программы</value>
+  </data>
+  <data name="ImportBridges" xml:space="preserve">
+    <value>Импортировать</value>
+  </data>
+  <data name="BridgesImported" xml:space="preserve">
+    <value>Добавлено {0} · уже известно {1} · не прочитано {2} (остались в поле)</value>
+  </data>
+  <data name="LegendJumpBridge" xml:space="preserve">
+    <value>Прыжковый мост — бледнее, если ESI показывает только один конец</value>
+  </data>
 </root>

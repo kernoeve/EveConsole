@@ -1644,4 +1644,124 @@ Propietario: {3}</value>
   <data name="TipSidePanel" xml:space="preserve">
     <value>Mostrar u ocultar los detalles y la leyenda de la derecha</value>
   </data>
+  <data name="JumpBridgesTab" xml:space="preserve">
+    <value>Puentes de salto</value>
+  </data>
+  <data name="TipJumpBridgesTab" xml:space="preserve">
+    <value>Todos los puentes de salto conocidos, de ESI o añadidos a mano, y añadir más</value>
+  </data>
+  <data name="JumpBridgesToggle" xml:space="preserve">
+    <value>Puentes de salto</value>
+  </data>
+  <data name="TipJumpBridgesToggle" xml:space="preserve">
+    <value>Mostrar u ocultar los puentes de salto en el mapa</value>
+  </data>
+  <data name="BridgeTitle" xml:space="preserve">
+    <value>Puente de salto: {0} ⇄ {1}</value>
+  </data>
+  <data name="BridgeFuelUntil" xml:space="preserve">
+    <value>combustible hasta {0}</value>
+  </data>
+  <data name="BridgeOneGate" xml:space="preserve">
+    <value>ESI solo muestra la puerta de {0}</value>
+  </data>
+  <data name="BridgeAddedByHand" xml:space="preserve">
+    <value>Añadido a mano</value>
+  </data>
+  <data name="BridgesSummary" xml:space="preserve">
+    <value>Puentes de salto: {0} · de ESI: {1} · a mano: {2}</value>
+  </data>
+  <data name="BridgesNote" xml:space="preserve">
+    <value>Los puentes de ESI son los Ansiblex de las corporaciones de las que has añadido un token, y van adonde dice su nombre ("A » B"). Añade el resto a mano: los puentes de otras corporaciones y de aliados. Aquí solo se pueden quitar los añadidos a mano.</value>
+  </data>
+  <data name="BridgesNone" xml:space="preserve">
+    <value>Aún no se conoce ningún puente de salto.</value>
+  </data>
+  <data name="BridgesUnreadLabel" xml:space="preserve">
+    <value>Puertas cuyo nombre no dice adónde van</value>
+  </data>
+  <data name="BridgeUnreadLine" xml:space="preserve">
+    <value>{0} (en {1})</value>
+  </data>
+  <data name="BridgeNoName" xml:space="preserve">
+    <value>(sin nombre)</value>
+  </data>
+  <data name="BridgeColFrom" xml:space="preserve">
+    <value>Sistema</value>
+  </data>
+  <data name="BridgeColTo" xml:space="preserve">
+    <value>Sistema</value>
+  </data>
+  <data name="BridgeColSource" xml:space="preserve">
+    <value>Origen</value>
+  </data>
+  <data name="BridgeColFuel" xml:space="preserve">
+    <value>Combustible</value>
+  </data>
+  <data name="BridgeColGates" xml:space="preserve">
+    <value>Puertas</value>
+  </data>
+  <data name="BridgeSourceEsiBoth" xml:space="preserve">
+    <value>ESI, ambas puertas</value>
+  </data>
+  <data name="BridgeSourceEsiOne" xml:space="preserve">
+    <value>ESI, una puerta</value>
+  </data>
+  <data name="BridgeSourceManual" xml:space="preserve">
+    <value>A mano</value>
+  </data>
+  <data name="BridgeSourceBoth" xml:space="preserve">
+    <value>ESI y a mano</value>
+  </data>
+  <data name="BridgeFuelDays" xml:space="preserve">
+    <value>{0} días ({1})</value>
+  </data>
+  <data name="TipOpenSystemTab" xml:space="preserve">
+    <value>Abrir este sistema en una pestaña</value>
+  </data>
+  <data name="TipRemoveBridge" xml:space="preserve">
+    <value>Quitar este puente</value>
+  </data>
+  <data name="AddBridgeLabel" xml:space="preserve">
+    <value>Añadir un puente</value>
+  </data>
+  <data name="HintBridgeFrom" xml:space="preserve">
+    <value>un extremo (sistema)</value>
+  </data>
+  <data name="HintBridgeTo" xml:space="preserve">
+    <value>otro extremo (sistema)</value>
+  </data>
+  <data name="HintBridgeNote" xml:space="preserve">
+    <value>nota (opcional)</value>
+  </data>
+  <data name="AddBridge" xml:space="preserve">
+    <value>Añadir</value>
+  </data>
+  <data name="BridgePickBoth" xml:space="preserve">
+    <value>Elige un sistema para cada extremo.</value>
+  </data>
+  <data name="BridgeAdded" xml:space="preserve">
+    <value>Añadido {0} ⇄ {1}.</value>
+  </data>
+  <data name="BridgeNotAdded" xml:space="preserve">
+    <value>Ese puente ya está en la lista, o los dos extremos son el mismo sistema.</value>
+  </data>
+  <data name="PasteBridgesLabel" xml:space="preserve">
+    <value>Pegar una lista</value>
+  </data>
+  <data name="HintPasteBridges" xml:space="preserve">
+    <value>Un puente por línea, por ejemplo:
+QZ-X77 » XQ1-Z2 - Home run
+XQ1-Z2 &lt;-&gt; 9-97XQ
+o como los exporta otra herramienta</value>
+  </data>
+  <data name="ImportBridges" xml:space="preserve">
+    <value>Importar</value>
+  </data>
+  <data name="BridgesImported" xml:space="preserve">
+    <value>Añadidos {0} · ya conocidos {1} · no leídos {2} (quedan en el cuadro)</value>
+  </data>
+  <data name="LegendJumpBridge" xml:space="preserve">
+    <value>Puente de salto: más tenue si ESI solo muestra una puerta</value>
+  </data>
 </root>

@@ -1602,4 +1602,124 @@
   <data name="TipSidePanel" xml:space="preserve">
     <value>오른쪽의 세부 정보와 범례를 표시하거나 숨깁니다.</value>
   </data>
+  <data name="JumpBridgesTab" xml:space="preserve">
+    <value>점프 브릿지</value>
+  </data>
+  <data name="TipJumpBridgesTab" xml:space="preserve">
+    <value>ESI로 확인하거나 직접 추가한 모든 점프 브릿지와 추가하기</value>
+  </data>
+  <data name="JumpBridgesToggle" xml:space="preserve">
+    <value>점프 브릿지</value>
+  </data>
+  <data name="TipJumpBridgesToggle" xml:space="preserve">
+    <value>지도에 점프 브릿지를 표시하거나 숨깁니다.</value>
+  </data>
+  <data name="BridgeTitle" xml:space="preserve">
+    <value>점프 브릿지: {0} ⇄ {1}</value>
+  </data>
+  <data name="BridgeFuelUntil" xml:space="preserve">
+    <value>연료 {0}까지</value>
+  </data>
+  <data name="BridgeOneGate" xml:space="preserve">
+    <value>ESI에서는 {0}의 게이트만 보입니다</value>
+  </data>
+  <data name="BridgeAddedByHand" xml:space="preserve">
+    <value>직접 추가</value>
+  </data>
+  <data name="BridgesSummary" xml:space="preserve">
+    <value>점프 브릿지: {0} · ESI: {1} · 직접 추가: {2}</value>
+  </data>
+  <data name="BridgesNote" xml:space="preserve">
+    <value>ESI의 브릿지는 토큰을 추가한 코퍼레이션의 안시블렉스이며, 이름("A » B")이 가리키는 곳으로 이어집니다. 나머지(다른 코퍼레이션과 동맹의 브릿지)는 직접 추가하십시오. 여기서는 직접 추가한 브릿지만 삭제할 수 있습니다.</value>
+  </data>
+  <data name="BridgesNone" xml:space="preserve">
+    <value>아직 알려진 점프 브릿지가 없습니다.</value>
+  </data>
+  <data name="BridgesUnreadLabel" xml:space="preserve">
+    <value>이름으로 목적지를 알 수 없는 게이트</value>
+  </data>
+  <data name="BridgeUnreadLine" xml:space="preserve">
+    <value>{0} ({1})</value>
+  </data>
+  <data name="BridgeNoName" xml:space="preserve">
+    <value>(이름 없음)</value>
+  </data>
+  <data name="BridgeColFrom" xml:space="preserve">
+    <value>항성계</value>
+  </data>
+  <data name="BridgeColTo" xml:space="preserve">
+    <value>항성계</value>
+  </data>
+  <data name="BridgeColSource" xml:space="preserve">
+    <value>출처</value>
+  </data>
+  <data name="BridgeColFuel" xml:space="preserve">
+    <value>연료</value>
+  </data>
+  <data name="BridgeColGates" xml:space="preserve">
+    <value>게이트</value>
+  </data>
+  <data name="BridgeSourceEsiBoth" xml:space="preserve">
+    <value>ESI, 게이트 둘 다</value>
+  </data>
+  <data name="BridgeSourceEsiOne" xml:space="preserve">
+    <value>ESI, 게이트 하나</value>
+  </data>
+  <data name="BridgeSourceManual" xml:space="preserve">
+    <value>직접 추가</value>
+  </data>
+  <data name="BridgeSourceBoth" xml:space="preserve">
+    <value>ESI 및 직접 추가</value>
+  </data>
+  <data name="BridgeFuelDays" xml:space="preserve">
+    <value>{0}일 ({1})</value>
+  </data>
+  <data name="TipOpenSystemTab" xml:space="preserve">
+    <value>이 항성계를 탭으로 열기</value>
+  </data>
+  <data name="TipRemoveBridge" xml:space="preserve">
+    <value>이 브릿지 삭제</value>
+  </data>
+  <data name="AddBridgeLabel" xml:space="preserve">
+    <value>브릿지 추가</value>
+  </data>
+  <data name="HintBridgeFrom" xml:space="preserve">
+    <value>한쪽 끝(항성계)</value>
+  </data>
+  <data name="HintBridgeTo" xml:space="preserve">
+    <value>다른 쪽 끝(항성계)</value>
+  </data>
+  <data name="HintBridgeNote" xml:space="preserve">
+    <value>메모(선택)</value>
+  </data>
+  <data name="AddBridge" xml:space="preserve">
+    <value>추가</value>
+  </data>
+  <data name="BridgePickBoth" xml:space="preserve">
+    <value>양쪽 끝의 항성계를 선택하십시오.</value>
+  </data>
+  <data name="BridgeAdded" xml:space="preserve">
+    <value>{0} ⇄ {1}을(를) 추가했습니다.</value>
+  </data>
+  <data name="BridgeNotAdded" xml:space="preserve">
+    <value>이미 목록에 있는 브릿지이거나 양쪽 끝이 같은 항성계입니다.</value>
+  </data>
+  <data name="PasteBridgesLabel" xml:space="preserve">
+    <value>목록 붙여넣기</value>
+  </data>
+  <data name="HintPasteBridges" xml:space="preserve">
+    <value>한 줄에 브릿지 하나. 예:
+QZ-X77 » XQ1-Z2 - Home run
+XQ1-Z2 &lt;-&gt; 9-97XQ
+또는 다른 도구의 내보내기 형식</value>
+  </data>
+  <data name="ImportBridges" xml:space="preserve">
+    <value>가져오기</value>
+  </data>
+  <data name="BridgesImported" xml:space="preserve">
+    <value>추가 {0} · 이미 있음 {1} · 읽지 못함 {2}(상자에 남음)</value>
+  </data>
+  <data name="LegendJumpBridge" xml:space="preserve">
+    <value>점프 브릿지 — ESI에서 게이트가 하나만 보이면 흐리게 표시</value>
+  </data>
 </root>

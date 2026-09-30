@@ -1602,4 +1602,124 @@
   <data name="TipSidePanel" xml:space="preserve">
     <value>右側の詳細と凡例を表示または非表示にします。</value>
   </data>
+  <data name="JumpBridgesTab" xml:space="preserve">
+    <value>ジャンプブリッジ</value>
+  </data>
+  <data name="TipJumpBridgesTab" xml:space="preserve">
+    <value>ESIまたは手動で登録した既知のジャンプブリッジの一覧と追加</value>
+  </data>
+  <data name="JumpBridgesToggle" xml:space="preserve">
+    <value>ジャンプブリッジ</value>
+  </data>
+  <data name="TipJumpBridgesToggle" xml:space="preserve">
+    <value>マップ上のジャンプブリッジを表示または非表示にします。</value>
+  </data>
+  <data name="BridgeTitle" xml:space="preserve">
+    <value>ジャンプブリッジ: {0} ⇄ {1}</value>
+  </data>
+  <data name="BridgeFuelUntil" xml:space="preserve">
+    <value>燃料 {0} まで</value>
+  </data>
+  <data name="BridgeOneGate" xml:space="preserve">
+    <value>ESIで見えるのは{0}のゲートだけです</value>
+  </data>
+  <data name="BridgeAddedByHand" xml:space="preserve">
+    <value>手動で追加</value>
+  </data>
+  <data name="BridgesSummary" xml:space="preserve">
+    <value>ジャンプブリッジ: {0} · ESI: {1} · 手動: {2}</value>
+  </data>
+  <data name="BridgesNote" xml:space="preserve">
+    <value>ESIのブリッジは、トークンを追加したコーポレーションのアンシブレックスで、名前(「A » B」)の示す先につながります。それ以外(他のコーポレーションや同盟のブリッジ)は手動で追加してください。ここで削除できるのは手動で追加したブリッジだけです。</value>
+  </data>
+  <data name="BridgesNone" xml:space="preserve">
+    <value>既知のジャンプブリッジはまだありません。</value>
+  </data>
+  <data name="BridgesUnreadLabel" xml:space="preserve">
+    <value>名前から行き先が分からないゲート</value>
+  </data>
+  <data name="BridgeUnreadLine" xml:space="preserve">
+    <value>{0}({1})</value>
+  </data>
+  <data name="BridgeNoName" xml:space="preserve">
+    <value>(名前なし)</value>
+  </data>
+  <data name="BridgeColFrom" xml:space="preserve">
+    <value>システム</value>
+  </data>
+  <data name="BridgeColTo" xml:space="preserve">
+    <value>システム</value>
+  </data>
+  <data name="BridgeColSource" xml:space="preserve">
+    <value>情報源</value>
+  </data>
+  <data name="BridgeColFuel" xml:space="preserve">
+    <value>燃料</value>
+  </data>
+  <data name="BridgeColGates" xml:space="preserve">
+    <value>ゲート</value>
+  </data>
+  <data name="BridgeSourceEsiBoth" xml:space="preserve">
+    <value>ESI、両方のゲート</value>
+  </data>
+  <data name="BridgeSourceEsiOne" xml:space="preserve">
+    <value>ESI、片方のゲート</value>
+  </data>
+  <data name="BridgeSourceManual" xml:space="preserve">
+    <value>手動</value>
+  </data>
+  <data name="BridgeSourceBoth" xml:space="preserve">
+    <value>ESIと手動</value>
+  </data>
+  <data name="BridgeFuelDays" xml:space="preserve">
+    <value>{0}日({1})</value>
+  </data>
+  <data name="TipOpenSystemTab" xml:space="preserve">
+    <value>このシステムをタブで開く</value>
+  </data>
+  <data name="TipRemoveBridge" xml:space="preserve">
+    <value>このブリッジを削除</value>
+  </data>
+  <data name="AddBridgeLabel" xml:space="preserve">
+    <value>ブリッジを追加</value>
+  </data>
+  <data name="HintBridgeFrom" xml:space="preserve">
+    <value>一方の端(システム)</value>
+  </data>
+  <data name="HintBridgeTo" xml:space="preserve">
+    <value>もう一方の端(システム)</value>
+  </data>
+  <data name="HintBridgeNote" xml:space="preserve">
+    <value>メモ(任意)</value>
+  </data>
+  <data name="AddBridge" xml:space="preserve">
+    <value>追加</value>
+  </data>
+  <data name="BridgePickBoth" xml:space="preserve">
+    <value>両端のシステムを選んでください。</value>
+  </data>
+  <data name="BridgeAdded" xml:space="preserve">
+    <value>{0} ⇄ {1} を追加しました。</value>
+  </data>
+  <data name="BridgeNotAdded" xml:space="preserve">
+    <value>そのブリッジはすでに一覧にあるか、両端が同じシステムです。</value>
+  </data>
+  <data name="PasteBridgesLabel" xml:space="preserve">
+    <value>一覧を貼り付け</value>
+  </data>
+  <data name="HintPasteBridges" xml:space="preserve">
+    <value>1行に1ブリッジ。例:
+QZ-X77 » XQ1-Z2 - Home run
+XQ1-Z2 &lt;-&gt; 9-97XQ
+または他のツールのエクスポート形式</value>
+  </data>
+  <data name="ImportBridges" xml:space="preserve">
+    <value>インポート</value>
+  </data>
+  <data name="BridgesImported" xml:space="preserve">
+    <value>追加 {0} · 登録済み {1} · 読めなかった行 {2}(ボックスに残ります)</value>
+  </data>
+  <data name="LegendJumpBridge" xml:space="preserve">
+    <value>ジャンプブリッジ — ESIで片方のゲートしか見えない場合は薄く表示</value>
+  </data>
 </root>

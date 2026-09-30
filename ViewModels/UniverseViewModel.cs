@@ -334,6 +334,33 @@ public class UniverseViewModel : ReactiveObject
         }
     }
 
+    /// <summary>Whether jump bridges are drawn. On by default; the last choice is kept.</summary>
+    private bool _showBridges = UiState.GetBool(UiState.UniverseBridges, true);
+    public bool ShowBridges
+    {
+        get => _showBridges;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _showBridges, value);
+            UiState.SetBool(UiState.UniverseBridges, value);
+            this.RaisePropertyChanged(nameof(VisibleBridges));
+        }
+    }
+
+    /// <summary>Every known jump bridge, pushed in by the map tool.</summary>
+    private IReadOnlyList<MapBridgeLine>? _bridges;
+    public IReadOnlyList<MapBridgeLine>? Bridges
+    {
+        get => _bridges;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _bridges, value);
+            this.RaisePropertyChanged(nameof(VisibleBridges));
+        }
+    }
+
+    /// <summary>What the canvas draws: the bridges, or none while they are switched off.</summary>
+    public IReadOnlyList<MapBridgeLine>? VisibleBridges => _showBridges ? _bridges : null;
     /// <summary>Hostiles and own characters, per system and per region. Pushed in by the map
     /// tool, which reads them once for every open tab.</summary>
     private IReadOnlyDictionary<int, MapMarkers>? _markers;

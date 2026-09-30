@@ -3347,6 +3347,11 @@ public class App : Application
                     """CREATE INDEX IF NOT EXISTS "IX_IntelReports_System_Time" ON "IntelReports" ("SystemId", "ReportedAt")""",
                     """CREATE INDEX IF NOT EXISTS "IX_IntelReports_Obsolete_Time" ON "IntelReports" ("Obsolete", "ReportedAt")""",
 
+                    // Jump bridges entered by hand (the ones ESI shows are read from corporation
+                    // structures, never stored). Mirrored for PostgreSQL in PostgresSchema.
+                    """CREATE TABLE IF NOT EXISTS "ManualJumpBridges" ("Id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "FromSystemId" INTEGER NOT NULL DEFAULT 0, "ToSystemId" INTEGER NOT NULL DEFAULT 0, "Note" TEXT NOT NULL DEFAULT '', "CreatedAt" TEXT NOT NULL DEFAULT '')""",
+                    """CREATE UNIQUE INDEX IF NOT EXISTS "IX_ManualJumpBridges_Pair" ON "ManualJumpBridges" ("FromSystemId", "ToSystemId")""",
+
                     """CREATE TABLE IF NOT EXISTS "IntelReportCharacters" ("IntelReportId" INTEGER NOT NULL, "CharacterId" INTEGER NOT NULL, "CharacterName" TEXT NOT NULL DEFAULT '', PRIMARY KEY ("IntelReportId", "CharacterId"))""",
                     """CREATE INDEX IF NOT EXISTS "IX_IntelReportCharacters_CharacterId" ON "IntelReportCharacters" ("CharacterId")""",
                     """ALTER TABLE "IntelReportCharacters" ADD COLUMN "ShipTypeId" INTEGER NULL""",

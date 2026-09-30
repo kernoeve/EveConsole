@@ -2190,4 +2190,163 @@ Owned by {3}</value>
     <value>Show or hide the details and legend on the right</value>
     <comment>Tooltip on the Details toggle.</comment>
   </data>
+  <data name="JumpBridgesTab" xml:space="preserve">
+    <value>Jump bridges</value>
+    <comment>Button above the map tool's tabs, and the title of the jump bridges tab.</comment>
+  </data>
+  <data name="TipJumpBridgesTab" xml:space="preserve">
+    <value>Every jump bridge known — from ESI or added by hand — and adding more</value>
+    <comment>Tooltip on the Jump bridges button.</comment>
+  </data>
+  <data name="JumpBridgesToggle" xml:space="preserve">
+    <value>Jump bridges</value>
+    <comment>Toggle in the map's toolbar: draws jump bridges on the map.</comment>
+  </data>
+  <data name="TipJumpBridgesToggle" xml:space="preserve">
+    <value>Show or hide jump bridges on the map</value>
+    <comment>Tooltip on the Jump bridges toggle.</comment>
+  </data>
+  <data name="BridgeTitle" xml:space="preserve">
+    <value>Jump bridge: {0} ⇄ {1}</value>
+    <comment>Map hover on a jump bridge. {0} and {1} are its two systems.</comment>
+  </data>
+  <data name="BridgeFuelUntil" xml:space="preserve">
+    <value>fuel until {0}</value>
+    <comment>Map hover, after a gate's name. {0} is the date its fuel runs out.</comment>
+  </data>
+  <data name="BridgeOneGate" xml:space="preserve">
+    <value>ESI shows only the gate in {0}</value>
+    <comment>Map hover: the gate at the other end belongs to a corporation without a token. {0} is the system of the gate that is seen.</comment>
+  </data>
+  <data name="BridgeAddedByHand" xml:space="preserve">
+    <value>Added by hand</value>
+    <comment>A jump bridge the user entered, not one read from ESI.</comment>
+  </data>
+  <data name="BridgesSummary" xml:space="preserve">
+    <value>Jump bridges: {0} · from ESI: {1} · added by hand: {2}</value>
+    <comment>Top of the jump bridges tab. {0} total, {1} read from ESI, {2} entered by hand (a bridge can be both).</comment>
+  </data>
+  <data name="BridgesNote" xml:space="preserve">
+    <value>Bridges from ESI are the Ansiblexes of corporations you have added a token for, and they go where their names say ("A » B"). Add the rest by hand: other corporations' and allies' bridges. Only bridges added by hand can be removed here.</value>
+    <comment>Explanation at the top of the jump bridges tab.</comment>
+  </data>
+  <data name="BridgesNone" xml:space="preserve">
+    <value>No jump bridges known yet.</value>
+    <comment>Jump bridges tab, empty list.</comment>
+  </data>
+  <data name="BridgesUnreadLabel" xml:space="preserve">
+    <value>GATES WHOSE NAME DOES NOT SAY WHERE THEY GO</value>
+    <comment>Label above the Ansiblexes ESI shows whose names are not in the 'A » B' form.</comment>
+  </data>
+  <data name="BridgeUnreadLine" xml:space="preserve">
+    <value>{0} (in {1})</value>
+    <comment>One unreadable gate. {0} its name, {1} its system.</comment>
+  </data>
+  <data name="BridgeNoName" xml:space="preserve">
+    <value>(no name)</value>
+    <comment>In place of a gate's name when ESI has none.</comment>
+  </data>
+  <data name="BridgeColFrom" xml:space="preserve">
+    <value>SYSTEM</value>
+    <comment>Column: one end of the bridge.</comment>
+  </data>
+  <data name="BridgeColTo" xml:space="preserve">
+    <value>SYSTEM</value>
+    <comment>Column: the other end of the bridge.</comment>
+  </data>
+  <data name="BridgeColSource" xml:space="preserve">
+    <value>SOURCE</value>
+    <comment>Column: where the bridge is known from.</comment>
+  </data>
+  <data name="BridgeColFuel" xml:space="preserve">
+    <value>FUEL</value>
+    <comment>Column: days of fuel left in the first gate to run out.</comment>
+  </data>
+  <data name="BridgeColGates" xml:space="preserve">
+    <value>GATES</value>
+    <comment>Column: the gates' names and owners.</comment>
+  </data>
+  <data name="BridgeSourceEsiBoth" xml:space="preserve">
+    <value>ESI, both gates</value>
+    <comment>Source: both gates are seen through ESI.</comment>
+  </data>
+  <data name="BridgeSourceEsiOne" xml:space="preserve">
+    <value>ESI, one gate</value>
+    <comment>Source: only one gate is seen through ESI; its name says where the other is.</comment>
+  </data>
+  <data name="BridgeSourceManual" xml:space="preserve">
+    <value>Added by hand</value>
+    <comment>Source: entered by the user.</comment>
+  </data>
+  <data name="BridgeSourceBoth" xml:space="preserve">
+    <value>ESI and by hand</value>
+    <comment>Source: seen through ESI and also entered by hand.</comment>
+  </data>
+  <data name="BridgeFuelDays" xml:space="preserve">
+    <value>{0} days ({1})</value>
+    <comment>Fuel column. {0} whole days left, {1} the date it runs out.</comment>
+  </data>
+  <data name="TipOpenSystemTab" xml:space="preserve">
+    <value>Open this system in a tab</value>
+    <comment>Tooltip on a system name in the jump bridges list.</comment>
+  </data>
+  <data name="TipRemoveBridge" xml:space="preserve">
+    <value>Remove this bridge</value>
+    <comment>Tooltip on the remove button of a bridge added by hand.</comment>
+  </data>
+  <data name="AddBridgeLabel" xml:space="preserve">
+    <value>ADD A BRIDGE</value>
+    <comment>Label above the pickers for adding one bridge.</comment>
+  </data>
+  <data name="HintBridgeFrom" xml:space="preserve">
+    <value>one end (system)</value>
+    <comment>Hint in the first system picker.</comment>
+  </data>
+  <data name="HintBridgeTo" xml:space="preserve">
+    <value>other end (system)</value>
+    <comment>Hint in the second system picker.</comment>
+  </data>
+  <data name="HintBridgeNote" xml:space="preserve">
+    <value>note (optional)</value>
+    <comment>Hint in the note box.</comment>
+  </data>
+  <data name="AddBridge" xml:space="preserve">
+    <value>Add</value>
+    <comment>Button: adds the bridge between the two picked systems.</comment>
+  </data>
+  <data name="BridgePickBoth" xml:space="preserve">
+    <value>Pick a system for each end.</value>
+    <comment>Shown when Add is pressed without two systems picked.</comment>
+  </data>
+  <data name="BridgeAdded" xml:space="preserve">
+    <value>Added {0} ⇄ {1}.</value>
+    <comment>After a bridge is added. {0} and {1} its systems.</comment>
+  </data>
+  <data name="BridgeNotAdded" xml:space="preserve">
+    <value>That bridge is already in the list, or both ends are the same system.</value>
+    <comment>Shown when Add adds nothing.</comment>
+  </data>
+  <data name="PasteBridgesLabel" xml:space="preserve">
+    <value>PASTE A LIST</value>
+    <comment>Label above the box for pasting many bridges.</comment>
+  </data>
+  <data name="HintPasteBridges" xml:space="preserve">
+    <value>One bridge per line, for example:
+QZ-X77 » XQ1-Z2 - Home run
+XQ1-Z2 &lt;-&gt; 9-97XQ
+or as another tool exports them</value>
+    <comment>Hint in the paste box. The system names are invented examples; keep them as they are.</comment>
+  </data>
+  <data name="ImportBridges" xml:space="preserve">
+    <value>Import</value>
+    <comment>Button: adds every bridge in the pasted list.</comment>
+  </data>
+  <data name="BridgesImported" xml:space="preserve">
+    <value>Added {0} · already known {1} · not read {2} (left in the box)</value>
+    <comment>After an import. {0} added, {1} already in the list, {2} lines naming fewer than two systems, which stay in the box.</comment>
+  </data>
+  <data name="LegendJumpBridge" xml:space="preserve">
+    <value>Jump bridge — fainter when ESI shows only one gate</value>
+    <comment>Map legend, beside the dashed violet line.</comment>
+  </data>
 </root>

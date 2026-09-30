@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Text.Json;
 using EveConsole.Api;
 using EveConsole.Data;
@@ -3584,7 +3584,9 @@ public class EsiPollingService : ReactiveObject
         {
             CorporationId      = corpId,
             StructureId        = s.StructureId,
-            Name               = "",
+            // The name ESI sends with the list. Kept, so a rename is picked up on the next poll;
+            // the jump bridges read their destination from it ("A » B - label").
+            Name               = s.Name ?? "",
             TypeId             = s.TypeId,
             SystemId           = s.SystemId,
             ProfileId          = s.ProfileId,

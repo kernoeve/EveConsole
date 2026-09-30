@@ -35,6 +35,7 @@ public sealed class MapToolViewModel : ReactiveObject
     private readonly Func<SystemPageViewModel>  _newSystemPage;
     private readonly LiveIntelService?          _live;
     private readonly AppErrorLogger?            _errors;
+    private readonly JumpBridgeService?         _bridges;
 
     public static readonly TimeSpan LiveEvery    = TimeSpan.FromSeconds(5);
     public static readonly TimeSpan OverlayEvery = TimeSpan.FromSeconds(60);
@@ -45,9 +46,12 @@ public sealed class MapToolViewModel : ReactiveObject
         AppPreferencesService?    prefs,
         Func<SystemPageViewModel> newSystemPage,
         LiveIntelService?         live,
-        AppErrorLogger?           errors = null)
+        AppErrorLogger?           errors  = null,
+        JumpBridgeService?        bridges = null)
     {
         _errors        = errors;
+        _bridges       = bridges;
+        if (bridges is not null) bridges.Changed += () => _ = ReloadBridgesAsync();
         _map           = map;
         _stats         = stats;
         _prefs         = prefs;
@@ -60,6 +64,7 @@ public sealed class MapToolViewModel : ReactiveObject
         LeftPane.IsActive = true;
 
         NewUniverseTabCommand = ReactiveCommand.Create(() => { NewUniverseTab(); });
+        ShowBridgesTabCommand = ReactiveCommand.Create(() => { ShowBridgesTab(); });
 
         // Typing refreshes the suggestions; picking one opens it. Throttled: each keystroke is a
         // query.
@@ -120,6 +125,25 @@ public sealed class MapToolViewModel : ReactiveObject
     private long _activations;
 
     public ReactiveCommand<Unit, Unit> NewUniverseTabCommand { get; }
+    public ReactiveCommand<Unit, Unit> ShowBridgesTabCommand { get; }
+
+    public bool HasBridges => _bridges is not null;
+
+    /// <summary>The jump bridges tab: there is only ever one, brought forward if open.</summary>
+    public BridgesTabViewModel? ShowBridgesTab()
+    {
+        if (_bridges is null) return null;
+        if (AllTabs.OfType<BridgesTabViewModel>().FirstOrDefault() is { } open)
+        {
+            SelectedTab = open;
+            return open;
+        }
+        var tab = new BridgesTabViewModel(this, _bridges, _map);
+        Add(tab);
+        if (_bridgeList is { } list) tab.Show(list);
+        else _ = ReloadBridgesAsync();
+        return tab;
+    }
 
     /// <summary>Adds a map of New Eden to the active side and shows it.</summary>
     public UniverseTabViewModel NewUniverseTab()
@@ -128,6 +152,7 @@ public sealed class MapToolViewModel : ReactiveObject
         var tab = new UniverseTabViewModel(this, map);
         Add(tab);
         if (_snapshot is { } live) tab.ApplyLive(live);
+        map.Bridges = _bridgeLines;
         return tab;
     }
 
@@ -346,9 +371,54 @@ public sealed class MapToolViewModel : ReactiveObject
         }
     }
 
+    // ── Jump bridges ─────────────────────────────────────────────────────────
+
+    private JumpBridgeList?               _bridgeList;
+    private IReadOnlyList<MapBridgeLine>? _bridgeLines;
+
+    /// <summary>Reads the bridges and hands them to every map and to the bridges tab. On start,
+    /// once a minute with the overlays, and at once after a bridge is added or removed.</summary>
+    public async Task ReloadBridgesAsync()
+    {
+        if (_bridges is null) return;
+        try
+        {
+            var list  = await Task.Run(() => _bridges.GetAsync());
+            var lines = BridgeLines(list);
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                _bridgeList  = list;
+                _bridgeLines = lines;
+                foreach (var tab in AllTabs.OfType<UniverseTabViewModel>()) tab.Map.Bridges = lines;
+                foreach (var tab in AllTabs.OfType<BridgesTabViewModel>()) tab.Show(list);
+            });
+        }
+        catch (Exception ex)
+        {
+            _errors?.Log(nameof(MapToolViewModel), "jump bridges", ex);
+        }
+    }
+
+    internal static List<MapBridgeLine> BridgeLines(JumpBridgeList list) => list.Bridges.Select(b =>
+    {
+        var a = SdeNames.SolarSystem(b.SystemA, b.NameA);
+        var z = SdeNames.SolarSystem(b.SystemB, b.NameB);
+        var lines = b.Gates.Select(g => g.FuelExpires is { } fuel
+                ? $"{g.Name} · {string.Format(MapText.BridgeFuelUntil, fuel.ToLocalTime().ToString("d", System.Globalization.CultureInfo.CurrentCulture))}"
+                : g.Name)
+            .ToList();
+        if (b.FromEsi && !b.BothEnds)
+            lines.Add(string.Format(MapText.BridgeOneGate, b.Gates[0].SystemId == b.SystemA ? a : z));
+        if (b.IsManual)
+            lines.Add(b.Note is { Length: > 0 } note ? $"{MapText.BridgeAddedByHand} · {note}" : MapText.BridgeAddedByHand);
+        return new MapBridgeLine(b.SystemA, b.SystemB, string.Format(MapText.BridgeTitle, a, z),
+                                 string.Join("\n", lines), Complete: !b.FromEsi || b.BothEnds || b.IsManual);
+    }).ToList();
+
     private async Task LiveLoopAsync(CancellationToken ct)
     {
         var overlayDue = DateTimeOffset.UtcNow + OverlayEvery;
+        await ReloadBridgesAsync();
         using var timer = new PeriodicTimer(LiveEvery);
         do
         {
@@ -370,6 +440,7 @@ public sealed class MapToolViewModel : ReactiveObject
                     // here a 30-day kill count would hold the window still once a minute; the
                     // overlay publishes its result back to the UI thread itself.
                     foreach (var map in maps) await Task.Run(map.RefreshLiveOverlayAsync, ct);
+                    await ReloadBridgesAsync();
                 }
             }
             catch (OperationCanceledException) when (ct.IsCancellationRequested) { return; }

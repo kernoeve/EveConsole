@@ -36,6 +36,10 @@ public sealed record MapMarkers(
 /// portrait and the ship's icon. Zero for either leaves its place empty, so lines stay aligned.</summary>
 public sealed record MapMarkRow(string Text, long CharacterId = 0, int ShipTypeId = 0);
 
+/// <summary>A jump bridge drawn as an arc between two systems, and what its hover says.</summary>
+/// <param name="Complete">Both gates are known; false draws it fainter.</param>
+public sealed record MapBridgeLine(int FromId, int ToId, string Title, string Detail, bool Complete);
+
 /// <summary>Where the view is looking: the world point at its centre and the zoom. Held by the
 /// view model so a tab keeps its place when the view is rebuilt.</summary>
 public sealed record MapCamera(double CenterX, double CenterY, double Scale);
@@ -95,6 +99,16 @@ public class MapCanvas : Control
     /// <summary>Hostiles and own characters per node id (systems, and regions on the zoomed-out
     /// tier). Drawn on every form of node — dot, box, region — since "somebody is there" matters
     /// at any zoom.</summary>
+    /// <summary>Jump bridges, drawn as arcs between their systems once the map shows systems.</summary>
+    public static readonly StyledProperty<IReadOnlyList<MapBridgeLine>?> BridgesProperty =
+        AvaloniaProperty.Register<MapCanvas, IReadOnlyList<MapBridgeLine>?>(nameof(Bridges));
+
+    public IReadOnlyList<MapBridgeLine>? Bridges
+    {
+        get => GetValue(BridgesProperty);
+        set => SetValue(BridgesProperty, value);
+    }
+
     public static readonly StyledProperty<IReadOnlyDictionary<int, MapMarkers>?> MarkersProperty =
         AvaloniaProperty.Register<MapCanvas, IReadOnlyDictionary<int, MapMarkers>?>(nameof(Markers));
 
@@ -145,7 +159,7 @@ public class MapCanvas : Control
 
     static MapCanvas()
     {
-        AffectsRender<MapCanvas>(GraphProperty, OverlayProperty, SelectedIdProperty, BadgesProperty, MarkersProperty);
+        AffectsRender<MapCanvas>(GraphProperty, OverlayProperty, SelectedIdProperty, BadgesProperty, MarkersProperty, BridgesProperty);
     }
 
     public MapCanvas()
@@ -636,6 +650,12 @@ public class MapCanvas : Control
             ctx.DrawLine(a.IsOutsideRegion || b.IsOutsideRegion ? GateEdgePen : EdgePen, pa, pb);
         }
 
+        // Jump bridges: over the gates, under the systems. Only where systems are drawn — a
+        // bridge joins two systems, and on the region tier it would join nothing on screen.
+        _bridgeHits.Clear();
+        if (Bridges is { Count: > 0 } bridges && (!g.IsContinuous || _activeTier == 1))
+            DrawBridges(ctx, bridges);
+
         // How much room neighbouring systems have on screen decides the representation: dots
         // when they are packed together, labelled boxes once they are far enough apart. One or
         // the other, never both.
@@ -681,6 +701,7 @@ public class MapCanvas : Control
         // A badge tooltip wins: the cursor is on the mark, so that is what the question is about.
         if (_badgeHover is { } badge)  DrawTooltipBox(ctx, badge.Title, badge.Detail, badge.Rows);
         else if (_hover is not null)   DrawTooltip(ctx, _hover);
+        else if (_bridgeHover is { } bridge) DrawTooltipBox(ctx, bridge.Title, bridge.Detail);
     }
 
     /// <summary>Faint enough to sit under the map without competing with it. Everything drawn
@@ -911,6 +932,84 @@ public class MapCanvas : Control
             ctx.DrawRectangle(marks[i].Brush, BadgePen, r);
             _badgeTips.Add((r, marks[i].Label, marks[i].Detail, null));
         }
+    }
+
+    // ── Jump bridges ─────────────────────────────────────────────────────────
+
+    private static readonly IPen BridgePen = new ImmutablePen(
+        new ImmutableSolidColorBrush(Color.Parse("#c084fc")), 1.8, new ImmutableDashStyle([4, 3], 0));
+    private static readonly IPen BridgeFaintPen = new ImmutablePen(
+        new ImmutableSolidColorBrush(Color.Parse("#80c084fc")), 1.4, new ImmutableDashStyle([2, 4], 0));
+    private static readonly IPen BridgeHoverPen = new ImmutablePen(
+        new ImmutableSolidColorBrush(Color.Parse("#e9d5ff")), 2.6);
+
+    /// <summary>Points along each drawn arc, for hovering one.</summary>
+    private readonly List<(MapBridgeLine Line, Point[] Points)> _bridgeHits = new();
+    private MapBridgeLine? _bridgeHover;
+
+    /// <summary>
+    /// An arc rather than a straight line, so a bridge never lies along the gates between the
+    /// same two systems, and two bridges from one system fan apart. Bowed to one side by a fifth
+    /// of its length.
+    /// </summary>
+    private void DrawBridges(DrawingContext ctx, IReadOnlyList<MapBridgeLine> bridges)
+    {
+        foreach (var b in bridges)
+        {
+            if (!_byId.TryGetValue(b.FromId, out var from) || !_byId.TryGetValue(b.ToId, out var to)) continue;
+            var pa = ToScreen(from.X, from.Y);
+            var pb = ToScreen(to.X, to.Y);
+
+            if ((pa.X < -200 && pb.X < -200) || (pa.Y < -200 && pb.Y < -200) ||
+                (pa.X > Bounds.Width + 200 && pb.X > Bounds.Width + 200) ||
+                (pa.Y > Bounds.Height + 200 && pb.Y > Bounds.Height + 200)) continue;
+
+            var mid = new Point((pa.X + pb.X) / 2, (pa.Y + pb.Y) / 2);
+            var dx  = pb.X - pa.X;
+            var dy  = pb.Y - pa.Y;
+            var control = new Point(mid.X - dy * 0.2, mid.Y + dx * 0.2);
+
+            var geo = new StreamGeometry();
+            using (var s = geo.Open())
+            {
+                s.BeginFigure(pa, false);
+                s.QuadraticBezierTo(control, pb);
+                s.EndFigure(false);
+            }
+            var pen = ReferenceEquals(b, _bridgeHover) ? BridgeHoverPen : b.Complete ? BridgePen : BridgeFaintPen;
+            ctx.DrawGeometry(null, pen, geo);
+
+            var points = new Point[17];
+            for (var i = 0; i <= 16; i++)
+            {
+                var t = i / 16.0;
+                var u = 1 - t;
+                points[i] = new Point(u * u * pa.X + 2 * u * t * control.X + t * t * pb.X,
+                                      u * u * pa.Y + 2 * u * t * control.Y + t * t * pb.Y);
+            }
+            _bridgeHits.Add((b, points));
+        }
+    }
+
+    /// <summary>The bridge whose arc passes within a few pixels of the pointer.</summary>
+    private MapBridgeLine? BridgeAt(Point p)
+    {
+        const double reach = 5;
+        foreach (var (line, pts) in _bridgeHits)
+            for (var i = 1; i < pts.Length; i++)
+                if (DistanceToSegment(p, pts[i - 1], pts[i]) <= reach) return line;
+        return null;
+    }
+
+    private static double DistanceToSegment(Point p, Point a, Point b)
+    {
+        var dx = b.X - a.X;
+        var dy = b.Y - a.Y;
+        var len = dx * dx + dy * dy;
+        var t = len == 0 ? 0 : Math.Clamp(((p.X - a.X) * dx + (p.Y - a.Y) * dy) / len, 0, 1);
+        var x = a.X + t * dx - p.X;
+        var y = a.Y + t * dy - p.Y;
+        return Math.Sqrt(x * x + y * y);
     }
 
     // ── Live markers ─────────────────────────────────────────────────────────
@@ -1181,13 +1280,16 @@ public class MapCanvas : Control
             if (t.Rect.Contains(pos)) { badge = (t.Title, t.Detail, t.Rows); break; }
 
         var hit = badge is null ? HitTest(pos) : null;
+        var bridgeHit = badge is null && hit is null ? BridgeAt(pos) : null;
         _hoverAt = pos;
 
         var badgeChanged = badge?.Title != _badgeHover?.Title;
         _badgeHover = badge;
+        var bridgeChanged = !ReferenceEquals(bridgeHit, _bridgeHover);
+        _bridgeHover = bridgeHit;
 
-        if (badgeChanged || !ReferenceEquals(hit, _hover)) { _hover = hit; InvalidateVisual(); }
-        else if (hit is not null || badge is not null) InvalidateVisual();   // glue it to the cursor
+        if (badgeChanged || bridgeChanged || !ReferenceEquals(hit, _hover)) { _hover = hit; InvalidateVisual(); }
+        else if (hit is not null || badge is not null || bridgeHit is not null) InvalidateVisual();   // glue it to the cursor
     }
 
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
@@ -1209,15 +1311,18 @@ public class MapCanvas : Control
     protected override void OnSizeChanged(SizeChangedEventArgs e)
     {
         base.OnSizeChanged(e);
-        _hover      = null;
-        _badgeHover = null;
+        _hover       = null;
+        _badgeHover  = null;
+        _bridgeHover = null;
     }
 
     protected override void OnPointerExited(PointerEventArgs e)
     {
         base.OnPointerExited(e);
-        if (_hover is null) return;
-        _hover = null;
+        if (_hover is null && _badgeHover is null && _bridgeHover is null) return;
+        _hover       = null;
+        _badgeHover  = null;
+        _bridgeHover = null;
         InvalidateVisual();
     }
 
