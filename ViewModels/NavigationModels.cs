@@ -22,6 +22,8 @@ public class ToolTab
 public class ToolPane(bool isRight) : ReactiveObject
 {
     public bool IsRight { get; } = isRight;
+    /// <summary>The window's tabs this side belongs to.</summary>
+    public TabWorkspace? Workspace { get; init; }
     public System.Collections.ObjectModel.ObservableCollection<ToolTab> Tabs { get; } = [];
 
     private ToolTab? _selectedTab;

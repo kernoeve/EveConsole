@@ -508,40 +508,8 @@
       <!-- Content area + agent panel -->
       <Grid Grid.Column="2" ColumnDefinitions="*,Auto">
 
-        <!-- Main content: one side, or two halves while the right one holds a tab. Each side is
-             a tab strip and the tool showing (ToolPaneView). Tabs drag along a strip, across to
-             the other side, onto the right half to split, or out to a window of their own. -->
-        <Panel Grid.Column="0" x:Name="SidesArea">
-          <Grid x:Name="Sides" ColumnDefinitions="*,0">
-            <views:ToolPaneView Grid.Column="0" x:Name="LeftSide" DataContext="{Binding LeftPane}" />
-            <Border Grid.Column="1" BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1 0 0 0"
-                    IsVisible="{Binding IsSplit}">
-              <views:ToolPaneView x:Name="RightSide" DataContext="{Binding RightPane}" />
-            </Border>
-          </Grid>
-
-          <!-- While a tab is dragged well down into its own side: letting go there opens the tool
-               in a window of its own. Placed over that side's tool by the drag code. -->
-          <Border x:Name="DetachHint" IsVisible="False" IsHitTestVisible="False"
-                  HorizontalAlignment="Left" VerticalAlignment="Top"
-                  Background="{DynamicResource SurfaceOverlayBrush}" BorderBrush="{DynamicResource BorderStrongBrush}"
-                  BorderThickness="2" CornerRadius="4">
-            <TextBlock Text="{x:Static loc:ShellText.DropToDetach}" FontSize="14" TextWrapping="Wrap" TextAlignment="Center"
-                       Foreground="{DynamicResource TextBrightBrush}" Margin="20"
-                       HorizontalAlignment="Center" VerticalAlignment="Center" />
-          </Border>
-
-          <!-- While a tab is dragged with only one side open: drop it on the right half for a second. -->
-          <Grid ColumnDefinitions="*,*" IsVisible="{Binding ShowSplitDropZone}" IsHitTestVisible="False">
-            <Border Grid.Column="1" x:Name="SplitDropZone"
-                    Background="{DynamicResource SurfaceOverlayBrush}" BorderBrush="{DynamicResource AccentBrush}"
-                    BorderThickness="2" CornerRadius="4">
-              <TextBlock Text="{x:Static loc:ShellText.DropToSplit}" FontSize="14" TextWrapping="Wrap" TextAlignment="Center"
-                         Foreground="{DynamicResource TextBrightBrush}" Margin="20"
-                         HorizontalAlignment="Center" VerticalAlignment="Center" />
-            </Border>
-          </Grid>
-        </Panel>
+        <!-- The main window's tabs: one side, or two halves (see WorkspaceView). -->
+        <views:WorkspaceView Grid.Column="0" x:Name="MainTabs" DataContext="{Binding Main}" />
 
         <!-- Agent panel, in a dock the capsuleer can widen by dragging its left edge. The dock
              owns the width (the panel itself has none), so hiding it collapses the column to

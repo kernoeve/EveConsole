@@ -682,137 +682,110 @@ public class MainWindowViewModel : ReactiveObject
 
     private readonly NavItem[] _allNavItems;
 
-    // ── Tabs, on one side or two ──────────────────────────────────────────────
+    // ── Tabs: the main window's, and the windows tabs are dragged out into ───
 
-    /// <summary>The first side, which holds every tab until one is dragged to the right.</summary>
-    public ToolPane LeftPane  { get; } = new(false);
-    /// <summary>The second side, shown only while it holds a tab.</summary>
-    public ToolPane RightPane { get; } = new(true);
-    /// <summary>Every tab, on either side.</summary>
-    public IEnumerable<ToolTab> OpenTabs => LeftPane.Tabs.Concat(RightPane.Tabs);
-    public bool IsSplit => RightPane.Tabs.Count > 0;
+    /// <summary>The main window's tabs.</summary>
+    public TabWorkspace Main { get; } = new(isMain: true);
 
-    private ToolPane? _activePane;
-    /// <summary>The side last clicked: tools open there, and its tab is the one "on screen".</summary>
-    public ToolPane ActivePane
-    {
-        get => _activePane ?? LeftPane;
-        set
-        {
-            if (value == _activePane) return;
-            if (_activePane is not null) _activePane.IsActive = false;
-            _activePane = value;
-            value.IsActive = true;
-            this.RaisePropertyChanged();
-            this.RaisePropertyChanged(nameof(SelectedTab));
-            MarkPanes();
-        }
-    }
+    /// <summary>Every window a tab has been dragged out into, each with tabs of its own. The main
+    /// window opens a window for each one added and closes it when it is removed.</summary>
+    public ObservableCollection<TabWorkspace> Hosts { get; } = [];
 
-    /// <summary>The tool being worked in: the tab showing on the active side. Setting it shows a
-    /// tab on whichever side holds it, and makes that side the active one.</summary>
+    public IEnumerable<TabWorkspace> Workspaces => Hosts.Prepend(Main);
+
+    // The main window's own, as it and the agent read them.
+    public ToolPane LeftPane  => Main.LeftPane;
+    public ToolPane RightPane => Main.RightPane;
+    public bool     IsSplit   => Main.IsSplit;
+    public ToolPane ActivePane { get => Main.ActivePane; set => Main.ActivePane = value; }
+    public ToolTab? OtherSideTab => Main.OtherSideTab;
+    /// <summary>The main window's tabs.</summary>
+    public IEnumerable<ToolTab> OpenTabs => Main.OpenTabs;
+    /// <summary>Every tab, in every window.</summary>
+    public IEnumerable<ToolTab> AllTabs  => Workspaces.SelectMany(w => w.OpenTabs);
+
+    /// <summary>The tool being worked in in the main window. Setting it shows a tab wherever it
+    /// is — bringing its window forward if that is not the main one.</summary>
     public ToolTab? SelectedTab
     {
-        get => ActivePane.SelectedTab;
-        set
-        {
-            if (value is null || PaneOf(value) is not { } pane) return;
-            pane.SelectedTab = value;
-            ActivePane = pane;
-            this.RaisePropertyChanged();
-        }
+        get => Main.SelectedTab;
+        set { if (value is not null) Show(value); }
     }
 
-    /// <summary>What is on the other side, when the window is split.</summary>
-    public ToolTab? OtherSideTab => IsSplit ? (ActivePane.IsRight ? LeftPane : RightPane).SelectedTab : null;
+    public TabWorkspace? WorkspaceOf(ToolTab tab) => Workspaces.FirstOrDefault(w => w.Contains(tab));
+    public ToolPane?     PaneOf(ToolTab tab)      => WorkspaceOf(tab)?.PaneOf(tab);
 
-    public ToolPane? PaneOf(ToolTab tab) =>
-        LeftPane.Tabs.Contains(tab) ? LeftPane : RightPane.Tabs.Contains(tab) ? RightPane : null;
+    /// <summary>Asks the view to bring a window of tabs forward.</summary>
+    public event Action<TabWorkspace>? ShowWorkspaceRequested;
+
+    /// <summary>Shows <paramref name="tab"/> in whichever window holds it.</summary>
+    public void Show(ToolTab tab)
+    {
+        if (WorkspaceOf(tab) is not { } ws) return;
+        ws.SelectedTab = tab;
+        if (!ws.IsMain) ShowWorkspaceRequested?.Invoke(ws);
+        this.RaisePropertyChanged(nameof(SelectedTab));
+    }
 
     /// <summary>
-    /// Puts <paramref name="tab"/> on <paramref name="to"/> before position <paramref name="index"/>
-    /// (at the end when null): dragging along a row of tabs, or across to the other side. Dragging
-    /// one to the right while there is only one side splits the window.
+    /// Puts <paramref name="tab"/> on <paramref name="to"/>, in this window or another, before
+    /// position <paramref name="index"/> (at the end when null). A window left with no tabs closes.
+    /// The Overview stays in the main window.
     /// </summary>
     public void MoveTab(ToolTab tab, ToolPane to, int? index = null)
     {
-        if (PaneOf(tab) is not { } from) return;
-        var i  = from.Tabs.IndexOf(tab);
-        var at = Math.Clamp(index ?? to.Tabs.Count, 0, to.Tabs.Count);
-        if (from == to)
-        {
-            if (at > i) at--;
-            if (at != i) from.Tabs.Move(i, at);
-        }
-        else
-        {
-            TakeOut(tab);
-            to.Tabs.Insert(at, tab);
-        }
-        SelectedTab = tab;
-        PanesChanged();
-    }
-
-    /// <summary>Takes a tab off its side, showing Overview there if it is on that side, else a neighbour.</summary>
-    private void TakeOut(ToolTab tab)
-    {
-        if (PaneOf(tab) is not { } pane) return;
-        var i = pane.Tabs.IndexOf(tab);
-        // Read before the removal: the strip clears its own selection when the selected tab
-        // leaves it, and the side would be left showing nothing.
-        var wasShowing = pane.SelectedTab == tab;
-        pane.Tabs.RemoveAt(i);
-        if (wasShowing || pane.SelectedTab is null)
-            pane.SelectedTab = pane.Tabs.FirstOrDefault(t => t.Id == "overview")
-                               ?? (pane.Tabs.Count == 0 ? null : pane.Tabs[Math.Min(i, pane.Tabs.Count - 1)]);
-    }
-
-    /// <summary>Two sides only while both hold a tab: when the last tab leaves either, the window
-    /// goes back to one side.</summary>
-    private void PanesChanged()
-    {
-        if (LeftPane.Tabs.Count == 0 && RightPane.Tabs.Count > 0)
-        {
-            var showing = RightPane.SelectedTab;
-            var moving  = RightPane.Tabs.ToList();
-            RightPane.Tabs.Clear();
-            RightPane.SelectedTab = null;
-            foreach (var t in moving) LeftPane.Tabs.Add(t);
-            LeftPane.SelectedTab = showing;
-        }
-        if (RightPane.Tabs.Count == 0 && ActivePane == RightPane) ActivePane = LeftPane;
-        this.RaisePropertyChanged(nameof(IsSplit));
+        if (WorkspaceOf(tab) is not { } from || to.Workspace is not { } dest) return;
+        if (from == dest) { from.Move(tab, to, index); return; }
+        if (!CanLeaveMain(tab) && !dest.IsMain) return;
+        from.Remove(tab);
+        dest.Add(tab, to, index);
+        DropIfEmpty(from);
         this.RaisePropertyChanged(nameof(SelectedTab));
-        this.RaisePropertyChanged(nameof(ShowSplitDropZone));
-        MarkPanes();
     }
 
-    private void MarkPanes()
+    /// <summary>Any tool but the Overview can go to a window of its own.</summary>
+    public static bool CanLeaveMain(ToolTab tab) => tab.Id != "overview";
+
+    /// <summary>Takes <paramref name="tab"/> out into a window of its own; the view opens the window.</summary>
+    public TabWorkspace? DetachTab(ToolTab tab)
     {
-        LeftPane.IsDimmed  = IsSplit && ActivePane != LeftPane;
-        RightPane.IsDimmed = IsSplit && ActivePane != RightPane;
+        if (!CanLeaveMain(tab) || WorkspaceOf(tab) is not { } from) return null;
+        from.Remove(tab);
+        var ws = new TabWorkspace(isMain: false);
+        ws.Add(tab);
+        Hosts.Add(ws);
+        DropIfEmpty(from);
+        this.RaisePropertyChanged(nameof(SelectedTab));
+        return ws;
     }
 
-    private bool _isDraggingTab;
-    /// <summary>A tab is being dragged — the window shows where it can go.</summary>
-    public bool IsDraggingTab
+    /// <summary>A window of tabs was closed: its tools close with it, as closing a tab does.</summary>
+    public void CloseWorkspace(TabWorkspace ws)
     {
-        get => _isDraggingTab;
-        set { this.RaiseAndSetIfChanged(ref _isDraggingTab, value); this.RaisePropertyChanged(nameof(ShowSplitDropZone)); }
+        if (ws.IsMain) return;
+        foreach (var tab in ws.OpenTabs.ToList())
+        {
+            ws.Remove(tab);
+            var navItem = _allNavItems.FirstOrDefault(i => i.ToolId == tab.Id);
+            if (navItem is not null) navItem.IsOpen = false;
+        }
+        Hosts.Remove(ws);
     }
-    /// <summary>While dragging, with one side holding more than one tab: the right half takes a tab
-    /// to show two tools side by side.</summary>
-    public bool ShowSplitDropZone => _isDraggingTab && !IsSplit && LeftPane.Tabs.Count > 1;
+
+    private void DropIfEmpty(TabWorkspace ws)
+    {
+        if (!ws.IsMain && ws.IsEmpty) Hosts.Remove(ws);
+    }
 
     public ReactiveCommand<string,  Unit> OpenToolCommand { get; }
     public ReactiveCommand<ToolTab, Unit> CloseTabCommand { get; }
 
     public void OpenTool(string toolId)
     {
-        var existing = OpenTabs.FirstOrDefault(t => t.Id == toolId);
+        var existing = AllTabs.FirstOrDefault(t => t.Id == toolId);
         if (existing is not null)
         {
-            SelectedTab = existing;
+            Show(existing);
             // Returning to an already-open tab has to refresh too, or an alarm that fired while
             // the tab sat in the background shows nothing until something else triggers a load.
             if (toolId == "alarms")    _ = AlarmsVm.LoadAsync();
@@ -879,9 +852,8 @@ public class MainWindowViewModel : ReactiveObject
         // not a visibility check — see IPeriodicRefresh.
         if (vm is IPeriodicRefresh periodic) periodic.AutoRefreshEnabled = true;
         var tab = new ToolTab(toolId, title, vm, canClose);
-        ActivePane.Tabs.Add(tab);
-        SelectedTab = tab;
-        PanesChanged();
+        Main.Add(tab);
+        this.RaisePropertyChanged(nameof(SelectedTab));
 
         // Loaded on open rather than at construction — nothing else needs the alarm list, and
         // a fresh read also picks up anything the agent created since the tab was last shown.
@@ -933,41 +905,20 @@ public class MainWindowViewModel : ReactiveObject
     {
         var id  = AgentTabPrefix + Interlocked.Increment(ref _agentTabCounter);
         var tab = new ToolTab(id, title, viewModel, canClose: true);
-        ActivePane.Tabs.Add(tab);
-        SelectedTab = tab;
-        PanesChanged();
+        Main.Add(tab);
+        this.RaisePropertyChanged(nameof(SelectedTab));
         return id;
     }
 
     public void CloseTab(ToolTab tab)
     {
-        if (!tab.CanClose) return;
-        TakeOut(tab);
+        if (!tab.CanClose || WorkspaceOf(tab) is not { } ws) return;
+        ws.Remove(tab);
 
         var navItem = _allNavItems.FirstOrDefault(i => i.ToolId == tab.Id);
         if (navItem is not null) navItem.IsOpen = false;
-        PanesChanged();
-    }
-
-    // Called when a tab is detached into a floating window — removes it from the
-    // strip but keeps the nav-item dot lit (the tool is still "open").
-    public void MarkToolDetached(string toolId)
-    {
-        var tab = OpenTabs.FirstOrDefault(t => t.Id == toolId);
-        if (tab is not null)
-        {
-            TakeOut(tab);
-            PanesChanged();
-        }
-        var navItem = _allNavItems.FirstOrDefault(i => i.ToolId == toolId);
-        if (navItem is not null) navItem.IsOpen = true;
-    }
-
-    // Called when a detached window closes — extinguishes the nav-item dot.
-    public void MarkToolReattached(string toolId)
-    {
-        var navItem = _allNavItems.FirstOrDefault(i => i.ToolId == toolId);
-        if (navItem is not null) navItem.IsOpen = false;
+        DropIfEmpty(ws);
+        this.RaisePropertyChanged(nameof(SelectedTab));
     }
 
     // ── Constructor ───────────────────────────────────────────────────────────
@@ -1056,15 +1007,8 @@ public class MainWindowViewModel : ReactiveObject
         SchedulerService                schedulerService,
         ScheduledBlockRenderer          blockRenderer)
     {
-        // One side to begin with. A tab picked on a side by clicking it changes that side's
-        // selection; when it is the active side, that is the tool on screen.
-        ActivePane = LeftPane;
-        foreach (var pane in new[] { LeftPane, RightPane })
-            pane.WhenAnyValue(p => p.SelectedTab).Subscribe(_ =>
-            {
-                if (pane == ActivePane) this.RaisePropertyChanged(nameof(SelectedTab));
-                this.RaisePropertyChanged(nameof(OtherSideTab));
-            });
+        // The main window's selection, as those who ask the main view model for it see it.
+        Main.WhenAnyValue(w => w.SelectedTab).Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedTab)));
 
         AlarmActions = alarmActions;
         _uiLinks        = uiLinks;

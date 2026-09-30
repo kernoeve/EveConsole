@@ -7,24 +7,24 @@ using EveConsole.ViewModels;
 namespace EveConsole.Views;
 
 /// <summary>
-/// One side of the main window: a tab strip and the tool showing. The dragging itself is the
-/// window's (<see cref="MainWindow"/>), because a tab can go to the other side or out to a window
-/// of its own; this reports presses and answers where things are.
+/// One side of a window's tabs: a tab strip and the tool showing. The dragging itself is the main
+/// window's (<see cref="MainWindow"/>), because a tab can go to the other side, to another window,
+/// or out to a window of its own; this reports presses and answers where things are.
 /// </summary>
 public partial class ToolPaneView : UserControl
 {
     public ToolPaneView()
     {
         InitializeComponent();
-        // A click anywhere on a side makes it the one being worked in.
+        // A click anywhere on a side makes it the one being worked in, in its window.
         AddHandler(PointerPressedEvent, (_, _) =>
         {
-            if (DataContext is ToolPane { Tabs.Count: > 0 } pane && Owner?.DataContext is MainWindowViewModel vm)
-                vm.ActivePane = pane;
+            if (DataContext is ToolPane { Tabs.Count: > 0, Workspace: { } ws } pane) ws.ActivePane = pane;
         }, RoutingStrategies.Tunnel, handledEventsToo: true);
     }
 
-    private MainWindow? Owner => TopLevel.GetTopLevel(this) as MainWindow;
+    /// <summary>The window that runs tab dragging — the main one, which knows every window.</summary>
+    private static MainWindow? Owner => MainWindow.Current;
 
     internal ToolPane? Pane => DataContext as ToolPane;
 
