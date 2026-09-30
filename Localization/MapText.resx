@@ -2349,4 +2349,36 @@ or as another tool exports them</value>
     <value>Jump bridge — fainter when ESI shows only one gate</value>
     <comment>Map legend, beside the dashed violet line.</comment>
   </data>
+  <data name="BridgeAllianceId" xml:space="preserve">
+    <value>Alliance {0}</value>
+    <comment>An alliance whose name has not been looked up yet. {0} is its id.</comment>
+  </data>
+  <data name="BridgeDirectionLine" xml:space="preserve">
+    <value>{0} → {1}: {2} · {3}</value>
+    <comment>One direction of a jump bridge. {0} where the jump starts, {1} where it lands, {2} the alliance whose pilots may jump it, {3} the zone and cost (BridgeZoneFree / BridgeZoneCost / BridgeZoneNoCapital).</comment>
+  </data>
+  <data name="BridgeZoneFree" xml:space="preserve">
+    <value>zone 1 ({0:0.0} ly from the capital), free</value>
+    <comment>Zone of a bridge jump that costs no capacitor. {0} light-years from the alliance capital to where the jump lands.</comment>
+  </data>
+  <data name="BridgeZoneCost" xml:space="preserve">
+    <value>zone {0} ({1:0.0} ly from the capital), {2}× capacitor</value>
+    <comment>Zone of a bridge jump. {0} zone number, {1} light-years from the alliance capital to where the jump lands, {2} the multiple of the ship's base capacitor cost.</comment>
+  </data>
+  <data name="BridgeZoneNoCapital" xml:space="preserve">
+    <value>zone unknown (the alliance has no capital system)</value>
+    <comment>The alliance using the bridge has no capital, so the zone cannot be worked out.</comment>
+  </data>
+  <data name="BridgeNoSov" xml:space="preserve">
+    <value>{0} → {1}: nobody holds sovereignty in {0}, so nobody can jump this way</value>
+    <comment>A bridge direction whose starting system has no sovereign alliance. {0} start, {1} destination.</comment>
+  </data>
+  <data name="BridgeSovUnknown" xml:space="preserve">
+    <value>Who may jump could not be read: sovereignty is not available right now.</value>
+    <comment>Shown when ESI's sovereignty data could not be read.</comment>
+  </data>
+  <data name="BridgesRulesNote" xml:space="preserve">
+    <value>Since 22 September 2026 a bridge can be used only by the alliance holding sovereignty where the jump starts, and not by capital ships (Rorquals and freighters excepted). Each jump draws on the bridge's capacitor, more the further from that alliance's capital the jump lands: free within 5 ly (zone 1), then 2×, 6×, 9× and 15× the ship's base cost every 5 ly further.</value>
+    <comment>Rules summary at the top of the jump bridges tab.</comment>
+  </data>
 </root>

@@ -17,9 +17,29 @@ public sealed record BridgeGate(
 /// A jump bridge between two systems: the gates ESI shows for it, a hand-entered row, or both.
 /// <see cref="SystemA"/> and <see cref="SystemB"/> are ordered by id; the pair is undirected.
 /// </summary>
+/// <summary>
+/// One direction of a bridge under the rules in force since 2026-09-22 (Cradle of War): who may
+/// jump it, and what the jump costs the bridge's capacitor.
+/// </summary>
+/// <param name="AllianceId">The alliance holding sovereignty where the jump starts — only its
+/// pilots may use the bridge from here. 0 when nobody holds it (nobody can).</param>
+/// <param name="CapitalSystemId">That alliance's capital, 0 when it has none (or sovereignty could
+/// not be read).</param>
+/// <param name="DistanceLy">Straight-line light-years from the capital to where the jump lands.</param>
+/// <param name="Zone">1 to 5 by that distance; 0 when it cannot be known.</param>
+public sealed record BridgeDirection(
+    int FromSystemId, int ToSystemId, long AllianceId, string AllianceName,
+    int CapitalSystemId, string CapitalName, double? DistanceLy, int Zone)
+{
+    /// <summary>What a jump this way costs, as a multiple of the ship's base cost: nothing in
+    /// zone 1, then 2, 6, 9 and 15.</summary>
+    public int Multiplier => JumpBridgeService.ZoneMultiplier(Zone);
+}
+
 public sealed record JumpBridge(
     int SystemA, int SystemB, string NameA, string NameB,
-    IReadOnlyList<BridgeGate> Gates, int? ManualId, string? Note)
+    IReadOnlyList<BridgeGate> Gates, int? ManualId, string? Note,
+    IReadOnlyList<BridgeDirection>? Directions = null)
 {
     public bool FromEsi  => Gates.Count > 0;
     public bool IsManual => ManualId is not null;
@@ -57,10 +77,66 @@ public sealed record BridgeImportResult(int Added, int AlreadyThere, IReadOnlyLi
 /// gates that have since gone (destroyed, unanchored, handed on); a name alone is no proof the
 /// gate still stands.</para>
 /// </summary>
-public sealed class JumpBridgeService(IDbContextFactory<AppDbContext> dbFactory)
+public sealed class JumpBridgeService(
+    IDbContextFactory<AppDbContext> dbFactory,
+    Func<CancellationToken, Task<List<Api.EsiClient.EsiSovSystem>?>>? sovereignty = null,
+    CorpActivityService? names = null)
 {
     /// <summary>Ansiblex Jump Bridge.</summary>
     public const int AnsiblexTypeId = 35841;
+
+    // ── Rules since 2026-09-22 (Cradle of War) ───────────────────────────────
+    //
+    // ⚠️ Zones do not bar anyone. They set how much of the bridge's capacitor (1,250 TJ, about
+    // 200 TJ an hour back) a jump uses: the ship's base cost times the zone's multiplier. The
+    // zone is the straight-line distance, in light-years, from the using alliance's capital to
+    // the jump's END — so the same bridge is cheaper towards the capital than away from it. Who
+    // may jump: only pilots of the alliance holding sovereignty where the jump starts; an access
+    // list can narrow that, never widen it. Capitals cannot use a bridge at all, bar Rorquals,
+    // freighters and jump freighters. Source: patch notes 24.01, and CCP's 2026-07-21 blog for
+    // the per-class costs.
+
+    private const double MetresPerLightYear = 9_460_730_472_580_800.0;
+
+    public static int ZoneFor(double lightYears) =>
+        lightYears <= 5 ? 1 : lightYears <= 10 ? 2 : lightYears <= 15 ? 3 : lightYears <= 20 ? 4 : 5;
+
+    public static int ZoneMultiplier(int zone) => zone switch { 1 => 0, 2 => 2, 3 => 6, 4 => 9, 5 => 15, _ => 0 };
+
+    /// <summary>Who holds each system and where each alliance's capital is, from ESI's public
+    /// /sovereignty/systems. Read at most every half hour; the last good reading stands in when
+    /// a read fails.</summary>
+    private (Dictionary<int, long> Holder, Dictionary<long, int> Capital)? _sov;
+    private DateTimeOffset _sovAt = DateTimeOffset.MinValue;
+
+    private async Task<(Dictionary<int, long> Holder, Dictionary<long, int> Capital)?> SovereigntyAsync(CancellationToken ct)
+    {
+        if (sovereignty is null) return _sov;
+        if (_sov is not null && DateTimeOffset.UtcNow - _sovAt < TimeSpan.FromMinutes(30)) return _sov;
+        try
+        {
+            var systems = await sovereignty(ct) ?? [];
+            var holder  = new Dictionary<int, long>();
+            var capital = new Dictionary<long, int>();
+            foreach (var s in systems)
+                if (s.Claim?.Alliance is { AllianceId: > 0 } a)
+                {
+                    holder[s.SolarSystemId] = a.AllianceId;
+                    if (a.IsCapitalSystem) capital[a.AllianceId] = s.SolarSystemId;
+                }
+            _sov   = (holder, capital);
+            _sovAt = DateTimeOffset.UtcNow;
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
+        catch
+        {
+            // Kept as it was; asked again on the next reading.
+            _sovAt = DateTimeOffset.UtcNow - TimeSpan.FromMinutes(25);
+        }
+        return _sov;
+    }
+
+    private Dictionary<int, (double X, double Y, double Z)>? _positions;
 
     /// <summary>Raised after a hand-entered bridge is added or removed, so the maps redraw.</summary>
     public event Action? Changed;
@@ -75,8 +151,10 @@ public sealed class JumpBridgeService(IDbContextFactory<AppDbContext> dbFactory)
         if (_systemIds is null || _systemNames is null)
         {
             var rows = await db.SdeSolarSystems.AsNoTracking()
-                .Select(s => new { s.SolarSystemId, s.Name }).ToListAsync(ct);
+                .Select(s => new { s.SolarSystemId, s.Name, s.X, s.Y, s.Z }).ToListAsync(ct);
             _systemNames = rows.ToDictionary(r => r.SolarSystemId, r => r.Name);
+            // True 3D positions, not the map's 2D layout: the zones are straight-line light-years.
+            _positions   = rows.ToDictionary(r => r.SolarSystemId, r => (r.X, r.Y, r.Z));
             _systemIds   = rows.GroupBy(r => r.Name, StringComparer.OrdinalIgnoreCase)
                                .ToDictionary(g => g.Key, g => g.First().SolarSystemId, StringComparer.OrdinalIgnoreCase);
         }
@@ -93,7 +171,7 @@ public sealed class JumpBridgeService(IDbContextFactory<AppDbContext> dbFactory)
 
     private async Task<JumpBridgeList> GetAsync(AppDbContext db, bool includeManual, CancellationToken ct)
     {
-        var (ids, names) = await SystemsAsync(db, ct);
+        var (ids, systemNames) = await SystemsAsync(db, ct);
 
         var gates = await db.EsiCorpStructures.AsNoTracking()
             .Where(s => s.TypeId == AnsiblexTypeId)
@@ -132,7 +210,7 @@ public sealed class JumpBridgeService(IDbContextFactory<AppDbContext> dbFactory)
             var gate = new BridgeGate(g.StructureId, g.SystemId, to, name, link?.Label,
                                       g.FuelExpires, g.State ?? "", g.CorporationId,
                                       corps.GetValueOrDefault(g.CorporationId) ?? "",
-                                      names.GetValueOrDefault(g.SystemId) ?? "");
+                                      systemNames.GetValueOrDefault(g.SystemId) ?? "");
             (to > 0 ? read : unread).Add(gate);
         }
 
@@ -154,19 +232,71 @@ public sealed class JumpBridgeService(IDbContextFactory<AppDbContext> dbFactory)
             pairs[key] = pairs.TryGetValue(key, out var p) ? (p.Gates, m) : ([], m);
         }
 
+        // Who may jump each way, and the zone: from sovereignty, when it could be read.
+        var sov = await SovereigntyAsync(ct);
+        var allianceIds = sov is { } s0
+            ? pairs.Keys.SelectMany(k => new[] { k.Item1, k.Item2 })
+                   .Select(id => s0.Holder.GetValueOrDefault(id)).Where(a => a > 0).Distinct().ToList()
+            : [];
+        var allianceNames = await AllianceNamesAsync(db, allianceIds, ct);
+
+        BridgeDirection? Direction(int from, int to)
+        {
+            if (sov is not { } s) return null;
+            var alliance = s.Holder.GetValueOrDefault(from);
+            var capital  = alliance > 0 ? s.Capital.GetValueOrDefault(alliance) : 0;
+            double? ly = null;
+            if (capital > 0 && _positions!.TryGetValue(capital, out var c) && _positions.TryGetValue(to, out var e))
+            {
+                var dx = c.X - e.X; var dy = c.Y - e.Y; var dz = c.Z - e.Z;
+                ly = Math.Sqrt(dx * dx + dy * dy + dz * dz) / MetresPerLightYear;
+            }
+            return new BridgeDirection(from, to, alliance, allianceNames.GetValueOrDefault(alliance) ?? "",
+                capital, capital > 0 ? systemNames.GetValueOrDefault(capital) ?? "" : "",
+                ly, ly is double d ? ZoneFor(d) : 0);
+        }
+
         var bridges = pairs
             .Select(kv => new JumpBridge(
                 kv.Key.Item1, kv.Key.Item2,
-                names.GetValueOrDefault(kv.Key.Item1) ?? kv.Key.Item1.ToString(),
-                names.GetValueOrDefault(kv.Key.Item2) ?? kv.Key.Item2.ToString(),
+                systemNames.GetValueOrDefault(kv.Key.Item1) ?? kv.Key.Item1.ToString(),
+                systemNames.GetValueOrDefault(kv.Key.Item2) ?? kv.Key.Item2.ToString(),
                 kv.Value.Gates.OrderBy(g => g.SystemId).ToList(),
-                kv.Value.Manual?.Id, kv.Value.Manual?.Note))
+                kv.Value.Manual?.Id, kv.Value.Manual?.Note,
+                sov is null ? null : [Direction(kv.Key.Item1, kv.Key.Item2)!, Direction(kv.Key.Item2, kv.Key.Item1)!]))
             .OrderBy(b => b.NameA, StringComparer.OrdinalIgnoreCase)
             .ThenBy(b => b.NameB, StringComparer.OrdinalIgnoreCase)
             .ToList();
 
         return new JumpBridgeList(bridges, unread);
     }
+
+    /// <summary>
+    /// Alliance names from the local name cache. ⚠️ Never waits on ESI: one that is not cached yet
+    /// is looked up in the background and shown by id until then.
+    /// </summary>
+    private async Task<Dictionary<long, string>> AllianceNamesAsync(AppDbContext db, List<long> ids, CancellationToken ct)
+    {
+        if (ids.Count == 0) return [];
+        var found = await db.UniverseNames.AsNoTracking()
+            .Where(u => ids.Contains(u.EntityId))
+            .Select(u => new { u.EntityId, u.Name })
+            .ToDictionaryAsync(u => u.EntityId, u => u.Name, ct);
+
+        var missing = ids.Where(id => !found.ContainsKey(id)).ToList();
+        if (missing.Count > 0 && names is not null && _resolving.IsCompleted)
+            _resolving = Task.Run(async () =>
+            {
+                try { await names.ResolveNamesAsync(missing); }
+                catch { /* shown by id; asked again next time */ }
+            });
+
+        foreach (var id in missing)
+            found[id] = string.Format(Localization.MapText.BridgeAllianceId, id);
+        return found;
+    }
+
+    private Task _resolving = Task.CompletedTask;
 
     // ── Names ────────────────────────────────────────────────────────────────
 

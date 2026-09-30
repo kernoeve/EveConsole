@@ -161,6 +161,7 @@ public sealed class BridgeRowVm
                  : b.BothEnds              ? MapText.BridgeSourceEsiBoth
                  :                           MapText.BridgeSourceEsiOne;
         Gates    = string.Join("\n", b.Gates.Select(g => g.OwnerName.Length > 0 ? $"{g.Name}  ({g.OwnerName})" : g.Name));
+        Access   = AccessText(b);
         Note     = b.Note ?? "";
 
         if (b.FuelExpires is { } fuel)
@@ -181,9 +182,28 @@ public sealed class BridgeRowVm
     public string     SystemB { get; }
     public string     Source  { get; }
     public string     Gates   { get; }
+
+    /// <summary>Each way across: who may jump it, and its zone and capacitor cost.</summary>
+    public string     Access  { get; }
     public string     Note    { get; }
     public string     Fuel    { get; } = "";
     public bool       FuelLow { get; }
+
+    /// <summary>One line per direction, under the rules since 2026-09-22.</summary>
+    internal static string AccessText(JumpBridge b)
+    {
+        if (b.Directions is not { Count: > 0 } dirs) return MapText.BridgeSovUnknown;
+        return string.Join("\n", dirs.Select(d =>
+        {
+            var from = SdeNames.SolarSystem(d.FromSystemId, d.FromSystemId == b.SystemA ? b.NameA : b.NameB);
+            var to   = SdeNames.SolarSystem(d.ToSystemId,   d.ToSystemId   == b.SystemA ? b.NameA : b.NameB);
+            if (d.AllianceId == 0) return string.Format(MapText.BridgeNoSov, from, to);
+            var zone = d.Zone == 0         ? MapText.BridgeZoneNoCapital
+                     : d.Multiplier == 0   ? string.Format(MapText.BridgeZoneFree, d.DistanceLy ?? 0)
+                     :                       string.Format(MapText.BridgeZoneCost, d.Zone, d.DistanceLy ?? 0, d.Multiplier);
+            return string.Format(MapText.BridgeDirectionLine, from, to, d.AllianceName, zone);
+        }));
+    }
 
     /// <summary>Only a bridge added by hand can be removed here; one from ESI goes when its gate does.</summary>
     public bool CanRemove => Bridge.IsManual;

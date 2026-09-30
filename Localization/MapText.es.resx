@@ -1764,4 +1764,28 @@ o como los exporta otra herramienta</value>
   <data name="LegendJumpBridge" xml:space="preserve">
     <value>Puente de salto: más tenue si ESI solo muestra una puerta</value>
   </data>
+  <data name="BridgeAllianceId" xml:space="preserve">
+    <value>Alianza {0}</value>
+  </data>
+  <data name="BridgeDirectionLine" xml:space="preserve">
+    <value>{0} → {1}: {2} · {3}</value>
+  </data>
+  <data name="BridgeZoneFree" xml:space="preserve">
+    <value>zona 1 ({0:0.0} al de la capital), gratis</value>
+  </data>
+  <data name="BridgeZoneCost" xml:space="preserve">
+    <value>zona {0} ({1:0.0} al de la capital), {2}× condensador</value>
+  </data>
+  <data name="BridgeZoneNoCapital" xml:space="preserve">
+    <value>zona desconocida (la alianza no tiene sistema capital)</value>
+  </data>
+  <data name="BridgeNoSov" xml:space="preserve">
+    <value>{0} → {1}: nadie tiene la soberanía de {0}, así que nadie puede saltar en este sentido</value>
+  </data>
+  <data name="BridgeSovUnknown" xml:space="preserve">
+    <value>No se ha podido leer quién puede saltar: los datos de soberanía no están disponibles ahora.</value>
+  </data>
+  <data name="BridgesRulesNote" xml:space="preserve">
+    <value>Desde el 22 de septiembre de 2026 un puente solo lo puede usar la alianza que tiene la soberanía donde empieza el salto, y no las naves capitales (salvo Rorquals y cargueros). Cada salto gasta condensador del puente, más cuanto más lejos de la capital de esa alianza termina: gratis hasta 5 al (zona 1) y después 2×, 6×, 9× y 15× el coste base de la nave cada 5 al más.</value>
+  </data>
 </root>

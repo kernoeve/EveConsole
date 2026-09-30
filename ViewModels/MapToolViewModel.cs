@@ -411,6 +411,7 @@ public sealed class MapToolViewModel : ReactiveObject
             lines.Add(string.Format(MapText.BridgeOneGate, b.Gates[0].SystemId == b.SystemA ? a : z));
         if (b.IsManual)
             lines.Add(b.Note is { Length: > 0 } note ? $"{MapText.BridgeAddedByHand} · {note}" : MapText.BridgeAddedByHand);
+        lines.Add(BridgeRowVm.AccessText(b));
         return new MapBridgeLine(b.SystemA, b.SystemB, string.Format(MapText.BridgeTitle, a, z),
                                  string.Join("\n", lines), Complete: !b.FromEsi || b.BothEnds || b.IsManual);
     }).ToList();

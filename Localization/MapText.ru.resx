@@ -1848,4 +1848,28 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   <data name="LegendJumpBridge" xml:space="preserve">
     <value>Прыжковый мост — бледнее, если ESI показывает только один конец</value>
   </data>
+  <data name="BridgeAllianceId" xml:space="preserve">
+    <value>Альянс {0}</value>
+  </data>
+  <data name="BridgeDirectionLine" xml:space="preserve">
+    <value>{0} → {1}: {2} · {3}</value>
+  </data>
+  <data name="BridgeZoneFree" xml:space="preserve">
+    <value>зона 1 ({0:0.0} св. л. от столицы), бесплатно</value>
+  </data>
+  <data name="BridgeZoneCost" xml:space="preserve">
+    <value>зона {0} ({1:0.0} св. л. от столицы), ×{2} конденсатора</value>
+  </data>
+  <data name="BridgeZoneNoCapital" xml:space="preserve">
+    <value>зона неизвестна (у альянса нет столичной системы)</value>
+  </data>
+  <data name="BridgeNoSov" xml:space="preserve">
+    <value>{0} → {1}: в {0} ни у кого нет суверенитета, поэтому в эту сторону прыгать нельзя</value>
+  </data>
+  <data name="BridgeSovUnknown" xml:space="preserve">
+    <value>Не удалось узнать, кто может прыгать: данные о суверенитете сейчас недоступны.</value>
+  </data>
+  <data name="BridgesRulesNote" xml:space="preserve">
+    <value>С 22 сентября 2026 года мостом может пользоваться только альянс, владеющий суверенитетом в системе, откуда начинается прыжок, и не капитальные корабли (кроме «Рорквалов» и грузовозов). Каждый прыжок расходует конденсатор моста — тем больше, чем дальше от столицы этого альянса он заканчивается: до 5 св. л. бесплатно (зона 1), затем каждые 5 св. л. — ×2, ×6, ×9 и ×15 от базовой стоимости корабля.</value>
+  </data>
 </root>

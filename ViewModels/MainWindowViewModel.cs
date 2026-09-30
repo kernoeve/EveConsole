@@ -1111,7 +1111,7 @@ public class MainWindowViewModel : ReactiveObject
         MapVm                  = new MapToolViewModel(
             universeMapService, mapStatsService, appPrefs, NewSystemPage,
             new LiveIntelService(dbFactory, corpActivityService), errorLogger,
-            new JumpBridgeService(dbFactory));
+            new JumpBridgeService(dbFactory, esi.GetSovSystemsAsync, corpActivityService));
         AlarmsVm               = new AlarmsViewModel(dbFactory, alarmService, alarmSounds, alarmMute);
         SchedulerVm            = new SchedulerViewModel(dbFactory, schedulerService, blockRenderer, slackService,
                                                         corpActivityService, salePostingService, errorLogger);

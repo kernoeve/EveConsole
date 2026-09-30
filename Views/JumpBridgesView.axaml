@@ -42,6 +42,8 @@
         <TextBlock Text="{Binding Summary}" FontSize="13" Foreground="{DynamicResource TextBrightBrush}" />
         <TextBlock Text="{x:Static loc:MapText.BridgesNote}" FontSize="11" TextWrapping="Wrap"
                    Foreground="{DynamicResource TextDimBrush}" />
+        <TextBlock Text="{x:Static loc:MapText.BridgesRulesNote}" FontSize="11" TextWrapping="Wrap"
+                   Foreground="{DynamicResource TextDimBrush}" />
       </StackPanel>
 
       <!-- Gates ESI shows whose names do not say where they go. -->
@@ -89,6 +91,8 @@
                     </TextBlock>
                     <StackPanel Grid.Column="4" Spacing="1">
                       <TextBlock Text="{Binding Gates}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"
+                                 TextWrapping="Wrap" />
+                      <TextBlock Text="{Binding Access}" FontSize="11" Foreground="{DynamicResource InfoBrush}"
                                  TextWrapping="Wrap" />
                       <TextBlock Text="{Binding Note}" FontSize="11" Foreground="{DynamicResource TextDimBrush}"
                                  TextWrapping="Wrap"

@@ -1722,4 +1722,28 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   <data name="LegendJumpBridge" xml:space="preserve">
     <value>跳桥——ESI 只显示一端时较淡</value>
   </data>
+  <data name="BridgeAllianceId" xml:space="preserve">
+    <value>联盟 {0}</value>
+  </data>
+  <data name="BridgeDirectionLine" xml:space="preserve">
+    <value>{0} → {1}：{2} · {3}</value>
+  </data>
+  <data name="BridgeZoneFree" xml:space="preserve">
+    <value>1 区（距首都 {0:0.0} 光年），免费</value>
+  </data>
+  <data name="BridgeZoneCost" xml:space="preserve">
+    <value>{0} 区（距首都 {1:0.0} 光年），{2} 倍电容</value>
+  </data>
+  <data name="BridgeZoneNoCapital" xml:space="preserve">
+    <value>区域未知（该联盟没有首都星系）</value>
+  </data>
+  <data name="BridgeNoSov" xml:space="preserve">
+    <value>{0} → {1}：{0} 无人拥有主权，因此无人能朝这个方向跳跃</value>
+  </data>
+  <data name="BridgeSovUnknown" xml:space="preserve">
+    <value>无法读取谁可以跳跃：主权数据暂时不可用。</value>
+  </data>
+  <data name="BridgesRulesNote" xml:space="preserve">
+    <value>自 2026 年 9 月 22 日起，跳桥只能由跳跃起点星系的主权联盟使用，旗舰级舰船不能使用（长须鲸和货舰除外）。每次跳跃都会消耗跳桥的电容，落点离该联盟首都越远消耗越多：5 光年内免费（1 区），此后每远 5 光年分别为舰船基础消耗的 2 倍、6 倍、9 倍和 15 倍。</value>
+  </data>
 </root>

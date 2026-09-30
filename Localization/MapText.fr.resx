@@ -1764,4 +1764,28 @@ ou tels qu'un autre outil les exporte</value>
   <data name="LegendJumpBridge" xml:space="preserve">
     <value>Pont de saut — plus pâle si ESI ne montre qu'une porte</value>
   </data>
+  <data name="BridgeAllianceId" xml:space="preserve">
+    <value>Alliance {0}</value>
+  </data>
+  <data name="BridgeDirectionLine" xml:space="preserve">
+    <value>{0} → {1} : {2} · {3}</value>
+  </data>
+  <data name="BridgeZoneFree" xml:space="preserve">
+    <value>zone 1 ({0:0.0} al de la capitale), gratuit</value>
+  </data>
+  <data name="BridgeZoneCost" xml:space="preserve">
+    <value>zone {0} ({1:0.0} al de la capitale), {2}× capaciteur</value>
+  </data>
+  <data name="BridgeZoneNoCapital" xml:space="preserve">
+    <value>zone inconnue (l'alliance n'a pas de système capitale)</value>
+  </data>
+  <data name="BridgeNoSov" xml:space="preserve">
+    <value>{0} → {1} : personne ne détient la souveraineté dans {0}, donc personne ne peut sauter dans ce sens</value>
+  </data>
+  <data name="BridgeSovUnknown" xml:space="preserve">
+    <value>Impossible de savoir qui peut sauter : les données de souveraineté ne sont pas disponibles pour l'instant.</value>
+  </data>
+  <data name="BridgesRulesNote" xml:space="preserve">
+    <value>Depuis le 22 septembre 2026, un pont ne peut être utilisé que par l'alliance qui détient la souveraineté là où le saut commence, et pas par les vaisseaux capitaux (sauf Rorquals et cargos). Chaque saut consomme le capaciteur du pont, d'autant plus que le saut aboutit loin de la capitale de cette alliance : gratuit jusqu'à 5 al (zone 1), puis 2×, 6×, 9× et 15× le coût de base du vaisseau tous les 5 al.</value>
+  </data>
 </root>

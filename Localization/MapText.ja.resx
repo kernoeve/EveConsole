@@ -1722,4 +1722,28 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   <data name="LegendJumpBridge" xml:space="preserve">
     <value>ジャンプブリッジ — ESIで片方のゲートしか見えない場合は薄く表示</value>
   </data>
+  <data name="BridgeAllianceId" xml:space="preserve">
+    <value>アライアンス {0}</value>
+  </data>
+  <data name="BridgeDirectionLine" xml:space="preserve">
+    <value>{0} → {1}: {2} · {3}</value>
+  </data>
+  <data name="BridgeZoneFree" xml:space="preserve">
+    <value>ゾーン1(首都から{0:0.0}光年)、無料</value>
+  </data>
+  <data name="BridgeZoneCost" xml:space="preserve">
+    <value>ゾーン{0}(首都から{1:0.0}光年)、キャパシタ{2}倍</value>
+  </data>
+  <data name="BridgeZoneNoCapital" xml:space="preserve">
+    <value>ゾーン不明(アライアンスに首都星系がありません)</value>
+  </data>
+  <data name="BridgeNoSov" xml:space="preserve">
+    <value>{0} → {1}: {0}の主権を持つ者がいないため、この方向には誰もジャンプできません</value>
+  </data>
+  <data name="BridgeSovUnknown" xml:space="preserve">
+    <value>ジャンプできる者を読み取れませんでした。主権データが現在利用できません。</value>
+  </data>
+  <data name="BridgesRulesNote" xml:space="preserve">
+    <value>2026年9月22日以降、ブリッジを使えるのはジャンプ開始地点の主権を持つアライアンスのみで、キャピタル艦は使えません(ロークァルと輸送艦は例外)。各ジャンプはブリッジのキャパシタを消費し、そのアライアンスの首都から着地点が遠いほど多くなります。5光年以内は無料(ゾーン1)、以降5光年ごとに艦船の基本コストの2倍、6倍、9倍、15倍です。</value>
+  </data>
 </root>

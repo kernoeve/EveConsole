@@ -1722,4 +1722,28 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   <data name="LegendJumpBridge" xml:space="preserve">
     <value>점프 브릿지 — ESI에서 게이트가 하나만 보이면 흐리게 표시</value>
   </data>
+  <data name="BridgeAllianceId" xml:space="preserve">
+    <value>얼라이언스 {0}</value>
+  </data>
+  <data name="BridgeDirectionLine" xml:space="preserve">
+    <value>{0} → {1}: {2} · {3}</value>
+  </data>
+  <data name="BridgeZoneFree" xml:space="preserve">
+    <value>구역 1(수도에서 {0:0.0}광년), 무료</value>
+  </data>
+  <data name="BridgeZoneCost" xml:space="preserve">
+    <value>구역 {0}(수도에서 {1:0.0}광년), 캐패시터 {2}배</value>
+  </data>
+  <data name="BridgeZoneNoCapital" xml:space="preserve">
+    <value>구역 알 수 없음(얼라이언스에 수도 항성계가 없음)</value>
+  </data>
+  <data name="BridgeNoSov" xml:space="preserve">
+    <value>{0} → {1}: {0}의 소버린티를 가진 곳이 없어 이 방향으로는 아무도 점프할 수 없습니다</value>
+  </data>
+  <data name="BridgeSovUnknown" xml:space="preserve">
+    <value>점프 가능 대상을 읽지 못했습니다. 현재 소버린티 데이터를 사용할 수 없습니다.</value>
+  </data>
+  <data name="BridgesRulesNote" xml:space="preserve">
+    <value>2026년 9월 22일부터 브릿지는 점프가 시작되는 항성계의 소버린티를 가진 얼라이언스만 사용할 수 있으며, 캐피탈 함선은 사용할 수 없습니다(로퀄과 화물선 제외). 점프마다 브릿지의 캐패시터를 소모하며, 해당 얼라이언스의 수도에서 도착 지점이 멀수록 더 많이 소모합니다. 5광년 이내는 무료(구역 1), 이후 5광년마다 함선 기본 비용의 2배, 6배, 9배, 15배입니다.</value>
+  </data>
 </root>
