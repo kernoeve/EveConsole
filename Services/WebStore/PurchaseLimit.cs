@@ -1,4 +1,5 @@
 using EveConsole.Data;
+using EveConsole.Localization;
 using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,6 +13,10 @@ namespace EveConsole.Services.WebStore;
 /// store, counted over the buyer's orders in the store that were not cancelled, within a rolling
 /// period or ever. Off by default; a programme that hands out the first hull of each kind is what
 /// it exists for.</para>
+///
+/// <para>The words are buyer text (StoreText), in the language of the scope they are written in:
+/// a mail is written inside the store's (<see cref="LanguageScope"/>), so its buyers read the rule
+/// in theirs, and the Stores screen outside any, so the owner reads the same rule in the app's.</para>
 /// </summary>
 public static class PurchaseLimit
 {
@@ -28,22 +33,31 @@ public static class PurchaseLimit
         };
     }
 
+    /// <summary>What the limit counts over — "of each item" — as it sits in <see cref="Describe"/>
+    /// and in <see cref="Excess.Words"/>.</summary>
     public static string ScopeWords(Store store) => store.LimitScope switch
     {
-        "group" => "of each item group",
-        "store" => "from the store",
-        _       => "of each item",
+        "group" => StoreText.LimitScopeGroup,
+        "store" => StoreText.LimitScopeStore,
+        _       => StoreText.LimitScopeItem,
     };
 
+    /// <summary>The period — "per day", "per 3 days", "ever" — as it sits beside <see cref="ScopeWords"/>.</summary>
     public static string PeriodWords(Store store)
     {
         var n = Math.Max(1, store.LimitPeriodCount);
         return store.LimitPeriod switch
         {
-            "days"   => n == 1 ? "per day"   : $"per {n} days",
-            "months" => n == 1 ? "per month" : $"per {n} months",
-            "years"  => n == 1 ? "per year"  : $"per {n} years",
-            _        => "ever",
+            // One is said without its number, "per day" rather than "per 1 day", so it is an entry of
+            // its own. A family's One form, where a language has one, is for counts such as
+            // Russian's 21, which keep their number.
+            "days"   => n == 1 ? StoreText.LimitPerDay
+                               : Plurals.Format(StoreText.ResourceManager, nameof(StoreText.LimitPerDaysOther), n),
+            "months" => n == 1 ? StoreText.LimitPerMonth
+                               : Plurals.Format(StoreText.ResourceManager, nameof(StoreText.LimitPerMonthsOther), n),
+            "years"  => n == 1 ? StoreText.LimitPerYear
+                               : Plurals.Format(StoreText.ResourceManager, nameof(StoreText.LimitPerYearsOther), n),
+            _        => StoreText.LimitEver,
         };
     }
 
@@ -51,7 +65,23 @@ public static class PurchaseLimit
     public static string Describe(Store store)
     {
         var units = Math.Max(1, store.LimitUnits);
-        return $"Each buyer may order {units:N0} {(units == 1 ? "unit" : "units")} {ScopeWords(store)} {PeriodWords(store)}.";
+        return Plurals.Format(StoreText.ResourceManager, nameof(StoreText.LimitRuleOther), units,
+                              ScopeWords(store), PeriodWords(store));
+    }
+
+    /// <summary>
+    /// An order line that would take a buyer past the store's limit, as sums: put into words by
+    /// <see cref="Words"/> for whoever reads them — the buyer in the store's language, with the
+    /// item as their list names it, and the owner in the app's.
+    /// </summary>
+    public sealed record Excess(Store Store, int TypeId, long Units, long Had)
+    {
+        /// <summary>"Over the store's limit of 1 of each item ever: 2 × Archon on top of 0 already
+        /// ordered." In the language of the scope it is called in.</summary>
+        /// <param name="name">The item's name, as this reader knows it.</param>
+        public string Words(string name) =>
+            string.Format(StoreText.LimitOver, Math.Max(1, Store.LimitUnits), ScopeWords(Store), PeriodWords(Store),
+                          Units, name, Had);
     }
 
     /// <summary>
@@ -60,9 +90,8 @@ public static class PurchaseLimit
     /// period — which is the same sum the site shows them. One check for every doorway: the web
     /// sync when it books, the mail store when it books, the site before it even asks.
     /// </summary>
-    public static async Task<string?> OverLimitAsync(
-        AppDbContext db, Store store, long buyerId, List<(int TypeId, long Units)> lines,
-        Func<int, string> nameOf, CancellationToken ct)
+    public static async Task<Excess?> OverLimitAsync(
+        AppDbContext db, Store store, long buyerId, List<(int TypeId, long Units)> lines, CancellationToken ct)
     {
         var (taken, Key) = await TakenAsync(db, store, buyerId, lines.Select(l => l.TypeId), ct);
 
@@ -72,8 +101,7 @@ public static class PurchaseLimit
             var key = Key(typeId);
             var had = taken.GetValueOrDefault(key);
             if (had + units > limit)
-                return $"Over the store's limit of {limit:N0} {ScopeWords(store)} {PeriodWords(store)}: "
-                     + $"{units:N0} × {nameOf(typeId)} on top of {had:N0} already ordered.";
+                return new Excess(store, typeId, units, had);
             taken[key] = had + units;   // two lines against one key add up within the order
         }
         return null;

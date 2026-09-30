@@ -1,4 +1,5 @@
 using Avalonia.Platform;
+using EveConsole.Localization;
 using LibVLCSharp.Shared;
 
 namespace EveConsole.Services;
@@ -57,30 +58,29 @@ public sealed class AlarmSoundService
     public static string UnavailableReason =>
         IsAvailable ? ""
         : OperatingSystem.IsLinux()
-            ? $"Audio unavailable: libvlc could not be loaded. Install VLC and its plugins "
-              + $"(the \"vlc\" package on Arch and Fedora; \"vlc\" or \"libvlc-dev\" on Debian and "
-              + $"Ubuntu), then restart. [{InitError}]"
-            : $"Audio unavailable: {InitError}";
+            ? string.Format(AlarmsText.AudioUnavailableLinux, InitError)
+            : string.Format(AlarmsText.AudioUnavailable, InitError);
 
     /// <summary>
     /// The sounds shipped with the app, in picker order: the quiet ones first, then the ones
-    /// meant to be impossible to ignore.
+    /// meant to be impossible to ignore. The key is what an alarm stores (and what the agent is
+    /// told to use); the name is only shown.
     /// </summary>
     private static readonly (string Key, string Name)[] Bundled =
     [
-        ("chime-soft",        "Chime — soft"),
-        ("chime-triad",       "Chime — triad"),
-        ("ping-glass",        "Ping — glass"),
-        ("bell-brass",        "Bell — brass"),
-        ("bell-deep",         "Bell — deep"),
-        ("gong-low",          "Gong — low"),
-        ("alert-double",      "Alert — double"),
-        ("alarm-urgent",      "Alarm — urgent"),
-        ("two-tone-alert",    "Warning — two-tone"),
-        ("klaxon-industrial", "Warning — klaxon"),
-        ("buzzer-harsh",      "Warning — buzzer"),
-        ("siren-sweep",       "Warning — siren"),
-        ("horn-low",          "Warning — horn"),
+        ("chime-soft",        AlarmsText.SoundChimeSoft),
+        ("chime-triad",       AlarmsText.SoundChimeTriad),
+        ("ping-glass",        AlarmsText.SoundPingGlass),
+        ("bell-brass",        AlarmsText.SoundBellBrass),
+        ("bell-deep",         AlarmsText.SoundBellDeep),
+        ("gong-low",          AlarmsText.SoundGongLow),
+        ("alert-double",      AlarmsText.SoundAlertDouble),
+        ("alarm-urgent",      AlarmsText.SoundAlarmUrgent),
+        ("two-tone-alert",    AlarmsText.SoundWarningTwoTone),
+        ("klaxon-industrial", AlarmsText.SoundWarningKlaxon),
+        ("buzzer-harsh",      AlarmsText.SoundWarningBuzzer),
+        ("siren-sweep",       AlarmsText.SoundWarningSiren),
+        ("horn-low",          AlarmsText.SoundWarningHorn),
     ];
 
     /// <summary>
@@ -151,12 +151,12 @@ public sealed class AlarmSoundService
     /// </summary>
     private static string? ResolvePath(string key)
     {
-        if (string.IsNullOrWhiteSpace(key)) { LastError = "No sound selected."; return null; }
+        if (string.IsNullOrWhiteSpace(key)) { LastError = AlarmsText.SoundNoneSelected; return null; }
 
         if (key.Contains(Path.DirectorySeparatorChar) || key.Contains(Path.AltDirectorySeparatorChar))
         {
             if (File.Exists(key)) return key;
-            LastError = $"Custom sound file not found: {key}";
+            LastError = string.Format(AlarmsText.SoundFileNotFound, key);
             return null;
         }
 
@@ -166,7 +166,7 @@ public sealed class AlarmSoundService
         try
         {
             var uri = new Uri($"avares://EveConsole/Assets/Sounds/{key}.wav");
-            if (!AssetLoader.Exists(uri)) { LastError = $"Bundled sound missing: {key}.wav"; return null; }
+            if (!AssetLoader.Exists(uri)) { LastError = string.Format(AlarmsText.SoundBundledMissing, key + ".wav"); return null; }
 
             Directory.CreateDirectory(CacheDir);
             using var src = AssetLoader.Open(uri);
@@ -181,7 +181,7 @@ public sealed class AlarmSoundService
         }
         catch (Exception ex)
         {
-            LastError = $"Could not unpack {key}.wav into {CacheDir}: {ex.Message}";
+            LastError = string.Format(AlarmsText.SoundUnpackFailed, key + ".wav", CacheDir, ex.Message);
             return null;
         }
     }
@@ -224,9 +224,7 @@ public sealed class AlarmSoundService
             // reachable audio output.
             void OnError(object? s, EventArgs e)
             {
-                LastError = $"VLC could not play {Path.GetFileName(path)}. On Linux this is "
-                          + "usually a missing plugin package or no audio output "
-                          + "(check that other applications play sound).";
+                LastError = string.Format(AlarmsText.SoundVlcFailed, Path.GetFileName(path));
                 tcs.TrySetResult(false);
             }
 
@@ -251,7 +249,7 @@ public sealed class AlarmSoundService
         {
             // A chime that will not play must never take down the alarm that raised it — but it
             // can say what happened on the way past.
-            LastError = $"Playback failed: {ex.Message}";
+            LastError = string.Format(AlarmsText.SoundPlaybackFailed, ex.Message);
         }
     }
 

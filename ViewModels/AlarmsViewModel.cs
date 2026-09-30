@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
+using System.Linq.Expressions;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Text.Json;
@@ -11,6 +12,7 @@ using EveConsole.Models;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -33,16 +35,32 @@ public sealed class AlarmRowVm : ReactiveObject
     public required DateTimeOffset? LastFiredAt { get; init; }
     public string?                  Error       { get; init; }
 
-    public string StatusText => !Enabled       ? "Disabled"
-                              : Error is not null ? "Error"
-                              : FireCount > 0  ? $"Armed · fired {FireCount}×"
-                                               : "Armed";
+    public string StatusText => !Enabled       ? AlarmsText.AlarmStatusDisabled
+                              : Error is not null ? AlarmsText.AlarmStatusError
+                              : FireCount > 0  ? string.Format(AlarmsText.AlarmStatusArmedFired, FireCount)
+                                               : AlarmsText.AlarmStatusArmed;
 
     public string LastFiredText => LastFiredAt is { } t
-        ? t.ToUniversalTime().ToString("d MMM HH:mm", CultureInfo.CurrentCulture) + " EVE"
+        ? t.ToUniversalTime().ToString(CommonText.DateDayTime, CultureInfo.CurrentCulture) + " EVE"
         : "—";
 
     public bool IsAgentCreated => string.Equals(CreatedBy, "agent", StringComparison.OrdinalIgnoreCase);
+}
+
+/// <summary>
+/// A check in the editor's Check list: the condition, and the words the screen shows for it.
+///
+/// <para>⚠️ A wrapper rather than the condition itself. The condition's own DisplayName and
+/// Description are the agent's and stay English; the list binds these two names, which answer
+/// with <see cref="IAlarmCondition.ScreenName"/> and <see cref="IAlarmCondition.ScreenDescription"/>.</para>
+/// </summary>
+public sealed class AlarmConditionChoice(IAlarmCondition condition)
+{
+    public IAlarmCondition Condition   { get; } = condition;
+    public string          DisplayName => Condition.ScreenName;
+    public string          Description => Condition.ScreenDescription;
+
+    public override string ToString() => DisplayName;
 }
 
 /// <summary>
@@ -56,7 +74,31 @@ public sealed class AlarmFieldVm : ReactiveObject
     public required string  Kind        { get; init; }  // string | integer | boolean | datetime | enum | item | list | threshold
     public          string? Description { get; init; }
     public          bool    Required    { get; init; }
+
+    /// <summary>An enum field's values, as the config stores them.</summary>
     public IReadOnlyList<string>? Options { get; init; }
+
+    /// <summary>
+    /// The same values with the words the screen shows for them: what an enum pick list binds as
+    /// its items, with <see cref="SelectedOption"/> as its selection, to show those words.
+    ///
+    /// <para>⚠️ The enum values are the schema's English and are what gets saved and compared, so
+    /// a pick list showing translated words must pick a <see cref="Choice{T}"/> and never match
+    /// the words back to a value.</para>
+    /// </summary>
+    public IReadOnlyList<Choice<string>>? OptionChoices { get; init; }
+
+    /// <summary>The choice whose value is in <see cref="Text"/>.</summary>
+    public Choice<string>? SelectedOption
+    {
+        get => OptionChoices?.FirstOrDefault(o => o.Value == Text);
+        set
+        {
+            // A detaching ComboBox sets null; that is not a choice.
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            Text = value.Value;
+        }
+    }
 
     /// <summary>The word after a threshold's number — "units", "ISK".</summary>
     public string? Suffix { get; init; }
@@ -76,14 +118,19 @@ public sealed class AlarmFieldVm : ReactiveObject
     public AlarmFieldVm()
     {
         AddCommand    = ReactiveCommand.CreateFromTask(AddAsync);
-        RemoveCommand = ReactiveCommand.Create<string>(item => Items.Remove(item));
+        RemoveCommand = ReactiveCommand.Create<AlarmNameSuggestion>(item => Items.Remove(item));
     }
 
     private string _text = "";
     public string Text
     {
         get => _text;
-        set { this.RaiseAndSetIfChanged(ref _text, value); this.RaisePropertyChanged(nameof(UnitsEnabled)); }
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _text, value);
+            this.RaisePropertyChanged(nameof(UnitsEnabled));
+            this.RaisePropertyChanged(nameof(SelectedOption));
+        }
     }
 
     // ── A choice with a number ──
@@ -134,12 +181,28 @@ public sealed class AlarmFieldVm : ReactiveObject
     /// <summary>Set when the condition's schema declares a zone alongside this date-time.</summary>
     public bool HasZone { get; set; }
 
-    public IReadOnlyList<string> ZoneOptions { get; } = ["EVE time", "Local time"];
+    /// <summary>
+    /// The two clocks, by what they mean: true is EVE time.
+    ///
+    /// <para>⚠️ Was a pair of strings, and the setter compared the pick against "Local time" —
+    /// in another language the words would never have matched, and every pick would have read
+    /// as EVE time.</para>
+    /// </summary>
+    public IReadOnlyList<Choice<bool>> ZoneOptions { get; } =
+    [
+        new(true,  AlarmsText.ZoneEveTime),
+        new(false, AlarmsText.ZoneLocalTime),
+    ];
 
-    public string SelectedZone
+    public Choice<bool> SelectedZone
     {
-        get => UseEveTime ? "EVE time" : "Local time";
-        set => UseEveTime = value != "Local time";
+        get => ZoneOptions.First(o => o.Value == UseEveTime);
+        set
+        {
+            // A detaching ComboBox sets null; that is not a choice.
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            UseEveTime = value.Value;
+        }
     }
 
     /// <summary>
@@ -158,8 +221,8 @@ public sealed class AlarmFieldVm : ReactiveObject
                 Time.Hours, Time.Minutes, Time.Seconds, offset);
 
             return UseEveTime
-                ? $"= {instant.ToLocalTime():ddd d MMM HH:mm} local"
-                : $"= {instant.ToUniversalTime():ddd d MMM HH:mm} EVE";
+                ? string.Format(AlarmsText.EquivalentLocal, instant.ToLocalTime())
+                : string.Format(AlarmsText.EquivalentEve, instant.ToUniversalTime());
         }
     }
 
@@ -184,13 +247,17 @@ public sealed class AlarmFieldVm : ReactiveObject
     /// </summary>
     public bool IsThreshold => Kind == "threshold";
 
-    public ObservableCollection<string> Items { get; } = [];
+    /// <summary>The list's names: each stored as the English the checks match on, and shown in the
+    /// interface language. A list of anything else holds the text as typed, twice.</summary>
+    public ObservableCollection<AlarmNameSuggestion> Items { get; } = [];
 
-    public ReactiveCommand<Unit, Unit>   AddCommand    { get; }
-    public ReactiveCommand<string, Unit> RemoveCommand { get; }
+    public ReactiveCommand<Unit, Unit>                AddCommand    { get; }
+    public ReactiveCommand<AlarmNameSuggestion, Unit> RemoveCommand { get; }
 
-    /// <summary>Says whether a typed name is real. Set by the parent for list fields; a name it refuses is not added.</summary>
-    public Func<string, CancellationToken, Task<bool>>? Validator { get; set; }
+    /// <summary>Says what a typed name names: the English to store and the name to show, whatever
+    /// language it was typed in, or null for a name that names nothing. Set by the parent for name
+    /// fields; a name it refuses is not added.</summary>
+    public Func<string, CancellationToken, Task<AlarmNameSuggestion?>>? Resolver { get; set; }
 
     private string _error = "";
     public string Error
@@ -205,22 +272,23 @@ public sealed class AlarmFieldVm : ReactiveObject
         var typed = Text.Trim();
         if (typed.Length == 0) return;
 
-        if (Items.Any(i => string.Equals(i, typed, StringComparison.OrdinalIgnoreCase)))
-        {
-            Text = "";
-            return;
-        }
-
         // A name that resolves to nothing would make a filter that matches nothing, and say so
-        // nowhere. Refuse it here, while it is still in front of the user.
-        if (Validator is not null && !await Validator(typed, CancellationToken.None))
+        // nowhere. Refuse it here, while it is still in front of the user. One typed in the
+        // interface language, or another of the game client's, goes in as its English.
+        var name = new AlarmNameSuggestion(typed, typed);
+        if (Resolver is not null)
         {
-            Error = $"\"{typed}\" is not a name the app knows — pick one from the list.";
-            return;
+            if (await Resolver(typed, CancellationToken.None) is not { } known)
+            {
+                Error = string.Format(AlarmsText.NotAKnownName, typed);
+                return;
+            }
+            name = known;
         }
 
         Error = "";
-        Items.Add(typed);
+        if (!Items.Any(i => string.Equals(i.English, name.English, StringComparison.OrdinalIgnoreCase)))
+            Items.Add(name);
         Text = "";
     }
 
@@ -230,6 +298,21 @@ public sealed class AlarmFieldVm : ReactiveObject
     /// <summary>A SQL field needs room to breathe; everything else is a single line.</summary>
     public bool IsMultiline => Kind == "string" && Name.Contains("sql", StringComparison.OrdinalIgnoreCase);
     public double MinHeight => IsMultiline ? 96 : 0;
+}
+
+/// <summary>
+/// A name as the alarm stores it, the English the checks match on, and as the screen shows it, in
+/// the interface language: a type-ahead suggestion, and each entry of a list of names.
+///
+/// <para>⚠️ The box takes <see cref="ToString"/> — the English — when one is picked, so the saved
+/// config keeps the name the checks match on, whatever language the list was read in.</para>
+/// </summary>
+public sealed record AlarmNameSuggestion(string English, string Shown)
+{
+    /// <summary>The English, beside the shown name, when the two differ.</summary>
+    public bool IsTranslated => !string.Equals(English, Shown, StringComparison.Ordinal);
+
+    public override string ToString() => English;
 }
 
 /// <summary>One action attached to the alarm being edited.</summary>
@@ -287,7 +370,7 @@ public sealed class AlarmActionVm : ReactiveObject
             var added = sounds.AddCustomSound(path);
             if (added is null)
             {
-                ImportError = "That file type is not supported.";
+                ImportError = AlarmsText.UnsupportedSoundFile;
                 return;
             }
 
@@ -464,7 +547,7 @@ public sealed class AlarmStageVm : ReactiveObject
     }
 
     public int    Number   { get; }
-    public string Title    => $"STAGE {Number}";
+    public string Title    => string.Format(AlarmsText.StageTitle, Number);
     public AlarmFieldVm? Field { get; }
     public bool   HasField => Field is not null;
 
@@ -491,7 +574,7 @@ public sealed class AlarmEventVm
     public required int            MatchCount { get; init; }
 
     /// <summary>Shown in EVE time, matching the header clock and the alarm editor's default.</summary>
-    public string WhenText => FiredAt.ToUniversalTime().ToString("d MMM HH:mm:ss", CultureInfo.CurrentCulture);
+    public string WhenText => FiredAt.ToUniversalTime().ToString(CommonText.DateDayTimeSeconds, CultureInfo.CurrentCulture);
 }
 
 /// <summary>An outstanding alert raised by the Alert action.</summary>
@@ -502,7 +585,7 @@ public sealed class AlarmAlertVm : ReactiveObject
     public required string?        Body      { get; init; }
     public required DateTimeOffset CreatedAt { get; init; }
 
-    public string WhenText => CreatedAt.ToLocalTime().ToString("d MMM HH:mm", CultureInfo.CurrentCulture);
+    public string WhenText => CreatedAt.ToLocalTime().ToString(CommonText.DateDayTime, CultureInfo.CurrentCulture);
 
     public ReactiveCommand<Unit, Unit>? DismissCommand { get; init; }
 }
@@ -543,7 +626,7 @@ public sealed class AlarmsViewModel : ReactiveObject
         _service   = service;
         _sounds    = sounds;
 
-        Conditions = service.Registry.All.ToList();
+        Conditions = service.Registry.All.Select(c => new AlarmConditionChoice(c)).ToList();
         foreach (var s in sounds.List()) SoundCatalog.Add(s);
 
         NewCommand    = ReactiveCommand.Create(NewAlarm);
@@ -571,7 +654,7 @@ public sealed class AlarmsViewModel : ReactiveObject
     private void RebuildStages()
     {
         Stages.Clear();
-        var count = SelectedCondition?.Stages ?? 0;
+        var count = Condition?.Stages ?? 0;
         for (var i = 1; i <= count; i++)
             Stages.Add(new AlarmStageVm(i, Fields.FirstOrDefault(f => f.StageNumber == i), NewStageActionVm));
         this.RaisePropertyChanged(nameof(IsStaged));
@@ -580,7 +663,7 @@ public sealed class AlarmsViewModel : ReactiveObject
     public ObservableCollection<AlarmStageVm> Stages { get; } = [];
 
     /// <summary>True while the selected check fires in stages; the view swaps the action lists.</summary>
-    public bool IsStaged => (SelectedCondition?.Stages ?? 0) > 0;
+    public bool IsStaged => (Condition?.Stages ?? 0) > 0;
 
     /// <summary>Every action on the editor, flat or under a stage — for previews and tests.</summary>
     private IEnumerable<AlarmActionVm> AllActions =>
@@ -588,7 +671,7 @@ public sealed class AlarmsViewModel : ReactiveObject
 
     private void OnFired() => Dispatcher.UIThread.Post(() => _ = LoadAsync());
 
-    public IReadOnlyList<IAlarmCondition> Conditions { get; }
+    public IReadOnlyList<AlarmConditionChoice> Conditions { get; }
 
     public ObservableCollection<AlarmRowVm>    Alarms  { get; } = [];
     public ObservableCollection<AlarmEventVm>  History { get; } = [];
@@ -609,7 +692,7 @@ public sealed class AlarmsViewModel : ReactiveObject
         new(_sounds, SoundCatalog,
             () => PickSoundFileCallback?.Invoke() ?? Task.FromResult<string?>(null),
             kind, cfg)
-        { StageCount = SelectedCondition?.Stages ?? 0, OnRemove = a => Actions.Remove(a) };
+        { StageCount = Condition?.Stages ?? 0, OnRemove = a => Actions.Remove(a) };
 
     /// <summary>A new action for a stage's list — a sound, like the flat list's default, to be changed.</summary>
     private AlarmActionVm NewStageActionVm(int stage)
@@ -619,7 +702,15 @@ public sealed class AlarmsViewModel : ReactiveObject
         return a;
     }
 
-    public IReadOnlyList<AlarmRepeat> RepeatModes { get; } = [AlarmRepeat.Continuous, AlarmRepeat.OneShot];
+    /// <summary>
+    /// The After Firing choices. ⚠️ The ComboBox used to show the enum's own names ("OneShot");
+    /// the enum is still what is saved, and only the words are looked up.
+    /// </summary>
+    public IReadOnlyList<Choice<AlarmRepeat>> RepeatModes { get; } =
+    [
+        new(AlarmRepeat.Continuous, AlarmsText.RepeatContinuous),
+        new(AlarmRepeat.OneShot,    AlarmsText.RepeatOneShot),
+    ];
 
     private AlarmRowVm? _selectedAlarm;
     public AlarmRowVm? SelectedAlarm
@@ -645,15 +736,38 @@ public sealed class AlarmsViewModel : ReactiveObject
     private string _activeThru = "";
     public string ActiveThru { get => _activeThru; set => this.RaiseAndSetIfChanged(ref _activeThru, value); }
 
-    private IAlarmCondition? _selectedCondition;
-    public IAlarmCondition? SelectedCondition
+    private AlarmConditionChoice? _selectedCondition;
+    public AlarmConditionChoice? SelectedCondition
     {
         get => _selectedCondition;
         set => this.RaiseAndSetIfChanged(ref _selectedCondition, value);
     }
 
+    /// <summary>The check itself, behind the choice.</summary>
+    private IAlarmCondition? Condition => SelectedCondition?.Condition;
+
+    /// <summary>The Check list's entry for a check, by its stored type.</summary>
+    private AlarmConditionChoice? ChoiceFor(IAlarmCondition? condition)
+        => Conditions.FirstOrDefault(c => c.Condition == condition);
+
     private AlarmRepeat _repeat = AlarmRepeat.Continuous;
-    public AlarmRepeat Repeat { get => _repeat; set => this.RaiseAndSetIfChanged(ref _repeat, value); }
+    public Choice<AlarmRepeat> Repeat
+    {
+        get => RepeatModes.FirstOrDefault(o => o.Value == _repeat) ?? RepeatModes[0];
+        set
+        {
+            // A detaching ComboBox sets null; that is not a choice.
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            _repeat = value.Value;
+            this.RaisePropertyChanged();
+        }
+    }
+
+    private void SetRepeat(AlarmRepeat repeat)
+    {
+        _repeat = repeat;
+        this.RaisePropertyChanged(nameof(Repeat));
+    }
 
     private int _pollSeconds = 60;
     public int PollSeconds { get => _pollSeconds; set => this.RaiseAndSetIfChanged(ref _pollSeconds, value); }
@@ -754,7 +868,7 @@ public sealed class AlarmsViewModel : ReactiveObject
         }
 
         HasAlerts  = Alerts.Count > 0;
-        StatusText = $"{Alarms.Count} alarm(s) · {Alerts.Count} open alert(s)";
+        StatusText = string.Format(AlarmsText.AlarmsStatus, Alarms.Count, Alerts.Count);
     }
 
     private async Task DismissAlertAsync(long id)
@@ -770,7 +884,7 @@ public sealed class AlarmsViewModel : ReactiveObject
 
         if (Alerts.FirstOrDefault(a => a.Id == id) is { } row) Alerts.Remove(row);
         HasAlerts  = Alerts.Count > 0;
-        StatusText = $"{Alarms.Count} alarm(s) · {Alerts.Count} open alert(s)";
+        StatusText = string.Format(AlarmsText.AlarmsStatus, Alarms.Count, Alerts.Count);
     }
 
     // ── Editor ───────────────────────────────────────────────────────────────
@@ -779,11 +893,11 @@ public sealed class AlarmsViewModel : ReactiveObject
     {
         SelectedAlarm     = null;
         EditingId         = 0;
-        Name              = "New alarm";
+        Name              = AlarmsText.DefaultAlarmName;
         Enabled           = true;
         ActiveFrom        = "";
         ActiveThru        = "";
-        Repeat            = AlarmRepeat.Continuous;
+        SetRepeat(AlarmRepeat.Continuous);
         PollSeconds       = 60;
         CooldownSeconds   = 0;
         SelectedCondition = Conditions.FirstOrDefault();
@@ -813,13 +927,13 @@ public sealed class AlarmsViewModel : ReactiveObject
         Enabled         = alarm.Enabled;
         ActiveFrom      = alarm.ActiveFrom ?? "";
         ActiveThru      = alarm.ActiveThru ?? "";
-        Repeat          = alarm.Repeat;
+        SetRepeat(alarm.Repeat);
         PollSeconds     = alarm.PollSeconds;
         CooldownSeconds = alarm.CooldownSeconds;
 
         // Setting this fires RebuildFields via the subscription, which clears any prior values;
         // the config is applied afterwards so it survives.
-        SelectedCondition = _service.Registry.Find(alarm.ConditionType) ?? Conditions.FirstOrDefault();
+        SelectedCondition = ChoiceFor(_service.Registry.Find(alarm.ConditionType)) ?? Conditions.FirstOrDefault();
         RebuildFields();
 
         try { ApplyConfig(JsonDocument.Parse(alarm.ConditionJson ?? "{}").RootElement); }
@@ -848,16 +962,21 @@ public sealed class AlarmsViewModel : ReactiveObject
     /// <summary>
     /// Turns the selected condition's JSON Schema into form fields. Keeps the editor generic:
     /// a condition added later gets a working UI from its schema alone.
+    ///
+    /// <para>⚠️ The schema is the agent's, in English. What a field SAYS — label, description,
+    /// suffix, the words for each choice — comes from the condition's ScreenField and
+    /// ScreenOption, in the interface language, falling back to the schema's English. What a
+    /// field IS — its name, kind, choices and default — is the schema's, and is what gets saved.</para>
     /// </summary>
     private void RebuildFields()
     {
         Fields.Clear();
-        if (SelectedCondition is null) return;
+        if (Condition is not { } condition) return;
 
         JsonElement schema;
         try
         {
-            schema = JsonSerializer.SerializeToElement(SelectedCondition.ParameterSchema);
+            schema = JsonSerializer.SerializeToElement(condition.ParameterSchema);
         }
         catch { return; }
 
@@ -897,7 +1016,12 @@ public sealed class AlarmsViewModel : ReactiveObject
             var suffix   = spec.TryGetProperty("suffix",   out var su) ? su.GetString() : null;
             var optional = spec.TryGetProperty("optional", out var op) && op.ValueKind == JsonValueKind.True;
             var dflt     = spec.TryGetProperty("default",  out var df)
-                ? df.ValueKind == JsonValueKind.String ? df.GetString() : df.GetRawText()
+                ? df.ValueKind switch
+                  {
+                      JsonValueKind.String => df.GetString(),
+                      JsonValueKind.Number => Shown(df),
+                      _                    => df.GetRawText(),
+                  }
                 : null;
             var unitsName = spec.TryGetProperty("units", out var un) && un.ValueKind == JsonValueKind.String ? un.GetString() : null;
             var unitsDflt = unitsName is not null && props.TryGetProperty(unitsName, out var us)
@@ -912,15 +1036,19 @@ public sealed class AlarmsViewModel : ReactiveObject
                      : type == "number"      ? "number"
                                              : "string";
 
+            var screen = condition.ScreenField(prop.Name);
             var field = new AlarmFieldVm
             {
                 Name        = prop.Name,
-                Label       = string.IsNullOrWhiteSpace(title) ? Humanise(prop.Name) : title,
+                Label       = screen?.Label ?? (string.IsNullOrWhiteSpace(title) ? Humanise(prop.Name) : title),
                 Kind        = kind,
-                Description = desc,
+                Description = screen?.Description ?? desc,
                 Required    = required.Contains(prop.Name),
                 Options     = options,
-                Suffix      = suffix,
+                OptionChoices = options?
+                    .Select(o => new Choice<string>(o, condition.ScreenOption(prop.Name, o) ?? o))
+                    .ToList(),
+                Suffix      = screen?.Suffix ?? suffix,
                 Default     = dflt,
                 UnitsName   = kind == "enum" ? unitsName : null,
             };
@@ -947,19 +1075,19 @@ public sealed class AlarmsViewModel : ReactiveObject
                 field.Time = soon.TimeOfDay;
             }
 
-            if (kind == "item") field.Populator = SearchItemNamesAsync;
+            if (kind == "item") (field.Populator, field.Resolver) = (SearchItemNamesAsync, ResolveItemAsync);
 
             // A list's type-ahead and its gatekeeper come from the format: the same source
-            // that suggests a name says whether a typed one is real.
+            // that suggests a name says whether a typed one is real, and what it is in English.
             if (kind == "list")
             {
-                (field.Populator, field.Validator) = format switch
+                (field.Populator, field.Resolver) = format switch
                 {
-                    "place-name" => (SearchPlaceNamesAsync, IsKnownPlaceAsync),
-                    "ship-name"  => (SearchShipNamesAsync,  IsKnownShipAsync),
-                    "item-name"  => (SearchItemNamesAsync,  IsKnownItemAsync),
+                    "place-name" => (SearchPlaceNamesAsync, ResolvePlaceAsync),
+                    "ship-name"  => (SearchShipNamesAsync,  ResolveShipAsync),
+                    "item-name"  => (SearchItemNamesAsync,  ResolveItemAsync),
                     _            => ((Func<string?, CancellationToken, Task<IEnumerable<object>>>?)null,
-                                     (Func<string, CancellationToken, Task<bool>>?)null),
+                                     (Func<string, CancellationToken, Task<AlarmNameSuggestion?>>?)null),
                 };
             }
 
@@ -978,6 +1106,7 @@ public sealed class AlarmsViewModel : ReactiveObject
     /// <summary>
     /// Type-ahead over published item names. Exact matches first, then names starting with what
     /// was typed, then the rest — so "Sigil" leads with the Sigil rather than the Sigil Blueprint.
+    /// Finds a name typed in English or as the list shows it; the one picked goes in as English.
     /// </summary>
     private async Task<IEnumerable<object>> SearchItemNamesAsync(string? text, CancellationToken ct)
     {
@@ -986,41 +1115,85 @@ public sealed class AlarmsViewModel : ReactiveObject
 
         return await Task.Run(async () =>
         {
+            await SdeNames.EnsureLoadedAsync(ct);
+            var shownIds = ShownMatches(SdeNameKind.Type, term);
             await using var db = await _dbFactory.CreateDbContextAsync(ct);
 
             var hits = await db.SdeTypes.AsNoTracking()
-                .Where(t => t.Published && t.Name.Contains(term))
-                .Select(t => t.Name)
+                .Where(t => t.Published && (t.Name.Contains(term) || shownIds.Contains(t.TypeId)))
+                .Select(t => new { t.TypeId, t.Name })
                 .Take(200)
                 .ToListAsync(ct);
 
-            return Rank(hits, term);
+            return Rank(hits.Select(t => new AlarmNameSuggestion(t.Name, SdeNames.Type(t.TypeId, t.Name))), term);
         }, ct);
     }
 
-    /// <summary>Exact match, then names starting with the term, then the rest; short before long.</summary>
-    private static List<object> Rank(IEnumerable<string> names, string term) =>
+    /// <summary>The ids of one kind whose name in the interface language contains the term: the
+    /// matches a search of the English column misses. Empty in English.</summary>
+    private static List<int> ShownMatches(SdeNameKind kind, string term) =>
+        [.. SdeNames.Find(kind, term).Select(id => (int)id)];
+
+    /// <summary>A name with nothing to translate — a player structure, "Pod".</summary>
+    private static AlarmNameSuggestion AsIs(string name) => new(name, name);
+
+    /// <summary>Exact match, then names starting with the term, then the rest; short before long.
+    /// Judged on the English and the shown name alike, so a name typed either way leads.</summary>
+    private static List<object> Rank(IEnumerable<AlarmNameSuggestion> names, string term) =>
         names
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .OrderBy(n => string.Equals(n, term, StringComparison.OrdinalIgnoreCase) ? 0
-                        : n.StartsWith(term, StringComparison.OrdinalIgnoreCase) ? 1 : 2)
-            .ThenBy(n => n.Length)
-            .ThenBy(n => n)
+            .DistinctBy(n => n.English, StringComparer.OrdinalIgnoreCase)
+            .OrderBy(n => Math.Min(Closeness(n.English, term), Closeness(n.Shown, term)))
+            .ThenBy(n => n.Shown.Length)
+            .ThenBy(n => n.Shown, StringComparer.CurrentCulture)
             .Take(50)
             .Cast<object>()
             .ToList();
 
-    private Task<bool> IsKnownItemAsync(string name, CancellationToken ct) => Task.Run(async () =>
+    private static int Closeness(string name, string term) =>
+        string.Equals(name, term, StringComparison.OrdinalIgnoreCase) ? 0
+        : name.StartsWith(term, StringComparison.OrdinalIgnoreCase) ? 1 : 2;
+
+    /// <summary>
+    /// A typed item name as the alarm stores it and as the screen shows it: by its English, or by
+    /// its name in the interface language or another of the game client's — "三钛合金" is stored
+    /// as "Tritanium". Null for a name that names no item.
+    /// </summary>
+    private Task<AlarmNameSuggestion?> ResolveItemAsync(string name, CancellationToken ct) => Task.Run(async () =>
     {
+        var text = name.Trim();
+        var u    = text.ToUpper();
+        await SdeNames.EnsureLoadedAsync(ct);
         await using var db = await _dbFactory.CreateDbContextAsync(ct);
-        var u = name.ToUpper();
-        return await db.SdeTypes.AsNoTracking().AnyAsync(t => t.Name.ToUpper() == u, ct);
+
+        var type = await db.SdeTypes.AsNoTracking()
+            .Where(t => t.Name.ToUpper() == u).OrderBy(t => t.TypeId)
+            .Select(t => new { t.TypeId, t.Name }).FirstOrDefaultAsync(ct);
+        if (type is null)
+        {
+            var ids = await OtherLanguageIdsAsync(db, text, SdeNameKind.Type, ct);
+            type = await db.SdeTypes.AsNoTracking()
+                .Where(t => ids.Contains(t.TypeId)).OrderBy(t => t.TypeId)
+                .Select(t => new { t.TypeId, t.Name }).FirstOrDefaultAsync(ct);
+        }
+        return type is null ? null : new AlarmNameSuggestion(type.Name, SdeNames.Type(type.TypeId, type.Name));
     }, ct);
+
+    /// <summary>The ids of one kind that a name names in a language other than English: the
+    /// interface language's in memory, ignoring case in any script, and the client's other
+    /// languages from the SDE's names.</summary>
+    private static async Task<List<int>> OtherLanguageIdsAsync(AppDbContext db, string name, SdeNameKind kind, CancellationToken ct)
+    {
+        var ids = SdeNames.Named(kind, name).ToHashSet();
+        ids.UnionWith((await OtherLanguageNames.IdsAsync(db, [name], ct, kind))[kind]);
+        return [.. ids.Select(id => (int)id)];
+    }
 
     /// <summary>
     /// Places an undock can be from: regions and systems from the SDE, NPC stations from the
     /// SDE, player structures from every table that names one. Lower-cased on both sides
-    /// because a server's LIKE is case-sensitive and SQLite's is not.
+    /// because a server's LIKE is case-sensitive and SQLite's is not. Regions, systems and NPC
+    /// stations are also found and listed in the interface language; the one picked goes in as
+    /// English.
     /// </summary>
     private async Task<IEnumerable<object>> SearchPlaceNamesAsync(string? text, CancellationToken ct)
     {
@@ -1030,39 +1203,81 @@ public sealed class AlarmsViewModel : ReactiveObject
 
         return await Task.Run(async () =>
         {
+            await SdeNames.EnsureLoadedAsync(ct);
+            var regionIds  = ShownMatches(SdeNameKind.Region, term);
+            var systemIds  = ShownMatches(SdeNameKind.SolarSystem, term);
+            var stationIds = ShownMatches(SdeNameKind.Station, term);
             await using var db = await _dbFactory.CreateDbContextAsync(ct);
-            var hits = new List<string>();
-            hits.AddRange(await db.SdeRegions.AsNoTracking()
-                .Where(r => r.Name.ToLower().Contains(lower)).Select(r => r.Name).Take(20).ToListAsync(ct));
-            hits.AddRange(await db.SdeSolarSystems.AsNoTracking()
-                .Where(s => s.Name.ToLower().Contains(lower)).Select(s => s.Name).Take(50).ToListAsync(ct));
-            hits.AddRange(await db.Structures.AsNoTracking()
-                .Where(s => s.Name.ToLower().Contains(lower)).Select(s => s.Name).Take(50).ToListAsync(ct));
-            hits.AddRange(await db.EsiStructureNames.AsNoTracking()
-                .Where(s => s.Name.ToLower().Contains(lower)).Select(s => s.Name).Take(50).ToListAsync(ct));
-            hits.AddRange(await db.EsiCorpStructures.AsNoTracking()
-                .Where(s => s.Name.ToLower().Contains(lower)).Select(s => s.Name).Take(50).ToListAsync(ct));
-            hits.AddRange(await db.SdeStations.AsNoTracking()
-                .Where(s => s.Name.ToLower().Contains(lower)).Select(s => s.Name).Take(50).ToListAsync(ct));
+            var hits = new List<AlarmNameSuggestion>();
+            hits.AddRange((await db.SdeRegions.AsNoTracking()
+                    .Where(r => r.Name.ToLower().Contains(lower) || regionIds.Contains(r.RegionId))
+                    .Select(r => new { r.RegionId, r.Name }).Take(20).ToListAsync(ct))
+                .Select(r => new AlarmNameSuggestion(r.Name, SdeNames.Region(r.RegionId, r.Name))));
+            hits.AddRange((await db.SdeSolarSystems.AsNoTracking()
+                    .Where(s => s.Name.ToLower().Contains(lower) || systemIds.Contains(s.SolarSystemId))
+                    .Select(s => new { s.SolarSystemId, s.Name }).Take(50).ToListAsync(ct))
+                .Select(s => new AlarmNameSuggestion(s.Name, SdeNames.SolarSystem(s.SolarSystemId, s.Name))));
+            hits.AddRange((await db.Structures.AsNoTracking()
+                .Where(s => s.Name.ToLower().Contains(lower)).Select(s => s.Name).Take(50).ToListAsync(ct)).Select(AsIs));
+            hits.AddRange((await db.EsiStructureNames.AsNoTracking()
+                .Where(s => s.Name.ToLower().Contains(lower)).Select(s => s.Name).Take(50).ToListAsync(ct)).Select(AsIs));
+            hits.AddRange((await db.EsiCorpStructures.AsNoTracking()
+                .Where(s => s.Name.ToLower().Contains(lower)).Select(s => s.Name).Take(50).ToListAsync(ct)).Select(AsIs));
+            hits.AddRange((await db.SdeStations.AsNoTracking()
+                    .Where(s => s.Name.ToLower().Contains(lower) || stationIds.Contains(s.StationId))
+                    .Select(s => new { s.StationId, s.Name }).Take(50).ToListAsync(ct))
+                .Select(s => new AlarmNameSuggestion(s.Name, SdeNames.Station(s.StationId, s.Name))));
             return Rank(hits, term);
         }, ct);
     }
 
-    private Task<bool> IsKnownPlaceAsync(string name, CancellationToken ct) => Task.Run(async () =>
+    /// <summary>
+    /// A typed place as the alarm stores it and as the screen shows it: a region, system or NPC
+    /// station by its English or by its name in the interface language or another of the game
+    /// client's, or a player structure by the name its owner gave it. Null for a name that names
+    /// no place.
+    /// </summary>
+    private Task<AlarmNameSuggestion?> ResolvePlaceAsync(string name, CancellationToken ct) => Task.Run(async () =>
     {
+        var text = name.Trim();
+        var u    = text.ToUpper();
+        await SdeNames.EnsureLoadedAsync(ct);
         await using var db = await _dbFactory.CreateDbContextAsync(ct);
-        var u = name.ToUpper();
-        return await db.SdeRegions.AsNoTracking().AnyAsync(r => r.Name.ToUpper() == u, ct)
-            || await db.SdeSolarSystems.AsNoTracking().AnyAsync(s => s.Name.ToUpper() == u, ct)
-            || await db.SdeStations.AsNoTracking().AnyAsync(s => s.Name.ToUpper() == u, ct)
-            || await db.Structures.AsNoTracking().AnyAsync(s => s.Name.ToUpper() == u, ct)
-            || await db.EsiStructureNames.AsNoTracking().AnyAsync(s => s.Name.ToUpper() == u, ct)
-            || await db.EsiCorpStructures.AsNoTracking().AnyAsync(s => s.Name.ToUpper() == u, ct);
+
+        if (await db.SdeRegions.AsNoTracking().Where(r => r.Name.ToUpper() == u)
+                .Select(r => new { r.RegionId, r.Name }).FirstOrDefaultAsync(ct) is { } region)
+            return new AlarmNameSuggestion(region.Name, SdeNames.Region(region.RegionId, region.Name));
+        if (await db.SdeSolarSystems.AsNoTracking().Where(s => s.Name.ToUpper() == u)
+                .Select(s => new { s.SolarSystemId, s.Name }).FirstOrDefaultAsync(ct) is { } system)
+            return new AlarmNameSuggestion(system.Name, SdeNames.SolarSystem(system.SolarSystemId, system.Name));
+        if (await db.SdeStations.AsNoTracking().Where(s => s.Name.ToUpper() == u)
+                .Select(s => new { s.StationId, s.Name }).FirstOrDefaultAsync(ct) is { } station)
+            return new AlarmNameSuggestion(station.Name, SdeNames.Station(station.StationId, station.Name));
+
+        var structure = await db.Structures.AsNoTracking().Where(s => s.Name.ToUpper() == u).Select(s => s.Name).FirstOrDefaultAsync(ct)
+                     ?? await db.EsiStructureNames.AsNoTracking().Where(s => s.Name.ToUpper() == u).Select(s => s.Name).FirstOrDefaultAsync(ct)
+                     ?? await db.EsiCorpStructures.AsNoTracking().Where(s => s.Name.ToUpper() == u).Select(s => s.Name).FirstOrDefaultAsync(ct);
+        if (structure is not null) return AsIs(structure);
+
+        var regionIds = await OtherLanguageIdsAsync(db, text, SdeNameKind.Region, ct);
+        if (await db.SdeRegions.AsNoTracking().Where(r => regionIds.Contains(r.RegionId))
+                .Select(r => new { r.RegionId, r.Name }).FirstOrDefaultAsync(ct) is { } otherRegion)
+            return new AlarmNameSuggestion(otherRegion.Name, SdeNames.Region(otherRegion.RegionId, otherRegion.Name));
+        var systemIds = await OtherLanguageIdsAsync(db, text, SdeNameKind.SolarSystem, ct);
+        if (await db.SdeSolarSystems.AsNoTracking().Where(s => systemIds.Contains(s.SolarSystemId))
+                .Select(s => new { s.SolarSystemId, s.Name }).FirstOrDefaultAsync(ct) is { } otherSystem)
+            return new AlarmNameSuggestion(otherSystem.Name, SdeNames.SolarSystem(otherSystem.SolarSystemId, otherSystem.Name));
+        var stationIds = await OtherLanguageIdsAsync(db, text, SdeNameKind.Station, ct);
+        if (await db.SdeStations.AsNoTracking().Where(s => stationIds.Contains(s.StationId))
+                .Select(s => new { s.StationId, s.Name }).FirstOrDefaultAsync(ct) is { } otherStation)
+            return new AlarmNameSuggestion(otherStation.Name, SdeNames.Station(otherStation.StationId, otherStation.Name));
+        return null;
     }, ct);
 
     /// <summary>
     /// Hulls and ship classes: every published type in the Ship category and every group in it
-    /// ("Cruiser", "Titan"), plus "Pod", which is what everyone calls the Capsule group.
+    /// ("Cruiser", "Titan"), plus "Pod", which is what everyone calls the Capsule group. Also
+    /// found and listed in the interface language; the one picked goes in as English.
     /// </summary>
     private async Task<IEnumerable<object>> SearchShipNamesAsync(string? text, CancellationToken ct)
     {
@@ -1072,32 +1287,60 @@ public sealed class AlarmsViewModel : ReactiveObject
 
         return await Task.Run(async () =>
         {
+            await SdeNames.EnsureLoadedAsync(ct);
+            var groupIds = ShownMatches(SdeNameKind.Group, term);
+            var typeIds  = ShownMatches(SdeNameKind.Type, term);
             await using var db = await _dbFactory.CreateDbContextAsync(ct);
-            var hits = new List<string>();
-            if ("pod".StartsWith(lower)) hits.Add("Pod");
-            hits.AddRange(await db.SdeGroups.AsNoTracking()
-                .Where(g => g.CategoryId == ShipCategoryId && g.Published && g.Name.ToLower().Contains(lower))
-                .Select(g => g.Name).Take(30).ToListAsync(ct));
-            hits.AddRange(await (from t in db.SdeTypes.AsNoTracking()
-                                 join g in db.SdeGroups.AsNoTracking() on t.GroupId equals g.GroupId
-                                 where g.CategoryId == ShipCategoryId && t.Published && t.Name.ToLower().Contains(lower)
-                                 select t.Name).Take(100).ToListAsync(ct));
+            var hits = new List<AlarmNameSuggestion>();
+            if ("pod".StartsWith(lower)) hits.Add(AsIs("Pod"));
+            hits.AddRange((await db.SdeGroups.AsNoTracking()
+                    .Where(g => g.CategoryId == ShipCategoryId && g.Published
+                             && (g.Name.ToLower().Contains(lower) || groupIds.Contains(g.GroupId)))
+                    .Select(g => new { g.GroupId, g.Name }).Take(30).ToListAsync(ct))
+                .Select(g => new AlarmNameSuggestion(g.Name, SdeNames.Group(g.GroupId, g.Name))));
+            hits.AddRange((await (from t in db.SdeTypes.AsNoTracking()
+                                  join g in db.SdeGroups.AsNoTracking() on t.GroupId equals g.GroupId
+                                  where g.CategoryId == ShipCategoryId && t.Published
+                                        && (t.Name.ToLower().Contains(lower) || typeIds.Contains(t.TypeId))
+                                  select new { t.TypeId, t.Name }).Take(100).ToListAsync(ct))
+                .Select(t => new AlarmNameSuggestion(t.Name, SdeNames.Type(t.TypeId, t.Name))));
             return Rank(hits, term);
         }, ct);
     }
 
     private const int ShipCategoryId = 6;
 
-    private Task<bool> IsKnownShipAsync(string name, CancellationToken ct) => Task.Run(async () =>
+    /// <summary>
+    /// A typed ship name as the alarm stores it and as the screen shows it: a ship class or a hull
+    /// by its English or by its name in the interface language or another of the game client's,
+    /// or "Pod". Null for a name that names no ship.
+    /// </summary>
+    private Task<AlarmNameSuggestion?> ResolveShipAsync(string name, CancellationToken ct) => Task.Run(async () =>
     {
-        if (string.Equals(name, "pod", StringComparison.OrdinalIgnoreCase)) return true;
+        var text = name.Trim();
+        if (string.Equals(text, "pod", StringComparison.OrdinalIgnoreCase)) return AsIs("Pod");
+        var u = text.ToUpper();
+        await SdeNames.EnsureLoadedAsync(ct);
         await using var db = await _dbFactory.CreateDbContextAsync(ct);
-        var u = name.ToUpper();
-        return await db.SdeGroups.AsNoTracking().AnyAsync(g => g.CategoryId == ShipCategoryId && g.Name.ToUpper() == u, ct)
-            || await (from t in db.SdeTypes.AsNoTracking()
-                      join g in db.SdeGroups.AsNoTracking() on t.GroupId equals g.GroupId
-                      where g.CategoryId == ShipCategoryId && t.Name.ToUpper() == u
-                      select t.TypeId).AnyAsync(ct);
+
+        async Task<AlarmNameSuggestion?> ClassAsync(Expression<Func<SdeGroup, bool>> named) =>
+            await db.SdeGroups.AsNoTracking().Where(g => g.CategoryId == ShipCategoryId).Where(named)
+                .Select(g => new { g.GroupId, g.Name }).FirstOrDefaultAsync(ct) is { } shipClass
+                ? new AlarmNameSuggestion(shipClass.Name, SdeNames.Group(shipClass.GroupId, shipClass.Name)) : null;
+        async Task<AlarmNameSuggestion?> HullAsync(Expression<Func<SdeType, bool>> named) =>
+            await (from t in db.SdeTypes.AsNoTracking().Where(named)
+                   join g in db.SdeGroups.AsNoTracking() on t.GroupId equals g.GroupId
+                   where g.CategoryId == ShipCategoryId
+                   orderby t.TypeId
+                   select new { t.TypeId, t.Name }).FirstOrDefaultAsync(ct) is { } hull
+                ? new AlarmNameSuggestion(hull.Name, SdeNames.Type(hull.TypeId, hull.Name)) : null;
+
+        if (await ClassAsync(g => g.Name.ToUpper() == u) is { } englishClass) return englishClass;
+        if (await HullAsync(t => t.Name.ToUpper() == u) is { } englishHull) return englishHull;
+        var classIds = await OtherLanguageIdsAsync(db, text, SdeNameKind.Group, ct);
+        if (classIds.Count > 0 && await ClassAsync(g => classIds.Contains(g.GroupId)) is { } otherClass) return otherClass;
+        var hullIds = await OtherLanguageIdsAsync(db, text, SdeNameKind.Type, ct);
+        return hullIds.Count > 0 ? await HullAsync(t => hullIds.Contains(t.TypeId)) : null;
     }, ct);
 
     /// <summary>Shows what the default alert wording would look like for the chosen check.</summary>
@@ -1106,17 +1349,17 @@ public sealed class AlarmsViewModel : ReactiveObject
         string preview;
         try
         {
-            var sample = new[] { new AlarmMatch("preview", "…the matching detail goes here") };
+            var sample = new[] { new AlarmMatch("preview", AlarmsText.PreviewSampleDetail) };
             var cfg    = JsonDocument.Parse(BuildConfigJson()).RootElement;
-            var (title, _) = SelectedCondition?.DefaultText(
-                string.IsNullOrWhiteSpace(Name) ? "This alarm" : Name, cfg, sample)
+            var (title, _) = Condition?.DefaultText(
+                string.IsNullOrWhiteSpace(Name) ? AlarmsText.ThisAlarm : Name, cfg, sample)
                 ?? ("", "");
 
             preview = string.IsNullOrWhiteSpace(title)
-                ? "The check will supply the wording."
-                : $"e.g. \"{title}\", then the matches beneath it.";
+                ? AlarmsText.DefaultWordingFromCheck
+                : string.Format(AlarmsText.DefaultWordingExample, title);
         }
-        catch { preview = "The check will supply the wording."; }
+        catch { preview = AlarmsText.DefaultWordingFromCheck; }
 
         foreach (var a in AllActions) a.DefaultTextPreview = preview;
     }
@@ -1145,12 +1388,13 @@ public sealed class AlarmsViewModel : ReactiveObject
                         ? v.EnumerateArray().Where(x => x.ValueKind == JsonValueKind.String).Select(x => x.GetString() ?? "")
                         : v.ValueKind == JsonValueKind.String ? (v.GetString() ?? "").Split(',') : [];
                     foreach (var entry in entries.Select(e => e.Trim()).Where(e => e.Length > 0))
-                        field.Items.Add(entry);
+                        field.Items.Add(new AlarmNameSuggestion(entry, entry));
+                    _ = ShowNamesAsync(field);
                     break;
 
                 case "threshold":
                     field.Text = v.ValueKind == JsonValueKind.Number
-                        ? v.GetRawText()
+                        ? Shown(v)
                         : v.ValueKind == JsonValueKind.String ? v.GetString() ?? "" : "";
                     field.Flag = field.Text.Length > 0;
                     break;
@@ -1167,7 +1411,7 @@ public sealed class AlarmsViewModel : ReactiveObject
                 case "integer":
                 case "number":
                     field.Text = v.ValueKind == JsonValueKind.Number
-                        ? v.GetRawText()
+                        ? Shown(v)
                         : v.ValueKind == JsonValueKind.String ? v.GetString() ?? "" : "";
                     break;
 
@@ -1192,12 +1436,47 @@ public sealed class AlarmsViewModel : ReactiveObject
 
                 default:
                     field.Text = v.ValueKind == JsonValueKind.String ? v.GetString() ?? "" : v.GetRawText();
+                    if (field.IsItem) _ = ShowItemNameAsync(field);
                     break;
             }
         }
     }
 
-    private string BuildConfigJson()
+    /// <summary>A list's names as the screen shows them: loaded as the English the alarm stores,
+    /// then each put in the interface language once the lookup answers. What is stored does not
+    /// change.</summary>
+    private static async Task ShowNamesAsync(AlarmFieldVm field)
+    {
+        if (field.Resolver is null) return;
+        foreach (var item in field.Items.ToList())
+        {
+            if (await field.Resolver(item.English, CancellationToken.None) is not { IsTranslated: true } found) continue;
+            var at = field.Items.IndexOf(item);
+            if (at >= 0) field.Items[at] = item with { Shown = found.Shown };
+        }
+    }
+
+    /// <summary>An item box's name in the interface language, as it opens: the save reads either
+    /// back as the English.</summary>
+    private static async Task ShowItemNameAsync(AlarmFieldVm field)
+    {
+        var stored = field.Text;
+        if (field.Resolver is null || string.IsNullOrWhiteSpace(stored)) return;
+        if (await field.Resolver(stored, CancellationToken.None) is { IsTranslated: true } found && field.Text == stored)
+            field.Text = found.Shown;
+    }
+
+    /// <summary>A stored number as its field shows it: in the interface's number format, which is
+    /// how <see cref="NumberText"/> reads the field back. Left as JSON writes it, 0.125 would come
+    /// back from a German field as 125, "." grouping thousands there.</summary>
+    private static string Shown(JsonElement number) =>
+        number.TryGetInt64(out var whole) ? whole.ToString(CultureInfo.CurrentCulture)
+      : number.TryGetDouble(out var d)    ? d.ToString(CultureInfo.CurrentCulture)
+      : number.GetRawText();
+
+    /// <param name="names">The English of the item boxes, by field, when the save has looked them
+    /// up; a box otherwise goes in as it reads.</param>
+    private string BuildConfigJson(IReadOnlyDictionary<string, string>? names = null)
     {
         var o = new JsonObject();
         foreach (var field in Fields)
@@ -1210,23 +1489,23 @@ public sealed class AlarmsViewModel : ReactiveObject
 
                 case "list":
                     if (field.Items.Count > 0)
-                        o[field.Name] = new JsonArray(field.Items.Select(i => (JsonNode?)i).ToArray());
+                        o[field.Name] = new JsonArray(field.Items.Select(i => (JsonNode?)i.English).ToArray());
                     break;
 
                 // Present only when armed: an unticked threshold is no threshold.
                 case "threshold":
-                    if (field.Flag && long.TryParse(field.Text?.Replace(",", ""), out var th)) o[field.Name] = th;
+                    if (field.Flag && NumberText.TryParse(field.Text, out long th)) o[field.Name] = th;
                     break;
 
                 // long, not int: an ISK price runs well past 2.1 billion, and int.TryParse
                 // would simply fail and drop the field, leaving an alarm that matches nothing.
                 case "integer":
-                    if (long.TryParse(field.Text?.Replace(",", ""), out var i)) o[field.Name] = i;
+                    if (NumberText.TryParse(field.Text, out long i)) o[field.Name] = i;
                     break;
 
                 case "number":
-                    if (double.TryParse(field.Text?.Replace(",", ""),
-                            NumberStyles.Any, CultureInfo.InvariantCulture, out var d))
+                    // As typed in the interface's format — "1,5" is one and a half in French.
+                    if (NumberText.TryParse(field.Text, out double d))
                         o[field.Name] = d;
                     break;
 
@@ -1250,10 +1529,11 @@ public sealed class AlarmsViewModel : ReactiveObject
                     break;
 
                 default:
-                    if (!string.IsNullOrWhiteSpace(field.Text)) o[field.Name] = field.Text;
+                    var text = names?.GetValueOrDefault(field.Name) ?? field.Text;
+                    if (!string.IsNullOrWhiteSpace(text)) o[field.Name] = text;
                     // The number travels whatever the choice, so it is still there when the
                     // choice comes back; the check ignores it under "Any".
-                    if (field.UnitsName is { } unitsName && long.TryParse(field.UnitsText?.Replace(",", ""), out var units))
+                    if (field.UnitsName is { } unitsName && NumberText.TryParse(field.UnitsText, out long units))
                         o[unitsName] = units;
                     break;
             }
@@ -1263,44 +1543,46 @@ public sealed class AlarmsViewModel : ReactiveObject
 
     private async Task SaveAsync()
     {
-        if (SelectedCondition is null) { StatusText = "Pick a condition first."; return; }
-        if (string.IsNullOrWhiteSpace(Name)) { StatusText = "Give the alarm a name."; return; }
+        if (Condition is null) { StatusText = AlarmsText.ErrPickCondition; return; }
+        if (string.IsNullOrWhiteSpace(Name)) { StatusText = AlarmsText.ErrAlarmName; return; }
 
         // An item name that does not resolve makes an alarm that can never match, and says so
-        // nowhere. Refuse the save instead, while the field is still in front of the user.
+        // nowhere. Refuse the save instead, while the field is still in front of the user. One
+        // typed in the interface language, or another of the game client's, is saved as its English.
+        var itemNames = new Dictionary<string, string>();
         foreach (var field in Fields.Where(f => f.IsItem && !string.IsNullOrWhiteSpace(f.Text)))
         {
             var typed = field.Text.Trim();
-            var known = await Task.Run(async () =>
+            if (await ResolveItemAsync(typed, CancellationToken.None) is not { } item)
             {
-                await using var db = await _dbFactory.CreateDbContextAsync();
-                return await db.SdeTypes.AsNoTracking()
-                    .AnyAsync(t => t.Name.ToUpper() == typed.ToUpper());
-            });
-
-            if (!known)
-            {
-                StatusText = $"\"{typed}\" is not an item — pick one from the list.";
+                StatusText = string.Format(AlarmsText.NotAnItem, typed);
                 return;
             }
+            itemNames[field.Name] = item.English;
         }
 
         foreach (var field in Fields.Where(f => f.IsList && f.Required && f.Items.Count == 0))
         {
-            StatusText = $"Add at least one entry under {field.Label}.";
+            StatusText = string.Format(AlarmsText.ErrAddListEntry, field.Label);
             return;
         }
 
-        // A window half-typed is a window nobody meant: refuse rather than guess.
-        foreach (var (label, text) in new[] { ("from", ActiveFrom), ("thru", ActiveThru) })
+        // A window half-typed is a window nobody meant: refuse rather than guess. One whole
+        // sentence per box, not "Active {from|thru}".
+        foreach (var (complaint, text) in new[]
+                 {
+                     (AlarmsText.ErrActiveFrom, ActiveFrom),
+                     (AlarmsText.ErrActiveThru, ActiveThru),
+                 })
             if (!string.IsNullOrWhiteSpace(text) && Alarm.ParseClock(text) is null)
             {
-                StatusText = $"Active {label} needs a time like 18:00.";
+                StatusText = complaint;
                 return;
             }
 
-        var conditionType = SelectedCondition.TypeKey;
-        var conditionJson = BuildConfigJson();
+        var conditionType = Condition.TypeKey;
+        var conditionJson = BuildConfigJson(itemNames);
+        var repeat        = _repeat;
         var actionRows    = AllActions.Select((a, i) => (a.Kind, Json: a.ToConfigJson(), Ordinal: i)).ToList();
 
         var id = EditingId;
@@ -1329,7 +1611,7 @@ public sealed class AlarmsViewModel : ReactiveObject
             alarm.Enabled         = Enabled;
             alarm.ConditionType   = conditionType;
             alarm.ConditionJson   = conditionJson;
-            alarm.Repeat          = Repeat;
+            alarm.Repeat          = repeat;
             // Two seconds is the service's own tick; anything lower would be a promise it cannot keep.
             alarm.PollSeconds     = Math.Max(2, PollSeconds);
             alarm.CooldownSeconds = Math.Max(0, CooldownSeconds);
@@ -1371,7 +1653,7 @@ public sealed class AlarmsViewModel : ReactiveObject
 
         await LoadAsync();
         SelectedAlarm = Alarms.FirstOrDefault(a => a.Id == savedId);
-        StatusText    = wasNew ? "Alarm created." : "Alarm saved.";
+        StatusText    = wasNew ? AlarmsText.AlarmCreated : AlarmsText.AlarmSaved;
     }
 
     private async Task DeleteAsync()
@@ -1397,7 +1679,7 @@ public sealed class AlarmsViewModel : ReactiveObject
         HasEditor = false;
         EditingId = 0;
         await LoadAsync();
-        StatusText = "Alarm deleted.";
+        StatusText = AlarmsText.AlarmDeleted;
     }
 
     /// <summary>
@@ -1410,7 +1692,7 @@ public sealed class AlarmsViewModel : ReactiveObject
         {
             if (a.IsSound && a.Sound is { } s) await _sounds.PlayAsync(s.Key, a.Volume);
         }
-        StatusText = "Played the alarm's sounds. Save first to test the other actions.";
+        StatusText = AlarmsText.PlayedSounds;
     }
 
     private static string Humanise(string name)

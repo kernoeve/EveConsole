@@ -1,5 +1,6 @@
 using EveConsole.Data;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.Services.Worklist;
 
@@ -19,12 +20,17 @@ public class StandingBuyOrderGenerator(
     WorklistSettings                     settings,
     IDbContextFactory<AppDbContext>      dbFactory) : IWorklistGenerator
 {
-    /// <summary>The one verb that is about an order not existing yet. Named because the routing
-    /// above has to tell it apart from the verbs that change an order already placed.</summary>
-    private const string PlaceOrderVerb = "Place order";
+    /// <summary>
+    /// What a standing order needs doing.
+    ///
+    /// <para>⚠️ A key rather than the words shown. The routing below has to tell placing an order
+    /// apart from changing one already placed, and that must not depend on how the title reads in
+    /// the interface's language — the title is looked up from this, never compared.</para>
+    /// </summary>
+    private enum Fix { RaiseBid, PlaceOrder, TopUp, RePlace }
 
     public string Id          => "standing_buy";
-    public string DisplayName => "Standing Buy Orders";
+    public string DisplayName => WorklistText.SourceStandingBuyOrders;
 
     public async Task<List<WorklistItem>> GenerateAsync(CancellationToken ct = default)
     {
@@ -38,8 +44,8 @@ public class StandingBuyOrderGenerator(
         {
             // One item per standing order, not one per symptom. An order can be low and
             // expiring and outbid at once, but it is still a single trip to the market window.
-            var (verb, detail, priority) = Diagnose(r, settings);
-            if (verb is null) continue;
+            var (fix, detail, priority) = Diagnose(r, settings);
+            if (fix is not { } action) continue;
 
             altMap.TryGetValue(r.LocationId, out var alt);
 
@@ -56,7 +62,7 @@ public class StandingBuyOrderGenerator(
             //
             // Only for the verbs that act on an order that exists. "Place order" is the opposite
             // case: nothing has been placed, so the station's alt is exactly who should.
-            var placedBy  = verb == PlaceOrderVerb ? 0 : r.PlacedById;
+            var placedBy  = action == Fix.PlaceOrder ? 0 : r.PlacedById;
             var ownerName = placedBy > 0 ? r.PlacedByName : "";
             var named     = ownerName.Length > 0;
 
@@ -73,14 +79,15 @@ public class StandingBuyOrderGenerator(
                 // Name first so the column sorts by item. These carry no quantity — they are
                 // about the state of a standing order, not an amount to acquire — so the verb
                 // stays, trailing, rather than being replaced by a count there is none of.
-                Title         = $"{r.TypeName} — {verb.ToLowerInvariant()}",
+                Title         = TitleOf(action, SdeNames.Type(r.TypeId, r.TypeName)),
                 Detail        = detail,
                 Readiness     = blocked ? WorklistReadiness.Blocked : WorklistReadiness.Ready,
-                BlockedBy     = blocked ? "No character assigned to this location" : "",
+                BlockedBy     = blocked ? WorklistText.BlockedNoCharacterAtLocation : "",
                 CharacterId   = named ? placedBy  : alt?.CharacterId   ?? 0,
                 CharacterName = named ? ownerName : alt?.CharacterName ?? "",
                 LocationId    = r.LocationId,
-                LocationName  = r.LocationName,
+                // The cell's text; the order keeps the English it was saved with.
+                LocationName  = SdeNames.Location(r.LocationId, r.LocationName),
                 TypeId        = r.TypeId,
                 TypeName      = r.TypeName,
                 Priority      = priority,
@@ -91,41 +98,52 @@ public class StandingBuyOrderGenerator(
         return items;
     }
 
+    /// <summary>The item, then what to do about its order — name first, so the column sorts by
+    /// item. One whole title per fix, since other languages may place the verb differently.</summary>
+    private static string TitleOf(Fix fix, string typeName) => string.Format(fix switch
+    {
+        Fix.RaiseBid   => WorklistText.TitleRaiseBid,
+        Fix.PlaceOrder => WorklistText.TitlePlaceOrder,
+        Fix.TopUp      => WorklistText.TitleTopUpOrder,
+        _              => WorklistText.TitleReplaceOrder,
+    }, typeName);
+
     /// <summary>
     /// The most severe thing wrong with one standing order, and how to say it. Returns a null
-    /// verb when nothing is wrong, which is the common case.
+    /// fix when nothing is wrong, which is the common case.
     ///
     /// Ordered by how quietly each one fails. An outbid order looks healthy in every list —
     /// it exists, it has volume, it has time left — and buys nothing at all, so it goes first.
     /// A missing order at least announces itself by being absent.
     /// </summary>
-    private static (string? Verb, string Detail, int Priority) Diagnose(
+    private static (Fix? Fix, string Detail, int Priority) Diagnose(
         StandingBuyOrderRow r, WorklistSettings settings)
     {
         if (r.IsOutbid && settings.RaiseOutbid)
-        {
-            var by = r.OutbidBy is { } b ? $" by {b:N2} ISK" : "";
-            return ("Raise bid", $"Outbid{by} — best competing bid {r.CompetingBidText}. "
-                               + $"Yours: {r.PriceText}.", WorklistPriority.Outbid);
-        }
+            return (Fix.RaiseBid,
+                    r.OutbidBy is { } b
+                        ? string.Format(WorklistText.StandingOutbidBy, b, r.CompetingBidText, r.PriceText)
+                        : string.Format(WorklistText.StandingOutbid, r.CompetingBidText, r.PriceText),
+                    WorklistPriority.Outbid);
 
         if (r.MatchStatus == "missing" && settings.RaiseMissing)
         {
             // A station with no market source configured cannot be checked for competition, so
             // say so rather than letting silence read as "nobody else is bidding".
-            var caveat = r.IsLocationTracked
-                ? ""
-                : " Competing bids unknown — this location is not a configured market source.";
-            return (PlaceOrderVerb, $"No order found at {r.LocationName}.{caveat}", WorklistPriority.Missing);
+            var missing = string.Format(WorklistText.StandingNoOrderAt, SdeNames.Location(r.LocationId, r.LocationName));
+            return (Fix.PlaceOrder,
+                    r.IsLocationTracked ? missing : missing + " " + WorklistText.CompetingBidsUnknown,
+                    WorklistPriority.Missing);
         }
 
         if (r.IsLow && settings.RaiseLow)
-            return ("Top up order",
-                    $"{r.RemainingText} left ({r.RemainingPercentText} of the original volume).",
+            return (Fix.TopUp,
+                    string.Format(WorklistText.StandingRunningLow, r.RemainingText, r.RemainingPercentText),
                     WorklistPriority.ForStock(r.RemainingPercentValue));
 
         if (r.IsExpiringSoon && settings.RaiseExpiring)
-            return ("Re-place order", $"Expires {r.ExpiryText}.", WorklistPriority.Housekeeping);
+            return (Fix.RePlace, string.Format(WorklistText.StandingExpires, r.ExpiryText),
+                    WorklistPriority.Housekeeping);
 
         return (null, "", 0);
     }

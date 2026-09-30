@@ -1,0 +1,974 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TitleComposeMail" xml:space="preserve">
+    <value>Rédiger un courrier</value>
+  </data>
+  <data name="FromLabel" xml:space="preserve">
+    <value>Expéditeur</value>
+  </data>
+  <data name="ToSearchNamePressNote" xml:space="preserve">
+    <value>Destinataires  (recherchez un nom, appuyez sur Enter pour l'ajouter)</value>
+  </data>
+  <data name="HintCharacterName" xml:space="preserve">
+    <value>Nom du personnage…</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Ajouter</value>
+  </data>
+  <data name="SubjectLabel" xml:space="preserve">
+    <value>Sujet</value>
+  </data>
+  <data name="BodyLabel" xml:space="preserve">
+    <value>Message</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Annuler</value>
+  </data>
+  <data name="Send" xml:space="preserve">
+    <value>Envoyer</value>
+  </data>
+  <data name="CharacterLabel" xml:space="preserve">
+    <value>Personnage</value>
+  </data>
+  <data name="Reply" xml:space="preserve">
+    <value>Répondre</value>
+  </data>
+  <data name="Forward" xml:space="preserve">
+    <value>Transférer</value>
+  </data>
+  <data name="Compose" xml:space="preserve">
+    <value>+ Rédiger</value>
+  </data>
+  <data name="FromLabel2" xml:space="preserve">
+    <value>De :</value>
+  </data>
+  <data name="DateFromLabel" xml:space="preserve">
+    <value>Du :</value>
+  </data>
+  <data name="TipOpenInTheEntityBrowser" xml:space="preserve">
+    <value>Ouvrir dans l'explorateur d'entités</value>
+  </data>
+  <data name="ToLabel" xml:space="preserve">
+    <value>À :</value>
+  </data>
+  <data name="DateLabel" xml:space="preserve">
+    <value>Date :</value>
+  </data>
+  <data name="SelectAMessageToRead" xml:space="preserve">
+    <value>Sélectionnez un message pour le lire.</value>
+  </data>
+  <data name="TitleEveMail" xml:space="preserve">
+    <value>Messagerie d'EVE</value>
+  </data>
+  <data name="CharacterLabel2" xml:space="preserve">
+    <value>Personnage :</value>
+  </data>
+  <data name="TypeLabel" xml:space="preserve">
+    <value>Type :</value>
+  </data>
+  <data name="SenderLabel" xml:space="preserve">
+    <value>Expéditeur :</value>
+  </data>
+  <data name="ThruLabel" xml:space="preserve">
+    <value>Au :</value>
+  </data>
+  <data name="SortLabel" xml:space="preserve">
+    <value>Tri :</value>
+  </data>
+  <data name="UnreadOnly" xml:space="preserve">
+    <value>Non lues uniquement</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>Effacer</value>
+  </data>
+  <data name="ColDate" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="ColCharacter" xml:space="preserve">
+    <value>Personnage</value>
+  </data>
+  <data name="ColSender" xml:space="preserve">
+    <value>Expéditeur</value>
+  </data>
+  <data name="ColSenderType" xml:space="preserve">
+    <value>Type d'expéd.</value>
+  </data>
+  <data name="ColRead" xml:space="preserve">
+    <value>Lue</value>
+  </data>
+  <data name="Sender" xml:space="preserve">
+    <value>Expéditeur</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Date</value>
+  </data>
+  <data name="Read" xml:space="preserve">
+    <value>Lue</value>
+  </data>
+  <data name="Character" xml:space="preserve">
+    <value>Personnage</value>
+  </data>
+  <data name="NoFurtherDetails" xml:space="preserve">
+    <value>Aucun autre détail.</value>
+  </data>
+  <data name="ShowTheOriginalText" xml:space="preserve">
+    <value>Afficher le texte d'origine</value>
+  </data>
+  <data name="SelectANotificationToNote" xml:space="preserve">
+    <value>Sélectionnez une notification pour afficher ses détails.</value>
+  </data>
+  <data name="First" xml:space="preserve">
+    <value>⏮ Première</value>
+  </data>
+  <data name="Prev" xml:space="preserve">
+    <value>◀ Précédente</value>
+  </data>
+  <data name="Next" xml:space="preserve">
+    <value>Suivante ▶</value>
+  </data>
+  <data name="Last" xml:space="preserve">
+    <value>Dernière ⏭</value>
+  </data>
+  <data name="AllCharacters" xml:space="preserve">
+    <value>Tous les personnages</value>
+  </data>
+  <data name="MailFolderAll" xml:space="preserve">
+    <value>Tous les courriers</value>
+  </data>
+  <data name="MailFolderInbox" xml:space="preserve">
+    <value>Boîte aux lettres</value>
+  </data>
+  <data name="MailFolderSent" xml:space="preserve">
+    <value>Envoyés</value>
+  </data>
+  <data name="MailFolderCorp" xml:space="preserve">
+    <value>Corporation</value>
+  </data>
+  <data name="MailFolderAlliance" xml:space="preserve">
+    <value>Alliance</value>
+  </data>
+  <data name="MailCountOne" xml:space="preserve">
+    <value>{0:N0} message</value>
+  </data>
+  <data name="MailCountOther" xml:space="preserve">
+    <value>{0:N0} messages</value>
+  </data>
+  <data name="MailBodyLoadError" xml:space="preserve">
+    <value>(Erreur lors du chargement du message : {0})</value>
+  </data>
+  <data name="MailNoCharacters" xml:space="preserve">
+    <value>Aucun personnage disponible pour rédiger un courrier.</value>
+  </data>
+  <data name="MailCharacterGone" xml:space="preserve">
+    <value>Le personnage destinataire de ce courrier ne peut plus servir d'expéditeur.</value>
+  </data>
+  <data name="MailQuoteHeader" xml:space="preserve">
+    <value>{0} a écrit le {1} :
+
+</value>
+  </data>
+  <data name="MailSending" xml:space="preserve">
+    <value>Envoi…</value>
+  </data>
+  <data name="MailSent" xml:space="preserve">
+    <value>Courrier envoyé.</value>
+  </data>
+  <data name="MailSendFailed" xml:space="preserve">
+    <value>Échec de l'envoi : {0}</value>
+  </data>
+  <data name="NotifRead" xml:space="preserve">
+    <value>Lue</value>
+  </data>
+  <data name="NotifUnread" xml:space="preserve">
+    <value>Non lue</value>
+  </data>
+  <data name="NotifTipEntity" xml:space="preserve">
+    <value>Ouvrir dans l'explorateur d'entités</value>
+  </data>
+  <data name="NotifAllTypes" xml:space="preserve">
+    <value>Tous les types</value>
+  </data>
+  <data name="SortDateNewest" xml:space="preserve">
+    <value>Date : plus récentes d'abord</value>
+  </data>
+  <data name="SortDateOldest" xml:space="preserve">
+    <value>Date : plus anciennes d'abord</value>
+  </data>
+  <data name="SortTypeAz" xml:space="preserve">
+    <value>Type (A → Z)</value>
+  </data>
+  <data name="AllCharactersLower" xml:space="preserve">
+    <value>Tous les personnages</value>
+  </data>
+  <data name="NotifNoneMatch" xml:space="preserve">
+    <value>Aucune notification ne correspond à ces filtres.</value>
+  </data>
+  <data name="MailSearching" xml:space="preserve">
+    <value>Recherche…</value>
+  </data>
+  <data name="MailNoCharacterFound" xml:space="preserve">
+    <value>Aucun personnage ne correspond à « {0} ».</value>
+  </data>
+  <data name="MailSubjectRequired" xml:space="preserve">
+    <value>Le sujet est obligatoire.</value>
+  </data>
+  <data name="MailBodyRequired" xml:space="preserve">
+    <value>Le texte du message est obligatoire.</value>
+  </data>
+  <data name="MailAddRecipient" xml:space="preserve">
+    <value>Ajoutez au moins un destinataire.</value>
+  </data>
+  <data name="NotifTitleCorpAppNewMsg" xml:space="preserve">
+    <value>Nouvelle candidature à la corporation</value>
+  </data>
+  <data name="NotifTitleCorpAppInvitedMsg" xml:space="preserve">
+    <value>Invitation dans une corporation</value>
+  </data>
+  <data name="NotifTitleCorpAppAcceptMsg" xml:space="preserve">
+    <value>Candidature à la corporation acceptée</value>
+  </data>
+  <data name="NotifTitleCharAppAcceptMsg" xml:space="preserve">
+    <value>Candidature acceptée</value>
+  </data>
+  <data name="NotifTitleCharAppRejectMsg" xml:space="preserve">
+    <value>Candidature refusée</value>
+  </data>
+  <data name="NotifTitleCharAppWithdrawMsg" xml:space="preserve">
+    <value>Candidature retirée</value>
+  </data>
+  <data name="NotifTitleCharTerminationMsg" xml:space="preserve">
+    <value>Un membre a quitté la corporation</value>
+  </data>
+  <data name="NotifTitleCorpTaxChangeMsg" xml:space="preserve">
+    <value>Taxe de corporation modifiée</value>
+  </data>
+  <data name="NotifTitleCorpAllBillMsg" xml:space="preserve">
+    <value>Facture de corporation</value>
+  </data>
+  <data name="NotifTitleInsurancePayoutMsg" xml:space="preserve">
+    <value>Indemnité d'assurance</value>
+  </data>
+  <data name="NotifTitleNPCStandingsLost" xml:space="preserve">
+    <value>Réputations PNJ modifiées</value>
+  </data>
+  <data name="NotifTitleNPCStandingsGained" xml:space="preserve">
+    <value>Réputations PNJ modifiées</value>
+  </data>
+  <data name="NotifTitleCorporationGoalCreated" xml:space="preserve">
+    <value>Projet de corporation créé</value>
+  </data>
+  <data name="NotifTitleCorporationGoalCompleted" xml:space="preserve">
+    <value>Projet de corporation terminé</value>
+  </data>
+  <data name="NotifTitleCorporationGoalClosed" xml:space="preserve">
+    <value>Projet de corporation clôturé</value>
+  </data>
+  <data name="NotifTitleFreelanceProjectCreated" xml:space="preserve">
+    <value>Mission freelance créée</value>
+  </data>
+  <data name="NotifTitleFreelanceProjectCompleted" xml:space="preserve">
+    <value>Mission freelance terminée</value>
+  </data>
+  <data name="NotifTitleFreelanceProjectExpired" xml:space="preserve">
+    <value>Mission freelance expirée</value>
+  </data>
+  <data name="NotifTitleFreelanceProjectACLDeleted" xml:space="preserve">
+    <value>Liste d'accès d'une mission freelance supprimée</value>
+  </data>
+  <data name="NotifTitleMoonminingExtractionStarted" xml:space="preserve">
+    <value>Extraction lunaire commencée</value>
+  </data>
+  <data name="NotifTitleMoonminingExtractionFinished" xml:space="preserve">
+    <value>Extraction lunaire terminée</value>
+  </data>
+  <data name="NotifTitleMoonminingExtractionCancelled" xml:space="preserve">
+    <value>Extraction lunaire annulée</value>
+  </data>
+  <data name="NotifTitleMoonminingAutomaticFracture" xml:space="preserve">
+    <value>Fracture automatique de la lune</value>
+  </data>
+  <data name="NotifTitleMoonminingLaserFired" xml:space="preserve">
+    <value>Tir de la foreuse lunaire</value>
+  </data>
+  <data name="NotifTitleStructureAnchoring" xml:space="preserve">
+    <value>Ancrage d'une structure</value>
+  </data>
+  <data name="NotifTitleStructureUnanchoring" xml:space="preserve">
+    <value>Détachement d'une structure</value>
+  </data>
+  <data name="NotifTitleStructureOnline" xml:space="preserve">
+    <value>Structure en ligne</value>
+  </data>
+  <data name="NotifTitleStructureWentHighPower" xml:space="preserve">
+    <value>Structure passée en haute puissance</value>
+  </data>
+  <data name="NotifTitleStructureWentLowPower" xml:space="preserve">
+    <value>Structure passée en basse puissance</value>
+  </data>
+  <data name="NotifTitleStructureUnderAttack" xml:space="preserve">
+    <value>Structure attaquée</value>
+  </data>
+  <data name="NotifTitleStructureLostShields" xml:space="preserve">
+    <value>Structure : boucliers perdus</value>
+  </data>
+  <data name="NotifTitleStructureLostArmor" xml:space="preserve">
+    <value>Structure : blindage perdu</value>
+  </data>
+  <data name="NotifTitleStructureDestroyed" xml:space="preserve">
+    <value>Structure détruite</value>
+  </data>
+  <data name="NotifTitleStructureFuelAlert" xml:space="preserve">
+    <value>Structure : carburant faible</value>
+  </data>
+  <data name="NotifTitleStructureLowReagentsAlert" xml:space="preserve">
+    <value>Structure : réactifs faibles</value>
+  </data>
+  <data name="NotifTitleStructureNoReagentsAlert" xml:space="preserve">
+    <value>Structure : réactifs épuisés</value>
+  </data>
+  <data name="NotifTitleStructureServicesOffline" xml:space="preserve">
+    <value>Services de la structure hors ligne</value>
+  </data>
+  <data name="NotifTitleStructureItemsMovedToSafety" xml:space="preserve">
+    <value>Objets placés dans le système de protection des biens</value>
+  </data>
+  <data name="NotifTitleStructureItemsDelivered" xml:space="preserve">
+    <value>Objets livrés à une structure</value>
+  </data>
+  <data name="NotifTitleStructureImpendingAbandonmentAssetsAtRisk" xml:space="preserve">
+    <value>Structure en cours d'abandon — biens menacés</value>
+  </data>
+  <data name="NotifTitleStructurePaintPurchased" xml:space="preserve">
+    <value>Peinture de structure achetée</value>
+  </data>
+  <data name="NotifTitleOwnershipTransferred" xml:space="preserve">
+    <value>Propriété de la structure transférée</value>
+  </data>
+  <data name="NotifTitleEntosisCaptureStarted" xml:space="preserve">
+    <value>Capture Entosis commencée</value>
+  </data>
+  <data name="NotifTitleTowerAlertMsg" xml:space="preserve">
+    <value>Base stellaire attaquée</value>
+  </data>
+  <data name="NotifTitleTowerResourceAlertMsg" xml:space="preserve">
+    <value>Base stellaire : carburant faible</value>
+  </data>
+  <data name="NotifTitleCloneActivationMsg2" xml:space="preserve">
+    <value>Clone activé</value>
+  </data>
+  <data name="NotifTitleCloneActivationMsg" xml:space="preserve">
+    <value>Clone activé</value>
+  </data>
+  <data name="NotifTitleCloneRevokedMsg2" xml:space="preserve">
+    <value>Clone révoqué</value>
+  </data>
+  <data name="NotifTitleJumpCloneDeletedMsg1" xml:space="preserve">
+    <value>Clone hyperspatial détruit</value>
+  </data>
+  <data name="NotifTitleJumpCloneDeletedMsg2" xml:space="preserve">
+    <value>Clone hyperspatial détruit</value>
+  </data>
+  <data name="NotifTitleKillReportVictim" xml:space="preserve">
+    <value>Vaisseau perdu</value>
+  </data>
+  <data name="NotifTitleKillReportFinalBlow" xml:space="preserve">
+    <value>Coup de grâce</value>
+  </data>
+  <data name="NotifTitleKillRightEarned" xml:space="preserve">
+    <value>Permis de détruire obtenu</value>
+  </data>
+  <data name="NotifTitleWarDeclared" xml:space="preserve">
+    <value>Guerre déclarée</value>
+  </data>
+  <data name="NotifTitleWarInherited" xml:space="preserve">
+    <value>Guerre héritée</value>
+  </data>
+  <data name="NotifTitleWarAllyInherited" xml:space="preserve">
+    <value>Allié de guerre hérité</value>
+  </data>
+  <data name="NotifTitleWarInvalid" xml:space="preserve">
+    <value>Guerre invalidée</value>
+  </data>
+  <data name="NotifTitleWarRetractedByConcord" xml:space="preserve">
+    <value>Guerre annulée par CONCORD</value>
+  </data>
+  <data name="NotifTitleWarHQRemovedFromSpace" xml:space="preserve">
+    <value>QG de guerre retiré de l'espace</value>
+  </data>
+  <data name="NotifTitleMutualWarInviteSent" xml:space="preserve">
+    <value>Invitation à une guerre mutuelle envoyée</value>
+  </data>
+  <data name="NotifTitleOfferedToAlly" xml:space="preserve">
+    <value>Proposition de rejoindre une guerre en tant qu'allié</value>
+  </data>
+  <data name="NotifTitleAllyJoinedWarAggressorMsg" xml:space="preserve">
+    <value>Un allié a rejoint le défenseur</value>
+  </data>
+  <data name="NotifTitleAllyJoinedWarAllyMsg" xml:space="preserve">
+    <value>Un allié a rejoint la guerre</value>
+  </data>
+  <data name="NotifTitleCorpBecameWarEligible" xml:space="preserve">
+    <value>Corporation devenue apte à la guerre</value>
+  </data>
+  <data name="NotifTitleCorpNoLongerWarEligible" xml:space="preserve">
+    <value>Corporation désormais inapte à la guerre</value>
+  </data>
+  <data name="NotifTitleAllianceCapitalChanged" xml:space="preserve">
+    <value>Capitale de l'alliance modifiée</value>
+  </data>
+  <data name="NotifTitleExpertSystemExpired" xml:space="preserve">
+    <value>Système expert expiré</value>
+  </data>
+  <data name="NotifTitleGameTimeAdded" xml:space="preserve">
+    <value>Temps de jeu ajouté</value>
+  </data>
+  <data name="NotifLabelStructure" xml:space="preserve">
+    <value>Structure</value>
+  </data>
+  <data name="NotifLabelStructureType" xml:space="preserve">
+    <value>Type de structure</value>
+  </data>
+  <data name="NotifLabelStructures" xml:space="preserve">
+    <value>Structures</value>
+  </data>
+  <data name="NotifLabelStation" xml:space="preserve">
+    <value>Station</value>
+  </data>
+  <data name="NotifLabelMovedTo" xml:space="preserve">
+    <value>Déplacés vers</value>
+  </data>
+  <data name="NotifLabelCloneLocation" xml:space="preserve">
+    <value>Emplacement du clone</value>
+  </data>
+  <data name="NotifLabelLocation" xml:space="preserve">
+    <value>Emplacement</value>
+  </data>
+  <data name="NotifLabelSystem" xml:space="preserve">
+    <value>Système</value>
+  </data>
+  <data name="NotifLabelMoon" xml:space="preserve">
+    <value>Lune</value>
+  </data>
+  <data name="NotifLabelCharacter" xml:space="preserve">
+    <value>Personnage</value>
+  </data>
+  <data name="NotifLabelCorporation" xml:space="preserve">
+    <value>Corporation</value>
+  </data>
+  <data name="NotifLabelAlliance" xml:space="preserve">
+    <value>Alliance</value>
+  </data>
+  <data name="NotifLabelOwner" xml:space="preserve">
+    <value>Propriétaire</value>
+  </data>
+  <data name="NotifLabelCreatedBy" xml:space="preserve">
+    <value>Créé par</value>
+  </data>
+  <data name="NotifLabelClosedBy" xml:space="preserve">
+    <value>Clôturé par</value>
+  </data>
+  <data name="NotifLabelInvitedBy" xml:space="preserve">
+    <value>Invité par</value>
+  </data>
+  <data name="NotifLabelStartedBy" xml:space="preserve">
+    <value>Lancé par</value>
+  </data>
+  <data name="NotifLabelFiredBy" xml:space="preserve">
+    <value>Déclenché par</value>
+  </data>
+  <data name="NotifLabelCancelledBy" xml:space="preserve">
+    <value>Annulé par</value>
+  </data>
+  <data name="NotifLabelPurchasedBy" xml:space="preserve">
+    <value>Acheté par</value>
+  </data>
+  <data name="NotifLabelDestroyedBy" xml:space="preserve">
+    <value>Détruit par</value>
+  </data>
+  <data name="NotifLabelPoddedBy" xml:space="preserve">
+    <value>Capsule détruite par</value>
+  </data>
+  <data name="NotifLabelNewOwner" xml:space="preserve">
+    <value>Nouveau propriétaire</value>
+  </data>
+  <data name="NotifLabelPreviousOwner" xml:space="preserve">
+    <value>Ancien propriétaire</value>
+  </data>
+  <data name="NotifLabelLocationOwner" xml:space="preserve">
+    <value>Propriétaire du lieu</value>
+  </data>
+  <data name="NotifLabelPlacedBy" xml:space="preserve">
+    <value>Placée par</value>
+  </data>
+  <data name="NotifLabelDeclaredBy" xml:space="preserve">
+    <value>Déclarée par</value>
+  </data>
+  <data name="NotifLabelAgainst" xml:space="preserve">
+    <value>Contre</value>
+  </data>
+  <data name="NotifLabelAggressor" xml:space="preserve">
+    <value>Agresseur</value>
+  </data>
+  <data name="NotifLabelAggressorCorporation" xml:space="preserve">
+    <value>Corporation de l'agresseur</value>
+  </data>
+  <data name="NotifLabelAggressorAlliance" xml:space="preserve">
+    <value>Alliance de l'agresseur</value>
+  </data>
+  <data name="NotifLabelDefender" xml:space="preserve">
+    <value>Défenseur</value>
+  </data>
+  <data name="NotifLabelAlly" xml:space="preserve">
+    <value>Allié</value>
+  </data>
+  <data name="NotifLabelEnemy" xml:space="preserve">
+    <value>Ennemi</value>
+  </data>
+  <data name="NotifLabelOpponent" xml:space="preserve">
+    <value>Adversaire</value>
+  </data>
+  <data name="NotifLabelLeftTheWar" xml:space="preserve">
+    <value>A quitté la guerre</value>
+  </data>
+  <data name="NotifLabelWarHq" xml:space="preserve">
+    <value>QG de guerre</value>
+  </data>
+  <data name="NotifLabelCost" xml:space="preserve">
+    <value>Coût</value>
+  </data>
+  <data name="NotifLabelFee" xml:space="preserve">
+    <value>Frais</value>
+  </data>
+  <data name="NotifLabelStartsAfter" xml:space="preserve">
+    <value>Commence après</value>
+  </data>
+  <data name="NotifLabelHostileNow" xml:space="preserve">
+    <value>Hostile dès maintenant</value>
+  </data>
+  <data name="NotifLabelType" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="NotifLabelTypes" xml:space="preserve">
+    <value>Types</value>
+  </data>
+  <data name="NotifLabelShip" xml:space="preserve">
+    <value>Vaisseau</value>
+  </data>
+  <data name="NotifLabelRequires" xml:space="preserve">
+    <value>Nécessite</value>
+  </data>
+  <data name="NotifLabelItems" xml:space="preserve">
+    <value>Objets</value>
+  </data>
+  <data name="NotifLabelServices" xml:space="preserve">
+    <value>Services</value>
+  </data>
+  <data name="NotifLabelOre" xml:space="preserve">
+    <value>Minerai</value>
+  </data>
+  <data name="NotifLabelNeeds" xml:space="preserve">
+    <value>Besoins</value>
+  </data>
+  <data name="NotifLabelKillmail" xml:space="preserve">
+    <value>Rapport de victime</value>
+  </data>
+  <data name="NotifLabelAmount" xml:space="preserve">
+    <value>Montant</value>
+  </data>
+  <data name="NotifLabelBounty" xml:space="preserve">
+    <value>Prime</value>
+  </data>
+  <data name="NotifLabelLoyaltyPoints" xml:space="preserve">
+    <value>Points de loyauté</value>
+  </data>
+  <data name="NotifLabelProject" xml:space="preserve">
+    <value>Projet</value>
+  </data>
+  <data name="NotifLabelShield" xml:space="preserve">
+    <value>Bouclier</value>
+  </data>
+  <data name="NotifLabelArmor" xml:space="preserve">
+    <value>Blindage</value>
+  </data>
+  <data name="NotifLabelHull" xml:space="preserve">
+    <value>Structure</value>
+  </data>
+  <data name="NotifLabelCorporationOwned" xml:space="preserve">
+    <value>Propriété de la corporation</value>
+  </data>
+  <data name="NotifLabelAbandoned" xml:space="preserve">
+    <value>Abandonnée</value>
+  </data>
+  <data name="NotifLabelDaysUntilAbandoned" xml:space="preserve">
+    <value>Jours avant l'abandon</value>
+  </data>
+  <data name="NotifLabelSecurityStatus" xml:space="preserve">
+    <value>Statut de sécurité</value>
+  </data>
+  <data name="NotifLabelNewTaxRate" xml:space="preserve">
+    <value>Nouveau taux de la taxe</value>
+  </data>
+  <data name="NotifLabelPreviousTaxRate" xml:space="preserve">
+    <value>Ancien taux de la taxe</value>
+  </data>
+  <data name="NotifLabelTime" xml:space="preserve">
+    <value>Heure</value>
+  </data>
+  <data name="NotifLabelStarted" xml:space="preserve">
+    <value>Début</value>
+  </data>
+  <data name="NotifLabelStarts" xml:space="preserve">
+    <value>Commence</value>
+  </data>
+  <data name="NotifLabelDeclared" xml:space="preserve">
+    <value>Déclarée</value>
+  </data>
+  <data name="NotifLabelEnds" xml:space="preserve">
+    <value>Fin</value>
+  </data>
+  <data name="NotifLabelExpires" xml:space="preserve">
+    <value>Expire</value>
+  </data>
+  <data name="NotifLabelTimeLeft" xml:space="preserve">
+    <value>Temps restant</value>
+  </data>
+  <data name="NotifLabelVulnerabilityWindow" xml:space="preserve">
+    <value>Fenêtre de vulnérabilité</value>
+  </data>
+  <data name="NotifLabelReady" xml:space="preserve">
+    <value>Prêt</value>
+  </data>
+  <data name="NotifLabelFracturesAutomatically" xml:space="preserve">
+    <value>Fracture automatique</value>
+  </data>
+  <data name="NotifLabelLastCloned" xml:space="preserve">
+    <value>Dernier clonage</value>
+  </data>
+  <data name="NotifLabelPurchased" xml:space="preserve">
+    <value>Acheté le</value>
+  </data>
+  <data name="NotifLabelLasts" xml:space="preserve">
+    <value>Durée</value>
+  </data>
+  <data name="NotifLabelDeliverableFrom" xml:space="preserve">
+    <value>Livrable à partir du</value>
+  </data>
+  <data name="NotifLabelDeliveredAutomatically" xml:space="preserve">
+    <value>Livraison automatique</value>
+  </data>
+  <data name="NotifLabelIssued" xml:space="preserve">
+    <value>Émise le</value>
+  </data>
+  <data name="NotifLabelDue" xml:space="preserve">
+    <value>Échéance</value>
+  </data>
+  <data name="NotifLabelApplication" xml:space="preserve">
+    <value>Candidature</value>
+  </data>
+  <data name="NotifLabelApplicant" xml:space="preserve">
+    <value>Candidat</value>
+  </data>
+  <data name="NotifLabelInvited" xml:space="preserve">
+    <value>Invité</value>
+  </data>
+  <data name="NotifLabelMember" xml:space="preserve">
+    <value>Membre</value>
+  </data>
+  <data name="NotifLabelRevokedBy" xml:space="preserve">
+    <value>Révoqué par</value>
+  </data>
+  <data name="NotifLabelWasAt" xml:space="preserve">
+    <value>Se trouvait à</value>
+  </data>
+  <data name="NotifLabelImplantsLost" xml:space="preserve">
+    <value>Implants perdus</value>
+  </data>
+  <data name="NotifLabelCloneOf" xml:space="preserve">
+    <value>Clone de</value>
+  </data>
+  <data name="NotifLabelPayout" xml:space="preserve">
+    <value>Indemnité</value>
+  </data>
+  <data name="NotifLabelAssetSafetyStation" xml:space="preserve">
+    <value>Station de protection des biens</value>
+  </data>
+  <data name="NotifLabelFuelRemaining" xml:space="preserve">
+    <value>Carburant restant</value>
+  </data>
+  <data name="NotifLabelDelivered" xml:space="preserve">
+    <value>Objets livrés</value>
+  </data>
+  <data name="NotifLabelDeliveredTo" xml:space="preserve">
+    <value>Livrés à</value>
+  </data>
+  <data name="NotifLabelServicesOffline" xml:space="preserve">
+    <value>Services hors ligne</value>
+  </data>
+  <data name="NotifLabelTower" xml:space="preserve">
+    <value>Tour</value>
+  </data>
+  <data name="NotifLabelAttacker" xml:space="preserve">
+    <value>Assaillant</value>
+  </data>
+  <data name="NotifLabelAttackerCorporation" xml:space="preserve">
+    <value>Corporation de l'assaillant</value>
+  </data>
+  <data name="NotifLabelAttackerAlliance" xml:space="preserve">
+    <value>Alliance de l'assaillant</value>
+  </data>
+  <data name="NotifLabelTransferredBy" xml:space="preserve">
+    <value>Transférée par</value>
+  </data>
+  <data name="NotifLabelExpertSystem" xml:space="preserve">
+    <value>Système expert</value>
+  </data>
+  <data name="NotifLabelNewCapital" xml:space="preserve">
+    <value>Nouvelle capitale</value>
+  </data>
+  <data name="NotifLabelStructuresPainted" xml:space="preserve">
+    <value>Structures peintes</value>
+  </data>
+  <data name="NotifLabelOfferedBy" xml:space="preserve">
+    <value>Proposé par</value>
+  </data>
+  <data name="NotifLabelKillRightOn" xml:space="preserve">
+    <value>Permis de détruire sur</value>
+  </data>
+  <data name="NotifLabelReinforcedUntil" xml:space="preserve">
+    <value>Renforcé jusqu'au</value>
+  </data>
+  <data name="NotifLabelFightingStarts" xml:space="preserve">
+    <value>Début des combats</value>
+  </data>
+  <data name="NotifSentenceCorpBecameWarEligible" xml:space="preserve">
+    <value>Votre corporation peut désormais faire l'objet de déclarations de guerre.</value>
+  </data>
+  <data name="NotifSentenceCorpNoLongerWarEligible" xml:space="preserve">
+    <value>Votre corporation ne peut plus faire l'objet de déclarations de guerre.</value>
+  </data>
+  <data name="NotifSentenceGameTimeAdded" xml:space="preserve">
+    <value>Du temps de jeu a été ajouté au compte.</value>
+  </data>
+  <data name="NotifDetails" xml:space="preserve">
+    <value>Détails</value>
+  </data>
+  <data name="NotifColType" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="NotifColQuantity" xml:space="preserve">
+    <value>Quantité</value>
+  </data>
+  <data name="NotifTotal" xml:space="preserve">
+    <value>Total</value>
+  </data>
+  <data name="NotifColVolume" xml:space="preserve">
+    <value>Volume</value>
+  </data>
+  <data name="NotifOpenKillmail" xml:space="preserve">
+    <value>Ouvrir le rapport de victime</value>
+  </data>
+  <data name="NotifYes" xml:space="preserve">
+    <value>Oui</value>
+  </data>
+  <data name="NotifNo" xml:space="preserve">
+    <value>Non</value>
+  </data>
+  <data name="NotifStandingChanges" xml:space="preserve">
+    <value>Changements de réputation</value>
+  </data>
+  <data name="NotifColWith" xml:space="preserve">
+    <value>Avec</value>
+  </data>
+  <data name="NotifColChange" xml:space="preserve">
+    <value>Variation</value>
+  </data>
+  <data name="NotifColStandingNow" xml:space="preserve">
+    <value>Réputation actuelle</value>
+  </data>
+  <data name="NotifBillType" xml:space="preserve">
+    <value>Facture de type {0}</value>
+  </data>
+  <data name="NotifBillMarketFine" xml:space="preserve">
+    <value>Amende du marché</value>
+  </data>
+  <data name="NotifBillOfficeRental" xml:space="preserve">
+    <value>Location de bureau</value>
+  </data>
+  <data name="NotifBillBrokerFee" xml:space="preserve">
+    <value>Frais de courtage</value>
+  </data>
+  <data name="NotifBillWar" xml:space="preserve">
+    <value>Guerre</value>
+  </data>
+  <data name="NotifBillAllianceMaintenance" xml:space="preserve">
+    <value>Entretien de l'alliance</value>
+  </data>
+  <data name="NotifBillSovereigntyMarker" xml:space="preserve">
+    <value>Marqueur de souveraineté</value>
+  </data>
+  <data name="NotifMoreRows" xml:space="preserve">
+    <value>+{0} autre(s)</value>
+  </data>
+  <data name="NotifHoursOne" xml:space="preserve">
+    <value>{0} heure</value>
+  </data>
+  <data name="NotifHoursOther" xml:space="preserve">
+    <value>{0} heures</value>
+  </data>
+  <data name="NotifHoursFraction" xml:space="preserve">
+    <value>{0:0.#} heures</value>
+  </data>
+  <data name="NotifSpanDays" xml:space="preserve">
+    <value>{0} j</value>
+  </data>
+  <data name="NotifSpanHours" xml:space="preserve">
+    <value>{0} h</value>
+  </data>
+  <data name="NotifSpanMinutes" xml:space="preserve">
+    <value>{0} min</value>
+  </data>
+  <data name="NotifSpanSeconds" xml:space="preserve">
+    <value>{0} s</value>
+  </data>
+  <data name="NotifBillSummary" xml:space="preserve">
+    <value>{0} : {1}.</value>
+  </data>
+  <data name="NotifBillSummaryAt" xml:space="preserve">
+    <value>{0} à {1} : {2}.</value>
+  </data>
+  <data name="NotifBillSummaryDue" xml:space="preserve">
+    <value>{0} : {1}, échéance le {2}.</value>
+  </data>
+  <data name="NotifBillSummaryAtDue" xml:space="preserve">
+    <value>{0} à {1} : {2}, échéance le {3}.</value>
+  </data>
+  <data name="NotifLabelBill" xml:space="preserve">
+    <value>Facture</value>
+  </data>
+  <data name="NotifLabelBilledTo" xml:space="preserve">
+    <value>Facturée à</value>
+  </data>
+  <data name="NotifLabelPayableTo" xml:space="preserve">
+    <value>Payable à</value>
+  </data>
+  <data name="NotifLabelRented" xml:space="preserve">
+    <value>Loué</value>
+  </data>
+  <data name="NotifLabelForAlliance" xml:space="preserve">
+    <value>Pour l'alliance</value>
+  </data>
+  <data name="NotifLabelReference" xml:space="preserve">
+    <value>Référence</value>
+  </data>
+  <data name="NotifLabelSecondReference" xml:space="preserve">
+    <value>Seconde référence</value>
+  </data>
+  <data name="NotifTypeNumbered" xml:space="preserve">
+    <value>Type {0}</value>
+  </data>
+  <data name="NotifTipItemBrowser" xml:space="preserve">
+    <value>Ouvrir dans l'explorateur d'objets</value>
+  </data>
+  <data name="NotifSystemNumbered" xml:space="preserve">
+    <value>Système {0}</value>
+  </data>
+  <data name="NotifTipSecOpenMap" xml:space="preserve">
+    <value>{0}
+Ouvrir sur la carte</value>
+  </data>
+  <data name="NotifTipOpenMap" xml:space="preserve">
+    <value>Ouvrir sur la carte</value>
+  </data>
+  <data name="NotifMoonNumbered" xml:space="preserve">
+    <value>Lune {0}</value>
+  </data>
+  <data name="NotifStationNumbered" xml:space="preserve">
+    <value>Station {0}</value>
+  </data>
+  <data name="NotifTipNpcEntities" xml:space="preserve">
+    <value>Ouvrir dans Entités PNJ</value>
+  </data>
+  <data name="NotifNameUnknown" xml:space="preserve">
+    <value>{0} (nom inconnu)</value>
+  </data>
+  <data name="NotifStructureNameUnknown" xml:space="preserve">
+    <value>Structure (nom inconnu)</value>
+  </data>
+  <data name="NotifTipStructureNumbered" xml:space="preserve">
+    <value>Structure {0}
+Ouvrir dans l'explorateur de structures</value>
+  </data>
+  <data name="NotifTipStructureBrowser" xml:space="preserve">
+    <value>Ouvrir dans l'explorateur de structures</value>
+  </data>
+  <data name="NotifOthersOne" xml:space="preserve">
+    <value>+{0} autre</value>
+  </data>
+  <data name="NotifOthersOther" xml:space="preserve">
+    <value>+{0} autres</value>
+  </data>
+  <data name="NotifStandingUp" xml:space="preserve">
+    <value>{0} a augmenté sa réputation envers vous de {1}.</value>
+  </data>
+  <data name="NotifStandingUpTo" xml:space="preserve">
+    <value>{0} a augmenté sa réputation envers vous de {1} (désormais {2}).</value>
+  </data>
+  <data name="NotifStandingDown" xml:space="preserve">
+    <value>{0} a diminué sa réputation envers vous de {1}.</value>
+  </data>
+  <data name="NotifStandingDownTo" xml:space="preserve">
+    <value>{0} a diminué sa réputation envers vous de {1} (désormais {2}).</value>
+  </data>
+  <data name="NotifStandingMoreOne" xml:space="preserve">
+    <value> {0} autre réputation a changé en même temps.</value>
+  </data>
+  <data name="NotifStandingMoreOther" xml:space="preserve">
+    <value> {0} autres réputations ont changé en même temps.</value>
+  </data>
+  <data name="SenderAll" xml:space="preserve">
+    <value>Tous les expéditeurs</value>
+  </data>
+  <data name="SenderCorporation" xml:space="preserve">
+    <value>Corporation</value>
+  </data>
+  <data name="SenderCharacter" xml:space="preserve">
+    <value>Personnage</value>
+  </data>
+  <data name="TimeAgo" xml:space="preserve">
+    <value>il y a {0}</value>
+  </data>
+  <data name="TimeAgoTwoUnits" xml:space="preserve">
+    <value>{0} et {1}</value>
+  </data>
+  <data name="TimeAgoSecondsOne" xml:space="preserve">
+    <value>{0} seconde</value>
+  </data>
+  <data name="TimeAgoSecondsOther" xml:space="preserve">
+    <value>{0} secondes</value>
+  </data>
+  <data name="TimeAgoMinutesOne" xml:space="preserve">
+    <value>{0} minute</value>
+  </data>
+  <data name="TimeAgoMinutesOther" xml:space="preserve">
+    <value>{0} minutes</value>
+  </data>
+  <data name="TimeAgoHoursOne" xml:space="preserve">
+    <value>{0} heure</value>
+  </data>
+  <data name="TimeAgoHoursOther" xml:space="preserve">
+    <value>{0} heures</value>
+  </data>
+  <data name="TimeAgoDaysOne" xml:space="preserve">
+    <value>{0} jour</value>
+  </data>
+  <data name="TimeAgoDaysOther" xml:space="preserve">
+    <value>{0} jours</value>
+  </data>
+</root>

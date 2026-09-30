@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Net.Http;
 using System.Xml.Linq;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -8,7 +9,7 @@ public record NewsItem(string Title, string Link, DateTimeOffset PubDate, string
 {
     public string PubDateText => PubDate == default
         ? ""
-        : PubDate.ToLocalTime().ToString("MMM d, h:mm tt", CultureInfo.InvariantCulture);
+        : PubDate.ToLocalTime().ToString(CommonText.DateMonthDayTime12);
 }
 
 public class NewsService(AppErrorLogger errorLogger)

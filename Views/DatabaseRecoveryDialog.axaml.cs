@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using EveConsole.Services;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -37,16 +38,9 @@ public partial class DatabaseRecoveryDialog : Window
         _dbPath  = dbPath;
         _backups = DatabaseIntegrityService.FindBackups(dbPath);
 
-        ExplainText.Text =
-            $"EVE Console could not read its database at {dbPath}. "
-            + "Nothing has been changed or deleted yet.";
-
-        ErrorText.Text = error;
-
-        QuarantineText.Text =
-            "Whichever you choose, the damaged file is renamed rather than deleted — it keeps its "
-            + "folder, with \".damaged-\" and the date added to the name — so it can be inspected "
-            + "or recovered later.";
+        ExplainText.Text    = string.Format(ShellText.RecoveryCouldNotRead, dbPath);
+        ErrorText.Text      = error;
+        QuarantineText.Text = ShellText.RecoveryDamagedFileNote;
 
         if (_backups.Count > 0)
         {
@@ -77,7 +71,7 @@ public partial class DatabaseRecoveryDialog : Window
         }
         catch (Exception ex)
         {
-            ErrorText.Text = $"Could not move the damaged file aside: {ex.Message}";
+            ErrorText.Text = string.Format(ShellText.RecoveryQuarantineFailed, ex.Message);
         }
     }
 
@@ -98,7 +92,7 @@ public partial class DatabaseRecoveryDialog : Window
         }
         catch (Exception ex)
         {
-            ErrorText.Text = $"Restore failed: {ex.Message}";
+            ErrorText.Text = string.Format(ShellText.RecoveryRestoreFailed, ex.Message);
         }
     }
 }

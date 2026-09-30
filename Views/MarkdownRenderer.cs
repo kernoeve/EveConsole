@@ -5,6 +5,7 @@ using Markdig;
 using Markdig.Extensions.Tables;
 using Markdig.Syntax;
 using Markdig.Syntax.Inlines;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -46,7 +47,7 @@ public static class MarkdownRenderer
         {
             // ⚠️ Shown, not swallowed. The alternative is a blank tab, which reads as "the agent
             // produced nothing" rather than "this failed to render".
-            panel.Children.Add(Text($"This document could not be rendered: {ex.Message}", "md-error"));
+            panel.Children.Add(Text(string.Format(AgentText.ErrDocumentRender, ex.Message), "md-error"));
             panel.Children.Add(Text(markdown ?? "", "md-codetext"));
         }
         return panel;

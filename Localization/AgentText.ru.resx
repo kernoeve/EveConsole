@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="CopyMarkdown" xml:space="preserve">
+    <value>Копировать Markdown</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Сохранить</value>
+  </data>
+  <data name="CopySelected" xml:space="preserve">
+    <value>Копировать выбранное</value>
+  </data>
+  <data name="TipCopiesTheSelectedRows" xml:space="preserve">
+    <value>Копирует выбранные строки с заголовками как текст, разделённый табуляцией, — его можно сразу вставить в электронную таблицу. То же делает Ctrl+C.</value>
+  </data>
+  <data name="CopyAll" xml:space="preserve">
+    <value>Копировать всё</value>
+  </data>
+  <data name="SaveCsv" xml:space="preserve">
+    <value>Сохранить CSV</value>
+  </data>
+  <data name="AiCompanion" xml:space="preserve">
+    <value>ИИ-помощник</value>
+  </data>
+  <data name="TipVoiceVolumeIndependentOfSystem" xml:space="preserve">
+    <value>Громкость голоса (не зависит от системной громкости)</value>
+  </data>
+  <data name="TipClearConversation" xml:space="preserve">
+    <value>Очистить беседу</value>
+  </data>
+  <data name="TipClosePanel" xml:space="preserve">
+    <value>Закрыть панель</value>
+  </data>
+  <data name="EarlierContextSummarized" xml:space="preserve">
+    <value>— более ранний контекст подытожен —</value>
+  </data>
+  <data name="TipHoldToTalkRelease" xml:space="preserve">
+    <value>Удерживайте, чтобы говорить, отпустите, чтобы отправить. Или удерживайте глобальную горячую клавишу.</value>
+  </data>
+  <data name="FmtMuteUnmuteVoice" xml:space="preserve">
+    <value>Выключить / включить голос ({0})</value>
+  </data>
+  <data name="AskWatermark" xml:space="preserve">
+    <value>{0} ждёт вашего вопроса…</value>
+  </data>
+  <data name="ErrMicrophoneFailed" xml:space="preserve">
+    <value>Не удалось начать запись с микрофона. Проверьте микрофон: Настройки → {0}.</value>
+  </data>
+  <data name="StatusRecording" xml:space="preserve">
+    <value>Запись…</value>
+  </data>
+  <data name="StatusTranscribing" xml:space="preserve">
+    <value>Распознавание речи…</value>
+  </data>
+  <data name="StatusNoSpeechCaptured" xml:space="preserve">
+    <value>Речь не записана — удерживайте клавишу, пока говорите.</value>
+  </data>
+  <data name="StatusNoSpeechDetected" xml:space="preserve">
+    <value>Речь не распознана — попробуйте говорить чуть дольше.</value>
+  </data>
+  <data name="ErrTranscriptionFailed" xml:space="preserve">
+    <value>Не удалось распознать речь: {0}</value>
+  </data>
+  <data name="ErrNoModel" xml:space="preserve">
+    <value>Модель не настроена. Добавьте её — с ключом или адресом сервера — в разделе Настройки → {0}.</value>
+  </data>
+  <data name="ErrAgentDisabled" xml:space="preserve">
+    <value>Помощник отключён. Включите его: Настройки → {0}.</value>
+  </data>
+  <data name="StatusOrganizingContext" xml:space="preserve">
+    <value>Упорядочиваю контекст…</value>
+  </data>
+  <data name="StatusThinking" xml:space="preserve">
+    <value>Думаю…</value>
+  </data>
+  <data name="StatusLookingIntoIt" xml:space="preserve">
+    <value>Разбираюсь…</value>
+  </data>
+  <data name="ToolStatusQueryDatabase" xml:space="preserve">
+    <value>Читаю базу данных…</value>
+  </data>
+  <data name="ToolStatusDescribeTables" xml:space="preserve">
+    <value>Проверяю схему…</value>
+  </data>
+  <data name="ToolStatusGetAssets" xml:space="preserve">
+    <value>Смотрю имущество…</value>
+  </data>
+  <data name="ToolStatusGetIndustryJobs" xml:space="preserve">
+    <value>Смотрю промышленные проекты…</value>
+  </data>
+  <data name="ToolStatusGetCharacterInfo" xml:space="preserve">
+    <value>Смотрю данные персонажа…</value>
+  </data>
+  <data name="ToolStatusGetMarketPrices" xml:space="preserve">
+    <value>Проверяю рыночные цены…</value>
+  </data>
+  <data name="ToolStatusSearchItems" xml:space="preserve">
+    <value>Ищу предметы…</value>
+  </data>
+  <data name="ToolStatusCaptureTab" xml:space="preserve">
+    <value>Смотрю на экран…</value>
+  </data>
+  <data name="ToolStatusManageAlarms" xml:space="preserve">
+    <value>Настраиваю тревогу…</value>
+  </data>
+  <data name="ToolStatusWorking" xml:space="preserve">
+    <value>Работаю…</value>
+  </data>
+  <data name="StatusCopiedRows" xml:space="preserve">
+    <value>Скопировано строк с заголовками: {0:N0}.</value>
+  </data>
+  <data name="StatusSavedRows" xml:space="preserve">
+    <value>Сохранено строк: {0:N0} (файл {1})</value>
+  </data>
+  <data name="StatusCopiedDocument" xml:space="preserve">
+    <value>Документ скопирован в формате Markdown.</value>
+  </data>
+  <data name="StatusSavedTo" xml:space="preserve">
+    <value>Сохранено: {0}</value>
+  </data>
+  <data name="TitleSaveDocument" xml:space="preserve">
+    <value>Сохранить документ</value>
+  </data>
+  <data name="FileTypeText" xml:space="preserve">
+    <value>Текст</value>
+  </data>
+  <data name="FileTypeAllFiles" xml:space="preserve">
+    <value>Все файлы</value>
+  </data>
+  <data name="TitleSaveGrid" xml:space="preserve">
+    <value>Сохранить таблицу</value>
+  </data>
+  <data name="ErrDocumentRender" xml:space="preserve">
+    <value>Не удалось отобразить этот документ: {0}</value>
+  </data>
+  <data name="GridRowsOne" xml:space="preserve">
+    <value>{0:N0} строка</value>
+  </data>
+  <data name="GridRowsOther" xml:space="preserve">
+    <value>{0:N0} строки</value>
+  </data>
+  <data name="GridRowsFew" xml:space="preserve">
+    <value>{0:N0} строки</value>
+  </data>
+  <data name="GridRowsMany" xml:space="preserve">
+    <value>{0:N0} строк</value>
+  </data>
+  <data name="ToolCallsNone" xml:space="preserve">
+    <value>без вызовов инструментов</value>
+  </data>
+  <data name="ToolCallsOne" xml:space="preserve">
+    <value>{0} вызов инструмента: {1}</value>
+  </data>
+  <data name="ToolCallsOther" xml:space="preserve">
+    <value>{0} вызова инструментов: {1}</value>
+  </data>
+  <data name="ToolCallsFew" xml:space="preserve">
+    <value>{0} вызова инструментов: {1}</value>
+  </data>
+  <data name="ToolCallsMany" xml:space="preserve">
+    <value>{0} вызовов инструментов: {1}</value>
+  </data>
+  <data name="MetaAlarm" xml:space="preserve">
+    <value>тревога</value>
+  </data>
+  <data name="MetaVoiceChange" xml:space="preserve">
+    <value>смена голоса</value>
+  </data>
+  <data name="MetaModelChange" xml:space="preserve">
+    <value>смена модели</value>
+  </data>
+</root>

@@ -19,6 +19,7 @@ using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 using SkiaSharp;
 using Avalonia.Media;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -109,7 +110,7 @@ public record LpOfferVm(
     public string RequiredText => RequiredItems.Count == 0 ? "—" : string.Join(", ", RequiredItems);
 
     public bool   CanAfford    => LpHeld >= LpCost;
-    public string HeldText     => LpHeld > 0 ? $"{LpHeld:N0} LP" : "none";
+    public string HeldText     => LpHeld > 0 ? $"{LpHeld:N0} LP" : AssetsText.LpHeldNone;
     /// <summary>Green when a character can cover it today, muted when they cannot.</summary>
     public IBrush HeldColor    => CanAfford ? Palette.Good : Palette.TextFaint;
 }
@@ -163,7 +164,7 @@ public record ReprocessSourceVm(
     /// about the item, which does yield strontium once you refine a stack of them.</summary>
     public string YieldText => Yield == 0 && BaseQuantity > 0 ? "<1" : Yield.ToString("N0");
 
-    public string BatchText => PortionSize > 1 ? $"per {PortionSize:N0}" : "per unit";
+    public string BatchText => PortionSize > 1 ? string.Format(AssetsText.BatchPerPortion, PortionSize) : AssetsText.BatchPerUnit;
     public string RateText  => $"{Rate * 100:0.#}%";
 }
 
@@ -220,9 +221,18 @@ public record RequiredForGroupVm(string CategoryName, IReadOnlyList<RequiredForI
 public class MarketConfigOption
 {
     public int    Id           { get; init; }
+
+    /// <summary>The source's name as stored: what the choice is remembered and matched by.</summary>
     public string LocationName { get; init; } = "";
     public string Method       { get; init; } = "";
-    public override string ToString() => LocationName;
+
+    private readonly string? _displayName;
+
+    /// <summary>The name the picker shows (see <see cref="MarketSourceNames"/>); the stored one
+    /// when none was given.</summary>
+    public string DisplayName { get => _displayName ?? LocationName; init => _displayName = value; }
+
+    public override string ToString() => DisplayName;
 }
 
 public class OrderRowVm
@@ -266,17 +276,19 @@ public class OrderRowVm
         get
         {
             var r = Expires - DateTimeOffset.UtcNow;
-            if (r.TotalSeconds <= 0) return "Expired";
-            if (r.TotalDays    >= 1) return $"{(int)r.TotalDays}d {r.Hours}h";
-            return $"{r.Hours}h {r.Minutes}m";
+            if (r.TotalSeconds <= 0) return AssetsText.OrderExpired;
+            if (r.TotalDays    >= 1) return string.Format(AssetsText.ExpiresDaysHours, (int)r.TotalDays, r.Hours);
+            return string.Format(AssetsText.ExpiresHoursMinutes, r.Hours, r.Minutes);
         }
     }
     public string RangeDisplay => Range switch
     {
-        "station"     => "Station",
-        "solarsystem" => "Solar System",
-        "region"      => "Region",
-        var n         => int.TryParse(n, out _) ? $"{n} Jumps" : n,
+        "station"     => AssetsText.RangeStation,
+        "solarsystem" => AssetsText.RangeSolarSystem,
+        "region"      => AssetsText.RangeRegion,
+        var n         => int.TryParse(n, out var jumps)
+                             ? Plurals.Format(AssetsText.ResourceManager, nameof(AssetsText.RangeJumpsOther), jumps)
+                             : n,
     };
 }
 
@@ -288,7 +300,7 @@ public class ItemDisplayVm : ReactiveObject
     public string GroupPath        { get; init; } = "";
     public string VolumeText       { get; init; } = "";
     public int    PortionSize      { get; init; }
-    public string MarketValueLabel { get; init; } = "Market Value";
+    public string MarketValueLabel { get; init; } = AssetsText.MarketValueLabel;
     public string MarketValueText  { get; init; } = "";
     public string BuildCostText          { get; init; } = "";
     public bool   HasBuildCost           { get; init; }
@@ -417,16 +429,26 @@ public class ItemBrowserViewModel : ReactiveObject
     // category, ice and moon ore included: the same test that gives a source its 90.6% ceiling.
     // Kept on the browser rather than the item, so the choice holds as you move between items.
 
-    public IReadOnlyList<string> ReprocessSourceFilters { get; } = ["All", "Ore", "Non Ore"];
+    /// <summary>⚠️ Kept and compared by the value — "All", "Ore", "Non Ore" — never by the label,
+    /// which follows the interface language.</summary>
+    public IReadOnlyList<Choice<string>> ReprocessSourceFilters { get; } =
+    [
+        new("All",     AssetsText.ReprocessFilterAll),
+        new("Ore",     AssetsText.ReprocessFilterOre),
+        new("Non Ore", AssetsText.ReprocessFilterNonOre),
+    ];
 
     private string _reprocessSourceFilter = "All";
-    public string SelectedReprocessSourceFilter
+    public Choice<string> SelectedReprocessSourceFilter
     {
-        get => _reprocessSourceFilter;
+        get => ReprocessSourceFilters.FirstOrDefault(o => o.Value == _reprocessSourceFilter) ?? ReprocessSourceFilters[0];
         set
         {
-            if (value is null || value == _reprocessSourceFilter) return;
-            this.RaiseAndSetIfChanged(ref _reprocessSourceFilter, value);
+            // A detaching ComboBox sets null; that is not a choice.
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            if (value.Value == _reprocessSourceFilter) return;
+            _reprocessSourceFilter = value.Value;
+            this.RaisePropertyChanged();
             RaiseReprocessSources();
         }
     }
@@ -469,6 +491,10 @@ public class ItemBrowserViewModel : ReactiveObject
     }
 
     // Switches the Item Browser to a named detail tab. Returns a status message.
+    // ⚠️ The indices are the tabs' order in ItemBrowserView.axaml's ItemDetailTabs, hidden ones
+    // included. Assets (5) and LP Store (6) were added before Market Orders without this moving
+    // on, and the agent's "market_orders" opened Assets.
+    private const int PriceHistoryTab = 8;
     public string ShowDetailTab(string tabKey)
     {
         var key = tabKey.Trim().ToLowerInvariant().Replace(" ", "_");
@@ -479,31 +505,37 @@ public class ItemBrowserViewModel : ReactiveObject
             "requirements"                   => 2,
             "required_for"                   => 3,
             "industry"                       => 4,
-            "market_orders" or "market" or "orders" => 5,
-            "price_history" or "history" or "price" => 6,
-            "derived_history" or "derived" => 7,
+            "assets"                         => 5,
+            "lp_store" or "lp"               => 6,
+            "market_orders" or "market" or "orders" => 7,
+            "price_history" or "history" or "price" => PriceHistoryTab,
+            "derived_history" or "derived" => 9,
             _ => null,
         };
         if (idx is null) return $"Unknown Item Browser tab '{tabKey}'.";
         if (idx == 3 && SelectedItem?.IsSkill != true)
             return "The Required For tab is only available when the loaded item is a skill.";
-        if (idx == 6 && !HasPriceHistoryRegions)
+        if (idx == 6 && !HasLpOffers)
+            return "The LP Store tab only shows for an item some loyalty store offers.";
+        if (idx == PriceHistoryTab && !HasPriceHistoryRegions)
             return "The Price History tab has no regions configured (add one in Settings > Price History).";
         SelectedDetailTabIndex = idx.Value;
         return $"Showing the {key.Replace('_', ' ')} tab.";
     }
 
     // Selects a market-orders source by (partial) name. Returns a status message.
+    // ⚠️ For the agent, so by SourceKey: All Sources is named in English whatever the interface
+    // language, like the rest of what the agent reads.
     public string TrySelectMarketSource(string name)
     {
         if (MarketConfigs.Count == 0)
             return "No ESI market sources are configured (add one in Settings > Market).";
-        var match = MarketConfigs.FirstOrDefault(c => c.LocationName.Contains(name, StringComparison.OrdinalIgnoreCase))
-                 ?? MarketConfigs.FirstOrDefault(c => name.Contains(c.LocationName, StringComparison.OrdinalIgnoreCase));
+        var match = MarketConfigs.FirstOrDefault(c => SourceKey(c).Contains(name, StringComparison.OrdinalIgnoreCase))
+                 ?? MarketConfigs.FirstOrDefault(c => name.Contains(SourceKey(c), StringComparison.OrdinalIgnoreCase));
         if (match is null)
-            return $"No market source matching '{name}'. Available: {string.Join(", ", MarketConfigs.Select(c => c.LocationName))}.";
+            return $"No market source matching '{name}'. Available: {string.Join(", ", MarketConfigs.Select(SourceKey))}.";
         SelectedMarketConfig = match;
-        return $"Market source set to {match.LocationName}.";
+        return $"Market source set to {SourceKey(match)}.";
     }
 
     // Selects a price-history region by (partial) name. Returns a status message.
@@ -637,10 +669,11 @@ public class ItemBrowserViewModel : ReactiveObject
 
                     return new LpOfferVm(
                         o.CorporationId,
-                        corpNames.GetValueOrDefault(o.CorporationId, $"Corp {o.CorporationId}"),
+                        SdeNames.NpcCorporation(o.CorporationId,
+                            corpNames.GetValueOrDefault(o.CorporationId, string.Format(AssetsText.FallbackCorpName, o.CorporationId))),
                         o.Quantity, o.LpCost, o.IskCost, o.AkCost,
                         lpHeld.GetValueOrDefault(o.CorporationId),
-                        mine.Select(i => $"{i.Quantity:N0} × {reqNames.GetValueOrDefault(i.TypeId, $"Type {i.TypeId}")}")
+                        mine.Select(i => $"{i.Quantity:N0} × {SdeNames.Type(i.TypeId, reqNames.GetValueOrDefault(i.TypeId, string.Format(AssetsText.FallbackTypeName, i.TypeId)))}")
                             .ToList(),
                         priced
                             ? LpValueService.IskPerLp(unitValue, o.IskCost, o.Quantity, o.LpCost, reqValue)
@@ -660,7 +693,7 @@ public class ItemBrowserViewModel : ReactiveObject
         catch (OperationCanceledException) { }
         catch (Exception ex)
         {
-            await Dispatcher.UIThread.InvokeAsync(() => Status = $"LP store: {ex.Message}");
+            await Dispatcher.UIThread.InvokeAsync(() => Status = string.Format(AssetsText.ErrLpStore, ex.Message));
         }
     }
 
@@ -676,12 +709,20 @@ public class ItemBrowserViewModel : ReactiveObject
 
     private static readonly AssetScopeOption[] s_assetScopes =
     [
-        new("all",      "All owners"),
-        new("personal", "Characters and personal corps"),
+        new("all",      AssetsText.AssetScopeAllOwners),
+        new("personal", AssetsText.ScopePersonal),
     ];
 
     public IReadOnlyList<AssetScopeOption> AssetScopeOptions => s_assetScopes;
-    public IReadOnlyList<string>           AssetGroupOptions { get; } = ["Location", "Owner", "None"];
+
+    /// <summary>⚠️ Kept and compared by the value — "Location", "Owner", "None" — never by the
+    /// label, which follows the interface language.</summary>
+    public IReadOnlyList<Choice<string>> AssetGroupOptions { get; } =
+    [
+        new("Location", AssetsText.ColLocation),
+        new("Owner",    AssetsText.ColOwner),
+        new("None",     AssetsText.AssetGroupNone),
+    ];
 
     private AssetScopeOption _assetScope = s_assetScopes[1];
 
@@ -702,13 +743,16 @@ public class ItemBrowserViewModel : ReactiveObject
 
     /// <summary>Location, Owner or None. Changing it regroups the rows already loaded; nothing
     /// is read again.</summary>
-    public string SelectedAssetGroup
+    public Choice<string> SelectedAssetGroup
     {
-        get => _assetGroup;
+        get => AssetGroupOptions.FirstOrDefault(o => o.Value == _assetGroup) ?? AssetGroupOptions[0];
         set
         {
-            if (value is null || value == _assetGroup) return;
-            this.RaiseAndSetIfChanged(ref _assetGroup, value);
+            // A detaching ComboBox sets null; that is not a choice.
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            if (value.Value == _assetGroup) return;
+            _assetGroup = value.Value;
+            this.RaisePropertyChanged();
             RebuildAssetsView();
         }
     }
@@ -746,7 +790,7 @@ public class ItemBrowserViewModel : ReactiveObject
         _assetRows = [];
         RebuildAssetsView();
         this.RaisePropertyChanged(nameof(HasAssets));
-        AssetsSummary = "Loading…";
+        AssetsSummary = CommonText.Loading;
 
         try
         {
@@ -783,7 +827,8 @@ public class ItemBrowserViewModel : ReactiveObject
             SELECT "Location Name", "Root Location Id", "Is Station",
                    "Owner Name", "Owner Id", "Owner Type",
                    "Container", "Flag", "Quantity",
-                   "Solar System", "Solar System Id", "Region Name", "Security", "Value"
+                   "Solar System", "Solar System Id", "Region Name", "Security", "Value",
+                   "Region Id"
             FROM Base
             WHERE "Type Id" = @t{(personalOnly ? " AND " + AssetBrowserViewModel.PersonalScopeClause : "")}
             """);
@@ -796,7 +841,9 @@ public class ItemBrowserViewModel : ReactiveObject
             ct.ThrowIfCancellationRequested();
             rows.Add(new ItemAssetRowVm
             {
-                Location           = Str(r, 0),
+                // The root place by its id: an NPC station, or the system of a stack in space, in
+                // the interface language; a structure as named. Grouped, sorted and copied as shown.
+                Location           = SdeNames.Location(Long(r, 1), Str(r, 0)),
                 LocationId         = Long(r, 1),
                 IsStation          = Long(r, 2) == 1,
                 Owner              = Str(r, 3),
@@ -805,9 +852,11 @@ public class ItemBrowserViewModel : ReactiveObject
                 Container          = Str(r, 6),
                 Flag               = Str(r, 7),
                 Quantity           = Long(r, 8),
-                SolarSystem        = Str(r, 9),
+                // The two SDE names in the interface language: shown, sorted and copied as shown,
+                // and nothing reads them back — the links go by SolarSystemId.
+                SolarSystem        = SdeNames.SolarSystem(Long(r, 10), Str(r, 9)),
                 SolarSystemId      = (int)Long(r, 10),
-                Region             = Str(r, 11),
+                Region             = SdeNames.Region(Long(r, 14), Str(r, 11)),
                 Security           = r.IsDBNull(12) ? null : Convert.ToDouble(r.GetValue(12), CultureInfo.InvariantCulture),
                 Value              = r.IsDBNull(13) ? 0    : Convert.ToDouble(r.GetValue(13), CultureInfo.InvariantCulture),
             });
@@ -827,18 +876,22 @@ public class ItemBrowserViewModel : ReactiveObject
     {
         if (rows.Count == 0)
             return scope.Key == "personal"
-                ? "None held by your characters or personal corporations. All owners includes every corporation the app can see."
-                : "None held anywhere the app can see.";
+                ? AssetsText.AssetsNoneHeldPersonal
+                : AssetsText.AssetsNoneHeldAnywhere;
 
         var units  = rows.Sum(r => r.Quantity);
         var worth  = rows.Sum(r => r.Value);
         var places = rows.Select(r => r.Location).Distinct().Count();
         var inJobs = rows.Where(r => r.IsInJob).Sum(r => r.Quantity);
 
-        var text = $"{units:N0} unit{(units == 1 ? "" : "s")} in {rows.Count:N0} stack{(rows.Count == 1 ? "" : "s")} "
-                 + $"across {places:N0} location{(places == 1 ? "" : "s")}";
-        if (worth > 0)  text += $" · worth {MarketFmt.Isk(worth)}";
-        if (inJobs > 0) text += $" · {inJobs:N0} still in industry jobs";
+        // One sentence around three counted phrases, each in the form its own number needs.
+        var rm   = AssetsText.ResourceManager;
+        var text = string.Format(AssetsText.AssetsSummaryUnitsStacksPlaces,
+            Plurals.Format(rm, nameof(AssetsText.AssetsUnitsOther),     units),
+            Plurals.Format(rm, nameof(AssetsText.AssetsStacksOther),    rows.Count),
+            Plurals.Format(rm, nameof(AssetsText.AssetsLocationsOther), places));
+        if (worth > 0)  text += " · " + string.Format(AssetsText.AssetsSummaryWorth, MarketFmt.Isk(worth));
+        if (inJobs > 0) text += " · " + string.Format(AssetsText.AssetsSummaryInJobs, inJobs);
         return text;
     }
 
@@ -899,6 +952,18 @@ public class ItemBrowserViewModel : ReactiveObject
     /// </summary>
     public const int AllSourcesId = 0;
 
+    /// <summary>
+    /// What the All Sources entry is remembered and named to the agent as.
+    ///
+    /// <para>⚠️ Not its label: that follows the interface language, so a source saved in one
+    /// language would not be found again in another. The English words, as it was always saved.</para>
+    /// </summary>
+    private const string AllSourcesKey = "All Sources";
+
+    /// <summary>A source as it is saved and matched: its location name, or the All Sources key.</summary>
+    private static string SourceKey(MarketConfigOption c) =>
+        c.Id == AllSourcesId ? AllSourcesKey : c.LocationName;
+
     // Local: which market source this browser is pointed at is a view choice.
 
     private MarketConfigOption? _selectedMarketConfig;
@@ -908,7 +973,7 @@ public class ItemBrowserViewModel : ReactiveObject
         set
         {
             this.RaiseAndSetIfChanged(ref _selectedMarketConfig, value);
-            if (value is not null) UiState.Set(UiState.MarketSource, value.LocationName);
+            if (value is not null) UiState.Set(UiState.MarketSource, SourceKey(value));
             _ = LoadOrdersAsync();
         }
     }
@@ -926,7 +991,7 @@ public class ItemBrowserViewModel : ReactiveObject
     private CancellationTokenSource _ordersCts = new();
 
     // ── Status ────────────────────────────────────────────────────────────────
-    private string _status = "Loading items…";
+    private string _status = AssetsText.StatusLoadingItems;
     public string Status
     {
         get => _status;
@@ -943,9 +1008,9 @@ public class ItemBrowserViewModel : ReactiveObject
     // ── Internal search cache ─────────────────────────────────────────────────
     private record TypeSummary(int TypeId, string Name, int? GroupId);
     private List<TypeSummary>      _allTypes       = [];
-    private Dictionary<int,string> _groupPathCache = [];  // groupId → "A > B > C"
+    private Dictionary<int,string> _groupPathCache = [];  // groupId → "A > B > C", as shown
     private Dictionary<int,int?>   _parentMap      = [];  // groupId → parentGroupId
-    private Dictionary<int,string> _groupNameMap   = [];  // groupId → name
+    private Dictionary<int,string> _groupNameMap   = [];  // groupId → English name
 
     // ── Navigation history ────────────────────────────────────────────────────
     private const int                        HistoryDepth  = 100;
@@ -995,10 +1060,10 @@ public class ItemBrowserViewModel : ReactiveObject
 
     public IReadOnlyList<PeriodOption> PeriodOptions { get; } =
     [
-        new("All Time",       -1),
-        new("Last 30 Days",   30),
-        new("Last 90 Days",   90),
-        new("Last 365 Days", 365),
+        new(AssetsText.PeriodAllTime,       -1),
+        new(AssetsText.PeriodLast30Days,   30),
+        new(AssetsText.PeriodLast90Days,   90),
+        new(AssetsText.PeriodLast365Days, 365),
     ];
 
     private PeriodOption _selectedPeriod;
@@ -1194,6 +1259,10 @@ public class ItemBrowserViewModel : ReactiveObject
     {
         try
         {
+            // The tree is built once and keeps its names, so it waits for them first (at once in
+            // English). Its nodes carry the names shown; everything is found by id.
+            await SdeNames.EnsureLoadedAsync();
+
             var groups = await _db.SdeMarketGroups.AsNoTracking().ToListAsync();
 
             // Everything published, market group or not. Search runs off this list, and
@@ -1221,7 +1290,8 @@ public class ItemBrowserViewModel : ReactiveObject
                 nodeMap[g.MarketGroupId] = new MarketGroupNode
                 {
                     GroupId = g.MarketGroupId,
-                    Name    = g.Name.Length > 0 ? g.Name : $"Group #{g.MarketGroupId}"
+                    Name    = g.Name.Length > 0 ? SdeNames.MarketGroup(g.MarketGroupId, g.Name)
+                                                : string.Format(AssetsText.FallbackGroupName, g.MarketGroupId)
                 };
 
             // Add child groups
@@ -1231,27 +1301,30 @@ public class ItemBrowserViewModel : ReactiveObject
                     parent.Children.Add(nodeMap[g.MarketGroupId]);
             }
 
-            // Add type leaves to their groups; capture TypeNode refs for tree expansion.
+            // Add type leaves to their groups, by the name shown; capture TypeNode refs for tree
+            // expansion.
             var byGroup      = types.GroupBy(t => t.GroupId!.Value)
-                .ToDictionary(g => g.Key, g => g.OrderBy(t => t.Name).ToList());
+                .ToDictionary(g => g.Key, g => g
+                    .Select(t => new TypeNode { TypeId = t.TypeId, Name = SdeNames.Type(t.TypeId, t.Name), MarketGroupId = g.Key })
+                    .OrderBy(tn => tn.Name, StringComparer.CurrentCulture)
+                    .ToList());
             var typeNodeMap  = new Dictionary<int, TypeNode>(types.Count);
 
             foreach (var (gid, node) in nodeMap)
             {
                 if (!byGroup.TryGetValue(gid, out var gTypes)) continue;
-                foreach (var t in gTypes)
+                foreach (var tn in gTypes)
                 {
-                    var tn = new TypeNode { TypeId = t.TypeId, Name = t.Name, MarketGroupId = gid };
                     node.Children.Add(tn);
-                    typeNodeMap[t.TypeId] = tn;
+                    typeNodeMap[tn.TypeId] = tn;
                 }
             }
 
-            // Root nodes: no parent, sorted by name
+            // Root nodes: no parent, sorted by the name shown
             var roots = groups
                 .Where(g => !g.ParentGroupId.HasValue)
                 .Select(g => nodeMap[g.MarketGroupId])
-                .OrderBy(n => n.Name)
+                .OrderBy(n => n.Name, StringComparer.CurrentCulture)
                 .ToList();
 
             // Make both maps available before the tree renders.
@@ -1262,7 +1335,9 @@ public class ItemBrowserViewModel : ReactiveObject
             {
                 foreach (var r in roots) RootGroups.Add(r);
                 IsLoading = false;
-                Status = $"{types.Count:N0} items across {groups.Count:N0} categories";
+                Status = string.Format(AssetsText.StatusItemsAcrossCategories,
+                    Plurals.Format(AssetsText.ResourceManager, nameof(AssetsText.TreeItemsOther),      types.Count),
+                    Plurals.Format(AssetsText.ResourceManager, nameof(AssetsText.TreeCategoriesOther), groups.Count));
             });
         }
         catch (Exception ex)
@@ -1270,7 +1345,7 @@ public class ItemBrowserViewModel : ReactiveObject
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 IsLoading = false;
-                Status = $"Error loading tree: {ex.Message}";
+                Status = string.Format(AssetsText.ErrLoadingTree, ex.Message);
             });
         }
 
@@ -1285,17 +1360,20 @@ public class ItemBrowserViewModel : ReactiveObject
 
         if (text.Length < 2) return Task.CompletedTask;
 
-        var lower = text.ToLowerInvariant();
+        // Finds the name shown and the English alike — names get pasted from English sites and
+        // chat — and lists by the name shown, those starting with what was typed first.
         var matches = _allTypes
-            .Where(t => t.Name.Contains(lower, StringComparison.OrdinalIgnoreCase))
-            .OrderBy(t => t.Name.StartsWith(text, StringComparison.OrdinalIgnoreCase) ? 0 : 1)
-            .ThenBy(t => t.Name)
+            .Where(t => SdeNames.Matches(SdeNameKind.Type, t.TypeId, t.Name, text))
+            .Select(t => (Type: t, Shown: SdeNames.Type(t.TypeId, t.Name)))
+            .OrderBy(x => x.Shown.StartsWith(text, StringComparison.OrdinalIgnoreCase)
+                       || x.Type.Name.StartsWith(text, StringComparison.OrdinalIgnoreCase) ? 0 : 1)
+            .ThenBy(x => x.Shown, StringComparer.CurrentCulture)
             .Take(200)
-            .Select(t => new TypeSearchResult
+            .Select(x => new TypeSearchResult
             {
-                TypeId    = t.TypeId,
-                Name      = t.Name,
-                GroupPath = t.GroupId.HasValue ? BuildGroupPath(t.GroupId.Value) : ""
+                TypeId    = x.Type.TypeId,
+                Name      = x.Shown,
+                GroupPath = x.Type.GroupId.HasValue ? BuildGroupPath(x.Type.GroupId.Value) : ""
             });
 
         foreach (var m in matches)
@@ -1311,10 +1389,11 @@ public class ItemBrowserViewModel : ReactiveObject
         var current = (int?)groupId;
         var visited = new HashSet<int>();
 
+        // Each market group by the name shown; the map keeps the English.
         while (current.HasValue && !visited.Contains(current.Value))
         {
             visited.Add(current.Value);
-            if (_groupNameMap.TryGetValue(current.Value, out var n)) parts.Add(n);
+            if (_groupNameMap.TryGetValue(current.Value, out var n)) parts.Add(SdeNames.MarketGroup(current.Value, n));
             _parentMap.TryGetValue(current.Value, out current);
         }
 
@@ -1537,51 +1616,51 @@ public class ItemBrowserViewModel : ReactiveObject
         [
             new LineSeries<DateTimePoint>
             {
-                Name           = "Avg",
+                Name           = AssetsText.SeriesAvg,
                 Values         = avgPts,
                 Stroke         = new SolidColorPaint(SKColors.Gold, 2),
                 Fill           = null,
                 GeometryFill   = null,
                 GeometryStroke = null,
                 ScalesYAt      = 0,
-                YToolTipLabelFormatter = p => $"Avg: {p.Coordinate.PrimaryValue:N2}",
+                YToolTipLabelFormatter = p => string.Format(AssetsText.TipChartAvg, p.Coordinate.PrimaryValue),
             },
             new LineSeries<DateTimePoint>
             {
-                Name           = "High",
+                Name           = AssetsText.ColHigh,
                 Values         = highPts,
                 Stroke         = new SolidColorPaint(SKColors.MediumSeaGreen, 1),
                 Fill           = null,
                 GeometryFill   = null,
                 GeometryStroke = null,
                 ScalesYAt      = 0,
-                YToolTipLabelFormatter = p => $"High: {p.Coordinate.PrimaryValue:N2}",
+                YToolTipLabelFormatter = p => string.Format(AssetsText.TipChartHigh, p.Coordinate.PrimaryValue),
             },
             new LineSeries<DateTimePoint>
             {
-                Name           = "Low",
+                Name           = AssetsText.ColLow,
                 Values         = lowPts,
                 Stroke         = new SolidColorPaint(SKColors.IndianRed, 1),
                 Fill           = null,
                 GeometryFill   = null,
                 GeometryStroke = null,
                 ScalesYAt      = 0,
-                YToolTipLabelFormatter = p => $"Low: {p.Coordinate.PrimaryValue:N2}",
+                YToolTipLabelFormatter = p => string.Format(AssetsText.TipChartLow, p.Coordinate.PrimaryValue),
             },
             new ColumnSeries<DateTimePoint>
             {
-                Name      = "Volume",
+                Name      = AssetsText.SeriesVolume,
                 Values    = volPts,
                 Fill      = P(new SKColor(91, 155, 213, 100)),
                 Stroke    = null,
                 ScalesYAt = 1,
-                YToolTipLabelFormatter = p => $"Vol: {p.Coordinate.PrimaryValue:N0}",
+                YToolTipLabelFormatter = p => string.Format(AssetsText.TipChartVolume, p.Coordinate.PrimaryValue),
             },
         ];
 
         HistoryXAxes =
         [
-            new DateTimeAxis(TimeSpan.FromDays(1), d => d.ToString("MMM d"))
+            new DateTimeAxis(TimeSpan.FromDays(1), d => d.ToString(CommonText.DateMonthDay))
             {
                 LabelsPaint    = ChartPaint.Labels,
                 SeparatorsPaint = ChartPaint.Separators,
@@ -1600,7 +1679,7 @@ public class ItemBrowserViewModel : ReactiveObject
             },
             new Axis
             {
-                Name           = "Volume",
+                Name           = AssetsText.SeriesVolume,
                 LabelsPaint    = ChartPaint.Labels,
                 SeparatorsPaint = null,
                 Labeler        = v => v >= 1_000_000 ? $"{v/1_000_000:N1}M"
@@ -1734,20 +1813,20 @@ public class ItemBrowserViewModel : ReactiveObject
             GeometryStroke         = null,
             GeometrySize           = 4,
             LineSmoothness         = 0.3,
-            YToolTipLabelFormatter = p => $"{name}: {p.Coordinate.PrimaryValue:N2} ISK",
+            YToolTipLabelFormatter = p => string.Format(AssetsText.TipChartSeriesIsk, name, p.Coordinate.PrimaryValue),
         };
 
         DerivedSeries =
         [
-            Line("Market",   marketPts,   new SKColor(0x5b, 0x9b, 0xd5)),
-            Line("Build",    buildPts,    new SKColor(0xed, 0x7d, 0x31)),
-            Line("Contract", contractPts, new SKColor(0xf1, 0xc4, 0x0f)),
-            Line("Reprocessed", reprocessPts, new SKColor(0x1a, 0xbc, 0x9c)),
+            Line(AssetsText.SeriesMarket,   marketPts,   new SKColor(0x5b, 0x9b, 0xd5)),
+            Line(AssetsText.SeriesBuild,    buildPts,    new SKColor(0xed, 0x7d, 0x31)),
+            Line(AssetsText.SeriesContract, contractPts, new SKColor(0xf1, 0xc4, 0x0f)),
+            Line(AssetsText.SeriesReprocessed, reprocessPts, new SKColor(0x1a, 0xbc, 0x9c)),
         ];
 
         DerivedXAxes =
         [
-            new DateTimeAxis(TimeSpan.FromDays(1), d => d.ToString("MMM d"))
+            new DateTimeAxis(TimeSpan.FromDays(1), d => d.ToString(CommonText.DateMonthDay))
             {
                 LabelsPaint     = ChartPaint.Labels,
                 SeparatorsPaint = ChartPaint.Separators,
@@ -1783,6 +1862,13 @@ public class ItemBrowserViewModel : ReactiveObject
 
         try
         {
+            // The item's names in the interface language — the header's, and every list's on the
+            // tabs; see Localization/SdeNames.cs. Display only: nothing reads them back, and TypeId
+            // is what the rest of the screen keys on. Awaited before any of them is built, so the
+            // item does not show English and then never change: at once in English, and otherwise
+            // a wait for the one background load, the first time.
+            await SdeNames.EnsureLoadedAsync(ct);
+
             var type = await _db.SdeTypes.AsNoTracking()
                 .FirstOrDefaultAsync(t => t.TypeId == typeId, ct);
             if (type == null || ct.IsCancellationRequested) return;
@@ -1816,7 +1902,7 @@ public class ItemBrowserViewModel : ReactiveObject
             var defaults = await _db.MarketDefaultSettings.AsNoTracking()
                 .FirstOrDefaultAsync(s => s.Id == 1, ct);
             string marketValueText  = "";
-            string marketValueLabel = "Market Value";
+            string marketValueLabel = AssetsText.MarketValueLabel;
             if (defaults?.AssetValueConfigId is int configId)
             {
                 var price = await _db.MarketItemPrices.AsNoTracking()
@@ -1832,7 +1918,7 @@ public class ItemBrowserViewModel : ReactiveObject
                     if (raw > 0)
                     {
                         marketValueText  = FormatIsk(raw);
-                        marketValueLabel = $"Market Value ({MarketPriceType.Label(defaults.AssetValuePriceType)})";
+                        marketValueLabel = string.Format(AssetsText.MarketValueWithPriceType, MarketPriceType.Label(defaults.AssetValuePriceType));
                     }
                 }
             }
@@ -1851,13 +1937,18 @@ public class ItemBrowserViewModel : ReactiveObject
                 ? FormatIsk(reprVal.Value)
                 : "";
 
+            // The description in the interface language, where the SDE has it: one row, read as the
+            // item opens — see Localization/SdeTexts.cs. At once in English, and the English column
+            // is the fallback. Display only, with its markup stripped as the English's always was.
+            var description = await SdeTexts.GetAsync(SdeTextKind.TypeDescription, typeId, type.Description, ct);
+
             if (ct.IsCancellationRequested) return;
 
             var vm = new ItemDisplayVm
             {
                 TypeId           = typeId,
-                Name             = type.Name,
-                Description      = _tagRegex.Replace(type.Description, ""),
+                Name             = SdeNames.Type(typeId, type.Name),
+                Description      = _tagRegex.Replace(description, ""),
                 GroupPath        = groupPath,
                 VolumeText       = type.Volume > 0 ? $"{type.Volume:N2} m³" : "",
                 PortionSize      = type.PortionSize,
@@ -1907,7 +1998,7 @@ public class ItemBrowserViewModel : ReactiveObject
         catch (OperationCanceledException) { }
         catch (Exception ex)
         {
-            await Dispatcher.UIThread.InvokeAsync(() => Status = $"Error: {ex.Message}");
+            await Dispatcher.UIThread.InvokeAsync(() => Status = string.Format(CommonText.ErrorWithMessage, ex.Message));
         }
     }
 
@@ -1915,12 +2006,25 @@ public class ItemBrowserViewModel : ReactiveObject
 
     private async Task LoadMarketConfigsAsync()
     {
-        var configs = await _db.MarketPricingConfigs.AsNoTracking()
+        var rows = await _db.MarketPricingConfigs.AsNoTracking()
             .Where(c => (c.Method == MarketMethod.EsiRegion || c.Method == MarketMethod.PlayerStructure)
                         && c.IsEnabled)
             .OrderBy(c => c.SortOrder).ThenBy(c => c.Id)
-            .Select(c => new MarketConfigOption { Id = c.Id, LocationName = c.LocationName, Method = c.Method })
+            .Select(c => new { c.Id, c.LocationName, c.Method, c.LocationId })
             .ToListAsync();
+
+        // Each source named as Settings names it: a region or station left as picked in the
+        // interface language. Own context: this runs alongside the tab loads, which use _db.
+        Dictionary<long, string> places;
+        await using (var owned = _dbFactory is null ? null : await _dbFactory.CreateDbContextAsync())
+            places = await MarketSourceNames.PlacesAsync(owned ?? _db, rows.Select(c => c.LocationId));
+        var configs = rows.Select(c => new MarketConfigOption
+        {
+            Id           = c.Id,
+            LocationName = c.LocationName,
+            Method       = c.Method,
+            DisplayName  = MarketSourceNames.Shown(c.LocationId, c.LocationName, places.GetValueOrDefault(c.LocationId)),
+        }).ToList();
 
         var remembered = UiState.Get(UiState.MarketSource, _prefs);
 
@@ -1930,17 +2034,18 @@ public class ItemBrowserViewModel : ReactiveObject
 
             // Only worth offering when there is more than one source to combine.
             if (configs.Count > 1)
-                MarketConfigs.Add(new MarketConfigOption { Id = AllSourcesId, LocationName = "All Sources" });
+                MarketConfigs.Add(new MarketConfigOption { Id = AllSourcesId, LocationName = AssetsText.AllSources });
 
             foreach (var c in configs) MarketConfigs.Add(c);
             this.RaisePropertyChanged(nameof(HasMarketConfigs));
 
             // Matched by name rather than id: config ids are reassigned when sources are
             // removed and re-added in Settings, which would silently restore the wrong one.
+            // All Sources by its key, since its name on screen follows the interface language.
             if (SelectedMarketConfig is null)
                 SelectedMarketConfig =
                     (remembered is not null
-                        ? MarketConfigs.FirstOrDefault(c => c.LocationName == remembered)
+                        ? MarketConfigs.FirstOrDefault(c => SourceKey(c) == remembered)
                         : null)
                     ?? MarketConfigs.FirstOrDefault();
         });
@@ -2072,22 +2177,23 @@ public class ItemBrowserViewModel : ReactiveObject
                 var reason = structureStatus.TryGetValue(locId, out var st)
                     ? (StructureStatus)st switch
                     {
-                        StructureStatus.NoAccess => "Private Structure",
-                        StructureStatus.NotFound => "Unanchored Structure",
-                        _                        => "Player Structure",
+                        StructureStatus.NoAccess => AssetsText.LocPrivateStructure,
+                        StructureStatus.NotFound => AssetsText.LocUnanchoredStructure,
+                        _                        => AssetsText.LocPlayerStructure,
                     }
-                    : "Player Structure";
+                    : AssetsText.LocPlayerStructure;
 
                 return systemNames.TryGetValue(sysId, out var sysName) && sysName.Length > 0
-                    ? $"{sysName} - {reason}"
+                    ? $"{SdeNames.SolarSystem(sysId, sysName)} - {reason}"
                     : reason;
             }
 
+            // An NPC station in the interface language (the grid only shows it); a structure as named.
             string GetLocation(MarketRawOrder o)
             {
-                if (stationNames.TryGetValue(o.LocationId, out var n)) return n;
+                if (stationNames.TryGetValue(o.LocationId, out var n)) return SdeNames.Station(o.LocationId, n);
                 if (structureNames.TryGetValue(o.LocationId, out var sn)) return sn;
-                if (o.LocationId < 1_000_000_000_000L) return $"Station {o.LocationId}";
+                if (o.LocationId < 1_000_000_000_000L) return string.Format(AssetsText.FallbackStationName, o.LocationId);
 
                 var sysId = structureSystemOf.TryGetValue(o.LocationId, out var sid) ? sid : o.SystemId;
                 return UnnamedStructure(o.LocationId, sysId);
@@ -2132,7 +2238,7 @@ public class ItemBrowserViewModel : ReactiveObject
         catch (OperationCanceledException) { }
         catch (Exception ex)
         {
-            await Dispatcher.UIThread.InvokeAsync(() => Status = $"Orders error: {ex.Message}");
+            await Dispatcher.UIThread.InvokeAsync(() => Status = string.Format(AssetsText.ErrOrders, ex.Message));
         }
         finally { IsLoadingOrders = false; }
     }
@@ -2140,11 +2246,11 @@ public class ItemBrowserViewModel : ReactiveObject
     private static IReadOnlyList<AttrDisplayVm> BuildTypeStats(SdeType t)
     {
         var list = new List<AttrDisplayVm>();
-        if (t.Volume   > 0)         list.Add(new AttrDisplayVm("Volume",       $"{t.Volume:N4} m³"));
-        if (t.Mass     > 0)         list.Add(new AttrDisplayVm("Mass",         $"{t.Mass:N0} kg"));
-        if (t.Capacity > 0)         list.Add(new AttrDisplayVm("Capacity",     $"{t.Capacity:N2} m³"));
-        if (t.PortionSize > 1)      list.Add(new AttrDisplayVm("Portion Size", $"{t.PortionSize:N0}"));
-        if (t.BasePrice is > 0)     list.Add(new AttrDisplayVm("Base Price",   $"{t.BasePrice.Value:N2} ISK"));
+        if (t.Volume   > 0)         list.Add(new AttrDisplayVm(AssetsText.StatVolume,       $"{t.Volume:N4} m³"));
+        if (t.Mass     > 0)         list.Add(new AttrDisplayVm(AssetsText.StatMass,         $"{t.Mass:N0} kg"));
+        if (t.Capacity > 0)         list.Add(new AttrDisplayVm(AssetsText.StatCapacity,     $"{t.Capacity:N2} m³"));
+        if (t.PortionSize > 1)      list.Add(new AttrDisplayVm(AssetsText.StatPortionSize, $"{t.PortionSize:N0}"));
+        if (t.BasePrice is > 0)     list.Add(new AttrDisplayVm(AssetsText.StatBasePrice,   $"{t.BasePrice.Value:N2} ISK"));
         return list;
     }
 
@@ -2178,7 +2284,7 @@ public class ItemBrowserViewModel : ReactiveObject
         var raw = await _db.SdeTypeDogmaAttributes.AsNoTracking()
             .Where(a => a.TypeId == typeId)
             .Join(_db.SdeDogmaAttributes, a => a.AttributeId, d => d.AttributeId,
-                  (a, d) => new { d.Name, d.DisplayName, d.CategoryId, d.UnitId, d.Published, a.Value })
+                  (a, d) => new { d.AttributeId, d.Name, d.DisplayName, d.CategoryId, d.UnitId, d.Published, a.Value })
             .Where(a => a.Published)
             .ToListAsync(ct);
 
@@ -2188,8 +2294,10 @@ public class ItemBrowserViewModel : ReactiveObject
         return raw
             .Select(a =>
             {
-                var dn    = a.DisplayName.Length > 0 && a.DisplayName != a.Name
-                    ? a.DisplayName : PrettyName(a.Name);
+                // The display name in the interface language, where the SDE has one; the English,
+                // or the code name made readable, where it has not.
+                var dn    = SdeNames.DogmaAttribute(a.AttributeId,
+                    a.DisplayName.Length > 0 && a.DisplayName != a.Name ? a.DisplayName : PrettyName(a.Name));
                 var value = FormatAttrValue(a.Value, a.UnitId, units);
                 return (CatId: a.CategoryId, Attr: new AttrDisplayVm(dn, value));
             })
@@ -2198,8 +2306,8 @@ public class ItemBrowserViewModel : ReactiveObject
             .Select(g =>
             {
                 var catName = g.Key.HasValue && categories.TryGetValue(g.Key.Value, out var n)
-                    ? n : "";
-                var attrs = g.OrderBy(x => x.Attr.Name).Select(x => x.Attr).ToList();
+                    ? SdeNames.Get(SdeNameKind.DogmaAttributeCategory, g.Key.Value, n) : "";
+                var attrs = g.OrderBy(x => x.Attr.Name, StringComparer.CurrentCulture).Select(x => x.Attr).ToList();
                 return new AttrGroupVm(catName, attrs);
             })
             .ToList();
@@ -2250,14 +2358,15 @@ public class ItemBrowserViewModel : ReactiveObject
             .GroupBy(x => x.TypeId)
             .ToDictionary(
                 g => g.Key,
-                g => (IReadOnlyList<BlueprintMatVm>)[.. g.OrderBy(x => x.Name)
-                        .Select(x => new BlueprintMatVm(x.Name, x.MaterialTypeId, x.Quantity))]);
+                g => (IReadOnlyList<BlueprintMatVm>)[.. g
+                        .Select(x => new BlueprintMatVm(SdeNames.Type(x.MaterialTypeId, x.Name), x.MaterialTypeId, x.Quantity))
+                        .OrderBy(m => m.MaterialName, StringComparer.CurrentCulture)]);
 
         var producedBy = bpIds
             .Select(id => new BlueprintVm(
-                bpNames.GetValueOrDefault(id, $"Blueprint #{id}"), id,
+                SdeNames.Type(id, bpNames.GetValueOrDefault(id, string.Format(AssetsText.FallbackBlueprintName, id))), id,
                 matsByBp.GetValueOrDefault(id, [])))
-            .OrderBy(b => b.BlueprintName)
+            .OrderBy(b => b.BlueprintName, StringComparer.CurrentCulture)
             .ToList();
 
         // ── Blueprints this item is an input to ───────────────────────────────
@@ -2277,16 +2386,16 @@ public class ItemBrowserViewModel : ReactiveObject
                 .Where(p => usedInIds.Contains(p.TypeId)
                          && (p.Activity == "manufacturing" || p.Activity == "reaction"))
                 .Join(_db.SdeTypes, p => p.ProductTypeId, t => t.TypeId,
-                      (p, t) => new { p.TypeId, t.Name })
+                      (p, t) => new { p.TypeId, p.ProductTypeId, t.Name })
                 .ToListAsync(ct))
             .GroupBy(x => x.TypeId)
-            .ToDictionary(g => g.Key, g => g.First().Name);
+            .ToDictionary(g => g.Key, g => g.Select(x => SdeNames.Type(x.ProductTypeId, x.Name)).First());
 
         var usedIn = usedInIds
             .Select(id => new MaterialUseVm(
-                usedInNames.GetValueOrDefault(id, $"Blueprint #{id}"), id,
+                SdeNames.Type(id, usedInNames.GetValueOrDefault(id, string.Format(AssetsText.FallbackBlueprintName, id))), id,
                 productOf.GetValueOrDefault(id, "")))
-            .OrderBy(u => u.BlueprintName)
+            .OrderBy(u => u.BlueprintName, StringComparer.CurrentCulture)
             .ToList();
 
         // ── Reprocessing, both directions ─────────────────────────────────────
@@ -2313,11 +2422,11 @@ public class ItemBrowserViewModel : ReactiveObject
 
         var reprocessedFrom = sourceRows
             .Select(x => new ReprocessSourceVm(
-                x.Name, x.SourceTypeId, x.PortionSize, x.Quantity,
+                SdeNames.Type(x.SourceTypeId, x.Name), x.SourceTypeId, x.PortionSize, x.Quantity,
                 RefineYield.For(sourceCats.GetValueOrDefault(x.GroupId)),
                 sourceCats.GetValueOrDefault(x.GroupId) == RefineYield.AsteroidCategoryId))
             .OrderByDescending(x => x.Yield)
-            .ThenBy(x => x.SourceName)
+            .ThenBy(x => x.SourceName, StringComparer.CurrentCulture)
             .ToList();
 
         // What this item itself yields. One rate for the whole section, because it is one item
@@ -2334,9 +2443,9 @@ public class ItemBrowserViewModel : ReactiveObject
                 .Join(_db.SdeTypes, m => m.MaterialTypeId, t => t.TypeId,
                       (m, t) => new { t.Name, OutputTypeId = m.MaterialTypeId, m.Quantity })
                 .ToListAsync(ct))
-            .Select(x => new ReprocessOutputVm(x.Name, x.OutputTypeId, x.Quantity, ownRate))
+            .Select(x => new ReprocessOutputVm(SdeNames.Type(x.OutputTypeId, x.Name), x.OutputTypeId, x.Quantity, ownRate))
             .OrderByDescending(x => x.Yield)
-            .ThenBy(x => x.OutputName)
+            .ThenBy(x => x.OutputName, StringComparer.CurrentCulture)
             .ToList();
 
         return (producedBy, usedIn, reprocessedFrom, reprocessedTo);
@@ -2359,42 +2468,43 @@ public class ItemBrowserViewModel : ReactiveObject
             .Where(m => m.TypeId == typeId)
             .Join(_db.SdeTypes, m => m.MaterialTypeId, t => t.TypeId,
                   (m, t) => new { m.Activity, t.Name, m.MaterialTypeId, m.Quantity })
-            .OrderBy(x => x.Name)
             .ToListAsync(ct);
 
         var allSkills = await _db.SdeBlueprintSkills.AsNoTracking()
             .Where(s => s.TypeId == typeId)
             .Join(_db.SdeTypes, s => s.SkillTypeId, t => t.TypeId,
                   (s, t) => new { s.Activity, t.Name, s.SkillTypeId, s.Level })
-            .OrderBy(x => x.Name)
             .ToListAsync(ct);
 
         var activityOrder = new[] { "manufacturing", "reaction", "invention", "copying", "research_material", "research_time" };
         var activities = new List<BpActivityVm>();
 
+        // Each list by the name shown.
         foreach (var key in activityOrder)
         {
             var prods = allProducts.Where(p => p.Activity == key)
-                .OrderBy(p => p.Name)
-                .Select(p => new BpProductVm(p.Name, p.ProductTypeId, p.Quantity, p.Probability))
+                .Select(p => new BpProductVm(SdeNames.Type(p.ProductTypeId, p.Name), p.ProductTypeId, p.Quantity, p.Probability))
+                .OrderBy(p => p.ProductName, StringComparer.CurrentCulture)
                 .ToList();
             var mats = allMaterials.Where(m => m.Activity == key)
-                .Select(m => new BlueprintMatVm(m.Name, m.MaterialTypeId, m.Quantity))
+                .Select(m => new BlueprintMatVm(SdeNames.Type(m.MaterialTypeId, m.Name), m.MaterialTypeId, m.Quantity))
+                .OrderBy(m => m.MaterialName, StringComparer.CurrentCulture)
                 .ToList();
             var skills = allSkills.Where(s => s.Activity == key)
-                .Select(s => new BpSkillVm(s.Name, s.SkillTypeId, s.Level))
+                .Select(s => new BpSkillVm(SdeNames.Type(s.SkillTypeId, s.Name), s.SkillTypeId, s.Level))
+                .OrderBy(s => s.SkillName, StringComparer.CurrentCulture)
                 .ToList();
 
             if (prods.Count == 0 && mats.Count == 0 && skills.Count == 0) continue;
 
             var label = key switch
             {
-                "manufacturing"     => "Manufacturing",
-                "reaction"          => "Reaction",
-                "invention"         => "Invention",
-                "copying"           => "Copying",
-                "research_material" => "ME Research",
-                "research_time"     => "TE Research",
+                "manufacturing"     => AssetsText.ActivityManufacturing,
+                "reaction"          => AssetsText.ActivityReaction,
+                "invention"         => AssetsText.ActivityInvention,
+                "copying"           => AssetsText.ActivityCopying,
+                "research_material" => AssetsText.ActivityMeResearch,
+                "research_time"     => AssetsText.ActivityTeResearch,
                 _                   => key,
             };
             activities.Add(new BpActivityVm(key, label, prods, mats, skills));
@@ -2421,9 +2531,9 @@ public class ItemBrowserViewModel : ReactiveObject
             var skillName = await _db.SdeTypes.AsNoTracking()
                 .Where(t => t.TypeId == skillTypeId)
                 .Select(t => t.Name)
-                .FirstOrDefaultAsync(ct) ?? $"Skill #{skillTypeId}";
+                .FirstOrDefaultAsync(ct) ?? string.Format(AssetsText.FallbackSkillName, skillTypeId);
 
-            results.Add(new BpSkillVm(skillName, skillTypeId, level));
+            results.Add(new BpSkillVm(SdeNames.Type(skillTypeId, skillName), skillTypeId, level));
         }
         return results;
     }
@@ -2449,14 +2559,15 @@ public class ItemBrowserViewModel : ReactiveObject
                       (x, g) => new { x.TypeId, x.Level, x.TypeName, g.CategoryId })
                 .Where(x => RequiredForCategoryAllowlist.Contains(x.CategoryId))
                 .Join(_db.SdeCategories.AsNoTracking(), x => x.CategoryId, c => c.CategoryId,
-                      (x, c) => new { x.TypeId, x.Level, x.TypeName, CategoryName = c.Name })
+                      (x, c) => new { x.TypeId, x.Level, x.TypeName, x.CategoryId, CategoryName = c.Name })
                 .ToListAsync(ct);
 
+            // Names as shown: the group headings and the items under them.
             foreach (var r in rows)
             {
                 if (!byLevel.TryGetValue(r.Level, out var list))
                     byLevel[r.Level] = list = [];
-                list.Add((r.CategoryName, r.TypeName, r.TypeId));
+                list.Add((SdeNames.Category(r.CategoryId, r.CategoryName), SdeNames.Type(r.TypeId, r.TypeName), r.TypeId));
             }
         }
 
@@ -2480,7 +2591,7 @@ public class ItemBrowserViewModel : ReactiveObject
         {
             if (!byLevel.TryGetValue(r.Level, out var bpList))
                 byLevel[r.Level] = bpList = [];
-            bpList.Add((ActivityGroupName(r.Activity), r.TypeName, r.TypeId));
+            bpList.Add((ActivityGroupName(r.Activity), SdeNames.Type(r.TypeId, r.TypeName), r.TypeId));
         }
 
         return byLevel.ToDictionary(
@@ -2491,9 +2602,9 @@ public class ItemBrowserViewModel : ReactiveObject
                 // and those rows land in one group looking like a duplicated entry.
                 .Distinct()
                 .GroupBy(i => i.CategoryName)
-                .OrderBy(g => g.Key)
+                .OrderBy(g => g.Key, StringComparer.CurrentCulture)
                 .Select(g => new RequiredForGroupVm(g.Key,
-                    g.OrderBy(i => i.ItemName)
+                    g.OrderBy(i => i.ItemName, StringComparer.CurrentCulture)
                      .Select(i => new RequiredForItemVm(i.ItemName, i.ItemTypeId, kv.Key))
                      .ToList()))
                 .ToList());
@@ -2502,15 +2613,15 @@ public class ItemBrowserViewModel : ReactiveObject
     /// <summary>The SDE's activity keys, as a reader would name them.</summary>
     private static string ActivityGroupName(string activity) => activity switch
     {
-        "manufacturing"        => "Manufacturing",
-        "invention"            => "Invention",
-        "copying"              => "Copying",
-        "research_material"    => "Material Research",
-        "research_time"        => "Time Research",
-        "reaction"             => "Reactions",
+        "manufacturing"        => AssetsText.ActivityManufacturing,
+        "invention"            => AssetsText.ActivityInvention,
+        "copying"              => AssetsText.ActivityCopying,
+        "research_material"    => AssetsText.ActivityMaterialResearch,
+        "research_time"        => AssetsText.ActivityTimeResearch,
+        "reaction"             => AssetsText.ActivityReactions,
         _                      => activity.Length > 0
                                     ? char.ToUpperInvariant(activity[0]) + activity[1..]
-                                    : "Industry",
+                                    : AssetsText.ActivityIndustryFallback,
     };
 
     private async Task LoadIconAsync(int typeId, ItemDisplayVm vm, CancellationToken ct)
@@ -2557,21 +2668,9 @@ public class ItemBrowserViewModel : ReactiveObject
     private const int UnitSex                     = 142;
     private const int UnitDatetime                = 143;   // days since 1970
 
-    // The words these units are shown as. Interface text: they move to the Item Browser's
-    // resources with the rest of this screen's text.
-    private const string AttrYes        = "Yes";
-    private const string AttrNo         = "No";
-    private const string AttrSmall      = "Small";
-    private const string AttrMedium     = "Medium";
-    private const string AttrLarge      = "Large";
-    private const string AttrExtraLarge = "Extra Large";
-    private const string AttrMale       = "Male";
-    private const string AttrUnisex     = "Unisex";
-    private const string AttrFemale     = "Female";
-    private const string AttrHours      = "{0} h";
-
     /// <summary>What an attribute's unit needs in order to be shown: the SDE's display names for
-    /// the units, and the names of the groups, types and attributes some attributes' values are.</summary>
+    /// the units, and the names of the groups, types and attributes some attributes' values are —
+    /// all as the screen shows them, in the interface language where the SDE has it.</summary>
     private sealed record UnitNames(
         IReadOnlyDictionary<int, string> Units,
         IReadOnlyDictionary<int, string> Groups,
@@ -2591,8 +2690,12 @@ public class ItemBrowserViewModel : ReactiveObject
         {
             try
             {
-                _unitDisplayNames = await _db.SdeDogmaUnits.AsNoTracking()
-                    .ToDictionaryAsync(u => u.UnitId, u => u.DisplayName, ct);
+                // In the interface language: the game's own unit names ("米", not "m", in Chinese).
+                // Read after LoadItemAsync has waited for the names, and kept for the run.
+                _unitDisplayNames = (await _db.SdeDogmaUnits.AsNoTracking()
+                        .Select(u => new { u.UnitId, u.DisplayName })
+                        .ToListAsync(ct))
+                    .ToDictionary(u => u.UnitId, u => SdeNames.DogmaUnit(u.UnitId, u.DisplayName));
             }
             catch { _unitDisplayNames = []; }
         }
@@ -2603,17 +2706,22 @@ public class ItemBrowserViewModel : ReactiveObject
         var typeIds  = ValuesOf(UnitTypeId);
         var attrIds  = ValuesOf(UnitAttributeId);
 
-        var groups = groupIds.Count == 0 ? [] : await _db.SdeGroups.AsNoTracking()
-            .Where(g => groupIds.Contains(g.GroupId))
-            .ToDictionaryAsync(g => g.GroupId, g => g.Name, ct);
-        var types = typeIds.Count == 0 ? [] : await _db.SdeTypes.AsNoTracking()
-            .Where(t => typeIds.Contains(t.TypeId))
-            .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct);
+        var groups = groupIds.Count == 0 ? [] : (await _db.SdeGroups.AsNoTracking()
+                .Where(g => groupIds.Contains(g.GroupId))
+                .Select(g => new { g.GroupId, g.Name })
+                .ToListAsync(ct))
+            .ToDictionary(g => g.GroupId, g => SdeNames.Group(g.GroupId, g.Name));
+        var types = typeIds.Count == 0 ? [] : (await _db.SdeTypes.AsNoTracking()
+                .Where(t => typeIds.Contains(t.TypeId))
+                .Select(t => new { t.TypeId, t.Name })
+                .ToListAsync(ct))
+            .ToDictionary(t => t.TypeId, t => SdeNames.Type(t.TypeId, t.Name));
         var attributes = attrIds.Count == 0 ? [] : (await _db.SdeDogmaAttributes.AsNoTracking()
                 .Where(d => attrIds.Contains(d.AttributeId))
                 .Select(d => new { d.AttributeId, d.Name, d.DisplayName })
                 .ToListAsync(ct))
-            .ToDictionary(d => d.AttributeId, d => d.DisplayName.Length > 0 ? d.DisplayName : PrettyName(d.Name));
+            .ToDictionary(d => d.AttributeId, d => SdeNames.DogmaAttribute(d.AttributeId,
+                d.DisplayName.Length > 0 ? d.DisplayName : PrettyName(d.Name)));
 
         return new UnitNames(_unitDisplayNames, groups, types, attributes);
     }
@@ -2641,13 +2749,22 @@ public class ItemBrowserViewModel : ReactiveObject
             UnitAttributeId => Named(names.Attributes),
 
             // Codes, whose SDE display name is a legend ("1=True 0=False"), not a unit.
-            UnitBoolean   => value != 0 ? AttrYes : AttrNo,
-            UnitSizeClass => value switch { 1 => AttrSmall, 2 => AttrMedium, 3 => AttrLarge, 4 => AttrExtraLarge, _ => AttrNumber(value) },
-            UnitSex       => value switch { 1 => AttrMale, 2 => AttrUnisex, 3 => AttrFemale, _ => AttrNumber(value) },
+            UnitBoolean   => value != 0 ? CommonText.Yes : CommonText.No,
+            UnitSizeClass => value switch
+            {
+                1 => AssetsText.AttrSizeSmall, 2 => AssetsText.AttrSizeMedium,
+                3 => AssetsText.AttrSizeLarge, 4 => AssetsText.AttrSizeExtraLarge,
+                _ => AttrNumber(value),
+            },
+            UnitSex       => value switch
+            {
+                1 => AssetsText.AttrSexMale, 2 => AssetsText.AttrSexUnisex, 3 => AssetsText.AttrSexFemale,
+                _ => AttrNumber(value),
+            },
 
             UnitBonus    => value > 0 ? $"+{AttrNumber(value)}" : AttrNumber(value),
-            UnitHours    => string.Format(AttrHours, AttrNumber(value)),
-            UnitDatetime => DateTime.UnixEpoch.AddDays(value).ToString("yyyy-MM-dd"),
+            UnitHours    => string.Format(AssetsText.AttrHours, AttrNumber(value)),
+            UnitDatetime => DateTime.UnixEpoch.AddDays(value).ToString(CommonText.DateMonthDayYear),
 
             // The attribute's own name already says what the number is — "Implant Slot",
             // "Tech Level", "Required Thermodynamics Level" — so the number alone, not "Level 2".

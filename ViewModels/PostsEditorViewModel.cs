@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -11,18 +12,35 @@ public class PostBlockRow : ReactiveObject
 {
     // Options live on the row so each ComboBox binds to its own DataContext (a relative
     // $parent[Window] binding is fragile when the item container recycles on reorder).
-    public IReadOnlyList<string> PostTypeOptions { get; } = ["Summary", "Detail", "Static"];
+    // The value is the key the block is saved under and the renderer switches on; only the
+    // label is translated.
+    public IReadOnlyList<Choice<string>> PostTypeOptions { get; } =
+        [.. new[] { "Summary", "Detail", "Static" }.Select(k => new Choice<string>(k, TypeLabel(k)))];
+
+    /// <summary>A block type's name as the interface shows it; the key itself for one it does not know.</summary>
+    public static string TypeLabel(string key) => key switch
+    {
+        "Summary" => SalesText.PostTypeSummary,
+        "Detail"  => SalesText.PostTypeDetail,
+        "Static"  => SalesText.PostTypeStatic,
+        _         => key,
+    };
 
     private string _postType;
-    public string PostType
+
+    /// <summary>The key the block is saved under: "Summary", "Detail" or "Static".</summary>
+    public string PostTypeKey => _postType;
+
+    /// <summary>The block's type as its ComboBox shows it.</summary>
+    public Choice<string> PostType
     {
-        get => _postType;
+        get => PostTypeOptions.FirstOrDefault(o => o.Value == _postType) ?? PostTypeOptions[0];
         set
         {
-            // Ignore transient null/empty writes — a recycling ComboBox can momentarily reset
+            // Ignore transient null writes — a recycling ComboBox can momentarily reset
             // SelectedItem to null (before its items are ready) and clobber a valid type otherwise.
-            if (string.IsNullOrEmpty(value)) return;
-            this.RaiseAndSetIfChanged(ref _postType, value);
+            if (value is null) return;
+            this.RaiseAndSetIfChanged(ref _postType, value.Value);
             this.RaisePropertyChanged(nameof(IsStatic));
             this.RaisePropertyChanged(nameof(ShowHeaderFooter));
             this.RaisePropertyChanged(nameof(HeaderColorLabel));
@@ -53,7 +71,7 @@ public class PostBlockRow : ReactiveObject
 
     /// <summary>What the colour field beside a Static block is labelled. It colours the content
     /// rather than a header, and calling it "header colour" there would be a lie.</summary>
-    public string HeaderColorLabel => IsStatic ? "TEXT COLOUR" : "HEADER COLOUR";
+    public string HeaderColorLabel => IsStatic ? SalesText.TextColourLabel : SalesText.HeaderColourLabel;
 
     public PostBlockRow(string postType, string name, string? staticContent, string header, string footer,
                         string headerColor = "", string footerColor = "")
@@ -85,9 +103,10 @@ public class PostsEditorViewModel : ReactiveObject
             Posts.Add(new PostBlockRow(d.PostType, d.Name, d.StaticContent, d.Header, d.Footer,
                                        d.HeaderColor, d.FooterColor));
 
-        // Default a new posting to a single "Detail" block named "Detail".
+        // Default a new posting to a single "Detail" block, named after its type as the interface
+        // shows it.
         if (Posts.Count == 0)
-            Posts.Add(new PostBlockRow("Detail", "Detail", null, "", ""));
+            Posts.Add(new PostBlockRow("Detail", SalesText.PostTypeDetail, null, "", ""));
 
         AddPostCommand    = ReactiveCommand.Create(() => Posts.Add(new PostBlockRow("Summary", "", null, "", "")));
         MoveUpCommand     = ReactiveCommand.Create<PostBlockRow>(row => Move(row, -1));
@@ -105,7 +124,7 @@ public class PostsEditorViewModel : ReactiveObject
 
     public List<PostBlockDraft> ToDrafts()
         => Posts.Select(p => new PostBlockDraft(
-            p.PostType, p.Name,
+            p.PostTypeKey, p.Name,
             p.IsStatic ? p.StaticContent : null,
             p.IsStatic ? "" : p.Header,
             p.IsStatic ? "" : p.Footer,

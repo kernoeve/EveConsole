@@ -1,0 +1,499 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AccelerationGateFee" xml:space="preserve">
+    <value>加速轨道费用</value>
+  </data>
+  <data name="AchievementCategoryMilestoneReward" xml:space="preserve">
+    <value>成就类别里程碑奖励</value>
+  </data>
+  <data name="AchievementMilestoneReward" xml:space="preserve">
+    <value>成就里程碑奖励</value>
+  </data>
+  <data name="AdvertisementListingFee" xml:space="preserve">
+    <value>广告登记费</value>
+  </data>
+  <data name="AgentDonation" xml:space="preserve">
+    <value>代理人捐赠</value>
+  </data>
+  <data name="AgentLocationServices" xml:space="preserve">
+    <value>位置追踪服务</value>
+  </data>
+  <data name="AgentMiscellaneous" xml:space="preserve">
+    <value>代理人杂项</value>
+  </data>
+  <data name="AgentMissionCollateralPaid" xml:space="preserve">
+    <value>代理人任务保证金缴纳</value>
+  </data>
+  <data name="AgentMissionCollateralRefunded" xml:space="preserve">
+    <value>代理人任务保证金返还</value>
+  </data>
+  <data name="AgentMissionReward" xml:space="preserve">
+    <value>代理人任务奖励</value>
+  </data>
+  <data name="AgentMissionRewardCorporationTax" xml:space="preserve">
+    <value>代理人任务奖励军团税</value>
+  </data>
+  <data name="AgentMissionSecurityTax" xml:space="preserve">
+    <value>代理人任务安全税</value>
+  </data>
+  <data name="AgentMissionTimeBonusReward" xml:space="preserve">
+    <value>代理人任务限时奖励</value>
+  </data>
+  <data name="AgentMissionTimeBonusRewardCorporationTax" xml:space="preserve">
+    <value>代理人任务限时奖励军团税</value>
+  </data>
+  <data name="AgentSecurityServices" xml:space="preserve">
+    <value>代理人安全服务</value>
+  </data>
+  <data name="AgentServicesRendered" xml:space="preserve">
+    <value>代理人服务</value>
+  </data>
+  <data name="AgentsPreward" xml:space="preserve">
+    <value>代理人预付金</value>
+  </data>
+  <data name="AirCareerProgramReward" xml:space="preserve">
+    <value>星空会职业计划奖励</value>
+  </data>
+  <data name="AllianceMaintainanceFee" xml:space="preserve">
+    <value>联盟维护费</value>
+  </data>
+  <data name="AllianceRegistrationFee" xml:space="preserve">
+    <value>联盟注册费</value>
+  </data>
+  <data name="AllignmentBasedGateToll" xml:space="preserve">
+    <value>星门通行费</value>
+  </data>
+  <data name="AssetSafetyRecoveryTax" xml:space="preserve">
+    <value>资产安全恢复税</value>
+  </data>
+  <data name="Bounty" xml:space="preserve">
+    <value>赏金</value>
+  </data>
+  <data name="BountyPrize" xml:space="preserve">
+    <value>赏金奖励</value>
+  </data>
+  <data name="BountyPrizeCorporationTax" xml:space="preserve">
+    <value>赏金奖励军团税</value>
+  </data>
+  <data name="BountyPrizes" xml:space="preserve">
+    <value>赏金奖励</value>
+  </data>
+  <data name="BountyReimbursement" xml:space="preserve">
+    <value>赏金偿付</value>
+  </data>
+  <data name="BountySurcharge" xml:space="preserve">
+    <value>赏金附加费用</value>
+  </data>
+  <data name="BrokersFee" xml:space="preserve">
+    <value>中介费</value>
+  </data>
+  <data name="CampaignObjectiveIskReward" xml:space="preserve">
+    <value>军事行动目标奖励</value>
+  </data>
+  <data name="CloneActivation" xml:space="preserve">
+    <value>克隆激活</value>
+  </data>
+  <data name="CloneTransfer" xml:space="preserve">
+    <value>克隆转移</value>
+  </data>
+  <data name="ContrabandFine" xml:space="preserve">
+    <value>违禁物罚金</value>
+  </data>
+  <data name="ContractAuctionBid" xml:space="preserve">
+    <value>合同拍卖出价</value>
+  </data>
+  <data name="ContractAuctionBidCorp" xml:space="preserve">
+    <value>合同拍卖出价（军团）</value>
+  </data>
+  <data name="ContractAuctionBidRefund" xml:space="preserve">
+    <value>合同拍卖出价返还</value>
+  </data>
+  <data name="ContractAuctionSold" xml:space="preserve">
+    <value>合同拍卖售出</value>
+  </data>
+  <data name="ContractBrokersFee" xml:space="preserve">
+    <value>合同中介费</value>
+  </data>
+  <data name="ContractBrokersFeeCorp" xml:space="preserve">
+    <value>合同中介费（军团）</value>
+  </data>
+  <data name="ContractCollateral" xml:space="preserve">
+    <value>合同保证金</value>
+  </data>
+  <data name="ContractCollateralDepositedCorp" xml:space="preserve">
+    <value>预缴合同保证金（军团）</value>
+  </data>
+  <data name="ContractCollateralPayout" xml:space="preserve">
+    <value>合同保证金支付</value>
+  </data>
+  <data name="ContractCollateralRefund" xml:space="preserve">
+    <value>合同保证金返还</value>
+  </data>
+  <data name="ContractDeposit" xml:space="preserve">
+    <value>合同定金</value>
+  </data>
+  <data name="ContractDepositCorp" xml:space="preserve">
+    <value>合同定金（军团）</value>
+  </data>
+  <data name="ContractDepositRefund" xml:space="preserve">
+    <value>合同定金返还</value>
+  </data>
+  <data name="ContractDepositSalesTax" xml:space="preserve">
+    <value>合同定金销售税</value>
+  </data>
+  <data name="ContractPrice" xml:space="preserve">
+    <value>合同价格</value>
+  </data>
+  <data name="ContractPricePaymentCorp" xml:space="preserve">
+    <value>合同价格付款（军团）</value>
+  </data>
+  <data name="ContractReversal" xml:space="preserve">
+    <value>合同撤销</value>
+  </data>
+  <data name="ContractReward" xml:space="preserve">
+    <value>合同报酬</value>
+  </data>
+  <data name="ContractRewardDeposited" xml:space="preserve">
+    <value>预缴合同报酬</value>
+  </data>
+  <data name="ContractRewardDepositedCorp" xml:space="preserve">
+    <value>预缴合同报酬（军团）</value>
+  </data>
+  <data name="ContractRewardRefund" xml:space="preserve">
+    <value>合同报酬返还</value>
+  </data>
+  <data name="ContractSalesTax" xml:space="preserve">
+    <value>合同销售税</value>
+  </data>
+  <data name="Copying" xml:space="preserve">
+    <value>拷贝</value>
+  </data>
+  <data name="CorporateRewardPayout" xml:space="preserve">
+    <value>军团奖励</value>
+  </data>
+  <data name="CorporateRewardTax" xml:space="preserve">
+    <value>军团奖励税</value>
+  </data>
+  <data name="CorporationAccountWithdrawal" xml:space="preserve">
+    <value>军团账户提款</value>
+  </data>
+  <data name="CorporationBulkPayment" xml:space="preserve">
+    <value>军团批量付款</value>
+  </data>
+  <data name="CorporationDividendPayment" xml:space="preserve">
+    <value>军团分红支付</value>
+  </data>
+  <data name="CorporationLiquidation" xml:space="preserve">
+    <value>军团清算</value>
+  </data>
+  <data name="CorporationLogoChangeCost" xml:space="preserve">
+    <value>军团图标变更费用</value>
+  </data>
+  <data name="CorporationPayment" xml:space="preserve">
+    <value>军团付款</value>
+  </data>
+  <data name="CorporationRegistrationFee" xml:space="preserve">
+    <value>军团注册费</value>
+  </data>
+  <data name="CosmeticMarketComponentItemPurchase" xml:space="preserve">
+    <value>派瑞根中心设计元素</value>
+  </data>
+  <data name="CosmeticMarketSkinPurchase" xml:space="preserve">
+    <value>派瑞根中心涂装购买</value>
+  </data>
+  <data name="CosmeticMarketSkinSale" xml:space="preserve">
+    <value>派瑞根中心涂装销售</value>
+  </data>
+  <data name="CosmeticMarketSkinSaleBrokerFee" xml:space="preserve">
+    <value>派瑞根中心上架费用</value>
+  </data>
+  <data name="CosmeticMarketSkinSaleTax" xml:space="preserve">
+    <value>派瑞根中心商家费用</value>
+  </data>
+  <data name="CosmeticMarketSkinTransaction" xml:space="preserve">
+    <value>派瑞根中心涂装交易</value>
+  </data>
+  <data name="CourierMissionEscrow" xml:space="preserve">
+    <value>快递任务契约金</value>
+  </data>
+  <data name="Cspa" xml:space="preserve">
+    <value>CSPA 费用</value>
+  </data>
+  <data name="Cspaofflinerefund" xml:space="preserve">
+    <value>CSPA 离线返还金</value>
+  </data>
+  <data name="DailyChallengeReward" xml:space="preserve">
+    <value>每日挑战奖励</value>
+  </data>
+  <data name="DailyGoalPayouts" xml:space="preserve">
+    <value>每日目标奖励</value>
+  </data>
+  <data name="DailyGoalPayoutsTax" xml:space="preserve">
+    <value>每日目标奖励税</value>
+  </data>
+  <data name="DatacoreFee" xml:space="preserve">
+    <value>数据核心费用</value>
+  </data>
+  <data name="DnaModificationFee" xml:space="preserve">
+    <value>DNA 改造费</value>
+  </data>
+  <data name="DockingFee" xml:space="preserve">
+    <value>停靠费</value>
+  </data>
+  <data name="DuelWagerEscrow" xml:space="preserve">
+    <value>决斗赌注契约金</value>
+  </data>
+  <data name="DuelWagerPayment" xml:space="preserve">
+    <value>决斗赌注奖励</value>
+  </data>
+  <data name="DuelWagerRefund" xml:space="preserve">
+    <value>决斗赌注退款</value>
+  </data>
+  <data name="EssEscrowTransfer" xml:space="preserve">
+    <value>ESS 转账</value>
+  </data>
+  <data name="ExternalTradeDelivery" xml:space="preserve">
+    <value>外部交易递送</value>
+  </data>
+  <data name="ExternalTradeFreeze" xml:space="preserve">
+    <value>外部交易冻结</value>
+  </data>
+  <data name="ExternalTradeThaw" xml:space="preserve">
+    <value>外部交易解冻</value>
+  </data>
+  <data name="FactorySlotRentalFee" xml:space="preserve">
+    <value>工厂槽位租借费</value>
+  </data>
+  <data name="FluxPayout" xml:space="preserve">
+    <value>超网中继支付</value>
+  </data>
+  <data name="FluxTax" xml:space="preserve">
+    <value>超网中继交易费</value>
+  </data>
+  <data name="FluxTicketRepayment" xml:space="preserve">
+    <value>超网节点退款</value>
+  </data>
+  <data name="FluxTicketSale" xml:space="preserve">
+    <value>超网节点交易</value>
+  </data>
+  <data name="FreelanceJobsBroadcastingFee" xml:space="preserve">
+    <value>自由任务广播费</value>
+  </data>
+  <data name="FreelanceJobsDurationFee" xml:space="preserve">
+    <value>自由任务时长费</value>
+  </data>
+  <data name="FreelanceJobsEscrowRefund" xml:space="preserve">
+    <value>自由任务托管退款</value>
+  </data>
+  <data name="FreelanceJobsReward" xml:space="preserve">
+    <value>自由任务奖励</value>
+  </data>
+  <data name="FreelanceJobsRewardCorporationTax" xml:space="preserve">
+    <value>自由任务奖励军团税</value>
+  </data>
+  <data name="FreelanceJobsRewardEscrow" xml:space="preserve">
+    <value>自由任务奖励托管</value>
+  </data>
+  <data name="GmCashTransfer" xml:space="preserve">
+    <value>GM 现金转账</value>
+  </data>
+  <data name="GmPlexFeeRefund" xml:space="preserve">
+    <value>GM 伊甸币费用退款</value>
+  </data>
+  <data name="IndustryJobTax" xml:space="preserve">
+    <value>工业税</value>
+  </data>
+  <data name="IndustrySecurityTax" xml:space="preserve">
+    <value>工业安全税</value>
+  </data>
+  <data name="InfrastructureHubMaintenance" xml:space="preserve">
+    <value>基础设施中心账单</value>
+  </data>
+  <data name="Inheritance" xml:space="preserve">
+    <value>继承</value>
+  </data>
+  <data name="Insurance" xml:space="preserve">
+    <value>保险</value>
+  </data>
+  <data name="InsurgencyCorruptionContributionReward" xml:space="preserve">
+    <value>叛乱活动腐蚀贡献奖励</value>
+  </data>
+  <data name="InsurgencySuppressionContributionReward" xml:space="preserve">
+    <value>叛乱活动镇压贡献奖励</value>
+  </data>
+  <data name="ItemTraderPayment" xml:space="preserve">
+    <value>物品商人付款</value>
+  </data>
+  <data name="JumpCloneActivationFee" xml:space="preserve">
+    <value>远距克隆激活费用</value>
+  </data>
+  <data name="JumpCloneInstallationFee" xml:space="preserve">
+    <value>远距克隆安装费</value>
+  </data>
+  <data name="KillRightFee" xml:space="preserve">
+    <value>击毁权费用</value>
+  </data>
+  <data name="LpStore" xml:space="preserve">
+    <value>LP 商店</value>
+  </data>
+  <data name="Manufacturing" xml:space="preserve">
+    <value>制造</value>
+  </data>
+  <data name="ManufacturingTax" xml:space="preserve">
+    <value>制造税</value>
+  </data>
+  <data name="MarketEscrow" xml:space="preserve">
+    <value>市场契约金</value>
+  </data>
+  <data name="MarketFinePaid" xml:space="preserve">
+    <value>支付市场罚款</value>
+  </data>
+  <data name="MarketProviderTax" xml:space="preserve">
+    <value>商业安全委员会追加费用</value>
+  </data>
+  <data name="MarketSecurityTax" xml:space="preserve">
+    <value>市场安全税</value>
+  </data>
+  <data name="MarketTransaction" xml:space="preserve">
+    <value>市场交易</value>
+  </data>
+  <data name="MedalCreation" xml:space="preserve">
+    <value>制作奖章</value>
+  </data>
+  <data name="MedalIssued" xml:space="preserve">
+    <value>授予奖章</value>
+  </data>
+  <data name="MilestoneRewardPayment" xml:space="preserve">
+    <value>里程碑奖励</value>
+  </data>
+  <data name="MiningTax" xml:space="preserve">
+    <value>采矿税</value>
+  </data>
+  <data name="MissionCompletion" xml:space="preserve">
+    <value>任务完成</value>
+  </data>
+  <data name="MissionCost" xml:space="preserve">
+    <value>任务花销</value>
+  </data>
+  <data name="MissionExpiration" xml:space="preserve">
+    <value>任务过期</value>
+  </data>
+  <data name="MissionReward" xml:space="preserve">
+    <value>任务奖励</value>
+  </data>
+  <data name="NpcBountySecurityTax" xml:space="preserve">
+    <value>NPC 赏金安全税</value>
+  </data>
+  <data name="OfficeRentalFee" xml:space="preserve">
+    <value>办公室租金</value>
+  </data>
+  <data name="OperationBonus" xml:space="preserve">
+    <value>教程任务奖励</value>
+  </data>
+  <data name="OpportunityReward" xml:space="preserve">
+    <value>机遇奖励</value>
+  </data>
+  <data name="PlanetaryConstruction" xml:space="preserve">
+    <value>行星建设</value>
+  </data>
+  <data name="PlanetaryExportTax" xml:space="preserve">
+    <value>行星出口税</value>
+  </data>
+  <data name="PlanetaryImportTax" xml:space="preserve">
+    <value>行星进口税</value>
+  </data>
+  <data name="PlayerDonation" xml:space="preserve">
+    <value>玩家捐赠</value>
+  </data>
+  <data name="PlayerTrading" xml:space="preserve">
+    <value>玩家交易</value>
+  </data>
+  <data name="ProjectDiscoveryReward" xml:space="preserve">
+    <value>探索计划奖励</value>
+  </data>
+  <data name="ProjectDiscoveryTax" xml:space="preserve">
+    <value>探索计划税</value>
+  </data>
+  <data name="ProjectPayouts" xml:space="preserve">
+    <value>项目奖励</value>
+  </data>
+  <data name="Reaction" xml:space="preserve">
+    <value>反应</value>
+  </data>
+  <data name="RedeemedIskToken" xml:space="preserve">
+    <value>兑换 ISK 令牌</value>
+  </data>
+  <data name="ReleaseOfImpoundedProperty" xml:space="preserve">
+    <value>扣押资产赎金</value>
+  </data>
+  <data name="RepairBill" xml:space="preserve">
+    <value>维修账单</value>
+  </data>
+  <data name="ReprocessingTax" xml:space="preserve">
+    <value>精炼税</value>
+  </data>
+  <data name="ResearchingMaterialProductivity" xml:space="preserve">
+    <value>研究材料效率</value>
+  </data>
+  <data name="ResearchingTechnology" xml:space="preserve">
+    <value>研究技术</value>
+  </data>
+  <data name="ResearchingTimeProductivity" xml:space="preserve">
+    <value>研究时间效率</value>
+  </data>
+  <data name="ResourceWarsReward" xml:space="preserve">
+    <value>资源战争奖励</value>
+  </data>
+  <data name="ReverseEngineering" xml:space="preserve">
+    <value>逆向工程</value>
+  </data>
+  <data name="SeasonChallengeReward" xml:space="preserve">
+    <value>赛季挑战奖励</value>
+  </data>
+  <data name="SecurityProcessingFee" xml:space="preserve">
+    <value>安全等级铭牌手续费</value>
+  </data>
+  <data name="Shares" xml:space="preserve">
+    <value>股票</value>
+  </data>
+  <data name="SkillPurchase" xml:space="preserve">
+    <value>技能购买</value>
+  </data>
+  <data name="SkyhookClaimFee" xml:space="preserve">
+    <value>天钩认领费</value>
+  </data>
+  <data name="SovereignityBill" xml:space="preserve">
+    <value>主权账单</value>
+  </data>
+  <data name="StorePurchase" xml:space="preserve">
+    <value>商城消费</value>
+  </data>
+  <data name="StorePurchaseRefund" xml:space="preserve">
+    <value>商城消费退款</value>
+  </data>
+  <data name="StructureGateJump" xml:space="preserve">
+    <value>跳跃桥接费用</value>
+  </data>
+  <data name="TransactionTax" xml:space="preserve">
+    <value>交易税</value>
+  </data>
+  <data name="UnderConstruction" xml:space="preserve">
+    <value>建造材料交付</value>
+  </data>
+  <data name="UpkeepAdjustmentFee" xml:space="preserve">
+    <value>主权维护调整费</value>
+  </data>
+  <data name="WarAllyContract" xml:space="preserve">
+    <value>战争盟友合同</value>
+  </data>
+  <data name="WarFee" xml:space="preserve">
+    <value>宣战费用</value>
+  </data>
+  <data name="WarFeeSurrender" xml:space="preserve">
+    <value>战争投降费用</value>
+  </data>
+</root>

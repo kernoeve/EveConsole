@@ -5,6 +5,7 @@ using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using EveConsole.Models;
 using EveConsole.ViewModels;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -36,6 +37,9 @@ public partial class ProductionCalculatorView : UserControl
     }
 
     // ── Raw Materials toolbar ─────────────────────────────────────────────
+    //
+    // The shopping lists and the exports copy TypeName, the English, not the name the grid shows:
+    // they are pasted into the game's multibuy and into appraisal tools and spreadsheets.
 
     private async void OnShoppingListClick(object? sender, RoutedEventArgs e)
     {
@@ -79,10 +83,21 @@ public partial class ProductionCalculatorView : UserControl
         await CopyToClipboardAsync(sb.ToString());
     }
 
+    /// <summary>The raw materials export's header row, in the grid's own column names, ending in a
+    /// newline. ⚠️ In a CSV a header holding a comma is quoted, as a material name is: the names
+    /// are translated, and a translation may have one.</summary>
+    private static string RawMaterialsHeader(char separator)
+    {
+        string[] headers = [IndustryText.ColMaterial, IndustryText.ColQuantity,
+                            IndustryText.ColUnitPrice, IndustryText.ColTotalCost];
+        return string.Join(separator, headers.Select(h =>
+                   separator == ',' && h.Contains(',') ? $"\"{h}\"" : h)) + "\n";
+    }
+
     private async void OnExportClipboardClick(object? sender, RoutedEventArgs e)
     {
         if (DataContext is not ProductionCalculatorViewModel vm || vm.Plan is null) return;
-        var sb = new StringBuilder("Material\tQuantity\tUnit Price\tTotal Cost\n");
+        var sb = new StringBuilder(RawMaterialsHeader('\t'));
         foreach (var m in vm.Plan.RawMaterials)
             sb.Append(m.TypeName).Append('\t')
               .Append(m.Quantity.ToString("N0")).Append('\t')
@@ -94,7 +109,7 @@ public partial class ProductionCalculatorView : UserControl
     private async void OnExportCsvClick(object? sender, RoutedEventArgs e)
     {
         if (DataContext is not ProductionCalculatorViewModel vm || vm.Plan is null) return;
-        var sb = new StringBuilder("Material,Quantity,Unit Price,Total Cost\n");
+        var sb = new StringBuilder(RawMaterialsHeader(','));
         foreach (var m in vm.Plan.RawMaterials)
         {
             var name = m.TypeName.Contains(',') ? $"\"{m.TypeName}\"" : m.TypeName;
@@ -110,14 +125,14 @@ public partial class ProductionCalculatorView : UserControl
     private async void OnExportTabClick(object? sender, RoutedEventArgs e)
     {
         if (DataContext is not ProductionCalculatorViewModel vm || vm.Plan is null) return;
-        var sb = new StringBuilder("Material\tQuantity\tUnit Price\tTotal Cost\n");
+        var sb = new StringBuilder(RawMaterialsHeader('\t'));
         foreach (var m in vm.Plan.RawMaterials)
             sb.Append(m.TypeName).Append('\t')
               .Append(m.Quantity.ToString("N0")).Append('\t')
               .Append(m.UnitPrice.ToString("N2")).Append('\t')
               .AppendLine(m.TotalCost.ToString("N0"));
         await SaveToFileAsync(sb.ToString(), "raw_materials.txt",
-            new FilePickerFileType("Text") { Patterns = ["*.txt"] });
+            new FilePickerFileType(IndustryText.FileTypeText) { Patterns = ["*.txt"] });
     }
 
     // ── Row links ─────────────────────────────────────────────────────────
@@ -157,7 +172,7 @@ public partial class ProductionCalculatorView : UserControl
         if (storage is null) return;
         var file = await storage.SaveFilePickerAsync(new FilePickerSaveOptions
         {
-            Title             = "Export Raw Materials",
+            Title             = IndustryText.TitleExportRawMaterials,
             SuggestedFileName = suggestedName,
             FileTypeChoices   = [fileType],
         });

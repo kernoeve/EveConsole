@@ -1,4 +1,6 @@
-﻿namespace EveConsole.Models;
+﻿using EveConsole.Localization;
+
+namespace EveConsole.Models;
 
 public static class MarketMethod
 {
@@ -13,9 +15,18 @@ public static class MarketPriceType
     public const string Buy      = "Buy";
     public const string Sell     = "Sell";
 
+    /// <summary>Every key, in the order a person picks from.</summary>
+    public static IReadOnlyList<string> Keys { get; } = [Buy, Midpoint, Sell];
+
     /// <summary>The name a person sees for a key. The midpoint of buy and sell is "Split", the
     /// word the market tools use; the key stays "Midpoint" because databases and postings hold it.</summary>
-    public static string Label(string key) => key == Midpoint ? "Split" : key;
+    public static string Label(string key) => key switch
+    {
+        Midpoint => CommonText.PriceTypeSplit,
+        Buy      => CommonText.PriceTypeBuy,
+        Sell     => CommonText.PriceTypeSell,
+        _        => key,
+    };
 }
 
 public class MarketPricingConfig
@@ -112,4 +123,8 @@ public class PriceHistoryRegion
 {
     public int    RegionId   { get; set; }
     public string RegionName { get; set; } = "";
+
+    /// <summary>The region in the interface language, for the pickers to show. Not mapped (it has
+    /// no setter); <see cref="RegionName"/> stays English, and is what the agent matches.</summary>
+    public string DisplayName => SdeNames.Region(RegionId, RegionName);
 }

@@ -1,5 +1,6 @@
 using KokoroSharp;
 using System.Text.RegularExpressions;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -25,39 +26,47 @@ public sealed class KokoroTtsService : IDisposable
     /// <summary>The full-precision model, from where KokoroSharp's own download takes it.</summary>
     private const string ModelUrl = "https://github.com/taylorchu/kokoro-onnx/releases/download/v0.2.0/kokoro.onnx";
     // ── English voices bundled with KokoroSharp (via NuGet content) ─────────
+    // Each voice's name is its own and stays as it is; the kind of voice it is, is translated.
+    // Chosen by Id on the settings tab, never by these words.
     public static readonly IReadOnlyList<(string Id, string Label)> Voices =
     [
         // American Female
-        ("af_heart",   "Heart (American Female — default)"),
-        ("af_sky",     "Sky (American Female)"),
-        ("af_bella",   "Bella (American Female)"),
-        ("af_sarah",   "Sarah (American Female)"),
-        ("af_nicole",  "Nicole (American Female)"),
-        ("af_alloy",   "Alloy (American Female)"),
-        ("af_nova",    "Nova (American Female)"),
-        ("af_jessica", "Jessica (American Female)"),
-        ("af_kore",    "Kore (American Female)"),
-        ("af_aoede",   "Aoede (American Female)"),
-        ("af_river",   "River (American Female)"),
+        ("af_heart",   AmericanFemaleDefault("Heart")),
+        ("af_sky",     AmericanFemale("Sky")),
+        ("af_bella",   AmericanFemale("Bella")),
+        ("af_sarah",   AmericanFemale("Sarah")),
+        ("af_nicole",  AmericanFemale("Nicole")),
+        ("af_alloy",   AmericanFemale("Alloy")),
+        ("af_nova",    AmericanFemale("Nova")),
+        ("af_jessica", AmericanFemale("Jessica")),
+        ("af_kore",    AmericanFemale("Kore")),
+        ("af_aoede",   AmericanFemale("Aoede")),
+        ("af_river",   AmericanFemale("River")),
         // American Male
-        ("am_adam",    "Adam (American Male)"),
-        ("am_michael", "Michael (American Male)"),
-        ("am_echo",    "Echo (American Male)"),
-        ("am_eric",    "Eric (American Male)"),
-        ("am_liam",    "Liam (American Male)"),
-        ("am_onyx",    "Onyx (American Male)"),
-        ("am_puck",    "Puck (American Male)"),
+        ("am_adam",    AmericanMale("Adam")),
+        ("am_michael", AmericanMale("Michael")),
+        ("am_echo",    AmericanMale("Echo")),
+        ("am_eric",    AmericanMale("Eric")),
+        ("am_liam",    AmericanMale("Liam")),
+        ("am_onyx",    AmericanMale("Onyx")),
+        ("am_puck",    AmericanMale("Puck")),
         // British Female
-        ("bf_emma",     "Emma (British Female)"),
-        ("bf_isabella", "Isabella (British Female)"),
-        ("bf_alice",    "Alice (British Female)"),
-        ("bf_lily",     "Lily (British Female)"),
+        ("bf_emma",     BritishFemale("Emma")),
+        ("bf_isabella", BritishFemale("Isabella")),
+        ("bf_alice",    BritishFemale("Alice")),
+        ("bf_lily",     BritishFemale("Lily")),
         // British Male
-        ("bm_george",  "George (British Male)"),
-        ("bm_lewis",   "Lewis (British Male)"),
-        ("bm_daniel",  "Daniel (British Male)"),
-        ("bm_fable",   "Fable (British Male)"),
+        ("bm_george",  BritishMale("George")),
+        ("bm_lewis",   BritishMale("Lewis")),
+        ("bm_daniel",  BritishMale("Daniel")),
+        ("bm_fable",   BritishMale("Fable")),
     ];
+
+    private static string AmericanFemaleDefault(string name) => string.Format(SettingsText.KokoroVoiceAmericanFemaleDefault, name);
+    private static string AmericanFemale(string name) => string.Format(SettingsText.KokoroVoiceAmericanFemale, name);
+    private static string AmericanMale(string name)   => string.Format(SettingsText.KokoroVoiceAmericanMale, name);
+    private static string BritishFemale(string name)  => string.Format(SettingsText.KokoroVoiceBritishFemale, name);
+    private static string BritishMale(string name)    => string.Format(SettingsText.KokoroVoiceBritishMale, name);
 
     private KokoroTTS? _tts;
     private string     _voiceId = "af_heart";
@@ -95,7 +104,7 @@ public sealed class KokoroTtsService : IDisposable
             if (KokoroVoiceManager.Voices.Count == 0)
             {
                 if (!Directory.Exists(VoicesDir))
-                    throw new DirectoryNotFoundException($"Kokoro's voices are missing from {VoicesDir}");
+                    throw new DirectoryNotFoundException(string.Format(SettingsText.KokoroVoicesMissing, VoicesDir));
                 KokoroVoiceManager.LoadVoicesFromPath(VoicesDir);
             }
             var tts = KokoroTTS.LoadModel(await EnsureModelAsync());
@@ -182,8 +191,8 @@ public sealed class KokoroTtsService : IDisposable
             if (_tts is null)
                 throw new InvalidOperationException(
                     _load?.Exception?.GetBaseException().Message is { } why
-                        ? $"The Kokoro voice could not load: {why}"
-                        : "The Kokoro voice is still downloading or loading its model.");
+                        ? string.Format(SettingsText.KokoroCouldNotLoad, why)
+                        : SettingsText.KokoroStillLoading);
         }
         var stripped = StripMarkdown(text);
 

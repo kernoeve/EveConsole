@@ -1,20 +1,64 @@
+using System.Reactive;
+using EveConsole.Localization;
 using EveConsole.Services;
 using ReactiveUI;
 
 namespace EveConsole.ViewModels;
 
 /// <summary>
-/// Miscellaneous UI preferences that do not belong to any of the data-source tabs.
-/// Currently just the destination for clicking the EVE clock.
+/// Miscellaneous UI preferences that do not belong to any of the data-source tabs: appearance,
+/// language, and the destination for clicking the EVE clock.
 /// </summary>
 public class OtherSettingsViewModel : ReactiveObject
 {
     /// <summary>Sentinel entry in the dropdown; anything not matching a preset selects it
-    /// and reveals the free-text box.</summary>
-    public const string CustomOption = "Custom URL…";
+    /// and reveals the free-text box. Only ever compared within one run, so it can be in the
+    /// interface language: the choice is stored as the address it comes to, never as this.</summary>
+    public static string CustomOption => SettingsText.CustomUrlOption;
 
     private readonly UiLinkSettings _settings;
     private bool _loading = true;
+
+    // ── Language ──────────────────────────────────────────────────────────────
+
+    /// <summary>"System default", then every language the app has text for, by its own name.</summary>
+    public IReadOnlyList<LanguageChoice> LanguageChoices { get; } = Languages.Choices();
+
+    private LanguageChoice? _selectedLanguage;
+
+    /// <summary>
+    /// The language chosen for this machine. Stored the moment it is picked, and shown from the
+    /// next start — see Languages for why not at once — so a change offers a restart.
+    /// </summary>
+    public LanguageChoice? SelectedLanguage
+    {
+        get => _selectedLanguage;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _selectedLanguage, value);
+            if (_loading || value is null) return;
+            try   { Languages.Choose(value.Code); RestartError = null; }
+            catch (Exception ex) { RestartError = ex.Message; }
+            this.RaisePropertyChanged(nameof(LanguageNeedsRestart));
+        }
+    }
+
+    /// <summary>A language is chosen that this run is not showing.</summary>
+    public bool LanguageNeedsRestart => Languages.RestartNeeded;
+
+    /// <summary>The language on screen is still being translated, so parts of it are English.</summary>
+    public bool LanguageIsPreview => Languages.Active.Preview;
+
+    private string? _restartError;
+    /// <summary>Why the restart or the choice did not go through, in words; null when nothing failed.</summary>
+    public string? RestartError
+    {
+        get => _restartError;
+        private set => this.RaiseAndSetIfChanged(ref _restartError, value);
+    }
+
+    /// <summary>Restarts into the chosen language. Returns only when the restart failed.</summary>
+    public ReactiveCommand<Unit, Unit> RestartCommand { get; }
 
     // ── UI scale ──────────────────────────────────────────────────────────────
 
@@ -87,6 +131,14 @@ public class OtherSettingsViewModel : ReactiveObject
     {
         _settings = settings;
 
+        _selectedLanguage = LanguageChoices.FirstOrDefault(c => c.Code == Languages.Chosen)
+                         ?? LanguageChoices[0];
+        RestartCommand = ReactiveCommand.Create(() =>
+        {
+            if (AppLauncher.Restart() is { } error)
+                RestartError = string.Format(SettingsText.RestartFailed, error);
+        });
+
         ThemeService.Changed   += OnThemeChanged;
         UiScaleService.Changed += OnUiScaleChanged;
 
@@ -127,10 +179,14 @@ public class OtherSettingsViewModel : ReactiveObject
         ? (string.IsNullOrWhiteSpace(CustomEveTimeUrl) ? UiLinkSettings.EveOnlineTimeUrl : CustomEveTimeUrl.Trim())
         : SelectedEveTimeSite;
 
+    /// <summary>The same, as the sentence under the controls.</summary>
+    public string EffectiveUrlText => string.Format(SettingsText.EveTimeLinkEffective, EffectiveUrl);
+
     private void Apply()
     {
         if (_loading) return;
         _settings.EveTimeUrl = EffectiveUrl;
         this.RaisePropertyChanged(nameof(EffectiveUrl));
+        this.RaisePropertyChanged(nameof(EffectiveUrlText));
     }
 }

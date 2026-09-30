@@ -1,6 +1,7 @@
 using EveConsole.Data;
 using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.Services.Worklist;
 
@@ -96,7 +97,7 @@ public sealed record BuildDemand(int TypeId, long Units, int Priority, List<stri
     /// jumps the queue without saying why reads as the list being arbitrary.</para>
     /// </summary>
     public string Head => string.Join(" + ", Reasons)
-                        + (Blocks > 1 ? $" [{Blocks:N0} item(s) downstream wait on this]" : "");
+                        + (Blocks > 1 ? " " + string.Format(WorklistText.HeadDownstream, Blocks) : "");
 
     /// <summary>
     /// The gross the three parts add up to, which is not <see cref="Units"/> — that is the net
@@ -485,7 +486,7 @@ public class IndustryDemandService(
             g.Consumed   += units;
             g.OrderUnits += units;
             g.Fires       = true;
-            g.Reasons.Add($"{count} pending order(s) for {units:N0}.");
+            g.Reasons.Add(string.Format(WorklistText.ReasonPendingOrders, count, units));
             topLevel.Add((typeId, units));
 
             // ⚠️ URGENCY, unlike quantity, does stop when the order is already met. An order
@@ -561,7 +562,8 @@ public class IndustryDemandService(
 
             if (root is null) continue;
 
-            var name    = ctx.TypeNames.GetValueOrDefault(typeId, $"Type {typeId}");
+            // Only ever read out in a row's reasons, so named as the screen shows it.
+            var name    = SdeNames.Type(typeId, ctx.TypeNames.GetValueOrDefault(typeId, string.Format(WorklistText.TypeWithId, typeId)));
             var portion = already > 0 ? (double)(net - already) / net : 1.0;
 
             foreach (var m in root.Materials)
@@ -577,7 +579,7 @@ public class IndustryDemandService(
                 child.ParentUnits += qty;
                 child.Fires        = true;
                 child.Priority  = Math.Max(child.Priority, g.Priority);
-                child.Reasons.Add($"{qty:N0} for {name}.");
+                child.Reasons.Add(string.Format(WorklistText.ReasonForParent, qty, name));
 
                 // What waits on this: the parent, and everything already waiting on the parent.
                 // The queue reaches parents before children, so by the time a child is written the
@@ -689,11 +691,10 @@ public class IndustryDemandService(
     {
         // Contributors first, in the order they were added, then the arithmetic.
         foreach (var r in g.Reasons.Take(3)) yield return r;
-        if (g.Reasons.Count > 3) yield return $"and {g.Reasons.Count - 3} more.";
+        if (g.Reasons.Count > 3) yield return string.Format(WorklistText.ReasonsAndMore, g.Reasons.Count - 3);
 
         if (g.Consumed > 0)
-            yield return $"Keeping {g.Level:N0} and consuming {g.Consumed:N0}, "
-                       + $"against {have:N0} on hand.";
+            yield return string.Format(WorklistText.ReasonKeepingConsuming, g.Level, g.Consumed, have);
     }
 
     /// <summary>Pending orders: gross units, what is still outstanding, and how many orders.</summary>

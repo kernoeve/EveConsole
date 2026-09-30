@@ -1,0 +1,950 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TitleComposeMail" xml:space="preserve">
+    <value>メールの作成</value>
+  </data>
+  <data name="FromLabel" xml:space="preserve">
+    <value>差出人</value>
+  </data>
+  <data name="ToSearchNamePressNote" xml:space="preserve">
+    <value>宛先（名前で検索し、Enterキーで追加）</value>
+  </data>
+  <data name="HintCharacterName" xml:space="preserve">
+    <value>キャラクター名…</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>追加</value>
+  </data>
+  <data name="SubjectLabel" xml:space="preserve">
+    <value>件名</value>
+  </data>
+  <data name="BodyLabel" xml:space="preserve">
+    <value>本文</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>キャンセル</value>
+  </data>
+  <data name="Send" xml:space="preserve">
+    <value>送信</value>
+  </data>
+  <data name="CharacterLabel" xml:space="preserve">
+    <value>キャラクター</value>
+  </data>
+  <data name="Reply" xml:space="preserve">
+    <value>返信</value>
+  </data>
+  <data name="Forward" xml:space="preserve">
+    <value>転送</value>
+  </data>
+  <data name="Compose" xml:space="preserve">
+    <value>+ 作成</value>
+  </data>
+  <data name="FromLabel2" xml:space="preserve">
+    <value>差出人</value>
+  </data>
+  <data name="DateFromLabel" xml:space="preserve">
+    <value>開始：</value>
+  </data>
+  <data name="TipOpenInTheEntityBrowser" xml:space="preserve">
+    <value>エンティティブラウザで開きます</value>
+  </data>
+  <data name="ToLabel" xml:space="preserve">
+    <value>宛先</value>
+  </data>
+  <data name="DateLabel" xml:space="preserve">
+    <value>日付</value>
+  </data>
+  <data name="SelectAMessageToRead" xml:space="preserve">
+    <value>読むメッセージを選択してください。</value>
+  </data>
+  <data name="TitleEveMail" xml:space="preserve">
+    <value>EVEメール</value>
+  </data>
+  <data name="CharacterLabel2" xml:space="preserve">
+    <value>キャラクター：</value>
+  </data>
+  <data name="TypeLabel" xml:space="preserve">
+    <value>タイプ：</value>
+  </data>
+  <data name="SenderLabel" xml:space="preserve">
+    <value>送信者：</value>
+  </data>
+  <data name="ThruLabel" xml:space="preserve">
+    <value>終了：</value>
+  </data>
+  <data name="SortLabel" xml:space="preserve">
+    <value>並び順：</value>
+  </data>
+  <data name="UnreadOnly" xml:space="preserve">
+    <value>未読のみ</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>クリア</value>
+  </data>
+  <data name="ColDate" xml:space="preserve">
+    <value>日付</value>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>タイプ</value>
+  </data>
+  <data name="ColCharacter" xml:space="preserve">
+    <value>キャラクター</value>
+  </data>
+  <data name="ColSender" xml:space="preserve">
+    <value>送信者</value>
+  </data>
+  <data name="ColSenderType" xml:space="preserve">
+    <value>送信者のタイプ</value>
+  </data>
+  <data name="ColRead" xml:space="preserve">
+    <value>既読</value>
+  </data>
+  <data name="Sender" xml:space="preserve">
+    <value>送信者</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>日付</value>
+  </data>
+  <data name="Read" xml:space="preserve">
+    <value>既読</value>
+  </data>
+  <data name="Character" xml:space="preserve">
+    <value>キャラクター</value>
+  </data>
+  <data name="NoFurtherDetails" xml:space="preserve">
+    <value>詳細はありません。</value>
+  </data>
+  <data name="ShowTheOriginalText" xml:space="preserve">
+    <value>元のテキストを表示</value>
+  </data>
+  <data name="SelectANotificationToNote" xml:space="preserve">
+    <value>通知を選択すると詳細が表示されます。</value>
+  </data>
+  <data name="First" xml:space="preserve">
+    <value>⏮ 最初</value>
+  </data>
+  <data name="Prev" xml:space="preserve">
+    <value>◀ 前へ</value>
+  </data>
+  <data name="Next" xml:space="preserve">
+    <value>次へ ▶</value>
+  </data>
+  <data name="Last" xml:space="preserve">
+    <value>最後 ⏭</value>
+  </data>
+  <data name="AllCharacters" xml:space="preserve">
+    <value>全キャラクター</value>
+  </data>
+  <data name="MailFolderAll" xml:space="preserve">
+    <value>すべてのメール</value>
+  </data>
+  <data name="MailFolderInbox" xml:space="preserve">
+    <value>受信トレイ</value>
+  </data>
+  <data name="MailFolderSent" xml:space="preserve">
+    <value>送信済み</value>
+  </data>
+  <data name="MailFolderCorp" xml:space="preserve">
+    <value>コーポ</value>
+  </data>
+  <data name="MailFolderAlliance" xml:space="preserve">
+    <value>アライアンス</value>
+  </data>
+  <data name="MailCountOther" xml:space="preserve">
+    <value>メッセージ{0:N0}件</value>
+  </data>
+  <data name="MailBodyLoadError" xml:space="preserve">
+    <value>（本文の読み込みエラー：{0}）</value>
+  </data>
+  <data name="MailNoCharacters" xml:space="preserve">
+    <value>メールを作成できるキャラクターがいません。</value>
+  </data>
+  <data name="MailCharacterGone" xml:space="preserve">
+    <value>このメールの宛先だったキャラクターは、送信元として使用できなくなっています。</value>
+  </data>
+  <data name="MailQuoteHeader" xml:space="preserve">
+    <value>{1}に{0}が書きました：
+
+</value>
+  </data>
+  <data name="MailSending" xml:space="preserve">
+    <value>送信中…</value>
+  </data>
+  <data name="MailSent" xml:space="preserve">
+    <value>メールを送信しました。</value>
+  </data>
+  <data name="MailSendFailed" xml:space="preserve">
+    <value>送信に失敗しました：{0}</value>
+  </data>
+  <data name="NotifRead" xml:space="preserve">
+    <value>既読</value>
+  </data>
+  <data name="NotifUnread" xml:space="preserve">
+    <value>未読</value>
+  </data>
+  <data name="NotifTipEntity" xml:space="preserve">
+    <value>エンティティブラウザで開きます</value>
+  </data>
+  <data name="NotifAllTypes" xml:space="preserve">
+    <value>すべてのタイプ</value>
+  </data>
+  <data name="SortDateNewest" xml:space="preserve">
+    <value>日付：新しい順</value>
+  </data>
+  <data name="SortDateOldest" xml:space="preserve">
+    <value>日付：古い順</value>
+  </data>
+  <data name="SortTypeAz" xml:space="preserve">
+    <value>タイプ（A → Z）</value>
+  </data>
+  <data name="AllCharactersLower" xml:space="preserve">
+    <value>全キャラクター</value>
+  </data>
+  <data name="NotifNoneMatch" xml:space="preserve">
+    <value>このフィルターに一致する通知はありません。</value>
+  </data>
+  <data name="MailSearching" xml:space="preserve">
+    <value>検索中…</value>
+  </data>
+  <data name="MailNoCharacterFound" xml:space="preserve">
+    <value>「{0}」に一致するキャラクターが見つかりません。</value>
+  </data>
+  <data name="MailSubjectRequired" xml:space="preserve">
+    <value>件名を入力してください。</value>
+  </data>
+  <data name="MailBodyRequired" xml:space="preserve">
+    <value>本文を入力してください。</value>
+  </data>
+  <data name="MailAddRecipient" xml:space="preserve">
+    <value>宛先を1人以上追加してください。</value>
+  </data>
+  <data name="NotifTitleCorpAppNewMsg" xml:space="preserve">
+    <value>新しいコーポレーション入社申請</value>
+  </data>
+  <data name="NotifTitleCorpAppInvitedMsg" xml:space="preserve">
+    <value>コーポレーションへの招待</value>
+  </data>
+  <data name="NotifTitleCorpAppAcceptMsg" xml:space="preserve">
+    <value>コーポレーション入社申請の承認</value>
+  </data>
+  <data name="NotifTitleCharAppAcceptMsg" xml:space="preserve">
+    <value>申請の承認</value>
+  </data>
+  <data name="NotifTitleCharAppRejectMsg" xml:space="preserve">
+    <value>申請の却下</value>
+  </data>
+  <data name="NotifTitleCharAppWithdrawMsg" xml:space="preserve">
+    <value>申請の取り下げ</value>
+  </data>
+  <data name="NotifTitleCharTerminationMsg" xml:space="preserve">
+    <value>メンバーのコーポレーション脱退</value>
+  </data>
+  <data name="NotifTitleCorpTaxChangeMsg" xml:space="preserve">
+    <value>コーポレーション税の変更</value>
+  </data>
+  <data name="NotifTitleCorpAllBillMsg" xml:space="preserve">
+    <value>コーポレーションの請求書</value>
+  </data>
+  <data name="NotifTitleInsurancePayoutMsg" xml:space="preserve">
+    <value>保険金の支払い</value>
+  </data>
+  <data name="NotifTitleNPCStandingsLost" xml:space="preserve">
+    <value>NPCスタンディングの変化</value>
+  </data>
+  <data name="NotifTitleNPCStandingsGained" xml:space="preserve">
+    <value>NPCスタンディングの変化</value>
+  </data>
+  <data name="NotifTitleCorporationGoalCreated" xml:space="preserve">
+    <value>コーポレーションプロジェクトの作成</value>
+  </data>
+  <data name="NotifTitleCorporationGoalCompleted" xml:space="preserve">
+    <value>コーポレーションプロジェクトの完了</value>
+  </data>
+  <data name="NotifTitleCorporationGoalClosed" xml:space="preserve">
+    <value>コーポレーションプロジェクトの終了</value>
+  </data>
+  <data name="NotifTitleFreelanceProjectCreated" xml:space="preserve">
+    <value>フリーランスジョブの作成</value>
+  </data>
+  <data name="NotifTitleFreelanceProjectCompleted" xml:space="preserve">
+    <value>フリーランスジョブの完了</value>
+  </data>
+  <data name="NotifTitleFreelanceProjectExpired" xml:space="preserve">
+    <value>フリーランスジョブの期限切れ</value>
+  </data>
+  <data name="NotifTitleFreelanceProjectACLDeleted" xml:space="preserve">
+    <value>フリーランスジョブのアクセスリストの削除</value>
+  </data>
+  <data name="NotifTitleMoonminingExtractionStarted" xml:space="preserve">
+    <value>衛星抽出の開始</value>
+  </data>
+  <data name="NotifTitleMoonminingExtractionFinished" xml:space="preserve">
+    <value>衛星抽出の完了</value>
+  </data>
+  <data name="NotifTitleMoonminingExtractionCancelled" xml:space="preserve">
+    <value>衛星抽出のキャンセル</value>
+  </data>
+  <data name="NotifTitleMoonminingAutomaticFracture" xml:space="preserve">
+    <value>岩塊の自動粉砕</value>
+  </data>
+  <data name="NotifTitleMoonminingLaserFired" xml:space="preserve">
+    <value>衛星ドリルの発射</value>
+  </data>
+  <data name="NotifTitleStructureAnchoring" xml:space="preserve">
+    <value>ストラクチャの係留</value>
+  </data>
+  <data name="NotifTitleStructureUnanchoring" xml:space="preserve">
+    <value>ストラクチャの係留解除</value>
+  </data>
+  <data name="NotifTitleStructureOnline" xml:space="preserve">
+    <value>ストラクチャのオンライン化</value>
+  </data>
+  <data name="NotifTitleStructureWentHighPower" xml:space="preserve">
+    <value>ストラクチャのハイパワーへの移行</value>
+  </data>
+  <data name="NotifTitleStructureWentLowPower" xml:space="preserve">
+    <value>ストラクチャのローパワーへの移行</value>
+  </data>
+  <data name="NotifTitleStructureUnderAttack" xml:space="preserve">
+    <value>ストラクチャへの攻撃</value>
+  </data>
+  <data name="NotifTitleStructureLostShields" xml:space="preserve">
+    <value>ストラクチャのシールド喪失</value>
+  </data>
+  <data name="NotifTitleStructureLostArmor" xml:space="preserve">
+    <value>ストラクチャのアーマー喪失</value>
+  </data>
+  <data name="NotifTitleStructureDestroyed" xml:space="preserve">
+    <value>ストラクチャの破壊</value>
+  </data>
+  <data name="NotifTitleStructureFuelAlert" xml:space="preserve">
+    <value>ストラクチャの燃料不足</value>
+  </data>
+  <data name="NotifTitleStructureLowReagentsAlert" xml:space="preserve">
+    <value>ストラクチャの反応試剤不足</value>
+  </data>
+  <data name="NotifTitleStructureNoReagentsAlert" xml:space="preserve">
+    <value>ストラクチャの反応試剤切れ</value>
+  </data>
+  <data name="NotifTitleStructureServicesOffline" xml:space="preserve">
+    <value>ストラクチャのサービスのオフライン化</value>
+  </data>
+  <data name="NotifTitleStructureItemsMovedToSafety" xml:space="preserve">
+    <value>アセットセーフティへのアイテム移動</value>
+  </data>
+  <data name="NotifTitleStructureItemsDelivered" xml:space="preserve">
+    <value>ストラクチャへのアイテム配送</value>
+  </data>
+  <data name="NotifTitleStructureImpendingAbandonmentAssetsAtRisk" xml:space="preserve">
+    <value>ストラクチャの放棄 — 資産が危険にさらされています</value>
+  </data>
+  <data name="NotifTitleStructurePaintPurchased" xml:space="preserve">
+    <value>ストラクチャのペイントの購入</value>
+  </data>
+  <data name="NotifTitleOwnershipTransferred" xml:space="preserve">
+    <value>ストラクチャの所有権の移譲</value>
+  </data>
+  <data name="NotifTitleEntosisCaptureStarted" xml:space="preserve">
+    <value>エントーシスによる占領の開始</value>
+  </data>
+  <data name="NotifTitleTowerAlertMsg" xml:space="preserve">
+    <value>スターベースへの攻撃</value>
+  </data>
+  <data name="NotifTitleTowerResourceAlertMsg" xml:space="preserve">
+    <value>スターベースの燃料不足</value>
+  </data>
+  <data name="NotifTitleCloneActivationMsg2" xml:space="preserve">
+    <value>クローンの起動</value>
+  </data>
+  <data name="NotifTitleCloneActivationMsg" xml:space="preserve">
+    <value>クローンの起動</value>
+  </data>
+  <data name="NotifTitleCloneRevokedMsg2" xml:space="preserve">
+    <value>クローンの取り消し</value>
+  </data>
+  <data name="NotifTitleJumpCloneDeletedMsg1" xml:space="preserve">
+    <value>ジャンプクローンの破壊</value>
+  </data>
+  <data name="NotifTitleJumpCloneDeletedMsg2" xml:space="preserve">
+    <value>ジャンプクローンの破壊</value>
+  </data>
+  <data name="NotifTitleKillReportVictim" xml:space="preserve">
+    <value>艦船の喪失</value>
+  </data>
+  <data name="NotifTitleKillReportFinalBlow" xml:space="preserve">
+    <value>最終攻撃</value>
+  </data>
+  <data name="NotifTitleKillRightEarned" xml:space="preserve">
+    <value>殺害許可の獲得</value>
+  </data>
+  <data name="NotifTitleWarDeclared" xml:space="preserve">
+    <value>宣戦布告</value>
+  </data>
+  <data name="NotifTitleWarInherited" xml:space="preserve">
+    <value>戦争の継承</value>
+  </data>
+  <data name="NotifTitleWarAllyInherited" xml:space="preserve">
+    <value>戦争の味方の継承</value>
+  </data>
+  <data name="NotifTitleWarInvalid" xml:space="preserve">
+    <value>戦争の無効化</value>
+  </data>
+  <data name="NotifTitleWarRetractedByConcord" xml:space="preserve">
+    <value>CONCORDによる戦争の撤回</value>
+  </data>
+  <data name="NotifTitleWarHQRemovedFromSpace" xml:space="preserve">
+    <value>戦争HQの撤去</value>
+  </data>
+  <data name="NotifTitleMutualWarInviteSent" xml:space="preserve">
+    <value>相互布告戦争の招待の送信</value>
+  </data>
+  <data name="NotifTitleOfferedToAlly" xml:space="preserve">
+    <value>味方としての戦争参加の申し出</value>
+  </data>
+  <data name="NotifTitleAllyJoinedWarAggressorMsg" xml:space="preserve">
+    <value>味方が防衛側に参加</value>
+  </data>
+  <data name="NotifTitleAllyJoinedWarAllyMsg" xml:space="preserve">
+    <value>味方が戦争に参加</value>
+  </data>
+  <data name="NotifTitleCorpBecameWarEligible" xml:space="preserve">
+    <value>コーポレーションが戦争参加可に</value>
+  </data>
+  <data name="NotifTitleCorpNoLongerWarEligible" xml:space="preserve">
+    <value>コーポレーションが戦争参加不可に</value>
+  </data>
+  <data name="NotifTitleAllianceCapitalChanged" xml:space="preserve">
+    <value>アライアンスの首都の変更</value>
+  </data>
+  <data name="NotifTitleExpertSystemExpired" xml:space="preserve">
+    <value>エキスパートシステムの期限切れ</value>
+  </data>
+  <data name="NotifTitleGameTimeAdded" xml:space="preserve">
+    <value>ゲーム時間の追加</value>
+  </data>
+  <data name="NotifLabelStructure" xml:space="preserve">
+    <value>ストラクチャ</value>
+  </data>
+  <data name="NotifLabelStructureType" xml:space="preserve">
+    <value>ストラクチャのタイプ</value>
+  </data>
+  <data name="NotifLabelStructures" xml:space="preserve">
+    <value>ストラクチャ</value>
+  </data>
+  <data name="NotifLabelStation" xml:space="preserve">
+    <value>ステーション</value>
+  </data>
+  <data name="NotifLabelMovedTo" xml:space="preserve">
+    <value>移動先</value>
+  </data>
+  <data name="NotifLabelCloneLocation" xml:space="preserve">
+    <value>クローンの位置</value>
+  </data>
+  <data name="NotifLabelLocation" xml:space="preserve">
+    <value>位置</value>
+  </data>
+  <data name="NotifLabelSystem" xml:space="preserve">
+    <value>システム</value>
+  </data>
+  <data name="NotifLabelMoon" xml:space="preserve">
+    <value>衛星</value>
+  </data>
+  <data name="NotifLabelCharacter" xml:space="preserve">
+    <value>キャラクター</value>
+  </data>
+  <data name="NotifLabelCorporation" xml:space="preserve">
+    <value>コーポレーション</value>
+  </data>
+  <data name="NotifLabelAlliance" xml:space="preserve">
+    <value>アライアンス</value>
+  </data>
+  <data name="NotifLabelOwner" xml:space="preserve">
+    <value>所有者</value>
+  </data>
+  <data name="NotifLabelCreatedBy" xml:space="preserve">
+    <value>作成者</value>
+  </data>
+  <data name="NotifLabelClosedBy" xml:space="preserve">
+    <value>終了させた人</value>
+  </data>
+  <data name="NotifLabelInvitedBy" xml:space="preserve">
+    <value>招待者</value>
+  </data>
+  <data name="NotifLabelStartedBy" xml:space="preserve">
+    <value>開始者</value>
+  </data>
+  <data name="NotifLabelFiredBy" xml:space="preserve">
+    <value>発射者</value>
+  </data>
+  <data name="NotifLabelCancelledBy" xml:space="preserve">
+    <value>キャンセルした人</value>
+  </data>
+  <data name="NotifLabelPurchasedBy" xml:space="preserve">
+    <value>購入者</value>
+  </data>
+  <data name="NotifLabelDestroyedBy" xml:space="preserve">
+    <value>破壊者</value>
+  </data>
+  <data name="NotifLabelPoddedBy" xml:space="preserve">
+    <value>ポッド撃破者</value>
+  </data>
+  <data name="NotifLabelNewOwner" xml:space="preserve">
+    <value>新しい所有者</value>
+  </data>
+  <data name="NotifLabelPreviousOwner" xml:space="preserve">
+    <value>以前の所有者</value>
+  </data>
+  <data name="NotifLabelLocationOwner" xml:space="preserve">
+    <value>場所の所有者</value>
+  </data>
+  <data name="NotifLabelPlacedBy" xml:space="preserve">
+    <value>懸賞金をかけた人</value>
+  </data>
+  <data name="NotifLabelDeclaredBy" xml:space="preserve">
+    <value>布告者</value>
+  </data>
+  <data name="NotifLabelAgainst" xml:space="preserve">
+    <value>対象</value>
+  </data>
+  <data name="NotifLabelAggressor" xml:space="preserve">
+    <value>攻撃側</value>
+  </data>
+  <data name="NotifLabelAggressorCorporation" xml:space="preserve">
+    <value>攻撃側のコーポレーション</value>
+  </data>
+  <data name="NotifLabelAggressorAlliance" xml:space="preserve">
+    <value>攻撃側のアライアンス</value>
+  </data>
+  <data name="NotifLabelDefender" xml:space="preserve">
+    <value>防衛側</value>
+  </data>
+  <data name="NotifLabelAlly" xml:space="preserve">
+    <value>味方</value>
+  </data>
+  <data name="NotifLabelEnemy" xml:space="preserve">
+    <value>敵</value>
+  </data>
+  <data name="NotifLabelOpponent" xml:space="preserve">
+    <value>対戦相手</value>
+  </data>
+  <data name="NotifLabelLeftTheWar" xml:space="preserve">
+    <value>戦争から離脱</value>
+  </data>
+  <data name="NotifLabelWarHq" xml:space="preserve">
+    <value>戦争HQ</value>
+  </data>
+  <data name="NotifLabelCost" xml:space="preserve">
+    <value>コスト</value>
+  </data>
+  <data name="NotifLabelFee" xml:space="preserve">
+    <value>手数料</value>
+  </data>
+  <data name="NotifLabelStartsAfter" xml:space="preserve">
+    <value>開始まで</value>
+  </data>
+  <data name="NotifLabelHostileNow" xml:space="preserve">
+    <value>現在交戦中</value>
+  </data>
+  <data name="NotifLabelType" xml:space="preserve">
+    <value>タイプ</value>
+  </data>
+  <data name="NotifLabelTypes" xml:space="preserve">
+    <value>タイプ</value>
+  </data>
+  <data name="NotifLabelShip" xml:space="preserve">
+    <value>艦船</value>
+  </data>
+  <data name="NotifLabelRequires" xml:space="preserve">
+    <value>必要なアイテム</value>
+  </data>
+  <data name="NotifLabelItems" xml:space="preserve">
+    <value>アイテム</value>
+  </data>
+  <data name="NotifLabelServices" xml:space="preserve">
+    <value>サービス</value>
+  </data>
+  <data name="NotifLabelOre" xml:space="preserve">
+    <value>鉱石</value>
+  </data>
+  <data name="NotifLabelNeeds" xml:space="preserve">
+    <value>必要なもの</value>
+  </data>
+  <data name="NotifLabelKillmail" xml:space="preserve">
+    <value>キルレポート</value>
+  </data>
+  <data name="NotifLabelAmount" xml:space="preserve">
+    <value>金額</value>
+  </data>
+  <data name="NotifLabelBounty" xml:space="preserve">
+    <value>懸賞金</value>
+  </data>
+  <data name="NotifLabelLoyaltyPoints" xml:space="preserve">
+    <value>ロイヤルティポイント</value>
+  </data>
+  <data name="NotifLabelProject" xml:space="preserve">
+    <value>プロジェクト</value>
+  </data>
+  <data name="NotifLabelShield" xml:space="preserve">
+    <value>シールド</value>
+  </data>
+  <data name="NotifLabelArmor" xml:space="preserve">
+    <value>アーマー</value>
+  </data>
+  <data name="NotifLabelHull" xml:space="preserve">
+    <value>船体</value>
+  </data>
+  <data name="NotifLabelCorporationOwned" xml:space="preserve">
+    <value>コーポレーション所有</value>
+  </data>
+  <data name="NotifLabelAbandoned" xml:space="preserve">
+    <value>放棄済み</value>
+  </data>
+  <data name="NotifLabelDaysUntilAbandoned" xml:space="preserve">
+    <value>放棄までの日数</value>
+  </data>
+  <data name="NotifLabelSecurityStatus" xml:space="preserve">
+    <value>セキュリティステータス</value>
+  </data>
+  <data name="NotifLabelNewTaxRate" xml:space="preserve">
+    <value>新しい税率</value>
+  </data>
+  <data name="NotifLabelPreviousTaxRate" xml:space="preserve">
+    <value>以前の税率</value>
+  </data>
+  <data name="NotifLabelTime" xml:space="preserve">
+    <value>時刻</value>
+  </data>
+  <data name="NotifLabelStarted" xml:space="preserve">
+    <value>開始</value>
+  </data>
+  <data name="NotifLabelStarts" xml:space="preserve">
+    <value>開始</value>
+  </data>
+  <data name="NotifLabelDeclared" xml:space="preserve">
+    <value>布告</value>
+  </data>
+  <data name="NotifLabelEnds" xml:space="preserve">
+    <value>終了</value>
+  </data>
+  <data name="NotifLabelExpires" xml:space="preserve">
+    <value>期限</value>
+  </data>
+  <data name="NotifLabelTimeLeft" xml:space="preserve">
+    <value>残り時間</value>
+  </data>
+  <data name="NotifLabelVulnerabilityWindow" xml:space="preserve">
+    <value>脆弱性ウィンドウ</value>
+  </data>
+  <data name="NotifLabelReady" xml:space="preserve">
+    <value>準備完了</value>
+  </data>
+  <data name="NotifLabelFracturesAutomatically" xml:space="preserve">
+    <value>自動粉砕</value>
+  </data>
+  <data name="NotifLabelLastCloned" xml:space="preserve">
+    <value>前回のクローン作成</value>
+  </data>
+  <data name="NotifLabelPurchased" xml:space="preserve">
+    <value>購入日時</value>
+  </data>
+  <data name="NotifLabelLasts" xml:space="preserve">
+    <value>持続時間</value>
+  </data>
+  <data name="NotifLabelDeliverableFrom" xml:space="preserve">
+    <value>配送可能日時</value>
+  </data>
+  <data name="NotifLabelDeliveredAutomatically" xml:space="preserve">
+    <value>自動配送日時</value>
+  </data>
+  <data name="NotifLabelIssued" xml:space="preserve">
+    <value>発行日</value>
+  </data>
+  <data name="NotifLabelDue" xml:space="preserve">
+    <value>支払期限</value>
+  </data>
+  <data name="NotifLabelApplication" xml:space="preserve">
+    <value>申請内容</value>
+  </data>
+  <data name="NotifLabelApplicant" xml:space="preserve">
+    <value>申請者</value>
+  </data>
+  <data name="NotifLabelInvited" xml:space="preserve">
+    <value>招待されたキャラクター</value>
+  </data>
+  <data name="NotifLabelMember" xml:space="preserve">
+    <value>メンバー</value>
+  </data>
+  <data name="NotifLabelRevokedBy" xml:space="preserve">
+    <value>取り消した人</value>
+  </data>
+  <data name="NotifLabelWasAt" xml:space="preserve">
+    <value>あった場所</value>
+  </data>
+  <data name="NotifLabelImplantsLost" xml:space="preserve">
+    <value>失ったインプラント</value>
+  </data>
+  <data name="NotifLabelCloneOf" xml:space="preserve">
+    <value>クローンの持ち主</value>
+  </data>
+  <data name="NotifLabelPayout" xml:space="preserve">
+    <value>支払額</value>
+  </data>
+  <data name="NotifLabelAssetSafetyStation" xml:space="preserve">
+    <value>アセットセーフティのステーション</value>
+  </data>
+  <data name="NotifLabelFuelRemaining" xml:space="preserve">
+    <value>残りの燃料</value>
+  </data>
+  <data name="NotifLabelDelivered" xml:space="preserve">
+    <value>配送されたアイテム</value>
+  </data>
+  <data name="NotifLabelDeliveredTo" xml:space="preserve">
+    <value>配送先</value>
+  </data>
+  <data name="NotifLabelServicesOffline" xml:space="preserve">
+    <value>オフラインのサービス</value>
+  </data>
+  <data name="NotifLabelTower" xml:space="preserve">
+    <value>コントロールタワー</value>
+  </data>
+  <data name="NotifLabelAttacker" xml:space="preserve">
+    <value>攻撃者</value>
+  </data>
+  <data name="NotifLabelAttackerCorporation" xml:space="preserve">
+    <value>攻撃者のコーポレーション</value>
+  </data>
+  <data name="NotifLabelAttackerAlliance" xml:space="preserve">
+    <value>攻撃者のアライアンス</value>
+  </data>
+  <data name="NotifLabelTransferredBy" xml:space="preserve">
+    <value>移譲者</value>
+  </data>
+  <data name="NotifLabelExpertSystem" xml:space="preserve">
+    <value>エキスパートシステム</value>
+  </data>
+  <data name="NotifLabelNewCapital" xml:space="preserve">
+    <value>新しい首都</value>
+  </data>
+  <data name="NotifLabelStructuresPainted" xml:space="preserve">
+    <value>ペイントしたストラクチャ</value>
+  </data>
+  <data name="NotifLabelOfferedBy" xml:space="preserve">
+    <value>申し出元</value>
+  </data>
+  <data name="NotifLabelKillRightOn" xml:space="preserve">
+    <value>殺害許可の対象</value>
+  </data>
+  <data name="NotifLabelReinforcedUntil" xml:space="preserve">
+    <value>強化終了</value>
+  </data>
+  <data name="NotifLabelFightingStarts" xml:space="preserve">
+    <value>戦闘開始</value>
+  </data>
+  <data name="NotifSentenceCorpBecameWarEligible" xml:space="preserve">
+    <value>あなたのコーポレーションは戦争に参加できるようになりました。</value>
+  </data>
+  <data name="NotifSentenceCorpNoLongerWarEligible" xml:space="preserve">
+    <value>あなたのコーポレーションは戦争に参加できなくなりました。</value>
+  </data>
+  <data name="NotifSentenceGameTimeAdded" xml:space="preserve">
+    <value>アカウントにゲーム時間が追加されました。</value>
+  </data>
+  <data name="NotifDetails" xml:space="preserve">
+    <value>詳細</value>
+  </data>
+  <data name="NotifColType" xml:space="preserve">
+    <value>タイプ</value>
+  </data>
+  <data name="NotifColQuantity" xml:space="preserve">
+    <value>数量</value>
+  </data>
+  <data name="NotifTotal" xml:space="preserve">
+    <value>合計</value>
+  </data>
+  <data name="NotifColVolume" xml:space="preserve">
+    <value>体積</value>
+  </data>
+  <data name="NotifOpenKillmail" xml:space="preserve">
+    <value>キルレポートを開く</value>
+  </data>
+  <data name="NotifYes" xml:space="preserve">
+    <value>はい</value>
+  </data>
+  <data name="NotifNo" xml:space="preserve">
+    <value>いいえ</value>
+  </data>
+  <data name="NotifStandingChanges" xml:space="preserve">
+    <value>スタンディングの変化</value>
+  </data>
+  <data name="NotifColWith" xml:space="preserve">
+    <value>相手</value>
+  </data>
+  <data name="NotifColChange" xml:space="preserve">
+    <value>変化</value>
+  </data>
+  <data name="NotifColStandingNow" xml:space="preserve">
+    <value>現在のスタンディング</value>
+  </data>
+  <data name="NotifBillType" xml:space="preserve">
+    <value>請求書タイプ{0}</value>
+  </data>
+  <data name="NotifBillMarketFine" xml:space="preserve">
+    <value>市場法違反罰則金</value>
+  </data>
+  <data name="NotifBillOfficeRental" xml:space="preserve">
+    <value>オフィスレンタル料</value>
+  </data>
+  <data name="NotifBillBrokerFee" xml:space="preserve">
+    <value>仲介手数料</value>
+  </data>
+  <data name="NotifBillWar" xml:space="preserve">
+    <value>戦争</value>
+  </data>
+  <data name="NotifBillAllianceMaintenance" xml:space="preserve">
+    <value>アライアンス維持費</value>
+  </data>
+  <data name="NotifBillSovereigntyMarker" xml:space="preserve">
+    <value>領有権マーカー</value>
+  </data>
+  <data name="NotifMoreRows" xml:space="preserve">
+    <value>ほか{0}件</value>
+  </data>
+  <data name="NotifHoursOther" xml:space="preserve">
+    <value>{0}時間</value>
+  </data>
+  <data name="NotifHoursFraction" xml:space="preserve">
+    <value>{0:0.#}時間</value>
+  </data>
+  <data name="NotifSpanDays" xml:space="preserve">
+    <value>{0}日</value>
+  </data>
+  <data name="NotifSpanHours" xml:space="preserve">
+    <value>{0}時間</value>
+  </data>
+  <data name="NotifSpanMinutes" xml:space="preserve">
+    <value>{0}分</value>
+  </data>
+  <data name="NotifSpanSeconds" xml:space="preserve">
+    <value>{0}秒</value>
+  </data>
+  <data name="NotifBillSummary" xml:space="preserve">
+    <value>{0}：{1}。</value>
+  </data>
+  <data name="NotifBillSummaryAt" xml:space="preserve">
+    <value>{1}の{0}：{2}。</value>
+  </data>
+  <data name="NotifBillSummaryDue" xml:space="preserve">
+    <value>{0}：{1}、支払期限{2}。</value>
+  </data>
+  <data name="NotifBillSummaryAtDue" xml:space="preserve">
+    <value>{1}の{0}：{2}、支払期限{3}。</value>
+  </data>
+  <data name="NotifLabelBill" xml:space="preserve">
+    <value>請求書</value>
+  </data>
+  <data name="NotifLabelBilledTo" xml:space="preserve">
+    <value>請求先</value>
+  </data>
+  <data name="NotifLabelPayableTo" xml:space="preserve">
+    <value>支払先</value>
+  </data>
+  <data name="NotifLabelRented" xml:space="preserve">
+    <value>レンタル対象</value>
+  </data>
+  <data name="NotifLabelForAlliance" xml:space="preserve">
+    <value>対象アライアンス</value>
+  </data>
+  <data name="NotifLabelReference" xml:space="preserve">
+    <value>参照番号</value>
+  </data>
+  <data name="NotifLabelSecondReference" xml:space="preserve">
+    <value>第2参照番号</value>
+  </data>
+  <data name="NotifTypeNumbered" xml:space="preserve">
+    <value>タイプ{0}</value>
+  </data>
+  <data name="NotifTipItemBrowser" xml:space="preserve">
+    <value>アイテムブラウザで開きます</value>
+  </data>
+  <data name="NotifSystemNumbered" xml:space="preserve">
+    <value>システム{0}</value>
+  </data>
+  <data name="NotifTipSecOpenMap" xml:space="preserve">
+    <value>{0}
+マップで開きます</value>
+  </data>
+  <data name="NotifTipOpenMap" xml:space="preserve">
+    <value>マップで開きます</value>
+  </data>
+  <data name="NotifMoonNumbered" xml:space="preserve">
+    <value>衛星{0}</value>
+  </data>
+  <data name="NotifStationNumbered" xml:space="preserve">
+    <value>ステーション{0}</value>
+  </data>
+  <data name="NotifTipNpcEntities" xml:space="preserve">
+    <value>「NPCエンティティ」で開きます</value>
+  </data>
+  <data name="NotifNameUnknown" xml:space="preserve">
+    <value>{0}（名前不明）</value>
+  </data>
+  <data name="NotifStructureNameUnknown" xml:space="preserve">
+    <value>ストラクチャ（名前不明）</value>
+  </data>
+  <data name="NotifTipStructureNumbered" xml:space="preserve">
+    <value>ストラクチャ{0}
+ストラクチャブラウザで開きます</value>
+  </data>
+  <data name="NotifTipStructureBrowser" xml:space="preserve">
+    <value>ストラクチャブラウザで開きます</value>
+  </data>
+  <data name="NotifOthersOther" xml:space="preserve">
+    <value>ほか{0}件</value>
+  </data>
+  <data name="NotifStandingUp" xml:space="preserve">
+    <value>{0}のあなたに対するスタンディングが{1}上がりました。</value>
+  </data>
+  <data name="NotifStandingUpTo" xml:space="preserve">
+    <value>{0}のあなたに対するスタンディングが{1}上がり、{2}になりました。</value>
+  </data>
+  <data name="NotifStandingDown" xml:space="preserve">
+    <value>{0}のあなたに対するスタンディングが{1}下がりました。</value>
+  </data>
+  <data name="NotifStandingDownTo" xml:space="preserve">
+    <value>{0}のあなたに対するスタンディングが{1}下がり、{2}になりました。</value>
+  </data>
+  <data name="NotifStandingMoreOther" xml:space="preserve">
+    <value>ほかに{0}件のスタンディングも変化しました。</value>
+  </data>
+  <data name="SenderAll" xml:space="preserve">
+    <value>すべての送信者</value>
+  </data>
+  <data name="SenderCorporation" xml:space="preserve">
+    <value>コーポレーション</value>
+  </data>
+  <data name="SenderCharacter" xml:space="preserve">
+    <value>キャラクター</value>
+  </data>
+  <data name="TimeAgo" xml:space="preserve">
+    <value>{0}前</value>
+  </data>
+  <data name="TimeAgoTwoUnits" xml:space="preserve">
+    <value>{0}{1}</value>
+  </data>
+  <data name="TimeAgoSecondsOther" xml:space="preserve">
+    <value>{0}秒</value>
+  </data>
+  <data name="TimeAgoMinutesOther" xml:space="preserve">
+    <value>{0}分</value>
+  </data>
+  <data name="TimeAgoHoursOther" xml:space="preserve">
+    <value>{0}時間</value>
+  </data>
+  <data name="TimeAgoDaysOther" xml:space="preserve">
+    <value>{0}日</value>
+  </data>
+</root>

@@ -1,0 +1,1078 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="OwnerType" xml:space="preserve">
+    <value>소유자 유형</value>
+  </data>
+  <data name="Owner" xml:space="preserve">
+    <value>소유자</value>
+  </data>
+  <data name="Installer" xml:space="preserve">
+    <value>설치자</value>
+  </data>
+  <data name="StartDate" xml:space="preserve">
+    <value>시작일</value>
+  </data>
+  <data name="EndDate" xml:space="preserve">
+    <value>종료일</value>
+  </data>
+  <data name="CompletedBy" xml:space="preserve">
+    <value>완료자</value>
+  </data>
+  <data name="Activity" xml:space="preserve">
+    <value>활동</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>상태</value>
+  </data>
+  <data name="Runs" xml:space="preserve">
+    <value>실행 횟수</value>
+  </data>
+  <data name="Items" xml:space="preserve">
+    <value>아이템 수</value>
+  </data>
+  <data name="SuccessChance" xml:space="preserve">
+    <value>성공 확률</value>
+  </data>
+  <data name="TimeLeft" xml:space="preserve">
+    <value>남은 시간</value>
+  </data>
+  <data name="Cost" xml:space="preserve">
+    <value>비용</value>
+  </data>
+  <data name="OwnerLabel" xml:space="preserve">
+    <value>소유자:</value>
+  </data>
+  <data name="ActivityLabel" xml:space="preserve">
+    <value>활동:</value>
+  </data>
+  <data name="StatusLabel" xml:space="preserve">
+    <value>상태:</value>
+  </data>
+  <data name="StartedLabel" xml:space="preserve">
+    <value>시작:</value>
+  </data>
+  <data name="HintFrom" xml:space="preserve">
+    <value>시작일…</value>
+  </data>
+  <data name="HintThru" xml:space="preserve">
+    <value>종료일…</value>
+  </data>
+  <data name="SearchLabel" xml:space="preserve">
+    <value>검색:</value>
+  </data>
+  <data name="HintBlueprintOrProduct" xml:space="preserve">
+    <value>블루프린트 또는 생산품…</value>
+  </data>
+  <data name="Apply" xml:space="preserve">
+    <value>적용</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>지우기</value>
+  </data>
+  <data name="TitleIndustryJobs" xml:space="preserve">
+    <value>산업 작업</value>
+  </data>
+  <data name="Calculate" xml:space="preserve">
+    <value>계산</value>
+  </data>
+  <data name="PriceAt" xml:space="preserve">
+    <value>가격 기준</value>
+  </data>
+  <data name="Min30dIskVol" xml:space="preserve">
+    <value>최소 30일 ISK 거래액</value>
+  </data>
+  <data name="HintNoFilter" xml:space="preserve">
+    <value>필터 없음</value>
+  </data>
+  <data name="Min30dUnitVol" xml:space="preserve">
+    <value>최소 30일 거래량</value>
+  </data>
+  <data name="SkipFaction" xml:space="preserve">
+    <value>팩션 아이템 제외</value>
+  </data>
+  <data name="SkipNonBpoTraceableItems" xml:space="preserve">
+    <value>BPO 출처가 없는 아이템 제외</value>
+  </data>
+  <data name="TipOnlyItemsWhoseBlueprint" xml:space="preserve">
+    <value>블루프린트가 구매할 수 있는 BPO이거나 그런 BPO에서 인벤션한 것(예: T1 BPO에서 나온 T2)인 아이템만 포함합니다. 구할 수 있는 BPO가 없는 팩션/한정 실행 BPC 아이템, 스토리라인·장교·데드스페이스 아이템, 그리고 게임에서 더 이상 BPO를 살 수 없는 '기간 한정' 이벤트 아이템은 제외합니다.</value>
+  </data>
+  <data name="ExcludeGroups" xml:space="preserve">
+    <value>제외할 그룹</value>
+  </data>
+  <data name="TipRemoveThisExclusion" xml:space="preserve">
+    <value>이 제외 항목 제거</value>
+  </data>
+  <data name="AddGroup" xml:space="preserve">
+    <value>+ 그룹 추가</value>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>아이템</value>
+  </data>
+  <data name="TipOpenInTheItemBrowser" xml:space="preserve">
+    <value>아이템 브라우저에서 열기</value>
+  </data>
+  <data name="ColBuildCost" xml:space="preserve">
+    <value>제조 비용</value>
+  </data>
+  <data name="ColSellPrice" xml:space="preserve">
+    <value>판매가</value>
+  </data>
+  <data name="ColProfitUnit" xml:space="preserve">
+    <value>개당 이익</value>
+  </data>
+  <data name="ColMargin" xml:space="preserve">
+    <value>이익률</value>
+  </data>
+  <data name="ColBuildTime" xml:space="preserve">
+    <value>제조 시간</value>
+  </data>
+  <data name="ColSlotDays" xml:space="preserve">
+    <value>슬롯 일수</value>
+  </data>
+  <data name="ColProfitSlotDay" xml:space="preserve">
+    <value>슬롯 일당 이익</value>
+  </data>
+  <data name="ColUnitsSold30d" xml:space="preserve">
+    <value>30일 판매량</value>
+  </data>
+  <data name="ColIskSold30d" xml:space="preserve">
+    <value>30일 판매액</value>
+  </data>
+  <data name="ScanningForIndustryOpportunities" xml:space="preserve">
+    <value>산업 기회 검색 중…</value>
+  </data>
+  <data name="TitleIndustryOpportunities" xml:space="preserve">
+    <value>산업 기회</value>
+  </data>
+  <data name="IndyParksLabel" xml:space="preserve">
+    <value>산업 단지</value>
+  </data>
+  <data name="NewPark" xml:space="preserve">
+    <value>+ 새 산업 단지</value>
+  </data>
+  <data name="Import" xml:space="preserve">
+    <value>가져오기</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>삭제</value>
+  </data>
+  <data name="CreateOrSelectAnNote" xml:space="preserve">
+    <value>목록에서 산업 단지를 만들거나 선택하십시오.</value>
+  </data>
+  <data name="ParkNameLabel" xml:space="preserve">
+    <value>산업 단지 이름</value>
+  </data>
+  <data name="SetDefault" xml:space="preserve">
+    <value>★ 기본으로 지정</value>
+  </data>
+  <data name="ExportPark" xml:space="preserve">
+    <value>산업 단지 내보내기</value>
+  </data>
+  <data name="StructuresLabel" xml:space="preserve">
+    <value>구조물</value>
+  </data>
+  <data name="HintSystem" xml:space="preserve">
+    <value>항성계…</value>
+  </data>
+  <data name="SkipMoonRefineries" xml:space="preserve">
+    <value>위성 정제소 제외</value>
+  </data>
+  <data name="TipAthanorsAndTatarasAnchored" xml:space="preserve">
+    <value>위성에 위치 고정된 아타노르와 타타라는 보통 산업용이 아니라 위성 채굴용입니다</value>
+  </data>
+  <data name="AddMissingInSystem" xml:space="preserve">
+    <value>+ 항성계에서 빠진 구조물 추가</value>
+  </data>
+  <data name="TipAddsTheIndustrialStructures" xml:space="preserve">
+    <value>그 항성계의 산업 구조물 중 이 산업 단지에 아직 없는 것을 추가합니다. 이미 연결된 구조물은 세기만 하고 그대로 두므로, 하나를 직접 추가한 뒤 다시 눌러도 중복이 생기지 않습니다.</value>
+  </data>
+  <data name="AddStructure" xml:space="preserve">
+    <value>+ 구조물 추가</value>
+  </data>
+  <data name="HintStructureName" xml:space="preserve">
+    <value>구조물 이름…</value>
+  </data>
+  <data name="Default" xml:space="preserve">
+    <value>기본</value>
+  </data>
+  <data name="TipCatchAllFacilityItems" xml:space="preserve">
+    <value>기본 시설입니다. 어떤 분류 배정에도 해당하지 않는 아이템은 리그 보너스 없이 여기서 계획되므로, 계산이 실패하지 않고 끝까지 진행됩니다. 산업 단지마다 하나만 둘 수 있습니다.</value>
+  </data>
+  <data name="HintSolarSystem" xml:space="preserve">
+    <value>항성계…</value>
+  </data>
+  <data name="TaxPercentageLabel" xml:space="preserve">
+    <value>세율 (%):</value>
+  </data>
+  <data name="ActualFacilityLabel" xml:space="preserve">
+    <value>실제 시설</value>
+  </data>
+  <data name="TipOpenThisStationOrStructure" xml:space="preserve">
+    <value>이 정거장 또는 구조물 열기</value>
+  </data>
+  <data name="Unlink" xml:space="preserve">
+    <value>연결 해제</value>
+  </data>
+  <data name="HintSearchStationOrStructureTo" xml:space="preserve">
+    <value>연결할 정거장 또는 구조물 검색…</value>
+  </data>
+  <data name="Search" xml:space="preserve">
+    <value>검색</value>
+  </data>
+  <data name="RigsLabel" xml:space="preserve">
+    <value>리그</value>
+  </data>
+  <data name="HintEmpty" xml:space="preserve">
+    <value>— 비어 있음 —</value>
+  </data>
+  <data name="ServiceModulesLabel" xml:space="preserve">
+    <value>서비스 모듈</value>
+  </data>
+  <data name="HintAddAServiceModule" xml:space="preserve">
+    <value>— 서비스 모듈 추가 —</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>추가</value>
+  </data>
+  <data name="ProductionAssignmentsLabel" xml:space="preserve">
+    <value>생산 배정</value>
+  </data>
+  <data name="AutoAssignFromRigs" xml:space="preserve">
+    <value>리그로 자동 배정</value>
+  </data>
+  <data name="TipFillsEmptyCategoriesFrom" xml:space="preserve">
+    <value>각 구조물의 리그를 보고 비어 있는 분류를 채웁니다. 기존 선택은 그대로 둡니다.</value>
+  </data>
+  <data name="AssignWhichStructureHandlesNote" xml:space="preserve">
+    <value>각 생산 분류를 어느 구조물이 맡을지 배정합니다.</value>
+  </data>
+  <data name="HintNotAssigned" xml:space="preserve">
+    <value>— 미배정 —</value>
+  </data>
+  <data name="ItemExceptionsLabel" xml:space="preserve">
+    <value>아이템 예외</value>
+  </data>
+  <data name="OverrideTheCategoryAssignmentNote" xml:space="preserve">
+    <value>특정 아이템은 분류 배정과 다르게 따로 지정합니다.</value>
+  </data>
+  <data name="HintSearchForAnItem" xml:space="preserve">
+    <value>예외를 추가할 아이템 검색…</value>
+  </data>
+  <data name="FmtSlot" xml:space="preserve">
+    <value>슬롯 {0}:</value>
+  </data>
+  <data name="TitleIndyParks" xml:space="preserve">
+    <value>산업 단지</value>
+  </data>
+  <data name="AddType" xml:space="preserve">
+    <value>+ 종류 추가</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>제거</value>
+  </data>
+  <data name="SaveRecalculate" xml:space="preserve">
+    <value>저장 후 다시 계산</value>
+  </data>
+  <data name="LeaveACellBlankNote" xml:space="preserve">
+    <value>칸을 비워 두면 그 값은 계산된 값을 그대로 씁니다. 값을 입력하면 그 값이 쓰이는 모든 곳에서 계산된 값을 '대체'합니다. 블루프린트의 계약 가치는 '1회당' BPC 가격입니다. 값의 단위는 ISK입니다.</value>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>종류</value>
+  </data>
+  <data name="ColTypeId" xml:space="preserve">
+    <value>타입 ID</value>
+  </data>
+  <data name="ColMarketValue" xml:space="preserve">
+    <value>거래소 가치</value>
+  </data>
+  <data name="ColContractValuePerRunFor" xml:space="preserve">
+    <value>계약 가치 (BPC는 1회당)</value>
+  </data>
+  <data name="ProductionQueue" xml:space="preserve">
+    <value>생산 대기열</value>
+  </data>
+  <data name="IndyPark" xml:space="preserve">
+    <value>산업 단지</value>
+  </data>
+  <data name="AddItem" xml:space="preserve">
+    <value>아이템 추가</value>
+  </data>
+  <data name="HintTypeToSearchItems" xml:space="preserve">
+    <value>아이템 검색어 입력…</value>
+  </data>
+  <data name="Quantity" xml:space="preserve">
+    <value>수량</value>
+  </data>
+  <data name="MeLevel" xml:space="preserve">
+    <value>ME 레벨</value>
+  </data>
+  <data name="AddToQueue" xml:space="preserve">
+    <value>대기열에 추가</value>
+  </data>
+  <data name="IncludeFinalBpcCost" xml:space="preserve">
+    <value>최종 BPC 비용 포함</value>
+  </data>
+  <data name="TipAddTheFinalProducts" xml:space="preserve">
+    <value>최종 생산품의 블루프린트 복제본(계약 가격)을 투입 비용에 넣습니다. 팩션 / BPC 전용 아이템은 항상 포함되며, 일반 BPO 아이템은 선택 사항입니다.</value>
+  </data>
+  <data name="TipOpenInItemBrowser" xml:space="preserve">
+    <value>아이템 브라우저에서 열기</value>
+  </data>
+  <data name="AddItemsToTheNote" xml:space="preserve">
+    <value>대기열에 아이템을 추가하고 계산을 클릭하면 결과를 볼 수 있습니다.</value>
+  </data>
+  <data name="TabSummary" xml:space="preserve">
+    <value>요약</value>
+  </data>
+  <data name="PlannedInTheParksNote" xml:space="preserve">
+    <value>산업 단지의 기본 시설에서 리그 보너스 없이 계획했으므로 이 비용은 실제보다 높을 수 있습니다.</value>
+  </data>
+  <data name="BlueprintCopiesTradeOnlyNote" xml:space="preserve">
+    <value>블루프린트 복제본은 계약으로만 거래되므로, 거래가 뜸한 달에는 현재 가격이 없습니다. 기록된 가장 최근 가격을 사용하며, 기록이 없으면 블루프린트를 0 ISK로 계산하므로 그만큼 제조 비용이 낮게 나옵니다.</value>
+  </data>
+  <data name="CostSummary" xml:space="preserve">
+    <value>비용 요약</value>
+  </data>
+  <data name="RawMaterialsLabel" xml:space="preserve">
+    <value>원재료:</value>
+  </data>
+  <data name="JobCostsLabel" xml:space="preserve">
+    <value>작업 비용:</value>
+  </data>
+  <data name="LeftoverValueLabel" xml:space="preserve">
+    <value>잉여분 가치:</value>
+  </data>
+  <data name="NetCostLabel" xml:space="preserve">
+    <value>순비용:</value>
+  </data>
+  <data name="RawMaterialVolumeLabel" xml:space="preserve">
+    <value>원재료 부피:</value>
+  </data>
+  <data name="TipPackedVolumeOfThe" xml:space="preserve">
+    <value>구매 목록의 포장 부피입니다. 중간재는 제외합니다 — 운반해 오지 않고 현장에서 제조하기 때문입니다.</value>
+  </data>
+  <data name="FinalProducts" xml:space="preserve">
+    <value>최종 생산품</value>
+  </data>
+  <data name="BuildMarket" xml:space="preserve">
+    <value>제조 / 거래소</value>
+  </data>
+  <data name="TabRawMaterials" xml:space="preserve">
+    <value>원재료</value>
+  </data>
+  <data name="MissingVsLabel" xml:space="preserve">
+    <value>부족분 비교 기준:</value>
+  </data>
+  <data name="Station" xml:space="preserve">
+    <value>정거장</value>
+  </data>
+  <data name="TipCompareAgainstStockAt" xml:space="preserve">
+    <value>각 작업에 연결된 시설의 재고와 비교하며, 그 구조물을 함께 쓰는 모든 작업의 수요를 합산합니다</value>
+  </data>
+  <data name="AllAssets" xml:space="preserve">
+    <value>모든 자산</value>
+  </data>
+  <data name="TipCompareAgainstEverythingYou" xml:space="preserve">
+    <value>위치와 관계없이 보유한 모든 것과 비교합니다</value>
+  </data>
+  <data name="ShoppingList" xml:space="preserve">
+    <value>구매 목록</value>
+  </data>
+  <data name="TipCopyItemNameAnd" xml:space="preserve">
+    <value>아이템 이름과 수량(탭으로 구분)을 클립보드에 복사</value>
+  </data>
+  <data name="ShoppingListMissing" xml:space="preserve">
+    <value>구매 목록 (부족분)</value>
+  </data>
+  <data name="TipCopyOnlyTheItems" xml:space="preserve">
+    <value>계획에 필요한 양보다 부족한 아이템만, 부족한 수량으로 복사</value>
+  </data>
+  <data name="Export" xml:space="preserve">
+    <value>내보내기</value>
+  </data>
+  <data name="TipExportAllColumnsTo" xml:space="preserve">
+    <value>모든 열을 클립보드나 파일로 내보내기</value>
+  </data>
+  <data name="MenuCopyToClipboard" xml:space="preserve">
+    <value>클립보드에 복사</value>
+  </data>
+  <data name="MenuExportAsCsv" xml:space="preserve">
+    <value>CSV로 내보내기</value>
+  </data>
+  <data name="MenuTabDelimited" xml:space="preserve">
+    <value>탭으로 구분</value>
+  </data>
+  <data name="ColMaterial" xml:space="preserve">
+    <value>재료</value>
+  </data>
+  <data name="ColQuantity" xml:space="preserve">
+    <value>수량</value>
+  </data>
+  <data name="ColMissing" xml:space="preserve">
+    <value>부족</value>
+  </data>
+  <data name="ColUnitPrice" xml:space="preserve">
+    <value>개당 가격</value>
+  </data>
+  <data name="ColTotalCost" xml:space="preserve">
+    <value>총 비용</value>
+  </data>
+  <data name="TabIntermediates" xml:space="preserve">
+    <value>중간재</value>
+  </data>
+  <data name="DoubleClickRowToNote" xml:space="preserve">
+    <value>행을 두 번 클릭하면 아이템 브라우저에서 열립니다</value>
+  </data>
+  <data name="ColNeeded" xml:space="preserve">
+    <value>필요량</value>
+  </data>
+  <data name="ColProduced" xml:space="preserve">
+    <value>생산량</value>
+  </data>
+  <data name="ColLeftover" xml:space="preserve">
+    <value>잉여분</value>
+  </data>
+  <data name="ColBuildValue" xml:space="preserve">
+    <value>제조 가치</value>
+  </data>
+  <data name="ColLeftoverValue" xml:space="preserve">
+    <value>잉여분 가치</value>
+  </data>
+  <data name="TabLeftovers" xml:space="preserve">
+    <value>잉여분</value>
+  </data>
+  <data name="ColSource" xml:space="preserve">
+    <value>출처</value>
+  </data>
+  <data name="ColTotalValue" xml:space="preserve">
+    <value>총 가치</value>
+  </data>
+  <data name="TabFinalProducts" xml:space="preserve">
+    <value>최종 생산품</value>
+  </data>
+  <data name="ColReq" xml:space="preserve">
+    <value>요구량</value>
+  </data>
+  <data name="ColMatCost" xml:space="preserve">
+    <value>재료비</value>
+  </data>
+  <data name="ColJobCost" xml:space="preserve">
+    <value>작업 비용</value>
+  </data>
+  <data name="ColUnitCost" xml:space="preserve">
+    <value>개당 비용</value>
+  </data>
+  <data name="ColMarketUnit" xml:space="preserve">
+    <value>개당 시세</value>
+  </data>
+  <data name="ColProfit" xml:space="preserve">
+    <value>이익</value>
+  </data>
+  <data name="TabJobs" xml:space="preserve">
+    <value>작업</value>
+  </data>
+  <data name="TipPackedVolumeThisJob" xml:space="preserve">
+    <value>이 작업이 소비하는 포장 부피입니다 — 시설로 가져와야 하는 양입니다.</value>
+  </data>
+  <data name="TipPackedVolumeThisJob2" xml:space="preserve">
+    <value>이 작업이 생산하는 포장 부피입니다 — 시설에서 내보내는 양입니다.</value>
+  </data>
+  <data name="TipOpenInTheStructureBrowser" xml:space="preserve">
+    <value>구조물 브라우저에서 열기</value>
+  </data>
+  <data name="TipOpenOnTheMap" xml:space="preserve">
+    <value>지도에서 열기</value>
+  </data>
+  <data name="Materials" xml:space="preserve">
+    <value>재료</value>
+  </data>
+  <data name="TipCopyEveryBoughtMaterial" xml:space="preserve">
+    <value>이 작업에 필요한 모든 구매 재료 복사 (이름과 수량, 탭으로 구분)</value>
+  </data>
+  <data name="TipCopyOnlyTheBought" xml:space="preserve">
+    <value>이 작업에 연결된 시설에서 부족한 구매 재료만 복사</value>
+  </data>
+  <data name="Material" xml:space="preserve">
+    <value>재료</value>
+  </data>
+  <data name="BaseRun" xml:space="preserve">
+    <value>기본/회</value>
+  </data>
+  <data name="EffRun" xml:space="preserve">
+    <value>실제/회</value>
+  </data>
+  <data name="Total" xml:space="preserve">
+    <value>합계</value>
+  </data>
+  <data name="Missing" xml:space="preserve">
+    <value>부족</value>
+  </data>
+  <data name="TipShortfallAgainstStockAt" xml:space="preserve">
+    <value>이 작업에 연결된 시설의 재고 대비 부족분입니다. 대시(—)는 산업 단지 구조물에 연결된 시설이 없다는 뜻입니다.</value>
+  </data>
+  <data name="Source" xml:space="preserve">
+    <value>조달</value>
+  </data>
+  <data name="FormulaSdeBaseResult" xml:space="preserve">
+    <value>계산식 (SDE 기본값 → 결과)</value>
+  </data>
+  <data name="FmtRequested" xml:space="preserve">
+    <value>요청: {0:N0}</value>
+  </data>
+  <data name="FmtProduced" xml:space="preserve">
+    <value>생산: {0:N0}</value>
+  </data>
+  <data name="FmtMatIsk" xml:space="preserve">
+    <value>재료: {0:N0} ISK</value>
+  </data>
+  <data name="FmtJobsIsk" xml:space="preserve">
+    <value>작업: {0:N0} ISK</value>
+  </data>
+  <data name="FmtUnitCostIsk" xml:space="preserve">
+    <value>개당 비용: {0:N2} ISK</value>
+  </data>
+  <data name="FmtMarketUnit" xml:space="preserve">
+    <value>거래소: 개당 {0:N2}</value>
+  </data>
+  <data name="FmtProfitIsk" xml:space="preserve">
+    <value>이익: {0:N0} ISK</value>
+  </data>
+  <data name="FmtMargin" xml:space="preserve">
+    <value>이익률: {0:F1}%</value>
+  </data>
+  <data name="FmtItemsToPurchaseDouble" xml:space="preserve">
+    <value>구매할 아이템 {0}개 — 행을 두 번 클릭하면 아이템 브라우저에서 열립니다</value>
+  </data>
+  <data name="FmtLeftoverItemsValuedAt" xml:space="preserve">
+    <value>제조 비용으로 평가한 잉여 아이템 {0}개 — 두 번 클릭하면 아이템 브라우저에서 열립니다</value>
+  </data>
+  <data name="FmtRuns" xml:space="preserve">
+    <value>실행 횟수: {0}</value>
+  </data>
+  <data name="FmtOut" xml:space="preserve">
+    <value>산출: {0:N0}</value>
+  </data>
+  <data name="FmtLeftover" xml:space="preserve">
+    <value>잉여: {0:N0}</value>
+  </data>
+  <data name="FmtInM" xml:space="preserve">
+    <value>투입: {0:N0} m³</value>
+  </data>
+  <data name="FmtOutM" xml:space="preserve">
+    <value>산출: {0:N0} m³</value>
+  </data>
+  <data name="FmtJobIsk" xml:space="preserve">
+    <value>작업: {0:N0} ISK</value>
+  </data>
+  <data name="TitleProductionCalculator" xml:space="preserve">
+    <value>생산 계산기</value>
+  </data>
+  <data name="OverrideStatusNone" xml:space="preserve">
+    <value>수동 지정된 가격이 없습니다. 종류를 추가하여 제조, 거래소 또는 계약 가치를 고정하십시오.</value>
+  </data>
+  <data name="OverrideStatusCount" xml:space="preserve">
+    <value>수동 지정 {0}건.</value>
+  </data>
+  <data name="OverrideStatusAdded" xml:space="preserve">
+    <value>{0}을(를) 추가했습니다. 값을 입력하고 {1}을(를) 누르십시오.</value>
+  </data>
+  <data name="OverrideStatusRemoved" xml:space="preserve">
+    <value>{0}을(를) 제거했습니다. 저장 후 다시 계산하여 비용을 갱신하십시오.</value>
+  </data>
+  <data name="OverrideStatusSaving" xml:space="preserve">
+    <value>저장했습니다 — 제조 비용 다시 계산 중…</value>
+  </data>
+  <data name="OverrideStatusSaved" xml:space="preserve">
+    <value>수동 지정 {0}건을 저장하고 {1:t}에 제조 비용을 다시 계산했습니다.</value>
+  </data>
+  <data name="OverrideStatusSaveFailed" xml:space="preserve">
+    <value>저장 실패: {0}</value>
+  </data>
+  <data name="ModeBuildSellOrder" xml:space="preserve">
+    <value>제조 후 판매 주문</value>
+  </data>
+  <data name="ModeBuildSellToBuyOrder" xml:space="preserve">
+    <value>제조 후 구매 주문에 판매</value>
+  </data>
+  <data name="OppsStatusStart" xml:space="preserve">
+    <value>거래소 설정을 선택한 다음 계산을 클릭하십시오.</value>
+  </data>
+  <data name="OppsErrNoConfig" xml:space="preserve">
+    <value>가격 계산에 쓸 거래소 설정을 선택하십시오.</value>
+  </data>
+  <data name="OppsErrMinIskVolume" xml:space="preserve">
+    <value>올바른 최소 ISK 거래액을 입력하십시오 (필터를 쓰지 않으려면 비워 두십시오).</value>
+  </data>
+  <data name="OppsErrMinUnitVolume" xml:space="preserve">
+    <value>올바른 최소 거래량을 입력하십시오 (필터를 쓰지 않으려면 비워 두십시오).</value>
+  </data>
+  <data name="OppsStatusCalculating" xml:space="preserve">
+    <value>계산 중…</value>
+  </data>
+  <data name="OppsRegionUnresolved" xml:space="preserve">
+    <value>확인 불가</value>
+  </data>
+  <data name="OppsErrNoRegion" xml:space="preserve">
+    <value>이 거래소 설정의 지역을 확인할 수 없습니다 — 30일 거래량 필터는 거래소 기록을 조회할 지역이 필요합니다.</value>
+  </data>
+  <data name="OppsStatusNone" xml:space="preserve">
+    <value>이 거래소 설정에서 이익이 나는 제조 기회를 찾지 못했습니다.</value>
+  </data>
+  <data name="OppsRegionNumbered" xml:space="preserve">
+    <value>지역 {0}</value>
+  </data>
+  <data name="CalcMissingByStation" xml:space="preserve">
+    <value>부족분은 각 작업에 연결된 시설의 재고를 기준으로 셉니다</value>
+  </data>
+  <data name="CalcMissingByAssets" xml:space="preserve">
+    <value>부족분은 위치와 관계없이 보유한 모든 자산을 기준으로 셉니다</value>
+  </data>
+  <data name="CalcWarnNoAssignment" xml:space="preserve">
+    <value>아이템 {0}개에 이 산업 단지에서 배정된 구조물이 없습니다</value>
+  </data>
+  <data name="CalcWarnBlueprintPrices" xml:space="preserve">
+    <value>블루프린트 가격 {0}개가 오래되었거나 없습니다</value>
+  </data>
+  <data name="CalcStatusCalculating" xml:space="preserve">
+    <value>계산 중…</value>
+  </data>
+  <data name="CalcStatusDone" xml:space="preserve">
+    <value>완료 — 작업 {0}개, 원재료 {1}종</value>
+  </data>
+  <data name="FileTypeText" xml:space="preserve">
+    <value>텍스트</value>
+  </data>
+  <data name="TitleExportRawMaterials" xml:space="preserve">
+    <value>원재료 내보내기</value>
+  </data>
+  <data name="TitleRemovalConfirmation" xml:space="preserve">
+    <value>제거 확인</value>
+  </data>
+  <data name="TitleImportPark" xml:space="preserve">
+    <value>산업 단지 가져오기</value>
+  </data>
+  <data name="TipNpcFixedTax" xml:space="preserve">
+    <value>NPC 정거장은 시설 수수료가 {0}%로 고정되어 있습니다.</value>
+  </data>
+  <data name="TipNameFromLink" xml:space="preserve">
+    <value>연결된 시설의 이름을 사용합니다. 이름을 바꾸려면 연결을 해제하십시오.</value>
+  </data>
+  <data name="TipTypeFromLink" xml:space="preserve">
+    <value>연결된 시설의 선체로 정해집니다.</value>
+  </data>
+  <data name="TipSystemFromLink" xml:space="preserve">
+    <value>연결된 시설로 정해집니다. 다른 항성계를 선택하려면 연결을 해제하십시오.</value>
+  </data>
+  <data name="TipSecurityFromLinkedSystem" xml:space="preserve">
+    <value>연결된 시설의 항성계로 정해집니다.</value>
+  </data>
+  <data name="TipSecurityFromSystem" xml:space="preserve">
+    <value>항성계 자체의 시큐리티로 정해집니다. 직접 선택하려면 항성계를 지우거나 바꾸십시오.</value>
+  </data>
+  <data name="FittingNpcUnlinked" xml:space="preserve">
+    <value>NPC 정거장 — 리그를 장착할 수 없습니다. 제공하는 서비스를 표시하려면 정거장을 연결하십시오.</value>
+  </data>
+  <data name="FittingNpcLinked" xml:space="preserve">
+    <value>NPC 정거장 — 리그를 장착할 수 없으며, 서비스 모듈은 정거장 자체의 서비스를 나타냅니다.</value>
+  </data>
+  <data name="FittingFromAssets" xml:space="preserve">
+    <value>자산에서 가져옴 — 게임이 이 구조물의 피팅을 알려 주므로 여기서 수정할 수 없습니다.</value>
+  </data>
+  <data name="FittingByHand" xml:space="preserve">
+    <value>직접 입력함 — 이 피팅은 연결된 구조물에도 기록됩니다.</value>
+  </data>
+  <data name="FacilityNotLinked" xml:space="preserve">
+    <value>연결되지 않음 — 이곳의 작업은 리그 보너스를 확인하지 않습니다</value>
+  </data>
+  <data name="CategoryLargeShips" xml:space="preserve">
+    <value>대형 함선</value>
+  </data>
+  <data name="CategoryMediumShips" xml:space="preserve">
+    <value>중형 함선</value>
+  </data>
+  <data name="CategorySmallShips" xml:space="preserve">
+    <value>소형 함선</value>
+  </data>
+  <data name="CategoryCapitalShips" xml:space="preserve">
+    <value>캐피탈 함선</value>
+  </data>
+  <data name="CategoryAdvLargeShips" xml:space="preserve">
+    <value>상급 대형 함선</value>
+  </data>
+  <data name="CategoryAdvMediumShips" xml:space="preserve">
+    <value>상급 중형 함선</value>
+  </data>
+  <data name="CategoryAdvSmallShips" xml:space="preserve">
+    <value>상급 소형 함선</value>
+  </data>
+  <data name="CategoryCapitalComponents" xml:space="preserve">
+    <value>캐피탈 부품</value>
+  </data>
+  <data name="CategoryAdvComponents" xml:space="preserve">
+    <value>상급 부품</value>
+  </data>
+  <data name="CategoryCapAdvComponents" xml:space="preserve">
+    <value>캐피탈 상급 부품</value>
+  </data>
+  <data name="CategoryDronesFighters" xml:space="preserve">
+    <value>드론 및 파이터</value>
+  </data>
+  <data name="CategoryAmmoCharges" xml:space="preserve">
+    <value>탄약 및 차지</value>
+  </data>
+  <data name="CategoryModulesEquipment" xml:space="preserve">
+    <value>모듈 및 장비</value>
+  </data>
+  <data name="CategoryStructuresFuel" xml:space="preserve">
+    <value>구조물, 부품 및 연료 블록</value>
+  </data>
+  <data name="CategoryCompositeReactions" xml:space="preserve">
+    <value>복합 합성</value>
+  </data>
+  <data name="CategoryMoonReactions" xml:space="preserve">
+    <value>위성 합성</value>
+  </data>
+  <data name="CategoryBioGasReactions" xml:space="preserve">
+    <value>생화학 및 가스 합성</value>
+  </data>
+  <data name="CategoryBpResearch" xml:space="preserve">
+    <value>블루프린트 연구</value>
+  </data>
+  <data name="CategoryBpCopying" xml:space="preserve">
+    <value>블루프린트 복제</value>
+  </data>
+  <data name="CategoryBpInvention" xml:space="preserve">
+    <value>블루프린트 인벤션</value>
+  </data>
+  <data name="CategoryRefineOre" xml:space="preserve">
+    <value>일반 광물 정제</value>
+  </data>
+  <data name="CategoryRefineMoonOre" xml:space="preserve">
+    <value>위성 광물 정제</value>
+  </data>
+  <data name="CategoryRefineIce" xml:space="preserve">
+    <value>아이스 정제</value>
+  </data>
+  <data name="CategoryDecompressGas" xml:space="preserve">
+    <value>가스 압축해제</value>
+  </data>
+  <data name="DefaultParkName" xml:space="preserve">
+    <value>새 산업 단지</value>
+  </data>
+  <data name="ServiceTypeNumbered" xml:space="preserve">
+    <value>종류 {0}</value>
+  </data>
+  <data name="StatusPickParkFirst" xml:space="preserve">
+    <value>먼저 산업 단지를 선택하십시오.</value>
+  </data>
+  <data name="BulkUnavailable" xml:space="preserve">
+    <value>일괄 추가를 사용할 수 없습니다.</value>
+  </data>
+  <data name="BulkPickSystem" xml:space="preserve">
+    <value>목록에서 항성계를 선택하십시오.</value>
+  </data>
+  <data name="BulkNoneKnown" xml:space="preserve">
+    <value>{0}에서 알려진 산업 구조물이 없습니다. 앱이 이미 이름을 확인한 구조물만 추가할 수 있습니다.</value>
+  </data>
+  <data name="DefaultStructureName" xml:space="preserve">
+    <value>새 구조물</value>
+  </data>
+  <data name="OppsNoteHistoryPriced" xml:space="preserve">
+    <value>* {0}개는 30일 평균으로 가격 책정 (판매 주문 없음)</value>
+  </data>
+  <data name="OppsNoteVolumeRegion" xml:space="preserve">
+    <value>30일 거래량 지역: {0}</value>
+  </data>
+  <data name="OppsStatusProfitableOther" xml:space="preserve">
+    <value>이익이 나는 아이템 {0}개 · 가격 기준 {1}</value>
+  </data>
+  <data name="StructureTypeNpcStation" xml:space="preserve">
+    <value>NPC 정거장</value>
+  </data>
+  <data name="SecurityHighSec" xml:space="preserve">
+    <value>하이 시큐리티</value>
+  </data>
+  <data name="SecurityLowSec" xml:space="preserve">
+    <value>로우 시큐리티</value>
+  </data>
+  <data name="SecurityNullSec" xml:space="preserve">
+    <value>널 시큐리티</value>
+  </data>
+  <data name="SecurityWormhole" xml:space="preserve">
+    <value>웜홀</value>
+  </data>
+  <data name="ConfirmDeletePark" xml:space="preserve">
+    <value>산업 단지 "{0}"을(를) 삭제하시겠습니까?</value>
+  </data>
+  <data name="ConfirmDeleteParkStructuresOther" xml:space="preserve">
+    <value>구조물 {0}개와 그 리그 및 서비스 모듈, 분류 배정, 아이템 예외가 함께 삭제됩니다. 이 작업은 되돌릴 수 없습니다.</value>
+  </data>
+  <data name="ConfirmDeleteParkNoStructures" xml:space="preserve">
+    <value>분류 배정과 아이템 예외가 함께 삭제됩니다. 이 작업은 되돌릴 수 없습니다.</value>
+  </data>
+  <data name="ConfirmDeleteParkNewDefault" xml:space="preserve">
+    <value>기본 산업 단지이므로 "{0}"이(가) 기본이 됩니다.</value>
+  </data>
+  <data name="AutoAssignNothing" xml:space="preserve">
+    <value>배정할 것 없음</value>
+  </data>
+  <data name="AutoAssignAssigned" xml:space="preserve">
+    <value>분류 {0}개 배정</value>
+  </data>
+  <data name="AutoAssignAlreadySet" xml:space="preserve">
+    <value>{0}개는 이미 설정됨</value>
+  </data>
+  <data name="AutoAssignAmbiguous" xml:space="preserve">
+    <value>{0}개는 리그를 장착한 구조물이 둘 이상이라 직접 지정해야 함 ({1})</value>
+  </data>
+  <data name="AutoAssignNoMatch" xml:space="preserve">
+    <value>{0}개는 리그를 장착한 구조물 없음</value>
+  </data>
+  <data name="AutoAssignSummary" xml:space="preserve">
+    <value>{0}.</value>
+  </data>
+  <data name="BulkNothingNew" xml:space="preserve">
+    <value>{0}에 새로 추가할 것이 없습니다 — {1}개가 이미 이 산업 단지에 있습니다.</value>
+  </data>
+  <data name="BulkNothingNewSkipped" xml:space="preserve">
+    <value>{0}에 새로 추가할 것이 없습니다 — {1}개는 이미 이 산업 단지에 있고, 위성 정제소 {2}개는 건너뛰었습니다.</value>
+  </data>
+  <data name="BulkAdded" xml:space="preserve">
+    <value>{1}에서 구조물 {0}개를 추가했습니다.</value>
+  </data>
+  <data name="BulkAddedAlready" xml:space="preserve">
+    <value>{1}에서 구조물 {0}개를 추가했습니다. {2}개는 이미 있습니다.</value>
+  </data>
+  <data name="BulkAddedSkipped" xml:space="preserve">
+    <value>{1}에서 구조물 {0}개를 추가했습니다. 위성 정제소 {2}개는 건너뛰었습니다.</value>
+  </data>
+  <data name="BulkAddedAlreadySkipped" xml:space="preserve">
+    <value>{1}에서 구조물 {0}개를 추가했습니다. {2}개는 이미 있고, 위성 정제소 {3}개는 건너뛰었습니다.</value>
+  </data>
+  <data name="ConfirmRemoveStructure" xml:space="preserve">
+    <value>이 산업 단지에서 "{0}"을(를) 제거하시겠습니까?</value>
+  </data>
+  <data name="ConfirmRemoveStructureDetail" xml:space="preserve">
+    <value>여기에 있는 리그와 서비스 모듈이 삭제되고, 이 구조물로 작업을 보내던 분류나 아이템 예외는 미배정 상태가 됩니다. 게임 속 구조물에는 영향이 없습니다.</value>
+  </data>
+  <data name="OwnerAll" xml:space="preserve">
+    <value>모든 소유자</value>
+  </data>
+  <data name="ColTimeRemaining" xml:space="preserve">
+    <value>남은 시간</value>
+  </data>
+  <data name="ColProduct" xml:space="preserve">
+    <value>생산품</value>
+  </data>
+  <data name="ColSuccessfulRuns" xml:space="preserve">
+    <value>성공 횟수</value>
+  </data>
+  <data name="ColItemsProduced" xml:space="preserve">
+    <value>생산 수량</value>
+  </data>
+  <data name="ColFacility" xml:space="preserve">
+    <value>시설</value>
+  </data>
+  <data name="ColNote" xml:space="preserve">
+    <value>비고</value>
+  </data>
+  <data name="ColCreated" xml:space="preserve">
+    <value>시작</value>
+  </data>
+  <data name="ColCompleted" xml:space="preserve">
+    <value>완료</value>
+  </data>
+  <data name="ActivityAll" xml:space="preserve">
+    <value>모든 활동</value>
+  </data>
+  <data name="ActivityManufacturing" xml:space="preserve">
+    <value>제조</value>
+  </data>
+  <data name="ActivityTeResearch" xml:space="preserve">
+    <value>TE 연구</value>
+  </data>
+  <data name="ActivityMeResearch" xml:space="preserve">
+    <value>ME 연구</value>
+  </data>
+  <data name="ActivityCopying" xml:space="preserve">
+    <value>복제</value>
+  </data>
+  <data name="ActivityInvention" xml:space="preserve">
+    <value>인벤션</value>
+  </data>
+  <data name="ActivityReverseEngineering" xml:space="preserve">
+    <value>역설계</value>
+  </data>
+  <data name="ActivityReactions" xml:space="preserve">
+    <value>합성</value>
+  </data>
+  <data name="StatusFilterAll" xml:space="preserve">
+    <value>모든 상태</value>
+  </data>
+  <data name="StatusFilterActive" xml:space="preserve">
+    <value>진행 중</value>
+  </data>
+  <data name="StatusFilterPaused" xml:space="preserve">
+    <value>일시정지</value>
+  </data>
+  <data name="StatusFilterReady" xml:space="preserve">
+    <value>준비 완료</value>
+  </data>
+  <data name="StatusFilterDelivered" xml:space="preserve">
+    <value>수령 완료</value>
+  </data>
+  <data name="StatusFilterCancelled" xml:space="preserve">
+    <value>취소됨</value>
+  </data>
+  <data name="StatusFilterReverted" xml:space="preserve">
+    <value>되돌림</value>
+  </data>
+  <data name="JobStatusActive" xml:space="preserve">
+    <value>진행 중</value>
+  </data>
+  <data name="JobStatusPaused" xml:space="preserve">
+    <value>일시정지</value>
+  </data>
+  <data name="JobStatusReady" xml:space="preserve">
+    <value>준비 완료</value>
+  </data>
+  <data name="JobStatusDelivered" xml:space="preserve">
+    <value>수령 완료</value>
+  </data>
+  <data name="JobStatusCancelled" xml:space="preserve">
+    <value>취소됨</value>
+  </data>
+  <data name="JobStatusReverted" xml:space="preserve">
+    <value>되돌림</value>
+  </data>
+  <data name="JobsCountOther" xml:space="preserve">
+    <value>작업 {0:N0}개</value>
+  </data>
+  <data name="JobsActiveCount" xml:space="preserve">
+    <value>활성 {0}개</value>
+  </data>
+  <data name="MenuCopy" xml:space="preserve">
+    <value>복사</value>
+  </data>
+  <data name="MenuCopyWithHeaders" xml:space="preserve">
+    <value>머리글 포함 복사</value>
+  </data>
+  <data name="OwnerTypePlayer" xml:space="preserve">
+    <value>플레이어</value>
+  </data>
+  <data name="OwnerTypeCorp" xml:space="preserve">
+    <value>코퍼레이션</value>
+  </data>
+  <data name="RigNoteNoRigs" xml:space="preserve">
+    <value>{0}에 장착된 산업 리그가 없음</value>
+  </data>
+  <data name="RigNoteNotRiggedFor" xml:space="preserve">
+    <value>{0}에 {1}용 리그가 없음</value>
+  </data>
+  <data name="RigCatSmallShips" xml:space="preserve">
+    <value>소형 함선</value>
+  </data>
+  <data name="RigCatMediumShips" xml:space="preserve">
+    <value>중형 함선</value>
+  </data>
+  <data name="RigCatLargeShips" xml:space="preserve">
+    <value>대형 함선</value>
+  </data>
+  <data name="RigCatAdvSmallShips" xml:space="preserve">
+    <value>상급 소형 함선</value>
+  </data>
+  <data name="RigCatAdvMediumShips" xml:space="preserve">
+    <value>상급 중형 함선</value>
+  </data>
+  <data name="RigCatAdvLargeShips" xml:space="preserve">
+    <value>상급 대형 함선</value>
+  </data>
+  <data name="RigCatCapitalShips" xml:space="preserve">
+    <value>캐피탈 함선</value>
+  </data>
+  <data name="RigCatDronesFighters" xml:space="preserve">
+    <value>드론 및 파이터</value>
+  </data>
+  <data name="RigCatEquipment" xml:space="preserve">
+    <value>장비</value>
+  </data>
+  <data name="RigCatAmmunition" xml:space="preserve">
+    <value>탄약</value>
+  </data>
+  <data name="RigCatCapitalComponents" xml:space="preserve">
+    <value>캐피탈 부품</value>
+  </data>
+  <data name="RigCatAdvComponents" xml:space="preserve">
+    <value>상급 부품</value>
+  </data>
+  <data name="RigCatStructuresFuel" xml:space="preserve">
+    <value>구조물 및 연료</value>
+  </data>
+  <data name="RigCatGasReactions" xml:space="preserve">
+    <value>가스 합성</value>
+  </data>
+  <data name="RigCatMoonReactions" xml:space="preserve">
+    <value>위성 합성</value>
+  </data>
+  <data name="RigCatCompositeReactions" xml:space="preserve">
+    <value>복합 합성</value>
+  </data>
+  <data name="RigCatReactions" xml:space="preserve">
+    <value>합성</value>
+  </data>
+  <data name="TypeIdNumbered" xml:space="preserve">
+    <value>타입 ID {0}</value>
+  </data>
+  <data name="FormulaRecalc" xml:space="preserve">
+    <value>ceil({0:N0} × {1:F4} × {2:N0}회) → {3:N0}</value>
+  </data>
+  <data name="BpcPriceNeverSeen" xml:space="preserve">
+    <value>{0} — 계약에서 본 적 없음, 0 ISK로 계산</value>
+  </data>
+  <data name="FormulaBpc" xml:space="preserve">
+    <value>1회당 BPC 1개 @ ME{0} 계약 가격</value>
+  </data>
+  <data name="SourceIntermediate" xml:space="preserve">
+    <value>중간재</value>
+  </data>
+  <data name="SourceFinalProduct" xml:space="preserve">
+    <value>최종 생산품</value>
+  </data>
+  <data name="SourceBuy" xml:space="preserve">
+    <value>구매</value>
+  </data>
+  <data name="SourceBuild" xml:space="preserve">
+    <value>제조</value>
+  </data>
+  <data name="JobModifiers" xml:space="preserve">
+    <value>ME -{0:F0}%  리그 -{1:F2}%  구조물 -{2:F1}%  → ×{3:F4}</value>
+  </data>
+  <data name="FormulaMaterial" xml:space="preserve">
+    <value>ceil({0:N0} × {1:F4} × {2:N0}회) = ceil({3:N2} × {2:N0}) → {4:N0}</value>
+  </data>
+  <data name="BpcTypeName" xml:space="preserve">
+    <value>{0} (BPC)</value>
+  </data>
+  <data name="BpcPriceStale" xml:space="preserve">
+    <value>{0} — 1회당 {1:N0} ISK, {2:yyyy-MM-dd}에 끝난 계약 기준, 이후 올라온 계약 없음</value>
+  </data>
+  <data name="BpcPriceStaleUndated" xml:space="preserve">
+    <value>{0} — 1회당 {1:N0} ISK, 얼마 전에 끝난 계약 기준, 이후 올라온 계약 없음</value>
+  </data>
+  <data name="WarnUnrecognizedPlannedIn" xml:space="preserve">
+    <value>{0} (인식되지 않는 종류 — ItemCategoryKey를 업데이트해야 함, 리그 보너스 없이 {1}에서 계획함)</value>
+  </data>
+  <data name="WarnUnrecognizedUnplanned" xml:space="preserve">
+    <value>{0} (인식되지 않는 종류 — ItemCategoryKey를 업데이트해야 함, 구조물과 보너스 없이 계획함 — 이 산업 단지에 기본 시설을 지정하십시오)</value>
+  </data>
+  <data name="WarnUnassignedPlannedIn" xml:space="preserve">
+    <value>{0} (이 산업 단지에 '{1}' 분류가 배정되지 않음, 리그 보너스 없이 {2}에서 계획함)</value>
+  </data>
+  <data name="WarnUnassignedUnplanned" xml:space="preserve">
+    <value>{0} (이 산업 단지에 '{1}' 분류가 배정되지 않음, 구조물과 보너스 없이 계획함 — 이 산업 단지에 기본 시설을 지정하십시오)</value>
+  </data>
+</root>

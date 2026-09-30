@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Avalonia;assembly=LiveChartsCore.SkiaSharpView.Avalonia"
              x:Class="EveConsole.Views.WalletView"
@@ -46,7 +47,7 @@
       <Grid ColumnDefinitions="Auto,16,Auto,*,Auto,12,Auto">
 
         <!-- Owner picker -->
-        <TextBlock Grid.Column="0" Text="Owner:" FontSize="12" Foreground="{DynamicResource TextMutedBrush}"
+        <TextBlock Grid.Column="0" Text="{x:Static loc:FinanceText.OwnerLabel}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}"
                    VerticalAlignment="Center" />
         <ComboBox Grid.Column="2"
                   ItemsSource="{Binding Owners}"
@@ -64,7 +65,7 @@
         <!-- Refresh -->
         <Button Grid.Column="6"
                 Command="{Binding RefreshCommand}"
-                Content="↻ Refresh"
+                Content="{x:Static loc:FinanceText.Refresh}"
                 FontSize="12"
                 VerticalAlignment="Center" />
 
@@ -75,7 +76,7 @@
     <Border Grid.Row="1" Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 0 0 1"
             Padding="14 6">
       <Grid ColumnDefinitions="Auto,*,Auto">
-        <TextBlock Grid.Column="0" Text="Balance:" FontSize="11" Foreground="{DynamicResource TextFaintBrush}"
+        <TextBlock Grid.Column="0" Text="{x:Static loc:FinanceText.BalanceLabel}" FontSize="11" Foreground="{DynamicResource TextFaintBrush}"
                    VerticalAlignment="Center" />
         <TextBlock Grid.Column="2"
                    Text="{Binding BalanceText}"
@@ -91,7 +92,7 @@
       <TabControl Background="{DynamicResource SurfaceBaseBrush}">
 
         <!-- ════ Overview ══════════════════════════════════════════════════ -->
-        <TabItem Header="Overview">
+        <TabItem Header="{x:Static loc:FinanceText.TabOverview}">
           <ScrollViewer HorizontalScrollBarVisibility="Disabled"
                         VerticalScrollBarVisibility="Auto">
             <Grid ColumnDefinitions="*,16,*" Margin="12 12 12 12">
@@ -101,7 +102,7 @@
                       BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" Padding="10 8">
                 <StackPanel Spacing="6">
                   <Grid ColumnDefinitions="*,Auto">
-                    <TextBlock Text="Income" FontSize="11" FontWeight="SemiBold"
+                    <TextBlock Text="{x:Static loc:FinanceText.Income}" FontSize="11" FontWeight="SemiBold"
                                Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
                     <TextBlock Grid.Column="1"
                                Text="{Binding IncomeTotalText}"
@@ -115,7 +116,7 @@
                                 LegendTextSize="10"
                                 Background="Transparent" />
                   <TextBlock IsVisible="{Binding !HasIncomeData}"
-                             Text="No income data for this period."
+                             Text="{x:Static loc:FinanceText.NoIncomeDataForThis}"
                              FontSize="11" Foreground="{DynamicResource BorderStrongBrush}"
                              HorizontalAlignment="Center"
                              VerticalAlignment="Center"
@@ -128,7 +129,7 @@
                       BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" Padding="10 8">
                 <StackPanel Spacing="6">
                   <Grid ColumnDefinitions="*,Auto">
-                    <TextBlock Text="Expenses" FontSize="11" FontWeight="SemiBold"
+                    <TextBlock Text="{x:Static loc:FinanceText.Expenses}" FontSize="11" FontWeight="SemiBold"
                                Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
                     <TextBlock Grid.Column="1"
                                Text="{Binding ExpenseTotalText}"
@@ -142,7 +143,7 @@
                                 LegendTextSize="10"
                                 Background="Transparent" />
                   <TextBlock IsVisible="{Binding !HasExpenseData}"
-                             Text="No expense data for this period."
+                             Text="{x:Static loc:FinanceText.NoExpenseDataForThis}"
                              FontSize="11" Foreground="{DynamicResource BorderStrongBrush}"
                              HorizontalAlignment="Center"
                              VerticalAlignment="Center"
@@ -155,36 +156,36 @@
         </TabItem>
 
         <!-- ════ Journal ═══════════════════════════════════════════════════ -->
-        <TabItem Header="Journal">
+        <TabItem Header="{x:Static loc:FinanceText.TabJournal}">
           <Grid RowDefinitions="Auto,*,Auto">
             <!-- Filter bar -->
             <Border Grid.Row="0" Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 0 0 1"
                     Padding="8 5">
               <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                <TextBlock Text="Type:" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
+                <TextBlock Text="{x:Static loc:FinanceText.TypeLabel}" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
                 <TextBox Text="{Binding JournalTypeFilter, Mode=TwoWay}"
-                         Watermark="filter…" FontSize="11" Width="130" Height="22"
+                         Watermark="{x:Static loc:FinanceText.HintFilter}" FontSize="11" Width="130" Height="22"
                          Background="{DynamicResource SurfacePanelBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Padding="5 2" />
-                <TextBlock Text="Owner:" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
+                <TextBlock Text="{x:Static loc:FinanceText.OwnerLabel}" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
                 <TextBox Text="{Binding JournalOwnerFilter, Mode=TwoWay}"
-                         Watermark="filter…" FontSize="11" Width="120" Height="22"
+                         Watermark="{x:Static loc:FinanceText.HintFilter}" FontSize="11" Width="120" Height="22"
                          Background="{DynamicResource SurfacePanelBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Padding="5 2" />
-                <TextBlock Text="Div:" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
+                <TextBlock Text="{x:Static loc:FinanceText.DivLabel}" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
                 <TextBox Text="{Binding JournalDivFilter, Mode=TwoWay}"
-                         Watermark="filter…" FontSize="11" Width="90" Height="22"
+                         Watermark="{x:Static loc:FinanceText.HintFilter}" FontSize="11" Width="90" Height="22"
                          Background="{DynamicResource SurfacePanelBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Padding="5 2" />
-                <TextBlock Text="From:" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
+                <TextBlock Text="{x:Static loc:FinanceText.FromLabel}" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
                 <CalendarDatePicker SelectedDate="{Binding JournalFromDate, Mode=TwoWay}"
                                     FontSize="11" Width="120" Height="22" />
-                <TextBlock Text="Thru:" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
+                <TextBlock Text="{x:Static loc:FinanceText.ThruLabel}" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
                 <CalendarDatePicker SelectedDate="{Binding JournalThruDate, Mode=TwoWay}"
                                     FontSize="11" Width="120" Height="22" />
-                <Button Content="Clear" Command="{Binding ClearJournalFiltersCommand}"
+                <Button Content="{x:Static loc:FinanceText.Clear}" Command="{Binding ClearJournalFiltersCommand}"
                         FontSize="10" Padding="8 2" Height="22"
                         Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
                         BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                         VerticalAlignment="Center" />
-                <TextBlock Text="Sort:" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
+                <TextBlock Text="{x:Static loc:FinanceText.SortLabel}" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
                 <ComboBox ItemsSource="{Binding JournalSortOptions}" SelectedItem="{Binding SelectedJournalSort}"
                           FontSize="11" MinWidth="150" Height="22" VerticalAlignment="Center" />
               </StackPanel>
@@ -199,9 +200,9 @@
                       CanUserResizeColumns="True"
                       CanUserSortColumns="False">
               <DataGrid.Columns>
-                <DataGridTextColumn Header="Date"        Binding="{Binding DateText}"    Width="130" />
-                <DataGridTextColumn Header="Type"        Binding="{Binding RefTypeText}" Width="180" />
-                <DataGridTemplateColumn Header="Amount"  Width="110" SortMemberPath="AmountRaw" ClipboardContentBinding="{Binding AmountText}">
+                <DataGridTextColumn Header="{x:Static loc:FinanceText.ColDate}"        Binding="{Binding DateText}"    Width="130" />
+                <DataGridTextColumn Header="{x:Static loc:FinanceText.ColType}"        Binding="{Binding RefTypeText}" Width="180" />
+                <DataGridTemplateColumn Header="{x:Static loc:FinanceText.ColAmount}"  Width="110" SortMemberPath="AmountRaw" ClipboardContentBinding="{Binding AmountText}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="vm:WalletJournalRowVm">
                       <TextBlock Text="{Binding AmountText}"
@@ -213,13 +214,13 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTextColumn Header="Balance"     Binding="{Binding BalanceText}" SortMemberPath="BalanceRaw" Width="110" />
-                <DataGridTemplateColumn Header="Owner" Width="140" SortMemberPath="OwnerText" ClipboardContentBinding="{Binding OwnerText}">
+                <DataGridTextColumn Header="{x:Static loc:FinanceText.ColBalance}"     Binding="{Binding BalanceText}" SortMemberPath="BalanceRaw" Width="110" />
+                <DataGridTemplateColumn Header="{x:Static loc:FinanceText.ColOwner}" Width="140" SortMemberPath="OwnerText" ClipboardContentBinding="{Binding OwnerText}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="vm:WalletJournalRowVm">
                       <Panel>
                         <Button Classes="link" Click="OnOpenJournalOwner" IsVisible="{Binding HasOwnerLink}"
-                                ToolTip.Tip="Open in the entity browser">
+                                ToolTip.Tip="{x:Static loc:FinanceText.TipOpenInTheEntityBrowser}">
                           <TextBlock Text="{Binding OwnerText}" Classes="linktext"
                                      TextTrimming="CharacterEllipsis" />
                         </Button>
@@ -229,55 +230,55 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTextColumn Header="Div"         Binding="{Binding DivisionText}" Width="100" />
-                <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*" />
+                <DataGridTextColumn Header="{x:Static loc:FinanceText.ColDiv}"         Binding="{Binding DivisionText}" Width="100" />
+                <DataGridTextColumn Header="{x:Static loc:FinanceText.ColDescription}" Binding="{Binding Description}" Width="*" />
               </DataGrid.Columns>
             </DataGrid>
             <Border Grid.Row="2" Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 0" Padding="8 5">
               <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
-                <Button Command="{Binding JournalPager.FirstPageCommand}" IsEnabled="{Binding JournalPager.CanPrev}" Content="⏮ First" FontSize="11" Padding="8 2" />
-                <Button Command="{Binding JournalPager.PrevPageCommand}"  IsEnabled="{Binding JournalPager.CanPrev}" Content="◀ Prev"  FontSize="11" Padding="8 2" />
+                <Button Command="{Binding JournalPager.FirstPageCommand}" IsEnabled="{Binding JournalPager.CanPrev}" Content="{x:Static loc:FinanceText.First}" FontSize="11" Padding="8 2" />
+                <Button Command="{Binding JournalPager.PrevPageCommand}"  IsEnabled="{Binding JournalPager.CanPrev}" Content="{x:Static loc:FinanceText.Prev}"  FontSize="11" Padding="8 2" />
                 <TextBlock Text="{Binding JournalPager.PageInfo}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="12 0" MinWidth="200" TextAlignment="Center" />
-                <Button Command="{Binding JournalPager.NextPageCommand}"  IsEnabled="{Binding JournalPager.CanNext}" Content="Next ▶"  FontSize="11" Padding="8 2" />
-                <Button Command="{Binding JournalPager.LastPageCommand}"  IsEnabled="{Binding JournalPager.CanNext}" Content="Last ⏭"  FontSize="11" Padding="8 2" />
+                <Button Command="{Binding JournalPager.NextPageCommand}"  IsEnabled="{Binding JournalPager.CanNext}" Content="{x:Static loc:FinanceText.Next}"  FontSize="11" Padding="8 2" />
+                <Button Command="{Binding JournalPager.LastPageCommand}"  IsEnabled="{Binding JournalPager.CanNext}" Content="{x:Static loc:FinanceText.Last}"  FontSize="11" Padding="8 2" />
               </StackPanel>
             </Border>
           </Grid>
         </TabItem>
 
         <!-- ════ Market Transactions ═══════════════════════════════════════ -->
-        <TabItem Header="Market Transactions">
+        <TabItem Header="{x:Static loc:FinanceText.TabMarketTransactions}">
           <Grid RowDefinitions="Auto,*,Auto">
             <!-- Filter bar -->
             <Border Grid.Row="0" Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 0 0 1"
                     Padding="8 5">
               <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                <TextBlock Text="Item:" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
+                <TextBlock Text="{x:Static loc:FinanceText.ItemLabel}" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
                 <TextBox Text="{Binding TxnItemFilter, Mode=TwoWay}"
-                         Watermark="filter…" FontSize="11" Width="160" Height="22"
+                         Watermark="{x:Static loc:FinanceText.HintFilter}" FontSize="11" Width="160" Height="22"
                          Background="{DynamicResource SurfacePanelBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Padding="5 2" />
-                <TextBlock Text="B/S:" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
+                <TextBlock Text="{x:Static loc:FinanceText.BuySellLabel}" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
                 <ComboBox ItemsSource="{Binding DirectionOptions}"
                           SelectedItem="{Binding TxnDirectionFilter, Mode=TwoWay}"
                           FontSize="11" Width="70" Height="22" />
-                <TextBlock Text="Location:" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
+                <TextBlock Text="{x:Static loc:FinanceText.LocationLabel}" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
                 <TextBox Text="{Binding TxnLocationFilter, Mode=TwoWay}"
-                         Watermark="filter…" FontSize="11" Width="150" Height="22"
+                         Watermark="{x:Static loc:FinanceText.HintFilter}" FontSize="11" Width="150" Height="22"
                          Background="{DynamicResource SurfacePanelBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Padding="5 2" />
-                <TextBlock Text="Owner:" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
+                <TextBlock Text="{x:Static loc:FinanceText.OwnerLabel}" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
                 <TextBox Text="{Binding TxnOwnerFilter, Mode=TwoWay}"
-                         Watermark="filter…" FontSize="11" Width="120" Height="22"
+                         Watermark="{x:Static loc:FinanceText.HintFilter}" FontSize="11" Width="120" Height="22"
                          Background="{DynamicResource SurfacePanelBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Padding="5 2" />
-                <TextBlock Text="Div:" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
+                <TextBlock Text="{x:Static loc:FinanceText.DivLabel}" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
                 <TextBox Text="{Binding TxnDivFilter, Mode=TwoWay}"
-                         Watermark="filter…" FontSize="11" Width="90" Height="22"
+                         Watermark="{x:Static loc:FinanceText.HintFilter}" FontSize="11" Width="90" Height="22"
                          Background="{DynamicResource SurfacePanelBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Padding="5 2" />
-                <Button Content="Clear" Command="{Binding ClearTxnFiltersCommand}"
+                <Button Content="{x:Static loc:FinanceText.Clear}" Command="{Binding ClearTxnFiltersCommand}"
                         FontSize="10" Padding="8 2" Height="22"
                         Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
                         BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                         VerticalAlignment="Center" />
-                <TextBlock Text="Sort:" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
+                <TextBlock Text="{x:Static loc:FinanceText.SortLabel}" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
                 <ComboBox ItemsSource="{Binding TxnSortOptions}" SelectedItem="{Binding SelectedTxnSort}"
                           FontSize="11" MinWidth="150" Height="22" VerticalAlignment="Center" />
               </StackPanel>
@@ -292,13 +293,13 @@
                       CanUserResizeColumns="True"
                       CanUserSortColumns="False">
               <DataGrid.Columns>
-                <DataGridTextColumn Header="Date"       Binding="{Binding DateText}"  Width="130" />
-                <DataGridTemplateColumn Header="Item" Width="220" SortMemberPath="TypeName" ClipboardContentBinding="{Binding TypeName}">
+                <DataGridTextColumn Header="{x:Static loc:FinanceText.ColDate}"       Binding="{Binding DateText}"  Width="130" />
+                <DataGridTemplateColumn Header="{x:Static loc:FinanceText.ColItem}" Width="220" SortMemberPath="TypeName" ClipboardContentBinding="{Binding TypeName}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="vm:WalletTransactionRowVm">
                       <Panel>
                         <Button Classes="link" Click="OnOpenTxItem" IsVisible="{Binding HasItemLink}"
-                                ToolTip.Tip="Open in the Item Browser">
+                                ToolTip.Tip="{x:Static loc:FinanceText.TipOpenInTheItemBrowser}">
                           <TextBlock Text="{Binding TypeName}" Classes="linktext"
                                      TextTrimming="CharacterEllipsis" />
                         </Button>
@@ -308,9 +309,9 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTextColumn Header="Qty"        Binding="{Binding Quantity}"  SortMemberPath="QuantityRaw"  Width="80" />
-                <DataGridTextColumn Header="Unit Price" Binding="{Binding UnitPrice}" SortMemberPath="UnitPriceRaw" Width="110" />
-                <DataGridTemplateColumn Header="Total"  Width="120" SortMemberPath="TotalRaw" ClipboardContentBinding="{Binding Total}">
+                <DataGridTextColumn Header="{x:Static loc:FinanceText.ColQty}"        Binding="{Binding Quantity}"  SortMemberPath="QuantityRaw"  Width="80" />
+                <DataGridTextColumn Header="{x:Static loc:FinanceText.ColUnitPrice}" Binding="{Binding UnitPrice}" SortMemberPath="UnitPriceRaw" Width="110" />
+                <DataGridTemplateColumn Header="{x:Static loc:FinanceText.ColTotal}"  Width="120" SortMemberPath="TotalRaw" ClipboardContentBinding="{Binding Total}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="vm:WalletTransactionRowVm">
                       <TextBlock Text="{Binding Total}"
@@ -322,13 +323,13 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTextColumn Header="B/S"        Binding="{Binding Direction}"    Width="50" />
-                <DataGridTemplateColumn Header="Location" Width="200" SortMemberPath="LocationName" ClipboardContentBinding="{Binding LocationName}">
+                <DataGridTextColumn Header="{x:Static loc:FinanceText.ColBuySell}"        Binding="{Binding Direction}"    Width="68" />
+                <DataGridTemplateColumn Header="{x:Static loc:FinanceText.ColLocation}" Width="200" SortMemberPath="LocationName" ClipboardContentBinding="{Binding LocationName}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="vm:WalletTransactionRowVm">
                       <Panel>
                         <Button Classes="link" Click="OnOpenTxLocation" IsVisible="{Binding HasLocationLink}"
-                                ToolTip.Tip="Open this station or structure">
+                                ToolTip.Tip="{x:Static loc:FinanceText.TipOpenThisStationOrStructure}">
                           <TextBlock Text="{Binding LocationName}" Classes="linktext"
                                      TextTrimming="CharacterEllipsis" />
                         </Button>
@@ -338,12 +339,12 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Owner" Width="140" SortMemberPath="OwnerText" ClipboardContentBinding="{Binding OwnerText}">
+                <DataGridTemplateColumn Header="{x:Static loc:FinanceText.ColOwner}" Width="140" SortMemberPath="OwnerText" ClipboardContentBinding="{Binding OwnerText}">
                   <DataGridTemplateColumn.CellTemplate>
                     <DataTemplate x:DataType="vm:WalletTransactionRowVm">
                       <Panel>
                         <Button Classes="link" Click="OnOpenTxOwner" IsVisible="{Binding HasOwnerLink}"
-                                ToolTip.Tip="Open in the entity browser">
+                                ToolTip.Tip="{x:Static loc:FinanceText.TipOpenInTheEntityBrowser}">
                           <TextBlock Text="{Binding OwnerText}" Classes="linktext"
                                      TextTrimming="CharacterEllipsis" />
                         </Button>
@@ -353,23 +354,23 @@
                     </DataTemplate>
                   </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTextColumn Header="Div"        Binding="{Binding DivisionText}" Width="100" />
+                <DataGridTextColumn Header="{x:Static loc:FinanceText.ColDiv}"        Binding="{Binding DivisionText}" Width="100" />
               </DataGrid.Columns>
             </DataGrid>
             <Border Grid.Row="2" Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 0" Padding="8 5">
               <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center">
-                <Button Command="{Binding TxnPager.FirstPageCommand}" IsEnabled="{Binding TxnPager.CanPrev}" Content="⏮ First" FontSize="11" Padding="8 2" />
-                <Button Command="{Binding TxnPager.PrevPageCommand}"  IsEnabled="{Binding TxnPager.CanPrev}" Content="◀ Prev"  FontSize="11" Padding="8 2" />
+                <Button Command="{Binding TxnPager.FirstPageCommand}" IsEnabled="{Binding TxnPager.CanPrev}" Content="{x:Static loc:FinanceText.First}" FontSize="11" Padding="8 2" />
+                <Button Command="{Binding TxnPager.PrevPageCommand}"  IsEnabled="{Binding TxnPager.CanPrev}" Content="{x:Static loc:FinanceText.Prev}"  FontSize="11" Padding="8 2" />
                 <TextBlock Text="{Binding TxnPager.PageInfo}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="12 0" MinWidth="200" TextAlignment="Center" />
-                <Button Command="{Binding TxnPager.NextPageCommand}"  IsEnabled="{Binding TxnPager.CanNext}" Content="Next ▶"  FontSize="11" Padding="8 2" />
-                <Button Command="{Binding TxnPager.LastPageCommand}"  IsEnabled="{Binding TxnPager.CanNext}" Content="Last ⏭"  FontSize="11" Padding="8 2" />
+                <Button Command="{Binding TxnPager.NextPageCommand}"  IsEnabled="{Binding TxnPager.CanNext}" Content="{x:Static loc:FinanceText.Next}"  FontSize="11" Padding="8 2" />
+                <Button Command="{Binding TxnPager.LastPageCommand}"  IsEnabled="{Binding TxnPager.CanNext}" Content="{x:Static loc:FinanceText.Last}"  FontSize="11" Padding="8 2" />
               </StackPanel>
             </Border>
           </Grid>
         </TabItem>
 
         <!-- ════ Divisions (corp only) ══════════════════════════════════════ -->
-        <TabItem Header="Divisions" IsVisible="{Binding ShowDivisions}">
+        <TabItem Header="{x:Static loc:FinanceText.TabDivisions}" IsVisible="{Binding ShowDivisions}">
           <DataGrid ItemsSource="{Binding DivisionRows}"
                     AutoGenerateColumns="False"
                     IsReadOnly="True"
@@ -379,8 +380,8 @@
                     CanUserSortColumns="False">
             <DataGrid.Columns>
               <DataGridTextColumn Header="#"         Binding="{Binding Division}"    Width="50" />
-              <DataGridTextColumn Header="Name"      Binding="{Binding Name}"        Width="200" />
-              <DataGridTextColumn Header="Balance"   Binding="{Binding BalanceText}" Width="160" />
+              <DataGridTextColumn Header="{x:Static loc:FinanceText.ColName}"      Binding="{Binding Name}"        Width="200" />
+              <DataGridTextColumn Header="{x:Static loc:FinanceText.ColBalance}"   Binding="{Binding BalanceText}" Width="160" />
             </DataGrid.Columns>
           </DataGrid>
         </TabItem>

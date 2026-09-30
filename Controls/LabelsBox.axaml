@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
              x:Class="EveConsole.Controls.LabelsBox">
 
   <StackPanel Spacing="0">
@@ -13,7 +14,7 @@
         <Button x:Name="ChevronButton" Grid.Column="1" Content="⌄" Padding="6 0"
                 Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextDimBrush}"
                 FontSize="13" VerticalAlignment="Center"
-                ToolTip.Tip="Show every label already in use" />
+                ToolTip.Tip="{x:Static loc:CommonText.TipShowEveryLabelAlreadyIn}" />
       </Grid>
     </Border>
 
@@ -41,7 +42,7 @@
     </Border>
 
     <TextBlock x:Name="EmptyNote" IsVisible="False" Margin="2 3 0 0"
-               FontSize="10" Foreground="{DynamicResource TextFaintBrush}" Text="No matches — press Enter to create it." />
+               FontSize="10" Foreground="{DynamicResource TextFaintBrush}" Text="{x:Static loc:CommonText.NoMatchesPressEnterNote}" />
 
   </StackPanel>
 </UserControl>

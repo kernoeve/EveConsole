@@ -1,3 +1,5 @@
+using EveConsole.Localization;
+
 namespace EveConsole.Models;
 
 public class ProductionQueueEntry
@@ -18,6 +20,11 @@ public class PlanJob
 {
     public int     OutputTypeId    { get; set; }
     public string  OutputTypeName  { get; set; } = "";
+
+    /// <summary>The product as the Jobs tab shows it, in the interface language. OutputTypeName
+    /// stays English: the Worklist reads it.</summary>
+    public string  OutputDisplayName => SdeNames.Type(OutputTypeId, OutputTypeName);
+
     public bool    IsReaction      { get; set; }
     public int     MeLevel         { get; set; }
     public long    QuantityNeeded  { get; set; }
@@ -42,6 +49,11 @@ public class PlanJob
     /// <summary>The system the facility sits in, so its name can open the map. Zero when the park
     /// structure names a system the SDE does not know — possible for a hand-typed entry.</summary>
     public int     SolarSystemId   { get; set; }
+
+    /// <summary>The system as the Jobs tab shows it, in the interface language. SystemName stays
+    /// the park's own English, which the cost index is looked up by.</summary>
+    public string  SystemDisplayName => SdeNames.SolarSystem(SolarSystemId, SystemName);
+
     public string  StructureDisplay => StructureName.Length > 0 && SystemName.Length > 0
         ? $"{StructureName} @ {SystemName}"
         : StructureName.Length > 0 ? StructureName : SystemName;
@@ -74,20 +86,31 @@ public class PlanJob
     public double RoleBonusPct   { get; set; }   // e.g. 1.0 for engineering complex
     public double CombinedFactor { get; set; }   // final multiplier = (1-me%)×(1-rig%)×(1-role%)
     public string ModifierDisplay =>
-        $"ME -{MeReductionPct:F0}%  Rig -{RigBonusPct:F2}%  Structure -{RoleBonusPct:F1}%  → ×{CombinedFactor:F4}";
+        string.Format(IndustryText.JobModifiers, MeReductionPct, RigBonusPct, RoleBonusPct, CombinedFactor);
 }
 
 public class PlanJobMaterial
 {
     public int     MaterialTypeId { get; set; }
     public string  TypeName       { get; set; } = "";
+
+    /// <summary>Set on the line for the blueprint copy a job consumes: the blueprint's English
+    /// name, which <see cref="TypeName"/> carries inside the copy's label. Null on a material.</summary>
+    public string? BlueprintName  { get; set; }
+
+    /// <summary>The line as the Jobs tab shows it, in the interface language, a copy's label and
+    /// all. TypeName stays English: the shopping lists copy it for the game's multibuy.</summary>
+    public string  DisplayName => BlueprintName is { } bp
+        ? string.Format(IndustryText.BpcTypeName, SdeNames.Type(MaterialTypeId, bp))
+        : SdeNames.Type(MaterialTypeId, TypeName);
+
     public int     BaseQtyPerRun  { get; set; }   // straight from the SDE recipe
     public long    EffQtyPerRun   { get; set; }
     public long    TotalQty       { get; set; }
     public bool    IsBought       { get; set; }
     public decimal UnitPrice      { get; set; }
     public decimal TotalCost      => IsBought ? TotalQty * UnitPrice : 0;
-    public string  Source         => IsBought ? "Buy" : "Build";
+    public string  Source         => IsBought ? IndustryText.SourceBuy : IndustryText.SourceBuild;
     // Full formula string for UI debugging, e.g. "ceil(2,631 × 0.8536) = 2,247"
     public string  FormulaDisplay { get; set; } = "";
 
@@ -128,6 +151,10 @@ public class PlanRawMaterial : System.ComponentModel.INotifyPropertyChanged
 
     public int     TypeId    { get; set; }
     public string  TypeName  { get; set; } = "";
+
+    /// <summary>The name the grid shows, in the interface language. TypeName stays English for
+    /// the shopping lists and the export.</summary>
+    public string  DisplayName => SdeNames.Type(TypeId, TypeName);
 
     public bool HasItemLink => TypeId > 0 && TypeName.Length > 0;
     public void OpenItem() => EveConsole.Services.EntityNavigator.Instance.Item(TypeId);
@@ -176,6 +203,7 @@ public class PlanIntermediate
 {
     public int     TypeId           { get; set; }
     public string  TypeName         { get; set; } = "";
+    public string  DisplayName      => SdeNames.Type(TypeId, TypeName);
 
     public bool HasItemLink => TypeId > 0 && TypeName.Length > 0;
     public void OpenItem() => EveConsole.Services.EntityNavigator.Instance.Item(TypeId);
@@ -191,6 +219,7 @@ public class PlanFinalProduct
 {
     public int     TypeId            { get; set; }
     public string  TypeName          { get; set; } = "";
+    public string  DisplayName       => SdeNames.Type(TypeId, TypeName);
 
     public bool HasItemLink => TypeId > 0 && TypeName.Length > 0;
     public void OpenItem() => EveConsole.Services.EntityNavigator.Instance.Item(TypeId);
@@ -212,6 +241,7 @@ public class PlanLeftoverItem
 {
     public int     TypeId    { get; set; }
     public string  TypeName  { get; set; } = "";
+    public string  DisplayName => SdeNames.Type(TypeId, TypeName);
 
     public bool HasItemLink => TypeId > 0 && TypeName.Length > 0;
     public void OpenItem() => EveConsole.Services.EntityNavigator.Instance.Item(TypeId);
@@ -235,7 +265,7 @@ public class ProductionPlan
     /// facility with no rig bonus rather than aborting the calculation, so the plan is
     /// complete but these figures carry no rig benefit they might be entitled to.
     /// </summary>
-    public List<string> Warnings { get; set; } = [];
+    public List<PlanItemNote> Warnings { get; set; } = [];
 
     /// <summary>
     /// Prices the plan had to reach back for, or could not find at all — at present, blueprint
@@ -245,7 +275,7 @@ public class ProductionPlan
     /// thing, and the header above it says so, so a second kind of warning posted into it would
     /// be announced to the user as something it is not.</para>
     /// </summary>
-    public List<string> PricingWarnings { get; set; } = [];
+    public List<PlanItemNote> PricingWarnings { get; set; } = [];
 
     public decimal TotalRawMaterialCost { get; set; }
 
@@ -255,4 +285,25 @@ public class ProductionPlan
     public decimal TotalJobCost         { get; set; }
     public decimal TotalLeftoverValue   { get; set; }
     public decimal NetCost              { get; set; }
+}
+
+/// <summary>
+/// One sentence a plan says about one item — a warning, or a note on a price. The item is kept
+/// apart from the sentence so each reader gets the name it needs: the Production Calculator shows
+/// it in the interface language, and the error log, which the background build-cost pass writes
+/// these to, keeps the English.
+/// </summary>
+public sealed class PlanItemNote(string format, int typeId, string typeName, params object[] rest)
+{
+    public int    TypeId   { get; } = typeId;
+    public string TypeName { get; } = typeName;
+
+    /// <summary>The sentence with the English name — for the log, and anything else that is not
+    /// a screen.</summary>
+    public string Text => string.Format(format, [TypeName, .. rest]);
+
+    /// <summary>The sentence as the calculator shows it, with the name in the interface language.</summary>
+    public string DisplayText => string.Format(format, [SdeNames.Type(TypeId, TypeName), .. rest]);
+
+    public override string ToString() => Text;
 }

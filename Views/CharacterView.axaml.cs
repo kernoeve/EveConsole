@@ -7,6 +7,7 @@ using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using EveConsole.Localization;
 using EveConsole.Models;
 using EveConsole.ViewModels;
 using ReactiveUI;
@@ -308,15 +309,17 @@ public partial class CharacterView : UserControl
         var showSources  = w >= 860;   // Order jobs, Jobs, Inv levels, Stn levels
         var showValuation = w >= 1080; // Short value, Short volume
 
+        // ⚠️ By the resource each header was built from, not its English words, which would match
+        // nothing in any other language and leave every column showing.
         foreach (var c in grid.Columns)
         {
-            c.IsVisible = (c.Header as string) switch
-            {
-                "Total" or "On hand"                                  => showContext,
-                "Order jobs" or "Jobs" or "Inv levels" or "Stn levels" => showSources,
-                "Short value" or "Short volume"                        => showValuation,
-                _                                                     => true,   // Station, Item, Short
-            };
+            var h = c.Header as string;
+            c.IsVisible =
+                h == OverviewText.ColTotal || h == OverviewText.ColOnHand ? showContext
+              : h == OverviewText.ColOrderJobs || h == OverviewText.ColJobs
+                || h == OverviewText.ColInvLevels || h == OverviewText.ColStnLevels ? showSources
+              : h == OverviewText.ColShortValue || h == OverviewText.ColShortVolume ? showValuation
+              : true;   // Station, Item, Short
         }
     }
 

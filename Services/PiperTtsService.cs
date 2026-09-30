@@ -2,6 +2,7 @@ using System.Text.RegularExpressions;
 using LibVLCSharp.Shared;
 using PiperSharp;
 using PiperSharp.Models;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -43,21 +44,26 @@ public sealed class PiperTtsService : IDisposable
 
     // Curated English voice list (huggingface key → display label).
     // Quality tiers: low (fast, small), medium (balanced), high (best).
+    // Each voice's name is its own and stays as it is; what kind of voice it is, and its quality,
+    // are translated. Chosen by Key on the settings tab, never by these words.
     public static readonly IReadOnlyList<(string Key, string Label, string Size)> VoiceCatalogue =
     [
-        ("en_US-libritts_r-medium", "LibriTTS R — US, Medium",        "~130 MB"),
-        ("en_US-lessac-high",       "Lessac — US, High",              "~63 MB"),
-        ("en_US-ryan-high",         "Ryan — US Male, High",            "~63 MB"),
-        ("en_US-amy-medium",        "Amy — US Female, Medium",         "~63 MB"),
-        ("en_US-joe-medium",        "Joe — US Male, Medium",           "~63 MB"),
-        ("en_US-arctic-medium",     "Arctic — US, Medium",             "~83 MB"),
-        ("en_GB-jenny_dioco-medium","Jenny — GB Female, Medium",       "~63 MB"),
-        ("en_GB-alan-medium",       "Alan — GB Male, Medium",          "~63 MB"),
-        ("en_GB-cori-high",         "Cori — GB Female, High",          "~63 MB"),
-        ("en_US-lessac-medium",     "Lessac — US, Medium (compact)",   "~40 MB"),
-        ("en_US-ryan-medium",       "Ryan — US Male, Medium (compact)","~40 MB"),
-        ("en_US-ljspeech-high",     "LJSpeech — US Female, High",      "~63 MB"),
+        ("en_US-libritts_r-medium", Label("LibriTTS R", SettingsText.PiperKindUs,         SettingsText.PiperQualityMedium),        "~130 MB"),
+        ("en_US-lessac-high",       Label("Lessac",     SettingsText.PiperKindUs,         SettingsText.PiperQualityHigh),          "~63 MB"),
+        ("en_US-ryan-high",         Label("Ryan",       SettingsText.PiperKindUsMale,     SettingsText.PiperQualityHigh),          "~63 MB"),
+        ("en_US-amy-medium",        Label("Amy",        SettingsText.PiperKindUsFemale,   SettingsText.PiperQualityMedium),        "~63 MB"),
+        ("en_US-joe-medium",        Label("Joe",        SettingsText.PiperKindUsMale,     SettingsText.PiperQualityMedium),        "~63 MB"),
+        ("en_US-arctic-medium",     Label("Arctic",     SettingsText.PiperKindUs,         SettingsText.PiperQualityMedium),        "~83 MB"),
+        ("en_GB-jenny_dioco-medium",Label("Jenny",      SettingsText.PiperKindGbFemale,   SettingsText.PiperQualityMedium),        "~63 MB"),
+        ("en_GB-alan-medium",       Label("Alan",       SettingsText.PiperKindGbMale,     SettingsText.PiperQualityMedium),        "~63 MB"),
+        ("en_GB-cori-high",         Label("Cori",       SettingsText.PiperKindGbFemale,   SettingsText.PiperQualityHigh),          "~63 MB"),
+        ("en_US-lessac-medium",     Label("Lessac",     SettingsText.PiperKindUs,         SettingsText.PiperQualityMediumCompact), "~40 MB"),
+        ("en_US-ryan-medium",       Label("Ryan",       SettingsText.PiperKindUsMale,     SettingsText.PiperQualityMediumCompact), "~40 MB"),
+        ("en_US-ljspeech-high",     Label("LJSpeech",   SettingsText.PiperKindUsFemale,   SettingsText.PiperQualityHigh),          "~63 MB"),
     ];
+
+    private static string Label(string name, string kind, string quality) =>
+        string.Format(SettingsText.PiperVoiceLabel, name, kind, quality);
 
     private string       _voiceKey = "en_US-libritts_r-medium";
     private VoiceModel?  _model;
@@ -92,13 +98,13 @@ public sealed class PiperTtsService : IDisposable
     // Download the selected voice model (ONNX + JSON config) to a per-key subdirectory.
     public async Task DownloadVoiceAsync(IProgress<string>? status, CancellationToken ct)
     {
-        status?.Report($"Downloading voice '{_voiceKey}'…");
+        status?.Report(string.Format(SettingsText.VoiceDownloading, _voiceKey));
         var voiceDir = GetVoiceModelPath(_voiceKey);
         Directory.CreateDirectory(voiceDir);
         var info = await PiperDownloader.GetModelByKey(_voiceKey);
-        if (info is null) { status?.Report($"Voice key '{_voiceKey}' not found in HuggingFace model list."); return; }
+        if (info is null) { status?.Report(string.Format(SettingsText.PiperVoiceKeyNotFound, _voiceKey)); return; }
         _model = await PiperDownloader.DownloadModel(info, voiceDir);
-        status?.Report("Voice model ready.");
+        status?.Report(SettingsText.VoiceModelReady);
     }
 
     // Load a previously-downloaded voice model from disk.
@@ -126,7 +132,7 @@ public sealed class PiperTtsService : IDisposable
     /// </summary>
     public async Task SpeakAsync(string text, CancellationToken cancel = default)
     {
-        if (_vlc is null) throw new InvalidOperationException("Audio playback (VLC) is not available.");
+        if (_vlc is null) throw new InvalidOperationException(SettingsText.PiperNoVlc);
         var stripped = StripMarkdown(text);
         if (string.IsNullOrWhiteSpace(stripped)) return;
 
@@ -137,7 +143,7 @@ public sealed class PiperTtsService : IDisposable
         {
             await LoadVoiceAsync();
             if (_model is null)
-                throw new InvalidOperationException($"The Piper voice '{_voiceKey}' is not downloaded or could not load.");
+                throw new InvalidOperationException(string.Format(SettingsText.PiperVoiceNotLoaded, _voiceKey));
         }
 
         try
@@ -152,7 +158,7 @@ public sealed class PiperTtsService : IDisposable
             var provider = new PiperProvider(config);
             var wavBytes = await provider.InferAsync(stripped, AudioOutputType.Wav);
             if (ct.IsCancellationRequested) return;
-            if (wavBytes is null || wavBytes.Length == 0) throw new InvalidOperationException("Piper produced no audio.");
+            if (wavBytes is null || wavBytes.Length == 0) throw new InvalidOperationException(SettingsText.PiperNoAudio);
 
             await PlayWavAsync(wavBytes, ct);
         }
@@ -180,7 +186,7 @@ public sealed class PiperTtsService : IDisposable
             using var reg = ct.Register(() => tcs.TrySetCanceled(ct));
 
             void OnEnd(object? s, EventArgs e) => tcs.TrySetResult(true);
-            void OnError(object? s, EventArgs e) => tcs.TrySetException(new InvalidOperationException("The audio could not be played."));
+            void OnError(object? s, EventArgs e) => tcs.TrySetException(new InvalidOperationException(SettingsText.PiperPlaybackFailed));
             player.EndReached       += OnEnd;
             player.EncounteredError += OnError;
 

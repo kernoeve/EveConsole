@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="HowToOrder" xml:space="preserve">
+    <value>{0} — 注文方法</value>
+  </data>
+  <data name="SubjectAbout" xml:space="preserve">
+    <value>{0} — ストアについて</value>
+  </data>
+  <data name="SubjectPriceList" xml:space="preserve">
+    <value>{0} — 価格表</value>
+  </data>
+  <data name="SubjectOrderNotUnderstood" xml:space="preserve">
+    <value>{0} — 注文を読み取れませんでした</value>
+  </data>
+  <data name="SubjectOrderOverLimit" xml:space="preserve">
+    <value>{0} — 購入制限を超える注文</value>
+  </data>
+  <data name="SubjectOrder" xml:space="preserve">
+    <value>{0} — 注文番号：{1}</value>
+  </data>
+  <data name="SubjectNoOpenOrders" xml:space="preserve">
+    <value>{0} — 進行中の注文はありません</value>
+  </data>
+  <data name="SubjectOrderStatus" xml:space="preserve">
+    <value>{0} — 注文状況</value>
+  </data>
+  <data name="SubjectOrderNotFound" xml:space="preserve">
+    <value>{0} — 注文が見つかりません</value>
+  </data>
+  <data name="SubjectOrderCancelled" xml:space="preserve">
+    <value>{0} — 注文をキャンセルしました（注文番号：{1}）</value>
+  </data>
+  <data name="SubjectOrdersCancelled" xml:space="preserve">
+    <value>{0} — 注文をキャンセルしました（注文番号：{1}）</value>
+  </data>
+  <data name="SubjectPart" xml:space="preserve">
+    <value>{0}（{1}/{2}）</value>
+  </data>
+  <data name="UsageSubjectWord" xml:space="preserve">
+    <value>メールの&lt;b&gt;件名&lt;/b&gt;に、次のいずれかの単語をそのまま書いてください。</value>
+  </data>
+  <data name="UsagePrices" xml:space="preserve">
+    <value>現在の価格表が届きます。</value>
+  </data>
+  <data name="UsageOrder" xml:space="preserve">
+    <value>注文します。本文に、1行に1アイテムずつ書いてください。</value>
+  </data>
+  <data name="UsageDragIn" xml:space="preserve">
+    <value>いちばん簡単なのは&lt;b&gt;アイテムを本文にドラッグする&lt;/b&gt;方法です。価格表、マーケット、ハンガーのどこからでもかまいません。2個以上注文する場合は、その後ろに数量を書いてください。</value>
+  </data>
+  <data name="UsageTyping" xml:space="preserve">
+    <value>アイテム名を入力しても注文できます。数量は必ずアイテムの後ろに書いてください：</value>
+  </data>
+  <data name="UsageSomeoneElse" xml:space="preserve">
+    <value>&lt;b&gt;ほかの人宛てにしますか？&lt;/b&gt;そのキャラクターかコーポレーションを本文のどこかにドラッグすると、契約は自分ではなくその相手宛てに発行されます。</value>
+  </data>
+  <data name="UsageStatus" xml:space="preserve">
+    <value>注文の進捗が届きます。</value>
+  </data>
+  <data name="UsageStatusNoReference" xml:space="preserve">
+    <value>注文番号は不要です。進行中の注文がすべて届きます。</value>
+  </data>
+  <data name="UsageStatusOneOrder" xml:space="preserve">
+    <value>1件の注文について知りたい場合は、件名か本文にその注文番号を書いてください：</value>
+  </data>
+  <data name="UsageCancel" xml:space="preserve">
+    <value>注文を取り下げます。</value>
+  </data>
+  <data name="UsageCancelReference" xml:space="preserve">
+    <value>こちらは必ず注文番号が必要です（注文確認メールに記載されています）。件名と本文のどちらに書いてもかまいません：</value>
+  </data>
+  <data name="UsageInfo" xml:space="preserve">
+    <value>このストアの紹介が届きます。</value>
+  </data>
+  <data name="UsageHelp" xml:space="preserve">
+    <value>このメッセージが届きます。</value>
+  </data>
+  <data name="UsagePricesNote" xml:space="preserve">
+    <value>価格は、注文を読み取った時点で価格表に載っている価格になります。— {0}</value>
+  </data>
+  <data name="NotRecognised" xml:space="preserve">
+    <value>そのメールを注文として認識できませんでした。</value>
+  </data>
+  <data name="NothingMatched" xml:space="preserve">
+    <value>この注文には、価格表と一致するものがありませんでした。</value>
+  </data>
+  <data name="NotFound" xml:space="preserve">
+    <value>見つかりませんでした：{0}</value>
+  </data>
+  <data name="OverLimitNotTaken" xml:space="preserve">
+    <value>この注文はストアの購入制限を超えるため、受け付けられませんでした。</value>
+  </data>
+  <data name="OrderReceived" xml:space="preserve">
+    <value>注文を受け付けました（注文番号：{0}）</value>
+  </data>
+  <data name="PriceEach" xml:space="preserve">
+    <value>（単価{0}）</value>
+  </data>
+  <data name="IskAmount" xml:space="preserve">
+    <value>{0:N0} ISK</value>
+  </data>
+  <data name="OrderTotalLine" xml:space="preserve">
+    <value>合計：{0}</value>
+  </data>
+  <data name="ContractMadeOutTo" xml:space="preserve">
+    <value>契約は&lt;b&gt;{0}&lt;/b&gt;宛てに発行されます。</value>
+  </data>
+  <data name="NotOrdered" xml:space="preserve">
+    <value>価格表にないため、注文されていません：{0}</value>
+  </data>
+  <data name="OrderTrimmed" xml:space="preserve">
+    <value>この注文は1通のメールで注文できる量（アイテム{0}件、各{1:N0}個まで）を超えていたため、収まるように減らしました。上の各行を確認してください。それより大きな注文は、別途メールで連絡してください。</value>
+  </data>
+  <data name="ReplyWithStatus" xml:space="preserve">
+    <value>進捗の確認はSTATUS、取り下げはCANCELとこの注文番号を送ってください。</value>
+  </data>
+  <data name="NoOpenOrders" xml:space="preserve">
+    <value>このストアで進行中の注文はありません。</value>
+  </data>
+  <data name="OrderHeading" xml:space="preserve">
+    <value>注文番号：{0}</value>
+  </data>
+  <data name="YourOpenOrders" xml:space="preserve">
+    <value>進行中の注文</value>
+  </data>
+  <data name="ContractTo" xml:space="preserve">
+    <value>契約先：{0}</value>
+  </data>
+  <data name="OrderTotal" xml:space="preserve">
+    <value>注文合計：{0}</value>
+  </data>
+  <data name="NoOrderMatches" xml:space="preserve">
+    <value>「&lt;b&gt;{0}&lt;/b&gt;」に該当する、あなたの進行中の注文はありません。</value>
+  </data>
+  <data name="NoReferenceFound" xml:space="preserve">
+    <value>そのメールに注文番号が見つかりませんでした。</value>
+  </data>
+  <data name="ReferencesLookLike" xml:space="preserve">
+    <value>注文番号はK7P2QXのような形式で、注文確認メールに記載されています。STATUSだけを送ると、進行中の注文の一覧が届きます。</value>
+  </data>
+  <data name="OrderCancelled" xml:space="preserve">
+    <value>注文をキャンセルしました（注文番号：{0}）</value>
+  </data>
+  <data name="OrdersCancelled" xml:space="preserve">
+    <value>注文をキャンセルしました（注文番号：{0}）</value>
+  </data>
+  <data name="NothingOpenToCancelSingle" xml:space="preserve">
+    <value>この注文には、キャンセルできるものが残っていませんでした。</value>
+  </data>
+  <data name="NothingOpenToCancelSeveral" xml:space="preserve">
+    <value>これらの注文には、キャンセルできるものが残っていませんでした。</value>
+  </data>
+  <data name="LinesLeftAsTheyAreOther" xml:space="preserve">
+    <value>アイテム{0}件はすでに納品済みかキャンセル済みのため、そのままにしてあります。</value>
+  </data>
+  <data name="UpdateHeading" xml:space="preserve">
+    <value>注文番号：&lt;b&gt;{0}&lt;/b&gt; — 進捗のお知らせ</value>
+  </data>
+  <data name="TypeFallback" xml:space="preserve">
+    <value>タイプ{0}</value>
+  </data>
+  <data name="UnknownLink" xml:space="preserve">
+    <value>タイプ{0}</value>
+  </data>
+  <data name="PageOf" xml:space="preserve">
+    <value>{0}/{1}ページ</value>
+  </data>
+  <data name="HeadingPart" xml:space="preserve">
+    <value>{0}（{1}/{2}）</value>
+  </data>
+  <data name="PagesDidNotFitOther" xml:space="preserve">
+    <value>残り{0}ページは送りきれませんでした。</value>
+  </data>
+  <data name="StatusOneOrderHint" xml:space="preserve">
+    <value>1件の注文について知りたい場合は、STATUSと注文番号を送ってください。</value>
+  </data>
+  <data name="MessageCut" xml:space="preserve">
+    <value>…このメッセージはEVEメールには長すぎるため、ここで打ち切りました。</value>
+  </data>
+  <data name="ExpectContractWaiting" xml:space="preserve">
+    <value>契約はすでに発行済みで、受諾待ちです。</value>
+  </data>
+  <data name="ExpectInStock" xml:space="preserve">
+    <value>在庫があり、予約済みです。契約が発行されたらお知らせします。</value>
+  </data>
+  <data name="ExpectInStockDue" xml:space="preserve">
+    <value>在庫があり、予約済みです。契約は{0}に発行予定です。</value>
+  </data>
+  <data name="ExpectInBuild" xml:space="preserve">
+    <value>すでに製造中です。</value>
+  </data>
+  <data name="ExpectInBuildDue" xml:space="preserve">
+    <value>すでに製造中です。予定日は{0}です。</value>
+  </data>
+  <data name="ExpectOutOfStock" xml:space="preserve">
+    <value>在庫切れですが、予約は完了しています。製造が始まったら完成予定日をお知らせします。</value>
+  </data>
+  <data name="ExpectOutOfStockDue" xml:space="preserve">
+    <value>在庫切れですが、予約は完了しています。予定日は{0}です。</value>
+  </data>
+  <data name="StateDelivered" xml:space="preserve">
+    <value>納品済み</value>
+  </data>
+  <data name="StateDeliveredRestCancelledOther" xml:space="preserve">
+    <value>{1:N0}個中{0:N0}個は納品済み、残りはキャンセル済み</value>
+  </data>
+  <data name="StateContractDeclined" xml:space="preserve">
+    <value>契約が拒否されたため、この注文は終了しました</value>
+  </data>
+  <data name="StateCancelled" xml:space="preserve">
+    <value>キャンセル済み</value>
+  </data>
+  <data name="StateContractWaiting" xml:space="preserve">
+    <value>契約発行済み — 受諾待ち</value>
+  </data>
+  <data name="StateReadyContractDue" xml:space="preserve">
+    <value>在庫あり — 契約は{0}に発行予定</value>
+  </data>
+  <data name="StateReady" xml:space="preserve">
+    <value>在庫あり — 契約が発行されたらお知らせします</value>
+  </data>
+  <data name="StateInProductionDue" xml:space="preserve">
+    <value>製造中（{0}予定）</value>
+  </data>
+  <data name="StateInProduction" xml:space="preserve">
+    <value>製造中</value>
+  </data>
+  <data name="StateExpected" xml:space="preserve">
+    <value>{0}予定</value>
+  </data>
+  <data name="StateWaitingOnMaterials" xml:space="preserve">
+    <value>資源待ち</value>
+  </data>
+  <data name="PartDeliveredOther" xml:space="preserve">
+    <value>{1:N0}個中{0:N0}個は納品済み</value>
+  </data>
+  <data name="PartOnContractOther" xml:space="preserve">
+    <value>{0:N0}個は契約発行済みで受諾待ち</value>
+  </data>
+  <data name="PartReadyOther" xml:space="preserve">
+    <value>{0:N0}個は在庫あり</value>
+  </data>
+  <data name="PartReadyContractDueOther" xml:space="preserve">
+    <value>{0:N0}個は在庫あり（契約は{1}に発行予定）</value>
+  </data>
+  <data name="PartInProductionOther" xml:space="preserve">
+    <value>{0:N0}個は製造中</value>
+  </data>
+  <data name="PartInProductionDueOther" xml:space="preserve">
+    <value>{0:N0}個は製造中（{1}予定）</value>
+  </data>
+  <data name="PartWaitingOnMaterialsOther" xml:space="preserve">
+    <value>{0:N0}個は資源待ち</value>
+  </data>
+  <data name="PartExpectedOther" xml:space="preserve">
+    <value>{0:N0}個は{1}予定</value>
+  </data>
+  <data name="PartsSeparator" xml:space="preserve">
+    <value>、</value>
+  </data>
+  <data name="LimitScopeItem" xml:space="preserve">
+    <value>各アイテム</value>
+  </data>
+  <data name="LimitScopeGroup" xml:space="preserve">
+    <value>各アイテムグループ</value>
+  </data>
+  <data name="LimitScopeStore" xml:space="preserve">
+    <value>ストア全体の合計</value>
+  </data>
+  <data name="LimitPerDay" xml:space="preserve">
+    <value>1日あたり</value>
+  </data>
+  <data name="LimitPerDaysOther" xml:space="preserve">
+    <value>{0}日あたり</value>
+  </data>
+  <data name="LimitPerMonth" xml:space="preserve">
+    <value>1か月あたり</value>
+  </data>
+  <data name="LimitPerMonthsOther" xml:space="preserve">
+    <value>{0}か月あたり</value>
+  </data>
+  <data name="LimitPerYear" xml:space="preserve">
+    <value>1年あたり</value>
+  </data>
+  <data name="LimitPerYearsOther" xml:space="preserve">
+    <value>{0}年あたり</value>
+  </data>
+  <data name="LimitEver" xml:space="preserve">
+    <value>通算で</value>
+  </data>
+  <data name="LimitRuleOther" xml:space="preserve">
+    <value>買い手1人が注文できるのは、{2}{1}{0:N0}個までです。</value>
+  </data>
+  <data name="LimitOver" xml:space="preserve">
+    <value>ストアの購入制限（{2}{1}{0:N0}個）を超えています：注文済みの{5:N0}個に加えて、{4} × {3:N0}の注文です。</value>
+  </data>
+  <data name="PriceListLimitReached" xml:space="preserve">
+    <value>購入制限に到達</value>
+  </data>
+  <data name="WebNoBuyer" xml:space="preserve">
+    <value>注文に買い手の情報がありません。</value>
+  </data>
+  <data name="WebNoLines" xml:space="preserve">
+    <value>注文にアイテムがありません。</value>
+  </data>
+  <data name="WebTooManyLinesOther" xml:space="preserve">
+    <value>アイテム{0}件は、1回の注文の上限（{1}件）を超えています。</value>
+  </data>
+  <data name="WebNotOnPriceList" xml:space="preserve">
+    <value>タイプ{0}は価格表にありません。</value>
+  </data>
+  <data name="WebUnitsAskedOther" xml:space="preserve">
+    <value>数量が{0}個の行があります。</value>
+  </data>
+  <data name="WebTooManyUnitsOther" xml:space="preserve">
+    <value>{0:N0}個は、1回の注文で1アイテムあたりの上限（{1:N0}個）を超えています。</value>
+  </data>
+  <data name="WebWithdrawn" xml:space="preserve">
+    <value>確定前に買い手が取り下げました。</value>
+  </data>
+  <data name="WebDeclined" xml:space="preserve">
+    <value>ストアが拒否しました。</value>
+  </data>
+</root>

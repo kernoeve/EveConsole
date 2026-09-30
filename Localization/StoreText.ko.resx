@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="HowToOrder" xml:space="preserve">
+    <value>{0} — 주문 방법</value>
+  </data>
+  <data name="SubjectAbout" xml:space="preserve">
+    <value>{0} — 상점 소개</value>
+  </data>
+  <data name="SubjectPriceList" xml:space="preserve">
+    <value>{0} — 가격표</value>
+  </data>
+  <data name="SubjectOrderNotUnderstood" xml:space="preserve">
+    <value>{0} — 인식할 수 없는 주문</value>
+  </data>
+  <data name="SubjectOrderOverLimit" xml:space="preserve">
+    <value>{0} — 구매 한도 초과 주문</value>
+  </data>
+  <data name="SubjectOrder" xml:space="preserve">
+    <value>{0} — 주문 {1}</value>
+  </data>
+  <data name="SubjectNoOpenOrders" xml:space="preserve">
+    <value>{0} — 진행 중인 주문 없음</value>
+  </data>
+  <data name="SubjectOrderStatus" xml:space="preserve">
+    <value>{0} — 주문 상태</value>
+  </data>
+  <data name="SubjectOrderNotFound" xml:space="preserve">
+    <value>{0} — 주문을 찾을 수 없음</value>
+  </data>
+  <data name="SubjectOrderCancelled" xml:space="preserve">
+    <value>{0} — 주문 {1} 취소 완료</value>
+  </data>
+  <data name="SubjectOrdersCancelled" xml:space="preserve">
+    <value>{0} — 주문 {1} 취소 완료</value>
+  </data>
+  <data name="SubjectPart" xml:space="preserve">
+    <value>{0} ({1}/{2})</value>
+  </data>
+  <data name="UsageSubjectWord" xml:space="preserve">
+    <value>메일 &lt;b&gt;제목&lt;/b&gt;에 다음 단어 중 하나를 쓰십시오.</value>
+  </data>
+  <data name="UsagePrices" xml:space="preserve">
+    <value>현재 가격표를 받습니다.</value>
+  </data>
+  <data name="UsageOrder" xml:space="preserve">
+    <value>주문합니다. 본문에 한 줄에 아이템 하나씩 쓰십시오.</value>
+  </data>
+  <data name="UsageDragIn" xml:space="preserve">
+    <value>가장 쉬운 방법은 가격표 메일이나 거래소, 격납고에서 &lt;b&gt;아이템을 끌어다 놓는&lt;/b&gt; 것입니다. 두 개 이상 주문하려면 그 옆에 수량을 쓰십시오.</value>
+  </data>
+  <data name="UsageTyping" xml:space="preserve">
+    <value>아이템 이름을 직접 입력해도 됩니다. 수량은 항상 아이템 '뒤에' 씁니다:</value>
+  </data>
+  <data name="UsageSomeoneElse" xml:space="preserve">
+    <value>&lt;b&gt;다른 사람에게 보내시겠습니까?&lt;/b&gt; 본문 아무 곳에나 그 캐릭터나 코퍼레이션을 끌어다 놓으면 계약이 본인 대신 그 대상 앞으로 발행됩니다.</value>
+  </data>
+  <data name="UsageStatus" xml:space="preserve">
+    <value>주문 진행 상황을 확인합니다.</value>
+  </data>
+  <data name="UsageStatusNoReference" xml:space="preserve">
+    <value>주문 번호는 없어도 됩니다 — 진행 중인 주문을 모두 알려 드립니다.</value>
+  </data>
+  <data name="UsageStatusOneOrder" xml:space="preserve">
+    <value>주문 하나만 확인하려면 제목이나 본문에 주문 번호를 쓰십시오:</value>
+  </data>
+  <data name="UsageCancel" xml:space="preserve">
+    <value>주문을 철회합니다.</value>
+  </data>
+  <data name="UsageCancelReference" xml:space="preserve">
+    <value>이 명령에는 항상 주문 확정 메일에 있는 주문 번호가 필요합니다. 제목이나 본문 어느 쪽에 써도 됩니다:</value>
+  </data>
+  <data name="UsageInfo" xml:space="preserve">
+    <value>상점 소개를 받습니다.</value>
+  </data>
+  <data name="UsageHelp" xml:space="preserve">
+    <value>이 메시지를 받습니다.</value>
+  </data>
+  <data name="UsagePricesNote" xml:space="preserve">
+    <value>주문 메일을 읽는 시점의 가격표 가격이 적용됩니다. — {0}</value>
+  </data>
+  <data name="NotRecognised" xml:space="preserve">
+    <value>보내신 메일을 주문으로 인식하지 못했습니다.</value>
+  </data>
+  <data name="NothingMatched" xml:space="preserve">
+    <value>이 주문에는 가격표와 일치하는 항목이 없습니다.</value>
+  </data>
+  <data name="NotFound" xml:space="preserve">
+    <value>찾을 수 없음: {0}</value>
+  </data>
+  <data name="OverLimitNotTaken" xml:space="preserve">
+    <value>이 주문은 상점의 구매 한도를 넘어 접수되지 않았습니다.</value>
+  </data>
+  <data name="OrderReceived" xml:space="preserve">
+    <value>주문 {0} 접수 완료</value>
+  </data>
+  <data name="PriceEach" xml:space="preserve">
+    <value>(개당 {0})</value>
+  </data>
+  <data name="IskAmount" xml:space="preserve">
+    <value>{0:N0} ISK</value>
+  </data>
+  <data name="OrderTotalLine" xml:space="preserve">
+    <value>합계 {0}</value>
+  </data>
+  <data name="ContractMadeOutTo" xml:space="preserve">
+    <value>계약은 &lt;b&gt;{0}&lt;/b&gt; 앞으로 발행됩니다.</value>
+  </data>
+  <data name="NotOrdered" xml:space="preserve">
+    <value>가격표에 없어 주문에서 제외됨: {0}</value>
+  </data>
+  <data name="OrderTrimmed" xml:space="preserve">
+    <value>메일 한 통으로는 아이템 최대 {0}종, 각 {1:N0}개까지 주문할 수 있어 이 주문을 그에 맞게 줄였습니다. 위의 내역을 확인하시고, 더 큰 주문은 직접 메일로 문의하십시오.</value>
+  </data>
+  <data name="ReplyWithStatus" xml:space="preserve">
+    <value>진행 상황을 확인하려면 STATUS를, 주문을 철회하려면 CANCEL과 이 주문 번호를 보내십시오.</value>
+  </data>
+  <data name="NoOpenOrders" xml:space="preserve">
+    <value>진행 중인 주문이 없습니다.</value>
+  </data>
+  <data name="OrderHeading" xml:space="preserve">
+    <value>주문 {0}</value>
+  </data>
+  <data name="YourOpenOrders" xml:space="preserve">
+    <value>진행 중인 주문</value>
+  </data>
+  <data name="ContractTo" xml:space="preserve">
+    <value>계약 대상: {0}</value>
+  </data>
+  <data name="OrderTotal" xml:space="preserve">
+    <value>주문 합계: {0}</value>
+  </data>
+  <data name="NoOrderMatches" xml:space="preserve">
+    <value>&lt;b&gt;{0}&lt;/b&gt;에 해당하는 본인의 진행 중인 주문이 없습니다.</value>
+  </data>
+  <data name="NoReferenceFound" xml:space="preserve">
+    <value>보내신 메일에서 주문 번호를 찾지 못했습니다.</value>
+  </data>
+  <data name="ReferencesLookLike" xml:space="preserve">
+    <value>주문 번호는 K7P2QX와 같은 형식이며 주문 확정 메일에 있습니다. 진행 중인 주문 목록을 받으려면 STATUS만 보내십시오.</value>
+  </data>
+  <data name="OrderCancelled" xml:space="preserve">
+    <value>주문 {0} 취소 완료</value>
+  </data>
+  <data name="OrdersCancelled" xml:space="preserve">
+    <value>주문 {0} 취소 완료</value>
+  </data>
+  <data name="NothingOpenToCancelSingle" xml:space="preserve">
+    <value>이 주문에는 취소할 수 있는 항목이 남아 있지 않았습니다.</value>
+  </data>
+  <data name="NothingOpenToCancelSeveral" xml:space="preserve">
+    <value>이 주문들에는 취소할 수 있는 항목이 남아 있지 않았습니다.</value>
+  </data>
+  <data name="LinesLeftAsTheyAreOther" xml:space="preserve">
+    <value>항목 {0}개는 이미 전달되었거나 취소되어 그대로 두었습니다.</value>
+  </data>
+  <data name="UpdateHeading" xml:space="preserve">
+    <value>주문 &lt;b&gt;{0}&lt;/b&gt; — 진행 상황 알림</value>
+  </data>
+  <data name="TypeFallback" xml:space="preserve">
+    <value>종류 {0}</value>
+  </data>
+  <data name="UnknownLink" xml:space="preserve">
+    <value>종류 {0}</value>
+  </data>
+  <data name="PageOf" xml:space="preserve">
+    <value>페이지 {0}/{1}</value>
+  </data>
+  <data name="HeadingPart" xml:space="preserve">
+    <value>{0} ({1}/{2})</value>
+  </data>
+  <data name="PagesDidNotFitOther" xml:space="preserve">
+    <value>나머지 {0}페이지는 보내지 못했습니다.</value>
+  </data>
+  <data name="StatusOneOrderHint" xml:space="preserve">
+    <value>주문 하나만 확인하려면 STATUS와 주문 번호를 보내십시오.</value>
+  </data>
+  <data name="MessageCut" xml:space="preserve">
+    <value>… 이 메시지는 EVE 메일에 담기에 너무 길어 여기서 잘렸습니다.</value>
+  </data>
+  <data name="ExpectContractWaiting" xml:space="preserve">
+    <value>계약이 이미 발행되어 수락을 기다리고 있습니다.</value>
+  </data>
+  <data name="ExpectInStock" xml:space="preserve">
+    <value>재고가 있어 예약해 두었습니다 — 계약이 발행되면 알려 드립니다.</value>
+  </data>
+  <data name="ExpectInStockDue" xml:space="preserve">
+    <value>재고가 있어 예약해 두었습니다 — 계약 예상일은 {0}입니다.</value>
+  </data>
+  <data name="ExpectInBuild" xml:space="preserve">
+    <value>이미 제조 중입니다.</value>
+  </data>
+  <data name="ExpectInBuildDue" xml:space="preserve">
+    <value>이미 제조 중이며, 예상일은 {0}입니다.</value>
+  </data>
+  <data name="ExpectOutOfStock" xml:space="preserve">
+    <value>재고가 없습니다 — 예약은 완료되었으며, 제조가 시작되면 완료 예정일을 알려 드립니다.</value>
+  </data>
+  <data name="ExpectOutOfStockDue" xml:space="preserve">
+    <value>재고가 없습니다 — 예약은 완료되었으며, 예상일은 {0}입니다.</value>
+  </data>
+  <data name="StateDelivered" xml:space="preserve">
+    <value>전달됨</value>
+  </data>
+  <data name="StateDeliveredRestCancelledOther" xml:space="preserve">
+    <value>{1:N0}개 중 {0:N0}개 전달됨, 나머지는 취소됨</value>
+  </data>
+  <data name="StateContractDeclined" xml:space="preserve">
+    <value>계약이 거절되어 이 주문은 종료됨</value>
+  </data>
+  <data name="StateCancelled" xml:space="preserve">
+    <value>취소됨</value>
+  </data>
+  <data name="StateContractWaiting" xml:space="preserve">
+    <value>계약 발행됨 — 수락 대기 중</value>
+  </data>
+  <data name="StateReadyContractDue" xml:space="preserve">
+    <value>준비 완료 — 계약 예상일 {0}</value>
+  </data>
+  <data name="StateReady" xml:space="preserve">
+    <value>준비 완료 — 계약이 발행되면 알려 드립니다</value>
+  </data>
+  <data name="StateInProductionDue" xml:space="preserve">
+    <value>제조 중, 예상일 {0}</value>
+  </data>
+  <data name="StateInProduction" xml:space="preserve">
+    <value>제조 중</value>
+  </data>
+  <data name="StateExpected" xml:space="preserve">
+    <value>예상일 {0}</value>
+  </data>
+  <data name="StateWaitingOnMaterials" xml:space="preserve">
+    <value>재료 대기 중</value>
+  </data>
+  <data name="PartDeliveredOther" xml:space="preserve">
+    <value>{1:N0}개 중 {0:N0}개 전달됨</value>
+  </data>
+  <data name="PartOnContractOther" xml:space="preserve">
+    <value>{0:N0}개는 계약 수락 대기 중</value>
+  </data>
+  <data name="PartReadyOther" xml:space="preserve">
+    <value>{0:N0}개 준비 완료</value>
+  </data>
+  <data name="PartReadyContractDueOther" xml:space="preserve">
+    <value>{0:N0}개 준비 완료, 계약 예상일 {1}</value>
+  </data>
+  <data name="PartInProductionOther" xml:space="preserve">
+    <value>{0:N0}개 제조 중</value>
+  </data>
+  <data name="PartInProductionDueOther" xml:space="preserve">
+    <value>{0:N0}개 제조 중, 예상일 {1}</value>
+  </data>
+  <data name="PartWaitingOnMaterialsOther" xml:space="preserve">
+    <value>{0:N0}개 재료 대기 중</value>
+  </data>
+  <data name="PartExpectedOther" xml:space="preserve">
+    <value>{0:N0}개 예상일 {1}</value>
+  </data>
+  <data name="PartsSeparator" xml:space="preserve">
+    <value>; </value>
+  </data>
+  <data name="LimitScopeItem" xml:space="preserve">
+    <value>아이템별</value>
+  </data>
+  <data name="LimitScopeGroup" xml:space="preserve">
+    <value>아이템 그룹별</value>
+  </data>
+  <data name="LimitScopeStore" xml:space="preserve">
+    <value>상점 전체에서</value>
+  </data>
+  <data name="LimitPerDay" xml:space="preserve">
+    <value>하루에</value>
+  </data>
+  <data name="LimitPerDaysOther" xml:space="preserve">
+    <value>{0}일간</value>
+  </data>
+  <data name="LimitPerMonth" xml:space="preserve">
+    <value>한 달에</value>
+  </data>
+  <data name="LimitPerMonthsOther" xml:space="preserve">
+    <value>{0}개월간</value>
+  </data>
+  <data name="LimitPerYear" xml:space="preserve">
+    <value>1년에</value>
+  </data>
+  <data name="LimitPerYearsOther" xml:space="preserve">
+    <value>{0}년간</value>
+  </data>
+  <data name="LimitEver" xml:space="preserve">
+    <value>총</value>
+  </data>
+  <data name="LimitRuleOther" xml:space="preserve">
+    <value>구매자 한 명당 {1} {2} {0:N0}개까지 주문할 수 있습니다.</value>
+  </data>
+  <data name="LimitOver" xml:space="preserve">
+    <value>상점의 구매 한도({1} {2} {0:N0}개)를 넘습니다: 이미 주문한 {5:N0}개에 더해 {4} {3:N0}개를 주문했습니다.</value>
+  </data>
+  <data name="PriceListLimitReached" xml:space="preserve">
+    <value>구매 한도 도달</value>
+  </data>
+  <data name="WebNoBuyer" xml:space="preserve">
+    <value>주문에 구매자가 없습니다.</value>
+  </data>
+  <data name="WebNoLines" xml:space="preserve">
+    <value>주문에 항목이 없습니다.</value>
+  </data>
+  <data name="WebTooManyLinesOther" xml:space="preserve">
+    <value>항목 {0}개는 주문 하나에 담을 수 있는 최대치({1}개)를 넘습니다.</value>
+  </data>
+  <data name="WebNotOnPriceList" xml:space="preserve">
+    <value>종류 {0}은(는) 가격표에 없습니다.</value>
+  </data>
+  <data name="WebUnitsAskedOther" xml:space="preserve">
+    <value>한 항목의 수량이 {0}개입니다.</value>
+  </data>
+  <data name="WebTooManyUnitsOther" xml:space="preserve">
+    <value>수량 {0:N0}개는 주문 항목 하나에 담을 수 있는 최대치({1:N0}개)를 넘습니다.</value>
+  </data>
+  <data name="WebWithdrawn" xml:space="preserve">
+    <value>접수되기 전에 구매자가 철회했습니다.</value>
+  </data>
+  <data name="WebDeclined" xml:space="preserve">
+    <value>상점에서 거절했습니다.</value>
+  </data>
+</root>

@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using EveConsole.Data;
+using EveConsole.Localization;
 using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -130,6 +131,24 @@ public sealed class ShipAdriftCondition : IAlarmCondition
         },
     };
 
+    // The editor's words; the three above are the agent's and stay English.
+    public string ScreenName        => AlarmsText.CheckUndockedTooLong;
+    public string ScreenDescription => AlarmsText.CheckUndockedTooLongNote;
+
+    public AlarmFieldText? ScreenField(string property) => property switch
+    {
+        "arrivals"       => new(AlarmsText.AdriftArrivalsLabel, AlarmsText.AdriftArrivalsNote),
+        // Examples as the game names them in the interface language: names the box takes.
+        "ships"          => new(AlarmsText.FlyingLabel,         string.Format(AlarmsText.AdriftShipsNote,
+                                SdeNames.Type(28844, "Rhea"), SdeNames.Group(513, "Freighter"),
+                                SdeNames.Group(902, "Jump Freighter"), SdeNames.Group(28, "Hauler"))),
+        "stage1_seconds" => new(string.Format(AlarmsText.AdriftStageLabel, 1), AlarmsText.AdriftStage1Note, AlarmsText.SuffixSecondsUndocked),
+        "stage2_seconds" => new(string.Format(AlarmsText.AdriftStageLabel, 2), AlarmsText.AdriftStage2Note, AlarmsText.SuffixSecondsUndocked),
+        "stage3_seconds" => new(string.Format(AlarmsText.AdriftStageLabel, 3), AlarmsText.AdriftStage3Note, AlarmsText.SuffixSecondsUndocked),
+        "snooze_minutes" => new(AlarmsText.AdriftSnoozeLabel,   AlarmsText.AdriftSnoozeNote,   AlarmsText.SuffixMinutes),
+        _                => null,
+    };
+
     public string Describe(JsonElement config)
     {
         var ships    = ReadList(config, "ships");
@@ -153,11 +172,10 @@ public sealed class ShipAdriftCondition : IAlarmCondition
     {
         if (matches.Count == 1 && matches[0].Detail is { } d && d.ContainsKey("character"))
         {
-            return ($"Wake up, {User(d)}",
-                    $"{Str(d, "character")}'s {HullWord(d)} " +
-                    (IsArrival(d) ? $"landed in {Str(d, "system")} {Span(d)} ago" : $"has been undocked in {Str(d, "system")} for {Span(d)}") +
-                    " and has not docked. " +
-                    $"Press I'm awake to keep this quiet for {Snooze(config)} minutes while the ship stays out.");
+            // In the interface language. "I'm awake" in the body names the dialog's button.
+            return (string.Format(AlarmsText.AdriftTitle, SpokenUser(d)),
+                    string.Format(IsArrival(d) ? AlarmsText.AdriftBodyLanded : AlarmsText.AdriftBodyUndocked,
+                                  Str(d, "character"), SpokenHullWord(d), Str(d, "system"), SpokenSpan(d), Snooze(config)));
         }
         return (alarmName, IAlarmCondition.JoinSummaries(matches));
     }
@@ -170,6 +188,10 @@ public sealed class ShipAdriftCondition : IAlarmCondition
     /// The whole prompt for the agent: what to say for this stage, word for word, and that the
     /// reply is the acknowledgement. Asking "is everything all right" needs a reply, which is
     /// the one thing the generic prompt forbids.
+    ///
+    /// <para>⚠️ English, and so are the hull, the time and the name it uses, since the agent reads
+    /// it. The line to say is the one exception: it is said to the person, so it is the stage's
+    /// line in the interface language, the same words a TTS action would speak.</para>
     /// </summary>
     public string? AgentPrompt(JsonElement config, IReadOnlyList<AlarmMatch> matches)
     {
@@ -195,34 +217,34 @@ public sealed class ShipAdriftCondition : IAlarmCondition
     /// <summary>
     /// Addressed to the person at the keyboard, by the name they gave the agent; the character is
     /// named too, because they may have several clients up and need to know which one. The
-    /// character is not who is being spoken to.
+    /// character is not who is being spoken to. In the interface language: it is said to them.
     /// </summary>
     internal static string StageLine(int stage, IReadOnlyDictionary<string, object?> d)
     {
-        var user    = User(d);
+        var user    = SpokenUser(d);
         var name    = Str(d, "character");
-        var hull    = HullWord(d);
+        var hull    = SpokenHullWord(d);
         var system  = Str(d, "system");
-        var span    = Span(d);
-        if (IsArrival(d))
-            return stage switch
-            {
-                1 => $"{Cap(user)}, {name}'s {hull} landed in {system} {span} ago and is not docked yet. Is everything all right?",
-                2 => $"Wake up, {user}. {name}'s {hull} is still in space in {system}, {span} after landing. Dock up now.",
-                _ => $"{Cap(user)}! {name}'s {hull} has been sitting in {system} for {span} since landing. Dock up now!",
-            };
-        return stage switch
+        var span    = SpokenSpan(d);
+
+        // Where the name opens the sentence it is capitalised — "Capsuleer, …" — and not where
+        // it follows "Wake up".
+        return (IsArrival(d), stage) switch
         {
-            1 => $"{Cap(user)}, {name}'s {hull} has been undocked in {system} for {span}. Is everything all right?",
-            2 => $"Wake up, {user}. {name}'s {hull} undocked in {system} {span} ago and still is not docked. Dock up, or answer me.",
-            _ => $"{Cap(user)}! {name}'s {hull} is still undocked in {system} after {span}. Wake up and dock now.",
+            (true,  1) => string.Format(AlarmsText.AdriftLandedStage1,   Cap(user), name, hull, system, span),
+            (true,  2) => string.Format(AlarmsText.AdriftLandedStage2,   user,      name, hull, system, span),
+            (true,  _) => string.Format(AlarmsText.AdriftLandedStage3,   Cap(user), name, hull, system, span),
+            (false, 1) => string.Format(AlarmsText.AdriftUndockedStage1, Cap(user), name, hull, system, span),
+            (false, 2) => string.Format(AlarmsText.AdriftUndockedStage2, user,      name, hull, system, span),
+            (false, _) => string.Format(AlarmsText.AdriftUndockedStage3, Cap(user), name, hull, system, span),
         };
     }
 
     private static bool IsArrival(IReadOnlyDictionary<string, object?> d)
         => d.TryGetValue("arrival", out var a) && a is true;
 
-    /// <summary>"45 seconds" under two minutes, "3 minutes" from there — a jump alarm is set in seconds.</summary>
+    /// <summary>"45 seconds" under two minutes, "3 minutes" from there — a jump alarm is set in seconds.
+    /// English, for the agent's prompt and the match summary; <see cref="SpokenSpan"/> is the person's.</summary>
     private static string Span(IReadOnlyDictionary<string, object?> d)
     {
         var seconds = d.TryGetValue("seconds", out var s) && s is int n ? n : Minutes(d) * 60;
@@ -231,9 +253,24 @@ public sealed class ShipAdriftCondition : IAlarmCondition
         return minutes == 1 ? "1 minute" : $"{minutes} minutes";
     }
 
-    /// <summary>The person's name as the agent knows it, or "capsuleer" when they never gave one.</summary>
+    /// <summary>The same span in the interface language, for what the person reads and hears.</summary>
+    private static string SpokenSpan(IReadOnlyDictionary<string, object?> d)
+    {
+        var seconds = d.TryGetValue("seconds", out var s) && s is int n ? n : Minutes(d) * 60;
+        if (seconds < 120)
+            return Plurals.Format(AlarmsText.ResourceManager, nameof(AlarmsText.SpanSecondsOther), seconds);
+        var minutes = (int)Math.Round(seconds / 60.0);
+        return Plurals.Format(AlarmsText.ResourceManager, nameof(AlarmsText.SpanMinutesOther), minutes);
+    }
+
+    /// <summary>The person's name as the agent knows it, or "capsuleer" when they never gave one.
+    /// English, for the agent's prompt.</summary>
     private static string User(IReadOnlyDictionary<string, object?> d)
         => Str(d, "user") is { Length: > 0 } u ? u : "capsuleer";
+
+    /// <summary>The same, with "capsuleer" in the interface language, for what is said to them.</summary>
+    private static string SpokenUser(IReadOnlyDictionary<string, object?> d)
+        => Str(d, "user") is { Length: > 0 } u ? u : AlarmsText.AdriftCapsuleer;
 
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
 
@@ -241,7 +278,8 @@ public sealed class ShipAdriftCondition : IAlarmCondition
         JsonElement config, AlarmEvaluationContext ctx, CancellationToken ct = default)
     {
         var arrivals  = ReadBool(config, "arrivals");
-        var wantShips = ReadList(config, "ships").Select(Norm).ToHashSet();
+        var shipNames = ReadList(config, "ships");
+        var wantShips = shipNames.Select(Norm).ToHashSet();
         if (wantShips.Count == 0 && !arrivals) return [];
 
         var stages = StageSeconds(config);
@@ -269,6 +307,9 @@ public sealed class ShipAdriftCondition : IAlarmCondition
                              where typeIds.Contains(t.TypeId)
                              select new { t.TypeId, t.Name, g.GroupId, Group = g.Name })
                             .ToDictionaryAsync(x => x.TypeId, ct);
+
+        // Hulls and classes named in the client's other languages, as the ids they name.
+        var otherShips = await OtherLanguageNames.IdsAsync(db, shipNames, ct, SdeNameKind.Type, SdeNameKind.Group);
 
         // Arrivals: only a hull with a jump drive, and only a landing no gate could have made —
         // the previous system and this one are not neighbours on the stargate map.
@@ -307,10 +348,10 @@ public sealed class ShipAdriftCondition : IAlarmCondition
         {
             if (!hulls.TryGetValue(s.ShipTypeId!.Value, out var hull)) continue;
             var isPod = hull.GroupId == CapsuleGroupId;
-            if (wantShips.Count > 0
-                && !wantShips.Contains(Norm(hull.Name)) && !wantShips.Contains(Norm(hull.Group))
-                && !(isPod && wantShips.Contains("pod")))
-                continue;
+            var named = wantShips.Contains(Norm(hull.Name)) || wantShips.Contains(Norm(hull.Group))
+                     || otherShips[SdeNameKind.Type].Contains(hull.TypeId) || otherShips[SdeNameKind.Group].Contains(hull.GroupId)
+                     || (isPod && wantShips.Contains("pod"));
+            if (wantShips.Count > 0 && !named) continue;
 
             var undockedAt = (arrivals ? s.SystemChangedAt : s.UndockedAt)!.Value.ToUniversalTime();
             var systemId   = arrivals ? s.SolarSystemId!.Value : s.UndockedSystemId!.Value;
@@ -426,8 +467,12 @@ public sealed class ShipAdriftCondition : IAlarmCondition
     private static int Minutes(IReadOnlyDictionary<string, object?> d)
         => d.TryGetValue("minutes", out var m) && m is int n ? n : 0;
 
+    // English, for the agent's prompt.
     private static string HullWord(IReadOnlyDictionary<string, object?> d)
         => d.TryGetValue("is_pod", out var p) && p is true ? "pod" : Str(d, "hull");
+
+    private static string SpokenHullWord(IReadOnlyDictionary<string, object?> d)
+        => d.TryGetValue("is_pod", out var p) && p is true ? AlarmsText.AdriftPod : Str(d, "hull");
 
     private static string Norm(string s) => s.Trim().ToLowerInvariant();
 

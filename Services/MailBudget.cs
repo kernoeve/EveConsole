@@ -1,3 +1,5 @@
+using EveConsole.Localization;
+
 namespace EveConsole.Services;
 
 /// <summary>
@@ -101,9 +103,10 @@ public sealed class MailBudget
     /// </summary>
     public bool PrefetchMayUse(long characterId, int calls) => StoreMayUse(characterId, calls);
 
-    /// <summary>For the status line — a number nobody has to reason about.</summary>
+    /// <summary>For the status line — a number nobody has to reason about. In the language the
+    /// caller is writing in: the owner's, for a status.</summary>
     public string Describe(long characterId) =>
-        $"{Remaining(characterId)} of {MaxTokens} mail calls left in this 15-minute window";
+        string.Format(SalesText.MailBudgetLeft, Remaining(characterId), MaxTokens);
 
     /// <summary>
     /// Tokens returned for the time that has passed. A rolling refill rather than a window that

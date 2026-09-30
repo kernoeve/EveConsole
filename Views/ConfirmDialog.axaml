@@ -1,7 +1,8 @@
 ﻿<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:EveConsole.Localization"
         x:Class="EveConsole.Views.ConfirmDialog"
-        Title="Confirm"
+        Title="{x:Static loc:CommonText.TitleConfirm}"
         Width="420"
         MinWidth="340"
         WindowStartupLocation="CenterOwner"
@@ -29,8 +30,8 @@
       <StackPanel Orientation="Horizontal"
                   HorizontalAlignment="Right"
                   Spacing="10">
-        <Button Content="No"  Click="OnNo"  Padding="20 5" />
-        <Button Content="Yes" Click="OnYes" Padding="20 5" x:Name="YesButton" />
+        <Button Content="{x:Static loc:CommonText.No}"  Click="OnNo"  Padding="20 5" />
+        <Button Content="{x:Static loc:CommonText.Yes}" Click="OnYes" Padding="20 5" x:Name="YesButton" />
       </StackPanel>
     </Border>
 

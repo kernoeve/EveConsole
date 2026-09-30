@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              x:Class="EveConsole.Views.AgentGridView"
              x:DataType="vm:AgentGridViewModel"
@@ -39,10 +40,10 @@
           </StackPanel>
 
           <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
-            <Button Classes="bar" Content="Copy Selected" Command="{Binding CopyCommand}"
-                    ToolTip.Tip="Copies the selected rows, with headers, as tab-separated text — paste straight into a spreadsheet. Ctrl+C does the same." />
-            <Button Classes="bar" Content="Copy All"      Command="{Binding CopyAllCommand}" />
-            <Button Classes="bar" Content="Save CSV"      Click="OnSaveCsvClick"
+            <Button Classes="bar" Content="{x:Static loc:AgentText.CopySelected}" Command="{Binding CopyCommand}"
+                    ToolTip.Tip="{x:Static loc:AgentText.TipCopiesTheSelectedRows}" />
+            <Button Classes="bar" Content="{x:Static loc:AgentText.CopyAll}"      Command="{Binding CopyAllCommand}" />
+            <Button Classes="bar" Content="{x:Static loc:AgentText.SaveCsv}"      Click="OnSaveCsvClick"
                     Foreground="{DynamicResource InfoBrush}" BorderBrush="{DynamicResource InfoSurfaceBrush}" />
           </StackPanel>
         </Grid>

@@ -8,6 +8,7 @@ using EveConsole.Api;
 using EveConsole.Auth;
 using EveConsole.Models;
 using EveConsole.Monitoring;
+using EveConsole.Localization;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -67,24 +68,23 @@ public class MainWindowViewModel : ReactiveObject
                 await conn.OpenAsync();
                 await using var cmd = new Npgsql.NpgsqlCommand(
                     "SELECT pg_size_pretty(pg_database_size(current_database()))", conn);
-                var size = (await cmd.ExecuteScalarAsync())?.ToString() ?? "unknown";
+                var size = (await cmd.ExecuteScalarAsync())?.ToString() ?? ShellText.DbSizeUnknown;
 
-                DbEngineTip = $"PostgreSQL on {b.Host}\nDatabase: {b.Database}\nSize: {size}";
+                DbEngineTip = string.Format(ShellText.TipDbPostgres, b.Host, b.Database, size);
             }
             else
             {
                 var path = AppConfig.GetDbPath();
                 var size = File.Exists(path)
                     ? $"{new FileInfo(path).Length / 1024d / 1024d:N0} MB"
-                    : "file not found";
-                DbEngineTip = $"SQLite\n{path}\nSize: {size}";
+                    : ShellText.DbFileNotFound;
+                DbEngineTip = string.Format(ShellText.TipDbSqlite, path, size);
             }
         }
         catch (Exception ex)
         {
             // The label still names the engine; only the detail is missing.
-            DbEngineTip = $"{DbEngine.DisplayName} — could not read details: "
-                        + ex.Message.Split('\n')[0];
+            DbEngineTip = string.Format(ShellText.TipDbUnreadable, DbEngine.DisplayName, ex.Message.Split('\n')[0]);
         }
     }
 
@@ -113,7 +113,7 @@ public class MainWindowViewModel : ReactiveObject
         private set => this.RaiseAndSetIfChanged(ref _workerState, value);
     }
 
-    private string _workerTip = "Checking which client is doing the background work…";
+    private string _workerTip = ShellText.TipWorkerChecking;
     /// <summary>Host, pid and version of the holder, on hover.</summary>
     public string WorkerTip
     {
@@ -136,13 +136,10 @@ public class MainWindowViewModel : ReactiveObject
         // One process, no contest, nothing to report but itself.
         if (!DbEngine.IsPostgres)
         {
-            WorkerOwner = "this client";
+            WorkerOwner = ShellText.WorkerThisClient;
             WorkerState = WorkerOwnership.Mine;
-            WorkerTip   = "Background processes run in this client.\n\n"
-                        + $"Host: {Environment.MachineName}\n"
-                        + $"PID: {Environment.ProcessId}\n"
-                        + $"Version: {AppVersion.Number}\n\n"
-                        + "SQLite allows one client at a time, so there is nothing to hand over to.";
+            WorkerTip   = string.Format(ShellText.TipWorkerSqlite, ShellText.WorkerHeadlineMine,
+                                        Environment.MachineName, Environment.ProcessId, AppVersion.Number);
             return;
         }
 
@@ -153,48 +150,45 @@ public class MainWindowViewModel : ReactiveObject
         // lock is the only thing that actually knows.
         if (_workerLease.IsHolder)
         {
-            WorkerOwner = "this client";
+            WorkerOwner = ShellText.WorkerThisClient;
             WorkerState = WorkerOwnership.Mine;
             WorkerTip   = s is null
-                ? "Background processes run in this client."
-                : Describe("Background processes run in this client.", s);
+                ? ShellText.WorkerHeadlineMine
+                : Describe(ShellText.WorkerHeadlineMine, s);
             return;
         }
 
         if (s is null)
         {
-            WorkerOwner = "none";
+            WorkerOwner = ShellText.WorkerNone;
             WorkerState = WorkerOwnership.None;
-            WorkerTip   = "No client has claimed the background work.\n\n"
-                        + "ESI polling, build costs and backups are not running.";
+            WorkerTip   = ShellText.TipWorkerUnclaimed;
             return;
         }
 
         if (!WorkerLease.IsLive(s))
         {
-            WorkerOwner = "none";
+            WorkerOwner = ShellText.WorkerNone;
             WorkerState = WorkerOwnership.None;
-            WorkerTip   = Describe("Nothing is doing the background work — this is the last client that did.", s);
+            WorkerTip   = Describe(ShellText.WorkerHeadlineStale, s);
             return;
         }
 
         WorkerOwner = s.HostName;
         WorkerState = WorkerOwnership.Other;
-        WorkerTip   = Describe("Background processes run in another client.", s);
+        WorkerTip   = Describe(ShellText.WorkerHeadlineOther, s);
     }
 
     private static string Describe(string headline, BackgroundWorkerStatus s) =>
-        $"{headline}\n\n"
-      + $"Host: {s.HostName}{(s.Headless ? "  (headless)" : "")}\n"
-      + $"PID: {s.ProcessId}\n"
-      + $"Version: {s.Version}\n"
-      + $"Since: {s.LeaseTakenUtc.ToLocalTime():yyyy-MM-dd HH:mm}\n"
-      + $"Last heartbeat: {Ago(DateTimeOffset.UtcNow - s.HeartbeatUtc)}";
+        string.Format(ShellText.TipWorkerDetails, headline,
+                      s.Headless ? string.Format(ShellText.WorkerHostHeadless, s.HostName) : s.HostName,
+                      s.ProcessId, s.Version, s.LeaseTakenUtc.ToLocalTime(),
+                      Ago(DateTimeOffset.UtcNow - s.HeartbeatUtc));
 
     private static string Ago(TimeSpan t) =>
-        t < TimeSpan.FromMinutes(1) ? $"{Math.Max(0, (int)t.TotalSeconds)}s ago"
-      : t < TimeSpan.FromHours(1)   ? $"{(int)t.TotalMinutes} min ago"
-      :                               $"{(int)t.TotalHours} h ago";
+        t < TimeSpan.FromMinutes(1) ? string.Format(ShellText.AgoSeconds, Math.Max(0, (int)t.TotalSeconds))
+      : t < TimeSpan.FromHours(1)   ? string.Format(ShellText.AgoMinutes, (int)t.TotalMinutes)
+      :                               string.Format(ShellText.AgoHours, (int)t.TotalHours);
 
     // ── Whether this machine stays quiet for alarms ───────────────────────────
 
@@ -346,7 +340,7 @@ public class MainWindowViewModel : ReactiveObject
         private set => this.RaiseAndSetIfChanged(ref _alarmGleamOpacity, value);
     }
 
-    private string _alarmsTip = "Alarms";
+    private string _alarmsTip = ShellText.TabAlarms;
     public string AlarmsTip
     {
         get => _alarmsTip;
@@ -402,17 +396,11 @@ public class MainWindowViewModel : ReactiveObject
     /// </summary>
     private void RefreshAlarmsTip()
     {
-        var armed = _armedCount switch
-        {
-            0 => "Alarms — none armed",
-            1 => "Alarms — 1 armed",
-            _ => $"Alarms — {_armedCount} armed",
-        };
+        var armed = _armedCount == 0
+            ? ShellText.AlarmsNoneArmed
+            : Plurals.Format(ShellText.ResourceManager, nameof(ShellText.AlarmsArmedOther), _armedCount);
 
-        AlarmsTip = AlarmsMuted
-            ? armed + "\n\nMuted on this client: no sound, dialog or agent notification will be "
-                    + "raised here. Alerts are still recorded.\n\nRight-click to unmute."
-            : armed + "\n\nRight-click to mute this client.";
+        AlarmsTip = armed + "\n\n" + (AlarmsMuted ? ShellText.AlarmsMutedNote : ShellText.AlarmsMuteHint);
     }
 
     // ── My characters online (shown beside the EVE clock) ───────────────────────
@@ -468,9 +456,11 @@ public class MainWindowViewModel : ReactiveObject
     private string? _onlineCharactersError;
 
     /// <summary>One of your characters as the header reads it: online or not, and for one who
-    /// is, where and in what — any of which a poll may not have filled in yet.</summary>
+    /// is, where and in what — any of which a poll may not have filled in yet. The names are the
+    /// English; the ids are for naming them in the interface language.</summary>
     internal sealed record OnlineCharacterRow(
-        string Name, bool Online, bool Docked, string? System, string? Place, string? Hull, string? ShipName);
+        string Name, bool Online, bool Docked, string? System, string? Place, string? Hull, string? ShipName,
+        int? SolarSystemId = null, long? StationId = null, int? ShipTypeId = null);
 
     /// <summary>
     /// Every character with a status row, with names looked up for the ones online.
@@ -534,7 +524,8 @@ public class MainWindowViewModel : ReactiveObject
             Place:  s.StationId is long sta && stations.TryGetValue(sta, out var station) ? station
                   : s.StructureId is long str ? structures.GetValueOrDefault(str) : null,
             Hull:   s.ShipTypeId is int hull ? ships.GetValueOrDefault(hull) : null,
-            s.ShipName)).ToList();
+            s.ShipName,
+            SolarSystemId: s.SolarSystemId, StationId: s.StationId, ShipTypeId: s.ShipTypeId)).ToList();
     }
 
     private async Task RefreshOnlineCharactersAsync(IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errorLogger)
@@ -552,24 +543,29 @@ public class MainWindowViewModel : ReactiveObject
             var online = rows.Where(r => r.Online).OrderBy(r => r.Name).ToList();
 
             // Nobody on is worth saying in words: "0 of 24 Online" makes the reader do the sum.
-            var text = online.Count > 0 ? $"{online.Count} of {rows.Count} Online" : "No Characters Online";
+            var text = online.Count > 0 ? string.Format(ShellText.OnlineOfTotal, online.Count, rows.Count) : ShellText.NoCharactersOnline;
 
             var list = online.Select(r =>
             {
-                var system = string.IsNullOrWhiteSpace(r.System) ? "location unknown" : r.System;
+                // The system, an NPC station and the hull in the interface language. A player
+                // structure stays as its owner named it.
+                var system = string.IsNullOrWhiteSpace(r.System) ? ShellText.LocationUnknown
+                           : SdeNames.SolarSystem(r.SolarSystemId ?? 0, r.System);
 
                 // Docked: the station or structure, which says more than its system does. In
                 // space: the system, which is all there is to say.
                 var where = !r.Docked                              ? system
-                          : !string.IsNullOrWhiteSpace(r.Place)    ? r.Place
-                          :                                          $"a structure in {system}";
+                          : !string.IsNullOrWhiteSpace(r.Place)    ? (r.StationId is { } station ? SdeNames.Station(station, r.Place) : r.Place)
+                          :                                          string.Format(ShellText.StructureInSystem, system);
 
                 // The hull is what the ship IS; ShipName is what the pilot called it. Show
-                // both only when the pilot bothered to rename it.
-                var ship = string.IsNullOrWhiteSpace(r.Hull) ? "ship unknown" : r.Hull;
+                // both only when the pilot bothered to rename it — judged on the English hull,
+                // never on the translated one shown.
+                var hull = string.IsNullOrWhiteSpace(r.Hull) ? r.Hull : SdeNames.Type(r.ShipTypeId ?? 0, r.Hull);
+                var ship = string.IsNullOrWhiteSpace(hull) ? ShellText.ShipUnknown : hull;
                 if (!string.IsNullOrWhiteSpace(r.ShipName)
                     && !string.Equals(r.ShipName, r.Hull, StringComparison.OrdinalIgnoreCase))
-                    ship = $"{r.Hull} \"{r.ShipName}\"";
+                    ship = $"{hull} \"{r.ShipName}\"";
 
                 return new OnlineCharacterVm(r.Name, where, ship, r.Docked);
             }).ToList();
@@ -605,7 +601,7 @@ public class MainWindowViewModel : ReactiveObject
     public DataRetentionSettingsViewModel DataRetentionVm { get; private set; } = null!;
 
     public string EveTimeUrl    => _uiLinks?.EveTimeUrl ?? UiLinkSettings.EveOnlineTimeUrl;
-    public string EveTimeLinkTip => $"EVE time (UTC) — click to open {EveTimeUrl}";
+    public string EveTimeLinkTip => string.Format(ShellText.TipEveTimeLink, EveTimeUrl);
 
     // ── Theme (shown on the title bar, beside the alarm beacon) ─────────────────
 
@@ -616,9 +612,9 @@ public class MainWindowViewModel : ReactiveObject
     /// never disagree about what is on — either can change it, and both follow the event.</para>
     /// </summary>
     public string ThemeName => ThemeService.All
-        .FirstOrDefault(t => t.Key == ThemeService.Current)?.Name ?? "Theme";
+        .FirstOrDefault(t => t.Key == ThemeService.Current)?.Name ?? ShellText.ThemeFallback;
 
-    public string ThemeTip => $"Theme: {ThemeName} — click to change";
+    public string ThemeTip => string.Format(ShellText.TipTheme, ThemeName);
 
     private void OnThemeChanged()
     {
@@ -630,7 +626,7 @@ public class MainWindowViewModel : ReactiveObject
     /// theme so the bar and the Settings window can never disagree.</summary>
     public string UiScaleName => UiScaleService.Label;
 
-    public string UiScaleTip => $"UI scale: {UiScaleName} — click to change";
+    public string UiScaleTip => string.Format(ShellText.TipUiScale, UiScaleName);
 
     private void OnUiScaleChanged()
     {
@@ -640,7 +636,7 @@ public class MainWindowViewModel : ReactiveObject
 
     // ── Tranquility status (shown beside the EVE clock) ─────────────────────────
 
-    private string _serverStatusText = "Online";
+    private string _serverStatusText = ShellText.ServerOnline;
     public string ServerStatusText { get => _serverStatusText; private set => this.RaiseAndSetIfChanged(ref _serverStatusText, value); }
 
     private IBrush _serverStatusColor = Palette.Good;
@@ -649,7 +645,7 @@ public class MainWindowViewModel : ReactiveObject
     private string _serverPlayersText = "";
     public string ServerPlayersText { get => _serverPlayersText; private set => this.RaiseAndSetIfChanged(ref _serverPlayersText, value); }
 
-    private string _serverStatusTip = "Tranquility server status";
+    private string _serverStatusTip = ShellText.TipServerStatus;
     public string ServerStatusTip { get => _serverStatusTip; private set => this.RaiseAndSetIfChanged(ref _serverStatusTip, value); }
 
     /// <summary>Mirrors EveServerStatusService onto the UI thread. The service raises
@@ -661,9 +657,10 @@ public class MainWindowViewModel : ReactiveObject
             ServerStatusText   = status.StatusText;
             ServerStatusColor  = status.StatusColor;
             ServerPlayersText  = status.PlayersText;
-            ServerStatusTip    = status.IsOnline
-                ? $"Tranquility is online{(status.Players > 0 ? $" — {status.Players:N0} players" : "")}"
-                : "Tranquility is offline — ESI polling is paused until it returns";
+            ServerStatusTip    = !status.IsOnline ? ShellText.TipTranquilityOffline
+                               : status.Players > 0
+                                   ? Plurals.Format(ShellText.ResourceManager, nameof(ShellText.TipTranquilityOnlinePlayersOther), status.Players)
+                                   : ShellText.TipTranquilityOnline;
         });
 
         status.PropertyChanged += (_, _) => Apply();
@@ -671,7 +668,7 @@ public class MainWindowViewModel : ReactiveObject
     }
 
 
-    private string _buildCostStatusText = "Build costs: not yet calculated";
+    private string _buildCostStatusText = ShellText.BuildCostsNotYet;
     public string BuildCostStatusText
     {
         get => _buildCostStatusText;
@@ -714,50 +711,50 @@ public class MainWindowViewModel : ReactiveObject
 
         var (title, vm, canClose) = toolId switch
         {
-            "overview"   => ("Overview",       (object)OverviewVm,       false),
-            "characters" => ("Characters",      CharacterViewerVm,        true),
-            "assets"     => ("Assets",          AssetBrowserVm,           true),
-            "items"      => ("Item Browser",    ItemBrowserVm,            true),
-            "industry"   => ("Industry Jobs",   IndustryBrowserVm,        true),
-            "indy_parks" => ("Indy Parks",      IndyParksVm,              true),
-            "prod_calc"  => ("Production Calc", ProductionCalcVm,         true),
-            "price_overrides" => ("Price Overrides", PriceOverrideVm,     true),
-            "structure_browser" => ("Structure Browser", StructureBrowserVm, true),
-            "universe"        => ("Universe",        UniverseVm,        true),
-            "alarms"          => ("Alarms",          AlarmsVm,          true),
-            "scheduler"       => ("Scheduler",       SchedulerVm,       true),
-            "jump_planner"    => ("Jump Planner",    JumpPlannerVm,     true),
-            "trade"           => ("Trade",           TradeOpportunitiesVm,     true),
-            "industry_opps"   => ("Industry Opps",   IndustryOpportunitiesVm,  true),
-            "market_levels"   => ("Market Levels",   MarketLevelVm,            true),
-            "inv_levels"      => ("Inv. Levels",     InvLevelVm,               true),
-            "sale_posting"    => ("Sale Posting",    SalePostingVm,            true),
-            "stores"          => ("Stores",          StoresVm,                 true),
-            "net_worth"  => ("Net Worth",       NetWorthVm,               true),
-            "income_expense" => ("Income & Expense", IncomeExpenseVm,     true),
-            "wallet"         => ("Wallet",          WalletVm,          true),
-            "contracts"      => ("Contracts",       ContractsVm,       true),
-            "market_viewer"  => ("Market Overview", MarketViewerVm,    true),
-            "sales_tracker"  => ("Sales Tracker",   SalesTrackerVm,    true),
-            "sale_list_build"  => ("Sale Listing (Build)",  SaleListingBuildVm,  true),
-            "sale_list_market" => ("Sale Listing (Market)", SaleListingMarketVm, true),
-            "order_tracker"  => ("Order Tracker",   OrderTrackerVm,    true),
-            "standing_buy_orders" => ("Standing Buy Orders", StandingBuyOrdersVm, true),
-            "worklist"       => ("Worklist",       WorklistVm,        true),
-            "lp_market_values" => ("LP Market Values", LpMarketValuesVm, true),
-            "item_valuation"   => ("Item Valuation",   ItemValuationVm,  true),
-            "player_entities"  => ("Player Entities", PlayerEntitiesVm, true),
-            "npc_entities"     => ("NPC Entities",    NpcEntitiesVm,    true),
-            "corp_activity"  => ("Corp Activity",  CorpActivityVm,    true),
-            "killmails"      => ("Killmails",      KillmailBrowserVm, true),
-            "eve_mail"       => ("Eve Mail",       EveMailVm,         true),
-            "notifications"  => ("Notifications",  NotificationsVm,   true),
-            "background"     => ("Background Processes", ActivityVm,  true),
-            "data"           => ("ESI Explorer",   ExplorerVm,        true),
-            "error_log"      => ("Error Log",      ErrorLogVm,        true),
-            "ai_usage"       => ("AI Usage",       AgentUsageVm,      true),
-            "game_log"       => ("Game Log",       GameLogViewerVm,   true),
-            "chat_log"       => ("Chat Log",       ChatLogViewerVm,   true),
+            "overview"   => (ShellText.NavOverview,       (object)OverviewVm,       false),
+            "characters" => (ShellText.NavCharacters,      CharacterViewerVm,        true),
+            "assets"     => (ShellText.NavAssets,          AssetBrowserVm,           true),
+            "items"      => (ShellText.NavItemBrowser,    ItemBrowserVm,            true),
+            "industry"   => (ShellText.NavIndustryJobs,   IndustryBrowserVm,        true),
+            "indy_parks" => (ShellText.NavIndyParks,      IndyParksVm,              true),
+            "prod_calc"  => (ShellText.NavProductionCalc, ProductionCalcVm,         true),
+            "price_overrides" => (ShellText.NavPriceOverrides, PriceOverrideVm,     true),
+            "structure_browser" => (ShellText.NavStructureBrowser, StructureBrowserVm, true),
+            "universe"        => (ShellText.TabUniverse,        UniverseVm,        true),
+            "alarms"          => (ShellText.TabAlarms,          AlarmsVm,          true),
+            "scheduler"       => (ShellText.TabScheduler,       SchedulerVm,       true),
+            "jump_planner"    => (ShellText.NavJumpPlanner,    JumpPlannerVm,     true),
+            "trade"           => (ShellText.TabTrade,           TradeOpportunitiesVm,     true),
+            "industry_opps"   => (ShellText.TabIndustryOpps,   IndustryOpportunitiesVm,  true),
+            "market_levels"   => (ShellText.NavMarketLevels,   MarketLevelVm,            true),
+            "inv_levels"      => (ShellText.TabInvLevels,     InvLevelVm,               true),
+            "sale_posting"    => (ShellText.NavSalePosting,    SalePostingVm,            true),
+            "stores"          => (ShellText.NavStores,          StoresVm,                 true),
+            "net_worth"  => (ShellText.NavNetWorth,       NetWorthVm,               true),
+            "income_expense" => (ShellText.NavIncomeExpense, IncomeExpenseVm,     true),
+            "wallet"         => (ShellText.NavWallet,          WalletVm,          true),
+            "contracts"      => (ShellText.NavContracts,       ContractsVm,       true),
+            "market_viewer"  => (ShellText.NavMarketOverview, MarketViewerVm,    true),
+            "sales_tracker"  => (ShellText.NavSalesTracker,   SalesTrackerVm,    true),
+            "sale_list_build"  => (ShellText.TabSaleListingBuild,  SaleListingBuildVm,  true),
+            "sale_list_market" => (ShellText.TabSaleListingMarket, SaleListingMarketVm, true),
+            "order_tracker"  => (ShellText.NavOrderTracker,   OrderTrackerVm,    true),
+            "standing_buy_orders" => (ShellText.NavStandingBuyOrders, StandingBuyOrdersVm, true),
+            "worklist"       => (ShellText.NavWorklist,       WorklistVm,        true),
+            "lp_market_values" => (ShellText.NavLpMarketValues, LpMarketValuesVm, true),
+            "item_valuation"   => (ShellText.NavItemValuation,   ItemValuationVm,  true),
+            "player_entities"  => (ShellText.NavPlayerEntities, PlayerEntitiesVm, true),
+            "npc_entities"     => (ShellText.NavNpcEntities,    NpcEntitiesVm,    true),
+            "corp_activity"  => (ShellText.NavCorpActivity,  CorpActivityVm,    true),
+            "killmails"      => (ShellText.NavKillmails,      KillmailBrowserVm, true),
+            "eve_mail"       => (ShellText.NavEveMail,       EveMailVm,         true),
+            "notifications"  => (ShellText.NavNotifications,  NotificationsVm,   true),
+            "background"     => (ShellText.NavBackgroundProcesses, ActivityVm,  true),
+            "data"           => (ShellText.NavEsiExplorer,   ExplorerVm,        true),
+            "error_log"      => (ShellText.NavErrorLog,      ErrorLogVm,        true),
+            "ai_usage"       => (ShellText.NavAiUsage,       AgentUsageVm,      true),
+            "game_log"       => (ShellText.NavGameLog,       GameLogViewerVm,   true),
+            "chat_log"       => (ShellText.NavChatLog,       ChatLogViewerVm,   true),
             _                => throw new ArgumentException($"Unknown tool: {toolId}")
         };
 
@@ -1279,74 +1276,74 @@ public class MainWindowViewModel : ReactiveObject
 
         NavGroup[] groups =
         [
-            new("General",
+            new(ShellText.NavGroupGeneral,
             [
-                new NavItem("overview",    "Overview"),
-                new NavItem("worklist",    "Worklist"),
-                new NavItem("characters",  "Characters"),
+                new NavItem("overview",    ShellText.NavOverview),
+                new NavItem("worklist",    ShellText.NavWorklist),
+                new NavItem("characters",  ShellText.NavCharacters),
             ]),
-            new("Assets",
+            new(ShellText.NavGroupAssets,
             [
-                new NavItem("assets",     "Assets"),
-                new NavItem("items",      "Item Browser"),
-                new NavItem("inv_levels", "Inventory Levels"),
+                new NavItem("assets",     ShellText.NavAssets),
+                new NavItem("items",      ShellText.NavItemBrowser),
+                new NavItem("inv_levels", ShellText.NavInventoryLevels),
             ]),
-            new("Structures / Navigation",
+            new(ShellText.NavGroupStructures,
             [
-                new NavItem("structure_browser", "Structure Browser"),
-                new NavItem("universe",          "Universe Map"),
-                new NavItem("jump_planner",      "Jump Planner"),
+                new NavItem("structure_browser", ShellText.NavStructureBrowser),
+                new NavItem("universe",          ShellText.NavUniverseMap),
+                new NavItem("jump_planner",      ShellText.NavJumpPlanner),
             ]),
-            new("Industry",
+            new(ShellText.NavGroupIndustry,
             [
-                new NavItem("industry",      "Industry Jobs"),
-                new NavItem("indy_parks",    "Indy Parks"),
-                new NavItem("prod_calc",     "Production Calc"),
-                new NavItem("price_overrides", "Price Overrides"),
-                new NavItem("industry_opps", "Industry Opportunities"),
+                new NavItem("industry",      ShellText.NavIndustryJobs),
+                new NavItem("indy_parks",    ShellText.NavIndyParks),
+                new NavItem("prod_calc",     ShellText.NavProductionCalc),
+                new NavItem("price_overrides", ShellText.NavPriceOverrides),
+                new NavItem("industry_opps", ShellText.NavIndustryOpportunities),
             ]),
-            new("Market / Trade",
+            new(ShellText.NavGroupMarket,
             [
-                new NavItem("market_viewer", "Market Overview"),
-                new NavItem("item_valuation", "Item Valuation"),
-                new NavItem("lp_market_values", "LP Market Values"),
-                new NavItem("market_levels", "Market Levels"),
-                new NavItem("contracts",     "Contracts"),
-                new NavItem("trade",         "Trade Opportunities"),
-                new NavItem("standing_buy_orders", "Standing Buy Orders"),
-                new NavItem("order_tracker", "Order Tracker"),
-                new NavItem("sales_tracker", "Sales Tracker"),
-                new NavItem("sale_posting",  "Sale Posting"),
-                new NavItem("stores",        "Stores"),
+                new NavItem("market_viewer", ShellText.NavMarketOverview),
+                new NavItem("item_valuation", ShellText.NavItemValuation),
+                new NavItem("lp_market_values", ShellText.NavLpMarketValues),
+                new NavItem("market_levels", ShellText.NavMarketLevels),
+                new NavItem("contracts",     ShellText.NavContracts),
+                new NavItem("trade",         ShellText.NavTradeOpportunities),
+                new NavItem("standing_buy_orders", ShellText.NavStandingBuyOrders),
+                new NavItem("order_tracker", ShellText.NavOrderTracker),
+                new NavItem("sales_tracker", ShellText.NavSalesTracker),
+                new NavItem("sale_posting",  ShellText.NavSalePosting),
+                new NavItem("stores",        ShellText.NavStores),
             ]),
-            new("Finance",
+            new(ShellText.NavGroupFinance,
             [
-                new NavItem("net_worth",     "Net Worth"),
-                new NavItem("income_expense","Income & Expense"),
-                new NavItem("wallet",        "Wallet"),
+                new NavItem("net_worth",     ShellText.NavNetWorth),
+                new NavItem("income_expense",ShellText.NavIncomeExpense),
+                new NavItem("wallet",        ShellText.NavWallet),
             ]),
-            new("Corp / Interactions",
+            new(ShellText.NavGroupCorp,
             [
-                new NavItem("corp_activity", "Corp Activity"),
-                new NavItem("killmails",     "Killmails"),
-                new NavItem("player_entities", "Player Entities"),
-                new NavItem("npc_entities",    "NPC Entities"),
+                new NavItem("corp_activity", ShellText.NavCorpActivity),
+                new NavItem("killmails",     ShellText.NavKillmails),
+                new NavItem("player_entities", ShellText.NavPlayerEntities),
+                new NavItem("npc_entities",    ShellText.NavNpcEntities),
             ]),
-            new("Communication",
+            new(ShellText.NavGroupCommunication,
             [
-                new NavItem("eve_mail", "Eve Mail"),
-                new NavItem("notifications", "Notifications"),
+                new NavItem("eve_mail", ShellText.NavEveMail),
+                new NavItem("notifications", ShellText.NavNotifications),
             ]),
-            new("Data / Logs",
+            new(ShellText.NavGroupData,
             [
                 // Alarms is reached from the alarm light beside the settings gear, not from
                 // here — it is a status indicator first and a tool second.
-                new NavItem("background", "Background Processes"),
-                new NavItem("data", "ESI Explorer"),
-                new NavItem("error_log", "Error Log"),
-                new NavItem("ai_usage",  "AI Usage"),
-                new NavItem("game_log", "Game Log"),
-                new NavItem("chat_log", "Chat Log"),
+                new NavItem("background", ShellText.NavBackgroundProcesses),
+                new NavItem("data", ShellText.NavEsiExplorer),
+                new NavItem("error_log", ShellText.NavErrorLog),
+                new NavItem("ai_usage",  ShellText.NavAiUsage),
+                new NavItem("game_log", ShellText.NavGameLog),
+                new NavItem("chat_log", ShellText.NavChatLog),
             ]),
         ];
 

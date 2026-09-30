@@ -1,6 +1,7 @@
 using EveConsole.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -114,7 +115,7 @@ public static class BulkImportUndo
                     await db.Database.ExecuteSqlRawAsync(
                         $"CREATE TABLE undobak.\"{t}\" AS SELECT * FROM main.\"{t}\"", ct);
 
-                    report("Preparing", $"Copying the current data aside… {++n}/{tables.Count}", -1);
+                    report(SettingsText.ImportStagePreparing, string.Format(SettingsText.ImportCopyingAside, ++n, tables.Count), -1);
                 }
             }
             catch
@@ -168,7 +169,7 @@ public static class BulkImportUndo
                 await db.Database.ExecuteSqlRawAsync(
                     $"INSERT INTO main.\"{t}\" SELECT * FROM undobak.\"{t}\"", ct);
 
-                report("Restoring", $"Putting the previous data back… {++n}/{tables.Count}", -1);
+                report(SettingsText.ImportStageRestoring, string.Format(SettingsText.ImportPuttingBack, ++n, tables.Count), -1);
             }
         }
 

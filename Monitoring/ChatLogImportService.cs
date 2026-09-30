@@ -4,6 +4,7 @@ using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.Monitoring;
 
@@ -56,7 +57,7 @@ public sealed class ChatLogImportService : ReactiveObject
 
     // ── Observable state ─────────────────────────────────────────────────────
 
-    private string _statusText = "Chat logs: Disabled";
+    private string _statusText = SettingsText.ChatLogStatusDisabled;
     public string StatusText
     {
         get => _statusText;
@@ -111,7 +112,7 @@ public sealed class ChatLogImportService : ReactiveObject
 
         _cts     = null;
         _runTask = null;
-        StatusText = "Chat logs: Stopped";
+        StatusText = SettingsText.ChatLogStatusStopped;
     }
 
     private async Task RunAsync(CancellationToken ct)
@@ -140,13 +141,13 @@ public sealed class ChatLogImportService : ReactiveObject
                 catch (OperationCanceledException) when (ct.IsCancellationRequested) { break; }
                 catch (Exception ex)
                 {
-                    StatusText = $"Chat logs: Error — {Truncate(ex.Message)}";
+                    StatusText = string.Format(SettingsText.ChatLogStatusError, Truncate(ex.Message));
                     _errorLogger.Log(nameof(ChatLogImportService), nameof(RunAsync), ex);
                 }
             }
             else if (!_settings.ChatEnabled)
             {
-                StatusText = "Chat logs: Disabled";
+                StatusText = SettingsText.ChatLogStatusDisabled;
             }
 
             await Task.Delay(TimeSpan.FromSeconds(_settings.ScanSeconds), ct);
@@ -176,7 +177,7 @@ public sealed class ChatLogImportService : ReactiveObject
     public async Task<IReadOnlyList<string>> DiscoverChannelsAsync(CancellationToken ct = default)
     {
         IsBusy       = true;
-        ProgressText = "Scanning chat log folders…";
+        ProgressText = SettingsText.ChatLogScanningFolders;
 
         try
         {
@@ -207,13 +208,13 @@ public sealed class ChatLogImportService : ReactiveObject
             var sorted = channels.OrderBy(c => c, StringComparer.OrdinalIgnoreCase).ToList();
             _settings.ChatDiscoveredChannels = sorted;
 
-            ProgressText = $"Found {sorted.Count:N0} channel(s).";
+            ProgressText = string.Format(SettingsText.ChatLogChannelsFound, sorted.Count);
             StatusText   = ProgressText;
             return sorted;
         }
         catch (Exception ex)
         {
-            ProgressText = $"Discovery failed — {Truncate(ex.Message)}";
+            ProgressText = string.Format(SettingsText.ChatLogDiscoveryFailed, Truncate(ex.Message));
             _errorLogger.Log(nameof(ChatLogImportService), nameof(DiscoverChannelsAsync), ex);
             return [];
         }
@@ -228,11 +229,11 @@ public sealed class ChatLogImportService : ReactiveObject
     private async Task TailAsync(CancellationToken ct)
     {
         var dirs = _settings.ResolveChatDirectories();
-        if (dirs.Count == 0) { StatusText = "Chat logs: no folder found"; return; }
+        if (dirs.Count == 0) { StatusText = SettingsText.ChatLogStatusNoFolder; return; }
 
         if (_settings.ChatChannels.Count == 0)
         {
-            StatusText = "Chat logs: no channels selected";
+            StatusText = SettingsText.ChatLogStatusNoChannels;
             return;
         }
 
@@ -270,8 +271,8 @@ public sealed class ChatLogImportService : ReactiveObject
         }
 
         StatusText = imported > 0
-            ? $"Chat logs: +{imported:N0} message(s)"
-            : $"Chat logs: watching {_settings.ChatChannels.Count} channel(s)";
+            ? string.Format(SettingsText.ChatLogStatusNew, imported)
+            : string.Format(SettingsText.ChatLogStatusWatching, _settings.ChatChannels.Count);
     }
 
     // ── History import ───────────────────────────────────────────────────────
@@ -305,7 +306,7 @@ public sealed class ChatLogImportService : ReactiveObject
 
         if (_settings.ChatChannels.Count == 0)
         {
-            StatusText = "Chat logs: select at least one channel first";
+            StatusText = SettingsText.ChatLogSelectChannelFirst;
             return;
         }
 
@@ -315,7 +316,7 @@ public sealed class ChatLogImportService : ReactiveObject
         IsBusy          = true;
         ProgressCurrent = 0;
         ProgressTotal   = 1;
-        ProgressText    = "Scanning chat log folders…";
+        ProgressText    = SettingsText.ChatLogScanningFolders;
 
         try
         {
@@ -352,19 +353,19 @@ public sealed class ChatLogImportService : ReactiveObject
 
                 var fi = files[i];
                 ProgressCurrent = i + 1;
-                ProgressText    = $"File {i + 1:N0} of {files.Count:N0} — {fi.Name}";
+                ProgressText    = string.Format(SettingsText.LogImportFileProgress, i + 1, files.Count, fi.Name);
 
                 imported += await SafeImportAsync(db, fi, ct);
             }
 
             StatusText = ct.IsCancellationRequested
-                ? $"Chat logs: import cancelled after {ProgressCurrent:N0} file(s), {imported:N0} message(s)"
-                : $"Chat logs: imported {imported:N0} message(s) from {files.Count:N0} file(s)";
+                ? string.Format(SettingsText.ChatLogImportCancelled, ProgressCurrent, imported)
+                : string.Format(SettingsText.ChatLogImportDone, imported, files.Count);
             ProgressText = StatusText;
         }
         catch (Exception ex)
         {
-            StatusText   = $"Chat logs: import failed — {Truncate(ex.Message)}";
+            StatusText   = string.Format(SettingsText.ChatLogImportFailed, Truncate(ex.Message));
             ProgressText = StatusText;
             _errorLogger.Log(nameof(ChatLogImportService), nameof(ImportHistoryAsync), ex);
         }

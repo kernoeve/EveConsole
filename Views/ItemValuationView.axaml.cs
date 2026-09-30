@@ -11,6 +11,7 @@ using Avalonia.Threading;
 using EveConsole.Controls;
 using EveConsole.Services;
 using EveConsole.ViewModels;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -27,9 +28,9 @@ public partial class ItemValuationView : UserControl
     /// and coverage beneath once there is a result.</summary>
     private static readonly ColumnGroup[] ValueGroups =
     [
-        new(3, 3, "Market value",      WashKeys[0]),
-        new(6, 3, "Build value",       WashKeys[1]),
-        new(9, 3, "Reprocessed value", WashKeys[2]),
+        new(3, 3, AssetsText.GroupMarketValue,      WashKeys[0]),
+        new(6, 3, AssetsText.GroupBuildValue,       WashKeys[1]),
+        new(9, 3, AssetsText.GroupReprocessedValue, WashKeys[2]),
     ];
 
     /// <summary>The pasted list's pane: how wide, remembered on this machine. Whether it is folded
@@ -102,7 +103,7 @@ public partial class ItemValuationView : UserControl
             // the list as it is, rather than putting the clipboard's stray text in its place.
             if (!await _vm.NamesAnItemAsync(text))
             {
-                _vm.ShowStatus("The clipboard names no item, so the list was left as it was. Edit list takes any text.");
+                _vm.ShowStatus(AssetsText.StatusClipboardNoItem);
                 return;
             }
             _vm.InputText = text;
@@ -212,9 +213,9 @@ public partial class ItemValuationView : UserControl
             var index = i;
             var columns = new[]
             {
-                Column("Unit",    $"Cells[{index}].UnitText",  $"Cells[{index}].FigureColor", 110, r => Priced(r, index)?.Unit  ?? -1,    $"Cells[{index}].UnitExact"),
-                Column("Total",   $"Cells[{index}].TotalText", $"Cells[{index}].FigureColor", 120, r => Priced(r, index)?.Total ?? -1,    $"Cells[{index}].TotalExact"),
-                Column("vs best", $"Cells[{index}].PctText",   $"Cells[{index}].Color",       70,  r => Priced(r, index)?.Pct   ?? -1000, null),
+                Column(AssetsText.ColUnit,    $"Cells[{index}].UnitText",  $"Cells[{index}].FigureColor", 110, r => Priced(r, index)?.Unit  ?? -1,    $"Cells[{index}].UnitExact"),
+                Column(AssetsText.ColTotal,   $"Cells[{index}].TotalText", $"Cells[{index}].FigureColor", 120, r => Priced(r, index)?.Total ?? -1,    $"Cells[{index}].TotalExact"),
+                Column(AssetsText.ColVsBest, $"Cells[{index}].PctText",   $"Cells[{index}].Color",       70,  r => Priced(r, index)?.Pct   ?? -1000, null),
             };
             columns[0].CellStyleClasses.Add("gs");   // the line where one station's wash ends and the next begins
             foreach (var column in columns)
@@ -233,7 +234,7 @@ public partial class ItemValuationView : UserControl
         if (_vm is null) return;
         var totals = _vm.CompareTotals;
         CompareBand.SetGroups(_vm.CompareColumns.Select((s, i) =>
-            new ColumnGroup(FixedCompareColumns + 3 * i, 3, s.Name, WashKeys[i % 3], i < totals.Count ? StationLine(totals[i]) : null)));
+            new ColumnGroup(FixedCompareColumns + 3 * i, 3, s.DisplayName, WashKeys[i % 3], i < totals.Count ? StationLine(totals[i]) : null)));
     }
 
     private Control StationLine(CompareTotalVm total)
@@ -248,7 +249,7 @@ public partial class ItemValuationView : UserControl
                 Cursor = new Cursor(StandardCursorType.Hand), VerticalAlignment = VerticalAlignment.Center,
             };
             remove.Bind(Button.ForegroundProperty, remove.GetResourceObservable("TextMutedBrush"));
-            ToolTip.SetTip(remove, "Take this station out of the comparison");
+            ToolTip.SetTip(remove, AssetsText.TipRemoveCompareStation);
             remove.Click += (_, _) => _vm?.RemoveCompare(total.Station);
             line.Children.Add(remove);
         }
@@ -319,10 +320,10 @@ public partial class ItemValuationView : UserControl
         Split.ColumnDefinitions[0].Width = hidden ? new GridLength(0) : new GridLength(_listWidth);
         ListSplitter.IsVisible   = !hidden;
         InputBox.IsVisible       = !hidden;
-        ToggleListButton.Content = hidden ? "Edit list" : "Hide list";
+        ToggleListButton.Content = hidden ? AssetsText.EditList : AssetsText.HideList;
         ToolTip.SetTip(ToggleListButton, hidden
-            ? "Bring the list back to change it. While it is folded away, a paste anywhere on the tool values a new list."
-            : "Fold the list away to give the tables the whole width. It folds on its own once valued.");
+            ? AssetsText.TipEditList
+            : AssetsText.TipHideList);
     }
 
     // ── Buttons and boxes ───────────────────────────────────────────────────

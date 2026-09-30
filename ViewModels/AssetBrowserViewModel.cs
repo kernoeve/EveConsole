@@ -1,10 +1,13 @@
 ﻿using System.Data.Common;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using Avalonia.Threading;
 using Microsoft.Data.Sqlite;
 using ReactiveUI;
 using EveConsole.Data;
+using EveConsole.Models;
 using EveConsole.Services;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -32,8 +35,8 @@ public class AssetBrowserViewModel : ReactiveObject
 
     public static readonly IReadOnlyList<ScopeOption> AllScopes =
     [
-        new("all",      "Everything"),
-        new("personal", "Characters and personal corps"),
+        new("all",      AssetsText.ScopeEverything),
+        new("personal", AssetsText.ScopePersonal),
     ];
 
     public IReadOnlyList<ScopeOption> ScopeOptions => AllScopes;
@@ -102,7 +105,59 @@ public class AssetBrowserViewModel : ReactiveObject
         "Owner Id", "Root Location Id",
         // Carried so the names above them can be links; never a column of their own.
         "Solar System Id", "Region Id", "Is Station",
+        // Carried so the names above them can be shown in the interface language (ShowNames).
+        "Group Id", "Category Id", "Container Type Ids",
     ];
+
+    /// <summary>
+    /// The words shown for each column, in the interface language.
+    ///
+    /// <para>⚠️ A column's NAME is its SQL alias and stays English in every language: the filters,
+    /// the sort, the links, the alignment above and the agent's filters all go by it. Only what a
+    /// header, the column picker or a copied header row shows is looked up here.</para>
+    /// </summary>
+    private static readonly Dictionary<string, string> ColumnLabels = new()
+    {
+        ["Item Id"]           = AssetsText.AssetColItemId,
+        ["Type Id"]           = AssetsText.AssetColTypeId,
+        ["Type Name"]         = AssetsText.AssetColTypeName,
+        ["Group"]             = AssetsText.AssetColGroup,
+        ["Category"]          = AssetsText.AssetColCategory,
+        ["Quantity"]          = AssetsText.AssetColQuantity,
+        ["Owner Type"]        = AssetsText.AssetColOwnerType,
+        ["Owner Name"]        = AssetsText.AssetColOwnerName,
+        ["Owner Id"]          = AssetsText.AssetColOwnerId,
+        ["Location Id"]       = AssetsText.AssetColLocationId,
+        ["Location Name"]     = AssetsText.AssetColLocationName,
+        ["Location Type"]     = AssetsText.AssetColLocationType,
+        ["Root Location Id"]  = AssetsText.AssetColRootLocationId,
+        ["Container"]         = AssetsText.ColContainer,
+        ["Flag"]              = AssetsText.ColFlag,
+        ["Solar System"]      = AssetsText.AssetColSolarSystem,
+        ["Solar System Id"]   = AssetsText.AssetColSolarSystemId,
+        ["Region Name"]       = AssetsText.AssetColRegionName,
+        ["Region Id"]         = AssetsText.AssetColRegionId,
+        ["Security"]          = AssetsText.AssetColSecurity,
+        ["Is Station"]        = AssetsText.AssetColIsStation,
+        ["Volume"]            = AssetsText.AssetColVolume,
+        ["Total Volume"]      = AssetsText.AssetColTotalVolume,
+        ["Value Per Unit"]    = AssetsText.AssetColValuePerUnit,
+        ["Value"]             = AssetsText.ColValue,
+        ["Total Value"]       = AssetsText.AssetColTotalValue,
+        ["ISK/m³"]            = AssetsText.AssetColIskPerM3,
+        ["Build Cost"]        = AssetsText.AssetColBuildCost,
+        ["Item Count"]        = AssetsText.AssetColItemCount,
+        ["Is Singleton"]      = AssetsText.AssetColIsSingleton,
+        ["Is Blueprint Copy"] = AssetsText.AssetColIsBlueprintCopy,
+    };
+
+    /// <summary>What a column is called on screen; a column with no label of its own shows its name.</summary>
+    public static string ColumnLabel(string column) =>
+        ColumnLabels.TryGetValue(column, out var label) ? label : column;
+
+    /// <summary>The filter row's column picker: the alias as the value, its label as the words.</summary>
+    public static readonly IReadOnlyList<Choice<string>> FilterableColumnChoices =
+        FilterableColumns.Select(c => new Choice<string>(c, ColumnLabel(c))).ToList();
 
     public string? SortColumn    => _sortColumn;
     public bool    SortDescending => _sortDescending;
@@ -118,7 +173,7 @@ public class AssetBrowserViewModel : ReactiveObject
         private set => this.RaiseAndSetIfChanged(ref _columns, value);
     }
 
-    private string _statusText = "Loading…";
+    private string _statusText = CommonText.Loading;
     public string StatusText
     {
         get => _statusText;
@@ -235,7 +290,7 @@ public class AssetBrowserViewModel : ReactiveObject
         catch (OperationCanceledException) { }
         catch (Exception ex)
         {
-            await Dispatcher.UIThread.InvokeAsync(() => StatusText = $"Error: {ex.Message}");
+            await Dispatcher.UIThread.InvokeAsync(() => StatusText = string.Format(CommonText.ErrorWithMessage, ex.Message));
         }
     }
 
@@ -250,7 +305,7 @@ public class AssetBrowserViewModel : ReactiveObject
             Rows.Clear();
             Columns    = [];
             HasMore    = false;
-            StatusText = "Loading…";
+            StatusText = CommonText.Loading;
             LocationRows.Clear(); LocationColumns = [];
             SystemRows.Clear();   SystemColumns   = [];
             RegionRows.Clear();   RegionColumns   = [];
@@ -258,6 +313,10 @@ public class AssetBrowserViewModel : ReactiveObject
 
         try
         {
+            // The names in the interface language, before any row is built (ShowNames): at once
+            // in English, and otherwise a wait for the one background load, the first time.
+            await SdeNames.EnsureLoadedAsync(ct);
+
             await using var conn = AppDb.Connect();
             await conn.OpenAsync(ct);
             await AppendPageAsync(conn, await CountAsync(conn, ct), ct);
@@ -266,7 +325,7 @@ public class AssetBrowserViewModel : ReactiveObject
         catch (OperationCanceledException) { }
         catch (Exception ex)
         {
-            await Dispatcher.UIThread.InvokeAsync(() => StatusText = $"Error: {ex.Message}");
+            await Dispatcher.UIThread.InvokeAsync(() => StatusText = string.Format(CommonText.ErrorWithMessage, ex.Message));
         }
     }
 
@@ -298,6 +357,7 @@ public class AssetBrowserViewModel : ReactiveObject
             var row = new Dictionary<string, string>(reader.FieldCount);
             for (int i = 0; i < reader.FieldCount; i++)
                 row[reader.GetName(i)] = reader.IsDBNull(i) ? "" : FormatValue(reader.GetName(i), reader.GetValue(i));
+            ShowNames(row);
             rows.Add(new GridRow(row));
         }
 
@@ -342,6 +402,7 @@ public class AssetBrowserViewModel : ReactiveObject
             var row = new Dictionary<string, string>(reader.FieldCount);
             for (int i = 0; i < reader.FieldCount; i++)
                 row[reader.GetName(i)] = reader.IsDBNull(i) ? "" : FormatValue(reader.GetName(i), reader.GetValue(i));
+            ShowNames(row);
             newRows.Add(new GridRow(row));
         }
 
@@ -357,10 +418,182 @@ public class AssetBrowserViewModel : ReactiveObject
                 Columns = newColumns;
 
             HasMore    = loadedCount < total;
-            StatusText = total == 0         ? "No assets."
-                : loadedCount < total ? $"Showing {loadedCount:N0} of {total:N0} assets"
-                                      : $"{total:N0} assets total";
+            StatusText = total == 0         ? AssetsText.StatusNoAssets
+                : loadedCount < total ? Plurals.Format(AssetsText.ResourceManager, nameof(AssetsText.StatusShowingAssetsOther), total, loadedCount)
+                                      : Plurals.Format(AssetsText.ResourceManager, nameof(AssetsText.StatusAssetsTotalOther), total);
         });
+    }
+
+    // ── Markers: what Base writes where it has no name of its own to give ────────
+    //
+    // ⚠️ Values, not text to show. The query writes them the same in every language, so its
+    // sorting, its grouping (By Location groups on the location's name) and the filters behave the
+    // same whatever the interface language. They become labels only where rows are read —
+    // FormatValue for these grids, ItemAssetRowVm for the Item Browser's Assets tab — and in
+    // English each label reads exactly as its marker does.
+
+    internal const string UnknownStationMarker     = "<Unknown Station>";
+    internal const string UnknownSystemMarker      = "<Unknown System>";
+    internal const string UnknownStructureMarker   = "<Unknown Structure>";
+    internal const string UnresolvedLocationMarker = "<Unresolved - Please Refresh>";
+
+    /// <summary>The Flag of a row in a running industry job — the blueprint, or the product not
+    /// delivered yet — rather than in a hangar.</summary>
+    internal const string IndustryJobFlag = "Industry Job";
+
+    /// <summary>A corporation hangar division the corporation has not named: this, then the
+    /// division's number (1–7), as one step of the Container path.</summary>
+    private const string UnnamedDivisionMarker = "Division ";
+
+    /// <summary>⚠️ How Base joins the steps of the Container path, as its SQL writes it.</summary>
+    private const string ContainerSeparator = " > ";
+
+    /// <summary>A Location Name as shown: a marker as its label, a real name as it is.</summary>
+    internal static string LocationLabel(string value) => value switch
+    {
+        UnknownStationMarker     => AssetsText.LocUnknownStation,
+        UnknownSystemMarker      => AssetsText.LocUnknownSystem,
+        UnknownStructureMarker   => AssetsText.LocUnknownStructure,
+        UnresolvedLocationMarker => AssetsText.LocUnresolved,
+        _                        => value,
+    };
+
+    /// <summary>A Flag as shown: the job marker as its label, the game's own flags as they are.</summary>
+    internal static string FlagLabel(string value) =>
+        value == IndustryJobFlag ? AssetsText.FlagIndustryJob : value;
+
+    /// <summary>A Container path as shown: each unnamed division in it as its label, every other
+    /// step as the query gave it.</summary>
+    internal static string ContainerLabel(string value)
+    {
+        if (!value.Contains(UnnamedDivisionMarker, StringComparison.Ordinal)) return value;
+
+        var steps = value.Split(ContainerSeparator);
+        for (var i = 0; i < steps.Length; i++)
+            if (steps[i].StartsWith(UnnamedDivisionMarker, StringComparison.Ordinal)
+                && int.TryParse(steps[i].AsSpan(UnnamedDivisionMarker.Length),
+                                System.Globalization.NumberStyles.None,
+                                System.Globalization.CultureInfo.InvariantCulture, out var division)
+                && division is >= 1 and <= 7)
+                steps[i] = string.Format(AssetsText.DivisionNumbered, division);
+        return string.Join(ContainerSeparator, steps);
+    }
+
+    // ── SDE names: shown in the interface language ───────────────────────────────
+    //
+    // ⚠️ Display only, like the markers above. Base writes every name in English, and the filters,
+    // the sort and the aggregate tabs' grouping all run on that; a row's names are put into the
+    // interface language only as it is read, by the ids the row carries beside them.
+
+    /// <summary>The names in one row, as shown: types, groups, categories, systems and regions, NPC
+    /// stations, and the container types on the Container path.</summary>
+    private static void ShowNames(Dictionary<string, string> row)
+    {
+        Show(row, "Type Name",    "Type Id",         SdeNames.Type);
+        Show(row, "Group",        "Group Id",        SdeNames.Group);
+        Show(row, "Category",     "Category Id",     SdeNames.Category);
+        Show(row, "Solar System", "Solar System Id", SdeNames.SolarSystem);
+        Show(row, "Region Name",  "Region Id",       SdeNames.Region);
+
+        // An item in space: its place IS the solar system, and named by it. The detailed grid
+        // carries the place as Root Location Id; By Location names the same id Location Id.
+        var root = row.ContainsKey("Root Location Id") ? "Root Location Id" : "Location Id";
+        var system = IdIn(row, "Solar System Id");
+        if (system > 0 && IdIn(row, root) == system)
+            Show(row, "Location Name", "Solar System Id", SdeNames.SolarSystem);
+
+        // An NPC station, as Is Station says — the query's own tell, which the links go by too. A
+        // player structure keeps the name its owner gave it.
+        if (row.TryGetValue("Is Station", out var isStation) && isStation == "1")
+            Show(row, "Location Name", root, SdeNames.Station);
+
+        if (row.TryGetValue("Container", out var path) && path.Length > 0
+            && row.TryGetValue("Container Type Ids", out var hops) && hops.Length > 0)
+            row["Container"] = ContainerTypesShown(path, hops);
+    }
+
+    private static void Show(Dictionary<string, string> row, string nameColumn, string idColumn,
+                             Func<long, string, string> shown)
+    {
+        if (!row.TryGetValue(nameColumn, out var english) || english.Length == 0) return;
+        var id = IdIn(row, idColumn);
+        if (id > 0) row[nameColumn] = shown(id, english);
+    }
+
+    /// <summary>An id column of a row as read, or 0 where the row has none.</summary>
+    private static long IdIn(Dictionary<string, string> row, string column) =>
+        row.TryGetValue(column, out var text)
+        && long.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out var id) ? id : 0;
+
+    /// <summary>
+    /// A Container path with its container types in the interface language, from Base's Container
+    /// and Container Type Ids — internal, like the labels above, for anything else that reads Base.
+    ///
+    /// <para>The path is the outermost container, then the division when there is one, then the
+    /// containers inward; the ids are the containers alone, in the same order. So the first id is
+    /// the first step and the others are the last steps, whatever a division's own name holds.</para>
+    /// </summary>
+    internal static string ContainerTypesShown(string path, string hops)
+    {
+        var ids   = hops.Split(',');
+        var steps = path.Split(ContainerSeparator);
+        if (steps.Length < ids.Length) return path;   // not the shape Base writes: left as it is
+
+        for (var i = 0; i < ids.Length; i++)
+        {
+            var at = i == 0 ? 0 : steps.Length - ids.Length + i;
+            if (long.TryParse(ids[i], NumberStyles.Integer, CultureInfo.InvariantCulture, out var typeId))
+                steps[at] = SdeNames.Type(typeId, steps[at]);
+        }
+        return string.Join(ContainerSeparator, steps);
+    }
+
+    /// <summary>
+    /// The filterable columns that show an SDE name: its kind, the column its id is in, and when it
+    /// is that name at all — a Location Name is a system's only for an item in space, whose place
+    /// is the system, and an NPC station's only where Is Station says so.
+    /// </summary>
+    private static IReadOnlyList<(SdeNameKind Kind, string IdColumn, string? Guard)> ShownNameColumns(string column) => column switch
+    {
+        "Type Name"     => [(SdeNameKind.Type,        "Type Id",         null)],
+        "Group"         => [(SdeNameKind.Group,       "Group Id",        null)],
+        "Category"      => [(SdeNameKind.Category,    "Category Id",     null)],
+        "Solar System"  => [(SdeNameKind.SolarSystem, "Solar System Id", null)],
+        "Region Name"   => [(SdeNameKind.Region,      "Region Id",       null)],
+        "Location Name" => [(SdeNameKind.SolarSystem, "Solar System Id",  "\"Root Location Id\" = \"Solar System Id\""),
+                            (SdeNameKind.Station,     "Root Location Id", "\"Is Station\" = 1")],
+        _               => [],
+    };
+
+    /// <summary>
+    /// One filter row as SQL. On a column that shows an SDE name, a text match also finds the name
+    /// the screen shows: the SQL goes on comparing the English, and the ids whose name in the
+    /// interface language matches are added beside it — and excluded as well, for a negated match.
+    /// </summary>
+    private static string FilterClause(ActiveFilter f, int index)
+    {
+        var clause = SqlFilter.Clause(f.Column, f.Op, index);
+
+        var matches = new List<string>();
+        foreach (var shown in ShownNameColumns(f.Column))
+        {
+            IReadOnlyList<long> ids =
+                  f.Op.UseLike            ? SdeNames.Find(shown.Kind, f.Value)
+                : f.Op.Sql is "=" or "!=" ? SdeNames.Map(shown.Kind).Where(kv => kv.Value == f.Value).Select(kv => kv.Key).ToList()
+                :                           [];
+            if (ids.Count == 0) continue;
+
+            // Integers the app computed, not typed text, so they are written into the SQL as they are.
+            var list = string.Join(",", ids.Select(id => id.ToString(CultureInfo.InvariantCulture)));
+            matches.Add(shown.Guard is null
+                ? $"(\"{shown.IdColumn}\" IN ({list}))"
+                : $"({shown.Guard} AND \"{shown.IdColumn}\" IN ({list}))");
+        }
+        if (matches.Count == 0) return clause;
+
+        return f.Op.Sql is "NOT LIKE" or "!="
+            ? $"({clause} AND NOT {string.Join(" AND NOT ", matches)})"
+            : $"({clause} OR {string.Join(" OR ", matches)})";
     }
 
     // ── SQL ───────────────────────────────────────────────────────────────────
@@ -373,7 +606,7 @@ public class AssetBrowserViewModel : ReactiveObject
     //
     // ⚠️ Internal because the Item Browser's Assets tab reads the same Base filtered to one type,
     // so the two tools cannot disagree about where something is or what it is worth.
-    internal static readonly string QueryPrefix = """
+    internal static readonly string QueryPrefix = $$"""
         WITH
         ContainerHops AS (
             SELECT
@@ -423,8 +656,9 @@ public class AssetBrowserViewModel : ReactiveObject
                 -- (which also sits under the office, but is not a hangar) does not. Falls back to
                 -- the number when the corp has not named the division, or when we hold no
                 -- divisions for that corp at all -- "Division 6" still beats showing nothing.
+                -- That fallback is a marker (UnnamedDivisionMarker): the label is put in as rows are read.
                 CASE WHEN h.DivFlag LIKE 'CorpSAG_'
-                     THEN COALESCE(NULLIF(cd."Name", ''), 'Division ' || SUBSTR(h.DivFlag, 8))
+                     THEN COALESCE(NULLIF(cd."Name", ''), '{{UnnamedDivisionMarker}}' || SUBSTR(h.DivFlag, 8))
                      ELSE NULL
                 END AS DivName
             FROM ContainerHops h
@@ -498,11 +732,12 @@ public class AssetBrowserViewModel : ReactiveObject
                 a."OwnerType"       AS "Owner Type",
                 COALESCE(ch."Name", co."Name", CAST(a."OwnerId" AS TEXT))  AS "Owner Name",
                 a."LocationId"      AS "Location Id",
+                -- The fallbacks are markers, turned into labels as rows are read (see the markers above).
                 CASE a."RootLocationType"
-                    WHEN 'station'      THEN COALESCE(st."Name",            '<Unknown Station>')
-                    WHEN 'solar_system' THEN COALESCE(sys."Name",           '<Unknown System>')
-                    WHEN 'other'        THEN COALESCE(NULLIF(sn."Name",''), '<Unknown Structure>')
-                    ELSE                     '<Unresolved - Please Refresh>'
+                    WHEN 'station'      THEN COALESCE(st."Name",            '{{UnknownStationMarker}}')
+                    WHEN 'solar_system' THEN COALESCE(sys."Name",           '{{UnknownSystemMarker}}')
+                    WHEN 'other'        THEN COALESCE(NULLIF(sn."Name",''), '{{UnknownStructureMarker}}')
+                    ELSE                     '{{UnresolvedLocationMarker}}'
                 END AS "Location Name",
                 -- The division slots in immediately after the outermost name, which is the office
                 -- whenever there is a division at all. Concatenating NULL yields NULL in SQLite,
@@ -536,6 +771,18 @@ public class AssetBrowserViewModel : ReactiveObject
                 -- NPC station to the entity browser, player structure to its own tool.
                 -- RootLocationType already tells the two apart.
                 CASE WHEN a."RootLocationType" = 'station' THEN 1 ELSE 0 END              AS "Is Station",
+                -- Hidden: the ids behind Group, Category and each Container step, so those names
+                -- can be shown in the interface language (ShowNames). The container ids are in the
+                -- path's own order, outermost first, by the same depth rule as Container above.
+                COALESCE(g."GroupId", 0)                                    AS "Group Id",
+                COALESCE(cat."CategoryId", 0)                               AS "Category Id",
+                CASE cj.ContainerDepth
+                    WHEN 1 THEN CAST(cj.CP1TypeId AS TEXT)
+                    WHEN 2 THEN CAST(cj.CP2TypeId AS TEXT) || ',' || CAST(cj.CP1TypeId AS TEXT)
+                    WHEN 3 THEN CAST(cj.CP3TypeId AS TEXT) || ',' || CAST(cj.CP2TypeId AS TEXT)
+                              || ',' || CAST(cj.CP1TypeId AS TEXT)
+                    ELSE NULL
+                END                                                         AS "Container Type Ids",
                 a."LocationType"    AS "Location Type",
                 t."Volume"          AS "Volume",
                 t."Volume" * CAST(a."Quantity" AS DOUBLE PRECISION)                   AS "Total Volume",
@@ -642,7 +889,7 @@ public class AssetBrowserViewModel : ReactiveObject
                 jf."FacilityId"                                                      AS "Location Id",
                 jf.FacilityName                                                    AS "Location Name",
                 NULL                                                               AS "Container",
-                'Industry Job'                                                     AS "Flag",
+                '{{IndustryJobFlag}}'                                              AS "Flag",
                 jf.FacilitySolarSystem                                             AS "Solar System",
                 jf.FacilityRegion                                                  AS "Region Name",
                 -- ⚠️ ROUNDed to match the asset branch above. The aggregate views GROUP BY Security, so an
@@ -654,6 +901,9 @@ public class AssetBrowserViewModel : ReactiveObject
                 jf.FacilitySolarSystemId                                           AS "Solar System Id",
                 jf.FacilityRegionId                                                AS "Region Id",
                 jf.FacilityIsStation                                               AS "Is Station",
+                COALESCE(bg."GroupId", 0)                                          AS "Group Id",
+                COALESCE(bcat."CategoryId", 0)                                     AS "Category Id",
+                NULL                                                               AS "Container Type Ids",
                 'item'                                                             AS "Location Type",
                 bt."Volume"                                                          AS "Volume",
                 bt."Volume"                                                          AS "Total Volume",
@@ -687,7 +937,7 @@ public class AssetBrowserViewModel : ReactiveObject
                 jf."FacilityId"                                                      AS "Location Id",
                 jf.FacilityName                                                    AS "Location Name",
                 NULL                                                               AS "Container",
-                'Industry Job'                                                     AS "Flag",
+                '{{IndustryJobFlag}}'                                              AS "Flag",
                 jf.FacilitySolarSystem                                             AS "Solar System",
                 jf.FacilityRegion                                                  AS "Region Name",
                 -- ⚠️ ROUNDed to match the asset branch above. The aggregate views GROUP BY Security, so an
@@ -699,6 +949,9 @@ public class AssetBrowserViewModel : ReactiveObject
                 jf.FacilitySolarSystemId                                           AS "Solar System Id",
                 jf.FacilityRegionId                                                AS "Region Id",
                 jf.FacilityIsStation                                               AS "Is Station",
+                COALESCE(pg."GroupId", 0)                                          AS "Group Id",
+                COALESCE(pcat."CategoryId", 0)                                     AS "Category Id",
+                NULL                                                               AS "Container Type Ids",
                 'item'                                                             AS "Location Type",
                 pt."Volume"                                                          AS "Volume",
                 pt."Volume" * CAST(jf.ItemsProduced AS DOUBLE PRECISION)                        AS "Total Volume",
@@ -810,7 +1063,7 @@ public class AssetBrowserViewModel : ReactiveObject
         var scope   = ScopeClause();
         var filters = _activeFilters.Count == 0
             ? ""
-            : $"({string.Join(" AND ", _activeFilters.Select((f, i) => SqlFilter.Clause(f.Column, f.Op, i)))})";
+            : $"({string.Join(" AND ", _activeFilters.Select((f, i) => FilterClause(f, i)))})";
         var parts = new[] { scope, filters }.Where(p => p.Length > 0).ToList();
         return parts.Count == 0 ? "" : $"WHERE {string.Join(" AND ", parts)}";
     }
@@ -826,6 +1079,15 @@ public class AssetBrowserViewModel : ReactiveObject
 
     private static string FormatValue(string column, object value)
     {
+        // The query's markers, shown as labels in the interface language (see the markers above).
+        if (value is string text)
+            switch (column)
+            {
+                case "Location Name": return LocationLabel(text);
+                case "Container":     return ContainerLabel(text);
+                case "Flag":          return FlagLabel(text);
+            }
+
         // ⚠️ Build Cost is read straight from the build-cost table, where it is a decimal — TEXT on
         // SQLite, numeric on PostgreSQL — not the double the computed columns beside it are. It
         // missed the branch below and was shown raw, without the commas every other ISK column

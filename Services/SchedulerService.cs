@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EveConsole.Data;
+using EveConsole.Localization;
 using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -106,6 +107,10 @@ public class SchedulerService(
     /// <para>⚠️ "Ran" means it got as far as deciding what to send — including deciding there was
     /// nothing to send. A task with no blocks, or whose month is empty, has nothing more to try;
     /// only a refusal or a thrown exception is worth coming back for.</para>
+    ///
+    /// <para>The message is shown as it stands and saved as the task's LastResult, in the interface
+    /// language of the machine that ran it. That is acceptable: only the Scheduler shows it, and
+    /// a later run in another language simply writes its own.</para>
     /// </summary>
     public async Task<(bool Ok, string Message)> RunOneAsync(
         ScheduledTask task, DateTime now, CancellationToken ct = default)
@@ -118,14 +123,14 @@ public class SchedulerService(
                 ScheduledTaskType.RaiseAlert => await RaiseAlertAsync(task, now, ct),
 
                 // Nothing about an unrecognised type gets better by waiting.
-                _ => (true, $"Unknown task type \"{task.TaskType}\"."),
+                _ => (true, string.Format(AlarmsText.RunUnknownType, task.TaskType)),
             };
         }
         catch (OperationCanceledException) { throw; }
         catch (Exception ex)
         {
             errors.Log(nameof(SchedulerService), $"task {task.Id} \"{task.Name}\"", ex);
-            return (false, $"Failed: {ex.Message}");
+            return (false, string.Format(AlarmsText.RunFailed, ex.Message));
         }
     }
 
@@ -134,7 +139,7 @@ public class SchedulerService(
     {
         var cfg = ScheduledTaskConfig.FromJson(task.Config);
 
-        if (cfg.Blocks.Count == 0) return (true, "Nothing to post: no sections configured.");
+        if (cfg.Blocks.Count == 0) return (true, AlarmsText.RunNoSections);
 
         var viaWebhook = cfg.DestinationKind == SlackDestination.KindWebhook;
 
@@ -160,16 +165,16 @@ public class SchedulerService(
         }
 
         if (body.Length == 0 && drawn.Count == 0)
-            return (true, WithSkipped("Nothing to post: the sections rendered empty.", skipped));
+            return (true, WithSkipped(AlarmsText.RunRenderedEmpty, skipped));
 
         // Asked for, and only then: a task whose static text is the point should still go out on a
         // quiet month. A chart that drew counts as something to say. ⚠️ Counts as the run either
         // way — it got as far as deciding what to send, and deciding to send nothing is a
         // decision, not a failure to retry.
         if (cfg.SkipIfNoDynamicContent && !render.AnyDynamicContent && drawn.Count == 0)
-            return (true, WithSkipped("Nothing to post: no dynamic section had anything to say.", skipped));
+            return (true, WithSkipped(AlarmsText.RunNothingDynamic, skipped));
 
-        var what = "Posted.";
+        var what = AlarmsText.RunPosted;
 
         if (body.Length > 0)
         {
@@ -181,16 +186,15 @@ public class SchedulerService(
                 : slack.PostMessageAsync(cfg.DestinationId, part, ct: token), ct);
 
             // Nothing reached the channel, so the next pass can try the whole thing again.
-            if (sent.Posted == 0) return (false, $"Slack refused it: {sent.Error}");
+            if (sent.Posted == 0) return (false, string.Format(AlarmsText.RunSlackRefused, sent.Error));
 
             // ⚠️ Some of it did. Failing the run would post those parts again on every retry, so
             // the run counts, and says what never arrived.
             what = !sent.AllPosted
-                ? $"Posted {sent.Posted} of {sent.Total} messages ({sent.Characters:N0} characters); " +
-                  $"Slack refused the next: {sent.Error}."
+                ? string.Format(AlarmsText.RunPostedPart, sent.Posted, sent.Total, sent.Characters, sent.Error)
                 : sent.Total > 1
-                    ? $"Posted {sent.Characters:N0} characters in {sent.Total} messages."
-                    : $"Posted {sent.Characters:N0} characters.";
+                    ? string.Format(AlarmsText.RunPostedMessages, sent.Characters, sent.Total)
+                    : string.Format(AlarmsText.RunPostedCharacters, sent.Characters);
         }
 
         // After the text, so the message reads in the order it was composed: the words, then the
@@ -208,8 +212,9 @@ public class SchedulerService(
             if (error is not null) failed.Add($"{title}: {error}");
         }
 
-        if (drawn.Count > failed.Count) what += $" {drawn.Count - failed.Count} chart(s) uploaded.";
-        if (failed.Count > 0)           what += $" {failed.Count} chart(s) failed: {string.Join("; ", failed)}.";
+        // Each outcome is a sentence of its own, after the one before.
+        if (drawn.Count > failed.Count) what += " " + string.Format(AlarmsText.RunChartsUploaded, drawn.Count - failed.Count);
+        if (failed.Count > 0)           what += " " + string.Format(AlarmsText.RunChartsFailed, failed.Count, string.Join("; ", failed));
 
         return (true, WithSkipped(what, skipped));
     }
@@ -224,7 +229,7 @@ public class SchedulerService(
     private static string WithSkipped(string message, int skipped) =>
         skipped == 0
             ? message
-            : $"{message} {skipped} chart section(s) skipped: a webhook cannot carry an image.";
+            : message + " " + string.Format(AlarmsText.RunChartsSkipped, skipped);
 
     /// <summary>
     /// Raises the same alert an alarm raises.
@@ -240,13 +245,13 @@ public class SchedulerService(
         var cfg  = ScheduledTaskConfig.FromJson(task.Config);
         var text = cfg.AlertText.Trim();
 
-        if (text.Length == 0) return (true, "Nothing to raise: the alert has no text.");
+        if (text.Length == 0) return (true, AlarmsText.RunNoAlertText);
 
         // Both readers lead with the title and put the body under it. An unwritten headline falls
         // back to the task's name, which already answers "which task said this".
         var title = cfg.AlertTitle.Trim();
         if (title.Length == 0) title = task.Name.Trim();
-        if (title.Length == 0) title = "Scheduled alert";
+        if (title.Length == 0) title = AlarmsText.RunAlertTitle;
 
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         db.AlarmAlerts.Add(new AlarmAlert
@@ -257,18 +262,18 @@ public class SchedulerService(
         });
         await db.SaveChangesAsync(ct);
 
-        return (true, "Alert raised.");
+        return (true, AlarmsText.RunAlertRaised);
     }
 
     private async Task<SlackPostResult> PostWebhookAsync(string hookId, string body, CancellationToken ct)
     {
-        if (!int.TryParse(hookId, out var id)) return new SlackPostResult(false, null, null, "No webhook chosen.");
+        if (!int.TryParse(hookId, out var id)) return new SlackPostResult(false, null, null, AlarmsText.RunNoWebhook);
 
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         var hook = await db.SlackWebhooks.FindAsync([id], ct);
 
         return hook is null
-            ? new SlackPostResult(false, null, null, "That webhook has been deleted.")
+            ? new SlackPostResult(false, null, null, AlarmsText.RunWebhookDeleted)
             : await slack.PostWebhookAsync(hook.Url, body, null, ct);
     }
 }

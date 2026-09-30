@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.ReactiveUI;
 using EveConsole.Models;
 using EveConsole.ViewModels;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -27,7 +28,7 @@ public partial class StandingBuyOrdersView : ReactiveUserControl<StandingBuyOrde
 
         vm.ConfirmDelete = async () =>
         {
-            var dlg = new ConfirmDialog("Are you sure you want to delete this standing buy order?");
+            var dlg = new ConfirmDialog(MarketText.ConfirmDeleteStandingOrder);
             return await dlg.ShowDialog<bool>(GetWindow());
         };
     }

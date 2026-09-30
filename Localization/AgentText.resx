@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="CopyMarkdown" xml:space="preserve">
+    <value>Copy Markdown</value>
+    <comment>Button or option in AgentDocumentView.</comment>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Save</value>
+    <comment>Button or option in AgentDocumentView.</comment>
+  </data>
+  <data name="CopySelected" xml:space="preserve">
+    <value>Copy Selected</value>
+    <comment>Button or option in AgentGridView.</comment>
+  </data>
+  <data name="TipCopiesTheSelectedRows" xml:space="preserve">
+    <value>Copies the selected rows, with headers, as tab-separated text — paste straight into a spreadsheet. Ctrl+C does the same.</value>
+    <comment>Tooltip in AgentGridView.</comment>
+  </data>
+  <data name="CopyAll" xml:space="preserve">
+    <value>Copy All</value>
+    <comment>Button or option in AgentGridView.</comment>
+  </data>
+  <data name="SaveCsv" xml:space="preserve">
+    <value>Save CSV</value>
+    <comment>Button or option in AgentGridView.</comment>
+  </data>
+  <data name="AiCompanion" xml:space="preserve">
+    <value>AI Companion</value>
+    <comment>Text in AgentPanel.</comment>
+  </data>
+  <data name="TipVoiceVolumeIndependentOfSystem" xml:space="preserve">
+    <value>Voice volume (independent of system volume)</value>
+    <comment>Tooltip in AgentPanel.</comment>
+  </data>
+  <data name="TipClearConversation" xml:space="preserve">
+    <value>Clear conversation</value>
+    <comment>Tooltip in AgentPanel.</comment>
+  </data>
+  <data name="TipClosePanel" xml:space="preserve">
+    <value>Close panel</value>
+    <comment>Tooltip in AgentPanel.</comment>
+  </data>
+  <data name="EarlierContextSummarized" xml:space="preserve">
+    <value>— earlier context summarized —</value>
+    <comment>Text in AgentPanel.</comment>
+  </data>
+  <data name="TipHoldToTalkRelease" xml:space="preserve">
+    <value>Hold to talk, release to send. Or hold the global hotkey.</value>
+    <comment>Tooltip in AgentPanel.</comment>
+  </data>
+  <data name="FmtMuteUnmuteVoice" xml:space="preserve">
+    <value>Mute / unmute {0} voice</value>
+    <comment>Formatted text ({0} is filled in) in AgentPanel.</comment>
+  </data>
+  <data name="AskWatermark" xml:space="preserve">
+    <value>Ask {0}…</value>
+    <comment>AI Companion panel: hint in the empty message box. {0} is the agent's name (the persona the user chose, e.g. a voice's name).</comment>
+  </data>
+  <data name="ErrMicrophoneFailed" xml:space="preserve">
+    <value>Microphone recording failed to start. Check your microphone in Settings → {0}.</value>
+    <comment>Agent panel error. {0} is where, built from the Settings tab names ("AI Agent → Speech Input (STT)").</comment>
+  </data>
+  <data name="StatusRecording" xml:space="preserve">
+    <value>Recording…</value>
+    <comment>AI Companion panel: status while push-to-talk records.</comment>
+  </data>
+  <data name="StatusTranscribing" xml:space="preserve">
+    <value>Transcribing…</value>
+    <comment>AI Companion panel: status while what was said is turned into text.</comment>
+  </data>
+  <data name="StatusNoSpeechCaptured" xml:space="preserve">
+    <value>No speech captured — hold the key while you speak.</value>
+    <comment>AI Companion panel: push-to-talk recorded nothing — the key was let go too soon.</comment>
+  </data>
+  <data name="StatusNoSpeechDetected" xml:space="preserve">
+    <value>No speech detected — try speaking a bit longer.</value>
+    <comment>AI Companion panel: push-to-talk recorded sound but no words were recognised.</comment>
+  </data>
+  <data name="ErrTranscriptionFailed" xml:space="preserve">
+    <value>Transcription failed: {0}</value>
+    <comment>AI Companion panel: error when what was said could not be turned into text. {0} is the error.</comment>
+  </data>
+  <data name="ErrNoModel" xml:space="preserve">
+    <value>No model is set up. Add one, with its key or its server's address, in Settings → {0}.</value>
+    <comment>Agent panel error. {0} is where, built from the Settings tab names ("AI Agent → Speech Input (STT)").</comment>
+  </data>
+  <data name="ErrAgentDisabled" xml:space="preserve">
+    <value>Agent is disabled. Enable it in Settings → {0}.</value>
+    <comment>Agent panel error. {0} is where, built from the Settings tab names ("AI Agent → Speech Input (STT)").</comment>
+  </data>
+  <data name="StatusOrganizingContext" xml:space="preserve">
+    <value>Organizing context…</value>
+    <comment>AI Companion panel: status while the earlier conversation is being summarised before the next answer.</comment>
+  </data>
+  <data name="StatusThinking" xml:space="preserve">
+    <value>Thinking…</value>
+    <comment>AI Companion panel: status while waiting for the model's answer.</comment>
+  </data>
+  <data name="StatusLookingIntoIt" xml:space="preserve">
+    <value>Looking into it…</value>
+    <comment>AI Companion panel: status after the question was handed to the model that reads the user's data.</comment>
+  </data>
+  <data name="ToolStatusQueryDatabase" xml:space="preserve">
+    <value>Reading the database…</value>
+    <comment>AI Companion panel: status while the agent queries the app's database.</comment>
+  </data>
+  <data name="ToolStatusDescribeTables" xml:space="preserve">
+    <value>Checking the schema…</value>
+    <comment>AI Companion panel: status while the agent looks up which tables and columns the database has.</comment>
+  </data>
+  <data name="ToolStatusGetAssets" xml:space="preserve">
+    <value>Looking up assets…</value>
+    <comment>AI Companion panel: status while the agent looks up the user's assets.</comment>
+  </data>
+  <data name="ToolStatusGetIndustryJobs" xml:space="preserve">
+    <value>Looking up industry jobs…</value>
+    <comment>AI Companion panel: status while the agent looks up industry jobs.</comment>
+  </data>
+  <data name="ToolStatusGetCharacterInfo" xml:space="preserve">
+    <value>Looking up the character…</value>
+    <comment>AI Companion panel: status while the agent looks up a character.</comment>
+  </data>
+  <data name="ToolStatusGetMarketPrices" xml:space="preserve">
+    <value>Checking market prices…</value>
+    <comment>AI Companion panel: status while the agent looks up market prices.</comment>
+  </data>
+  <data name="ToolStatusSearchItems" xml:space="preserve">
+    <value>Searching items…</value>
+    <comment>AI Companion panel: status while the agent searches the item list.</comment>
+  </data>
+  <data name="ToolStatusCaptureTab" xml:space="preserve">
+    <value>Looking at the screen…</value>
+    <comment>AI Companion panel: status while the agent takes a picture of a tab to look at it.</comment>
+  </data>
+  <data name="ToolStatusManageAlarms" xml:space="preserve">
+    <value>Setting up the alarm…</value>
+    <comment>AI Companion panel: status while the agent creates or changes an alarm.</comment>
+  </data>
+  <data name="ToolStatusWorking" xml:space="preserve">
+    <value>Working…</value>
+    <comment>AI Companion panel: status while the agent uses any other tool.</comment>
+  </data>
+  <data name="StatusCopiedRows" xml:space="preserve">
+    <value>Copied {0:N0} row(s) with headers.</value>
+    <comment>A grid the agent made, in its own tab: after Copy Selected or Copy All. {0} is the number of rows copied.</comment>
+  </data>
+  <data name="StatusSavedRows" xml:space="preserve">
+    <value>Saved {0:N0} row(s) to {1}</value>
+    <comment>A grid the agent made, in its own tab: after Save CSV. {0} is the number of rows, {1} the file's name.</comment>
+  </data>
+  <data name="StatusCopiedDocument" xml:space="preserve">
+    <value>Copied the document as Markdown.</value>
+    <comment>A document the agent wrote, in its own tab: after Copy Markdown.</comment>
+  </data>
+  <data name="StatusSavedTo" xml:space="preserve">
+    <value>Saved to {0}</value>
+    <comment>A document the agent wrote, in its own tab: after Save. {0} is the file's name.</comment>
+  </data>
+  <data name="TitleSaveDocument" xml:space="preserve">
+    <value>Save document</value>
+    <comment>Title of the save dialog for a document the agent wrote. "Save" is a verb.</comment>
+  </data>
+  <data name="FileTypeText" xml:space="preserve">
+    <value>Text</value>
+    <comment>Save dialog, file type list: plain text files (*.txt).</comment>
+  </data>
+  <data name="FileTypeAllFiles" xml:space="preserve">
+    <value>All files</value>
+    <comment>Save dialog, file type list: any file (*).</comment>
+  </data>
+  <data name="TitleSaveGrid" xml:space="preserve">
+    <value>Save grid</value>
+    <comment>Title of the save dialog for a grid (table) the agent made. "Save" is a verb.</comment>
+  </data>
+  <data name="ErrDocumentRender" xml:space="preserve">
+    <value>This document could not be rendered: {0}</value>
+    <comment>A document the agent wrote, in its own tab: shown above the document's raw text when it cannot be displayed formatted. {0} is the error.</comment>
+  </data>
+  <data name="GridRowsOne" xml:space="preserve">
+    <value>{0:N0} row</value>
+    <comment>A grid the agent made, in its own tab: how many rows it has. {0} is the number (this form: one).</comment>
+  </data>
+  <data name="GridRowsOther" xml:space="preserve">
+    <value>{0:N0} rows</value>
+    <comment>A grid the agent made, in its own tab: how many rows it has. {0} is the number.</comment>
+  </data>
+  <data name="ToolCallsNone" xml:space="preserve">
+    <value>no tool calls</value>
+    <comment>Line above an agent reply, and AI Usage: the reply called no tools, so it looked nothing up.</comment>
+  </data>
+  <data name="ToolCallsOne" xml:space="preserve">
+    <value>{0} tool call: {1}</value>
+    <comment>Line above an agent reply, and AI Usage. {0} is the number of tool calls (this form: one), {1} the tools' names, which stay as they are ("query_database ×2, show_table").</comment>
+  </data>
+  <data name="ToolCallsOther" xml:space="preserve">
+    <value>{0} tool calls: {1}</value>
+    <comment>Line above an agent reply, and AI Usage. {0} is the number of tool calls, {1} the tools' names, which stay as they are ("query_database ×2, show_table").</comment>
+  </data>
+  <data name="MetaAlarm" xml:space="preserve">
+    <value>alarm</value>
+    <comment>Line above an agent message, where its tool calls would be: the message comes from an alarm.</comment>
+  </data>
+  <data name="MetaVoiceChange" xml:space="preserve">
+    <value>voice change</value>
+    <comment>Line above an agent message, where its tool calls would be: the message announces that another voice is speaking.</comment>
+  </data>
+  <data name="MetaModelChange" xml:space="preserve">
+    <value>model change</value>
+    <comment>Line above an agent message, where its tool calls would be: the message announces that another AI model is answering.</comment>
+  </data>
+</root>

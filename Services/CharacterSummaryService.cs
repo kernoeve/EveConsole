@@ -1,4 +1,5 @@
 using EveConsole.Data;
+using EveConsole.Localization;
 using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -136,6 +137,11 @@ public class CharacterSummaryService(IDbContextFactory<AppDbContext> dbFactory, 
 
         await ResolveNamesAsync(chars, corps, ct);
 
+        // The rows are the grid's text and nothing else reads them, so the game's names in them —
+        // a system, an NPC station, a hull, an NPC corporation — are put in the interface language
+        // here, where the ids are still to hand.
+        await SdeNames.EnsureLoadedAsync(ct);
+
         return chars.Select(c =>
         {
             var s = status.GetValueOrDefault(c.Id);
@@ -145,21 +151,22 @@ public class CharacterSummaryService(IDbContextFactory<AppDbContext> dbFactory, 
             return new CharacterSummaryRow(
                 c.Id,
                 c.Name,
-                corps.GetValueOrDefault(c.CorporationId)
-                    ?? _corpNames.GetValueOrDefault(c.CorporationId, $"Corp {c.CorporationId}"),
-                c.AllianceId is { } a ? _allianceNames.GetValueOrDefault(a, $"Alliance {a}") : "",
+                // An NPC corporation (an alt in a starter corp) in the interface language; a
+                // player corporation has no SDE name and comes back as it is.
+                SdeNames.NpcCorporation(c.CorporationId,
+                    corps.GetValueOrDefault(c.CorporationId)
+                        ?? _corpNames.GetValueOrDefault(c.CorporationId, string.Format(CharactersText.SummaryCorpNumbered, c.CorporationId))),
+                c.AllianceId is { } a ? _allianceNames.GetValueOrDefault(a, string.Format(CharactersText.SummaryAllianceNumbered, a)) : "",
                 s?.Online ?? false,
                 s?.OnlineCheckedAt,
                 Where(s, places),
-                s?.ShipTypeId is { } shipType
-                    ? ships.GetValueOrDefault(shipType, $"Type {shipType}") is var hull
-                      && !string.IsNullOrWhiteSpace(s.ShipName) && s.ShipName != hull
-                        ? $"{hull} · {s.ShipName}"
-                        : hull
-                    : "",
+                ShipText(s, ships),
                 pods.GetValueOrDefault(c.Id),
+                // A station or a structure: the first in the interface language, the second as named.
                 clones.GetValueOrDefault(c.Id)?.HomeLocationId is { } home
-                    ? places.GetValueOrDefault(home, $"Location {home}")
+                    ? places.TryGetValue(home, out var homeName)
+                        ? SdeNames.Location(home, homeName)
+                        : string.Format(CharactersText.SummaryLocationNumbered, home)
                     : "",
                 q.Length,
                 q.Ends,
@@ -207,15 +214,38 @@ public class CharacterSummaryService(IDbContextFactory<AppDbContext> dbFactory, 
         }
     }
 
-    /// <summary>Where a character is: the station or structure if docked, the system if not.</summary>
+    /// <summary>Where a character is: the station or structure if docked, the system if not. A
+    /// system and an NPC station are named in the interface language; a structure as its owner
+    /// named it.</summary>
     private static string Where(CharacterStatus? s, Dictionary<long, string> places)
     {
         if (s is null) return "";
-        if (s.StationId   is { } st) return places.GetValueOrDefault(st, $"Station {st}");
-        if (s.StructureId is { } sr) return places.GetValueOrDefault(sr, $"Structure {sr}");
+        if (s.StationId   is { } st)
+            return places.TryGetValue(st, out var station)
+                ? SdeNames.Station(st, station)
+                : string.Format(CharactersText.SummaryStationNumbered, st);
+        if (s.StructureId is { } sr) return places.GetValueOrDefault(sr, string.Format(CharactersText.SummaryStructureNumbered, sr));
         if (s.SolarSystemId is { } sys)
-            return places.TryGetValue(sys, out var n) ? $"{n} (in space)" : $"System {sys}";
+            return places.TryGetValue(sys, out var n)
+                ? string.Format(CharactersText.SummaryInSpace, SdeNames.SolarSystem(sys, n))
+                : string.Format(CharactersText.SummarySystemNumbered, sys);
         return "";
+    }
+
+    /// <summary>
+    /// The hull a character sits in, in the interface language, and the ship's own name after it
+    /// when it has one. ⚠️ The ship's name is compared with the hull's ENGLISH name, as ESI and
+    /// the SDE both give them, never with the name shown.
+    /// </summary>
+    private static string ShipText(CharacterStatus? s, Dictionary<int, string> ships)
+    {
+        if (s?.ShipTypeId is not { } shipType) return "";
+        var english = ships.GetValueOrDefault(shipType);
+        var hull    = english is null ? string.Format(CharactersText.SummaryTypeNumbered, shipType)
+                                      : SdeNames.Type(shipType, english);
+        return !string.IsNullOrWhiteSpace(s.ShipName) && s.ShipName != english
+            ? $"{hull} · {s.ShipName}"
+            : hull;
     }
 
     /// <summary>

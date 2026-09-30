@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Globalization;
 using Avalonia.Data.Converters;
+using EveConsole.Localization;
 using EveConsole.ViewModels;
 
 namespace EveConsole.Views;
@@ -23,7 +24,8 @@ public sealed class ItemAssetGroupConverter : IValueConverter
 
         var units = rows.Sum(r => r.Quantity);
         var worth = rows.Sum(r => r.Value);
-        var text  = $"{rows.Count:N0} stack{(rows.Count == 1 ? "" : "s")} · {units:N0} unit{(units == 1 ? "" : "s")}";
+        var text  = Plurals.Format(AssetsText.ResourceManager, nameof(AssetsText.AssetsStacksOther), rows.Count)
+                  + " · " + Plurals.Format(AssetsText.ResourceManager, nameof(AssetsText.AssetsUnitsOther), units);
         return worth > 0 ? $"{text} · {MarketFmt.Isk(worth)}" : text;
     }
 

@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              xmlns:local="clr-namespace:EveConsole.Views"
              x:Class="EveConsole.Views.CharacterViewerView"
@@ -27,15 +28,15 @@
   <!-- ════ Summary: every character on one grid ═══════════════════════════════
        The detail tab answers "what about this one". This answers "which one",
        which is the question actually being asked when deciding who to log in. -->
-  <TabItem Header="Summary">
+  <TabItem Header="{x:Static loc:CharactersText.TabSummary}">
     <Grid RowDefinitions="Auto,Auto,*" Margin="14 12">
 
       <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10" Margin="0 0 0 8">
-        <TextBlock Text="All characters" FontSize="15" FontWeight="SemiBold"
+        <TextBlock Text="{x:Static loc:CharactersText.AllCharacters}" FontSize="15" FontWeight="SemiBold"
                    Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
-        <Button Content="Refresh" Command="{Binding RefreshSummaryCommand}"
+        <Button Content="{x:Static loc:CharactersText.Refresh}" Command="{Binding RefreshSummaryCommand}"
                 IsEnabled="{Binding !SummaryLoading}" FontSize="11" Padding="10 4"/>
-        <TextBlock Text="Double-click a row to open it on the Detail tab."
+        <TextBlock Text="{x:Static loc:CharactersText.DoubleClickARowNote}"
                    FontSize="10" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center"/>
       </StackPanel>
 
@@ -66,11 +67,11 @@
         </DataGrid.Styles>
 
         <DataGrid.Columns>
-          <DataGridTextColumn Header="Character" Binding="{Binding Name}"     Width="150"/>
-          <DataGridTextColumn Header="Corp"      Binding="{Binding CorpName}" Width="150"/>
-          <DataGridTextColumn Header="Alliance"  Binding="{Binding Alliance}" Width="140"/>
+          <DataGridTextColumn Header="{x:Static loc:CharactersText.ColCharacter}" Binding="{Binding Name}"     Width="150"/>
+          <DataGridTextColumn Header="{x:Static loc:CharactersText.ColCorp}"      Binding="{Binding CorpName}" Width="150"/>
+          <DataGridTextColumn Header="{x:Static loc:CharactersText.ColAlliance}"  Binding="{Binding Alliance}" Width="140"/>
 
-          <DataGridTemplateColumn Header="Status" Width="70" SortMemberPath="Online" ClipboardContentBinding="{Binding OnlineText}">
+          <DataGridTemplateColumn Header="{x:Static loc:CharactersText.ColStatus}" Width="70" SortMemberPath="Online" ClipboardContentBinding="{Binding OnlineText}">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:CharacterSummaryRowVm">
                 <TextBlock Text="{Binding OnlineText}" Foreground="{Binding OnlineColor}"
@@ -80,7 +81,7 @@
           </DataGridTemplateColumn>
 
           <!-- Tooltips on the wide text columns: a structure name rarely fits. -->
-          <DataGridTemplateColumn Header="Location" Width="200" SortMemberPath="Location" ClipboardContentBinding="{Binding Location}">
+          <DataGridTemplateColumn Header="{x:Static loc:CharactersText.ColLocation}" Width="200" SortMemberPath="Location" ClipboardContentBinding="{Binding Location}">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:CharacterSummaryRowVm">
                 <TextBlock Text="{Binding Location}" ToolTip.Tip="{Binding Location}"
@@ -89,7 +90,7 @@
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
 
-          <DataGridTemplateColumn Header="Ship" Width="150" SortMemberPath="Ship" ClipboardContentBinding="{Binding Ship}">
+          <DataGridTemplateColumn Header="{x:Static loc:CharactersText.ColShip}" Width="150" SortMemberPath="Ship" ClipboardContentBinding="{Binding Ship}">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:CharacterSummaryRowVm">
                 <TextBlock Text="{Binding Ship}" ToolTip.Tip="{Binding Ship}"
@@ -98,10 +99,10 @@
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
 
-          <DataGridTextColumn Header="Pod value" Binding="{Binding PodValue}"
+          <DataGridTextColumn Header="{x:Static loc:CharactersText.ColPodValue}" Binding="{Binding PodValue}"
                               SortMemberPath="PodValueRaw" Width="90"/>
 
-          <DataGridTemplateColumn Header="Home station" Width="190" SortMemberPath="HomeStation" ClipboardContentBinding="{Binding HomeStation}">
+          <DataGridTemplateColumn Header="{x:Static loc:CharactersText.ColHomeStation}" Width="190" SortMemberPath="HomeStation" ClipboardContentBinding="{Binding HomeStation}">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:CharacterSummaryRowVm">
                 <TextBlock Text="{Binding HomeStation}" ToolTip.Tip="{Binding HomeStation}"
@@ -110,51 +111,51 @@
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
 
-          <DataGridTemplateColumn Header="Skill queue" Width="100" SortMemberPath="QueueEndsRaw" ClipboardContentBinding="{Binding QueueText}">
+          <DataGridTemplateColumn Header="{x:Static loc:CharactersText.ColSkillQueue}" Width="100" SortMemberPath="QueueEndsRaw" ClipboardContentBinding="{Binding QueueText}">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:CharacterSummaryRowVm">
                 <TextBlock Text="{Binding QueueText}" Foreground="{Binding QueueColor}"
                            VerticalAlignment="Center"
-                           ToolTip.Tip="Entries in the queue, and how long until the last one finishes."/>
+                           ToolTip.Tip="{x:Static loc:CharactersText.TipEntriesInTheQueue}"/>
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
 
-          <DataGridTextColumn Header="Total SP"  Binding="{Binding TotalSp}"
+          <DataGridTextColumn Header="{x:Static loc:CharactersText.ColTotalSp}"  Binding="{Binding TotalSp}"
                               SortMemberPath="TotalSpRaw" Width="100"/>
           <DataGridTextColumn Header="ISK"       Binding="{Binding Isk_}"
                               SortMemberPath="IskRaw" Width="90"/>
-          <DataGridTextColumn Header="Assets"    Binding="{Binding AssetValue}"
+          <DataGridTextColumn Header="{x:Static loc:CharactersText.ColAssets}"    Binding="{Binding AssetValue}"
                               SortMemberPath="AssetValueRaw" Width="90"/>
 
           <!-- Coloured by how much room is left, as a share of that character's own capacity —
                two free is comfortable on three and nearly nothing on eleven. -->
-          <DataGridTemplateColumn Header="Mfg" Width="70" SortMemberPath="ManufacturingFreeRaw" ClipboardContentBinding="{Binding Manufacturing}">
+          <DataGridTemplateColumn Header="{x:Static loc:CharactersText.ColMfg}" Width="70" SortMemberPath="ManufacturingFreeRaw" ClipboardContentBinding="{Binding Manufacturing}">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:CharacterSummaryRowVm">
                 <TextBlock Text="{Binding Manufacturing}" Foreground="{Binding ManufacturingColor}"
                            FontWeight="SemiBold" VerticalAlignment="Center"
-                           ToolTip.Tip="Manufacturing slots free of total"/>
+                           ToolTip.Tip="{x:Static loc:CharactersText.TipManufacturingSlotsFreeOfTotal}"/>
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
 
-          <DataGridTemplateColumn Header="Rxn" Width="70" SortMemberPath="ReactionFreeRaw" ClipboardContentBinding="{Binding Reaction}">
+          <DataGridTemplateColumn Header="{x:Static loc:CharactersText.ColRxn}" Width="70" SortMemberPath="ReactionFreeRaw" ClipboardContentBinding="{Binding Reaction}">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:CharacterSummaryRowVm">
                 <TextBlock Text="{Binding Reaction}" Foreground="{Binding ReactionColor}"
                            FontWeight="SemiBold" VerticalAlignment="Center"
-                           ToolTip.Tip="Reaction slots free of total"/>
+                           ToolTip.Tip="{x:Static loc:CharactersText.TipReactionSlotsFreeOfTotal}"/>
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
 
-          <DataGridTemplateColumn Header="Sci" Width="*" SortMemberPath="ScienceFreeRaw" ClipboardContentBinding="{Binding Science}">
+          <DataGridTemplateColumn Header="{x:Static loc:CharactersText.ColSci}" Width="*" SortMemberPath="ScienceFreeRaw" ClipboardContentBinding="{Binding Science}">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:CharacterSummaryRowVm">
                 <TextBlock Text="{Binding Science}" Foreground="{Binding ScienceColor}"
                            FontWeight="SemiBold" VerticalAlignment="Center"
-                           ToolTip.Tip="Science slots free of total — copying, research and invention"/>
+                           ToolTip.Tip="{x:Static loc:CharactersText.TipScienceSlotsFreeOf}"/>
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
@@ -164,13 +165,13 @@
   </TabItem>
 
   <!-- ════ Detail: the original single-character view, dropdown and all ═══════ -->
-  <TabItem Header="Detail">
+  <TabItem Header="{x:Static loc:CharactersText.TabDetail}">
   <DockPanel>
 
     <!-- ── Top: selector bar ──────────────────────────────────────────────── -->
     <Border DockPanel.Dock="Top" Background="{DynamicResource SurfaceHeaderBrush}" Padding="14 8">
       <Grid ColumnDefinitions="Auto,*,Auto">
-        <TextBlock Grid.Column="0" Text="Character:"
+        <TextBlock Grid.Column="0" Text="{x:Static loc:CharactersText.CharacterLabel}"
                    Foreground="{DynamicResource TextDimBrush}" FontSize="12"
                    VerticalAlignment="Center" Margin="0 0 10 0" />
         <ComboBox Grid.Column="1"
@@ -183,7 +184,7 @@
             </DataTemplate>
           </ComboBox.ItemTemplate>
         </ComboBox>
-        <Button Grid.Column="2" Content="Refresh"
+        <Button Grid.Column="2" Content="{x:Static loc:CharactersText.Refresh}"
                 Command="{Binding RefreshCommand}"
                 IsEnabled="{Binding !IsBusy}"
                 Margin="10 0 0 0" Padding="12 4" />
@@ -217,20 +218,20 @@
 
           <!-- SP + sec status row -->
           <StackPanel Orientation="Horizontal" Spacing="0" Margin="0 4 0 0">
-            <TextBlock Text="Total SP: " Foreground="{DynamicResource TextFaintBrush}" FontSize="11" />
+            <TextBlock Text="{x:Static loc:CharactersText.TotalSpLabel}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11" />
             <TextBlock Text="{Binding SelectedCharacter.TotalSp, StringFormat=\{0:N0\}}"
                        Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" Margin="0 0 20 0" />
-            <TextBlock Text="Unallocated: " Foreground="{DynamicResource TextFaintBrush}" FontSize="11" />
+            <TextBlock Text="{x:Static loc:CharactersText.UnallocatedLabel}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11" />
             <TextBlock Text="{Binding SelectedCharacter.UnallocatedSp, StringFormat=\{0:N0\}}"
                        Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" Margin="0 0 20 0" />
-            <TextBlock Text="Sec Status: " Foreground="{DynamicResource TextFaintBrush}" FontSize="11" />
+            <TextBlock Text="{x:Static loc:CharactersText.SecStatusLabel}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11" />
             <TextBlock Text="{Binding SelectedCharacter.SecurityStatus, StringFormat=\{0:F1\}}"
                        Foreground="{Binding SelectedCharacter.SecurityStatus, Converter={x:Static local:SecurityStatusBrushConverter.Instance}}"
                        FontSize="11" />
           </StackPanel>
 
           <!-- Last updated -->
-          <TextBlock Text="{Binding SelectedCharacter.LastUpdated, StringFormat='Updated: \{0:dd MMM yyyy HH:mm\}'}"
+          <TextBlock Text="{Binding SelectedCharacter.LastUpdated, StringFormat={x:Static loc:CharactersText.FmtUpdated}}"
                      Foreground="{DynamicResource BorderStrongBrush}" FontSize="10" />
 
         </StackPanel>
@@ -255,13 +256,13 @@
     <TabControl Margin="0" Padding="0" SelectedIndex="{Binding SelectedTabIndex}">
 
       <!-- ──── Tab 1: Skills + Queue ─────────────────────────────────────── -->
-      <TabItem Header="Skills">
+      <TabItem Header="{x:Static loc:CharactersText.TabSkills}">
         <Grid ColumnDefinitions="190,1,*,1,500">
 
           <!-- Skill group list (left panel) -->
           <Grid Grid.Column="0" RowDefinitions="Auto,*" Background="{DynamicResource SurfaceInputBrush}">
             <Border Grid.Row="0" Background="{DynamicResource SurfaceHeaderBrush}" Padding="10 7">
-              <TextBlock Text="Skill Groups"
+              <TextBlock Text="{x:Static loc:CharactersText.SkillGroups}"
                          FontSize="11" FontWeight="SemiBold"
                          Foreground="{DynamicResource TextMutedBrush}" />
             </Border>
@@ -321,7 +322,7 @@
                             Classes="skilllink"
                             Command="{Binding $parent[UserControl].DataContext.OpenInItemBrowserCommand}"
                             CommandParameter="{Binding TypeId}"
-                            ToolTip.Tip="Open in Item Browser">
+                            ToolTip.Tip="{x:Static loc:CharactersText.TipOpenInItemBrowser}">
                       <TextBlock Text="{Binding Name}"
                                  FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"
                                  TextDecorations="Underline"
@@ -361,7 +362,7 @@
           <Grid Grid.Column="4" RowDefinitions="Auto,*,Auto" Background="{DynamicResource SurfaceInputBrush}">
             <Border Grid.Row="0" Background="{DynamicResource SurfaceHeaderBrush}" Padding="10 7">
               <Grid ColumnDefinitions="Auto,*">
-                <TextBlock Grid.Column="0" Text="Training Queue"
+                <TextBlock Grid.Column="0" Text="{x:Static loc:CharactersText.TrainingQueue}"
                            FontSize="11" FontWeight="SemiBold"
                            Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
                 <TextBlock Grid.Column="1" Text="{Binding QueueEtaText}"
@@ -386,7 +387,7 @@
                                 Classes="skilllink"
                                 Command="{Binding $parent[UserControl].DataContext.OpenInItemBrowserCommand}"
                                 CommandParameter="{Binding TypeId}"
-                                ToolTip.Tip="Open in Item Browser">
+                                ToolTip.Tip="{x:Static loc:CharactersText.TipOpenInItemBrowser}">
                           <TextBlock Text="{Binding SkillName}"
                                      FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"
                                      TextDecorations="Underline"
@@ -434,42 +435,42 @@
       </TabItem>
 
       <!-- ──── Tab 2: Attributes ─────────────────────────────────────────── -->
-      <TabItem Header="Attributes">
+      <TabItem Header="{x:Static loc:CharactersText.TabAttributes}">
         <ScrollViewer Padding="20">
           <StackPanel Spacing="20" MaxWidth="500">
 
-            <TextBlock Text="Character Attributes"
+            <TextBlock Text="{x:Static loc:CharactersText.CharacterAttributes}"
                        FontSize="14" FontWeight="SemiBold"
                        Foreground="{DynamicResource AccentBrush}" />
 
             <Grid ColumnDefinitions="140,80" RowDefinitions="Auto,Auto,Auto,Auto,Auto"
                   IsVisible="{Binding Attributes, Converter={x:Static ObjectConverters.IsNotNull}}">
-              <TextBlock Grid.Row="0" Grid.Column="0" Text="Intelligence" Foreground="{DynamicResource TextMutedBrush}" FontSize="12" Margin="0 4" />
+              <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static loc:CharactersText.Intelligence}" Foreground="{DynamicResource TextMutedBrush}" FontSize="12" Margin="0 4" />
               <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Attributes.Intelligence}" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" FontWeight="SemiBold" Margin="0 4" />
-              <TextBlock Grid.Row="1" Grid.Column="0" Text="Memory"       Foreground="{DynamicResource TextMutedBrush}" FontSize="12" Margin="0 4" />
+              <TextBlock Grid.Row="1" Grid.Column="0" Text="{x:Static loc:CharactersText.Memory}"       Foreground="{DynamicResource TextMutedBrush}" FontSize="12" Margin="0 4" />
               <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Attributes.Memory}"       Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" FontWeight="SemiBold" Margin="0 4" />
-              <TextBlock Grid.Row="2" Grid.Column="0" Text="Charisma"     Foreground="{DynamicResource TextMutedBrush}" FontSize="12" Margin="0 4" />
+              <TextBlock Grid.Row="2" Grid.Column="0" Text="{x:Static loc:CharactersText.Charisma}"     Foreground="{DynamicResource TextMutedBrush}" FontSize="12" Margin="0 4" />
               <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Attributes.Charisma}"     Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" FontWeight="SemiBold" Margin="0 4" />
-              <TextBlock Grid.Row="3" Grid.Column="0" Text="Perception"   Foreground="{DynamicResource TextMutedBrush}" FontSize="12" Margin="0 4" />
+              <TextBlock Grid.Row="3" Grid.Column="0" Text="{x:Static loc:CharactersText.Perception}"   Foreground="{DynamicResource TextMutedBrush}" FontSize="12" Margin="0 4" />
               <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding Attributes.Perception}"   Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" FontWeight="SemiBold" Margin="0 4" />
-              <TextBlock Grid.Row="4" Grid.Column="0" Text="Willpower"    Foreground="{DynamicResource TextMutedBrush}" FontSize="12" Margin="0 4" />
+              <TextBlock Grid.Row="4" Grid.Column="0" Text="{x:Static loc:CharactersText.Willpower}"    Foreground="{DynamicResource TextMutedBrush}" FontSize="12" Margin="0 4" />
               <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding Attributes.Willpower}"    Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" FontWeight="SemiBold" Margin="0 4" />
             </Grid>
 
             <TextBlock IsVisible="{Binding Attributes, Converter={x:Static ObjectConverters.IsNull}}"
-                       Text="No attribute data available. Character attributes are loaded during ESI polling."
+                       Text="{x:Static loc:CharactersText.NoAttributeDataAvailableNote}"
                        Foreground="{DynamicResource TextFaintBrush}" FontSize="12" TextWrapping="Wrap" />
 
             <Border IsVisible="{Binding Attributes, Converter={x:Static ObjectConverters.IsNotNull}}"
                     Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4" Padding="12 10">
               <StackPanel Spacing="6">
-                <TextBlock Text="Neural Remapping" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" />
+                <TextBlock Text="{x:Static loc:CharactersText.NeuralRemapping}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextMutedBrush}" />
                 <TextBlock Text="{Binding RemapInfo}" FontSize="11" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap" />
                 <Grid ColumnDefinitions="140,*"
                       IsVisible="{Binding Attributes.LastRemapDate, Converter={x:Static ObjectConverters.IsNotNull}}">
-                  <TextBlock Grid.Column="0" Text="Last Remap:" Foreground="{DynamicResource TextFaintBrush}" FontSize="11" />
+                  <TextBlock Grid.Column="0" Text="{x:Static loc:CharactersText.LastRemapLabel}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11" />
                   <TextBlock Grid.Column="1"
-                             Text="{Binding Attributes.LastRemapDate, StringFormat=\{0:dd MMM yyyy\}}"
+                             Text="{Binding Attributes.LastRemapDate, StringFormat={x:Static loc:CommonText.DateFullBinding}}"
                              Foreground="{DynamicResource TextMutedBrush}" FontSize="11" />
                 </Grid>
               </StackPanel>
@@ -480,17 +481,17 @@
       </TabItem>
 
       <!-- ──── Tab 3: Clones ─────────────────────────────────────────────── -->
-      <TabItem Header="Clones">
+      <TabItem Header="{x:Static loc:CharactersText.TabClones}">
         <ScrollViewer Padding="20">
           <StackPanel Spacing="20">
 
             <!-- Active pod implants -->
             <StackPanel Spacing="8">
-              <TextBlock Text="Active Clone Implants"
+              <TextBlock Text="{x:Static loc:CharactersText.ActiveCloneImplants}"
                          FontSize="13" FontWeight="SemiBold"
                          Foreground="{DynamicResource AccentBrush}" />
               <TextBlock IsVisible="{Binding NoActiveImplants}"
-                         Text="No implants fitted in active clone."
+                         Text="{x:Static loc:CharactersText.NoImplantsFittedInActive}"
                          Foreground="{DynamicResource TextFaintBrush}" FontSize="11" />
               <ItemsControl ItemsSource="{Binding ActiveImplants}">
                 <ItemsControl.ItemTemplate>
@@ -505,11 +506,11 @@
 
             <!-- Jump clones -->
             <StackPanel Spacing="8">
-              <TextBlock Text="Jump Clones"
+              <TextBlock Text="{x:Static loc:CharactersText.JumpClones}"
                          FontSize="13" FontWeight="SemiBold"
                          Foreground="{DynamicResource AccentBrush}" />
               <TextBlock IsVisible="{Binding NoJumpClones}"
-                         Text="No jump clones."
+                         Text="{x:Static loc:CharactersText.NoJumpClones}"
                          Foreground="{DynamicResource TextFaintBrush}" FontSize="11" />
               <ItemsControl ItemsSource="{Binding JumpClones}">
                 <ItemsControl.ItemTemplate>
@@ -542,7 +543,7 @@
       </TabItem>
 
       <!-- ──── Tab 4: Medals ─────────────────────────────────────────────── -->
-      <TabItem Header="Medals">
+      <TabItem Header="{x:Static loc:CharactersText.TabMedals}">
         <Grid RowDefinitions="Auto,*">
 
           <!-- Empty state -->
@@ -568,7 +569,7 @@
                                  FontSize="12" FontWeight="SemiBold"
                                  Foreground="{DynamicResource AccentBrush}" />
                       <TextBlock Grid.Row="0" Grid.Column="1"
-                                 Text="{Binding Date, StringFormat=\{0:dd MMM yyyy\}}"
+                                 Text="{Binding Date, StringFormat={x:Static loc:CommonText.DateFullBinding}}"
                                  FontSize="10" Foreground="{DynamicResource TextFaintBrush}"
                                  VerticalAlignment="Center" />
                       <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
@@ -591,12 +592,12 @@
       </TabItem>
 
       <!-- ──── Tab 5: Titles ────────────────────────────────────────────── -->
-      <TabItem Header="Titles">
+      <TabItem Header="{x:Static loc:CharactersText.TabTitles}">
         <Grid RowDefinitions="Auto,*">
           <Border Grid.Row="0"
                   IsVisible="{Binding NoTitles}"
                   Padding="20 16">
-            <TextBlock Text="No titles held by this character."
+            <TextBlock Text="{x:Static loc:CharactersText.NoTitlesHeldByThis}"
                        Foreground="{DynamicResource TextFaintBrush}" FontSize="12" />
           </Border>
           <ScrollViewer Grid.Row="1"
@@ -618,12 +619,12 @@
       </TabItem>
 
       <!-- ──── Tab 6: Standings ─────────────────────────────────────────── -->
-      <TabItem Header="Standings">
+      <TabItem Header="{x:Static loc:CharactersText.TabStandings}">
         <Grid RowDefinitions="Auto,*">
           <Border Grid.Row="0"
                   IsVisible="{Binding NoStandings}"
                   Padding="20 16">
-            <TextBlock Text="No standings data available."
+            <TextBlock Text="{x:Static loc:CharactersText.NoStandingsDataAvailable}"
                        Foreground="{DynamicResource TextFaintBrush}" FontSize="12" />
           </Border>
           <ScrollViewer Grid.Row="1"

@@ -1,0 +1,950 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TitleComposeMail" xml:space="preserve">
+    <value>撰写邮件</value>
+  </data>
+  <data name="FromLabel" xml:space="preserve">
+    <value>发件人</value>
+  </data>
+  <data name="ToSearchNamePressNote" xml:space="preserve">
+    <value>收件人（搜索名称，按 Enter 添加）</value>
+  </data>
+  <data name="HintCharacterName" xml:space="preserve">
+    <value>角色名称…</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>添加</value>
+  </data>
+  <data name="SubjectLabel" xml:space="preserve">
+    <value>主题</value>
+  </data>
+  <data name="BodyLabel" xml:space="preserve">
+    <value>正文</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="Send" xml:space="preserve">
+    <value>发送</value>
+  </data>
+  <data name="CharacterLabel" xml:space="preserve">
+    <value>角色</value>
+  </data>
+  <data name="Reply" xml:space="preserve">
+    <value>回复</value>
+  </data>
+  <data name="Forward" xml:space="preserve">
+    <value>转发</value>
+  </data>
+  <data name="Compose" xml:space="preserve">
+    <value>+ 撰写</value>
+  </data>
+  <data name="FromLabel2" xml:space="preserve">
+    <value>来自：</value>
+  </data>
+  <data name="DateFromLabel" xml:space="preserve">
+    <value>从：</value>
+  </data>
+  <data name="TipOpenInTheEntityBrowser" xml:space="preserve">
+    <value>在实体浏览器中打开</value>
+  </data>
+  <data name="ToLabel" xml:space="preserve">
+    <value>致：</value>
+  </data>
+  <data name="DateLabel" xml:space="preserve">
+    <value>日期：</value>
+  </data>
+  <data name="SelectAMessageToRead" xml:space="preserve">
+    <value>选择一封邮件即可阅读。</value>
+  </data>
+  <data name="TitleEveMail" xml:space="preserve">
+    <value>EVE 邮件</value>
+  </data>
+  <data name="CharacterLabel2" xml:space="preserve">
+    <value>角色：</value>
+  </data>
+  <data name="TypeLabel" xml:space="preserve">
+    <value>类型：</value>
+  </data>
+  <data name="SenderLabel" xml:space="preserve">
+    <value>发送者：</value>
+  </data>
+  <data name="ThruLabel" xml:space="preserve">
+    <value>至：</value>
+  </data>
+  <data name="SortLabel" xml:space="preserve">
+    <value>排序：</value>
+  </data>
+  <data name="UnreadOnly" xml:space="preserve">
+    <value>仅未读</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>清除</value>
+  </data>
+  <data name="ColDate" xml:space="preserve">
+    <value>日期</value>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>类型</value>
+  </data>
+  <data name="ColCharacter" xml:space="preserve">
+    <value>角色</value>
+  </data>
+  <data name="ColSender" xml:space="preserve">
+    <value>发送者</value>
+  </data>
+  <data name="ColSenderType" xml:space="preserve">
+    <value>发送者类型</value>
+  </data>
+  <data name="ColRead" xml:space="preserve">
+    <value>已读</value>
+  </data>
+  <data name="Sender" xml:space="preserve">
+    <value>发送者</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>日期</value>
+  </data>
+  <data name="Read" xml:space="preserve">
+    <value>已读</value>
+  </data>
+  <data name="Character" xml:space="preserve">
+    <value>角色</value>
+  </data>
+  <data name="NoFurtherDetails" xml:space="preserve">
+    <value>没有更多详情。</value>
+  </data>
+  <data name="ShowTheOriginalText" xml:space="preserve">
+    <value>显示原文</value>
+  </data>
+  <data name="SelectANotificationToNote" xml:space="preserve">
+    <value>选择一条通知即可查看详情。</value>
+  </data>
+  <data name="First" xml:space="preserve">
+    <value>⏮ 首页</value>
+  </data>
+  <data name="Prev" xml:space="preserve">
+    <value>◀ 上一页</value>
+  </data>
+  <data name="Next" xml:space="preserve">
+    <value>下一页 ▶</value>
+  </data>
+  <data name="Last" xml:space="preserve">
+    <value>末页 ⏭</value>
+  </data>
+  <data name="AllCharacters" xml:space="preserve">
+    <value>所有角色</value>
+  </data>
+  <data name="MailFolderAll" xml:space="preserve">
+    <value>所有邮件</value>
+  </data>
+  <data name="MailFolderInbox" xml:space="preserve">
+    <value>收件箱</value>
+  </data>
+  <data name="MailFolderSent" xml:space="preserve">
+    <value>已发送</value>
+  </data>
+  <data name="MailFolderCorp" xml:space="preserve">
+    <value>军团</value>
+  </data>
+  <data name="MailFolderAlliance" xml:space="preserve">
+    <value>联盟</value>
+  </data>
+  <data name="MailCountOther" xml:space="preserve">
+    <value>{0:N0} 封邮件</value>
+  </data>
+  <data name="MailBodyLoadError" xml:space="preserve">
+    <value>（加载正文时出错：{0}）</value>
+  </data>
+  <data name="MailNoCharacters" xml:space="preserve">
+    <value>没有可用于撰写邮件的角色。</value>
+  </data>
+  <data name="MailCharacterGone" xml:space="preserve">
+    <value>收到这封邮件的角色已不可用，无法以其身份发送。</value>
+  </data>
+  <data name="MailQuoteHeader" xml:space="preserve">
+    <value>{0} 于 {1} 写道：
+
+</value>
+  </data>
+  <data name="MailSending" xml:space="preserve">
+    <value>正在发送…</value>
+  </data>
+  <data name="MailSent" xml:space="preserve">
+    <value>邮件已发送。</value>
+  </data>
+  <data name="MailSendFailed" xml:space="preserve">
+    <value>发送失败：{0}</value>
+  </data>
+  <data name="NotifRead" xml:space="preserve">
+    <value>已读</value>
+  </data>
+  <data name="NotifUnread" xml:space="preserve">
+    <value>未读</value>
+  </data>
+  <data name="NotifTipEntity" xml:space="preserve">
+    <value>在实体浏览器中打开</value>
+  </data>
+  <data name="NotifAllTypes" xml:space="preserve">
+    <value>所有类型</value>
+  </data>
+  <data name="SortDateNewest" xml:space="preserve">
+    <value>日期：最新在前</value>
+  </data>
+  <data name="SortDateOldest" xml:space="preserve">
+    <value>日期：最早在前</value>
+  </data>
+  <data name="SortTypeAz" xml:space="preserve">
+    <value>类型（A → Z）</value>
+  </data>
+  <data name="AllCharactersLower" xml:space="preserve">
+    <value>所有角色</value>
+  </data>
+  <data name="NotifNoneMatch" xml:space="preserve">
+    <value>没有符合这些筛选条件的通知。</value>
+  </data>
+  <data name="MailSearching" xml:space="preserve">
+    <value>正在搜索…</value>
+  </data>
+  <data name="MailNoCharacterFound" xml:space="preserve">
+    <value>未找到与“{0}”匹配的角色。</value>
+  </data>
+  <data name="MailSubjectRequired" xml:space="preserve">
+    <value>主题为必填项。</value>
+  </data>
+  <data name="MailBodyRequired" xml:space="preserve">
+    <value>正文为必填项。</value>
+  </data>
+  <data name="MailAddRecipient" xml:space="preserve">
+    <value>请至少添加一个收件人。</value>
+  </data>
+  <data name="NotifTitleCorpAppNewMsg" xml:space="preserve">
+    <value>新的军团申请</value>
+  </data>
+  <data name="NotifTitleCorpAppInvitedMsg" xml:space="preserve">
+    <value>受邀加入军团</value>
+  </data>
+  <data name="NotifTitleCorpAppAcceptMsg" xml:space="preserve">
+    <value>军团申请已被接受</value>
+  </data>
+  <data name="NotifTitleCharAppAcceptMsg" xml:space="preserve">
+    <value>申请已被接受</value>
+  </data>
+  <data name="NotifTitleCharAppRejectMsg" xml:space="preserve">
+    <value>申请已被拒绝</value>
+  </data>
+  <data name="NotifTitleCharAppWithdrawMsg" xml:space="preserve">
+    <value>申请已撤回</value>
+  </data>
+  <data name="NotifTitleCharTerminationMsg" xml:space="preserve">
+    <value>成员已离开军团</value>
+  </data>
+  <data name="NotifTitleCorpTaxChangeMsg" xml:space="preserve">
+    <value>军团税率已变更</value>
+  </data>
+  <data name="NotifTitleCorpAllBillMsg" xml:space="preserve">
+    <value>军团账单</value>
+  </data>
+  <data name="NotifTitleInsurancePayoutMsg" xml:space="preserve">
+    <value>保险赔付</value>
+  </data>
+  <data name="NotifTitleNPCStandingsLost" xml:space="preserve">
+    <value>NPC 声望已变化</value>
+  </data>
+  <data name="NotifTitleNPCStandingsGained" xml:space="preserve">
+    <value>NPC 声望已变化</value>
+  </data>
+  <data name="NotifTitleCorporationGoalCreated" xml:space="preserve">
+    <value>军团项目已创建</value>
+  </data>
+  <data name="NotifTitleCorporationGoalCompleted" xml:space="preserve">
+    <value>军团项目已完成</value>
+  </data>
+  <data name="NotifTitleCorporationGoalClosed" xml:space="preserve">
+    <value>军团项目已关闭</value>
+  </data>
+  <data name="NotifTitleFreelanceProjectCreated" xml:space="preserve">
+    <value>自由任务已创建</value>
+  </data>
+  <data name="NotifTitleFreelanceProjectCompleted" xml:space="preserve">
+    <value>自由任务已完成</value>
+  </data>
+  <data name="NotifTitleFreelanceProjectExpired" xml:space="preserve">
+    <value>自由任务已过期</value>
+  </data>
+  <data name="NotifTitleFreelanceProjectACLDeleted" xml:space="preserve">
+    <value>自由任务的访问列表已删除</value>
+  </data>
+  <data name="NotifTitleMoonminingExtractionStarted" xml:space="preserve">
+    <value>月矿提取已开始</value>
+  </data>
+  <data name="NotifTitleMoonminingExtractionFinished" xml:space="preserve">
+    <value>月矿提取已完成</value>
+  </data>
+  <data name="NotifTitleMoonminingExtractionCancelled" xml:space="preserve">
+    <value>月矿提取已取消</value>
+  </data>
+  <data name="NotifTitleMoonminingAutomaticFracture" xml:space="preserve">
+    <value>月矿已自动引爆</value>
+  </data>
+  <data name="NotifTitleMoonminingLaserFired" xml:space="preserve">
+    <value>卫星钻机已开火</value>
+  </data>
+  <data name="NotifTitleStructureAnchoring" xml:space="preserve">
+    <value>建筑正在锚定</value>
+  </data>
+  <data name="NotifTitleStructureUnanchoring" xml:space="preserve">
+    <value>建筑正在解除锚定</value>
+  </data>
+  <data name="NotifTitleStructureOnline" xml:space="preserve">
+    <value>建筑已上线</value>
+  </data>
+  <data name="NotifTitleStructureWentHighPower" xml:space="preserve">
+    <value>建筑进入高功率状态</value>
+  </data>
+  <data name="NotifTitleStructureWentLowPower" xml:space="preserve">
+    <value>建筑进入低功率状态</value>
+  </data>
+  <data name="NotifTitleStructureUnderAttack" xml:space="preserve">
+    <value>建筑遭到攻击</value>
+  </data>
+  <data name="NotifTitleStructureLostShields" xml:space="preserve">
+    <value>建筑失去护盾</value>
+  </data>
+  <data name="NotifTitleStructureLostArmor" xml:space="preserve">
+    <value>建筑失去装甲</value>
+  </data>
+  <data name="NotifTitleStructureDestroyed" xml:space="preserve">
+    <value>建筑已被摧毁</value>
+  </data>
+  <data name="NotifTitleStructureFuelAlert" xml:space="preserve">
+    <value>建筑燃料不足</value>
+  </data>
+  <data name="NotifTitleStructureLowReagentsAlert" xml:space="preserve">
+    <value>建筑试剂不足</value>
+  </data>
+  <data name="NotifTitleStructureNoReagentsAlert" xml:space="preserve">
+    <value>建筑试剂耗尽</value>
+  </data>
+  <data name="NotifTitleStructureServicesOffline" xml:space="preserve">
+    <value>建筑服务已离线</value>
+  </data>
+  <data name="NotifTitleStructureItemsMovedToSafety" xml:space="preserve">
+    <value>物品已移入资产安全</value>
+  </data>
+  <data name="NotifTitleStructureItemsDelivered" xml:space="preserve">
+    <value>物品已交付至建筑</value>
+  </data>
+  <data name="NotifTitleStructureImpendingAbandonmentAssetsAtRisk" xml:space="preserve">
+    <value>建筑即将废弃——资产面临风险</value>
+  </data>
+  <data name="NotifTitleStructurePaintPurchased" xml:space="preserve">
+    <value>已购买建筑涂装</value>
+  </data>
+  <data name="NotifTitleOwnershipTransferred" xml:space="preserve">
+    <value>建筑所有权已转让</value>
+  </data>
+  <data name="NotifTitleEntosisCaptureStarted" xml:space="preserve">
+    <value>熵能占领已开始</value>
+  </data>
+  <data name="NotifTitleTowerAlertMsg" xml:space="preserve">
+    <value>星堡遭到攻击</value>
+  </data>
+  <data name="NotifTitleTowerResourceAlertMsg" xml:space="preserve">
+    <value>星堡燃料不足</value>
+  </data>
+  <data name="NotifTitleCloneActivationMsg2" xml:space="preserve">
+    <value>克隆已激活</value>
+  </data>
+  <data name="NotifTitleCloneActivationMsg" xml:space="preserve">
+    <value>克隆已激活</value>
+  </data>
+  <data name="NotifTitleCloneRevokedMsg2" xml:space="preserve">
+    <value>克隆已被撤销</value>
+  </data>
+  <data name="NotifTitleJumpCloneDeletedMsg1" xml:space="preserve">
+    <value>远距克隆已被摧毁</value>
+  </data>
+  <data name="NotifTitleJumpCloneDeletedMsg2" xml:space="preserve">
+    <value>远距克隆已被摧毁</value>
+  </data>
+  <data name="NotifTitleKillReportVictim" xml:space="preserve">
+    <value>舰船损失</value>
+  </data>
+  <data name="NotifTitleKillReportFinalBlow" xml:space="preserve">
+    <value>最后一击</value>
+  </data>
+  <data name="NotifTitleKillRightEarned" xml:space="preserve">
+    <value>获得击毁权</value>
+  </data>
+  <data name="NotifTitleWarDeclared" xml:space="preserve">
+    <value>已宣战</value>
+  </data>
+  <data name="NotifTitleWarInherited" xml:space="preserve">
+    <value>已继承战争</value>
+  </data>
+  <data name="NotifTitleWarAllyInherited" xml:space="preserve">
+    <value>已继承战争盟友身份</value>
+  </data>
+  <data name="NotifTitleWarInvalid" xml:space="preserve">
+    <value>战争已失效</value>
+  </data>
+  <data name="NotifTitleWarRetractedByConcord" xml:space="preserve">
+    <value>战争已被统合部撤销</value>
+  </data>
+  <data name="NotifTitleWarHQRemovedFromSpace" xml:space="preserve">
+    <value>战争总部已从太空中移除</value>
+  </data>
+  <data name="NotifTitleMutualWarInviteSent" xml:space="preserve">
+    <value>已发送互相宣战邀请</value>
+  </data>
+  <data name="NotifTitleOfferedToAlly" xml:space="preserve">
+    <value>提议以盟友身份参战</value>
+  </data>
+  <data name="NotifTitleAllyJoinedWarAggressorMsg" xml:space="preserve">
+    <value>盟友加入防守方</value>
+  </data>
+  <data name="NotifTitleAllyJoinedWarAllyMsg" xml:space="preserve">
+    <value>盟友已参战</value>
+  </data>
+  <data name="NotifTitleCorpBecameWarEligible" xml:space="preserve">
+    <value>军团已可被宣战</value>
+  </data>
+  <data name="NotifTitleCorpNoLongerWarEligible" xml:space="preserve">
+    <value>军团不再可被宣战</value>
+  </data>
+  <data name="NotifTitleAllianceCapitalChanged" xml:space="preserve">
+    <value>联盟首都已变更</value>
+  </data>
+  <data name="NotifTitleExpertSystemExpired" xml:space="preserve">
+    <value>专家系统已过期</value>
+  </data>
+  <data name="NotifTitleGameTimeAdded" xml:space="preserve">
+    <value>游戏时间已添加</value>
+  </data>
+  <data name="NotifLabelStructure" xml:space="preserve">
+    <value>建筑</value>
+  </data>
+  <data name="NotifLabelStructureType" xml:space="preserve">
+    <value>建筑类型</value>
+  </data>
+  <data name="NotifLabelStructures" xml:space="preserve">
+    <value>建筑</value>
+  </data>
+  <data name="NotifLabelStation" xml:space="preserve">
+    <value>空间站</value>
+  </data>
+  <data name="NotifLabelMovedTo" xml:space="preserve">
+    <value>移至</value>
+  </data>
+  <data name="NotifLabelCloneLocation" xml:space="preserve">
+    <value>克隆位置</value>
+  </data>
+  <data name="NotifLabelLocation" xml:space="preserve">
+    <value>位置</value>
+  </data>
+  <data name="NotifLabelSystem" xml:space="preserve">
+    <value>星系</value>
+  </data>
+  <data name="NotifLabelMoon" xml:space="preserve">
+    <value>卫星</value>
+  </data>
+  <data name="NotifLabelCharacter" xml:space="preserve">
+    <value>角色</value>
+  </data>
+  <data name="NotifLabelCorporation" xml:space="preserve">
+    <value>军团</value>
+  </data>
+  <data name="NotifLabelAlliance" xml:space="preserve">
+    <value>联盟</value>
+  </data>
+  <data name="NotifLabelOwner" xml:space="preserve">
+    <value>所有者</value>
+  </data>
+  <data name="NotifLabelCreatedBy" xml:space="preserve">
+    <value>创建者</value>
+  </data>
+  <data name="NotifLabelClosedBy" xml:space="preserve">
+    <value>关闭者</value>
+  </data>
+  <data name="NotifLabelInvitedBy" xml:space="preserve">
+    <value>邀请者</value>
+  </data>
+  <data name="NotifLabelStartedBy" xml:space="preserve">
+    <value>发起者</value>
+  </data>
+  <data name="NotifLabelFiredBy" xml:space="preserve">
+    <value>开火者</value>
+  </data>
+  <data name="NotifLabelCancelledBy" xml:space="preserve">
+    <value>取消者</value>
+  </data>
+  <data name="NotifLabelPurchasedBy" xml:space="preserve">
+    <value>购买者</value>
+  </data>
+  <data name="NotifLabelDestroyedBy" xml:space="preserve">
+    <value>摧毁者</value>
+  </data>
+  <data name="NotifLabelPoddedBy" xml:space="preserve">
+    <value>太空舱击毁者</value>
+  </data>
+  <data name="NotifLabelNewOwner" xml:space="preserve">
+    <value>新所有者</value>
+  </data>
+  <data name="NotifLabelPreviousOwner" xml:space="preserve">
+    <value>原所有者</value>
+  </data>
+  <data name="NotifLabelLocationOwner" xml:space="preserve">
+    <value>位置所有者</value>
+  </data>
+  <data name="NotifLabelPlacedBy" xml:space="preserve">
+    <value>悬赏人</value>
+  </data>
+  <data name="NotifLabelDeclaredBy" xml:space="preserve">
+    <value>宣战方</value>
+  </data>
+  <data name="NotifLabelAgainst" xml:space="preserve">
+    <value>宣战对象</value>
+  </data>
+  <data name="NotifLabelAggressor" xml:space="preserve">
+    <value>进攻方</value>
+  </data>
+  <data name="NotifLabelAggressorCorporation" xml:space="preserve">
+    <value>进攻方军团</value>
+  </data>
+  <data name="NotifLabelAggressorAlliance" xml:space="preserve">
+    <value>进攻方联盟</value>
+  </data>
+  <data name="NotifLabelDefender" xml:space="preserve">
+    <value>防守方</value>
+  </data>
+  <data name="NotifLabelAlly" xml:space="preserve">
+    <value>盟友</value>
+  </data>
+  <data name="NotifLabelEnemy" xml:space="preserve">
+    <value>敌方</value>
+  </data>
+  <data name="NotifLabelOpponent" xml:space="preserve">
+    <value>对手</value>
+  </data>
+  <data name="NotifLabelLeftTheWar" xml:space="preserve">
+    <value>退出战争</value>
+  </data>
+  <data name="NotifLabelWarHq" xml:space="preserve">
+    <value>战争总部</value>
+  </data>
+  <data name="NotifLabelCost" xml:space="preserve">
+    <value>费用</value>
+  </data>
+  <data name="NotifLabelFee" xml:space="preserve">
+    <value>收费</value>
+  </data>
+  <data name="NotifLabelStartsAfter" xml:space="preserve">
+    <value>延迟开始</value>
+  </data>
+  <data name="NotifLabelHostileNow" xml:space="preserve">
+    <value>现已敌对</value>
+  </data>
+  <data name="NotifLabelType" xml:space="preserve">
+    <value>类型</value>
+  </data>
+  <data name="NotifLabelTypes" xml:space="preserve">
+    <value>类型</value>
+  </data>
+  <data name="NotifLabelShip" xml:space="preserve">
+    <value>舰船</value>
+  </data>
+  <data name="NotifLabelRequires" xml:space="preserve">
+    <value>需要</value>
+  </data>
+  <data name="NotifLabelItems" xml:space="preserve">
+    <value>物品</value>
+  </data>
+  <data name="NotifLabelServices" xml:space="preserve">
+    <value>服务</value>
+  </data>
+  <data name="NotifLabelOre" xml:space="preserve">
+    <value>矿石</value>
+  </data>
+  <data name="NotifLabelNeeds" xml:space="preserve">
+    <value>需求</value>
+  </data>
+  <data name="NotifLabelKillmail" xml:space="preserve">
+    <value>击毁报告</value>
+  </data>
+  <data name="NotifLabelAmount" xml:space="preserve">
+    <value>金额</value>
+  </data>
+  <data name="NotifLabelBounty" xml:space="preserve">
+    <value>赏金</value>
+  </data>
+  <data name="NotifLabelLoyaltyPoints" xml:space="preserve">
+    <value>忠诚点</value>
+  </data>
+  <data name="NotifLabelProject" xml:space="preserve">
+    <value>项目</value>
+  </data>
+  <data name="NotifLabelShield" xml:space="preserve">
+    <value>护盾</value>
+  </data>
+  <data name="NotifLabelArmor" xml:space="preserve">
+    <value>装甲</value>
+  </data>
+  <data name="NotifLabelHull" xml:space="preserve">
+    <value>结构</value>
+  </data>
+  <data name="NotifLabelCorporationOwned" xml:space="preserve">
+    <value>军团所有</value>
+  </data>
+  <data name="NotifLabelAbandoned" xml:space="preserve">
+    <value>已废弃</value>
+  </data>
+  <data name="NotifLabelDaysUntilAbandoned" xml:space="preserve">
+    <value>距废弃天数</value>
+  </data>
+  <data name="NotifLabelSecurityStatus" xml:space="preserve">
+    <value>安全等级</value>
+  </data>
+  <data name="NotifLabelNewTaxRate" xml:space="preserve">
+    <value>新税率</value>
+  </data>
+  <data name="NotifLabelPreviousTaxRate" xml:space="preserve">
+    <value>原税率</value>
+  </data>
+  <data name="NotifLabelTime" xml:space="preserve">
+    <value>时间</value>
+  </data>
+  <data name="NotifLabelStarted" xml:space="preserve">
+    <value>开始时间</value>
+  </data>
+  <data name="NotifLabelStarts" xml:space="preserve">
+    <value>开始时间</value>
+  </data>
+  <data name="NotifLabelDeclared" xml:space="preserve">
+    <value>宣战时间</value>
+  </data>
+  <data name="NotifLabelEnds" xml:space="preserve">
+    <value>结束时间</value>
+  </data>
+  <data name="NotifLabelExpires" xml:space="preserve">
+    <value>到期时间</value>
+  </data>
+  <data name="NotifLabelTimeLeft" xml:space="preserve">
+    <value>剩余时间</value>
+  </data>
+  <data name="NotifLabelVulnerabilityWindow" xml:space="preserve">
+    <value>可被攻击时间窗口</value>
+  </data>
+  <data name="NotifLabelReady" xml:space="preserve">
+    <value>就绪时间</value>
+  </data>
+  <data name="NotifLabelFracturesAutomatically" xml:space="preserve">
+    <value>自动引爆时间</value>
+  </data>
+  <data name="NotifLabelLastCloned" xml:space="preserve">
+    <value>上次克隆时间</value>
+  </data>
+  <data name="NotifLabelPurchased" xml:space="preserve">
+    <value>购买时间</value>
+  </data>
+  <data name="NotifLabelLasts" xml:space="preserve">
+    <value>持续时间</value>
+  </data>
+  <data name="NotifLabelDeliverableFrom" xml:space="preserve">
+    <value>最早可交付时间</value>
+  </data>
+  <data name="NotifLabelDeliveredAutomatically" xml:space="preserve">
+    <value>自动交付时间</value>
+  </data>
+  <data name="NotifLabelIssued" xml:space="preserve">
+    <value>开具时间</value>
+  </data>
+  <data name="NotifLabelDue" xml:space="preserve">
+    <value>截止时间</value>
+  </data>
+  <data name="NotifLabelApplication" xml:space="preserve">
+    <value>申请内容</value>
+  </data>
+  <data name="NotifLabelApplicant" xml:space="preserve">
+    <value>申请人</value>
+  </data>
+  <data name="NotifLabelInvited" xml:space="preserve">
+    <value>受邀者</value>
+  </data>
+  <data name="NotifLabelMember" xml:space="preserve">
+    <value>成员</value>
+  </data>
+  <data name="NotifLabelRevokedBy" xml:space="preserve">
+    <value>撤销方</value>
+  </data>
+  <data name="NotifLabelWasAt" xml:space="preserve">
+    <value>原位置</value>
+  </data>
+  <data name="NotifLabelImplantsLost" xml:space="preserve">
+    <value>损失的植入体</value>
+  </data>
+  <data name="NotifLabelCloneOf" xml:space="preserve">
+    <value>克隆所有者</value>
+  </data>
+  <data name="NotifLabelPayout" xml:space="preserve">
+    <value>赔付金额</value>
+  </data>
+  <data name="NotifLabelAssetSafetyStation" xml:space="preserve">
+    <value>资产安全空间站</value>
+  </data>
+  <data name="NotifLabelFuelRemaining" xml:space="preserve">
+    <value>剩余燃料</value>
+  </data>
+  <data name="NotifLabelDelivered" xml:space="preserve">
+    <value>已交付</value>
+  </data>
+  <data name="NotifLabelDeliveredTo" xml:space="preserve">
+    <value>交付给</value>
+  </data>
+  <data name="NotifLabelServicesOffline" xml:space="preserve">
+    <value>已离线服务</value>
+  </data>
+  <data name="NotifLabelTower" xml:space="preserve">
+    <value>控制塔</value>
+  </data>
+  <data name="NotifLabelAttacker" xml:space="preserve">
+    <value>攻击者</value>
+  </data>
+  <data name="NotifLabelAttackerCorporation" xml:space="preserve">
+    <value>攻击者军团</value>
+  </data>
+  <data name="NotifLabelAttackerAlliance" xml:space="preserve">
+    <value>攻击者联盟</value>
+  </data>
+  <data name="NotifLabelTransferredBy" xml:space="preserve">
+    <value>转让者</value>
+  </data>
+  <data name="NotifLabelExpertSystem" xml:space="preserve">
+    <value>专家系统</value>
+  </data>
+  <data name="NotifLabelNewCapital" xml:space="preserve">
+    <value>新首都</value>
+  </data>
+  <data name="NotifLabelStructuresPainted" xml:space="preserve">
+    <value>已涂装建筑</value>
+  </data>
+  <data name="NotifLabelOfferedBy" xml:space="preserve">
+    <value>提议者</value>
+  </data>
+  <data name="NotifLabelKillRightOn" xml:space="preserve">
+    <value>击毁权对象</value>
+  </data>
+  <data name="NotifLabelReinforcedUntil" xml:space="preserve">
+    <value>增强结束时间</value>
+  </data>
+  <data name="NotifLabelFightingStarts" xml:space="preserve">
+    <value>开战时间</value>
+  </data>
+  <data name="NotifSentenceCorpBecameWarEligible" xml:space="preserve">
+    <value>你的军团现已可被宣战。</value>
+  </data>
+  <data name="NotifSentenceCorpNoLongerWarEligible" xml:space="preserve">
+    <value>你的军团已不再可被宣战。</value>
+  </data>
+  <data name="NotifSentenceGameTimeAdded" xml:space="preserve">
+    <value>已为账户添加游戏时间。</value>
+  </data>
+  <data name="NotifDetails" xml:space="preserve">
+    <value>详情</value>
+  </data>
+  <data name="NotifColType" xml:space="preserve">
+    <value>类型</value>
+  </data>
+  <data name="NotifColQuantity" xml:space="preserve">
+    <value>数量</value>
+  </data>
+  <data name="NotifTotal" xml:space="preserve">
+    <value>总计</value>
+  </data>
+  <data name="NotifColVolume" xml:space="preserve">
+    <value>体积</value>
+  </data>
+  <data name="NotifOpenKillmail" xml:space="preserve">
+    <value>打开击毁报告</value>
+  </data>
+  <data name="NotifYes" xml:space="preserve">
+    <value>是</value>
+  </data>
+  <data name="NotifNo" xml:space="preserve">
+    <value>否</value>
+  </data>
+  <data name="NotifStandingChanges" xml:space="preserve">
+    <value>声望变化</value>
+  </data>
+  <data name="NotifColWith" xml:space="preserve">
+    <value>对象</value>
+  </data>
+  <data name="NotifColChange" xml:space="preserve">
+    <value>变化</value>
+  </data>
+  <data name="NotifColStandingNow" xml:space="preserve">
+    <value>当前声望</value>
+  </data>
+  <data name="NotifBillType" xml:space="preserve">
+    <value>账单类型 {0}</value>
+  </data>
+  <data name="NotifBillMarketFine" xml:space="preserve">
+    <value>市场罚款</value>
+  </data>
+  <data name="NotifBillOfficeRental" xml:space="preserve">
+    <value>办公室租金</value>
+  </data>
+  <data name="NotifBillBrokerFee" xml:space="preserve">
+    <value>中介费</value>
+  </data>
+  <data name="NotifBillWar" xml:space="preserve">
+    <value>战争</value>
+  </data>
+  <data name="NotifBillAllianceMaintenance" xml:space="preserve">
+    <value>联盟维护费</value>
+  </data>
+  <data name="NotifBillSovereigntyMarker" xml:space="preserve">
+    <value>主权标记</value>
+  </data>
+  <data name="NotifMoreRows" xml:space="preserve">
+    <value>+{0} 项</value>
+  </data>
+  <data name="NotifHoursOther" xml:space="preserve">
+    <value>{0} 小时</value>
+  </data>
+  <data name="NotifHoursFraction" xml:space="preserve">
+    <value>{0:0.#} 小时</value>
+  </data>
+  <data name="NotifSpanDays" xml:space="preserve">
+    <value>{0} 天</value>
+  </data>
+  <data name="NotifSpanHours" xml:space="preserve">
+    <value>{0} 小时</value>
+  </data>
+  <data name="NotifSpanMinutes" xml:space="preserve">
+    <value>{0} 分钟</value>
+  </data>
+  <data name="NotifSpanSeconds" xml:space="preserve">
+    <value>{0} 秒</value>
+  </data>
+  <data name="NotifBillSummary" xml:space="preserve">
+    <value>{0}：{1}。</value>
+  </data>
+  <data name="NotifBillSummaryAt" xml:space="preserve">
+    <value>{1} 的{0}：{2}。</value>
+  </data>
+  <data name="NotifBillSummaryDue" xml:space="preserve">
+    <value>{0}：{1}，{2} 截止。</value>
+  </data>
+  <data name="NotifBillSummaryAtDue" xml:space="preserve">
+    <value>{1} 的{0}：{2}，{3} 截止。</value>
+  </data>
+  <data name="NotifLabelBill" xml:space="preserve">
+    <value>账单</value>
+  </data>
+  <data name="NotifLabelBilledTo" xml:space="preserve">
+    <value>付款方</value>
+  </data>
+  <data name="NotifLabelPayableTo" xml:space="preserve">
+    <value>收款方</value>
+  </data>
+  <data name="NotifLabelRented" xml:space="preserve">
+    <value>租用</value>
+  </data>
+  <data name="NotifLabelForAlliance" xml:space="preserve">
+    <value>所属联盟</value>
+  </data>
+  <data name="NotifLabelReference" xml:space="preserve">
+    <value>参考编号</value>
+  </data>
+  <data name="NotifLabelSecondReference" xml:space="preserve">
+    <value>第二参考编号</value>
+  </data>
+  <data name="NotifTypeNumbered" xml:space="preserve">
+    <value>类型 {0}</value>
+  </data>
+  <data name="NotifTipItemBrowser" xml:space="preserve">
+    <value>在物品浏览器中打开</value>
+  </data>
+  <data name="NotifSystemNumbered" xml:space="preserve">
+    <value>星系 {0}</value>
+  </data>
+  <data name="NotifTipSecOpenMap" xml:space="preserve">
+    <value>{0}
+在星图上打开</value>
+  </data>
+  <data name="NotifTipOpenMap" xml:space="preserve">
+    <value>在星图上打开</value>
+  </data>
+  <data name="NotifMoonNumbered" xml:space="preserve">
+    <value>卫星 {0}</value>
+  </data>
+  <data name="NotifStationNumbered" xml:space="preserve">
+    <value>空间站 {0}</value>
+  </data>
+  <data name="NotifTipNpcEntities" xml:space="preserve">
+    <value>在 NPC 实体中打开</value>
+  </data>
+  <data name="NotifNameUnknown" xml:space="preserve">
+    <value>{0}（名称未知）</value>
+  </data>
+  <data name="NotifStructureNameUnknown" xml:space="preserve">
+    <value>建筑（名称未知）</value>
+  </data>
+  <data name="NotifTipStructureNumbered" xml:space="preserve">
+    <value>建筑 {0}
+在建筑浏览器中打开</value>
+  </data>
+  <data name="NotifTipStructureBrowser" xml:space="preserve">
+    <value>在建筑浏览器中打开</value>
+  </data>
+  <data name="NotifOthersOther" xml:space="preserve">
+    <value>另有 {0} 项</value>
+  </data>
+  <data name="NotifStandingUp" xml:space="preserve">
+    <value>{0} 对你的声望提高了 {1}。</value>
+  </data>
+  <data name="NotifStandingUpTo" xml:space="preserve">
+    <value>{0} 对你的声望提高了 {1}，现为 {2}。</value>
+  </data>
+  <data name="NotifStandingDown" xml:space="preserve">
+    <value>{0} 对你的声望降低了 {1}。</value>
+  </data>
+  <data name="NotifStandingDownTo" xml:space="preserve">
+    <value>{0} 对你的声望降低了 {1}，现为 {2}。</value>
+  </data>
+  <data name="NotifStandingMoreOther" xml:space="preserve">
+    <value>另有 {0} 项声望随之变化。</value>
+  </data>
+  <data name="SenderAll" xml:space="preserve">
+    <value>所有发送者</value>
+  </data>
+  <data name="SenderCorporation" xml:space="preserve">
+    <value>军团</value>
+  </data>
+  <data name="SenderCharacter" xml:space="preserve">
+    <value>角色</value>
+  </data>
+  <data name="TimeAgo" xml:space="preserve">
+    <value>{0}前</value>
+  </data>
+  <data name="TimeAgoTwoUnits" xml:space="preserve">
+    <value>{0} {1}</value>
+  </data>
+  <data name="TimeAgoSecondsOther" xml:space="preserve">
+    <value>{0} 秒</value>
+  </data>
+  <data name="TimeAgoMinutesOther" xml:space="preserve">
+    <value>{0} 分钟</value>
+  </data>
+  <data name="TimeAgoHoursOther" xml:space="preserve">
+    <value>{0} 小时</value>
+  </data>
+  <data name="TimeAgoDaysOther" xml:space="preserve">
+    <value>{0} 天</value>
+  </data>
+</root>

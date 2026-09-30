@@ -3,6 +3,7 @@ using EveConsole.Data;
 using EveConsole.Models;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -94,12 +95,23 @@ internal static class SalesQuery
         var mgAll = await db.SdeMarketGroups.AsNoTracking()
             .ToDictionaryAsync(g => g.MarketGroupId, g => new { g.ParentGroupId, g.Name });
 
+        // ⚠️ The item, market-group and NPC station names on these rows are only ever shown — in the
+        // grids, and in the rollups and pies, which group by what the reader sees — so they are put
+        // in the interface language here, where the rows are built. The ids travel with them for
+        // the links. A player structure keeps the name its owner gave it.
+        await SdeNames.EnsureLoadedAsync();
+
+        // Which table named the place (IsStation) decides, as it does for the link.
+        static string Place(long id, bool isStation, string? name) =>
+            name is null ? "" : isStation ? SdeNames.Station(id, name) : name;
+
         string GroupTwoUp(int typeId)
         {
             if (!typeMg.TryGetValue(typeId, out var mgId) || mgId is null) return "—";
             if (!mgAll.TryGetValue(mgId.Value, out var mg)) return "—";
-            if (mg.ParentGroupId is int pid && mgAll.TryGetValue(pid, out var parent)) return parent.Name;
-            return mg.Name;   // item's group is already top-level
+            if (mg.ParentGroupId is int pid && mgAll.TryGetValue(pid, out var parent))
+                return SdeNames.MarketGroup(pid, parent.Name);
+            return SdeNames.MarketGroup(mgId.Value, mg.Name);   // item's group is already top-level
         }
 
         // Nearest-day price snapshots for the sold types (resolved in memory — a correlated
@@ -143,9 +155,9 @@ internal static class SalesQuery
         bool IsPersonal(long id, string type) => type == "corporation" && corpPersonal.TryGetValue(id, out var p) && p;
 
         string OwnerName(long id, string type) => type == "corporation"
-            ? (corpNames.TryGetValue(id, out var cn) ? cn : $"Corp {id}")
-            : (charNames.TryGetValue(id, out var pn) ? pn : $"Char {id}");
-        string TypeName(int id) => typeNames.TryGetValue(id, out var n) ? n : $"\"Type\" {id}";
+            ? (corpNames.TryGetValue(id, out var cn) ? cn : string.Format(SalesText.CorpNumbered, id))
+            : (charNames.TryGetValue(id, out var pn) ? pn : string.Format(SalesText.CharNumbered, id));
+        string TypeName(int id) => typeNames.TryGetValue(id, out var n) ? SdeNames.Type(id, n) : string.Format(SalesText.TypeNumbered, id);
 
         // Buyer names — external players. Resolve from local caches, fall back to ESI once and
         // persist to the shared UniverseNames cache so later loads stay offline.
@@ -176,7 +188,7 @@ internal static class SalesQuery
             var (bu, mv) = Snap(m.TypeId, ParseDate(m.DateStr));
             rows.Add(new SaleRowVm(
                 ParseDate(m.DateStr), "Market", m.OwnerType, m.OwnerId, IsPersonal(m.OwnerId, m.OwnerType),
-                OwnerName(m.OwnerId, m.OwnerType), m.Location ?? "", BuyerName(m.BuyerId),
+                OwnerName(m.OwnerId, m.OwnerType), Place(m.LocationId, m.IsStation > 0, m.Location), BuyerName(m.BuyerId),
                 TypeName(m.TypeId), m.Quantity.ToString("N0"), m.Quantity * m.UnitPrice,
                 bu is double b ? b * m.Quantity : null, mv is double v ? v * m.Quantity : null,
                 m.TypeId, GroupTwoUp(m.TypeId), m.SaleId,
@@ -188,18 +200,22 @@ internal static class SalesQuery
             var when = ParseDate(c.DateStr);
             var its  = itemsByContract.TryGetValue(c.SaleId, out var list) ? list : [];
             string namesText, units;
-            if (its.Count == 0)      { namesText = "(no items)"; units = ""; }
+            if (its.Count == 0)      { namesText = SalesText.NoItems; units = ""; }
             else if (its.Count == 1) { namesText = TypeName(its[0].TypeId); units = its[0].Quantity.ToString("N0"); }
-            else                     { namesText = $"{TypeName(its[0].TypeId)} +{its.Count - 1} more items"; units = "Multiple"; }
+            else                     { namesText = Plurals.Format(SalesText.ResourceManager, nameof(SalesText.ItemsAndMoreOther), its.Count - 1, TypeName(its[0].TypeId)); units = SalesText.UnitsMultiple; }
             var build = SumOrNull(its.Select(i => Snap(i.TypeId, when).Build is double b ? b * i.Quantity : (double?)null));
             var mkt   = SumOrNull(its.Select(i => Snap(i.TypeId, when).Market is double m ? m * i.Quantity : (double?)null));
             var firstType = its.Count > 0 ? its[0].TypeId : 0;
             rows.Add(new SaleRowVm(
                 when, "Contract", c.OwnerType, c.OwnerId, IsPersonal(c.OwnerId, c.OwnerType),
-                OwnerName(c.OwnerId, c.OwnerType), c.Location ?? "", BuyerName(c.BuyerId),
+                OwnerName(c.OwnerId, c.OwnerType), Place(c.LocationId, c.IsStation > 0, c.Location), BuyerName(c.BuyerId),
                 namesText, units, c.Price, build, mkt,
                 firstType, firstType > 0 ? GroupTwoUp(firstType) : "—", c.SaleId,
-                c.LocationId, c.IsStation > 0, c.BuyerId, BuyerKind(c.BuyerId), c.Title ?? ""));
+                c.LocationId, c.IsStation > 0, c.BuyerId, BuyerKind(c.BuyerId), c.Title ?? "")
+            {
+                ItemHead = its.Count > 1 ? TypeName(its[0].TypeId) : "",
+                ItemMore = Math.Max(0, its.Count - 1),
+            });
         }
 
         // Rows the user has marked as not for profit. Loaded as a flag rather than filtered out

@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
              x:Class="EveConsole.Views.MarketViewerView"
@@ -76,54 +77,54 @@
     <TabControl Background="{DynamicResource SurfaceBaseBrush}" SelectedIndex="{Binding SelectedTab}">
 
       <!-- ══ Summary ═════════════════════════════════════════════════════════ -->
-      <TabItem Header="Summary">
+      <TabItem Header="{x:Static loc:MarketText.TabSummary}">
         <ScrollViewer HorizontalScrollBarVisibility="Disabled">
           <StackPanel Spacing="10" Margin="10 10 10 12">
 
             <!-- KPI boxes for the selected region (or all regions) -->
             <WrapPanel Orientation="Horizontal">
-              <Border Classes="kpi"><StackPanel><TextBlock Classes="k" Text="SELL ORDER COUNT" /><TextBlock Classes="v" Text="{Binding KpiSellCount}" /></StackPanel></Border>
-              <Border Classes="kpi"><StackPanel><TextBlock Classes="k" Text="SELL ORDER ISK"   /><TextBlock Classes="v" Text="{Binding KpiSellIsk}"   /></StackPanel></Border>
-              <Border Classes="kpi"><StackPanel><TextBlock Classes="k" Text="SELL ORDER TYPES" /><TextBlock Classes="v" Text="{Binding KpiSellTypes}" /></StackPanel></Border>
-              <Border Classes="kpi"><StackPanel><TextBlock Classes="k" Text="BUY ORDER COUNT"  /><TextBlock Classes="v" Text="{Binding KpiBuyCount}"  /></StackPanel></Border>
-              <Border Classes="kpi"><StackPanel><TextBlock Classes="k" Text="BUY ORDER ISK"    /><TextBlock Classes="v" Text="{Binding KpiBuyIsk}"    /></StackPanel></Border>
-              <Border Classes="kpi"><StackPanel><TextBlock Classes="k" Text="BUY ORDER TYPES"  /><TextBlock Classes="v" Text="{Binding KpiBuyTypes}"  /></StackPanel></Border>
-              <Border Classes="kpi"><StackPanel><TextBlock Classes="k" Text="SALES UNITS"      /><TextBlock Classes="v" Text="{Binding KpiSalesUnits}" /></StackPanel></Border>
-              <Border Classes="kpi"><StackPanel><TextBlock Classes="k" Text="SALES ISK"        /><TextBlock Classes="v" Text="{Binding KpiSalesIsk}"   /></StackPanel></Border>
-              <Border Classes="kpi"><StackPanel><TextBlock Classes="k" Text="SALES TYPES"      /><TextBlock Classes="v" Text="{Binding KpiSalesTypes}" /></StackPanel></Border>
+              <Border Classes="kpi"><StackPanel><TextBlock Classes="k" Text="{x:Static loc:MarketText.SellOrderCountLabel}" /><TextBlock Classes="v" Text="{Binding KpiSellCount}" /></StackPanel></Border>
+              <Border Classes="kpi"><StackPanel><TextBlock Classes="k" Text="{x:Static loc:MarketText.SellOrderIskLabel}"   /><TextBlock Classes="v" Text="{Binding KpiSellIsk}"   /></StackPanel></Border>
+              <Border Classes="kpi"><StackPanel><TextBlock Classes="k" Text="{x:Static loc:MarketText.SellOrderTypesLabel}" /><TextBlock Classes="v" Text="{Binding KpiSellTypes}" /></StackPanel></Border>
+              <Border Classes="kpi"><StackPanel><TextBlock Classes="k" Text="{x:Static loc:MarketText.BuyOrderCountLabel}"  /><TextBlock Classes="v" Text="{Binding KpiBuyCount}"  /></StackPanel></Border>
+              <Border Classes="kpi"><StackPanel><TextBlock Classes="k" Text="{x:Static loc:MarketText.BuyOrderIskLabel}"    /><TextBlock Classes="v" Text="{Binding KpiBuyIsk}"    /></StackPanel></Border>
+              <Border Classes="kpi"><StackPanel><TextBlock Classes="k" Text="{x:Static loc:MarketText.BuyOrderTypesLabel}"  /><TextBlock Classes="v" Text="{Binding KpiBuyTypes}"  /></StackPanel></Border>
+              <Border Classes="kpi"><StackPanel><TextBlock Classes="k" Text="{x:Static loc:MarketText.SalesUnitsLabel}"      /><TextBlock Classes="v" Text="{Binding KpiSalesUnits}" /></StackPanel></Border>
+              <Border Classes="kpi"><StackPanel><TextBlock Classes="k" Text="{x:Static loc:MarketText.SalesIskLabel}"        /><TextBlock Classes="v" Text="{Binding KpiSalesIsk}"   /></StackPanel></Border>
+              <Border Classes="kpi"><StackPanel><TextBlock Classes="k" Text="{x:Static loc:MarketText.SalesTypesLabel}"      /><TextBlock Classes="v" Text="{Binding KpiSalesTypes}" /></StackPanel></Border>
             </WrapPanel>
 
             <!-- Pie charts -->
             <Grid ColumnDefinitions="*,10,*,10,*" Height="240">
               <Border Grid.Column="0" Classes="chartcard">
                 <StackPanel Spacing="6">
-                  <TextBlock Classes="title" Text="Sell Orders by Type" />
+                  <TextBlock Classes="title" Text="{x:Static loc:MarketText.SellOrdersByType}" />
                   <!-- ⚠️ The slice is the click target, not the legend label: LiveCharts draws the
                        legend itself, so its text is not a control anything can be attached to. -->
                   <lvc:PieChart IsVisible="{Binding HasSellCorp}" Series="{Binding SellCorpSeries}"
                                 ChartPointPointerDown="OnSellSliceClicked"
                                 LegendPosition="Right" LegendTextSize="10" Background="Transparent" Height="190" />
                   <TextBlock Classes="nodata" IsVisible="{Binding !HasSellCorp}" Margin="0 60"
-                             Text="No sell orders for this selection." />
+                             Text="{x:Static loc:MarketText.NoSellOrdersForThis}" />
                 </StackPanel>
               </Border>
               <Border Grid.Column="2" Classes="chartcard">
                 <StackPanel Spacing="6">
-                  <TextBlock Classes="title" Text="Buy Orders by Type" />
+                  <TextBlock Classes="title" Text="{x:Static loc:MarketText.BuyOrdersByType}" />
                   <lvc:PieChart IsVisible="{Binding HasBuyCorp}" Series="{Binding BuyCorpSeries}"
                                 ChartPointPointerDown="OnBuySliceClicked"
                                 LegendPosition="Right" LegendTextSize="10" Background="Transparent" Height="190" />
                   <TextBlock Classes="nodata" IsVisible="{Binding !HasBuyCorp}" Margin="0 60"
-                             Text="No buy orders for this selection." />
+                             Text="{x:Static loc:MarketText.NoBuyOrdersForThis}" />
                 </StackPanel>
               </Border>
               <Border Grid.Column="4" Classes="chartcard">
                 <StackPanel Spacing="6">
-                  <TextBlock Classes="title" Text="Sales by Market Group" />
+                  <TextBlock Classes="title" Text="{x:Static loc:MarketText.SalesByMarketGroup}" />
                   <lvc:PieChart IsVisible="{Binding HasSalesGroup}" Series="{Binding SalesGroupSeries}"
                                 LegendPosition="Right" LegendTextSize="10" Background="Transparent" Height="190" />
                   <TextBlock Classes="nodata" IsVisible="{Binding !HasSalesGroup}" Margin="0 60"
-                             Text="No sales for this selection." />
+                             Text="{x:Static loc:MarketText.NoSalesForThisSelection}" />
                 </StackPanel>
               </Border>
             </Grid>
@@ -131,7 +132,7 @@
             <!-- Daily sales ISK -->
             <Border Classes="chartcard" Height="260">
               <StackPanel Spacing="6">
-                <TextBlock Classes="title" Text="Daily Sales ISK" />
+                <TextBlock Classes="title" Text="{x:Static loc:MarketText.DailySalesIsk}" />
                 <Grid Height="220">
                   <lvc:CartesianChart IsVisible="{Binding HasSalesLine}"
                                       Series="{Binding SalesLineSeries}"
@@ -139,7 +140,7 @@
                                       LegendPosition="Hidden" TooltipPosition="Top"
                                       EasingFunction="{x:Null}" Background="Transparent" />
                   <TextBlock Classes="nodata" IsVisible="{Binding !HasSalesLine}"
-                             Text="No sales history for this selection." />
+                             Text="{x:Static loc:MarketText.NoSalesHistoryForThis}" />
                 </Grid>
               </StackPanel>
             </Border>
@@ -149,35 +150,35 @@
       </TabItem>
 
       <!-- ══ By Market Group ═════════════════════════════════════════════════ -->
-      <TabItem Header="By Market Group">
+      <TabItem Header="{x:Static loc:MarketText.TabByMarketGroup}">
         <DataGrid ItemsSource="{Binding GroupRows}"
                   AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24"
                   CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
                   Background="{DynamicResource SurfaceBaseBrush}">
           <DataGrid.Columns>
-            <DataGridTextColumn Header="Market Group"     Binding="{Binding Group}"      Width="260" />
-            <DataGridTextColumn Header="Sell Order Units" Binding="{Binding SellUnits}"  SortMemberPath="SellUnitsRaw"  Width="130" CellStyleClasses="num" />
-            <DataGridTextColumn Header="Sell Order ISK"   Binding="{Binding SellIsk}"    SortMemberPath="SellIskRaw"    Width="130" CellStyleClasses="num" />
-            <DataGridTextColumn Header="Buy Order Units"  Binding="{Binding BuyUnits}"   SortMemberPath="BuyUnitsRaw"   Width="130" CellStyleClasses="num" />
-            <DataGridTextColumn Header="Buy Order ISK"    Binding="{Binding BuyIsk}"     SortMemberPath="BuyIskRaw"     Width="130" CellStyleClasses="num" />
-            <DataGridTextColumn Header="Sales Units"      Binding="{Binding SalesUnits}" SortMemberPath="SalesUnitsRaw" Width="110" CellStyleClasses="num" />
-            <DataGridTextColumn Header="Sales ISK"        Binding="{Binding SalesIsk}"   SortMemberPath="SalesIskRaw"   Width="110" CellStyleClasses="num" />
+            <DataGridTextColumn Header="{x:Static loc:MarketText.ColMarketGroup}"     Binding="{Binding Group}"      Width="260" />
+            <DataGridTextColumn Header="{x:Static loc:MarketText.ColSellOrderUnits}" Binding="{Binding SellUnits}"  SortMemberPath="SellUnitsRaw"  Width="130" CellStyleClasses="num" />
+            <DataGridTextColumn Header="{x:Static loc:MarketText.ColSellOrderIsk}"   Binding="{Binding SellIsk}"    SortMemberPath="SellIskRaw"    Width="130" CellStyleClasses="num" />
+            <DataGridTextColumn Header="{x:Static loc:MarketText.ColBuyOrderUnits}"  Binding="{Binding BuyUnits}"   SortMemberPath="BuyUnitsRaw"   Width="130" CellStyleClasses="num" />
+            <DataGridTextColumn Header="{x:Static loc:MarketText.ColBuyOrderIsk}"    Binding="{Binding BuyIsk}"     SortMemberPath="BuyIskRaw"     Width="130" CellStyleClasses="num" />
+            <DataGridTextColumn Header="{x:Static loc:MarketText.ColSalesUnits}"      Binding="{Binding SalesUnits}" SortMemberPath="SalesUnitsRaw" Width="110" CellStyleClasses="num" />
+            <DataGridTextColumn Header="{x:Static loc:MarketText.ColSalesIsk}"        Binding="{Binding SalesIsk}"   SortMemberPath="SalesIskRaw"   Width="110" CellStyleClasses="num" />
           </DataGrid.Columns>
         </DataGrid>
       </TabItem>
 
       <!-- ══ By Type ═════════════════════════════════════════════════════════ -->
-      <TabItem Header="By Type">
+      <TabItem Header="{x:Static loc:MarketText.TabByType}">
         <DataGrid ItemsSource="{Binding TypeRows}"
                   AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24"
                   CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
                   Background="{DynamicResource SurfaceBaseBrush}">
           <DataGrid.Columns>
-            <DataGridTemplateColumn Header="Type" SortMemberPath="Type" Width="260" ClipboardContentBinding="{Binding Type}">
+            <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColType}" SortMemberPath="Type" Width="260" ClipboardContentBinding="{Binding Type}">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:MarketTypeSummaryVm">
                   <Panel>
-                    <Button Classes="link" Click="OnOpenRowType" IsVisible="{Binding HasTypeLink}" ToolTip.Tip="Open in the Item Browser">
+                    <Button Classes="link" Click="OnOpenRowType" IsVisible="{Binding HasTypeLink}" ToolTip.Tip="{x:Static loc:MarketText.TipOpenInTheItemBrowser}">
                       <TextBlock Text="{Binding Type}" Classes="linktext"
                                  VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                     </Button>
@@ -187,28 +188,28 @@
                 </DataTemplate>
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
-            <DataGridTextColumn Header="Sell Order Units" Binding="{Binding SellUnits}"  SortMemberPath="SellUnitsRaw"  Width="130" CellStyleClasses="num" />
-            <DataGridTextColumn Header="Sell Order ISK"   Binding="{Binding SellIsk}"    SortMemberPath="SellIskRaw"    Width="130" CellStyleClasses="num" />
-            <DataGridTextColumn Header="Buy Order Units"  Binding="{Binding BuyUnits}"   SortMemberPath="BuyUnitsRaw"   Width="130" CellStyleClasses="num" />
-            <DataGridTextColumn Header="Buy Order ISK"    Binding="{Binding BuyIsk}"     SortMemberPath="BuyIskRaw"     Width="130" CellStyleClasses="num" />
-            <DataGridTextColumn Header="Sales Units"      Binding="{Binding SalesUnits}" SortMemberPath="SalesUnitsRaw" Width="110" CellStyleClasses="num" />
-            <DataGridTextColumn Header="Sales ISK"        Binding="{Binding SalesIsk}"   SortMemberPath="SalesIskRaw"   Width="110" CellStyleClasses="num" />
+            <DataGridTextColumn Header="{x:Static loc:MarketText.ColSellOrderUnits}" Binding="{Binding SellUnits}"  SortMemberPath="SellUnitsRaw"  Width="130" CellStyleClasses="num" />
+            <DataGridTextColumn Header="{x:Static loc:MarketText.ColSellOrderIsk}"   Binding="{Binding SellIsk}"    SortMemberPath="SellIskRaw"    Width="130" CellStyleClasses="num" />
+            <DataGridTextColumn Header="{x:Static loc:MarketText.ColBuyOrderUnits}"  Binding="{Binding BuyUnits}"   SortMemberPath="BuyUnitsRaw"   Width="130" CellStyleClasses="num" />
+            <DataGridTextColumn Header="{x:Static loc:MarketText.ColBuyOrderIsk}"    Binding="{Binding BuyIsk}"     SortMemberPath="BuyIskRaw"     Width="130" CellStyleClasses="num" />
+            <DataGridTextColumn Header="{x:Static loc:MarketText.ColSalesUnits}"      Binding="{Binding SalesUnits}" SortMemberPath="SalesUnitsRaw" Width="110" CellStyleClasses="num" />
+            <DataGridTextColumn Header="{x:Static loc:MarketText.ColSalesIsk}"        Binding="{Binding SalesIsk}"   SortMemberPath="SalesIskRaw"   Width="110" CellStyleClasses="num" />
           </DataGrid.Columns>
         </DataGrid>
       </TabItem>
 
       <!-- ══ Sell Orders by Type ═════════════════════════════════════════════ -->
-      <TabItem Header="Sell Orders by Type">
+      <TabItem Header="{x:Static loc:MarketText.TabSellOrdersByType}">
         <DataGrid ItemsSource="{Binding SellByTypeRows}"
                   AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24"
                   CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
                   Background="{DynamicResource SurfaceBaseBrush}">
           <DataGrid.Columns>
-            <DataGridTemplateColumn Header="Type" SortMemberPath="Type" Width="280" ClipboardContentBinding="{Binding Type}">
+            <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColType}" SortMemberPath="Type" Width="280" ClipboardContentBinding="{Binding Type}">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:MarketOrderByTypeVm">
                   <Panel>
-                    <Button Classes="link" Click="OnOpenRowType" IsVisible="{Binding HasTypeLink}" ToolTip.Tip="Open in the Item Browser">
+                    <Button Classes="link" Click="OnOpenRowType" IsVisible="{Binding HasTypeLink}" ToolTip.Tip="{x:Static loc:MarketText.TipOpenInTheItemBrowser}">
                       <TextBlock Text="{Binding Type}" Classes="linktext"
                                  VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                     </Button>
@@ -218,24 +219,24 @@
                 </DataTemplate>
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
-            <DataGridTextColumn Header="Units" Binding="{Binding Units}" SortMemberPath="UnitsRaw" Width="140" CellStyleClasses="num" />
+            <DataGridTextColumn Header="{x:Static loc:MarketText.ColUnits}" Binding="{Binding Units}" SortMemberPath="UnitsRaw" Width="140" CellStyleClasses="num" />
             <DataGridTextColumn Header="ISK"   Binding="{Binding Isk}"   SortMemberPath="IskRaw"   Width="140" CellStyleClasses="num" />
           </DataGrid.Columns>
         </DataGrid>
       </TabItem>
 
       <!-- ══ Buy Orders by Type ══════════════════════════════════════════════ -->
-      <TabItem Header="Buy Orders by Type">
+      <TabItem Header="{x:Static loc:MarketText.TabBuyOrdersByType}">
         <DataGrid ItemsSource="{Binding BuyByTypeRows}"
                   AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24"
                   CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
                   Background="{DynamicResource SurfaceBaseBrush}">
           <DataGrid.Columns>
-            <DataGridTemplateColumn Header="Type" SortMemberPath="Type" Width="280" ClipboardContentBinding="{Binding Type}">
+            <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColType}" SortMemberPath="Type" Width="280" ClipboardContentBinding="{Binding Type}">
               <DataGridTemplateColumn.CellTemplate>
                 <DataTemplate x:DataType="vm:MarketOrderByTypeVm">
                   <Panel>
-                    <Button Classes="link" Click="OnOpenRowType" IsVisible="{Binding HasTypeLink}" ToolTip.Tip="Open in the Item Browser">
+                    <Button Classes="link" Click="OnOpenRowType" IsVisible="{Binding HasTypeLink}" ToolTip.Tip="{x:Static loc:MarketText.TipOpenInTheItemBrowser}">
                       <TextBlock Text="{Binding Type}" Classes="linktext"
                                  VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                     </Button>
@@ -245,7 +246,7 @@
                 </DataTemplate>
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
-            <DataGridTextColumn Header="Units" Binding="{Binding Units}" SortMemberPath="UnitsRaw" Width="140" CellStyleClasses="num" />
+            <DataGridTextColumn Header="{x:Static loc:MarketText.ColUnits}" Binding="{Binding Units}" SortMemberPath="UnitsRaw" Width="140" CellStyleClasses="num" />
             <DataGridTextColumn Header="ISK"   Binding="{Binding Isk}"   SortMemberPath="IskRaw"   Width="140" CellStyleClasses="num" />
           </DataGrid.Columns>
         </DataGrid>
@@ -257,10 +258,10 @@
     <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right" VerticalAlignment="Top"
                 Margin="0 5 10 0">
       <TextBlock Text="{Binding StatusText}" Classes="flabel" Foreground="{DynamicResource TextMutedBrush}" Margin="0 0 6 0" />
-      <TextBlock Classes="flabel" Text="Period:" />
+      <TextBlock Classes="flabel" Text="{x:Static loc:MarketText.PeriodLabel}" />
       <ComboBox ItemsSource="{Binding Periods}" SelectedItem="{Binding SelectedPeriod}"
                 MinWidth="130" FontSize="11" Height="26" VerticalAlignment="Center" />
-      <TextBlock Classes="flabel" Text="Region:" />
+      <TextBlock Classes="flabel" Text="{x:Static loc:MarketText.RegionLabel}" />
       <ComboBox ItemsSource="{Binding Regions}" SelectedItem="{Binding SelectedRegion}"
                 MinWidth="150" FontSize="11" Height="26" VerticalAlignment="Center" />
     </StackPanel>

@@ -2,6 +2,7 @@ using System.Text;
 using Whisper.net;
 using Whisper.net.Ggml;
 using Whisper.net.LibraryLoader;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -25,10 +26,10 @@ public sealed class LocalWhisperService : IDisposable
 
     public static readonly IReadOnlyList<(string Id, string Label)> Models =
     [
-        ("tiny",   "Tiny (~75 MB)"),
-        ("base",   "Base (~142 MB)"),
-        ("small",  "Small (~466 MB)"),
-        ("medium", "Medium (~1.5 GB)"),
+        ("tiny",   SettingsText.WhisperModelTiny),
+        ("base",   SettingsText.WhisperModelBase),
+        ("small",  SettingsText.WhisperModelSmall),
+        ("medium", SettingsText.WhisperModelMedium),
     ];
 
     private static string ModelPath(string modelId) =>
@@ -74,7 +75,7 @@ public sealed class LocalWhisperService : IDisposable
     }
 
     /// <summary>Where the model runs, once it has loaded: Vulkan for a GPU, else the CPU.</summary>
-    public string LoadedRuntime => RuntimeOptions.LoadedLibrary?.ToString() ?? "not loaded yet";
+    public string LoadedRuntime => RuntimeOptions.LoadedLibrary?.ToString() ?? SettingsText.WhisperNotLoadedYet;
 
     /// <summary>
     /// ⚠️ Whisper.net's default is four threads, whatever the machine has. On the CPU that is
@@ -110,8 +111,7 @@ public sealed class LocalWhisperService : IDisposable
         // heard them — the one thing that message could not do was mention the model.
         if (!File.Exists(path))
             throw new InvalidOperationException(
-                $"The local speech model '{modelId}' has not been downloaded yet. "
-              + "Settings → AI Agent → Speech Input → Download Model.");
+                string.Format(SettingsText.WhisperModelNotDownloaded, modelId));
 
         // Reloaded only when the model actually changed. The timestamp matters as well as
         // the path: re-downloading the SAME model writes a new file at the same location,

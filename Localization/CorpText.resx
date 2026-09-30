@@ -1,0 +1,2371 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="CorporationLabel" xml:space="preserve">
+    <value>Corporation:</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Refresh</value>
+    <comment>Button or option in CorpActivityView.</comment>
+  </data>
+  <data name="TabActivity24h" xml:space="preserve">
+    <value>ACTIVITY (24H)</value>
+    <comment>Tab in CorpActivityView.</comment>
+  </data>
+  <data name="PlayersActiveLabel" xml:space="preserve">
+    <value>PLAYERS ACTIVE:</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="IncomeLabel" xml:space="preserve">
+    <value>INCOME:</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="ExpensesLabel" xml:space="preserve">
+    <value>EXPENSES:</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="RattingLabel" xml:space="preserve">
+    <value>RATTING</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="ColCharacter" xml:space="preserve">
+    <value>CHARACTER</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="TipOpenInTheEntityBrowser" xml:space="preserve">
+    <value>Open in the entity browser</value>
+    <comment>Tooltip in CorpActivityView.</comment>
+  </data>
+  <data name="ColValue" xml:space="preserve">
+    <value>VALUE</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="IndustryLabel" xml:space="preserve">
+    <value>INDUSTRY</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="MiningLabel" xml:space="preserve">
+    <value>MINING</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="RecentKillsLossesLabel" xml:space="preserve">
+    <value>RECENT KILLS &amp; LOSSES</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="TabMonthlyActivity" xml:space="preserve">
+    <value>MONTHLY ACTIVITY</value>
+    <comment>Tab in CorpActivityView.</comment>
+  </data>
+  <data name="ColMonth" xml:space="preserve">
+    <value>MONTH</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColTotalIncome" xml:space="preserve">
+    <value>TOTAL INCOME</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColTotalExpense" xml:space="preserve">
+    <value>TOTAL EXPENSE</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColRattingTax" xml:space="preserve">
+    <value>RATTING TAX</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColIndustryTax" xml:space="preserve">
+    <value>INDUSTRY TAX</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColProjPayouts" xml:space="preserve">
+    <value>PROJ PAYOUTS</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColMinedValue" xml:space="preserve">
+    <value>MINED VALUE</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColKills" xml:space="preserve">
+    <value>KILLS</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColLosses" xml:space="preserve">
+    <value>LOSSES</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColIskEff" xml:space="preserve">
+    <value>ISK EFF</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColPlayersActive" xml:space="preserve">
+    <value>PLAYERS ACTIVE</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="IskTrendsBillions" xml:space="preserve">
+    <value>ISK TRENDS (billions)</value>
+    <comment>Text in CorpActivityView.</comment>
+  </data>
+  <data name="KillsLossesIskEfficiencyRight" xml:space="preserve">
+    <value>KILLS / LOSSES (ISK efficiency right)</value>
+    <comment>Text in CorpActivityView.</comment>
+  </data>
+  <data name="PlayersActiveLabel2" xml:space="preserve">
+    <value>PLAYERS ACTIVE</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="MiningReprocessedValue" xml:space="preserve">
+    <value>MINING (reprocessed value)</value>
+    <comment>Text in CorpActivityView.</comment>
+  </data>
+  <data name="TabIncome" xml:space="preserve">
+    <value>INCOME</value>
+    <comment>Tab in CorpActivityView.</comment>
+  </data>
+  <data name="IncomeByTypeLabel" xml:space="preserve">
+    <value>INCOME BY TYPE</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="PeriodLabel" xml:space="preserve">
+    <value>Period:</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="TabSummary" xml:space="preserve">
+    <value>SUMMARY</value>
+    <comment>Tab in CorpActivityView.</comment>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>TYPE</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColCount" xml:space="preserve">
+    <value>COUNT</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColAmount" xml:space="preserve">
+    <value>AMOUNT</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="TabDetail" xml:space="preserve">
+    <value>DETAIL</value>
+    <comment>Tab in CorpActivityView.</comment>
+  </data>
+  <data name="TypeLabel" xml:space="preserve">
+    <value>TYPE</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="NameLabel" xml:space="preserve">
+    <value>NAME</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="HintContains" xml:space="preserve">
+    <value>contains…</value>
+    <comment>Hint in an empty box in CorpActivityView.</comment>
+  </data>
+  <data name="ColDateTime" xml:space="preserve">
+    <value>DATE / TIME</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColName" xml:space="preserve">
+    <value>NAME</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColReason" xml:space="preserve">
+    <value>REASON</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="TabExpense" xml:space="preserve">
+    <value>EXPENSE</value>
+    <comment>Tab in CorpActivityView.</comment>
+  </data>
+  <data name="ExpensesByTypeLabel" xml:space="preserve">
+    <value>EXPENSES BY TYPE</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="TabRattingTaxes" xml:space="preserve">
+    <value>RATTING TAXES</value>
+    <comment>Tab in CorpActivityView.</comment>
+  </data>
+  <data name="RattingTaxLabel" xml:space="preserve">
+    <value>RATTING TAX</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="DailyRattingTaxLabel" xml:space="preserve">
+    <value>DAILY RATTING TAX</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="TabIndustryTaxes" xml:space="preserve">
+    <value>INDUSTRY TAXES</value>
+    <comment>Tab in CorpActivityView.</comment>
+  </data>
+  <data name="IndustryTaxLabel" xml:space="preserve">
+    <value>INDUSTRY TAX</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="DailyIndustryTaxLabel" xml:space="preserve">
+    <value>DAILY INDUSTRY TAX</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="TabDonations" xml:space="preserve">
+    <value>DONATIONS</value>
+    <comment>Tab in CorpActivityView.</comment>
+  </data>
+  <data name="DonationsLabel" xml:space="preserve">
+    <value>DONATIONS</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="ColDonated" xml:space="preserve">
+    <value>DONATED</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="DailyDonationsLabel" xml:space="preserve">
+    <value>DAILY DONATIONS</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="ColDonor" xml:space="preserve">
+    <value>DONOR</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="TabMining" xml:space="preserve">
+    <value>MINING</value>
+    <comment>Tab in CorpActivityView.</comment>
+  </data>
+  <data name="MiningLedgerLabel" xml:space="preserve">
+    <value>MINING LEDGER</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="NoMiningDataForNote" xml:space="preserve">
+    <value>No mining data for this period. If a step failed, the status line above says so.</value>
+    <comment>Note in CorpActivityView.</comment>
+  </data>
+  <data name="ColDate" xml:space="preserve">
+    <value>DATE</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColOreType" xml:space="preserve">
+    <value>ORE TYPE</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="TipOpenInTheItemBrowser" xml:space="preserve">
+    <value>Open in the Item Browser</value>
+    <comment>Tooltip in CorpActivityView.</comment>
+  </data>
+  <data name="ColQuantity" xml:space="preserve">
+    <value>QUANTITY</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColReprocessedValue" xml:space="preserve">
+    <value>REPROCESSED VALUE</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="TabKillmails" xml:space="preserve">
+    <value>KILLMAILS</value>
+    <comment>Tab in CorpActivityView.</comment>
+  </data>
+  <data name="KillmailsLabel" xml:space="preserve">
+    <value>KILLMAILS</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="DailyKillsLossesLabel" xml:space="preserve">
+    <value>DAILY KILLS / LOSSES</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="TabProjects" xml:space="preserve">
+    <value>PROJECTS</value>
+    <comment>Tab in CorpActivityView.</comment>
+  </data>
+  <data name="TabActive" xml:space="preserve">
+    <value>ACTIVE</value>
+    <comment>Tab in CorpActivityView.</comment>
+  </data>
+  <data name="TotalRewardLabel" xml:space="preserve">
+    <value>Total Reward:</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="RemainingLabel" xml:space="preserve">
+    <value>Remaining:</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="NoActiveCorpProjects" xml:space="preserve">
+    <value>No active corp projects.</value>
+    <comment>Text in CorpActivityView.</comment>
+  </data>
+  <data name="ColCareer" xml:space="preserve">
+    <value>CAREER</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColProgress" xml:space="preserve">
+    <value>PROGRESS</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColRemReward" xml:space="preserve">
+    <value>REM. REWARD</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColCreator" xml:space="preserve">
+    <value>CREATOR</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColCreated" xml:space="preserve">
+    <value>CREATED</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="TabHistory" xml:space="preserve">
+    <value>HISTORY</value>
+    <comment>Tab in CorpActivityView.</comment>
+  </data>
+  <data name="NoProjectHistoryAvailable" xml:space="preserve">
+    <value>No project history available.</value>
+    <comment>Text in CorpActivityView.</comment>
+  </data>
+  <data name="ColState" xml:space="preserve">
+    <value>STATE</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColCompleted" xml:space="preserve">
+    <value>COMPLETED</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="TabStandingProjects" xml:space="preserve">
+    <value>STANDING PROJECTS</value>
+    <comment>Tab in CorpActivityView.</comment>
+  </data>
+  <data name="AddProject" xml:space="preserve">
+    <value>+ Add Project</value>
+    <comment>Button or option in CorpActivityView.</comment>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>Loading…</value>
+    <comment>Text in CorpActivityView.</comment>
+  </data>
+  <data name="MenuCloneItem" xml:space="preserve">
+    <value>Clone item</value>
+    <comment>Menu item in CorpActivityView.</comment>
+  </data>
+  <data name="MenuOpenItemInItemBrowser" xml:space="preserve">
+    <value>Open Item in Item Browser</value>
+    <comment>Menu item in CorpActivityView.</comment>
+  </data>
+  <data name="ColDescription" xml:space="preserve">
+    <value>DESCRIPTION</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColLocation" xml:space="preserve">
+    <value>LOCATION</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="TipOpenThisStationOrStructure" xml:space="preserve">
+    <value>Open this station or structure</value>
+    <comment>Tooltip in CorpActivityView.</comment>
+  </data>
+  <data name="ColProjectStatus" xml:space="preserve">
+    <value>PROJECT STATUS</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColRemaining" xml:space="preserve">
+    <value>REMAINING</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColRem" xml:space="preserve">
+    <value>REM. %</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColPayout" xml:space="preserve">
+    <value>PAYOUT</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Edit</value>
+    <comment>Button or option in CorpActivityView.</comment>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Delete</value>
+    <comment>Button or option in CorpActivityView.</comment>
+  </data>
+  <data name="NoStandingProjectsDefinedNote" xml:space="preserve">
+    <value>No standing projects defined. Click '+ Add Project' to create one.</value>
+    <comment>Note in CorpActivityView.</comment>
+  </data>
+  <data name="SelectAProjectAboveNote" xml:space="preserve">
+    <value>Select a project above to view details.</value>
+    <comment>Note in CorpActivityView.</comment>
+  </data>
+  <data name="TabDetails" xml:space="preserve">
+    <value>DETAILS</value>
+    <comment>Tab in CorpActivityView.</comment>
+  </data>
+  <data name="ConfigurationLabel" xml:space="preserve">
+    <value>CONFIGURATION</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="TabContributors" xml:space="preserve">
+    <value>CONTRIBUTORS</value>
+    <comment>Tab in CorpActivityView.</comment>
+  </data>
+  <data name="ColContributed" xml:space="preserve">
+    <value>CONTRIBUTED</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="ColOfTarget" xml:space="preserve">
+    <value>% OF TARGET</value>
+    <comment>Column header in CorpActivityView.</comment>
+  </data>
+  <data name="TabTop10Lists" xml:space="preserve">
+    <value>TOP 10 LISTS</value>
+    <comment>Tab in CorpActivityView.</comment>
+  </data>
+  <data name="Top10ByMonthLabel" xml:space="preserve">
+    <value>TOP 10 BY MONTH</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="MonthLabel" xml:space="preserve">
+    <value>Month:</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="YearLabel" xml:space="preserve">
+    <value>Year:</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="Loading2" xml:space="preserve">
+    <value>Loading...</value>
+    <comment>Text in CorpActivityView.</comment>
+  </data>
+  <data name="TipFormatUsedForExport" xml:space="preserve">
+    <value>Format used for Export to Clipboard and Post to Slack</value>
+    <comment>Tooltip in CorpActivityView.</comment>
+  </data>
+  <data name="ExportToClipboard" xml:space="preserve">
+    <value>Export to Clipboard</value>
+    <comment>Button or option in CorpActivityView.</comment>
+  </data>
+  <data name="ExportNoIsk" xml:space="preserve">
+    <value>Export (No ISK)</value>
+    <comment>Button or option in CorpActivityView.</comment>
+  </data>
+  <data name="PostToSlack" xml:space="preserve">
+    <value>Post to Slack</value>
+    <comment>Text in CorpActivityView.</comment>
+  </data>
+  <data name="MiningUnitsMinedLabel" xml:space="preserve">
+    <value>MINING — UNITS MINED</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="KillsLabel" xml:space="preserve">
+    <value>KILLS</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="ProjectContributorsLabel" xml:space="preserve">
+    <value>PROJECT CONTRIBUTORS</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="TabMonthlySummary" xml:space="preserve">
+    <value>MONTHLY SUMMARY</value>
+    <comment>Tab in CorpActivityView.</comment>
+  </data>
+  <data name="MonthlySummaryLabel" xml:space="preserve">
+    <value>MONTHLY SUMMARY</value>
+    <comment>Label in CorpActivityView.</comment>
+  </data>
+  <data name="ThisMonth" xml:space="preserve">
+    <value>This month</value>
+    <comment>Text in CorpActivityView.</comment>
+  </data>
+  <data name="Change" xml:space="preserve">
+    <value>Change</value>
+    <comment>Text in CorpActivityView.</comment>
+  </data>
+  <data name="TipChangeVsThePreviousMonth" xml:space="preserve">
+    <value>Change vs the previous month</value>
+    <comment>Tooltip in CorpActivityView.</comment>
+  </data>
+  <data name="TipPercentChangeVsThePrevious" xml:space="preserve">
+    <value>Percent change vs the previous month</value>
+    <comment>Tooltip in CorpActivityView.</comment>
+  </data>
+  <data name="FmtRows" xml:space="preserve">
+    <value>{0:N0} rows</value>
+    <comment>Formatted text ({0} is filled in) in CorpActivityView.</comment>
+  </data>
+  <data name="TitleCorpActivity" xml:space="preserve">
+    <value>Corp Activity</value>
+    <comment>Window title in CorpActivityWindow.</comment>
+  </data>
+  <data name="HintTypeAtLeastTwo" xml:space="preserve">
+    <value>Type at least two characters to search…</value>
+    <comment>Hint in an empty box in EntityTabView.</comment>
+  </data>
+  <data name="SearchAboveAndPickNote" xml:space="preserve">
+    <value>Search above and pick an entity to see its details.</value>
+    <comment>Note in EntityTabView.</comment>
+  </data>
+  <data name="TabDescription" xml:space="preserve">
+    <value>Description</value>
+    <comment>Tab in EntityTabView.</comment>
+  </data>
+  <data name="TabKillsLosses" xml:space="preserve">
+    <value>Kills / Losses</value>
+    <comment>Tab in EntityTabView.</comment>
+  </data>
+  <data name="KillsLoadMore" xml:space="preserve">
+    <value>Load 200 more from zKillboard</value>
+    <comment>Entity viewer, Kills / Losses tab: the button that pages in the next 200 kills from zKillboard.</comment>
+  </data>
+  <data name="KillsTryAgain" xml:space="preserve">
+    <value>Try zKillboard again</value>
+    <comment>Entity viewer, Kills / Losses tab: the same button after a page failed to load.</comment>
+  </data>
+  <data name="KillsAsking" xml:space="preserve">
+    <value>Asking zKillboard for the kills not stored here…</value>
+    <comment>Entity viewer, Kills / Losses tab: status while the first page loads.</comment>
+  </data>
+  <data name="KillsLoadingPage" xml:space="preserve">
+    <value>{0:N0} shown — loading page {1} from zKillboard. A page it has not served lately can take a minute.</value>
+    <comment>Entity viewer, Kills / Losses tab: status while a further page loads. {0} the kills shown so far, {1} the page number.</comment>
+  </data>
+  <data name="KillsProblemStoredOnly" xml:space="preserve">
+    <value>{0} — so these are only the kills stored here.</value>
+    <comment>Entity viewer, Kills / Losses tab: the first page from zKillboard failed. {0} is why (a clause such as DataText.ZkbUnreachable).</comment>
+  </data>
+  <data name="KillsProblemPage" xml:space="preserve">
+    <value>{0} — {1:N0} shown, page {2} not loaded.</value>
+    <comment>Entity viewer, Kills / Losses tab: a further page failed. {0} is why (a clause such as DataText.ZkbUnreachable), {1} the kills shown, {2} the page number.</comment>
+  </data>
+  <data name="KillsNoneAnywhere" xml:space="preserve">
+    <value>No killmails for this entity, here or on zKillboard.</value>
+    <comment>Entity viewer, Kills / Losses tab: neither this database nor zKillboard has a kill for the pilot, corporation or alliance.</comment>
+  </data>
+  <data name="KillsStoredNoneOnZkb" xml:space="preserve">
+    <value>{0:N0} stored here; zKillboard has none for this entity.</value>
+    <comment>Entity viewer, Kills / Losses tab. {0} the kills this database holds.</comment>
+  </data>
+  <data name="KillsEverything" xml:space="preserve">
+    <value>{0:N0} kills and losses — everything zKillboard has.</value>
+    <comment>Entity viewer, Kills / Losses tab, when zKillboard has no more pages. {0} the kills shown.</comment>
+  </data>
+  <data name="KillsBackTo" xml:space="preserve">
+    <value>{0:N0} kills and losses back to {1:yyyy-MM-dd HH:mm} — complete from zKillboard, {2:N0} fetched that were not stored here.</value>
+    <comment>Entity viewer, Kills / Losses tab, after a page loaded. {0} the kills shown, {1:yyyy-MM-dd HH:mm} the date and time of the oldest (keep the format), {2} how many zKillboard supplied that this database did not have.</comment>
+  </data>
+  <data name="KillsPageLimit" xml:space="preserve">
+    <value>zKillboard serves no further back than this: its page limit is {0}.</value>
+    <comment>Entity viewer, Kills / Losses tab, a sentence after KillsBackTo once the last page zKillboard will serve is in. {0} is that page number.</comment>
+  </data>
+  <data name="KillsPageFailed" xml:space="preserve">
+    <value>zKillboard page failed: {0}</value>
+    <comment>Entity viewer, Kills / Losses tab. {0} is the error, in whatever language the system wrote it.</comment>
+  </data>
+  <data name="ZkbStatsLoading" xml:space="preserve">
+    <value>Loading zKillboard stats…</value>
+    <comment>Entity viewer header: while zKillboard's figures for the pilot, corporation or alliance load.</comment>
+  </data>
+  <data name="ZkbStatsProblem" xml:space="preserve">
+    <value>{0}, so there are no stats to show.</value>
+    <comment>Entity viewer header. {0} is why zKillboard's figures could not be loaded (a clause such as DataText.ZkbUnreachable).</comment>
+  </data>
+  <data name="ZkbStatsNone" xml:space="preserve">
+    <value>zKillboard has no kills or losses for this entity.</value>
+    <comment>Entity viewer header, when zKillboard knows the entity but has no kill for it.</comment>
+  </data>
+  <data name="ZkbStatsFailed" xml:space="preserve">
+    <value>zKillboard stats failed: {0}</value>
+    <comment>Entity viewer header. {0} is the error, in whatever language the system wrote it.</comment>
+  </data>
+  <data name="ZkbAllTime" xml:space="preserve">
+    <value>All time</value>
+    <comment>Entity viewer, zKillboard panel: the period button for all of zKillboard's figures. Small; keep it short.</comment>
+  </data>
+  <data name="ZkbDays90" xml:space="preserve">
+    <value>90 days</value>
+    <comment>Entity viewer, zKillboard panel: the period button for the last 90 days. Small; keep it short.</comment>
+  </data>
+  <data name="ZkbDays7" xml:space="preserve">
+    <value>7 days</value>
+    <comment>Entity viewer, zKillboard panel: the period button for the last 7 days. Small; keep it short.</comment>
+  </data>
+  <data name="ZkbDestroyed" xml:space="preserve">
+    <value>Destroyed</value>
+    <comment>Entity viewer, zKillboard panel: column heading, what the entity destroyed. Narrow column.</comment>
+  </data>
+  <data name="ZkbLost" xml:space="preserve">
+    <value>Lost</value>
+    <comment>Entity viewer, zKillboard panel: column heading, what the entity lost. Narrow column.</comment>
+  </data>
+  <data name="ZkbRank" xml:space="preserve">
+    <value>Rank</value>
+    <comment>Entity viewer, zKillboard panel: column heading, zKillboard's ranking for the figure beside it. Narrow column.</comment>
+  </data>
+  <data name="ZkbEfficiency" xml:space="preserve">
+    <value>Eff.</value>
+    <comment>Entity viewer, zKillboard panel: column heading, destroyed as a share of destroyed and lost (zKillboard's "Eff. %"). A very narrow column: an abbreviation.</comment>
+  </data>
+  <data name="ZkbShips" xml:space="preserve">
+    <value>Ships</value>
+    <comment>Entity viewer, zKillboard panel: row label, ships destroyed and lost. A column 52 pixels wide.</comment>
+  </data>
+  <data name="ZkbPoints" xml:space="preserve">
+    <value>Points</value>
+    <comment>Entity viewer, zKillboard panel: row label, zKillboard's points destroyed and lost. A column 52 pixels wide.</comment>
+  </data>
+  <data name="ZkbIsk" xml:space="preserve">
+    <value>ISK</value>
+    <comment>Entity viewer, zKillboard panel: row label, ISK destroyed and lost. Keep ISK.</comment>
+  </data>
+  <data name="ZkbRankOverall" xml:space="preserve">
+    <value>Rank #{0:N0}</value>
+    <comment>Entity viewer, zKillboard panel: zKillboard's overall rank for the period. {0} is the rank.</comment>
+  </data>
+  <data name="ZkbDangerous" xml:space="preserve">
+    <value>Dangerous {0}%</value>
+    <comment>Entity viewer, zKillboard panel: left end of zKillboard's danger bar. {0} is a whole percentage. zKillboard's own word (its site is English only); translate the meaning. A column 92 pixels wide.</comment>
+  </data>
+  <data name="ZkbSnuggly" xml:space="preserve">
+    <value>{0}% Snuggly</value>
+    <comment>Entity viewer, zKillboard panel: right end of the danger bar, the opposite of ZkbDangerous. zKillboard's playful word for harmless; translate the meaning, playfully if the language allows. A column 80 pixels wide.</comment>
+  </data>
+  <data name="ZkbGang" xml:space="preserve">
+    <value>Gang {0}%</value>
+    <comment>Entity viewer, zKillboard panel: left end of zKillboard's gang bar, the share of kills made in a group. {0} is a whole percentage. A column 92 pixels wide.</comment>
+  </data>
+  <data name="ZkbSolo" xml:space="preserve">
+    <value>{0}% Solo</value>
+    <comment>Entity viewer, zKillboard panel: right end of the gang bar, the share of kills made alone. A column 80 pixels wide.</comment>
+  </data>
+  <data name="ZkbAverageGang" xml:space="preserve">
+    <value>average gang {0:0.#}</value>
+    <comment>Entity viewer, zKillboard panel, the line under the bars: the average number of attackers on a kill. {0} is that number, one decimal at most. Followed by " · " and ZkbSoloKills… (lower case start in English: it is the start of a line of small print).</comment>
+  </data>
+  <data name="ZkbSoloKillsOther" xml:space="preserve">
+    <value>{0:N0} solo kill(s)</value>
+    <comment>Entity viewer, zKillboard panel, small print under the bars: kills made alone. English keeps one form for every count; a language that needs forms by count adds them (…One, …Few, …Many). Followed by a list separator and ZkbSoloLosses…</comment>
+  </data>
+  <data name="ZkbSoloLossesOther" xml:space="preserve">
+    <value>{0:N0} solo loss(es)</value>
+    <comment>Entity viewer, zKillboard panel, small print under the bars: losses to a single attacker. English keeps one form for every count; a language that needs forms by count adds them (…One, …Few, …Many).</comment>
+  </data>
+  <data name="ZkbNone90" xml:space="preserve">
+    <value>No kills or losses in the last 90 days.</value>
+    <comment>Entity viewer, zKillboard panel, instead of the table when the 90-day period is empty.</comment>
+  </data>
+  <data name="ZkbNone7" xml:space="preserve">
+    <value>No kills or losses in the last 7 days.</value>
+    <comment>Entity viewer, zKillboard panel, instead of the table when the 7-day period is empty.</comment>
+  </data>
+  <data name="ZkbNoneAllTime" xml:space="preserve">
+    <value>No kills or losses on zKillboard.</value>
+    <comment>Entity viewer, zKillboard panel, instead of the table when zKillboard has nothing at all.</comment>
+  </data>
+  <data name="ColName2" xml:space="preserve">
+    <value>Name</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="ColDetails" xml:space="preserve">
+    <value>Details</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="ColLvl" xml:space="preserve">
+    <value>Lvl</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="ColDivision" xml:space="preserve">
+    <value>Division</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="ColStation" xml:space="preserve">
+    <value>Station</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="TipOpenInTheStationsTab" xml:space="preserve">
+    <value>Open in the Stations tab</value>
+    <comment>Tooltip in EntityTabView.</comment>
+  </data>
+  <data name="ColFrom" xml:space="preserve">
+    <value>From</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="ColUntil" xml:space="preserve">
+    <value>Until</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="ColDuration" xml:space="preserve">
+    <value>Duration</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="TabStations" xml:space="preserve">
+    <value>Stations</value>
+    <comment>Tab in EntityTabView.</comment>
+  </data>
+  <data name="ColSystem" xml:space="preserve">
+    <value>System</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="ColRegion" xml:space="preserve">
+    <value>Region</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="ColSec" xml:space="preserve">
+    <value>Sec</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="ColAgents" xml:space="preserve">
+    <value>Agents</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="TabOrders" xml:space="preserve">
+    <value>Orders</value>
+    <comment>Tab in EntityTabView.</comment>
+  </data>
+  <data name="Sells" xml:space="preserve">
+    <value>Sells</value>
+    <comment>Text in EntityTabView.</comment>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>Item</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="TipOpenInItemBrowser" xml:space="preserve">
+    <value>Open in Item Browser</value>
+    <comment>Tooltip in EntityTabView.</comment>
+  </data>
+  <data name="ColLowPrice" xml:space="preserve">
+    <value>Low Price</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="ColHighPrice" xml:space="preserve">
+    <value>High Price</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="Buys" xml:space="preserve">
+    <value>Buys</value>
+    <comment>Text in EntityTabView.</comment>
+  </data>
+  <data name="TabLpOffers" xml:space="preserve">
+    <value>LP Offers</value>
+    <comment>Tab in EntityTabView.</comment>
+  </data>
+  <data name="ColQty" xml:space="preserve">
+    <value>Qty</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="ColRequires" xml:space="preserve">
+    <value>Requires</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="TabFactionWarfare" xml:space="preserve">
+    <value>Faction Warfare</value>
+    <comment>Tab in EntityTabView.</comment>
+  </data>
+  <data name="ColRole" xml:space="preserve">
+    <value>Role</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="ColOwner" xml:space="preserve">
+    <value>Owner</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="ColHeldBy" xml:space="preserve">
+    <value>Held By</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="FwRoleOwner" xml:space="preserve">
+    <value>Owner</value>
+    <comment>Entity browser, Faction Warfare tab of a faction, Role column: this faction owns the system — it is the one named in the Owner column, whose header is the same word.</comment>
+  </data>
+  <data name="FwRoleOccupier" xml:space="preserve">
+    <value>Occupier</value>
+    <comment>Entity browser, Faction Warfare tab of a faction, Role column: this faction holds a system another faction owns — it is the one named in the Held By column.</comment>
+  </data>
+  <data name="ColContested" xml:space="preserve">
+    <value>Contested</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="ColPoints" xml:space="preserve">
+    <value>Points</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="ColThreshold" xml:space="preserve">
+    <value>Threshold</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="TabIntelReports" xml:space="preserve">
+    <value>Intel Reports</value>
+    <comment>Tab in EntityTabView.</comment>
+  </data>
+  <data name="ColWhen" xml:space="preserve">
+    <value>When</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="ColShip" xml:space="preserve">
+    <value>Ship</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="ColChannel" xml:space="preserve">
+    <value>Channel</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="ColReporter" xml:space="preserve">
+    <value>Reporter</value>
+    <comment>Column header in EntityTabView.</comment>
+  </data>
+  <data name="HintCharacter" xml:space="preserve">
+    <value>Character…</value>
+    <comment>Hint in an empty box in KillmailBrowserView.</comment>
+  </data>
+  <data name="HintCorp" xml:space="preserve">
+    <value>Corp…</value>
+    <comment>Hint in an empty box in KillmailBrowserView.</comment>
+  </data>
+  <data name="FromLabel" xml:space="preserve">
+    <value>From:</value>
+    <comment>Label in KillmailBrowserView.</comment>
+  </data>
+  <data name="ThruLabel" xml:space="preserve">
+    <value>Thru:</value>
+    <comment>Label in KillmailBrowserView.</comment>
+  </data>
+  <data name="HintShip" xml:space="preserve">
+    <value>Ship…</value>
+    <comment>Hint in an empty box in KillmailBrowserView.</comment>
+  </data>
+  <data name="HintSystemRegion" xml:space="preserve">
+    <value>System/Region…</value>
+    <comment>Hint in an empty box in KillmailBrowserView.</comment>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>Clear</value>
+    <comment>Button or option in KillmailBrowserView.</comment>
+  </data>
+  <data name="LoadMore" xml:space="preserve">
+    <value>Load More</value>
+    <comment>Button or option in KillmailBrowserView.</comment>
+  </data>
+  <data name="SelectAKillmailToView" xml:space="preserve">
+    <value>Select a killmail to view details.</value>
+    <comment>Text in KillmailBrowserView.</comment>
+  </data>
+  <data name="TipOpenOnTheUniverseMap" xml:space="preserve">
+    <value>Open on the Universe map</value>
+    <comment>Tooltip in KillmailBrowserView.</comment>
+  </data>
+  <data name="DestroyedLabel" xml:space="preserve">
+    <value>DESTROYED</value>
+    <comment>Label in KillmailBrowserView.</comment>
+  </data>
+  <data name="DroppedLabel" xml:space="preserve">
+    <value>DROPPED</value>
+    <comment>Label in KillmailBrowserView.</comment>
+  </data>
+  <data name="TotalLabel" xml:space="preserve">
+    <value>TOTAL</value>
+    <comment>Label in KillmailBrowserView.</comment>
+  </data>
+  <data name="AttackersLabel" xml:space="preserve">
+    <value>ATTACKERS</value>
+    <comment>Label in KillmailBrowserView.</comment>
+  </data>
+  <data name="TitleKillmails" xml:space="preserve">
+    <value>Killmails</value>
+    <comment>Window title in KillmailBrowserWindow.</comment>
+  </data>
+  <data name="TabAgents" xml:space="preserve">
+    <value>Agents</value>
+    <comment>Tab in NpcEntitiesView.</comment>
+  </data>
+  <data name="TabCorporations" xml:space="preserve">
+    <value>Corporations</value>
+    <comment>Tab in NpcEntitiesView.</comment>
+  </data>
+  <data name="TabFactions" xml:space="preserve">
+    <value>Factions</value>
+    <comment>Tab in NpcEntitiesView.</comment>
+  </data>
+  <data name="TabPilots" xml:space="preserve">
+    <value>Pilots</value>
+    <comment>Tab in PlayerEntitiesView.</comment>
+  </data>
+  <data name="TabAlliances" xml:space="preserve">
+    <value>Alliances</value>
+    <comment>Tab in PlayerEntitiesView.</comment>
+  </data>
+  <data name="TitleStandingProject" xml:space="preserve">
+    <value>Standing Project</value>
+    <comment>Window title in StandingProjectDialog.</comment>
+  </data>
+  <data name="ProjectTypeLabel" xml:space="preserve">
+    <value>PROJECT TYPE</value>
+    <comment>Label in StandingProjectDialog.</comment>
+  </data>
+  <data name="DeliverItem" xml:space="preserve">
+    <value>Deliver Item</value>
+    <comment>A standing project's type: an option in StandingProjectDialog, and the Type column of the Standing Projects grid.</comment>
+  </data>
+  <data name="DestroyNpc" xml:space="preserve">
+    <value>Destroy NPC</value>
+    <comment>A standing project's type: an option in StandingProjectDialog, and the Type column of the Standing Projects grid.</comment>
+  </data>
+  <data name="ItemTypeLabel" xml:space="preserve">
+    <value>ITEM TYPE</value>
+    <comment>Label in StandingProjectDialog.</comment>
+  </data>
+  <data name="HintSearchForItemType" xml:space="preserve">
+    <value>Search for item type…</value>
+    <comment>Hint in an empty box in StandingProjectDialog.</comment>
+  </data>
+  <data name="DestinationStationStructureLabel" xml:space="preserve">
+    <value>DESTINATION STATION / STRUCTURE</value>
+    <comment>Label in StandingProjectDialog.</comment>
+  </data>
+  <data name="HintSearchForStationOrStructure" xml:space="preserve">
+    <value>Search for station or structure…</value>
+    <comment>Hint in an empty box in StandingProjectDialog.</comment>
+  </data>
+  <data name="ScopeLabel" xml:space="preserve">
+    <value>SCOPE</value>
+    <comment>Label in StandingProjectDialog.</comment>
+  </data>
+  <data name="SpecificSystem" xml:space="preserve">
+    <value>Specific System</value>
+    <comment>Button or option in StandingProjectDialog.</comment>
+  </data>
+  <data name="AllSystemsInA" xml:space="preserve">
+    <value>All systems in a Region below min ADM</value>
+    <comment>Button or option in StandingProjectDialog.</comment>
+  </data>
+  <data name="AllSystemsInA2" xml:space="preserve">
+    <value>All systems in a Constellation below min ADM</value>
+    <comment>Button or option in StandingProjectDialog.</comment>
+  </data>
+  <data name="AllSystemsWhereAn" xml:space="preserve">
+    <value>All systems where an Alliance holds sovereignty</value>
+    <comment>Button or option in StandingProjectDialog.</comment>
+  </data>
+  <data name="SolarSystemLabel" xml:space="preserve">
+    <value>SOLAR SYSTEM</value>
+    <comment>Label in StandingProjectDialog.</comment>
+  </data>
+  <data name="HintSearchForSolarSystem" xml:space="preserve">
+    <value>Search for solar system…</value>
+    <comment>Hint in an empty box in StandingProjectDialog.</comment>
+  </data>
+  <data name="RegionLabel" xml:space="preserve">
+    <value>REGION</value>
+    <comment>Label in StandingProjectDialog.</comment>
+  </data>
+  <data name="HintSearchForRegion" xml:space="preserve">
+    <value>Search for region…</value>
+    <comment>Hint in an empty box in StandingProjectDialog.</comment>
+  </data>
+  <data name="MinAdmLabel" xml:space="preserve">
+    <value>MIN ADM:</value>
+    <comment>Label in StandingProjectDialog.</comment>
+  </data>
+  <data name="ConstellationLabel" xml:space="preserve">
+    <value>CONSTELLATION</value>
+    <comment>Label in StandingProjectDialog.</comment>
+  </data>
+  <data name="HintSearchForConstellation" xml:space="preserve">
+    <value>Search for constellation…</value>
+    <comment>Hint in an empty box in StandingProjectDialog.</comment>
+  </data>
+  <data name="AllianceLabel" xml:space="preserve">
+    <value>ALLIANCE</value>
+    <comment>Label in StandingProjectDialog.</comment>
+  </data>
+  <data name="NoAllianceFoundOnNote" xml:space="preserve">
+    <value>No alliance found on any tracked character.</value>
+    <comment>Note in StandingProjectDialog.</comment>
+  </data>
+  <data name="EverySystemThisAllianceNote" xml:space="preserve">
+    <value>Every system this alliance holds that is below the ADM, wherever it is. Re-read from the sovereignty map each time the grid is built.</value>
+    <comment>Note in StandingProjectDialog.</comment>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+    <comment>Button or option in StandingProjectDialog.</comment>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Save</value>
+    <comment>Button or option in StandingProjectDialog.</comment>
+  </data>
+  <data name="StatusNoSystemsBelowMinAdm" xml:space="preserve">
+    <value>no systems below the minimum ADM</value>
+    <comment>Project status cell of a standing project whose scope has no system below the minimum ADM. Lower case, like the other statuses.</comment>
+  </data>
+  <data name="StatusScopeNoSystems" xml:space="preserve">
+    <value>scope expands to no systems</value>
+    <comment>Project status cell: the project's scope (a region, constellation or alliance) contains no systems at all.</comment>
+  </data>
+  <data name="StatusSovUnavailableNote" xml:space="preserve">
+    <value>sovereignty data unavailable — {0}</value>
+    <comment>Project status cell when the sovereignty data could not be read. {0} is the error.</comment>
+  </data>
+  <data name="StatusSovUnavailable" xml:space="preserve">
+    <value>sovereignty data unavailable</value>
+    <comment>Project status cell when the sovereignty data could not be read.</comment>
+  </data>
+  <data name="StatusOfficeUnavailableNote" xml:space="preserve">
+    <value>office location unavailable — {0}</value>
+    <comment>Project status cell when the corp office's location is unknown. {0} is the reason.</comment>
+  </data>
+  <data name="StatusOfficeUnavailableLoading" xml:space="preserve">
+    <value>office location unavailable — asset data still loading</value>
+    <comment>Project status cell when the corp office's location is unknown because corp assets have not loaded yet.</comment>
+  </data>
+  <data name="StatusProjectNotActive" xml:space="preserve">
+    <value>project not active</value>
+    <comment>Project status cell: no corp project in the game currently covers this standing project.</comment>
+  </data>
+  <data name="StatusSelectCorp" xml:space="preserve">
+    <value>Select a corporation above to load data.</value>
+    <comment>Status line before a corporation is chosen.</comment>
+  </data>
+  <data name="PeriodLast30Days" xml:space="preserve">
+    <value>Last 30 Days</value>
+    <comment>Period pick list entry.</comment>
+  </data>
+  <data name="PeriodLast60Days" xml:space="preserve">
+    <value>Last 60 Days</value>
+    <comment>Period pick list entry.</comment>
+  </data>
+  <data name="PeriodLast90Days" xml:space="preserve">
+    <value>Last 90 Days</value>
+    <comment>Period pick list entry.</comment>
+  </data>
+  <data name="PeriodLast6Months" xml:space="preserve">
+    <value>Last 6 Months</value>
+    <comment>Period pick list entry.</comment>
+  </data>
+  <data name="PeriodLastYear" xml:space="preserve">
+    <value>Last Year</value>
+    <comment>Period pick list entry.</comment>
+  </data>
+  <data name="PeriodLast7Days" xml:space="preserve">
+    <value>Last 7 Days</value>
+    <comment>Period pick list entry.</comment>
+  </data>
+  <data name="StatusFilterFailed" xml:space="preserve">
+    <value>Filter failed: {0}</value>
+    <comment>Status line when the Type or Name filter of a detail grid fails. {0} is the error.</comment>
+  </data>
+  <data name="FormatPlainText" xml:space="preserve">
+    <value>Plain Text</value>
+    <comment>Export format pick list: text with no markup.</comment>
+  </data>
+  <data name="FormatEveMail" xml:space="preserve">
+    <value>EVE Mail</value>
+    <comment>Export format pick list: formatted for EVE's in-game mail.</comment>
+  </data>
+  <data name="StepMining" xml:space="preserve">
+    <value>mining</value>
+    <comment>A part of the Corp Activity screen, named in status lines such as "Loading {0}..." and "{0} failed".</comment>
+  </data>
+  <data name="StepRatting" xml:space="preserve">
+    <value>ratting</value>
+    <comment>A part of the Corp Activity screen (ratting tax), named in status lines such as "Loading {0}...".</comment>
+  </data>
+  <data name="StepIndustry" xml:space="preserve">
+    <value>industry</value>
+    <comment>A part of the Corp Activity screen (industry tax), named in status lines such as "Loading {0}...".</comment>
+  </data>
+  <data name="StepDonations" xml:space="preserve">
+    <value>donations</value>
+    <comment>A part of the Corp Activity screen, named in status lines such as "Loading {0}...".</comment>
+  </data>
+  <data name="StepKills" xml:space="preserve">
+    <value>kills</value>
+    <comment>A part of the Corp Activity screen (kill mails), named in status lines such as "Loading {0}...".</comment>
+  </data>
+  <data name="StepIncome" xml:space="preserve">
+    <value>income</value>
+    <comment>A part of the Corp Activity screen (the Income tab), named in status lines such as "Refreshing {0}...".</comment>
+  </data>
+  <data name="StepExpense" xml:space="preserve">
+    <value>expense</value>
+    <comment>A part of the Corp Activity screen (the Expense tab), named in status lines such as "Refreshing {0}...".</comment>
+  </data>
+  <data name="StepWallet" xml:space="preserve">
+    <value>wallet</value>
+    <comment>A part of the Corp Activity screen (the corp wallet), named in status lines such as "Loading {0}...".</comment>
+  </data>
+  <data name="StepDailyChart" xml:space="preserve">
+    <value>daily chart</value>
+    <comment>A part of the Corp Activity screen, named in status lines such as "Loading {0}...".</comment>
+  </data>
+  <data name="StepMonthlyActivity" xml:space="preserve">
+    <value>monthly activity</value>
+    <comment>A part of the Corp Activity screen, named in status lines such as "Loading {0}...".</comment>
+  </data>
+  <data name="StepProjects" xml:space="preserve">
+    <value>projects</value>
+    <comment>A part of the Corp Activity screen (corp projects), named in status lines such as "Loading {0}...".</comment>
+  </data>
+  <data name="StepTop10" xml:space="preserve">
+    <value>top 10</value>
+    <comment>A part of the Corp Activity screen (the Top 10 lists), named in status lines such as "Loading {0}...".</comment>
+  </data>
+  <data name="StepMonthlySummary" xml:space="preserve">
+    <value>monthly summary</value>
+    <comment>A part of the Corp Activity screen, named in status lines such as "Loading {0}...".</comment>
+  </data>
+  <data name="StepIncomeByType" xml:space="preserve">
+    <value>income by type</value>
+    <comment>A part of the Corp Activity screen, named in status lines such as "Loading {0}...".</comment>
+  </data>
+  <data name="StepExpenseByType" xml:space="preserve">
+    <value>expense by type</value>
+    <comment>A part of the Corp Activity screen, named in status lines such as "Loading {0}...".</comment>
+  </data>
+  <data name="Step24hActivity" xml:space="preserve">
+    <value>24h activity</value>
+    <comment>A part of the Corp Activity screen (the last 24 hours), named in status lines such as "Loading {0}...".</comment>
+  </data>
+  <data name="StatusLoadingStep" xml:space="preserve">
+    <value>Loading {0}...</value>
+    <comment>Status line while one part of the screen loads. {0} is that part, e.g. "wallet" or "top 10".</comment>
+  </data>
+  <data name="StatusStepFailed" xml:space="preserve">
+    <value>Warning: {0} failed — {1}</value>
+    <comment>Status line when one part of the screen failed to load. {0} is that part, {1} the error.</comment>
+  </data>
+  <data name="StatusLoaded" xml:space="preserve">
+    <value>Loaded — {0}</value>
+    <comment>Status line when everything has loaded. {0} is the corporation.</comment>
+  </data>
+  <data name="StatusLoadedWithFailures" xml:space="preserve">
+    <value>Loaded — {0}, but {1} failed. See the Error Log for the reason.</value>
+    <comment>Status line when loading finished but some parts failed. {0} is the corporation, {1} the parts that failed, separated by commas.</comment>
+  </data>
+  <data name="StatusRefreshingStep" xml:space="preserve">
+    <value>Refreshing {0}...</value>
+    <comment>Status line while one tab reloads for a new period. {0} is the tab, e.g. "mining".</comment>
+  </data>
+  <data name="StatusReady" xml:space="preserve">
+    <value>Ready</value>
+    <comment>Status line when a tab has reloaded and no corporation is chosen.</comment>
+  </data>
+  <data name="StatusStepReloadFailed" xml:space="preserve">
+    <value>Warning: {0} reload failed — {1}</value>
+    <comment>Status line when a tab failed to reload. {0} is the tab, {1} the error.</comment>
+  </data>
+  <data name="SlackViaWebhook" xml:space="preserve">
+    <value>via webhook</value>
+    <comment>Tooltip of the Post to Slack button when it posts through a webhook, which has no channel name.</comment>
+  </data>
+  <data name="SlackNoDestination" xml:space="preserve">
+    <value>No Slack channel or webhook configured.</value>
+    <comment>Status line when Post to Slack has nowhere to post.</comment>
+  </data>
+  <data name="Top10AlreadyPosted" xml:space="preserve">
+    <value>This Top 10 listing was already posted to Slack {0}.</value>
+    <comment>Question before posting the Top 10 to Slack again. {0} is how long ago, e.g. "3 hours ago".</comment>
+  </data>
+  <data name="PostItAgain" xml:space="preserve">
+    <value>Post it again?</value>
+    <comment>Question before posting to Slack again, after the sentence saying it was already posted.</comment>
+  </data>
+  <data name="SlackPostCancelled" xml:space="preserve">
+    <value>Post cancelled.</value>
+    <comment>Status line when the user declined to post again.</comment>
+  </data>
+  <data name="SlackPosting" xml:space="preserve">
+    <value>Posting to Slack…</value>
+    <comment>Status line while posting to Slack.</comment>
+  </data>
+  <data name="SlackPosted" xml:space="preserve">
+    <value>Posted to {0} — {1:t}</value>
+    <comment>Status line after posting to Slack. {0} is where: "#channel", or "Slack (webhook)", or "Slack". {1} is the time.</comment>
+  </data>
+  <data name="SlackPostFailed" xml:space="preserve">
+    <value>Slack post failed: {0}</value>
+    <comment>Status line when posting to Slack failed. {0} is the error.</comment>
+  </data>
+  <data name="SlackPostedPartly" xml:space="preserve">
+    <value>Posted {0} of {1} messages to {2}; Slack refused the next: {3}</value>
+    <comment>Status line when a long post was split and Slack refused a later part. {0} is how many parts were posted, {1} how many there were, {2} the channel, {3} the error.</comment>
+  </data>
+  <data name="SummaryAlreadyPosted" xml:space="preserve">
+    <value>This monthly summary was already posted to Slack {0}.</value>
+    <comment>Question before posting the monthly summary to Slack again. {0} is how long ago, e.g. "3 hours ago".</comment>
+  </data>
+  <data name="Top10ExportHeader" xml:space="preserve">
+    <value>Top 10 — {0} {1}</value>
+    <comment>Heading of the Top 10 export. {0} is the month's name, {1} the year.</comment>
+  </data>
+  <data name="Top10ExportHeaderCorp" xml:space="preserve">
+    <value>{0} — Top 10 — {1} {2}</value>
+    <comment>Heading of the Top 10 export. {0} is the corporation, {1} the month's name, {2} the year.</comment>
+  </data>
+  <data name="StepTop10Ratters" xml:space="preserve">
+    <value>Top10 ratters</value>
+    <comment>A part of the Top 10 lists, named in "…, but {1} failed." status lines.</comment>
+  </data>
+  <data name="StepTop10Industry" xml:space="preserve">
+    <value>Top10 industry</value>
+    <comment>A part of the Top 10 lists, named in "…, but {1} failed." status lines.</comment>
+  </data>
+  <data name="StepTop10Killers" xml:space="preserve">
+    <value>Top10 killers</value>
+    <comment>A part of the Top 10 lists, named in "…, but {1} failed." status lines.</comment>
+  </data>
+  <data name="StepTop10Miners" xml:space="preserve">
+    <value>Top10 miners</value>
+    <comment>A part of the Top 10 lists, named in "…, but {1} failed." status lines.</comment>
+  </data>
+  <data name="StepTop10Contributors" xml:space="preserve">
+    <value>Top10 contributors</value>
+    <comment>A part of the Top 10 lists (project contributors), named in "…, but {1} failed." status lines.</comment>
+  </data>
+  <data name="AllTypes" xml:space="preserve">
+    <value>All types</value>
+    <comment>First entry of the Type filter above the income and expense detail grids: no filter.</comment>
+  </data>
+  <data name="SeriesAmount" xml:space="preserve">
+    <value>Amount</value>
+    <comment>Chart series name (bar chart of ISK by type).</comment>
+  </data>
+  <data name="Step24hSummary" xml:space="preserve">
+    <value>24h summary</value>
+    <comment>A part of the Activity (24h) tab, named in "…, but {1} failed." status lines.</comment>
+  </data>
+  <data name="Step24hRatters" xml:space="preserve">
+    <value>24h ratters</value>
+    <comment>A part of the Activity (24h) tab, named in "…, but {1} failed." status lines.</comment>
+  </data>
+  <data name="Step24hIndustry" xml:space="preserve">
+    <value>24h industry</value>
+    <comment>A part of the Activity (24h) tab, named in "…, but {1} failed." status lines.</comment>
+  </data>
+  <data name="Step24hMiners" xml:space="preserve">
+    <value>24h miners</value>
+    <comment>A part of the Activity (24h) tab, named in "…, but {1} failed." status lines.</comment>
+  </data>
+  <data name="Step24hKills" xml:space="preserve">
+    <value>24h kills</value>
+    <comment>A part of the Activity (24h) tab, named in "…, but {1} failed." status lines.</comment>
+  </data>
+  <data name="SeriesTotal" xml:space="preserve">
+    <value>Total</value>
+    <comment>Chart series name (daily total).</comment>
+  </data>
+  <data name="FallbackCharacterName" xml:space="preserve">
+    <value>Character {0}</value>
+    <comment>Shown instead of a character's name when it could not be looked up. {0} is the character's id.</comment>
+  </data>
+  <data name="SeriesKills" xml:space="preserve">
+    <value>Kills</value>
+    <comment>Chart series name.</comment>
+  </data>
+  <data name="SeriesLosses" xml:space="preserve">
+    <value>Losses</value>
+    <comment>Chart series name.</comment>
+  </data>
+  <data name="FieldName" xml:space="preserve">
+    <value>Name</value>
+    <comment>Label in a corporation project's details.</comment>
+  </data>
+  <data name="FieldState" xml:space="preserve">
+    <value>State</value>
+    <comment>Label in a corporation project's details: whether it is active, completed…</comment>
+  </data>
+  <data name="FieldType" xml:space="preserve">
+    <value>Type</value>
+    <comment>Label in a corporation project's details: the kind of project.</comment>
+  </data>
+  <data name="FieldCareer" xml:space="preserve">
+    <value>Career</value>
+    <comment>Label in a corporation project's details: the career path it counts towards.</comment>
+  </data>
+  <data name="FieldCreated" xml:space="preserve">
+    <value>Created</value>
+    <comment>Label in a corporation project's details: when it was created.</comment>
+  </data>
+  <data name="FieldLastModified" xml:space="preserve">
+    <value>Last Modified</value>
+    <comment>Label in a corporation project's details.</comment>
+  </data>
+  <data name="FieldCreator" xml:space="preserve">
+    <value>Creator</value>
+    <comment>Label in a corporation project's details: who set it up.</comment>
+  </data>
+  <data name="FieldProgress" xml:space="preserve">
+    <value>Progress</value>
+    <comment>Label in a corporation project's details.</comment>
+  </data>
+  <data name="FieldTotalReward" xml:space="preserve">
+    <value>Total Reward</value>
+    <comment>Label in a corporation project's details.</comment>
+  </data>
+  <data name="FieldRemainingReward" xml:space="preserve">
+    <value>Remaining Reward</value>
+    <comment>Label in a corporation project's details.</comment>
+  </data>
+  <data name="FieldDescription" xml:space="preserve">
+    <value>Description</value>
+    <comment>Label in a corporation project's details.</comment>
+  </data>
+  <data name="ProjectTypeCaptureFwComplex" xml:space="preserve">
+    <value>Capture FW Complex</value>
+    <comment>Corporation project type. FW is faction warfare.</comment>
+  </data>
+  <data name="ProjectTypeDamageShip" xml:space="preserve">
+    <value>Damage Ship</value>
+    <comment>Corporation project type.</comment>
+  </data>
+  <data name="ProjectTypeDefendFwComplex" xml:space="preserve">
+    <value>Defend FW Complex</value>
+    <comment>Corporation project type. FW is faction warfare.</comment>
+  </data>
+  <data name="ProjectTypeDestroyNonCapsuleers" xml:space="preserve">
+    <value>Destroy Non-Capsuleers</value>
+    <comment>Corporation project type: destroy NPCs.</comment>
+  </data>
+  <data name="ProjectTypeDestroyShip" xml:space="preserve">
+    <value>Destroy Ship</value>
+    <comment>Corporation project type.</comment>
+  </data>
+  <data name="ProjectTypeEarnLoyaltyPoints" xml:space="preserve">
+    <value>Earn Loyalty Points</value>
+    <comment>Corporation project type.</comment>
+  </data>
+  <data name="ProjectTypeLoseShip" xml:space="preserve">
+    <value>Lose Ship</value>
+    <comment>Corporation project type.</comment>
+  </data>
+  <data name="ProjectTypeManual" xml:space="preserve">
+    <value>Manual</value>
+    <comment>Corporation project type: progress recorded by hand.</comment>
+  </data>
+  <data name="ProjectTypeManufactureItem" xml:space="preserve">
+    <value>Manufacture Item</value>
+    <comment>Corporation project type.</comment>
+  </data>
+  <data name="ProjectTypeMineMaterial" xml:space="preserve">
+    <value>Mine Material</value>
+    <comment>Corporation project type.</comment>
+  </data>
+  <data name="ProjectTypeRemoteBoostShield" xml:space="preserve">
+    <value>Remote Boost Shield</value>
+    <comment>Corporation project type.</comment>
+  </data>
+  <data name="ProjectTypeRemoteRepairArmor" xml:space="preserve">
+    <value>Remote Repair Armor</value>
+    <comment>Corporation project type.</comment>
+  </data>
+  <data name="ProjectTypeSalvageWreck" xml:space="preserve">
+    <value>Salvage Wreck</value>
+    <comment>Corporation project type.</comment>
+  </data>
+  <data name="ProjectTypeScanSignature" xml:space="preserve">
+    <value>Scan Signature</value>
+    <comment>Corporation project type.</comment>
+  </data>
+  <data name="ProjectTypeShipInsurance" xml:space="preserve">
+    <value>Ship Insurance</value>
+    <comment>Corporation project type.</comment>
+  </data>
+  <data name="ProjectTypeUnknown" xml:space="preserve">
+    <value>Unknown</value>
+    <comment>Corporation project type the game does not describe.</comment>
+  </data>
+  <data name="FallbackStructureName" xml:space="preserve">
+    <value>Structure {0}</value>
+    <comment>Shown instead of a structure's name when it could not be looked up. {0} is the structure's id.</comment>
+  </data>
+  <data name="ConfigLocations" xml:space="preserve">
+    <value>Location(s)</value>
+    <comment>Label in a corporation project's configuration: where it counts.</comment>
+  </data>
+  <data name="ConfigItems" xml:space="preserve">
+    <value>Item(s)</value>
+    <comment>Label in a corporation project's configuration: the items it asks for.</comment>
+  </data>
+  <data name="ConfigDestinations" xml:space="preserve">
+    <value>Destination(s)</value>
+    <comment>Label in a corporation project's configuration: where items are to be delivered.</comment>
+  </data>
+  <data name="ConfigDestination" xml:space="preserve">
+    <value>Destination</value>
+    <comment>Label in a corporation project's configuration: where items are to be delivered.</comment>
+  </data>
+  <data name="ConfigOwner" xml:space="preserve">
+    <value>Owner</value>
+    <comment>Label in a corporation project's configuration: whose jobs count.</comment>
+  </data>
+  <data name="ConfigShipTypes" xml:space="preserve">
+    <value>Ship Type(s)</value>
+    <comment>Label in a corporation project's configuration.</comment>
+  </data>
+  <data name="ConfigTargets" xml:space="preserve">
+    <value>Target(s)</value>
+    <comment>Label in a corporation project's configuration: the characters, corporations or alliances to shoot.</comment>
+  </data>
+  <data name="ConfigKilledBy" xml:space="preserve">
+    <value>Killed By</value>
+    <comment>Label in a corporation project's configuration: the losses that count are to these.</comment>
+  </data>
+  <data name="ConfigConflictType" xml:space="preserve">
+    <value>Conflict Type</value>
+    <comment>Label in a corporation project's configuration.</comment>
+  </data>
+  <data name="ConfigMaterials" xml:space="preserve">
+    <value>Material(s)</value>
+    <comment>Label in a corporation project's configuration: the ores or materials to mine.</comment>
+  </data>
+  <data name="ConfigSignatureTypes" xml:space="preserve">
+    <value>Signature Type(s)</value>
+    <comment>Label in a corporation project's configuration.</comment>
+  </data>
+  <data name="ConfigFactions" xml:space="preserve">
+    <value>Faction(s)</value>
+    <comment>Label in a corporation project's configuration.</comment>
+  </data>
+  <data name="ConfigArchetypes" xml:space="preserve">
+    <value>Archetype(s)</value>
+    <comment>Label in a corporation project's configuration: faction warfare complex types.</comment>
+  </data>
+  <data name="ConfigCorporations" xml:space="preserve">
+    <value>Corporation(s)</value>
+    <comment>Label in a corporation project's configuration: whose loyalty points count.</comment>
+  </data>
+  <data name="ConfigSubType" xml:space="preserve">
+    <value>Sub-type</value>
+    <comment>Label in a corporation project's configuration.</comment>
+  </data>
+  <data name="StatusMaintainLoadFailed" xml:space="preserve">
+    <value>Standing projects failed to load: {0}</value>
+    <comment>Status line when the standing projects failed to load. {0} is the error.</comment>
+  </data>
+  <data name="SlackPostedInPartsOne" xml:space="preserve">
+    <value>Posted to {1} in {0} message — {2:t}</value>
+    <comment>Status line after a long post went to Slack split into parts. {0} is the number of messages, {1} the channel ("#name", or the words for a webhook), {2} the time.</comment>
+  </data>
+  <data name="SlackPostedInPartsOther" xml:space="preserve">
+    <value>Posted to {1} in {0} messages — {2:t}</value>
+    <comment>Status line after a long post went to Slack split into parts. {0} is the number of messages, {1} the channel ("#name", or the words for a webhook), {2} the time.</comment>
+  </data>
+  <data name="ConfirmDeleteStandingProject" xml:space="preserve">
+    <value>Are you sure you want to delete this standing project?</value>
+    <comment>Question before deleting a standing project (Corp Activity &gt; Projects &gt; Standing Projects).</comment>
+  </data>
+  <data name="ErrSelectItemType" xml:space="preserve">
+    <value>Please select an item type.</value>
+    <comment>Standing project dialog, shown on Save when no item type is chosen.</comment>
+  </data>
+  <data name="ErrSelectDestination" xml:space="preserve">
+    <value>Please select a destination station or structure.</value>
+    <comment>Standing project dialog, shown on Save when no destination is chosen.</comment>
+  </data>
+  <data name="ErrSelectSolarSystem" xml:space="preserve">
+    <value>Please select a solar system.</value>
+    <comment>Standing project dialog, shown on Save when no solar system is chosen.</comment>
+  </data>
+  <data name="ErrSelectRegion" xml:space="preserve">
+    <value>Please select a region.</value>
+    <comment>Standing project dialog, shown on Save when no region is chosen.</comment>
+  </data>
+  <data name="ErrSelectAlliance" xml:space="preserve">
+    <value>Please select an alliance.</value>
+    <comment>Standing project dialog, shown on Save when no alliance is chosen.</comment>
+  </data>
+  <data name="ErrSelectConstellation" xml:space="preserve">
+    <value>Please select a constellation.</value>
+    <comment>Standing project dialog, shown on Save when no constellation is chosen.</comment>
+  </data>
+  <data name="KillQtyDestroyed" xml:space="preserve">
+    <value>x{0} dest</value>
+    <comment>Killmail item list: how many of the item were destroyed. {0} is the quantity; "dest" is short for destroyed.</comment>
+  </data>
+  <data name="KillQtyDropped" xml:space="preserve">
+    <value>x{0} drop</value>
+    <comment>Killmail item list: how many of the item dropped. {0} is the quantity.</comment>
+  </data>
+  <data name="RoleFinalBlow" xml:space="preserve">
+    <value>★ FB</value>
+    <comment>Killmail attacker list: this attacker landed the final blow. FB is short for Final Blow; keep it short.</comment>
+  </data>
+  <data name="RoleTopDamage" xml:space="preserve">
+    <value>▲ TD</value>
+    <comment>Killmail attacker list: this attacker did the most damage. TD is short for Top Damage; keep it short.</comment>
+  </data>
+  <data name="DamageTaken" xml:space="preserve">
+    <value>{0:N0} dmg</value>
+    <comment>Killmail header: damage the victim took. {0} is the amount; "dmg" is short for damage.</comment>
+  </data>
+  <data name="StatusLoadingKillmails" xml:space="preserve">
+    <value>Loading killmails…</value>
+    <comment>Killmail Browser status line while the list loads.</comment>
+  </data>
+  <data name="KillmailsLoadedMore" xml:space="preserve">
+    <value>{0:N0} killmails loaded — more available, click Load More</value>
+    <comment>Killmail Browser status line when there are more to load. {0} is how many are loaded.</comment>
+  </data>
+  <data name="KillmailsCount" xml:space="preserve">
+    <value>{0:N0} killmails</value>
+    <comment>Killmail Browser status line. {0} is how many killmails are listed.</comment>
+  </data>
+  <data name="EntitySearchTruncated" xml:space="preserve">
+    <value>Showing {0:N0} of {1:N0} matches — keep typing to narrow it.</value>
+    <comment>Entity browser, under the search box when the match list was cut short. {0} is how many are shown, {1} how many matched.</comment>
+  </data>
+  <data name="TabMemberCorps" xml:space="preserve">
+    <value>Member Corps</value>
+    <comment>Entity browser tab of an alliance: its member corporations.</comment>
+  </data>
+  <data name="TabCorpHistory" xml:space="preserve">
+    <value>Corp History</value>
+    <comment>Entity browser tab of a pilot: the corporations they have been in.</comment>
+  </data>
+  <data name="TabAllianceHistory" xml:space="preserve">
+    <value>Alliance History</value>
+    <comment>Entity browser tab of a corporation: the alliances it has been in.</comment>
+  </data>
+  <data name="ColHistoryCorporation" xml:space="preserve">
+    <value>Corporation</value>
+    <comment>Column header on a pilot's Corp History tab.</comment>
+  </data>
+  <data name="ColHistoryAlliance" xml:space="preserve">
+    <value>Alliance</value>
+    <comment>Column header on a corporation's Alliance History tab.</comment>
+  </data>
+  <data name="StationsCount" xml:space="preserve">
+    <value>{0:N0} station(s)</value>
+    <comment>Entity browser, Stations tab of an NPC corporation. {0} is the number of stations.</comment>
+  </data>
+  <data name="CorpStationsOne" xml:space="preserve">
+    <value>{0:N0} station</value>
+    <comment>Entity browser, Corporations tab of a faction, Details column: how many stations one of its corporations owns, when that is one. {0} is the number.</comment>
+  </data>
+  <data name="CorpStationsOther" xml:space="preserve">
+    <value>{0:N0} stations</value>
+    <comment>Entity browser, Corporations tab of a faction, Details column: how many stations one of its corporations owns. {0} is the number.</comment>
+  </data>
+  <data name="NoStationsFound" xml:space="preserve">
+    <value>No stations found.</value>
+    <comment>Entity browser, Stations tab of an NPC corporation.</comment>
+  </data>
+  <data name="NoStationsMilitia" xml:space="preserve">
+    <value>No stations — this is the {0} militia corporation, and a militia loyalty store is not run from one.</value>
+    <comment>Entity browser, Stations tab of a faction's militia corporation, which has a loyalty store but no stations. {0} is the faction.</comment>
+  </data>
+  <data name="OrdersScopeNoMarketData" xml:space="preserve">
+    <value>no market data pulled for any region this corp holds stations in</value>
+    <comment>Entity browser, Orders tab: fills {0} in "No orders found — {0}." and {2} in "{0:N0} sell, {1:N0} buy — {2}".</comment>
+  </data>
+  <data name="OrdersScopeCoverage" xml:space="preserve">
+    <value>market data covers {0} of its {1} regions</value>
+    <comment>Entity browser, Orders tab: fills {0} in "No orders found — {0}." and {2} in "{0:N0} sell, {1:N0} buy — {2}". {0} is how many of the corporation's regions have market data, {1} how many regions it has stations in.</comment>
+  </data>
+  <data name="NoOrdersFoundScoped" xml:space="preserve">
+    <value>No orders found — {0}.</value>
+    <comment>Entity browser, Orders tab of an NPC corporation. {0} says how much of its territory the market data covers.</comment>
+  </data>
+  <data name="NoOrdersFound" xml:space="preserve">
+    <value>No orders found in the market data pulled so far.</value>
+    <comment>Entity browser, Orders tab of an NPC corporation.</comment>
+  </data>
+  <data name="OrdersCountScoped" xml:space="preserve">
+    <value>{0:N0} sell, {1:N0} buy — {2}</value>
+    <comment>Entity browser, Orders tab of an NPC corporation. {0} is the number of sell orders, {1} of buy orders, {2} says how much of its territory the market data covers.</comment>
+  </data>
+  <data name="OrdersCount" xml:space="preserve">
+    <value>{0:N0} sell, {1:N0} buy</value>
+    <comment>Entity browser, Orders tab of an NPC corporation. {0} is the number of sell orders, {1} of buy orders.</comment>
+  </data>
+  <data name="NoLpOffersFound" xml:space="preserve">
+    <value>No LP offers found.</value>
+    <comment>Entity browser, LP Offers tab of an NPC corporation.</comment>
+  </data>
+  <data name="LpOffersCount" xml:space="preserve">
+    <value>{0:N0} LP offer(s)</value>
+    <comment>Entity browser, LP Offers tab of an NPC corporation. {0} is the number of offers.</comment>
+  </data>
+  <data name="NoWarfareSystemsFound" xml:space="preserve">
+    <value>No faction warfare systems found.</value>
+    <comment>Entity browser, Faction Warfare tab of a faction.</comment>
+  </data>
+  <data name="WarfareSystemsCount" xml:space="preserve">
+    <value>{0:N0} faction warfare system(s)</value>
+    <comment>Entity browser, Faction Warfare tab of a faction. {0} is the number of systems.</comment>
+  </data>
+  <data name="NoMemberCorpsReturned" xml:space="preserve">
+    <value>No member corporations returned. ESI reports current membership only.</value>
+    <comment>Entity browser, Member Corps tab of an alliance with none listed.</comment>
+  </data>
+  <data name="NoAgentsFound" xml:space="preserve">
+    <value>No agents found.</value>
+    <comment>Entity browser, Agents tab of an NPC corporation or station.</comment>
+  </data>
+  <data name="NoMemberCorpsFound" xml:space="preserve">
+    <value>No member corporations found.</value>
+    <comment>Entity browser, Corporations tab of a faction.</comment>
+  </data>
+  <data name="AgentsCount" xml:space="preserve">
+    <value>{0:N0} agent(s)</value>
+    <comment>Entity browser, Agents tab. {0} is the number of agents.</comment>
+  </data>
+  <data name="MemberCorpsCount" xml:space="preserve">
+    <value>{0:N0} member corporation(s)</value>
+    <comment>Entity browser, member corporations tab. {0} is the number of corporations.</comment>
+  </data>
+  <data name="NoAllianceHistory" xml:space="preserve">
+    <value>No alliance history recorded for this corporation.</value>
+    <comment>Entity browser, history tab with no rows.</comment>
+  </data>
+  <data name="HistoryPeriodsCount" xml:space="preserve">
+    <value>{0:N0} period(s), newest first</value>
+    <comment>Entity browser, history tab. {0} is the number of periods listed.</comment>
+  </data>
+  <data name="NoKillmailsForEntity" xml:space="preserve">
+    <value>No killmails recorded for this entity.</value>
+    <comment>Entity browser, Kills / Losses tab.</comment>
+  </data>
+  <data name="RecentKillmailsCapped" xml:space="preserve">
+    <value>{0:N0} most recent killmail(s) (capped)</value>
+    <comment>Entity browser, Kills / Losses tab when the list stopped at its limit. {0} is the number of killmails.</comment>
+  </data>
+  <data name="RecentKillmailsCount" xml:space="preserve">
+    <value>{0:N0} most recent killmail(s)</value>
+    <comment>Entity browser, Kills / Losses tab. {0} is the number of killmails.</comment>
+  </data>
+  <data name="NoIntelSightings" xml:space="preserve">
+    <value>No intel sightings. These come from intel channels via the chat log importer.</value>
+    <comment>Entity browser, Intel Reports tab of a pilot.</comment>
+  </data>
+  <data name="IntelSightingsCount" xml:space="preserve">
+    <value>{0:N0} sighting(s)</value>
+    <comment>Entity browser, Intel Reports tab. {0} is the number of sightings.</comment>
+  </data>
+  <data name="SlackDestinationWebhook" xml:space="preserve">
+    <value>Slack (webhook)</value>
+    <comment>Where a report was posted, when Slack is reached through a webhook, which names no channel. Fills {0} of "Posted to {0}".</comment>
+  </data>
+  <data name="SlackDestinationSlack" xml:space="preserve">
+    <value>Slack</value>
+    <comment>Where a report was posted, when the channel's name is not known. Fills {0} of "Posted to {0}".</comment>
+  </data>
+  <data name="NoCorpHistory" xml:space="preserve">
+    <value>No corporation history recorded for this character.</value>
+    <comment>Entity tab of a character, when ESI lists no corporations it has been in.</comment>
+  </data>
+  <data name="FallbackSystemName" xml:space="preserve">
+    <value>System {0}</value>
+    <comment>Shown instead of a solar system's name when it could not be looked up. {0} is the system's id.</comment>
+  </data>
+  <data name="SovAdmNoLevels" xml:space="preserve">
+    <value>the sovereignty endpoint returned no occupancy levels</value>
+    <comment>Standing projects grid, status cell: why sovereignty data is unavailable, shown after "sovereignty data unavailable — ". The sovereignty endpoint answered but gave no occupancy levels. Lower case: it continues a sentence.</comment>
+  </data>
+  <data name="ScopeRegionAdm" xml:space="preserve">
+    <value>Region: {0} (ADM &lt; {1:F1})</value>
+    <comment>Standing projects grid, Description column of a destroy-NPC rule covering a region. {0} is the region's name, {1} the ADM (activity defense multiplier) a system must be below to be listed.</comment>
+  </data>
+  <data name="ScopeAllianceSov" xml:space="preserve">
+    <value>Sov: {0} (ADM &lt; {1:F1})</value>
+    <comment>Standing projects grid, Description column of a destroy-NPC rule covering every system an alliance holds. "Sov" is short for sovereignty. {0} is the alliance's name, {1} the ADM a system must be below to be listed.</comment>
+  </data>
+  <data name="ScopeConstellationAdm" xml:space="preserve">
+    <value>Const: {0} (ADM &lt; {1:F1})</value>
+    <comment>Standing projects grid, Description column of a destroy-NPC rule covering a constellation. "Const" is short for constellation. {0} is the constellation's name, {1} the ADM a system must be below to be listed.</comment>
+  </data>
+  <data name="RemainingComplete" xml:space="preserve">
+    <value>Complete</value>
+    <comment>Standing projects grid, Remaining column: nothing is left to do on the matching project.</comment>
+  </data>
+  <data name="StandingProjectSummary" xml:space="preserve">
+    <value>{0}: {1}</value>
+    <comment>Overview panel, Standing Projects: one project as a single line. {0} is its type (Deliver Item or Destroy NPC), {1} what it covers (an item and where it goes, or a system).</comment>
+  </data>
+  <data name="ReportStatusActive" xml:space="preserve">
+    <value>Active</value>
+    <comment>Standing projects table posted to Slack, Status column: a corp project is running for this line. Title Case, like the column headers.</comment>
+  </data>
+  <data name="ReportStatusAllHealthy" xml:space="preserve">
+    <value>All Healthy</value>
+    <comment>Standing projects table posted to Slack, Status column: every system in the rule's scope is at or above its ADM threshold, so nothing needs doing.</comment>
+  </data>
+  <data name="ReportStatusNoProject" xml:space="preserve">
+    <value>No Project</value>
+    <comment>Standing projects table posted to Slack, Status column: no running corp project matches this line.</comment>
+  </data>
+  <data name="ReportStatusNoSystems" xml:space="preserve">
+    <value>No Systems In Scope</value>
+    <comment>Standing projects table posted to Slack, Status column: the rule's scope contains no systems at all.</comment>
+  </data>
+  <data name="ReportStatusNoOffice" xml:space="preserve">
+    <value>No Office</value>
+    <comment>Standing projects table posted to Slack, Status column: the corp office the delivery names could not be placed yet.</comment>
+  </data>
+  <data name="ReportStatusAdmUnavailable" xml:space="preserve">
+    <value>ADM Unavailable</value>
+    <comment>Standing projects table posted to Slack, Status column: sovereignty (ADM) data could not be read.</comment>
+  </data>
+  <data name="ReportColProject" xml:space="preserve">
+    <value>Project</value>
+    <comment>Standing projects table posted to Slack, column header: the delivery (item and destination). Keep short.</comment>
+  </data>
+  <data name="ReportColStatus" xml:space="preserve">
+    <value>Status</value>
+    <comment>Standing projects table posted to Slack, column header. Keep short.</comment>
+  </data>
+  <data name="ReportColRemaining" xml:space="preserve">
+    <value>Remaining</value>
+    <comment>Standing projects table posted to Slack, column header: how much of the project's target is still to do. Keep short.</comment>
+  </data>
+  <data name="ReportColIskLeft" xml:space="preserve">
+    <value>ISK Left</value>
+    <comment>Standing projects table posted to Slack, column header: the ISK still to be paid out for the work remaining. Keep short.</comment>
+  </data>
+  <data name="ReportColLastCompleted" xml:space="preserve">
+    <value>Last Completed</value>
+    <comment>Standing projects table posted to Slack, column header: when a matching project last finished. Keep short.</comment>
+  </data>
+  <data name="PickerScopeRegionAdm" xml:space="preserve">
+    <value>{0} — region, ADM below {1:0.##}</value>
+    <comment>Scheduler, list of standing projects to report on: a destroy-NPC rule covering a region. {0} is the region's name, {1} the ADM (activity defense multiplier) a system must be below.</comment>
+  </data>
+  <data name="PickerScopeConstellationAdm" xml:space="preserve">
+    <value>{0} — constellation, ADM below {1:0.##}</value>
+    <comment>Scheduler, list of standing projects to report on: a destroy-NPC rule covering a constellation. {0} is the constellation's name, {1} the ADM a system must be below.</comment>
+  </data>
+  <data name="PickerScopeAllianceSov" xml:space="preserve">
+    <value>{0} — sov, ADM below {1:0.##}</value>
+    <comment>Scheduler, list of standing projects to report on: a destroy-NPC rule covering the systems an alliance holds ("sov" is short for sovereignty). {0} is the alliance's name, {1} the ADM a system must be below.</comment>
+  </data>
+  <data name="ProjectsTitleDeliverMissing" xml:space="preserve">
+    <value>Deliver item projects — missing projects</value>
+    <comment>Scheduler: default heading of a standing projects section, filled into its title box and posted to Slack. Delivery projects, only those no project covers.</comment>
+  </data>
+  <data name="ProjectsTitleDestroyMissing" xml:space="preserve">
+    <value>Destroy NPC projects — missing projects</value>
+    <comment>Scheduler: default heading of a standing projects section, filled into its title box and posted to Slack. Destroy-NPC projects, only those no project covers.</comment>
+  </data>
+  <data name="ProjectsTitleDeliverMissingLow" xml:space="preserve">
+    <value>Deliver item projects — missing and low projects</value>
+    <comment>Scheduler: default heading of a standing projects section, filled into its title box and posted to Slack. Delivery projects no project covers, plus those nearly finished.</comment>
+  </data>
+  <data name="ProjectsTitleDestroyMissingLow" xml:space="preserve">
+    <value>Destroy NPC projects — missing and low projects</value>
+    <comment>Scheduler: default heading of a standing projects section, filled into its title box and posted to Slack. Destroy-NPC projects no project covers, plus those nearly finished.</comment>
+  </data>
+  <data name="ProjectsTitleDeliverAll" xml:space="preserve">
+    <value>Deliver item projects</value>
+    <comment>Scheduler: default heading of a standing projects section, filled into its title box and posted to Slack. All delivery projects.</comment>
+  </data>
+  <data name="ProjectsTitleDestroyAll" xml:space="preserve">
+    <value>Destroy NPC projects</value>
+    <comment>Scheduler: default heading of a standing projects section, filled into its title box and posted to Slack. All destroy-NPC projects.</comment>
+  </data>
+  <data name="Top10TitleRatting" xml:space="preserve">
+    <value>Ratting Tax</value>
+    <comment>Heading of a Top 10 list (Corp Activity export, scheduled Slack post, Settings where it can be renamed): top payers of ratting tax.</comment>
+  </data>
+  <data name="Top10TitleMining" xml:space="preserve">
+    <value>Mining — Reprocessed Value</value>
+    <comment>Heading of a Top 10 list (Corp Activity export, scheduled Slack post, Settings where it can be renamed): top miners, ranked by the reprocessed value of their ore.</comment>
+  </data>
+  <data name="Top10TitleKills" xml:space="preserve">
+    <value>Kills</value>
+    <comment>Heading of a Top 10 list (Corp Activity export, scheduled Slack post, Settings where it can be renamed): top killers.</comment>
+  </data>
+  <data name="Top10TitleProjects" xml:space="preserve">
+    <value>Project Contributors</value>
+    <comment>Heading of a Top 10 list (Corp Activity export, scheduled Slack post, Settings where it can be renamed): top contributors to corp projects.</comment>
+  </data>
+  <data name="Top10TitleIndustry" xml:space="preserve">
+    <value>Industry Tax</value>
+    <comment>Heading of a Top 10 list (Corp Activity export, scheduled Slack post, Settings where it can be renamed): top payers of industry tax.</comment>
+  </data>
+  <data name="SummarySectionIncome" xml:space="preserve">
+    <value>Income</value>
+    <comment>Monthly Summary section heading (Corp Activity, its export, the scheduled Slack post; renamable in Settings).</comment>
+  </data>
+  <data name="SummarySectionExpenses" xml:space="preserve">
+    <value>Expenses</value>
+    <comment>Monthly Summary section heading (Corp Activity, its export, the scheduled Slack post; renamable in Settings).</comment>
+  </data>
+  <data name="SummarySectionNet" xml:space="preserve">
+    <value>Net</value>
+    <comment>Monthly Summary section heading: income less expenses (Corp Activity, its export, the scheduled Slack post; renamable in Settings).</comment>
+  </data>
+  <data name="SummarySectionCombat" xml:space="preserve">
+    <value>Combat</value>
+    <comment>Monthly Summary section heading: kills and losses (Corp Activity, its export, the scheduled Slack post; renamable in Settings).</comment>
+  </data>
+  <data name="SummarySectionMining" xml:space="preserve">
+    <value>Mining</value>
+    <comment>Monthly Summary section heading (Corp Activity, its export, the scheduled Slack post; renamable in Settings).</comment>
+  </data>
+  <data name="SummarySectionProjects" xml:space="preserve">
+    <value>Corp Projects</value>
+    <comment>Monthly Summary section heading: corporation projects (Corp Activity, its export, the scheduled Slack post; renamable in Settings).</comment>
+  </data>
+  <data name="SummarySectionMembers" xml:space="preserve">
+    <value>Members</value>
+    <comment>Monthly Summary section heading (Corp Activity, its export, the scheduled Slack post; renamable in Settings).</comment>
+  </data>
+  <data name="SummaryRowRattingTax" xml:space="preserve">
+    <value>Ratting tax</value>
+    <comment>Monthly Summary row under Income (Corp Activity grid, its export and the scheduled Slack post): tax the corp collected on ratting.</comment>
+  </data>
+  <data name="SummaryRowIndustryTax" xml:space="preserve">
+    <value>Industry tax</value>
+    <comment>Monthly Summary row under Income: tax the corp collected on industry jobs.</comment>
+  </data>
+  <data name="SummaryRowDonations" xml:space="preserve">
+    <value>Donations</value>
+    <comment>Monthly Summary row under Income: ISK players gave the corp.</comment>
+  </data>
+  <data name="SummaryRowContracts" xml:space="preserve">
+    <value>Contracts</value>
+    <comment>Monthly Summary row, under both Income and Expenses: ISK from, or paid out on, contracts.</comment>
+  </data>
+  <data name="SummaryRowMarket" xml:space="preserve">
+    <value>Market</value>
+    <comment>Monthly Summary row, under both Income and Expenses: ISK from, or spent on, the market.</comment>
+  </data>
+  <data name="SummaryRowOther" xml:space="preserve">
+    <value>Other</value>
+    <comment>Monthly Summary row, under both Income and Expenses: everything not in the rows above it.</comment>
+  </data>
+  <data name="SummaryRowTotalIncome" xml:space="preserve">
+    <value>Total income</value>
+    <comment>Monthly Summary row: the sum of the Income rows.</comment>
+  </data>
+  <data name="SummaryRowProjectPayouts" xml:space="preserve">
+    <value>Project payouts</value>
+    <comment>Monthly Summary row under Expenses: ISK paid out for corp projects.</comment>
+  </data>
+  <data name="SummaryRowWithdrawals" xml:space="preserve">
+    <value>Withdrawals</value>
+    <comment>Monthly Summary row under Expenses: ISK taken out of the corp wallet.</comment>
+  </data>
+  <data name="SummaryRowTotalExpenses" xml:space="preserve">
+    <value>Total expenses</value>
+    <comment>Monthly Summary row: the sum of the Expenses rows.</comment>
+  </data>
+  <data name="SummaryRowNetPosition" xml:space="preserve">
+    <value>Net position</value>
+    <comment>Monthly Summary row under Net: income less expenses.</comment>
+  </data>
+  <data name="SummaryRowKills" xml:space="preserve">
+    <value>Kills</value>
+    <comment>Monthly Summary row under Combat: number of kills.</comment>
+  </data>
+  <data name="SummaryRowLosses" xml:space="preserve">
+    <value>Losses</value>
+    <comment>Monthly Summary row under Combat: number of ships lost.</comment>
+  </data>
+  <data name="SummaryRowIskDestroyed" xml:space="preserve">
+    <value>ISK destroyed</value>
+    <comment>Monthly Summary row under Combat: value of what the corp destroyed.</comment>
+  </data>
+  <data name="SummaryRowIskLost" xml:space="preserve">
+    <value>ISK lost</value>
+    <comment>Monthly Summary row under Combat: value of what the corp lost.</comment>
+  </data>
+  <data name="SummaryRowIskEfficiency" xml:space="preserve">
+    <value>ISK efficiency</value>
+    <comment>Monthly Summary row under Combat: destroyed as a share of destroyed plus lost.</comment>
+  </data>
+  <data name="SummaryChangePoints" xml:space="preserve">
+    <value>{0}{1:F1} pts</value>
+    <comment>Monthly Summary, Change column of the ISK efficiency row. {0} is the sign (+, or nothing: a fall carries its own minus), {1} the change in percentage points; "pts" is short for percentage points. Keep {0}{1:F1} together at the start: the cell is coloured by its first character.</comment>
+  </data>
+  <data name="SummaryRowUnitsMined" xml:space="preserve">
+    <value>Units mined</value>
+    <comment>Monthly Summary row under Mining: units of ore mined.</comment>
+  </data>
+  <data name="SummaryRowMinedValue" xml:space="preserve">
+    <value>Mined value</value>
+    <comment>Monthly Summary row under Mining: the ore's value reprocessed.</comment>
+  </data>
+  <data name="SummaryRowCreated" xml:space="preserve">
+    <value>Created</value>
+    <comment>Monthly Summary row under Corp Projects: number of projects created.</comment>
+  </data>
+  <data name="SummaryRowCreatedValue" xml:space="preserve">
+    <value>Created value</value>
+    <comment>Monthly Summary row under Corp Projects: total reward of the projects created.</comment>
+  </data>
+  <data name="SummaryRowCompleted" xml:space="preserve">
+    <value>Completed</value>
+    <comment>Monthly Summary row under Corp Projects: number of projects completed.</comment>
+  </data>
+  <data name="SummaryRowCompletedValue" xml:space="preserve">
+    <value>Completed value</value>
+    <comment>Monthly Summary row under Corp Projects: rewards paid on the projects completed.</comment>
+  </data>
+  <data name="SummaryRowActivePlayers" xml:space="preserve">
+    <value>Active players</value>
+    <comment>Monthly Summary row under Members: distinct members seen active in the month.</comment>
+  </data>
+  <data name="SummaryExportSubtitle" xml:space="preserve">
+    <value>Change columns compare against the previous month.</value>
+    <comment>Second line of the Monthly Summary as exported or posted to Slack.</comment>
+  </data>
+  <data name="SummaryColItem" xml:space="preserve">
+    <value>Item</value>
+    <comment>Monthly Summary as exported or posted to Slack, column header over the row names. Keep short.</comment>
+  </data>
+  <data name="SummaryColAmount" xml:space="preserve">
+    <value>Amount</value>
+    <comment>Monthly Summary as exported or posted to Slack, column header over this month's figures. Keep short.</comment>
+  </data>
+  <data name="SummaryHeader" xml:space="preserve">
+    <value>Monthly Summary — {0} {1}</value>
+    <comment>Title line of the Monthly Summary (export, Slack post). {0} is the month's name, {1} the year.</comment>
+  </data>
+  <data name="SummaryHeaderCorp" xml:space="preserve">
+    <value>{0} — Monthly Summary — {1} {2}</value>
+    <comment>Title line of the Monthly Summary (export, Slack post). {0} is the corporation's name, {1} the month's name, {2} the year.</comment>
+  </data>
+  <data name="SeriesIncome" xml:space="preserve">
+    <value>Income</value>
+    <comment>Chart series name (monthly ISK trends: Corp Activity, and the chart the scheduler posts to Slack): the corp's income.</comment>
+  </data>
+  <data name="SeriesExpenses" xml:space="preserve">
+    <value>Expenses</value>
+    <comment>Chart series name (monthly ISK trends): the corp's expenses.</comment>
+  </data>
+  <data name="SeriesRattingTax" xml:space="preserve">
+    <value>Ratting Tax</value>
+    <comment>Chart series name (monthly ISK trends): ratting tax collected.</comment>
+  </data>
+  <data name="SeriesIndustryTax" xml:space="preserve">
+    <value>Industry Tax</value>
+    <comment>Chart series name (monthly ISK trends): industry tax collected.</comment>
+  </data>
+  <data name="SeriesProjPayouts" xml:space="preserve">
+    <value>Proj Payouts</value>
+    <comment>Chart series name (monthly ISK trends): ISK paid out for corp projects. "Proj" is short for project; keep it short.</comment>
+  </data>
+  <data name="ChartTitleIskTrends" xml:space="preserve">
+    <value>ISK Trends (billions)</value>
+    <comment>Title of the monthly ISK trends chart the scheduler posts to Slack.</comment>
+  </data>
+  <data name="SeriesUnitsMined" xml:space="preserve">
+    <value>Units Mined</value>
+    <comment>Chart series name (monthly activity trends posted to Slack): units of ore mined.</comment>
+  </data>
+  <data name="ChartTitleActivityTrends" xml:space="preserve">
+    <value>Activity Trends (kills and losses left, units mined right)</value>
+    <comment>Title of the monthly activity chart the scheduler posts to Slack: kills and losses on the left axis, units mined on the right.</comment>
+  </data>
+  <data name="SeriesIskEfficiency" xml:space="preserve">
+    <value>ISK Efficiency</value>
+    <comment>Chart series name (monthly kills and losses): destroyed as a share of destroyed plus lost, in percent.</comment>
+  </data>
+  <data name="ChartTitleKillTrends" xml:space="preserve">
+    <value>Kills and Losses (ISK efficiency on the right)</value>
+    <comment>Title of the monthly kills and losses chart the scheduler posts to Slack; ISK efficiency is read on the right-hand axis.</comment>
+  </data>
+  <data name="SeriesMinedValue" xml:space="preserve">
+    <value>Mined Value</value>
+    <comment>Chart series name (monthly mining chart): the ore's value reprocessed.</comment>
+  </data>
+  <data name="ChartTitleMining" xml:space="preserve">
+    <value>Mining (reprocessed value)</value>
+    <comment>Title of the monthly mining chart the scheduler posts to Slack.</comment>
+  </data>
+  <data name="ChartPlayersActive" xml:space="preserve">
+    <value>Players Active</value>
+    <comment>Monthly players chart: its title (on the chart posted to Slack) and its one series name. Distinct members seen active in each month.</comment>
+  </data>
+  <data name="SlotShip" xml:space="preserve">
+    <value>Ship</value>
+    <comment>Killmail detail, item section heading: the destroyed ship itself.</comment>
+  </data>
+  <data name="KillmailItemCopy" xml:space="preserve">
+    <value>{0} (Copy)</value>
+    <comment>Killmail detail, item list: a blueprint copy rather than an original. {0} is the blueprint's name.</comment>
+  </data>
+  <data name="KillmailGroupOther" xml:space="preserve">
+    <value>Other</value>
+    <comment>Killmail detail: heading of the items in no recognised slot or hold, and, inside Cargo Hold, of the items with no market group.</comment>
+  </data>
+  <data name="SlotHigh" xml:space="preserve">
+    <value>High Slots</value>
+    <comment>Killmail detail, item section heading: the ship's high slots. Use the game client's term.</comment>
+  </data>
+  <data name="SlotMid" xml:space="preserve">
+    <value>Mid Slots</value>
+    <comment>Killmail detail, item section heading: the ship's mid slots. Use the game client's term.</comment>
+  </data>
+  <data name="SlotLow" xml:space="preserve">
+    <value>Low Slots</value>
+    <comment>Killmail detail, item section heading: the ship's low slots. Use the game client's term.</comment>
+  </data>
+  <data name="SlotRig" xml:space="preserve">
+    <value>Rig Slots</value>
+    <comment>Killmail detail, item section heading: the ship's rig slots. Use the game client's term.</comment>
+  </data>
+  <data name="SlotSubsystem" xml:space="preserve">
+    <value>Subsystem Slots</value>
+    <comment>Killmail detail, item section heading: the ship's subsystem slots. Use the game client's term.</comment>
+  </data>
+  <data name="SlotDroneBay" xml:space="preserve">
+    <value>Drone Bay</value>
+    <comment>Killmail detail, item section heading: the ship's drone bay. Use the game client's term.</comment>
+  </data>
+  <data name="SlotFighterBay" xml:space="preserve">
+    <value>Fighter Bay</value>
+    <comment>Killmail detail, item section heading: a carrier's fighter bay. Use the game client's term.</comment>
+  </data>
+  <data name="SlotFighterTubes" xml:space="preserve">
+    <value>Fighter Tubes</value>
+    <comment>Killmail detail, item section heading: a carrier's fighter launch tubes. Use the game client's term.</comment>
+  </data>
+  <data name="SlotShipHangar" xml:space="preserve">
+    <value>Ship Hangar</value>
+    <comment>Killmail detail, item section heading: a ship maintenance bay (ships carried inside). Use the game client's term.</comment>
+  </data>
+  <data name="SlotFleetHangar" xml:space="preserve">
+    <value>Fleet Hangar</value>
+    <comment>Killmail detail, item section heading: the ship's fleet hangar. Use the game client's term.</comment>
+  </data>
+  <data name="SlotFuelBay" xml:space="preserve">
+    <value>Fuel Bay</value>
+    <comment>Killmail detail, item section heading: the ship's fuel bay. Use the game client's term.</comment>
+  </data>
+  <data name="SlotOreHold" xml:space="preserve">
+    <value>Ore Hold</value>
+    <comment>Killmail detail, item section heading: a mining ship's ore hold. Use the game client's term.</comment>
+  </data>
+  <data name="SlotIceHold" xml:space="preserve">
+    <value>Ice Hold</value>
+    <comment>Killmail detail, item section heading: a mining ship's ice hold. Use the game client's term.</comment>
+  </data>
+  <data name="SlotAsteroidHold" xml:space="preserve">
+    <value>Asteroid Hold</value>
+    <comment>Killmail detail, item section heading: a mining ship's asteroid hold. Use the game client's term.</comment>
+  </data>
+  <data name="SlotGasHold" xml:space="preserve">
+    <value>Gas Hold</value>
+    <comment>Killmail detail, item section heading: the ship's gas hold. Use the game client's term.</comment>
+  </data>
+  <data name="SlotMineralHold" xml:space="preserve">
+    <value>Mineral Hold</value>
+    <comment>Killmail detail, item section heading: the ship's mineral hold. Use the game client's term.</comment>
+  </data>
+  <data name="SlotSalvageHold" xml:space="preserve">
+    <value>Salvage Hold</value>
+    <comment>Killmail detail, item section heading: the ship's salvage hold. Use the game client's term.</comment>
+  </data>
+  <data name="SlotShipHold" xml:space="preserve">
+    <value>Ship Hold</value>
+    <comment>Killmail detail, item section heading: a hold for carrying ships. Use the game client's term.</comment>
+  </data>
+  <data name="SlotSmallShipHold" xml:space="preserve">
+    <value>Small Ship Hold</value>
+    <comment>Killmail detail, item section heading: a hold for carrying small ships. Use the game client's term.</comment>
+  </data>
+  <data name="SlotMediumShipHold" xml:space="preserve">
+    <value>Medium Ship Hold</value>
+    <comment>Killmail detail, item section heading: a hold for carrying medium ships. Use the game client's term.</comment>
+  </data>
+  <data name="SlotLargeShipHold" xml:space="preserve">
+    <value>Large Ship Hold</value>
+    <comment>Killmail detail, item section heading: a hold for carrying large ships. Use the game client's term.</comment>
+  </data>
+  <data name="SlotIndustrialShipHold" xml:space="preserve">
+    <value>Industrial Ship Hold</value>
+    <comment>Killmail detail, item section heading: a hold for carrying industrial ships. Use the game client's term.</comment>
+  </data>
+  <data name="SlotAmmoHold" xml:space="preserve">
+    <value>Ammo Hold</value>
+    <comment>Killmail detail, item section heading: the ship's ammo hold. Use the game client's term.</comment>
+  </data>
+  <data name="SlotCargoHold" xml:space="preserve">
+    <value>Cargo Hold</value>
+    <comment>Killmail detail, item section heading: the ship's cargo hold. Use the game client's term.</comment>
+  </data>
+  <data name="SearchViaEsi" xml:space="preserve">
+    <value>via ESI</value>
+    <comment>Entity search dropdown, beside a name that was found by asking ESI rather than in the local name cache.</comment>
+  </data>
+  <data name="FactCorporation" xml:space="preserve">
+    <value>Corporation</value>
+    <comment>Entity viewer (Player / NPC Entities), fact label: the corporation a pilot, agent or station belongs to.</comment>
+  </data>
+  <data name="FactAlliance" xml:space="preserve">
+    <value>Alliance</value>
+    <comment>Entity viewer, fact label: the alliance a pilot or corporation is in.</comment>
+  </data>
+  <data name="FactSecurityStatus" xml:space="preserve">
+    <value>Security status</value>
+    <comment>Entity viewer, fact label: a pilot's security status.</comment>
+  </data>
+  <data name="FactFaction" xml:space="preserve">
+    <value>Faction</value>
+    <comment>Entity viewer, fact label: the faction a pilot, agent, station or NPC corporation belongs to.</comment>
+  </data>
+  <data name="FactGender" xml:space="preserve">
+    <value>Gender</value>
+    <comment>Entity viewer, fact label: a pilot's gender.</comment>
+  </data>
+  <data name="FactRace" xml:space="preserve">
+    <value>Race</value>
+    <comment>Entity viewer, fact label: a pilot's race.</comment>
+  </data>
+  <data name="FactBloodline" xml:space="preserve">
+    <value>Bloodline</value>
+    <comment>Entity viewer, fact label: a pilot's bloodline.</comment>
+  </data>
+  <data name="FactAchievementScore" xml:space="preserve">
+    <value>Achievement score</value>
+    <comment>Entity viewer, fact label: a pilot's achievement score, as ESI reports it.</comment>
+  </data>
+  <data name="FactBorn" xml:space="preserve">
+    <value>Born</value>
+    <comment>Entity viewer, fact label: the date a pilot was created.</comment>
+  </data>
+  <data name="FactTitle" xml:space="preserve">
+    <value>Title</value>
+    <comment>Entity viewer, fact label: a pilot's title in their corporation.</comment>
+  </data>
+  <data name="FactTicker" xml:space="preserve">
+    <value>Ticker</value>
+    <comment>Entity viewer, fact label: a corporation's or alliance's ticker.</comment>
+  </data>
+  <data name="FactMembers" xml:space="preserve">
+    <value>Members</value>
+    <comment>Entity viewer, fact label: how many members a corporation has.</comment>
+  </data>
+  <data name="FactCeo" xml:space="preserve">
+    <value>CEO</value>
+    <comment>Entity viewer, fact label: a corporation's chief executive.</comment>
+  </data>
+  <data name="FactFounded" xml:space="preserve">
+    <value>Founded</value>
+    <comment>Entity viewer, fact label: the date a corporation or alliance was founded.</comment>
+  </data>
+  <data name="FactTaxRate" xml:space="preserve">
+    <value>Tax rate</value>
+    <comment>Entity viewer, fact label: a corporation's tax rate.</comment>
+  </data>
+  <data name="FactWarEligible" xml:space="preserve">
+    <value>War eligible</value>
+    <comment>Entity viewer, fact label: whether a corporation can be at war. Its value is Yes.</comment>
+  </data>
+  <data name="FactYes" xml:space="preserve">
+    <value>Yes</value>
+    <comment>Entity viewer, value of a yes/no fact (War eligible, Locator).</comment>
+  </data>
+  <data name="FactUrl" xml:space="preserve">
+    <value>URL</value>
+    <comment>Entity viewer, fact label: a corporation's website address.</comment>
+  </data>
+  <data name="FactCreator" xml:space="preserve">
+    <value>Creator</value>
+    <comment>Entity viewer, fact label: the pilot who created an alliance.</comment>
+  </data>
+  <data name="FactCreatorCorp" xml:space="preserve">
+    <value>Creator corp</value>
+    <comment>Entity viewer, fact label: the corporation that created an alliance.</comment>
+  </data>
+  <data name="FactExecutorCorp" xml:space="preserve">
+    <value>Executor corp</value>
+    <comment>Entity viewer, fact label: the corporation that runs an alliance.</comment>
+  </data>
+  <data name="FallbackCorporationName" xml:space="preserve">
+    <value>Corporation {0}</value>
+    <comment>Shown instead of a corporation's name when it could not be looked up. {0} is the corporation's id.</comment>
+  </data>
+  <data name="FallbackAllianceName" xml:space="preserve">
+    <value>Alliance {0}</value>
+    <comment>Shown instead of an alliance's name when it could not be looked up. {0} is the alliance's id.</comment>
+  </data>
+  <data name="HistoryNoAlliance" xml:space="preserve">
+    <value>— no alliance —</value>
+    <comment>Entity viewer, Alliance History of a corporation: a period when it was in no alliance.</comment>
+  </data>
+  <data name="HistoryPresent" xml:space="preserve">
+    <value>present</value>
+    <comment>Entity viewer, history grid, Until column: the membership is the current one. Lower case.</comment>
+  </data>
+  <data name="HistoryDays" xml:space="preserve">
+    <value>{0:N0} day(s)</value>
+    <comment>Entity viewer, history grid, Duration column. {0} is the number of days.</comment>
+  </data>
+  <data name="GenderMale" xml:space="preserve">
+    <value>Male</value>
+    <comment>Entity viewer, value of a pilot's Gender fact.</comment>
+  </data>
+  <data name="GenderFemale" xml:space="preserve">
+    <value>Female</value>
+    <comment>Entity viewer, value of a pilot's Gender fact.</comment>
+  </data>
+  <data name="SubtitleOurCharacter" xml:space="preserve">
+    <value>One of your characters</value>
+    <comment>Entity viewer, line under a pilot's name: one of the user's own characters.</comment>
+  </data>
+  <data name="SubtitlePlayerCharacter" xml:space="preserve">
+    <value>Player character</value>
+    <comment>Entity viewer, line under a pilot's name: any other player's character.</comment>
+  </data>
+  <data name="FactCharacterId" xml:space="preserve">
+    <value>Character ID</value>
+    <comment>Entity viewer, fact label: a character's id number.</comment>
+  </data>
+  <data name="FactLastSeen" xml:space="preserve">
+    <value>Last seen</value>
+    <comment>Entity viewer, fact label: when a pilot last appeared on a killmail.</comment>
+  </data>
+  <data name="SubtitleOurCorporation" xml:space="preserve">
+    <value>One of your corporations</value>
+    <comment>Entity viewer, line under a corporation's name: one of the user's own corporations.</comment>
+  </data>
+  <data name="SubtitlePlayerCorporation" xml:space="preserve">
+    <value>Player corporation</value>
+    <comment>Entity viewer, line under a corporation's name: any other player corporation.</comment>
+  </data>
+  <data name="SubtitlePlayerAlliance" xml:space="preserve">
+    <value>Player alliance</value>
+    <comment>Entity viewer, line under an alliance's name.</comment>
+  </data>
+  <data name="FactCorporationId" xml:space="preserve">
+    <value>Corporation ID</value>
+    <comment>Entity viewer, fact label: a corporation's id number.</comment>
+  </data>
+  <data name="FactAllianceId" xml:space="preserve">
+    <value>Alliance ID</value>
+    <comment>Entity viewer, fact label: an alliance's id number.</comment>
+  </data>
+  <data name="SubtitleAgent" xml:space="preserve">
+    <value>Level {0} {1} agent</value>
+    <comment>Entity viewer, line under an NPC agent's name. {0} is the agent's level (1 to 5), {1} its division (for example Security).</comment>
+  </data>
+  <data name="FactAgentId" xml:space="preserve">
+    <value>Agent ID</value>
+    <comment>Entity viewer, fact label: an NPC agent's id number.</comment>
+  </data>
+  <data name="FactStation" xml:space="preserve">
+    <value>Station</value>
+    <comment>Entity viewer, fact label: the station an NPC agent works in.</comment>
+  </data>
+  <data name="FactDivision" xml:space="preserve">
+    <value>Division</value>
+    <comment>Entity viewer, fact label: an NPC agent's division (for example Security or Distribution).</comment>
+  </data>
+  <data name="FactAgentType" xml:space="preserve">
+    <value>Agent type</value>
+    <comment>Entity viewer, fact label: what kind of NPC agent this is.</comment>
+  </data>
+  <data name="FactLocator" xml:space="preserve">
+    <value>Locator</value>
+    <comment>Entity viewer, fact label: whether an NPC agent offers locator services. Its value is Yes or No.</comment>
+  </data>
+  <data name="FactNo" xml:space="preserve">
+    <value>No</value>
+    <comment>Entity viewer, value of a yes/no fact (Locator).</comment>
+  </data>
+  <data name="FactHeadquarters" xml:space="preserve">
+    <value>Headquarters</value>
+    <comment>Entity viewer, fact label: the station an NPC corporation is based in.</comment>
+  </data>
+  <data name="FactStations" xml:space="preserve">
+    <value>Stations</value>
+    <comment>Entity viewer, fact label: how many stations an NPC corporation owns.</comment>
+  </data>
+  <data name="FactAgents" xml:space="preserve">
+    <value>Agents</value>
+    <comment>Entity viewer, fact label: how many NPC agents a corporation or station has.</comment>
+  </data>
+  <data name="FactToJoin" xml:space="preserve">
+    <value>To join</value>
+    <comment>Entity viewer, fact label: what it takes to join an NPC corporation.</comment>
+  </data>
+  <data name="FactToJoinValue" xml:space="preserve">
+    <value>standing {0:N1}, security {1:N1} or better</value>
+    <comment>Entity viewer, value of "To join". {0} is the standing needed with the corporation, {1} the security status needed. Lower case.</comment>
+  </data>
+  <data name="FactLpStore" xml:space="preserve">
+    <value>LP store</value>
+    <comment>Entity viewer, fact label: an NPC corporation's loyalty point store.</comment>
+  </data>
+  <data name="FactLpOffers" xml:space="preserve">
+    <value>{0:N0} offer(s)</value>
+    <comment>Entity viewer, value of "LP store". {0} is the number of offers in it.</comment>
+  </data>
+  <data name="FactLpStoreNone" xml:space="preserve">
+    <value>none</value>
+    <comment>Entity viewer, value of "LP store" when the corporation has no offers. Lower case.</comment>
+  </data>
+  <data name="FactYourLp" xml:space="preserve">
+    <value>Your LP</value>
+    <comment>Entity viewer, fact label: the loyalty points the user's characters hold with this corporation.</comment>
+  </data>
+  <data name="FactIskPerLp" xml:space="preserve">
+    <value>ISK per LP</value>
+    <comment>Entity viewer, fact label: what one loyalty point is worth in ISK.</comment>
+  </data>
+  <data name="FactWebsite" xml:space="preserve">
+    <value>Website</value>
+    <comment>Entity viewer, fact label: an NPC corporation's website.</comment>
+  </data>
+  <data name="SubtitleNpcCorp" xml:space="preserve">
+    <value>NPC corporation</value>
+    <comment>Entity viewer, line under an NPC corporation's name. May be followed by " · " and its faction's name.</comment>
+  </data>
+  <data name="SubtitleFaction" xml:space="preserve">
+    <value>Faction</value>
+    <comment>Entity viewer, line under a faction's name.</comment>
+  </data>
+  <data name="FactFactionId" xml:space="preserve">
+    <value>Faction ID</value>
+    <comment>Entity viewer, fact label: a faction's id number.</comment>
+  </data>
+  <data name="FactMilitiaCorp" xml:space="preserve">
+    <value>Militia corp</value>
+    <comment>Entity viewer, fact label: a faction's militia corporation.</comment>
+  </data>
+  <data name="FactHomeSystem" xml:space="preserve">
+    <value>Home system</value>
+    <comment>Entity viewer, fact label: a faction's home solar system.</comment>
+  </data>
+  <data name="FactCorporations" xml:space="preserve">
+    <value>Corporations</value>
+    <comment>Entity viewer, fact label: how many NPC corporations belong to a faction.</comment>
+  </data>
+  <data name="SubtitleNpcStation" xml:space="preserve">
+    <value>NPC station</value>
+    <comment>Entity viewer, line under an NPC station's name.</comment>
+  </data>
+  <data name="FactStationId" xml:space="preserve">
+    <value>Station ID</value>
+    <comment>Entity viewer, fact label: a station's id number.</comment>
+  </data>
+  <data name="FactSystem" xml:space="preserve">
+    <value>System</value>
+    <comment>Entity viewer, fact label: the solar system a station is in.</comment>
+  </data>
+  <data name="FactConstellation" xml:space="preserve">
+    <value>Constellation</value>
+    <comment>Entity viewer, fact label: the constellation a station is in.</comment>
+  </data>
+  <data name="FactRegion" xml:space="preserve">
+    <value>Region</value>
+    <comment>Entity viewer, fact label: the region a station is in.</comment>
+  </data>
+  <data name="FactSecurity" xml:space="preserve">
+    <value>Security</value>
+    <comment>Entity viewer, fact label: the security level of a station's system.</comment>
+  </data>
+  <data name="FactSecurityValue" xml:space="preserve">
+    <value>{0}  (true {1})</value>
+    <comment>Entity viewer, value of a station's Security. {0} is the security as the game rounds it, {1} the true (unrounded) value.</comment>
+  </data>
+  <data name="FactType" xml:space="preserve">
+    <value>Type</value>
+    <comment>Entity viewer, fact label: a station's type (which station model it is).</comment>
+  </data>
+  <data name="FactReprocessing" xml:space="preserve">
+    <value>Reprocessing</value>
+    <comment>Entity viewer, fact label: a station's reprocessing facilities.</comment>
+  </data>
+  <data name="FactReprocessingValue" xml:space="preserve">
+    <value>{0:0.#}% · {1:0.#}% tax</value>
+    <comment>Entity viewer, value of a station's Reprocessing. {0} is the reprocessing efficiency, {1} the tax the station takes, both in percent.</comment>
+  </data>
+</root>

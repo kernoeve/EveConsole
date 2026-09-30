@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.Data.Sqlite;
 using EveConsole.Data;
+using EveConsole.Localization;
 
 namespace EveConsole.Alarms.Conditions;
 
@@ -72,6 +73,27 @@ public sealed class SqlCondition : IAlarmCondition
             },
         },
         required = new[] { "sql" },
+    };
+
+    // The editor's words; the three above are the agent's and stay English. The modes are stored
+    // as the English values above and only their words are looked up.
+    public string ScreenName        => AlarmsText.CheckSql;
+    public string ScreenDescription => AlarmsText.CheckSqlNote;
+
+    public AlarmFieldText? ScreenField(string property) => property switch
+    {
+        "sql"          => new(AlarmsText.SqlQueryLabel,       AlarmsText.SqlQueryNote),
+        "key_column"   => new(AlarmsText.SqlKeyColumnLabel,   AlarmsText.SqlKeyColumnNote),
+        "label_column" => new(AlarmsText.SqlLabelColumnLabel, AlarmsText.SqlLabelColumnNote),
+        "mode"         => new(AlarmsText.SqlModeLabel,        AlarmsText.SqlModeNote),
+        _              => null,
+    };
+
+    public string? ScreenOption(string property, string value) => (property, value) switch
+    {
+        ("mode", "present") => AlarmsText.OptionPresent,
+        ("mode", "absent")  => AlarmsText.OptionAbsent,
+        _                   => null,
     };
 
     public string Describe(JsonElement config)

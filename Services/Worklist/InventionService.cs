@@ -1,6 +1,7 @@
 using EveConsole.Data;
 using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.Services.Worklist;
 
@@ -227,7 +228,8 @@ public class InventionService(IDbContextFactory<AppDbContext> dbFactory)
 
             result[m.ProductTypeId] = new InventionRecipe(
                 SourceBlueprintTypeId:   inv.SourceBp,
-                SourceBlueprintName:     sourceNames.GetValueOrDefault(inv.SourceBp, $"Type {inv.SourceBp}"),
+                SourceBlueprintName:     sourceNames.GetValueOrDefault(
+                                             inv.SourceBp, string.Format(WorklistText.TypeWithId, inv.SourceBp)),
                 InventedBlueprintTypeId: m.TypeId,
                 ProductTypeId:           m.ProductTypeId,
                 BaseChance:              inv.Probability,
@@ -244,7 +246,8 @@ public class InventionService(IDbContextFactory<AppDbContext> dbFactory)
     }
 
     /// <summary>Where a science job runs: the real facility, its name, and the park row whose
-    /// rigs and security class decide how long the job takes.</summary>
+    /// rigs and security class decide how long the job takes. The name is for the tasks' text
+    /// only — an NPC station's as the screen names it — and nothing matches on it.</summary>
     public readonly record struct Lab(long Site, string Name, IndyStructure? Structure);
 
     private const int ShipCategoryId = 6;
@@ -308,8 +311,10 @@ public class InventionService(IDbContextFactory<AppDbContext> dbFactory)
 
         var id = s.RealStructureId!.Value;
 
+        // The linked facility's saved English, as the screen names it. The park's label for the
+        // structure, the last resort, is the user's own words.
         var name = s.RealStructureName is { Length: > 0 } rn
-            ? rn
+            ? SdeNames.Location(id, rn)
             : await db.EsiCorpStructures.AsNoTracking()
                       .Where(c => c.StructureId == id).Select(c => c.Name).FirstOrDefaultAsync(ct)
               ?? s.DisplayName;

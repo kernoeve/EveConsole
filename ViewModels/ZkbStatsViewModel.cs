@@ -1,4 +1,5 @@
 using System.Reactive;
+using EveConsole.Localization;
 using EveConsole.Services;
 using ReactiveUI;
 
@@ -98,8 +99,8 @@ public class ZkbStatsVm : ReactiveObject
         var lost      = (double)p.ShipsLost + p.PointsLost;
         var danger = HasDanger ? (int)Math.Floor(destroyed / (lost + destroyed) * 100) : 0;
         DangerValue = danger;
-        DangerText  = $"Dangerous {danger}%";
-        SnugglyText = $"{100 - danger}% Snuggly";
+        DangerText  = string.Format(CorpText.ZkbDangerous, danger);
+        SnugglyText = string.Format(CorpText.ZkbSnuggly, 100 - danger);
 
         // Gang: the share of the period's kills that were not solo; no solo kill is all gang, as
         // zKillboard's page shows it. (The all-time gangRatio its API publishes guesses from the
@@ -109,11 +110,13 @@ public class ZkbStatsVm : ReactiveObject
         HasGang = p.ShipsDestroyed > 0;
         var gang = HasGang ? 100 - (int)Math.Floor(100 * ((double)p.SoloKills / p.ShipsDestroyed)) : 0;
         GangValue = gang;
-        GangText  = $"Gang {gang}%";
-        SoloText  = $"{100 - gang}% Solo";
+        GangText  = string.Format(CorpText.ZkbGang, gang);
+        SoloText  = string.Format(CorpText.ZkbSolo, 100 - gang);
 
-        GangDetail = (p.AvgGangSize is { } avg ? $"average gang {avg:0.#} · " : "")
-                   + $"{p.SoloKills:N0} solo kill(s), {p.SoloLosses:N0} solo loss(es)";
+        GangDetail = (p.AvgGangSize is { } avg ? string.Format(CorpText.ZkbAverageGang, avg) + " · " : "")
+                   + Plurals.Format(CorpText.ResourceManager, nameof(CorpText.ZkbSoloKillsOther), p.SoloKills)
+                   + CommonText.ListSeparator
+                   + Plurals.Format(CorpText.ResourceManager, nameof(CorpText.ZkbSoloLossesOther), p.SoloLosses);
     }
 
     private static readonly ZkbStatRow Blank = new("", "", "", "", "");
@@ -136,13 +139,13 @@ public class ZkbStatsVm : ReactiveObject
         Isk    = new(ShortIsk(p.IskDestroyed), RankOf(r?.IskDestroyed),    ShortIsk(p.IskLost), RankOf(r?.IskLost),
                      Efficiency(p.IskDestroyed, p.IskLost));
 
-        RankText   = r?.Overall is long overall ? $"Rank #{overall:N0}" : "";
+        RankText   = r?.Overall is long overall ? string.Format(CorpText.ZkbRankOverall, overall) : "";
         EmptyText  = !p.IsEmpty ? ""
                    : span switch
                    {
-                       Span.Recent => "No kills or losses in the last 90 days.",
-                       Span.Weekly => "No kills or losses in the last 7 days.",
-                       _           => "No kills or losses on zKillboard.",
+                       Span.Recent => CorpText.ZkbNone90,
+                       Span.Weekly => CorpText.ZkbNone7,
+                       _           => CorpText.ZkbNoneAllTime,
                    };
         HasFigures = !p.IsEmpty;
         ShowRatios(p);

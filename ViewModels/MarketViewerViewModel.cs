@@ -11,6 +11,7 @@ using LiveChartsCore.SkiaSharpView.Painting;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 using SkiaSharp;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -229,7 +230,7 @@ public class MarketViewerViewModel : ReactiveObject
             {
                 var ticks = (long)value;
                 return ticks < DateTime.MinValue.Ticks || ticks > DateTime.MaxValue.Ticks
-                    ? "" : new DateTime(ticks).ToString("MMM d");
+                    ? "" : new DateTime(ticks).ToString(CommonText.DateMonthDay);
             },
             UnitWidth       = TimeSpan.FromDays(1).Ticks,
             MinStep         = TimeSpan.FromDays(1).Ticks,
@@ -252,11 +253,11 @@ public class MarketViewerViewModel : ReactiveObject
 
     public IReadOnlyList<MarketPeriodOption> Periods { get; } =
     [
-        new("All \"Time\"",      null),
-        new("Last 365 Days", 365),
-        new("Last 90 Days",  90),
-        new("Last 30 Days",  30),
-        new("Last 7 Days",   7),
+        new(MarketText.PeriodAllTime,     null),
+        new(MarketText.PeriodLast365Days, 365),
+        new(MarketText.PeriodLast90Days,  90),
+        new(MarketText.PeriodLast30Days,  30),
+        new(MarketText.PeriodLast7Days,   7),
     ];
     private MarketPeriodOption _selectedPeriod;
     public MarketPeriodOption SelectedPeriod
@@ -327,6 +328,10 @@ public class MarketViewerViewModel : ReactiveObject
     {
         try
         {
+            // Every name this tool shows is an SDE name in the interface language, so it waits for
+            // them once, before the first rows (at once in English). The loads all run after this.
+            await SdeNames.EnsureLoadedAsync();
+
             await using var db = await _dbFactory.CreateDbContextAsync();
 
             // Regions we have data for (orders and/or any history).
@@ -337,10 +342,14 @@ public class MarketViewerViewModel : ReactiveObject
                 .Where(r => ids.Contains(r.RegionId))
                 .ToDictionaryAsync(r => r.RegionId, r => r.Name);
 
+            // By the name shown. Nothing but the id is kept of a choice.
             Regions.Clear();
-            Regions.Add(new MarketRegionOption("All regions", null));
-            foreach (var id in ids.OrderBy(i => names.TryGetValue(i, out var n) ? n : $"{i}"))
-                Regions.Add(new MarketRegionOption(names.TryGetValue(id, out var n) ? n : $"Region {id}", id));
+            Regions.Add(new MarketRegionOption(MarketText.AllRegions, null));
+            foreach (var option in ids
+                         .Select(id => new MarketRegionOption(names.TryGetValue(id, out var n)
+                             ? SdeNames.Region(id, n) : string.Format(MarketText.RegionNumbered, id), id))
+                         .OrderBy(o => o.Label, StringComparer.CurrentCulture))
+                Regions.Add(option);
             _selectedRegion = Regions.FirstOrDefault();
             this.RaisePropertyChanged(nameof(SelectedRegion));
 
@@ -359,7 +368,7 @@ public class MarketViewerViewModel : ReactiveObject
     {
         if (!_initialized || IsLoading) return;
         IsLoading = true;
-        StatusText = "Loading…";
+        StatusText = CommonText.Loading;
         try
         {
             await using var db = await _dbFactory.CreateDbContextAsync();
@@ -423,7 +432,9 @@ public class MarketViewerViewModel : ReactiveObject
                 .Select(x => x.TypeId).Distinct().ToList();
             var typeNames = await db.SdeTypes.AsNoTracking().Where(t => needIds.Contains(t.TypeId))
                 .ToDictionaryAsync(t => t.TypeId, t => t.Name);
-            string TName(int id) => typeNames.TryGetValue(id, out var n) ? n : $"\"Type\" {id}";
+            // As shown on the slice. A click comes back with that same label, which is all the
+            // slice-to-item map below is keyed on.
+            string TName(int id) => typeNames.TryGetValue(id, out var n) ? SdeNames.Type(id, n) : string.Format(MarketText.TypeNumbered, id);
 
             var sellPie    = BuildTypePie(sellByType.Select(x => (TName(x.TypeId), x.Isk, x.TypeId)));
             SellCorpSeries = sellPie.Series;
@@ -438,7 +449,7 @@ public class MarketViewerViewModel : ReactiveObject
             // Sales by top-level market group — selected region and period.
             var groups = await db.Database.SqlQueryRaw<GroupSalesFlat>(
                 MgTopCte +
-                "SELECT mt.\"TopName\" AS \"Name\", SUM(h.\"Volume\" * h.\"Average\") AS Isk " +
+                "SELECT mt.\"TopId\" AS \"GroupId\", mt.\"TopName\" AS \"Name\", SUM(h.\"Volume\" * h.\"Average\") AS Isk " +
                 "FROM \"MarketTypeHistories\" h " +
                 "JOIN \"SdeTypes\" ty ON ty.\"TypeId\" = h.\"TypeId\" " +
                 "JOIN mg_top mt ON mt.\"MarketGroupId\" = ty.\"MarketGroupId\" " +
@@ -448,7 +459,7 @@ public class MarketViewerViewModel : ReactiveObject
                         .Where(x => x is not null)) + " "
                     : "") +
                 "GROUP BY mt.\"TopId\", mt.\"TopName\"").ToListAsync();
-            SalesGroupSeries = BuildPie(groups.Select(g => (g.Name, g.Isk)));
+            SalesGroupSeries = BuildPie(groups.Select(g => (SdeNames.MarketGroup(g.GroupId, g.Name), g.Isk)));
             HasSalesGroup    = SalesGroupSeries.Length > 0;
 
             // Daily sales ISK across the period.
@@ -462,7 +473,7 @@ public class MarketViewerViewModel : ReactiveObject
             [
                 new LineSeries<DateTimePoint>
                 {
-                    Name                   = "Sales ISK",
+                    Name                   = MarketText.SeriesSalesIsk,
                     Values                 = points,
                     Stroke                 = new SolidColorPaint(new SKColor(0xc8, 0xa8, 0x4b)) { StrokeThickness = 1.5f },
                     Fill                   = null,
@@ -476,7 +487,7 @@ public class MarketViewerViewModel : ReactiveObject
             ];
             HasSalesLine = points.Length > 0;
 
-            var regionLabel = _selectedRegion?.RegionId is null ? "all regions" : _selectedRegion!.Label;
+            var regionLabel = _selectedRegion?.RegionId is null ? MarketText.StatusAllRegions : _selectedRegion!.Label;
             StatusText = $"{regionLabel} · {_selectedPeriod.Label}";
         }
         catch (Exception ex)
@@ -508,7 +519,7 @@ public class MarketViewerViewModel : ReactiveObject
         // "Other". Duplicate names would be ambiguous, so the first wins and the rest drop out.
         var sliceLabels = series.Select(s => s.Name ?? "").ToHashSet();
         var map = list
-            .Where(i => i.TypeId > 0 && sliceLabels.Contains(i.Label) && i.Label != "Other")
+            .Where(i => i.TypeId > 0 && sliceLabels.Contains(i.Label) && i.Label != MarketText.PieOther)
             .GroupBy(i => i.Label)
             .ToDictionary(g => g.Key, g => g.First().TypeId);
 
@@ -520,13 +531,16 @@ public class MarketViewerViewModel : ReactiveObject
         var ordered = items.Where(i => i.Value > 0).OrderByDescending(i => i.Value).ToList();
         var slices  = ordered.Take(10).ToList();
         var rest    = ordered.Skip(10).Sum(i => i.Value);
-        if (rest > 0) slices.Add(("Other", rest));
+        if (rest > 0) slices.Add((MarketText.PieOther, rest));
 
         var series = new List<ISeries>(slices.Count);
         for (var i = 0; i < slices.Count; i++)
         {
             var (label, value) = slices[i];
-            var color = label == "Other" ? OtherColor : PiePalette[i % PiePalette.Length];
+            // The "Other" bucket is the slice added after the top ten: told apart by its place,
+            // not by its label, which an item's or a group's name could share.
+            var isOther = rest > 0 && i == slices.Count - 1;
+            var color   = isOther ? OtherColor : PiePalette[i % PiePalette.Length];
             series.Add(new PieSeries<double>
             {
                 Name                  = label,
@@ -547,7 +561,7 @@ public class MarketViewerViewModel : ReactiveObject
     {
         if (!_initialized || IsLoading) return;
         IsLoading = true;
-        StatusText = "Loading…";
+        StatusText = CommonText.Loading;
         try
         {
             await using var db = await _dbFactory.CreateDbContextAsync();
@@ -594,14 +608,14 @@ public class MarketViewerViewModel : ReactiveObject
             {
                 oByG.TryGetValue(gid, out var o); sByG.TryGetValue(gid, out var s);
                 return new MarketGroupSummaryVm(
-                    names.TryGetValue(gid, out var n) ? n : $"Group {gid}",
+                    names.TryGetValue(gid, out var n) ? SdeNames.MarketGroup(gid, n) : string.Format(MarketText.GroupNumbered, gid),
                     o?.SellUnits ?? 0, o?.SellIsk ?? 0, o?.BuyUnits ?? 0, o?.BuyIsk ?? 0,
                     s?.Units ?? 0, s?.Isk ?? 0);
             }).OrderByDescending(g => g.SalesIskRaw).ToList();
 
             GroupRows.Clear();
             foreach (var g in rows) GroupRows.Add(g);
-            StatusText = rows.Count == 0 ? "No market data for this selection." : $"{rows.Count:N0} market group(s)";
+            StatusText = rows.Count == 0 ? MarketText.NoMarketDataForSelection : string.Format(MarketText.StatusMarketGroupCount, rows.Count);
         }
         catch (Exception ex)
         {
@@ -616,7 +630,7 @@ public class MarketViewerViewModel : ReactiveObject
     {
         if (!_initialized || IsLoading) return;
         IsLoading = true;
-        StatusText = "Loading…";
+        StatusText = CommonText.Loading;
         try
         {
             await using var db = await _dbFactory.CreateDbContextAsync();
@@ -658,14 +672,14 @@ public class MarketViewerViewModel : ReactiveObject
             {
                 oByT.TryGetValue(tid, out var o); sByT.TryGetValue(tid, out var s);
                 return new MarketTypeSummaryVm(
-                    typeNames.TryGetValue(tid, out var n) ? n : $"\"Type\" {tid}",
+                    typeNames.TryGetValue(tid, out var n) ? SdeNames.Type(tid, n) : string.Format(MarketText.TypeNumbered, tid),
                     o?.SellUnits ?? 0, o?.SellIsk ?? 0, o?.BuyUnits ?? 0, o?.BuyIsk ?? 0,
                     s?.Units ?? 0, s?.Isk ?? 0) { TypeId = tid };
             }).OrderByDescending(t => t.SalesIskRaw).ToList();
 
             TypeRows.Clear();
             foreach (var t in rows) TypeRows.Add(t);
-            StatusText = rows.Count == 0 ? "No market data for this selection." : $"{rows.Count:N0} type(s)";
+            StatusText = rows.Count == 0 ? MarketText.NoMarketDataForSelection : string.Format(MarketText.StatusTypeCount, rows.Count);
         }
         catch (Exception ex)
         {
@@ -680,7 +694,7 @@ public class MarketViewerViewModel : ReactiveObject
     {
         if (!_initialized || IsLoading) return;
         IsLoading = true;
-        StatusText = "Loading…";
+        StatusText = CommonText.Loading;
         try
         {
             await using var db = await _dbFactory.CreateDbContextAsync();
@@ -706,14 +720,14 @@ public class MarketViewerViewModel : ReactiveObject
 
             var vms = rows
                 .Select(x => new MarketOrderByTypeVm(
-                    typeNames.TryGetValue(x.TypeId, out var n) ? n : $"\"Type\" {x.TypeId}", x.Units, x.Isk)
+                    typeNames.TryGetValue(x.TypeId, out var n) ? SdeNames.Type(x.TypeId, n) : string.Format(MarketText.TypeNumbered, x.TypeId), x.Units, x.Isk)
                     { TypeId = x.TypeId })
                 .OrderByDescending(v => v.IskRaw).ToList();
 
             var target = buy ? BuyByTypeRows : SellByTypeRows;
             target.Clear();
             foreach (var v in vms) target.Add(v);
-            StatusText = vms.Count == 0 ? "No orders for this selection." : $"{vms.Count:N0} type(s)";
+            StatusText = vms.Count == 0 ? MarketText.NoOrdersForSelection : string.Format(MarketText.StatusTypeCount, vms.Count);
         }
         catch (Exception ex)
         {
@@ -742,7 +756,7 @@ public class MarketViewerViewModel : ReactiveObject
     }
     private sealed class GroupSalesFlat
     {
-        public string Name { get; set; } = ""; public double Isk { get; set; }
+        public int GroupId { get; set; } public string Name { get; set; } = ""; public double Isk { get; set; }
     }
     private sealed class DayIsk
     {

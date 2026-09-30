@@ -2,6 +2,7 @@ using System.Reactive;
 using EveConsole.Data;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -153,7 +154,7 @@ public class AlertSettingsViewModel : ReactiveObject
                 "ExpiringContracts"           = excluded."ExpiringContracts"
             """);
 
-        Status = "Saved.";
+        Status = SettingsText.Saved;
         await Task.Delay(2000);
         Status = "";
     }

@@ -1,5 +1,6 @@
 using EveConsole.Services;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -14,21 +15,27 @@ public class RetentionSectionVm : ReactiveObject
 {
     private readonly RetentionRule _rule;
     private readonly Func<int, IProgress<(int Done, int Total)>, Task<int>> _purge;
-    private readonly string _noun;
+    private readonly string _removedText;
+    private readonly string? _progressText;
     private readonly bool _loading;
 
-    /// <param name="noun">Plural, lower case — used in "Removed 1,234 killmails older than…".</param>
-    public RetentionSectionVm(RetentionRule rule, Func<int, Task<int>> purge, string noun)
-        : this(rule, (days, _) => purge(days), noun) { }
+    /// <param name="removedText">What a purge that removed something says, as a whole sentence:
+    /// "Removed {0:N0} killmails older than {1:N0} days. …" — {0} the rows removed, {1} the days.</param>
+    public RetentionSectionVm(RetentionRule rule, Func<int, Task<int>> purge, string removedText)
+        : this(rule, (days, _) => purge(days), removedText, null) { }
 
     /// <summary>For a purge that reports how far it has got — one that can run for minutes.</summary>
+    /// <param name="progressText">What it says while it runs, as a whole sentence: "Purging… {0:N0} of
+    /// {1:N0} killmails removed" — {0} removed so far, {1} to remove.</param>
     public RetentionSectionVm(
-        RetentionRule rule, Func<int, IProgress<(int Done, int Total)>, Task<int>> purge, string noun)
+        RetentionRule rule, Func<int, IProgress<(int Done, int Total)>, Task<int>> purge,
+        string removedText, string? progressText)
     {
-        _loading = true;
-        _rule    = rule;
-        _purge   = purge;
-        _noun    = noun;
+        _loading      = true;
+        _rule         = rule;
+        _purge        = purge;
+        _removedText  = removedText;
+        _progressText = progressText;
 
         _enabled = rule.Enabled;
         _days    = rule.Days;
@@ -75,8 +82,8 @@ public class RetentionSectionVm : ReactiveObject
 
     private void RefreshLastRun()
         => LastRunText = _rule.LastRunUtc is { } t
-            ? $"Last purged {t.ToLocalTime():yyyy-MM-dd HH:mm}"
-            : "Has not run yet.";
+            ? string.Format(SettingsText.RetentionLastPurged, t.ToLocalTime())
+            : SettingsText.RetentionNotRunYet;
 
     private string _status = "";
     public string Status
@@ -106,13 +113,13 @@ public class RetentionSectionVm : ReactiveObject
     {
         if (IsPurging) return;
         IsPurging = true;
-        Status = "Purging…";
+        Status = SettingsText.RetentionPurging;
         try
         {
             // Raised on this (the UI) thread, whichever thread the purge reports from.
             var progress = new Progress<(int Done, int Total)>(p =>
             {
-                if (IsPurging) Status = $"Purging… {p.Done:N0} of {p.Total:N0} {_noun} removed";
+                if (IsPurging && _progressText is not null) Status = string.Format(_progressText, p.Done, p.Total);
             });
             var removed = await _purge(Days, progress);
 
@@ -122,13 +129,12 @@ public class RetentionSectionVm : ReactiveObject
             RefreshLastRun();
 
             Status = removed == 0
-                ? $"Nothing older than {Days:N0} days."
-                : $"Removed {removed:N0} {_noun} older than {Days:N0} days. The file will not " +
-                  "get smaller until it is compacted — see Database → Shrink Database.";
+                ? string.Format(SettingsText.RetentionNothingOlder, Days)
+                : string.Format(_removedText, removed, Days);
         }
         catch (Exception ex)
         {
-            Status = $"Purge failed: {ex.Message}";
+            Status = string.Format(SettingsText.RetentionPurgeFailed, ex.Message);
         }
         finally { IsPurging = false; }
     }
@@ -148,25 +154,32 @@ public class DataRetentionSettingsViewModel : ReactiveObject
     public DataRetentionSettingsViewModel(DataRetentionService retention)
     {
         ErrorLog = new RetentionSectionVm(
-            retention.ErrorLog, d => retention.PurgeErrorLogAsync(d), "entries");
+            retention.ErrorLog, d => retention.PurgeErrorLogAsync(d),
+            SettingsText.RetentionRemovedErrorLog);
 
         OurKillmails = new RetentionSectionVm(
-            retention.OurKillmails, (d, p) => retention.PurgeOurKillmailsAsync(d, p), "killmails");
+            retention.OurKillmails, (d, p) => retention.PurgeOurKillmailsAsync(d, p),
+            SettingsText.RetentionRemovedKillmails, SettingsText.RetentionPurgingKillmails);
 
         OtherKillmails = new RetentionSectionVm(
-            retention.OtherKillmails, (d, p) => retention.PurgeOtherKillmailsAsync(d, p), "killmails");
+            retention.OtherKillmails, (d, p) => retention.PurgeOtherKillmailsAsync(d, p),
+            SettingsText.RetentionRemovedKillmails, SettingsText.RetentionPurgingKillmails);
 
         PriceHistory = new RetentionSectionVm(
-            retention.PriceHistory, d => retention.PurgePriceHistoryAsync(d), "rows");
+            retention.PriceHistory, d => retention.PurgePriceHistoryAsync(d),
+            SettingsText.RetentionRemovedPriceHistory);
 
         GameLog = new RetentionSectionVm(
-            retention.GameLog, d => retention.PurgeGameLogAsync(d), "events");
+            retention.GameLog, d => retention.PurgeGameLogAsync(d),
+            SettingsText.RetentionRemovedGameLog);
 
         ChatMessages = new RetentionSectionVm(
-            retention.ChatMessages, d => retention.PurgeChatMessagesAsync(d), "messages");
+            retention.ChatMessages, d => retention.PurgeChatMessagesAsync(d),
+            SettingsText.RetentionRemovedChat);
 
         AgentTelemetry = new RetentionSectionVm(
-            retention.AgentTelemetry, d => retention.PurgeAgentTelemetryAsync(d), "turns");
+            retention.AgentTelemetry, d => retention.PurgeAgentTelemetryAsync(d),
+            SettingsText.RetentionRemovedAgent);
     }
 
     public RetentionSectionVm ErrorLog       { get; }

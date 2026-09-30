@@ -6,6 +6,7 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Media.Immutable;
 using EveConsole.Services;
+using EveConsole.Localization;
 
 namespace EveConsole.Controls;
 
@@ -170,12 +171,24 @@ public class FittingCanvas : Control
 
     private static string LabelFor(FittingBand band) => band switch
     {
-        FittingBand.High      => "HIGH",
-        FittingBand.Mid       => "MID",
-        FittingBand.Low       => "LOW",
-        FittingBand.Rig       => "RIGS",
-        FittingBand.Service   => "SERVICES",
-        _                     => "SUBSYSTEMS",
+        FittingBand.High      => MapText.FittingBandHigh,
+        FittingBand.Mid       => MapText.FittingBandMid,
+        FittingBand.Low       => MapText.FittingBandLow,
+        FittingBand.Rig       => MapText.FittingBandRigs,
+        FittingBand.Service   => MapText.FittingBandServices,
+        _                     => MapText.FittingBandSubsystems,
+    };
+
+    /// <summary>Title of an empty slot's tooltip. One whole phrase per band rather than the band's
+    /// label cut down to a singular, which only works in English.</summary>
+    private static string EmptySlotTitle(FittingBand band) => band switch
+    {
+        FittingBand.High      => MapText.EmptyHighSlot,
+        FittingBand.Mid       => MapText.EmptyMidSlot,
+        FittingBand.Low       => MapText.EmptyLowSlot,
+        FittingBand.Rig       => MapText.EmptyRigSlot,
+        FittingBand.Service   => MapText.EmptyServiceSlot,
+        _                     => MapText.EmptySubsystemSlot,
     };
 
     // ── Layout ───────────────────────────────────────────────────────────────
@@ -389,7 +402,7 @@ public class FittingCanvas : Control
         Layout();
         if (_placed.Count == 0)
         {
-            DrawCentred(ctx, "No fitting information for this type.");
+            DrawCentred(ctx, MapText.FittingNoInfo);
             return;
         }
 
@@ -448,16 +461,18 @@ public class FittingCanvas : Control
     {
         var culture = System.Globalization.CultureInfo.CurrentCulture;
 
+        // The module's name in the interface language, looked up as it is drawn: the slot carries
+        // the English, whoever built it.
         var title = new FormattedText(
-            slot.IsEmpty ? $"Empty {LabelFor(slot.Band).TrimEnd('S').ToLowerInvariant()} slot" : slot.Name,
+            slot.IsEmpty ? EmptySlotTitle(slot.Band) : SdeNames.Type(slot.TypeId, slot.Name),
             culture, FlowDirection.LeftToRight, BoldFace, 12, TipTitle);
 
         var body = new FormattedText(
             IsReadOnly
-                ? $"{LabelFor(slot.Band)} {slot.Index} · from assets — the game is the authority here"
+                ? string.Format(MapText.TipSlotFromAssets, LabelFor(slot.Band), slot.Index)
                 : slot.IsEmpty
-                    ? "Click to fit a module"
-                    : $"{LabelFor(slot.Band)} {slot.Index} · entered by hand",
+                    ? MapText.TipClickToFitModule
+                    : string.Format(MapText.TipSlotEnteredByHand, LabelFor(slot.Band), slot.Index),
             culture, FlowDirection.LeftToRight, Face, 10, TipBody);
 
         var w = Math.Max(title.Width, body.Width);

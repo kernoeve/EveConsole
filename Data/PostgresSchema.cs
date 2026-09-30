@@ -293,6 +293,32 @@ public static class PostgresSchema
         )
         """,
 
+        // The SDE's names in the client's other languages, for display; the English stays in every
+        // Name column. See SdeName. The key columns carry no default, as in the other tables made
+        // here: no build older than this one writes to the table, and a row without its key is a
+        // bug to be refused, not filled in. Mirrored for SQLite in SdeImportService.EnsureSdeSchema.
+        """
+        CREATE TABLE IF NOT EXISTS "SdeNames" (
+            "Kind" INTEGER NOT NULL,
+            "Id"   BIGINT  NOT NULL,
+            "Lang" TEXT    NOT NULL,
+            "Name" TEXT    NOT NULL DEFAULT '',
+            CONSTRAINT "PK_SdeNames" PRIMARY KEY ("Kind", "Id", "Lang")
+        )
+        """,
+        // Its descriptions, in a table of their own because they are never loaded whole: read a
+        // row at a time, by the key. See SdeText. The same shape and the same rules as SdeNames.
+        // Mirrored for SQLite in SdeImportService.EnsureSdeSchema.
+        """
+        CREATE TABLE IF NOT EXISTS "SdeTexts" (
+            "Kind" INTEGER NOT NULL,
+            "Id"   BIGINT  NOT NULL,
+            "Lang" TEXT    NOT NULL,
+            "Text" TEXT    NOT NULL DEFAULT '',
+            CONSTRAINT "PK_SdeTexts" PRIMARY KEY ("Kind", "Id", "Lang")
+        )
+        """,
+
         // ⚠️ PackagedVolume above all: haul volumes were computed from the ASSEMBLED
         // figure, which is 115,000 against 10,000 for a Vexor.
         """
@@ -620,6 +646,10 @@ public static class PostgresSchema
         """,
         """
         ALTER TABLE "Stores" ADD COLUMN IF NOT EXISTS "LimitPeriodCount" INTEGER NOT NULL DEFAULT 1
+        """,
+        // The language the shop speaks to buyers; empty for the app's own.
+        """
+        ALTER TABLE "Stores" ADD COLUMN IF NOT EXISTS "Language" TEXT NOT NULL DEFAULT ''
         """,
 
 

@@ -5,6 +5,7 @@ using System.Reactive;
 using System.Reactive.Linq;
 using EveConsole.Monitoring;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -141,10 +142,10 @@ public class GameLogSettingsViewModel : ReactiveObject
             {
                 var files = _importer.EstimateHistoryFiles(days);
                 text = days <= 0
-                    ? $"All {files:N0} log file(s) will be processed."
-                    : $"{files:N0} log file(s) modified in the last {days:N0} day(s) will be processed.";
+                    ? string.Format(SettingsText.GameLogImportAllFiles, files)
+                    : string.Format(SettingsText.GameLogImportFilesSince, files, days);
             }
-            catch (Exception ex) { text = $"Could not count files — {ex.Message}"; }
+            catch (Exception ex) { text = string.Format(SettingsText.LogsCountFailed, ex.Message); }
 
             Avalonia.Threading.Dispatcher.UIThread.Post(() => EstimateText = text);
         });
@@ -224,9 +225,9 @@ public class GameLogSettingsViewModel : ReactiveObject
     {
         var resolved = _settings.ResolveDirectories();
         return resolved.Count == 0
-            ? "No game log folder found — add one below."
+            ? SettingsText.GameLogNoFolder
             : string.Join("\n", resolved.Select(d =>
-                (Directory.Exists(d) ? "✓ " : "✗ unreachable — ") + d));
+                Directory.Exists(d) ? "✓ " + d : string.Format(SettingsText.LogsFolderUnreachable, d)));
     }
 
     private async Task AddDirectoryAsync()
@@ -250,7 +251,7 @@ public class GameLogSettingsViewModel : ReactiveObject
     private async Task DetectDirectoryAsync()
     {
         var auto = MonitoringSettings.DefaultGameLogDirectory();
-        if (auto is null) { ResolvedPaths = "Could not find a local EVE game log folder."; return; }
+        if (auto is null) { ResolvedPaths = SettingsText.GameLogFolderNotFound; return; }
 
         if (!Directories.Contains(auto, StringComparer.OrdinalIgnoreCase))
         {

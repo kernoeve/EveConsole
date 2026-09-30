@@ -1,6 +1,7 @@
 using EveConsole.Data;
 using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -45,7 +46,7 @@ public class OrderFulfilmentService(
     public DateTimeOffset? NextRunAt { get; private set; }
 
     /// <summary>What the last pass found, in words.</summary>
-    public string StatusText { get; private set; } = "Not run yet";
+    public string StatusText { get; private set; } = DataText.NotRunYet;
 
     /// <summary>Pending orders, and how many of them have a source worked out.</summary>
     public int PendingCount { get; private set; }
@@ -85,7 +86,7 @@ public class OrderFulfilmentService(
                 catch (OperationCanceledException) { return; }
                 catch (Exception ex)
                 {
-                    StatusText = $"Last pass failed: {ex.Message}";
+                    StatusText = string.Format(DataText.OrderFulfilmentFailed, ex.Message);
                     errorLogger.Log(nameof(OrderFulfilmentService), "poll", ex);
                 }
 
@@ -390,8 +391,8 @@ public class OrderFulfilmentService(
         PendingCount = orders.Count(o => o.Status == "pending");
         LinkedCount  = orders.Count(o => o.Status == "pending" && o.FulfilmentSource.Length > 0);
         StatusText   = PendingCount == 0
-            ? "No pending orders"
-            : $"{LinkedCount:N0} of {PendingCount:N0} pending order(s) have a source";
+            ? DataText.OrderFulfilmentNoPending
+            : string.Format(DataText.OrderFulfilmentLinked, LinkedCount, PendingCount);
         return changed;
     }
 

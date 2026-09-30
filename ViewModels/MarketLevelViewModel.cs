@@ -11,6 +11,7 @@ using EveConsole.Models;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -91,7 +92,12 @@ public class MarketSourceOptionVm(int? id, string label)
 public class TypeResultVm(int typeId, string name)
 {
     public int    TypeId { get; } = typeId;
+
+    /// <summary>English: what a pick is saved and searched by — a price override keeps it.</summary>
     public string Name   { get; } = name;
+
+    /// <summary>The name in the interface language, for a list of results to show.</summary>
+    public string DisplayName => SdeNames.Type(TypeId, Name);
 }
 
 // ── Grid row hierarchy ────────────────────────────────────────────────────────
@@ -275,13 +281,15 @@ public class MarketItemRow : ReactiveObject
 
     public ReactiveCommand<Unit, Unit> DeleteCommand { get; }
 
+    /// <param name="name">The type's English name, or a fallback; the row shows it in the
+    /// interface language. Nothing reads TypeName back: the row is saved and opened by TypeId.</param>
     public MarketItemRow(MarketLevelItem item, string name, MarketLevelService svc, Func<Task> delete,
         int groupMultiplier = 1)
     {
         ItemId   = item.Id;
         GroupId  = item.GroupId;
         TypeId   = item.TypeId;
-        TypeName = name;
+        TypeName = SdeNames.Type(item.TypeId, name);
         _targetQty       = item.TargetQuantity;
         _groupMultiplier = Math.Max(1, groupMultiplier);
         _svc             = svc;
@@ -408,7 +416,7 @@ public class MarketLevelViewModel : ReactiveObject, IPeriodicRefresh
     public ObservableCollection<MarketSourceOptionVm>  MarketSources     { get; } = [];
 
     // ── Status ────────────────────────────────────────────────────────────────
-    private string _statusText = "Loading…";
+    private string _statusText = CommonText.Loading;
     public string StatusText
     {
         get => _statusText;
@@ -538,7 +546,7 @@ public class MarketLevelViewModel : ReactiveObject, IPeriodicRefresh
 
         if (newItems.Count == 0)
         {
-            StatusText = $"All items from '{fitting.Name}' are already in the group.";
+            StatusText = string.Format(MarketText.StatusAllItemsAlreadyInGroup, fitting.Name);
             return;
         }
 
@@ -558,7 +566,7 @@ public class MarketLevelViewModel : ReactiveObject, IPeriodicRefresh
                 TargetQuantity = qty,
             });
 
-            var typeName = typeNames.GetValueOrDefault(typeId, $"TypeId {typeId}");
+            var typeName = typeNames.GetValueOrDefault(typeId, string.Format(MarketText.TypeIdNumbered, typeId));
             MarketItemRow? itemRow = null;
             itemRow = new MarketItemRow(saved, typeName, _svc,
                 delete: async () => await DeleteItemRowAsync(itemRow!),
@@ -584,8 +592,9 @@ public class MarketLevelViewModel : ReactiveObject, IPeriodicRefresh
         if (groupRow.IsExpanded) RebuildGridRows();
 
         var skipped = items.Count - newItems.Count;
-        StatusText = $"Added {newItems.Count} item(s) from '{fitting.Name}'"
-                   + (skipped > 0 ? $"; {skipped} already present, skipped" : "");
+        StatusText = skipped > 0
+            ? string.Format(MarketText.StatusAddedItemsSkipped, newItems.Count, fitting.Name, skipped)
+            : string.Format(MarketText.StatusAddedItems, newItems.Count, fitting.Name);
     }
 
     // ── Market group add ──────────────────────────────────────────────────────
@@ -596,27 +605,30 @@ public class MarketLevelViewModel : ReactiveObject, IPeriodicRefresh
         var pick = await ShowMarketGroupPickerDialog();
         if (pick == null) return;
 
-        StatusText = $"Loading items in '{pick.GroupName}'…";
+        // The group as the status lines name it; the pick itself carries the English.
+        var groupName = SdeNames.MarketGroup(pick.MarketGroupId, pick.GroupName);
+
+        StatusText = string.Format(MarketText.StatusLoadingItemsIn, groupName);
         var typeList = await _batchSvc.GetItemsInGroupTreeAsync(pick.MarketGroupId);
 
         if (typeList.Count == 0)
         {
-            StatusText = $"No published items found under '{pick.GroupName}'.";
+            StatusText = string.Format(MarketText.StatusNoPublishedItemsUnder, groupName);
             return;
         }
 
         if (typeList.Count > 100 && ShowConfirmLargeGroup != null)
         {
-            var confirmed = await ShowConfirmLargeGroup(pick.GroupName, typeList.Count);
-            if (!confirmed) { StatusText = "Cancelled."; return; }
+            var confirmed = await ShowConfirmLargeGroup(groupName, typeList.Count);
+            if (!confirmed) { StatusText = MarketText.StatusCancelled; return; }
         }
 
         var targetGroup = GetContextGroup();
-        if (targetGroup == null) { StatusText = "No group selected."; return; }
+        if (targetGroup == null) { StatusText = MarketText.StatusNoGroupSelected; return; }
 
         var itemsWithQty = typeList.ToDictionary(x => x.TypeId, _ => pick.TargetQty);
         var nameOverrides = typeList.ToDictionary(x => x.TypeId, x => x.Name);
-        await AddItemsBatchAsync(targetGroup, itemsWithQty, pick.GroupName, nameOverrides);
+        await AddItemsBatchAsync(targetGroup, itemsWithQty, groupName, nameOverrides);
     }
 
     // ── Blueprint add ─────────────────────────────────────────────────────────
@@ -627,7 +639,7 @@ public class MarketLevelViewModel : ReactiveObject, IPeriodicRefresh
         var pick = await ShowBlueprintPickerDialog();
         if (pick == null) return;
 
-        StatusText = "Calculating materials…";
+        StatusText = MarketText.StatusCalculatingMaterials;
         Dictionary<int, (long Qty, string Name)> mats;
         try
         {
@@ -640,18 +652,18 @@ public class MarketLevelViewModel : ReactiveObject, IPeriodicRefresh
         }
         catch (Exception ex)
         {
-            StatusText = $"Calculation error: {ex.Message}";
+            StatusText = string.Format(MarketText.StatusCalculationError, ex.Message);
             return;
         }
 
         if (mats.Count == 0)
         {
-            StatusText = "No materials found for that blueprint.";
+            StatusText = MarketText.StatusNoMaterialsForBlueprint;
             return;
         }
 
         var targetGroup = GetContextGroup();
-        if (targetGroup == null) { StatusText = "No group selected."; return; }
+        if (targetGroup == null) { StatusText = MarketText.StatusNoGroupSelected; return; }
 
         // ⚠️ Chain quantities are long; an inventory level is an int column in the rules
         // table. Clamped rather than cast, so an absurd plan produces a capped level instead
@@ -659,7 +671,8 @@ public class MarketLevelViewModel : ReactiveObject, IPeriodicRefresh
         var itemsWithQty  = mats.ToDictionary(kv => kv.Key,
                                               kv => (int)Math.Clamp(kv.Value.Qty, 0, int.MaxValue));
         var nameOverrides = mats.ToDictionary(kv => kv.Key, kv => kv.Value.Name);
-        await AddItemsBatchAsync(targetGroup, itemsWithQty, pick.ProductName, nameOverrides);
+        await AddItemsBatchAsync(targetGroup, itemsWithQty,
+            SdeNames.Type(pick.ProductTypeId, pick.ProductName), nameOverrides);
     }
 
     // ── Shared batch-add helper ───────────────────────────────────────────────
@@ -676,7 +689,7 @@ public class MarketLevelViewModel : ReactiveObject, IPeriodicRefresh
 
         if (candidates.Count == 0)
         {
-            StatusText = $"All items from '{label}' are already in the group.";
+            StatusText = string.Format(MarketText.StatusAllItemsAlreadyInGroup, label);
             return;
         }
 
@@ -704,7 +717,7 @@ public class MarketLevelViewModel : ReactiveObject, IPeriodicRefresh
                 TargetQuantity = Math.Max(1, qty),
             });
 
-            var typeName = names.GetValueOrDefault(typeId, $"Type {typeId}");
+            var typeName = names.GetValueOrDefault(typeId, string.Format(MarketText.TypeNumbered, typeId));
             MarketItemRow? itemRow = null;
             itemRow = new MarketItemRow(saved, typeName, _svc,
                 delete: async () => await DeleteItemRowAsync(itemRow!),
@@ -730,8 +743,8 @@ public class MarketLevelViewModel : ReactiveObject, IPeriodicRefresh
         if (groupRow.IsExpanded) RebuildGridRows();
 
         StatusText = alreadyIn > 0
-            ? $"Added {added} item(s) from '{label}'; {alreadyIn} already present, skipped."
-            : $"Added {added} item(s) from '{label}'.";
+            ? string.Format(MarketText.StatusAddedItemsSkipped, added, label, alreadyIn)
+            : string.Format(MarketText.StatusAddedItems, added, label);
     }
 
     private MarketGroupRow? GetContextGroup() => _selectedRow switch
@@ -746,6 +759,9 @@ public class MarketLevelViewModel : ReactiveObject, IPeriodicRefresh
 
     private async Task InitializeAsync()
     {
+        // The item rows are built once and keep their names, so they wait for the interface
+        // language's first (at once in English).
+        await SdeNames.EnsureLoadedAsync();
         await LoadMarketSourcesAsync();
         await LoadAvailableStationsAsync();
         await LoadGroupsAsync();
@@ -758,11 +774,14 @@ public class MarketLevelViewModel : ReactiveObject, IPeriodicRefresh
         var configs    = await db.MarketPricingConfigs.OrderBy(c => c.SortOrder).ToListAsync();
         var defaults   = await db.MarketDefaultSettings.FindAsync(1);
         int? defaultId = defaults?.AssetValueConfigId;
+        var places     = await MarketSourceNames.PlacesAsync(db, configs.Select(c => c.LocationId));
 
+        // Each named as Settings names it; the dialog hands back the id, never the label.
         MarketSources.Clear();
-        MarketSources.Add(new MarketSourceOptionVm(null, "— Asset Default —"));
+        MarketSources.Add(new MarketSourceOptionVm(null, MarketText.SourceAssetDefault));
         foreach (var c in configs)
-            MarketSources.Add(new MarketSourceOptionVm(c.Id, c.LocationName));
+            MarketSources.Add(new MarketSourceOptionVm(c.Id,
+                MarketSourceNames.Shown(c.LocationId, c.LocationName, places.GetValueOrDefault(c.LocationId))));
     }
 
     private async Task LoadAvailableStationsAsync()
@@ -770,12 +789,13 @@ public class MarketLevelViewModel : ReactiveObject, IPeriodicRefresh
         // ⚠️ Off the calling thread — the auto-refresh reaches this from a main-thread timer.
         var stations = await Task.Run(() => _svc.GetAvailableStationsAsync());
         AvailableStations.Clear();
-        foreach (var s in stations) AvailableStations.Add(s);
+        // By the name the dialog shows; a group keeps the English Name it is given.
+        foreach (var s in stations.OrderBy(s => s.DisplayName, StringComparer.CurrentCulture)) AvailableStations.Add(s);
     }
 
     private IReadOnlyList<CollectionOption> GetCollectionOptions()
     {
-        var opts = new List<CollectionOption> { new(null, "— Default —") };
+        var opts = new List<CollectionOption> { new(null, MarketText.CollectionDefaultChoice) };
         opts.AddRange(_allCollections.Select(c => new CollectionOption(c.CollectionId, c.CollectionName)));
         return opts;
     }
@@ -832,7 +852,7 @@ public class MarketLevelViewModel : ReactiveObject, IPeriodicRefresh
                 var capturedItem = item;
                 MarketItemRow? itemRow = null;
                 itemRow = new MarketItemRow(capturedItem,
-                    typeNames.GetValueOrDefault(item.TypeId, $"TypeId {item.TypeId}"),
+                    typeNames.GetValueOrDefault(item.TypeId, string.Format(MarketText.TypeIdNumbered, item.TypeId)),
                     _svc,
                     delete: async () => await DeleteItemRowAsync(itemRow!),
                     groupMultiplier: groupRow.Multiplier);
@@ -844,15 +864,16 @@ public class MarketLevelViewModel : ReactiveObject, IPeriodicRefresh
         }
 
         if (_allGroups.Any(g => g.CollectionId == null))
-            _defaultCollRow = MakeMarketCollectionRow(null, "Default", isSynthetic: true);
+            _defaultCollRow = MakeMarketCollectionRow(null, MarketText.CollectionDefault, isSynthetic: true);
 
         RebuildGridRows();
         HasAnyGroup = _allGroups.Count > 0;
     }
 
+    /// <summary>By the name shown.</summary>
     private static void SortItemsAlpha(MarketGroupRow group)
     {
-        var sorted = group.AllItems.OrderBy(i => i.TypeName, StringComparer.OrdinalIgnoreCase).ToList();
+        var sorted = group.AllItems.OrderBy(i => i.TypeName, StringComparer.CurrentCulture).ToList();
         group.AllItems.Clear();
         group.AllItems.AddRange(sorted);
     }
@@ -922,21 +943,23 @@ public class MarketLevelViewModel : ReactiveObject, IPeriodicRefresh
         }
 
         int groupCount = _allGroups.Count;
+        // The button is named through its own entry, so the message cannot drift from its label.
         StatusText = groupCount == 0
-            ? "No groups configured. Click '+ Add Group' to create one."
-            : $"{groupCount} group(s), {totalItems} item(s)";
+            ? string.Format(MarketText.StatusNoGroups, MarketText.AddGroup)
+            : string.Format(MarketText.StatusGroupsAndItems, groupCount, totalItems);
 
         if (latestFetch.HasValue)
         {
-            var age    = DateTimeOffset.Now - latestFetch.Value;
-            string ago = age.TotalHours >= 1
-                ? $"{(int)age.TotalHours}h {age.Minutes}m ago"
-                : age.TotalMinutes >= 1 ? $"{(int)age.TotalMinutes}m ago" : "just now";
-            LastRefreshed = $"Data from {ago}";
+            var age = DateTimeOffset.Now - latestFetch.Value;
+            LastRefreshed = age.TotalHours >= 1
+                ? string.Format(MarketText.DataFromHoursAgo, (int)age.TotalHours, age.Minutes)
+                : age.TotalMinutes >= 1
+                    ? string.Format(MarketText.DataFromMinutesAgo, (int)age.TotalMinutes)
+                    : MarketText.DataFromJustNow;
         }
         else
         {
-            LastRefreshed = groupCount > 0 ? "No cached orders — run market pricing to populate." : "";
+            LastRefreshed = groupCount > 0 ? MarketText.StatusNoCachedOrders : "";
         }
     }
 
@@ -987,11 +1010,11 @@ public class MarketLevelViewModel : ReactiveObject, IPeriodicRefresh
         _allGroups.Add(groupRow);
 
         if (result.CollectionId == null && _defaultCollRow == null)
-            _defaultCollRow = MakeMarketCollectionRow(null, "Default", isSynthetic: true);
+            _defaultCollRow = MakeMarketCollectionRow(null, MarketText.CollectionDefault, isSynthetic: true);
 
         RebuildGridRows();
         HasAnyGroup = _allGroups.Count > 0;
-        StatusText = $"{_allGroups.Count} group(s)";
+        StatusText = string.Format(MarketText.StatusGroupCount, _allGroups.Count);
     }
 
     private async Task EditGroupAsync(MarketGroupRow groupRow)
@@ -1022,7 +1045,7 @@ public class MarketLevelViewModel : ReactiveObject, IPeriodicRefresh
         });
 
         if (_allGroups.Any(g => g.CollectionId == null) && _defaultCollRow == null)
-            _defaultCollRow = MakeMarketCollectionRow(null, "Default", isSynthetic: true);
+            _defaultCollRow = MakeMarketCollectionRow(null, MarketText.CollectionDefault, isSynthetic: true);
         else if (!_allGroups.Any(g => g.CollectionId == null))
             _defaultCollRow = null;
 
@@ -1051,7 +1074,7 @@ public class MarketLevelViewModel : ReactiveObject, IPeriodicRefresh
         _allGroups.Remove(groupRow);
         RebuildGridRows();
         HasAnyGroup = _allGroups.Count > 0;
-        StatusText = $"{_allGroups.Count} group(s)";
+        StatusText = string.Format(MarketText.StatusGroupCount, _allGroups.Count);
     }
 
     // ── Item CRUD ─────────────────────────────────────────────────────────────
@@ -1155,9 +1178,9 @@ public class MarketLevelViewModel : ReactiveObject, IPeriodicRefresh
                     g.CollectionId = null;
                 _allCollections.Remove(collRow);
                 if (_allGroups.Any(g => g.CollectionId == null) && _defaultCollRow == null)
-                    _defaultCollRow = MakeMarketCollectionRow(null, "Default", isSynthetic: true);
+                    _defaultCollRow = MakeMarketCollectionRow(null, MarketText.CollectionDefault, isSynthetic: true);
                 RebuildGridRows();
-                StatusText = $"Collection '{collRow.CollectionName}' deleted.";
+                StatusText = string.Format(MarketText.StatusCollectionDeleted, collRow.CollectionName);
             },
             expandAll: () =>
             {
@@ -1181,7 +1204,7 @@ public class MarketLevelViewModel : ReactiveObject, IPeriodicRefresh
         var row = MakeMarketCollectionRow(c.Id, c.Name, isSynthetic: false);
         _allCollections.Add(row);
         RebuildGridRows();
-        StatusText = $"Collection '{c.Name}' added.";
+        StatusText = string.Format(MarketText.StatusCollectionAdded, c.Name);
     }
 
     // ── Column sort (items within each group; groups keep their order) ────────
@@ -1240,8 +1263,11 @@ public class MarketLevelViewModel : ReactiveObject, IPeriodicRefresh
         if (string.IsNullOrWhiteSpace(text) || text.Length < 2) return [];
         using var db = _dbFactory.CreateDbContext();
         var pattern = $"%{text}%";
+        // The English, and the types whose name in the interface language holds what was typed.
+        var shown = SdeNames.Find(SdeNameKind.Type, text).Select(id => (int)id).ToList();
         var results = await db.SdeTypes
-            .Where(t => EF.Functions.Like(t.Name, pattern) && t.MarketGroupId != null && t.Published)
+            .Where(t => (EF.Functions.Like(t.Name, pattern) || shown.Contains(t.TypeId))
+                        && t.MarketGroupId != null && t.Published)
             .OrderBy(t => t.Name)
             .Take(50)
             .Select(t => new { t.TypeId, t.Name })

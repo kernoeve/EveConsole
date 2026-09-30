@@ -1,0 +1,3274 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="WindowTitle" xml:space="preserve">
+    <value>Настройки</value>
+  </data>
+  <data name="TabEsiTokens" xml:space="preserve">
+    <value>Токены ESI</value>
+  </data>
+  <data name="TabCharacters" xml:space="preserve">
+    <value>Персонажи</value>
+  </data>
+  <data name="TabSde" xml:space="preserve">
+    <value>SDE</value>
+  </data>
+  <data name="TabMarket" xml:space="preserve">
+    <value>Рынок</value>
+  </data>
+  <data name="TabPriceHistory" xml:space="preserve">
+    <value>История цен</value>
+  </data>
+  <data name="TabIndustry" xml:space="preserve">
+    <value>Промышленность</value>
+  </data>
+  <data name="TabTimers" xml:space="preserve">
+    <value>Таймеры</value>
+  </data>
+  <data name="TabPolling" xml:space="preserve">
+    <value>Опрос</value>
+  </data>
+  <data name="TabGameLogs" xml:space="preserve">
+    <value>Игровые журналы</value>
+  </data>
+  <data name="TabChatLogs" xml:space="preserve">
+    <value>Журналы чата</value>
+  </data>
+  <data name="TabMapData" xml:space="preserve">
+    <value>Данные карты</value>
+  </data>
+  <data name="TabKillMails" xml:space="preserve">
+    <value>Отчёты о боях</value>
+  </data>
+  <data name="TabCorpTop10" xml:space="preserve">
+    <value>Топ-10 корпорации / сводка</value>
+  </data>
+  <data name="TabAiAgent" xml:space="preserve">
+    <value>ИИ-помощник</value>
+  </data>
+  <data name="TabAgent" xml:space="preserve">
+    <value>Помощник</value>
+  </data>
+  <data name="TabPersonalisation" xml:space="preserve">
+    <value>Персонализация</value>
+  </data>
+  <data name="TabVoice" xml:space="preserve">
+    <value>Голос (TTS)</value>
+  </data>
+  <data name="TabSpeechInput" xml:space="preserve">
+    <value>Голосовой ввод (STT)</value>
+  </data>
+  <data name="TabSlack" xml:space="preserve">
+    <value>Slack</value>
+  </data>
+  <data name="TabAlerts" xml:space="preserve">
+    <value>Оповещения</value>
+  </data>
+  <data name="TabDatabase" xml:space="preserve">
+    <value>База данных</value>
+  </data>
+  <data name="TabDataRetention" xml:space="preserve">
+    <value>Хранение данных</value>
+  </data>
+  <data name="TabUpdates" xml:space="preserve">
+    <value>Обновления</value>
+  </data>
+  <data name="TabOther" xml:space="preserve">
+    <value>Прочее</value>
+  </data>
+  <data name="AppearanceHeader" xml:space="preserve">
+    <value>Внешний вид</value>
+  </data>
+  <data name="ThemeLabel" xml:space="preserve">
+    <value>Тема:</value>
+  </data>
+  <data name="UiScaleLabel" xml:space="preserve">
+    <value>Масштаб интерфейса:</value>
+  </data>
+  <data name="LanguageLabel" xml:space="preserve">
+    <value>Язык:</value>
+  </data>
+  <data name="LanguageSystemDefault" xml:space="preserve">
+    <value>Как в системе ({0})</value>
+  </data>
+  <data name="LanguagePreviewNote" xml:space="preserve">
+    <value>Предварительный перевод: часть приложения ещё не переведена и показывается на английском.</value>
+  </data>
+  <data name="LanguageRestartNote" xml:space="preserve">
+    <value>Новый язык будет применён при следующем запуске.</value>
+  </data>
+  <data name="RestartNow" xml:space="preserve">
+    <value>Перезапустить сейчас</value>
+  </data>
+  <data name="RestartFailed" xml:space="preserve">
+    <value>Не удалось перезапустить: {0}</value>
+  </data>
+  <data name="AppearanceNote" xml:space="preserve">
+    <value>Тема и масштаб сразу применяются ко всем окнам и диалогам, а язык — со следующего запуска. Все три настройки запоминаются только для этого клиента — второй клиент с той же базой данных хранит свои. Масштаб также можно быстро сменить в строке состояния, справа.</value>
+  </data>
+  <data name="EveTimeLinkHeader" xml:space="preserve">
+    <value>Ссылка на часах EVE</value>
+  </data>
+  <data name="EveTimeLinkNote" xml:space="preserve">
+    <value>Щелчок по часам EVE в заголовке окна открывает этот сайт. Выберите один из предложенных сайтов или «Свой URL…» и введите свой адрес.</value>
+  </data>
+  <data name="OpenLabel" xml:space="preserve">
+    <value>Открывать:</value>
+  </data>
+  <data name="CustomUrlOption" xml:space="preserve">
+    <value>Свой URL…</value>
+  </data>
+  <data name="EveTimeLinkEffective" xml:space="preserve">
+    <value>Щелчок по часам открывает: {0}</value>
+  </data>
+  <data name="ServerStatusHeader" xml:space="preserve">
+    <value>Ссылка на состояние сервера</value>
+  </data>
+  <data name="ServerStatusNote" xml:space="preserve">
+    <value>Щелчок по индикатору Tranquility рядом с часами открывает официальную страницу состояния служб CCP. Не настраивается — больше нигде нет тех же сведений.</value>
+  </data>
+  <data name="ABrowserTabWillNote" xml:space="preserve">
+    <value>Откроется вкладка браузера, где нужно войти и разрешить доступ. Просмотрите области доступа ниже и снимите флажки с тех, которые не хотите предоставлять. Этот выбор действует только для этой авторизации.</value>
+  </data>
+  <data name="SelectAll" xml:space="preserve">
+    <value>Выбрать все</value>
+  </data>
+  <data name="ClearAll" xml:space="preserve">
+    <value>Снять все</value>
+  </data>
+  <data name="RemovingScopesWillDisableNote" xml:space="preserve">
+    <value>Если убрать области доступа, связанные с ними функции приложения отключатся. Их можно в любой момент выдать снова кнопкой «Обновить».</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Отменить</value>
+  </data>
+  <data name="ContinueToBrowser" xml:space="preserve">
+    <value>Перейти в браузер</value>
+  </data>
+  <data name="TitleEveStaticDataUpdate" xml:space="preserve">
+    <value>Обновление статических данных EVE</value>
+  </data>
+  <data name="ANewerEveStaticNote" xml:space="preserve">
+    <value>Доступна более новая сборка статических данных EVE.</value>
+  </data>
+  <data name="LoadedLabel" xml:space="preserve">
+    <value>Текущая:</value>
+  </data>
+  <data name="LatestLabel" xml:space="preserve">
+    <value>Новая:</value>
+  </data>
+  <data name="UpdateNow" xml:space="preserve">
+    <value>Обновить сейчас</value>
+  </data>
+  <data name="Later" xml:space="preserve">
+    <value>Позже</value>
+  </data>
+  <data name="UpdatingEveStaticData" xml:space="preserve">
+    <value>Обновление статических данных EVE…</value>
+  </data>
+  <data name="SdeUpdateComplete" xml:space="preserve">
+    <value>Обновление SDE завершено.</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Закрыть</value>
+  </data>
+  <data name="HoboleaksComplement" xml:space="preserve">
+    <value>Дополнение Hoboleaks</value>
+  </data>
+  <data name="BlueprintsReprocessingCompressionAndNote" xml:space="preserve">
+    <value>Чертежи, переработка, сжатие и объёмы в упаковке обновляются вскоре после каждого патча TQ — часто раньше официального SDE.</value>
+  </data>
+  <data name="ImportFromHoboleaks" xml:space="preserve">
+    <value>Импорт из Hoboleaks</value>
+  </data>
+  <data name="Characters" xml:space="preserve">
+    <value>Персонажи</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Добавить</value>
+  </data>
+  <data name="Update" xml:space="preserve">
+    <value>Обновить</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>Удалить</value>
+  </data>
+  <data name="GrantedScopesLabel" xml:space="preserve">
+    <value>Выданные области доступа:</value>
+  </data>
+  <data name="Corporations" xml:space="preserve">
+    <value>Корпорации</value>
+  </data>
+  <data name="TipPersonalCorporation" xml:space="preserve">
+    <value>Личная корпорация</value>
+  </data>
+  <data name="PersonalCorporation" xml:space="preserve">
+    <value>Личная корпорация</value>
+  </data>
+  <data name="TipPersonalCorpsCountToward" xml:space="preserve">
+    <value>Личные корпорации входят в ваш личный капитал. Корпорации альянса или работодателя считаются отдельными организациями.</value>
+  </data>
+  <data name="AuthCharacterScopesLabel" xml:space="preserve">
+    <value>Области доступа авторизующего персонажа:</value>
+  </data>
+  <data name="WhichCharactersMayBeNote" xml:space="preserve">
+    <value>Каким персонажам можно поручать промышленные проекты и какие именно. Каждый авторизованный персонаж попадает в список автоматически, со всеми тремя видами деятельности, — снимите те, что персонажу поручать не нужно: так твинк исключается из распределения. Проекты достаются наименее опытному персонажу, который может их выполнить, чтобы опытные твинки оставались свободны для работы, которую могут выполнить только они. Снимите «План навыков» у персонажа, план которого пуст намеренно, — и по нему не будет оповещений о плане навыков.</value>
+  </data>
+  <data name="ColCharacter" xml:space="preserve">
+    <value>Персонаж</value>
+  </data>
+  <data name="ColSlotsUsedFor" xml:space="preserve">
+    <value>Слоты для</value>
+  </data>
+  <data name="Mfg" xml:space="preserve">
+    <value>Произв.</value>
+  </data>
+  <data name="TipManufacturing" xml:space="preserve">
+    <value>Производство</value>
+  </data>
+  <data name="Rxn" xml:space="preserve">
+    <value>Реакц.</value>
+  </data>
+  <data name="TipReactions" xml:space="preserve">
+    <value>Реакции</value>
+  </data>
+  <data name="Sci" xml:space="preserve">
+    <value>Наука</value>
+  </data>
+  <data name="TipScienceCopyingResearchInvention" xml:space="preserve">
+    <value>Наука — копирование, исследование, модернизация</value>
+  </data>
+  <data name="ColFreeTotal" xml:space="preserve">
+    <value>Свободно / всего</value>
+  </data>
+  <data name="ColSkillQueue" xml:space="preserve">
+    <value>План навыков</value>
+  </data>
+  <data name="TipCharacterSkillQueueShould" xml:space="preserve">
+    <value>План навыков персонажа не должен простаивать. Снимите флажок у твинка, план которого пуст намеренно, — и ни оповещения «Обзора», ни список задач не будут о нём сообщать.</value>
+  </data>
+  <data name="EveStaticData" xml:space="preserve">
+    <value>Статические данные EVE</value>
+  </data>
+  <data name="UpdateSde" xml:space="preserve">
+    <value>Обновить SDE</value>
+  </data>
+  <data name="TipDownloadAndImportThe" xml:space="preserve">
+    <value>Загрузить и импортировать последние статические данные EVE. Можно запустить, даже если данные актуальны.</value>
+  </data>
+  <data name="BlueprintsReprocessingCompressionAndNote2" xml:space="preserve">
+    <value>Чертежи, переработка, сжатие и объёмы в упаковке — обновляются вскоре после каждого патча TQ, часто раньше официального SDE.</value>
+  </data>
+  <data name="TipDownloadBlueprintReprocessingCompression" xml:space="preserve">
+    <value>Загрузить данные о чертежах, переработке, сжатии и объёмах в упаковке с sde.hoboleaks.space.</value>
+  </data>
+  <data name="PriceSources" xml:space="preserve">
+    <value>Источники цен</value>
+  </data>
+  <data name="Method" xml:space="preserve">
+    <value>Способ</value>
+  </data>
+  <data name="FuzzworkFetchesPreComputedNote" xml:space="preserve">
+    <value>Fuzzwork: загружает заранее рассчитанные процентильные цены с fuzzwork.co.uk. Быстро, не требует авторизации и хранит локально очень мало данных (одна строка цены на предмет). Отдельные ордера не сохраняются — для вкладки «Рыночные ордера» в разделе «Просмотр предметов» нужен способ «Сектор» или «Сооружение игрока».</value>
+  </data>
+  <data name="EsiRegionFetchesAllNote" xml:space="preserve">
+    <value>Сектор: загружает из ESI все общедоступные ордера целого сектора. Подходит для торговых узлов NPC (например, Jita → The Forge). Учтите: ордера, выставленные в сооружениях игроков, сюда не входят — видны только ордера на покупку на весь сектор, размещённые в сооружениях.</value>
+  </data>
+  <data name="PlayerStructureFetchesAllNote" xml:space="preserve">
+    <value>Сооружение игрока: загружает все ордера в конкретном сооружении игрока (цитадели, промышленном комплексе и т. п.). Нужен авторизующий персонаж с доступом к доку. Подходит для опорных баз в нуль-секе и других закрытых рынков.</value>
+  </data>
+  <data name="LocationName" xml:space="preserve">
+    <value>Название места</value>
+  </data>
+  <data name="HintEGJita44" xml:space="preserve">
+    <value>например, Jita 4-4</value>
+  </data>
+  <data name="Region" xml:space="preserve">
+    <value>Сектор</value>
+  </data>
+  <data name="LocationId" xml:space="preserve">
+    <value>ID места</value>
+  </data>
+  <data name="HintStationOrStructureId" xml:space="preserve">
+    <value>ID станции или сооружения</value>
+  </data>
+  <data name="SectionFindLocationByName" xml:space="preserve">
+    <value>Найти место по названию…</value>
+  </data>
+  <data name="SearchForAStationNote" xml:space="preserve">
+    <value>Поиск станции или сооружения по названию. Результат подставляется в поле «ID места» выше.</value>
+  </data>
+  <data name="HintStationOrStructureName" xml:space="preserve">
+    <value>Название станции или сооружения…</value>
+  </data>
+  <data name="Search" xml:space="preserve">
+    <value>Найти</value>
+  </data>
+  <data name="UseSelected" xml:space="preserve">
+    <value>Использовать выбранное</value>
+  </data>
+  <data name="StationFilter" xml:space="preserve">
+    <value>Фильтр по станции</value>
+  </data>
+  <data name="RestrictPricesToANote" xml:space="preserve">
+    <value>Брать цены только с одной станции (например, Jita 4-4). Сначала обновите источник, чтобы заполнить список.</value>
+  </data>
+  <data name="AuthCharacter" xml:space="preserve">
+    <value>Авторизующий персонаж</value>
+  </data>
+  <data name="FilterHighLowOrders" xml:space="preserve">
+    <value>Отсекать крайние ордера</value>
+  </data>
+  <data name="RemovesAnomaliesCausedByNote" xml:space="preserve">
+    <value>Убирает аномалии от ордеров малого объёма на краях стакана. Продажа = N-й процентиль самых дешёвых; покупка = (100-N)-й процентиль самых дорогих.</value>
+  </data>
+  <data name="Filter" xml:space="preserve">
+    <value>Фильтр, %</value>
+  </data>
+  <data name="Enabled" xml:space="preserve">
+    <value>Включено</value>
+  </data>
+  <data name="LastRefreshLabel" xml:space="preserve">
+    <value>Последнее обновление:</value>
+  </data>
+  <data name="StatusLabel" xml:space="preserve">
+    <value>Статус:</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Сохранить</value>
+  </data>
+  <data name="RefreshThis" xml:space="preserve">
+    <value>Обновить этот</value>
+  </data>
+  <data name="DefaultPricing" xml:space="preserve">
+    <value>Цены по умолчанию</value>
+  </data>
+  <data name="AssetValueLabel" xml:space="preserve">
+    <value>Стоимость имущества:</value>
+  </data>
+  <data name="ManufacturingCostLabel" xml:space="preserve">
+    <value>Стоимость производства:</value>
+  </data>
+  <data name="MissingPriceMarkupLabel" xml:space="preserve">
+    <value>Наценка при отсутствии цены:</value>
+  </data>
+  <data name="AppliedWhenTheMarketNote" xml:space="preserve">
+    <value>Применяется, когда на рынке нет ордеров на продажу предмета. Цена = стоимость производства × (1 + наценка %). Если нет ордеров на покупку, цена покупки берётся равной цене продажи.</value>
+  </data>
+  <data name="FilterLowballBuyOrdersBelow" xml:space="preserve">
+    <value>Отсекать заниженные ордера на покупку ниже</value>
+  </data>
+  <data name="OfBuildCost" xml:space="preserve">
+    <value>% стоимости производства</value>
+  </data>
+  <data name="AppliesToEsiRegionNote" xml:space="preserve">
+    <value>Только для рынков ESI (сектор / сооружение). Такие ордера видны в интерфейсе рынка, но не учитываются в расчёте цены покупки.</value>
+  </data>
+  <data name="SaveDefaults" xml:space="preserve">
+    <value>Сохранить по умолчанию</value>
+  </data>
+  <data name="RefreshAll" xml:space="preserve">
+    <value>Обновить все</value>
+  </data>
+  <data name="PriceHistoryRegions" xml:space="preserve">
+    <value>Секторы для истории цен</value>
+  </data>
+  <data name="ABackgroundJobRefreshesNote" xml:space="preserve">
+    <value>Фоновое задание раз в сутки обновляет 30-дневную историю рынка для каждого торгуемого предмета в этих секторах, чтобы инструменты поиска возможностей и сведения о предметах брали её прямо из БД. Оно подстраивает темп под лимит ошибок ESI, поэтому никогда не выведет приложение за предел. Большие секторы (например, The Forge) заполняются постепенно, за несколько сеансов.</value>
+  </data>
+  <data name="ColRegionId" xml:space="preserve">
+    <value>ID сектора</value>
+  </data>
+  <data name="ColRegionName" xml:space="preserve">
+    <value>Название сектора</value>
+  </data>
+  <data name="HintSelectARegionToAdd" xml:space="preserve">
+    <value>Выберите сектор для добавления…</value>
+  </data>
+  <data name="AddRegion" xml:space="preserve">
+    <value>Добавить сектор</value>
+  </data>
+  <data name="TipWatchLivePerNote" xml:space="preserve">
+    <value>Совет: ход обхода по каждому сектору (сколько обновлено и сколько в очереди, идёт ли обход) виден в реальном времени на вкладке «Фоновые процессы → История цен».</value>
+  </data>
+  <data name="BuildCosts" xml:space="preserve">
+    <value>Стоимость производства</value>
+  </data>
+  <data name="RecalculateStoredBuildCostsNote" xml:space="preserve">
+    <value>Пересчитать сохранённую стоимость производства для каждого производимого предмета. Выполняется автоматически после обновления рынка; используйте, чтобы принудительно обновить её после изменения настроек цен или ручных цен.</value>
+  </data>
+  <data name="RecalculateBuildCosts" xml:space="preserve">
+    <value>Пересчитать стоимость производства</value>
+  </data>
+  <data name="ProductionCalculator" xml:space="preserve">
+    <value>Калькулятор производства</value>
+  </data>
+  <data name="PurchaseAComponentInstead" xml:space="preserve">
+    <value>Покупать компонент вместо производства, если его рыночная цена ≤</value>
+  </data>
+  <data name="OfBuildValue" xml:space="preserve">
+    <value>% стоимости производства</value>
+  </data>
+  <data name="OffByDefaultComponentNote" xml:space="preserve">
+    <value>По умолчанию выключено. Рынки компонентов скачут, и несколько дёшево выставленных штук не гарантируют, что нужное количество есть по этой цене, — и что его стоит разыскивать и перевозить. Когда выключено, калькуляторы производят все компоненты, какие могут (предметы, стоимость которых действительно не рассчитать, всё равно покупаются). Включите, чтобы между производством и покупкой выбиралось то, что дешевле.</value>
+  </data>
+  <data name="AdjustHowOftenEachNote" xml:space="preserve">
+    <value>Настройте, как часто опрашивается каждая конечная точка. Изменения вступают в силу со следующего цикла опроса.</value>
+  </data>
+  <data name="CharacterEndpoints" xml:space="preserve">
+    <value>Конечные точки персонажа</value>
+  </data>
+  <data name="ForceNow" xml:space="preserve">
+    <value>Запустить сейчас</value>
+  </data>
+  <data name="TipResetTheInMemory" xml:space="preserve">
+    <value>Сбросить таймер в памяти, чтобы эта конечная точка сработала в следующем цикле опроса (примерно через 10 секунд).</value>
+  </data>
+  <data name="CorporationEndpoints" xml:space="preserve">
+    <value>Конечные точки корпорации</value>
+  </data>
+  <data name="Other" xml:space="preserve">
+    <value>Прочее</value>
+  </data>
+  <data name="SaveTimers" xml:space="preserve">
+    <value>Сохранить таймеры</value>
+  </data>
+  <data name="StructureNameResolution" xml:space="preserve">
+    <value>Определение названий сооружений</value>
+  </data>
+  <data name="WhenResolvingUnknownStructureNote" xml:space="preserve">
+    <value>Чтобы узнать неизвестные названия сооружений, EVE Console по очереди пробует каждого авторизованного персонажа, пока не получится. Если большинство сооружений не пускают ваших персонажей, выбор здесь одного персонажа избавит от лишних неудачных запросов и сбережёт ваш лимит ошибок ESI.</value>
+  </data>
+  <data name="CharacterLabel" xml:space="preserve">
+    <value>Персонаж:</value>
+  </data>
+  <data name="SelectNoneTryAllNote" xml:space="preserve">
+    <value>Выберите «(нет — пробовать всех)», чтобы вернуться к исходному поведению — перебору всех персонажей. Выбор вступает в силу сразу, перезапуск не нужен.</value>
+  </data>
+  <data name="ABackgroundServiceIsNote" xml:space="preserve">
+    <value>Установлена фоновая служба, а этот клиент работает на SQLite. Файл SQLite может занимать только один процесс, поэтому тот, кто запустится первым, заблокирует другого. Остановите и удалите службу или переключите этот клиент на PostgreSQL.</value>
+  </data>
+  <data name="DatabaseLabel" xml:space="preserve">
+    <value>База данных:</value>
+  </data>
+  <data name="Start" xml:space="preserve">
+    <value>Запустить</value>
+  </data>
+  <data name="Stop" xml:space="preserve">
+    <value>Остановить</value>
+  </data>
+  <data name="NotificationAreaIcon" xml:space="preserve">
+    <value>Значок в области уведомлений</value>
+  </data>
+  <data name="ASmallSeparateProcessNote" xml:space="preserve">
+    <value>Небольшой отдельный процесс, который показывает, какой клиент выполняет фоновую работу, и открывает из своего меню окно «Фоновые процессы» или новую EVE Console. Сам он фоновую работу не выполняет и тревоги не обрабатывает — чтобы остановить их, закройте EVE Console.</value>
+  </data>
+  <data name="GameLogImport" xml:space="preserve">
+    <value>Импорт игровых журналов</value>
+  </data>
+  <data name="ReadsEvesOwnGameNote" xml:space="preserve">
+    <value>Читает собственные игровые журналы EVE и сохраняет найденное — бои, добычу, награды за голову, прыжки, выходы из дока, — чтобы другие инструменты могли это запрашивать. Журналы открываются только для чтения: в них ничего не записывается, и игровому клиенту ничего не отправляется.</value>
+  </data>
+  <data name="ImportGameLogsOnBy" xml:space="preserve">
+    <value>Импортировать игровые журналы (по умолчанию включено)</value>
+  </data>
+  <data name="ThisCapturesActivityFromNote" xml:space="preserve">
+    <value>Так записывается активность с этого момента. Уже записанные журналы EVE загружаются, только если запустить импорт ниже.</value>
+  </data>
+  <data name="ParsePositionIsRememberedNote" xml:space="preserve">
+    <value>Позиция чтения запоминается для каждого файла, поэтому всё, что попало в журналы, пока EVE Console была закрыта, подхватывается при следующем запуске.</value>
+  </data>
+  <data name="LogFolders" xml:space="preserve">
+    <value>Папки журналов</value>
+  </data>
+  <data name="LeaveTheListEmptyNote" xml:space="preserve">
+    <value>Оставьте список пустым, чтобы автоматически использовать локальную папку. Добавьте сетевой путь (\\MACHINE\share\Gamelogs), чтобы импортировать журналы клиентов EVE, запущенных на других компьютерах, — на них ничего устанавливать не нужно.</value>
+  </data>
+  <data name="Detect" xml:space="preserve">
+    <value>Определить</value>
+  </data>
+  <data name="Open" xml:space="preserve">
+    <value>Открыть</value>
+  </data>
+  <data name="CurrentlyReadingLabel" xml:space="preserve">
+    <value>Сейчас читается:</value>
+  </data>
+  <data name="ImportPastLogs" xml:space="preserve">
+    <value>Импорт прошлых журналов</value>
+  </data>
+  <data name="TurningTheImporterOnNote" xml:space="preserve">
+    <value>Включённый импорт подхватывает только новую активность с этого момента. Чтобы загрузить и то, что уже есть в журналах EVE, выберите, насколько далеко в прошлое заглянуть, и запустите импорт. Это делается один раз — дальше новая активность подхватывается автоматически.</value>
+  </data>
+  <data name="ImportLogsFromTheLastLabel" xml:space="preserve">
+    <value>Импортировать журналы за последние (дней):</value>
+  </data>
+  <data name="N0AllHistory" xml:space="preserve">
+    <value>0 = вся история</value>
+  </data>
+  <data name="StartImport" xml:space="preserve">
+    <value>Начать импорт</value>
+  </data>
+  <data name="Recount" xml:space="preserve">
+    <value>Пересчитать</value>
+  </data>
+  <data name="Options" xml:space="preserve">
+    <value>Параметры</value>
+  </data>
+  <data name="CheckForNewLinesEveryLabel" xml:space="preserve">
+    <value>Проверять новые строки каждые (с):</value>
+  </data>
+  <data name="KeepLinesThatNoRule" xml:space="preserve">
+    <value>Сохранять строки, не распознанные ни одним правилом</value>
+  </data>
+  <data name="RecommendedEvesLogFormatNote" xml:space="preserve">
+    <value>Рекомендуется. Формат журналов EVE не документирован и меняется от версии к версии клиента, а правила распознавания охватывают только то, что кто-то уже делал. Если сохранять нераспознанные строки (с видом 'unmatched'), пробелы в охвате проявятся в ваших собственных данных, а не останутся незамеченными.</value>
+  </data>
+  <data name="ChatLogImport" xml:space="preserve">
+    <value>Импорт журналов чата</value>
+  </data>
+  <data name="UnlikeGameLogsChatNote" xml:space="preserve">
+    <value>В отличие от игровых журналов, журналы чата содержат то, что писали другие люди. Ничего не сохраняется, пока вы не включите импорт и не отметите конкретные каналы ниже.</value>
+  </data>
+  <data name="NotePrivateConversationsAppearNote" xml:space="preserve">
+    <value>Учтите: личные беседы появляются как «Private Chat (2)», «Private Chat (3)» и т. д. EVE со временем даёт эти имена разным людям, поэтому, отметив один такой канал, можно записать личные сообщения со многими разными игроками.</value>
+  </data>
+  <data name="ImportChatLogs" xml:space="preserve">
+    <value>Импортировать журналы чата</value>
+  </data>
+  <data name="LeaveTheListEmptyNote2" xml:space="preserve">
+    <value>Оставьте список пустым, чтобы автоматически использовать локальную папку. Добавьте сетевой путь (\\MACHINE\share\Chatlogs), чтобы импортировать журналы клиентов EVE, запущенных на других компьютерах, — на них ничего устанавливать не нужно. Поиск каналов ниже видит только каналы из заданных здесь папок.</value>
+  </data>
+  <data name="ChannelsToStore" xml:space="preserve">
+    <value>Сохраняемые каналы</value>
+  </data>
+  <data name="OnlyTickedChannelsAreNote" xml:space="preserve">
+    <value>Читаются только отмеченные каналы — файлы других каналов даже не открываются. Поиск читает только имена файлов; он может занять время, ведь в этих папках десятки тысяч файлов.</value>
+  </data>
+  <data name="DiscoverChannels" xml:space="preserve">
+    <value>Найти каналы</value>
+  </data>
+  <data name="UntickAll" xml:space="preserve">
+    <value>Снять все</value>
+  </data>
+  <data name="ChannelLabel" xml:space="preserve">
+    <value>Канал</value>
+  </data>
+  <data name="IntelLabel" xml:space="preserve">
+    <value>Разведка</value>
+  </data>
+  <data name="TipParseThisChannelForSightings" xml:space="preserve">
+    <value>Разбирать этот канал на разведданные</value>
+  </data>
+  <data name="ParseStoredHistory" xml:space="preserve">
+    <value>Разобрать сохранённую историю</value>
+  </data>
+  <data name="ImportPastChat" xml:space="preserve">
+    <value>Импорт прошлых сообщений чата</value>
+  </data>
+  <data name="AsWithGameLogsNote" xml:space="preserve">
+    <value>Как и с игровыми журналами, включение записывает только новые сообщения. Используйте это, чтобы загрузить и прошлые сообщения выбранных каналов.</value>
+  </data>
+  <data name="ImportChatFromTheLastLabel" xml:space="preserve">
+    <value>Импортировать чат за последние (дней):</value>
+  </data>
+  <data name="MapStatistics" xml:space="preserve">
+    <value>Статистика карты</value>
+  </data>
+  <data name="JumpsKillsSovereigntyIndustryNote" xml:space="preserve">
+    <value>Прыжки, уничтожения, право владения, промышленные индексы, межгосударственные войны и вторжения — для слоёв карты вселенной. ESI отдаёт только текущий час, поэтому история берётся из архива EVE Ref — а значит, закрытие приложения не оставляет постоянных пробелов.</value>
+  </data>
+  <data name="CollectMapStatistics" xml:space="preserve">
+    <value>Собирать статистику карты</value>
+  </data>
+  <data name="BackfillDays" xml:space="preserve">
+    <value>Дней для дозагрузки</value>
+  </data>
+  <data name="KeepHourlyDetailDays" xml:space="preserve">
+    <value>Хранить почасовые данные (дней)</value>
+  </data>
+  <data name="PastTheHourlyWindowNote" xml:space="preserve">
+    <value>За пределами почасового окна прыжки и уничтожения суммируются по дням, а данные о праве владения, промышленности и сооружениях хранятся по одному снимку в день. Промышленные индексы по-прежнему обновляются каждый час, так что текущее значение остаётся актуальным — прореживаются только старые часы.</value>
+  </data>
+  <data name="History" xml:space="preserve">
+    <value>История</value>
+  </data>
+  <data name="BackfillNow" xml:space="preserve">
+    <value>Дозагрузить сейчас</value>
+  </data>
+  <data name="RefreshCurrentHour" xml:space="preserve">
+    <value>Обновить текущий час</value>
+  </data>
+  <data name="Coverage" xml:space="preserve">
+    <value>Охват</value>
+  </data>
+  <data name="ZkillboardKillImport" xml:space="preserve">
+    <value>Импорт уничтожений из zKillboard</value>
+  </data>
+  <data name="EsiOnlyReturnsANote" xml:space="preserve">
+    <value>ESI отдаёт отчёт о бое, только если вы были жертвой или нанесли решающий удар, — участие в уничтожении без решающего удара для него невидимо. zKillboard учитывает всех участников, поэтому его данные закрывают этот пробел. По умолчанию включено для ваших персонажей и их корпораций; снимите флажок, чтобы выключить. Данные добавляются к тем же данным об уничтожениях, что используются везде, и никогда не дублируют и не перезаписывают полученное от ESI.</value>
+  </data>
+  <data name="EnableZkillboardKillImport" xml:space="preserve">
+    <value>Включить импорт уничтожений из zKillboard</value>
+  </data>
+  <data name="Scope" xml:space="preserve">
+    <value>Охват</value>
+  </data>
+  <data name="MyCharactersCorpOnly" xml:space="preserve">
+    <value>Только мои персонажи и корпорация</value>
+  </data>
+  <data name="LiveCapturePollsZkillboardNote" xml:space="preserve">
+    <value>Запись в реальном времени опрашивает zKillboard только по персонажам и корпорациям, которые уже отслеживаются в приложении, с интервалом ниже.</value>
+  </data>
+  <data name="CaptureAllKills" xml:space="preserve">
+    <value>Записывать все уничтожения</value>
+  </data>
+  <data name="LiveCaptureSwitchesToNote" xml:space="preserve">
+    <value>Запись в реальном времени переключается на непрерывный поток zKillboard, у которого нет интервала, — данные идут постоянно. База данных будет расти заметно быстрее, чем в режиме «Только мои персонажи и корпорация», ведь сохраняется каждое уничтожение в Новом Эдеме, а не только ваши.</value>
+  </data>
+  <data name="LivePollInterval" xml:space="preserve">
+    <value>Интервал опроса в реальном времени</value>
+  </data>
+  <data name="CheckZkillboardForNewNote" xml:space="preserve">
+    <value>Проверять новые уничтожения на zKillboard каждые (с):</value>
+  </data>
+  <data name="NotUsedInAllNote" xml:space="preserve">
+    <value>Не используется при охвате «Записывать все уничтожения» — поток сам задаёт темп.</value>
+  </data>
+  <data name="BackfillHistory" xml:space="preserve">
+    <value>Дозагрузка истории</value>
+  </data>
+  <data name="PullsZkillboardsDailyKillNote" xml:space="preserve">
+    <value>Загружает ежедневные выгрузки уничтожений zKillboard за выбранный период и добавляет всё, что подходит под охват выше. Также запускается автоматически раз в час, чтобы закрыть пробел с последнего запуска приложения, — эта кнопка нужна в основном для загрузки истории до начала отслеживания.</value>
+  </data>
+  <data name="BackfillTheLastDaysLabel" xml:space="preserve">
+    <value>Дозагрузить за последние (дней):</value>
+  </data>
+  <data name="StartBackfill" xml:space="preserve">
+    <value>Начать дозагрузку</value>
+  </data>
+  <data name="PostKillsToZkillboard" xml:space="preserve">
+    <value>Отправка уничтожений на zKillboard</value>
+  </data>
+  <data name="SubmitsKillmailsThisAppNote" xml:space="preserve">
+    <value>Отправляет отчёты о боях, которые есть в приложении, но отсутствуют на zKillboard, — обычно уничтожения из ESI, которые больше никто не загрузил. Учитываются только уничтожения из охваченного периода ниже и только спустя несколько часов, чтобы не отправлять зря те, что ещё проходят обработку на zKillboard. Ничего не отправляется дважды.</value>
+  </data>
+  <data name="PostKillmailsToZkillboard" xml:space="preserve">
+    <value>Отправлять отчёты о боях на zKillboard</value>
+  </data>
+  <data name="ThatIsTheOldestNote" xml:space="preserve">
+    <value>Это самое старое уничтожение, наличие которого на zKillboard подтверждено. Всё более старое предшествует всему, что показал нам zKillboard, поэтому нельзя судить, отсутствует ли оно, и оно не трогается — дозагрузите историю глубже, чтобы расширить период.</value>
+  </data>
+  <data name="Top10ListTitles" xml:space="preserve">
+    <value>Заголовки списков «Топ-10»</value>
+  </data>
+  <data name="TheHeadingEachSectionNote" xml:space="preserve">
+    <value>Заголовок, под которым публикуется каждый раздел. Оставьте поле пустым, чтобы использовать встроенное название. В каждом заголовке «Топ-10» указан месяц, так что даже отдельно прочитанный список сообщает, за какой он месяц.</value>
+  </data>
+  <data name="SummaryTitles" xml:space="preserve">
+    <value>Заголовки сводки</value>
+  </data>
+  <data name="SummaryHeaderPrefixLabel" xml:space="preserve">
+    <value>Префикс заголовка сводки</value>
+  </data>
+  <data name="HintPutInFrontOf" xml:space="preserve">
+    <value>Ставится перед первой строкой сводки</value>
+  </data>
+  <data name="SaveTitles" xml:space="preserve">
+    <value>Сохранить заголовки</value>
+  </data>
+  <data name="Top10ExcludeList" xml:space="preserve">
+    <value>Исключения из «Топ-10»</value>
+  </data>
+  <data name="AnyoneHereIsLeftNote" xml:space="preserve">
+    <value>Все, кто здесь указан, исключаются из всех списков «Топ-10» — на этой вкладке и в запланированных публикациях.</value>
+  </data>
+  <data name="HintTypeTwoLettersOfThe" xml:space="preserve">
+    <value>Введите две буквы имени…</value>
+  </data>
+  <data name="Models" xml:space="preserve">
+    <value>Модели</value>
+  </data>
+  <data name="EveryModelTheAgentNote" xml:space="preserve">
+    <value>Все модели, которыми может пользоваться помощник: собственный сервер, например Ollama (бесплатно), или платный сервис. Какая модель что делает, задаётся ниже в разделе «Роли».</value>
+  </data>
+  <data name="TipAtLeastOneModelStays" xml:space="preserve">
+    <value>Хотя бы одна модель должна остаться</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Название</value>
+  </data>
+  <data name="Service" xml:space="preserve">
+    <value>Сервис</value>
+  </data>
+  <data name="ClaudeAnthropicApiKey" xml:space="preserve">
+    <value>Ключ API Claude (Anthropic)</value>
+  </data>
+  <data name="HintSkAnt" xml:space="preserve">
+    <value>sk-ant-…</value>
+  </data>
+  <data name="OneKeyForEveryNote" xml:space="preserve">
+    <value>Один ключ для всех моделей Claude в списке.</value>
+  </data>
+  <data name="GetYourAnthropicApi" xml:space="preserve">
+    <value>Получить ключ API Anthropic на console.anthropic.com</value>
+  </data>
+  <data name="OpenaiApiKey" xml:space="preserve">
+    <value>Ключ API OpenAI</value>
+  </data>
+  <data name="HintSk" xml:space="preserve">
+    <value>sk-…</value>
+  </data>
+  <data name="OneKeyForEveryNote2" xml:space="preserve">
+    <value>Один ключ для всех моделей OpenAI в списке, а также для голосов и голосового ввода OpenAI.</value>
+  </data>
+  <data name="GetYourOpenaiApi" xml:space="preserve">
+    <value>Получить ключ API OpenAI на platform.openai.com</value>
+  </data>
+  <data name="ServerAddress" xml:space="preserve">
+    <value>Адрес сервера</value>
+  </data>
+  <data name="Model" xml:space="preserve">
+    <value>Модель</value>
+  </data>
+  <data name="TipAskTheServiceFor" xml:space="preserve">
+    <value>Снова запросить у сервиса список моделей</value>
+  </data>
+  <data name="LetItThinkBeforeAnswering" xml:space="preserve">
+    <value>Давать модели подумать перед ответом (медленнее)</value>
+  </data>
+  <data name="ForModelsThatThinkNote" xml:space="preserve">
+    <value>Для моделей, которые думают перед ответом, например Qwen3. Рассуждения не показываются, но каждый ответ их ждёт. Снимите флажок, чтобы ответы приходили быстрее: модели велят не думать, что немного снижает тщательность — прежде всего при выборе инструмента. Модели, которые не думают, эту настройку игнорируют.</value>
+  </data>
+  <data name="PromptCacheLifetime" xml:space="preserve">
+    <value>Время жизни кэша промпта</value>
+  </data>
+  <data name="AnthropicKeepsTheInstructionsNote" xml:space="preserve">
+    <value>Anthropic хранит инструкции, инструменты и беседу в кэше между сообщениями, и чтение кэша стоит десятую часть повторной отправки. Запись живёт 5 минут с последнего сообщения; каждое сообщение её продлевает. Если между вашими сообщениями обычно 5–60 минут, вариант «1 час» экономит деньги — но запись в кэш тогда стоит 2× вместо 1,25×, так что при более частых сообщениях он обходится дороже. Инструмент «Использование ИИ» показывает чтения и записи кэша по каждому сообщению. Для всех моделей Claude в списке.</value>
+  </data>
+  <data name="TestThisModel" xml:space="preserve">
+    <value>Проверить модель</value>
+  </data>
+  <data name="TipAsksItForOne" xml:space="preserve">
+    <value>Просит модель написать одно предложение с текущими настройками, до сохранения. На собственном сервере бесплатно, на платном сервисе — несколько токенов.</value>
+  </data>
+  <data name="Roles" xml:space="preserve">
+    <value>Роли</value>
+  </data>
+  <data name="Conversation" xml:space="preserve">
+    <value>Беседа</value>
+  </data>
+  <data name="TalksWithYouAndNote" xml:space="preserve">
+    <value>Разговаривает с вами и управляет приложением — открывает и расставляет его инструменты, ставит тревоги и пункты назначения, запоминает ваши постоянные указания.</value>
+  </data>
+  <data name="IfItStopsAnsweringNote" xml:space="preserve">
+    <value>Если модель перестанет отвечать, переключаться на</value>
+  </data>
+  <data name="SaySoWhenIt" xml:space="preserve">
+    <value>Сообщать о переключении и о возвращении — в чате, а при озвучке и вслух</value>
+  </data>
+  <data name="QuestionsAboutYourData" xml:space="preserve">
+    <value>Вопросы о ваших данных</value>
+  </data>
+  <data name="AnythingThatNeedsYourNote" xml:space="preserve">
+    <value>Всё, для чего нужна ваша база данных или ESI: что у вас есть, чем вы владеете, что делаете или сделали. Эта модель получает весь промпт и все инструменты.</value>
+  </data>
+  <data name="SendAMessageToNote" xml:space="preserve">
+    <value>Отправлять сообщение этой модели, когда…</value>
+  </data>
+  <data name="ResetToTheDefault" xml:space="preserve">
+    <value>Вернуть значение по умолчанию</value>
+  </data>
+  <data name="Summaries" xml:space="preserve">
+    <value>Сводки</value>
+  </data>
+  <data name="CompactsOlderMessagesWhenNote" xml:space="preserve">
+    <value>Сжимает старые сообщения, когда беседа становится длинной (см. «Управление контекстом»). С этим хорошо справляется небольшая бесплатная модель.</value>
+  </data>
+  <data name="WhenAModelChanges" xml:space="preserve">
+    <value>При смене модели</value>
+  </data>
+  <data name="SaidForARoleNote" xml:space="preserve">
+    <value>Произносится для роли, где это включено (выше), когда её модель перестаёт отвечать и работу берёт запасная, и снова — когда своя модель возвращается. {user} — ваше имя из «Персонализации», {purpose} — «нашей беседы» или «доступа к данным», {primary} и {fallback} — названия двух моделей. При запуске ничего не переключается молча: если своей модели роли нет, это выяснится при первом сообщении, и об этом будет сказано.</value>
+  </data>
+  <data name="FallingOver" xml:space="preserve">
+    <value>Переключение</value>
+  </data>
+  <data name="ComingBack" xml:space="preserve">
+    <value>Возвращение</value>
+  </data>
+  <data name="AtLeast" xml:space="preserve">
+    <value>Не менее</value>
+  </data>
+  <data name="MinutesBetweenOneChangeNote" xml:space="preserve">
+    <value>минут между одной сменой и следующим обратным переключением</value>
+  </data>
+  <data name="UpFor" xml:space="preserve">
+    <value>Работает</value>
+  </data>
+  <data name="MinutesWithoutABreakNote" xml:space="preserve">
+    <value>минут без перерыва, прежде чем к роли вернётся её модель</value>
+  </data>
+  <data name="AModelThatStopsNote" xml:space="preserve">
+    <value>Модель, которая перестала отвечать, заменяется сразу, ещё до первого слова ответа, — эти настройки управляют только возвращением, чтобы постоянно отваливающийся сервер не заставлял помощника метаться туда-сюда. Обратное переключение ждёт вашего следующего сообщения и хотя бы одного настоящего слова от возвращающейся модели.</value>
+  </data>
+  <data name="ContextManagement" xml:space="preserve">
+    <value>Управление контекстом</value>
+  </data>
+  <data name="PersistConversationHistoryAcrossSessions" xml:space="preserve">
+    <value>Сохранять историю беседы между сеансами</value>
+  </data>
+  <data name="SummarizationThresholdEstimatedTokens" xml:space="preserve">
+    <value>Порог сжатия (оценка в токенах)</value>
+  </data>
+  <data name="Tokens" xml:space="preserve">
+    <value>токенов</value>
+  </data>
+  <data name="Personalisation" xml:space="preserve">
+    <value>Персонализация</value>
+  </data>
+  <data name="EverythingOnThisTabNote" xml:space="preserve">
+    <value>Всё на этой вкладке относится к вам, а не к этому ПК, поэтому хранится в базе данных и общее для всех клиентов, которые её открывают. Остальные вкладки — провайдер, ключи, голос, микрофон — относятся только к этому компьютеру.</value>
+  </data>
+  <data name="AgentName" xml:space="preserve">
+    <value>Имя помощника</value>
+  </data>
+  <data name="ResponseVerbosity" xml:space="preserve">
+    <value>Подробность ответов</value>
+  </data>
+  <data name="ConciseShortDirectAnswersNote" xml:space="preserve">
+    <value>Кратко: короткие прямые ответы (1–3 предложения). Сбалансированно: полно, но без воды. Подробно: обстоятельно, с контекстом и рассуждениями. Это добавляется в системный промпт при каждой отправке сообщения.</value>
+  </data>
+  <data name="YourName" xml:space="preserve">
+    <value>Ваше имя</value>
+  </data>
+  <data name="StandingInstructions" xml:space="preserve">
+    <value>Постоянные указания</value>
+  </data>
+  <data name="Voices" xml:space="preserve">
+    <value>Голоса</value>
+  </data>
+  <data name="SpeakTheAgentsReplies" xml:space="preserve">
+    <value>Озвучивать ответы помощника</value>
+  </data>
+  <data name="InOrderOfPreferenceNote" xml:space="preserve">
+    <value>В порядке предпочтения. Используется первый голос, который может говорить; если он отказывает, сразу подключается следующий, а когда первый вернётся и какое-то время проработает без сбоев, он снова займёт своё место. У голоса может быть собственное имя — голос это часть того, с кем вы говорите, — и пока он говорит, помощника зовут этим именем — в панели и в беседе. Голос без имени называется именем помощника из «Персонализации».</value>
+  </data>
+  <data name="Up" xml:space="preserve">
+    <value>▲ Выше</value>
+  </data>
+  <data name="TipPreferThisVoiceOver" xml:space="preserve">
+    <value>Предпочитать этот голос тому, что выше</value>
+  </data>
+  <data name="Down" xml:space="preserve">
+    <value>▼ Ниже</value>
+  </data>
+  <data name="Engine" xml:space="preserve">
+    <value>Движок</value>
+  </data>
+  <data name="Kokoro82mRunsFullyNote" xml:space="preserve">
+    <value>Kokoro 82M работает полностью офлайн на этом ПК. Голоса поставляются вместе с приложением, модель загружается один раз.</value>
+  </data>
+  <data name="Voice" xml:space="preserve">
+    <value>Голос</value>
+  </data>
+  <data name="LoadModel" xml:space="preserve">
+    <value>Загрузить модель</value>
+  </data>
+  <data name="ModelLoaded" xml:space="preserve">
+    <value>✔ Модель загружена</value>
+  </data>
+  <data name="OneModelServesEveryNote" xml:space="preserve">
+    <value>Одна модель обслуживает все голоса Kokoro. Она загружается один раз (~320 MB, только веса нейросети — никакого исполняемого кода) в папку данных этого ПК, где обновления её не трогают.</value>
+  </data>
+  <data name="AnyServerThatSpeaksNote" xml:space="preserve">
+    <value>Любой сервер с API речи OpenAI — Kokoro-FastAPI, Chatterbox-TTS-Server (полный или Turbo), Orpheus-FastAPI — обычно на GPU другого компьютера. Бесплатно; если сервер не может говорить, работу берёт следующий голос в списке.</value>
+  </data>
+  <data name="ServerAddressUpToNote" xml:space="preserve">
+    <value>Адрес сервера (до /v1 включительно)</value>
+  </data>
+  <data name="HintAsTheServerNames" xml:space="preserve">
+    <value>как её называет сервер — kokoro, chatterbox, orpheus…</value>
+  </data>
+  <data name="HintAsTheServerNames2" xml:space="preserve">
+    <value>как его называет сервер — af_heart, tara…</value>
+  </data>
+  <data name="ChatterboxAFileFromNote" xml:space="preserve">
+    <value>Chatterbox: файл из его папки голосов, с .wav — Emily.wav (модель он игнорирует). Orpheus: tara, leah, jess, leo, dan, mia, zac или zoe (модель orpheus). Kokoro-FastAPI: af_heart, bf_emma… (модель kokoro).</value>
+  </data>
+  <data name="Speed" xml:space="preserve">
+    <value>Скорость</value>
+  </data>
+  <data name="ApiKeyOnlyIfNote" xml:space="preserve">
+    <value>Ключ API (только если сервер его требует)</value>
+  </data>
+  <data name="PiperIsAFastNote" xml:space="preserve">
+    <value>Piper — быстрый офлайн-движок. Его среда выполнения поставляется с приложением; загружается только модель голоса.</value>
+  </data>
+  <data name="RuntimeLabel" xml:space="preserve">
+    <value>Среда выполнения:</value>
+  </data>
+  <data name="Bundled" xml:space="preserve">
+    <value>✔ Входит в комплект</value>
+  </data>
+  <data name="NotFoundInAppDirectory" xml:space="preserve">
+    <value>⚠ Не найдено в папке приложения</value>
+  </data>
+  <data name="DownloadVoiceModel" xml:space="preserve">
+    <value>Загрузить модель голоса</value>
+  </data>
+  <data name="VoiceReady" xml:space="preserve">
+    <value>✔ Голос готов</value>
+  </data>
+  <data name="OpenaisVoicesBilledPerCharacter" xml:space="preserve">
+    <value>Голоса OpenAI, оплата за каждый символ.</value>
+  </data>
+  <data name="OneKeyForEveryNote3" xml:space="preserve">
+    <value>Один ключ для всех голосов OpenAI, а также для моделей OpenAI и голосового ввода на вкладке «Помощник».</value>
+  </data>
+  <data name="HintAsOpenaiNamesIt" xml:space="preserve">
+    <value>как в OpenAI</value>
+  </data>
+  <data name="TipAskOpenaiForIts" xml:space="preserve">
+    <value>Снова запросить у OpenAI список речевых моделей</value>
+  </data>
+  <data name="ElevenlabsVoicesBilledPerCharacter" xml:space="preserve">
+    <value>Голоса ElevenLabs, оплата за каждый символ.</value>
+  </data>
+  <data name="ElevenlabsApiKey" xml:space="preserve">
+    <value>Ключ API ElevenLabs</value>
+  </data>
+  <data name="OneKeyForEveryElevenlabs" xml:space="preserve">
+    <value>Один ключ для всех голосов ElevenLabs.</value>
+  </data>
+  <data name="GetYourElevenlabsApi" xml:space="preserve">
+    <value>Получить ключ API ElevenLabs на elevenlabs.io</value>
+  </data>
+  <data name="HintTheVoicesId" xml:space="preserve">
+    <value>ID голоса</value>
+  </data>
+  <data name="TipAskElevenlabsForYour" xml:space="preserve">
+    <value>Снова запросить у ElevenLabs ваши голоса — например, после добавления нового</value>
+  </data>
+  <data name="HintTheModelsId" xml:space="preserve">
+    <value>ID модели</value>
+  </data>
+  <data name="TipAskElevenlabsForIts" xml:space="preserve">
+    <value>Снова запросить у ElevenLabs список моделей</value>
+  </data>
+  <data name="TestThisVoice" xml:space="preserve">
+    <value>Проверить голос</value>
+  </data>
+  <data name="TipSpeaksWithThisVoice" xml:space="preserve">
+    <value>Говорит этим голосом с текущими настройками, до сохранения, — отдельно, а не через список</value>
+  </data>
+  <data name="WhenTheVoiceChanges" xml:space="preserve">
+    <value>При смене голоса</value>
+  </data>
+  <data name="AnnounceItInTheNew" xml:space="preserve">
+    <value>Объявлять об этом новым голосом</value>
+  </data>
+  <data name="SaidByTheVoiceNote" xml:space="preserve">
+    <value>Произносится голосом, который вступает в работу, и остаётся в беседе, чтобы помощник знал, кто он теперь. Только когда меняется имя — дайте каждому голосу своё имя, чтобы смена объявлялась. При запуске приложения ничего не говорится: вы просто слышите того, кто говорит. {previous} и {current} обозначают два имени.</value>
+  </data>
+  <data name="TakingOver" xml:space="preserve">
+    <value>Переход</value>
+  </data>
+  <data name="MinutesWithoutABreakNote2" xml:space="preserve">
+    <value>минут без перерыва, прежде чем вернётся предпочтительный голос</value>
+  </data>
+  <data name="AVoiceThatFailsNote" xml:space="preserve">
+    <value>Отказавший голос заменяется сразу — эти настройки управляют только возвращением, чтобы постоянно отваливающийся сервер не заставлял голос метаться туда-сюда. Обратное переключение ждёт конца текущего ответа.</value>
+  </data>
+  <data name="SpeechInputPushToTalk" xml:space="preserve">
+    <value>Голосовой ввод (режим рации)</value>
+  </data>
+  <data name="Provider" xml:space="preserve">
+    <value>Провайдер</value>
+  </data>
+  <data name="MicrophoneDevice" xml:space="preserve">
+    <value>Микрофон</value>
+  </data>
+  <data name="HintSystemDefault" xml:space="preserve">
+    <value>(по умолчанию в системе)</value>
+  </data>
+  <data name="TipRefreshTheListOfInput" xml:space="preserve">
+    <value>Обновить список устройств ввода</value>
+  </data>
+  <data name="SystemDefaultFollowsWhateverNote" xml:space="preserve">
+    <value>«По умолчанию в системе» следует за устройством ввода, выбранным в операционной системе, так что гарнитура, подключённая позже, используется без возврата сюда. Выберите устройство, чтобы закрепить его. Работает и в Windows, и в Linux (PortAudio); если список пуст, нажмите ↺, чтобы обновить его после инициализации аудиодрайвера.</value>
+  </data>
+  <data name="GlobalPushToTalkKey" xml:space="preserve">
+    <value>Глобальная клавиша режима рации</value>
+  </data>
+  <data name="ApiKey" xml:space="preserve">
+    <value>Ключ API</value>
+  </data>
+  <data name="TheSameOpenaiKeyNote" xml:space="preserve">
+    <value>Тот же ключ OpenAI, что и для моделей OpenAI на вкладке «Помощник» и для голосов OpenAI.</value>
+  </data>
+  <data name="TipAskOpenaiForIts2" xml:space="preserve">
+    <value>Снова запросить у OpenAI список моделей распознавания речи</value>
+  </data>
+  <data name="SentToOpenaiToNote" xml:space="preserve">
+    <value>Речь отправляется в OpenAI для распознавания. Работает в Windows и Linux.</value>
+  </data>
+  <data name="RunsWhisperNetLocallyNote" xml:space="preserve">
+    <value>Запускает Whisper.net локально на этом компьютере (только Windows). Ключ API не нужен. Перед первым использованием нужно загрузить файл модели.</value>
+  </data>
+  <data name="Language" xml:space="preserve">
+    <value>Язык</value>
+  </data>
+  <data name="HintEn" xml:space="preserve">
+    <value>ru</value>
+  </data>
+  <data name="ATwoLetterCodeNote" xml:space="preserve">
+    <value>Двухбуквенный код, например ru, или auto, чтобы модель угадала сама. Догадка по двухсекундному фрагменту часто ошибочна и стоит лишнего прохода; укажите язык, на котором вы говорите.</value>
+  </data>
+  <data name="DownloadModel" xml:space="preserve">
+    <value>Загрузить модель</value>
+  </data>
+  <data name="Downloaded" xml:space="preserve">
+    <value>✔ Загружено</value>
+  </data>
+  <data name="SaveAgentSettings" xml:space="preserve">
+    <value>Сохранить настройки помощника</value>
+  </data>
+  <data name="SlackIntegration" xml:space="preserve">
+    <value>Интеграция со Slack</value>
+  </data>
+  <data name="PostFromEveConsoleNote" xml:space="preserve">
+    <value>Публикуйте из EVE Console прямо в Slack. Сообщения отправляются с вашим собственным пользовательским токеном, поэтому выглядят как ваши, а не как сообщения бота. Ничего не публикуется автоматически — вы сами решаете, когда отправлять.</value>
+  </data>
+  <data name="ConnectingOpensSlackInNote" xml:space="preserve">
+    <value>Подключение открывает Slack в браузере. Выберите рабочее пространство, разрешите доступ — и готово: EVE Console никогда не видит ваш пароль Slack, а доступ можно в любой момент отозвать в настройках учётной записи Slack.</value>
+  </data>
+  <data name="ConnectToSlack" xml:space="preserve">
+    <value>Подключиться к Slack</value>
+  </data>
+  <data name="Disconnect" xml:space="preserve">
+    <value>Отключиться</value>
+  </data>
+  <data name="ReloadChannels" xml:space="preserve">
+    <value>Перезагрузить каналы</value>
+  </data>
+  <data name="ManualSetup" xml:space="preserve">
+    <value>Ручная настройка</value>
+  </data>
+  <data name="N1OpenApiSlackNote" xml:space="preserve">
+    <value>1.  Откройте api.slack.com/apps и выберите Create New App → From scratch. Назовите приложение (например, EVE Console) и выберите рабочее пространство.</value>
+  </data>
+  <data name="N2GoToOauthNote" xml:space="preserve">
+    <value>2.  Перейдите в OAuth &amp; Permissions и добавьте в User Token Scopes (не в Bot Token Scopes):</value>
+  </data>
+  <data name="ChatWriteChannelsReadNote" xml:space="preserve">
+    <value>chat:write     channels:read     groups:read     im:read     mpim:read</value>
+  </data>
+  <data name="N3ClickInstallToNote" xml:space="preserve">
+    <value>3.  Нажмите Install to Workspace и подтвердите, затем скопируйте User OAuth Token (он начинается с xoxp-).</value>
+  </data>
+  <data name="OpenApiSlackComApps" xml:space="preserve">
+    <value>Открыть api.slack.com/apps</value>
+  </data>
+  <data name="UserOauthToken" xml:space="preserve">
+    <value>User OAuth Token</value>
+  </data>
+  <data name="HintXoxp" xml:space="preserve">
+    <value>xoxp-…</value>
+  </data>
+  <data name="StoredLocallyInYourNote" xml:space="preserve">
+    <value>Хранится локально в вашей базе данных EVE Console. Обращайтесь с ним как с паролем — с его помощью можно писать от вашего имени в любой доступный вам канал.</value>
+  </data>
+  <data name="SaveTest" xml:space="preserve">
+    <value>Сохранить и проверить</value>
+  </data>
+  <data name="Webhooks" xml:space="preserve">
+    <value>Веб-хуки</value>
+  </data>
+  <data name="ForWorkspacesYouCannotNote" xml:space="preserve">
+    <value>Для рабочих пространств, к которым нельзя подключиться от своего имени, — обычно это Slack альянса, где дадут веб-хук, но никогда не дадут токен. Назовите веб-хук здесь, и он появится во всех списках назначений ниже.</value>
+  </data>
+  <data name="AWebhookCannotThreadNote" xml:space="preserve">
+    <value>⚠ Веб-хук не умеет создавать ветки. Отправка через него не возвращает id сообщения, поэтому подробности объявления о продаже приходят вторым сообщением, а не ответом под первым. Кроме того, сообщения приходят от имени приложения веб-хука, а не от вас.</value>
+  </data>
+  <data name="ColName" xml:space="preserve">
+    <value>Название</value>
+  </data>
+  <data name="HintName" xml:space="preserve">
+    <value>Название</value>
+  </data>
+  <data name="Channels" xml:space="preserve">
+    <value>Каналы</value>
+  </data>
+  <data name="PickWhichChannelEachNote" xml:space="preserve">
+    <value>Выберите, в какой канал публикует каждая часть EVE Console. Кнопка публикации в разделе появляется, только когда для него задан канал.</value>
+  </data>
+  <data name="CorpActivityTop10" xml:space="preserve">
+    <value>Активность корпорации — топ-10</value>
+  </data>
+  <data name="HintSelectAChannel" xml:space="preserve">
+    <value>Выберите канал…</value>
+  </data>
+  <data name="CorpActivityMonthlySummary" xml:space="preserve">
+    <value>Активность корпорации — месячная сводка</value>
+  </data>
+  <data name="SalePosting" xml:space="preserve">
+    <value>Объявления о продаже</value>
+  </data>
+  <data name="PrivateChannelsOnlyAppearNote" xml:space="preserve">
+    <value>Закрытые каналы видны, только если вы в них состоите. Если канала нет в списке, нажмите «Перезагрузить каналы».</value>
+  </data>
+  <data name="AlertRules" xml:space="preserve">
+    <value>Правила оповещений</value>
+  </data>
+  <data name="ConfigureWhichConditionsTriggerNote" xml:space="preserve">
+    <value>Настройте, какие условия вызывают оповещения на вкладке «Обзор». Оповещения пересчитываются при каждом обновлении «Обзора».</value>
+  </data>
+  <data name="SkillQueue" xml:space="preserve">
+    <value>План навыков</value>
+  </data>
+  <data name="CharacterSkillQueueIsEmpty" xml:space="preserve">
+    <value>План навыков персонажа пуст</value>
+  </data>
+  <data name="CharacterSkillQueueIs" xml:space="preserve">
+    <value>План навыков персонажа приостановлен (навыки в нём есть, но ничего не изучается)</value>
+  </data>
+  <data name="SkillQueueWillBeEmpty" xml:space="preserve">
+    <value>План навыков опустеет в течение</value>
+  </data>
+  <data name="Days" xml:space="preserve">
+    <value>д</value>
+  </data>
+  <data name="SaveAlerts" xml:space="preserve">
+    <value>Сохранить оповещения</value>
+  </data>
+  <data name="AssetSafety" xml:space="preserve">
+    <value>Система безопасности активов</value>
+  </data>
+  <data name="AlertWhenItemsAre" xml:space="preserve">
+    <value>Оповещать, когда предметы перемещаются в систему безопасности активов</value>
+  </data>
+  <data name="TriggersWhenAStructureitemsmovedintosafetyNote" xml:space="preserve">
+    <value>Срабатывает, когда любой авторизованный персонаж получает уведомление StructureItemsMovedIntoSafety. Оповещение остаётся, пока вы не закроете его вручную.</value>
+  </data>
+  <data name="StandingProjects" xml:space="preserve">
+    <value>Постоянные проекты</value>
+  </data>
+  <data name="AlertWhenStandingProjects" xml:space="preserve">
+    <value>Оповещать, когда постоянные проекты сейчас не активны</value>
+  </data>
+  <data name="TriggersWhenOneOrNote" xml:space="preserve">
+    <value>Срабатывает, когда у одного или нескольких постоянных проектов («Активность корпорации → Проекты → Постоянные проекты») нет соответствующего активного проекта корпорации в ESI. Пересчитывается при каждом обновлении «Обзора».</value>
+  </data>
+  <data name="StandingBuyOrders" xml:space="preserve">
+    <value>Постоянные ордера на покупку</value>
+  </data>
+  <data name="AlertWhenStandingBuy" xml:space="preserve">
+    <value>Оповещать, когда постоянные ордера на покупку требуют внимания</value>
+  </data>
+  <data name="TriggersWhenAStandingNote" xml:space="preserve">
+    <value>Срабатывает, когда у постоянного ордера на покупку («Рынок / торговля → Постоянные ордера на покупку») нет соответствующего действующего ордера, его цену перебили на этой станции, его объём упал ниже 10% от исходного или у него осталось меньше 20% срока. Оповещение указывает, что именно, ведь выставить ордер, поднять цену, пополнить ордер и продлить его — разные дела. Пересчитывается при каждом обновлении «Обзора».</value>
+  </data>
+  <data name="OutbidDetectionComparesAgainstNote" xml:space="preserve">
+    <value>Перебитые цены определяются по общедоступному стакану ордеров, который охватывает только станции и сооружения, заданные как источники рынка в разделе «Настройки → Рынок». Для остальных мест показывается прочерк, а не утверждение, что конкурентов нет.</value>
+  </data>
+  <data name="IndustryFacilities" xml:space="preserve">
+    <value>Промышленные объекты</value>
+  </data>
+  <data name="AlertWhenRunningJobs" xml:space="preserve">
+    <value>Оповещать, когда идущие проекты выполняются на объекте без подходящих модификаторов</value>
+  </data>
+  <data name="CountsActiveManufacturingAndNote" xml:space="preserve">
+    <value>Считает активные проекты производства и реакций, на объекте которых нет модификатора с бонусом к такой работе. Исследование, копирование и модернизация не учитываются — для них используются модификаторы, которые эта проверка не моделирует.</value>
+  </data>
+  <data name="OnlyFacilitiesLinkedToNote" xml:space="preserve">
+    <value>Оценить можно только объекты, связанные с сооружением в «Промпарках»: ESI не сообщает, какие модификаторы установлены на сооружении, поэтому модификаторами считается то, что вы описали в «Промпарках». Чтобы включить объект, свяжите там сооружение с реальным объектом. Несвязанные объекты игнорируются, а не считаются объектами без модификаторов.</value>
+  </data>
+  <data name="AlertWhenIndustryJobs" xml:space="preserve">
+    <value>Оповещать, когда промышленные проекты готовы к доставке</value>
+  </data>
+  <data name="CountsJobsPastTheirNote" xml:space="preserve">
+    <value>Считает проекты, у которых прошла дата окончания или которые отмечены как готовые, но которые ещё никто не доставил, — продукция ждёт, а слот занят, пока её не заберут. Охватывает всех персонажей и корпорации, по которым приложение опрашивает проекты; по умолчанию проекты опрашиваются каждые 15 минут («Таймеры»), так что только что завершённый проект может появиться с такой задержкой.</value>
+  </data>
+  <data name="AlertAboutOutstandingContracts" xml:space="preserve">
+    <value>Оповещать о размещённых контрактах, адресованных вам</value>
+  </data>
+  <data name="CountsActiveContractsAssignedNote" xml:space="preserve">
+    <value>Считает действующие контракты, адресованные одному из ваших персонажей или личных корпораций, — те, что ждут вас. Оповещение открывает их в инструменте «Контракты», начиная с тех, что истекают раньше.</value>
+  </data>
+  <data name="AlertAboutContractsAboutTo" xml:space="preserve">
+    <value>Оповещать о контрактах, срок которых скоро истечёт</value>
+  </data>
+  <data name="CountsActiveContractsYouNote" xml:space="preserve">
+    <value>Считает действующие контракты, созданные вами или адресованные вам, у которых осталось меньше 15% срока: для двухнедельного контракта — с двенадцатого дня. Личные корпорации считаются вами.</value>
+  </data>
+  <data name="DatabaseType" xml:space="preserve">
+    <value>Тип базы данных</value>
+  </data>
+  <data name="TypeLabel" xml:space="preserve">
+    <value>Тип:</value>
+  </data>
+  <data name="ThisIsNotTheNote" xml:space="preserve">
+    <value>Это не та база данных, что открыта сейчас. Сохраните выбор и перезапустите EVE Console, чтобы он вступил в силу.</value>
+  </data>
+  <data name="SaveAndRestart" xml:space="preserve">
+    <value>Сохранить и перезапустить</value>
+  </data>
+  <data name="PostgresPostgresqlAndTheNote" xml:space="preserve">
+    <value>Postgres, PostgreSQL и логотип Slonik являются товарными знаками или зарегистрированными товарными знаками PostgreSQL Community Association of Canada и используются с их разрешения.</value>
+  </data>
+  <data name="PostgresqlServer" xml:space="preserve">
+    <value>Сервер PostgreSQL</value>
+  </data>
+  <data name="EveConsoleNeedsToNote" xml:space="preserve">
+    <value>EVE Console должна подключаться к этой базе данных и создавать в ней таблицы. Проще всего, если владельцем базы данных будет этот пользователь (CREATE DATABASE eveconsole OWNER myuser): так у него есть всё нужное без дополнительных прав.</value>
+  </data>
+  <data name="HostLabel" xml:space="preserve">
+    <value>Хост:</value>
+  </data>
+  <data name="PortLabel" xml:space="preserve">
+    <value>Порт:</value>
+  </data>
+  <data name="UsernameLabel" xml:space="preserve">
+    <value>Пользователь:</value>
+  </data>
+  <data name="PasswordLabel" xml:space="preserve">
+    <value>Пароль:</value>
+  </data>
+  <data name="TestConnection" xml:space="preserve">
+    <value>Проверить подключение</value>
+  </data>
+  <data name="BringYourExistingDataAcross" xml:space="preserve">
+    <value>Перенести имеющиеся данные</value>
+  </data>
+  <data name="ReplaceWhatIsOnThe" xml:space="preserve">
+    <value>Заменить то, что есть на сервере</value>
+  </data>
+  <data name="CopyDataToPostgresql" xml:space="preserve">
+    <value>Копировать данные в PostgreSQL</value>
+  </data>
+  <data name="EraseServerDataAndCopy" xml:space="preserve">
+    <value>Стереть данные на сервере и копировать</value>
+  </data>
+  <data name="SqliteDatabase" xml:space="preserve">
+    <value>База данных SQLite</value>
+  </data>
+  <data name="MovingShrinkingAndBackingNote" xml:space="preserve">
+    <value>Перемещение, сжатие и резервное копирование работают с ФАЙЛОМ базы данных, поэтому применимы только к SQLite. Сервер PostgreSQL резервируется собственными средствами.</value>
+  </data>
+  <data name="PathLabel" xml:space="preserve">
+    <value>Путь:</value>
+  </data>
+  <data name="SizeLabel" xml:space="preserve">
+    <value>Размер:</value>
+  </data>
+  <data name="MoveRenameDatabase" xml:space="preserve">
+    <value>Переместить / переименовать базу данных…</value>
+  </data>
+  <data name="TipMoveTheDatabaseTo" xml:space="preserve">
+    <value>Переместить базу данных в другую папку или на другой диск либо дать ей другое имя. Для этого приложение перезапустится.</value>
+  </data>
+  <data name="PointToExistingDb" xml:space="preserve">
+    <value>Указать существующую БД…</value>
+  </data>
+  <data name="ShrinkDatabase" xml:space="preserve">
+    <value>Сжать базу данных…</value>
+  </data>
+  <data name="TipRebuildTheDatabaseFile" xml:space="preserve">
+    <value>Перестроить файл базы данных, чтобы место, освобождённое удалёнными данными, вернулось на диск. Приложение перезапустится.</value>
+  </data>
+  <data name="TheseOperationsCopyOrNote" xml:space="preserve">
+    <value>Эти операции копируют или перемещают файл базы данных и перезапускают приложение.</value>
+  </data>
+  <data name="AutomaticallyBackUpDatabase" xml:space="preserve">
+    <value>Автоматически создавать резервные копии базы данных</value>
+  </data>
+  <data name="IntervalLabel" xml:space="preserve">
+    <value>Интервал:</value>
+  </data>
+  <data name="KeepLabel" xml:space="preserve">
+    <value>Хранить:</value>
+  </data>
+  <data name="LastBackupLabel" xml:space="preserve">
+    <value>Последняя копия:</value>
+  </data>
+  <data name="BackUpNow" xml:space="preserve">
+    <value>Создать копию сейчас</value>
+  </data>
+  <data name="PostgresqlBackups" xml:space="preserve">
+    <value>Резервные копии PostgreSQL</value>
+  </data>
+  <data name="AServersDatabaseCannotNote" xml:space="preserve">
+    <value>Базу данных сервера нельзя сохранить копированием файла — файл принадлежит серверу и может даже находиться не на этом компьютере, — поэтому EVE Console запускает pg_dump, который запрашивает у сервера согласованный снимок. Дампы записываются в формате custom: он сжат и позволяет восстановить всё целиком или по отдельным таблицам с помощью pg_restore.</value>
+  </data>
+  <data name="CheckForPgDump" xml:space="preserve">
+    <value>Проверить наличие pg_dump</value>
+  </data>
+  <data name="RestoreFromABackup" xml:space="preserve">
+    <value>Восстановление из резервной копии</value>
+  </data>
+  <data name="ReplacesEverythingInTheNote" xml:space="preserve">
+    <value>Заменяет всё содержимое базы данных содержимым файла .dump. Всё, что было получено опросом после создания этой копии, теряется. Для этого EVE Console перезапускается, потому что восстановление удаляет все таблицы и не может выполняться, пока приложение их использует.</value>
+  </data>
+  <data name="RestoreFromDump" xml:space="preserve">
+    <value>Восстановить из дампа…</value>
+  </data>
+  <data name="StorageBreakdown" xml:space="preserve">
+    <value>Структура занятого места</value>
+  </data>
+  <data name="WhatTheDatabaseIsNote" xml:space="preserve">
+    <value>На что расходуется база данных — отдельно данные таблиц и индексы. В SQLite цифры измеряются по данным и масштабируются к занятым страницам файла, а большие таблицы оцениваются по выборке, а не читаются целиком. В PostgreSQL размеры точные, а число строк — оценка сервера. В любом случае это нужно, чтобы решить, что стоит хранить, а не для побайтового аудита.</value>
+  </data>
+  <data name="Load" xml:space="preserve">
+    <value>Загрузить</value>
+  </data>
+  <data name="ColTable" xml:space="preserve">
+    <value>Таблица</value>
+  </data>
+  <data name="ColRows" xml:space="preserve">
+    <value>Строки</value>
+  </data>
+  <data name="ColData" xml:space="preserve">
+    <value>Данные</value>
+  </data>
+  <data name="ColIndexes" xml:space="preserve">
+    <value>Индексы</value>
+  </data>
+  <data name="ColTotal" xml:space="preserve">
+    <value>Всего</value>
+  </data>
+  <data name="ColShare" xml:space="preserve">
+    <value>Доля</value>
+  </data>
+  <data name="ColMethod" xml:space="preserve">
+    <value>Способ</value>
+  </data>
+  <data name="ErrorLog" xml:space="preserve">
+    <value>Журнал ошибок</value>
+  </data>
+  <data name="TheErrorLogIsNote" xml:space="preserve">
+    <value>Журнал ошибок нужен, чтобы читать последние несколько часов, а не чтобы хранить историю. Без присмотра он разрастается за сто тысяч записей, и тогда его никто не смотрит. Он занимает меньше 1% измеренной базы данных в 4 GB, так что это правило поддерживает журнал читаемым, а не освобождает место.</value>
+  </data>
+  <data name="PurgeEntriesOlderThan" xml:space="preserve">
+    <value>Удалять записи старше</value>
+  </data>
+  <data name="PurgeNow" xml:space="preserve">
+    <value>Очистить сейчас</value>
+  </data>
+  <data name="KillMails" xml:space="preserve">
+    <value>Отчёты о боях</value>
+  </data>
+  <data name="PurgeKillMailsOlderThan" xml:space="preserve">
+    <value>Удалять отчёты о боях старше</value>
+  </data>
+  <data name="PriceHistory" xml:space="preserve">
+    <value>История цен</value>
+  </data>
+  <data name="RemovesDailyMarketHistoryNote" xml:space="preserve">
+    <value>Удаляет ежедневную историю рынка по секторам и типам вместе с построенными на её основе снимками цен по типам — и то и другое сразу, ведь если хранить одно без другого, история будет противоречить сама себе. Около 15% измеренного файла в 4 GB. ESI отдаёт примерно год истории, так что недавние строки можно загрузить снова.</value>
+  </data>
+  <data name="PurgePriceHistoryOlderThan" xml:space="preserve">
+    <value>Удалять историю цен старше</value>
+  </data>
+  <data name="GameLog" xml:space="preserve">
+    <value>Игровой журнал</value>
+  </data>
+  <data name="RemovesParsedGameLogNote" xml:space="preserve">
+    <value>Удаляет разобранные события игрового журнала — охоту на пиратов, добычу и промышленную активность, прочитанные из журналов клиента EVE. Файлы .log на диске не трогаются, поэтому всё удалённое здесь можно снова импортировать через «Игровые журналы → Импорт прошлых журналов», пока эти файлы существуют.</value>
+  </data>
+  <data name="PurgeGameLogEventsOlder" xml:space="preserve">
+    <value>Удалять события игрового журнала старше</value>
+  </data>
+  <data name="ChatMessages" xml:space="preserve">
+    <value>Сообщения чата</value>
+  </data>
+  <data name="RemovesStoredChatMessagesNote" xml:space="preserve">
+    <value>Удаляет сохранённые сообщения чата. Уже разобранные из них разведданные сохраняются — сообщения разведки старше самого старого оставшегося сообщения считаются историей, которую нельзя восстановить, и при очистке во время запуска, и в «Журналы чата → Разобрать сохранённую историю», где восстанавливается только тот период, который действительно можно воспроизвести. Файлы .log на диске не трогаются, так что повторный импорт возможен, пока они существуют.</value>
+  </data>
+  <data name="PurgeChatMessagesOlderThan" xml:space="preserve">
+    <value>Удалять сообщения чата старше</value>
+  </data>
+  <data name="AgentActivity" xml:space="preserve">
+    <value>Активность помощника</value>
+  </data>
+  <data name="RemovesTheRecordOfNote" xml:space="preserve">
+    <value>Удаляет записи о прошлых обменах с ИИ-помощником — что запрашивалось, какие инструменты использовались и сколько токенов ушло. По ним рассчитываются показатели использования и расходов, поэтому очистка сокращает историю, которую они могут охватить. Это собственная диагностическая запись приложения, а не ваши данные, поэтому, в отличие от разделов выше, это правило включено по умолчанию; снимите флажок, чтобы хранить всё.</value>
+  </data>
+  <data name="PurgeAgentActivityOlderThan" xml:space="preserve">
+    <value>Удалять активность помощника старше</value>
+  </data>
+  <data name="AutomaticallyCheckForUpdates" xml:space="preserve">
+    <value>Автоматически проверять обновления</value>
+  </data>
+  <data name="ChecksOnStartupAndNote" xml:space="preserve">
+    <value>Проверка при запуске и раз в час. Когда найдётся новая версия, появится запрос; если отказаться, он не повторится до следующей версии.</value>
+  </data>
+  <data name="CurrentVersion" xml:space="preserve">
+    <value>Текущая версия</value>
+  </data>
+  <data name="LatestVersion" xml:space="preserve">
+    <value>Последняя версия</value>
+  </data>
+  <data name="CheckNow" xml:space="preserve">
+    <value>Проверить сейчас</value>
+  </data>
+  <data name="FmtLastAuthenticated" xml:space="preserve">
+    <value>Последняя авторизация: {0:g}</value>
+  </data>
+  <data name="FmtLastFullDay" xml:space="preserve">
+    <value>последний полный день: {0}</value>
+  </data>
+  <data name="FmtCoveredFrom" xml:space="preserve">
+    <value>Охвачено с: {0}</value>
+  </data>
+  <data name="FmtTheModelRunsOn" xml:space="preserve">
+    <value>Модель работает на: {0}</value>
+  </data>
+  <data name="DbConfigProfile" xml:space="preserve">
+    <value>Работает с профилем «{0}»: настройки, база данных и кэши находятся в {1}, а данные обычной установки не затронуты.</value>
+  </data>
+  <data name="DbConfigPortable" xml:space="preserve">
+    <value>Настройки читаются из {0} (рядом с программой), а не из данных приложения.</value>
+  </data>
+  <data name="DbConfigAppData" xml:space="preserve">
+    <value>Настройки хранятся в данных приложения. Положите config.json рядом с программой, чтобы у этой установки были собственные настройки.</value>
+  </data>
+  <data name="DbCopyOfferEmpty" xml:space="preserve">
+    <value>База данных на сервере пуста. Сейчас в неё можно скопировать всё из базы данных SQLite. Файл SQLite только читается и никогда не изменяется, так что при сбое это можно повторить.</value>
+  </data>
+  <data name="DbCopyOfferErase" xml:space="preserve">
+    <value>В базе данных на сервере уже есть таблицы: {0:N0}. Их можно стереть и заменить содержимым базы данных SQLite. Файл SQLite по-прежнему только читается и не изменяется — но всё, что сейчас есть на сервере, будет уничтожено.</value>
+  </data>
+  <data name="BackupHourly" xml:space="preserve">
+    <value>Каждый час</value>
+  </data>
+  <data name="BackupDaily" xml:space="preserve">
+    <value>Каждый день</value>
+  </data>
+  <data name="BackupWeekly" xml:space="preserve">
+    <value>Каждую неделю</value>
+  </data>
+  <data name="BackupMonthly" xml:space="preserve">
+    <value>Каждый месяц</value>
+  </data>
+  <data name="Never" xml:space="preserve">
+    <value>Никогда</value>
+  </data>
+  <data name="DbTestConnecting" xml:space="preserve">
+    <value>Подключение…</value>
+  </data>
+  <data name="DbTestFieldsRequired" xml:space="preserve">
+    <value>Нужно указать хост, базу данных и имя пользователя.</value>
+  </data>
+  <data name="DbTestNoPublicSchema" xml:space="preserve">
+    <value>Подключено к PostgreSQL {0}, но в базе данных нет схемы «public», так что таблицы создавать негде. Выполните: CREATE SCHEMA public;</value>
+  </data>
+  <data name="DbTestCannotCreate" xml:space="preserve">
+    <value>Подключено к PostgreSQL {0}, но пользователь {1} не может создавать таблицы в схеме public. Проще всего сделать этого пользователя владельцем базы данных: ALTER DATABASE "{2}" OWNER TO "{3}";</value>
+  </data>
+  <data name="DbTestEmptyCanCopy" xml:space="preserve">
+    <value>Подключено к PostgreSQL {0}. База данных пуста, так что в неё можно скопировать уже имеющиеся здесь данные.</value>
+  </data>
+  <data name="DbTestEmptyBuiltOnStart" xml:space="preserve">
+    <value>Подключено к PostgreSQL {0}. База данных пуста и будет создана при следующем запуске.</value>
+  </data>
+  <data name="DbTestHasTables" xml:space="preserve">
+    <value>Подключено к PostgreSQL {0}. В базе данных уже есть таблицы ({1:N0}), поэтому она будет использоваться как есть — в неё ничего не копируется, если сначала её не стереть.</value>
+  </data>
+  <data name="DbTestFailed" xml:space="preserve">
+    <value>Не удалось подключиться: {0}</value>
+  </data>
+  <data name="DbSaveRestartTitle" xml:space="preserve">
+    <value>Сохранить и перезапустить</value>
+  </data>
+  <data name="DbSaveRestartConfirm" xml:space="preserve">
+    <value>Использовать {0} с этого момента?
+
+EVE Console сразу перезапустится, потому что база данных открывается один раз при запуске и больше ничем не переоткрывается.
+
+Ничего не копируется и не удаляется. Меняется только то, какую базу данных открывает приложение, и вернуть всё можно тем же способом.</value>
+  </data>
+  <data name="DbServiceTitle" xml:space="preserve">
+    <value>Фоновая служба</value>
+  </data>
+  <data name="DbServiceStopWindows" xml:space="preserve">
+    <value>Фоновая служба установлена, а с SQLite она работать не может.
+
+Перед сохранением изменения она будет остановлена, и её автозапуск вместе с Windows будет отключён. Windows запросит подтверждение администратора.
+
+Если оставить её работать, она продолжит работать с базой данных PostgreSQL, от которой вы уходите.
+
+Продолжить?</value>
+  </data>
+  <data name="DbServiceStopLinux" xml:space="preserve">
+    <value>Фоновая служба установлена, а с SQLite она работать не может.
+
+Перед сохранением изменения она будет остановлена, и её запуск при входе в систему будет отключён. Юнит сохраняется, так что при возврате на PostgreSQL его достаточно снова запустить.
+
+Если оставить её работать, она продолжит работать с базой данных PostgreSQL, от которой вы уходите.
+
+Продолжить?</value>
+  </data>
+  <data name="DbSaveCancelled" xml:space="preserve">
+    <value>Отменено — ничего не изменено.</value>
+  </data>
+  <data name="DbServiceStopFailed" xml:space="preserve">
+    <value>Не удалось остановить фоновую службу — {0}. Ничего не изменено.</value>
+  </data>
+  <data name="DbServiceUpdating" xml:space="preserve">
+    <value>Обновление фоновой службы…</value>
+  </data>
+  <data name="DbServiceRepointFailed" xml:space="preserve">
+    <value>Сохранено, но фоновая служба всё ещё указывает на старую базу данных — {0}. Перезапуска не будет. Обновите службу на вкладке «Опрос», затем перезапустите приложение.</value>
+  </data>
+  <data name="DbSetRestarting" xml:space="preserve">
+    <value>Выбрано: {0}. Перезапуск…</value>
+  </data>
+  <data name="DbEraseTitle" xml:space="preserve">
+    <value>Стереть базу данных на сервере и скопировать</value>
+  </data>
+  <data name="DbEraseConfirm" xml:space="preserve">
+    <value>Это БЕЗВОЗВРАТНО УНИЧТОЖИТ всё в базе данных «{0}» на сервере {1}.
+
+Все таблицы в схеме «public» ({2:N0}) и все строки в них будут удалены. Это НЕЛЬЗЯ отменить. Вернуть данные может только заранее сделанная резервная копия, а EVE Console её за вас не делает.
+
+Затем в неё копируются здешние данные — {3}. Этот файл SQLite только читается и не изменяется.
+
+Прежде чем продолжить, убедитесь, что это нужная база данных.</value>
+  </data>
+  <data name="DbCopyTitle" xml:space="preserve">
+    <value>Копирование данных в PostgreSQL</value>
+  </data>
+  <data name="DbCopyConfirm" xml:space="preserve">
+    <value>Скопировать всё из {0} в {1} на сервере {2}?
+
+База данных SQLite только читается и не изменяется. Большая база данных копируется долго, и до окончания пользоваться приложением не стоит.</value>
+  </data>
+  <data name="DbCopyPreparing" xml:space="preserve">
+    <value>Подготовка базы назначения…</value>
+  </data>
+  <data name="DbCopyRows" xml:space="preserve">
+    <value>Строк: {0:N0} из {1:N0}</value>
+  </data>
+  <data name="DbCopyTable" xml:space="preserve">
+    <value>таблица {0:N0} из {1:N0} — {2} (строк: {3:N0})</value>
+  </data>
+  <data name="DbCopyErasing" xml:space="preserve">
+    <value>Стирание базы данных назначения…</value>
+  </data>
+  <data name="DbCopyErased" xml:space="preserve">
+    <value>Стёрто таблиц: {0:N0}. Создание схемы…</value>
+  </data>
+  <data name="DbCopyDone" xml:space="preserve">
+    <value>Скопировано строк: {0:N0}. База данных SQLite не изменена. Сохраните настройку и перезапустите приложение, чтобы использовать PostgreSQL.</value>
+  </data>
+  <data name="DbCopyCancelled" xml:space="preserve">
+    <value>Копирование отменено (скопировано строк: {0:N0}). В базе данных на сервере осталась частичная копия — снова проверьте подключение, чтобы стереть её и начать заново.</value>
+  </data>
+  <data name="DbCopyFailed" xml:space="preserve">
+    <value>Ошибка копирования: {0}</value>
+  </data>
+  <data name="DbStopCopyTitle" xml:space="preserve">
+    <value>Остановка копирования</value>
+  </data>
+  <data name="DbStopCopyConfirm" xml:space="preserve">
+    <value>Остановить копирование? Уже скопировано строк: {0:N0}, и ничего из этого не сохранится: частичное копирование нельзя продолжить, так что начать снова — значит стереть базу данных на сервере и скопировать всё с самого начала.
+
+Пока открыт этот вопрос, копирование продолжается.</value>
+  </data>
+  <data name="DbRestorePick" xml:space="preserve">
+    <value>Выберите дамп PostgreSQL для восстановления</value>
+  </data>
+  <data name="DbRestoreTitle" xml:space="preserve">
+    <value>Заменить {0} этой резервной копией?</value>
+  </data>
+  <data name="DbRestoreConfirm" xml:space="preserve">
+    <value>Всё, что сейчас есть в {0} на сервере {1}, будет удалено и заменено содержимым {2}.
+
+Это нельзя отменить, а всё, что было получено опросом после создания этой копии, будет потеряно. Для этого EVE Console перезапустится.</value>
+  </data>
+  <data name="DbRestoreScheduled" xml:space="preserve">
+    <value>Восстановление запланировано: {0}. Перезапуск…</value>
+  </data>
+  <data name="DbPgDumpLooking" xml:space="preserve">
+    <value>Поиск pg_dump…</value>
+  </data>
+  <data name="DbPgDumpNoConnection" xml:space="preserve">
+    <value>Подключение к PostgreSQL ещё не настроено.</value>
+  </data>
+  <data name="DbPgDumpCheckFailed" xml:space="preserve">
+    <value>Не удалось проверить pg_dump: {0}</value>
+  </data>
+  <data name="DbBackupRunning" xml:space="preserve">
+    <value>Резервное копирование уже идёт — оно продолжится, даже если закрыть настройки.</value>
+  </data>
+  <data name="DbBackingUp" xml:space="preserve">
+    <value>Резервное копирование…</value>
+  </data>
+  <data name="DbBackupSaved" xml:space="preserve">
+    <value>Резервная копия сохранена: {0}</value>
+  </data>
+  <data name="DbBackupNoConnection" xml:space="preserve">
+    <value>Не удалось создать резервную копию — подключение к PostgreSQL не настроено.</value>
+  </data>
+  <data name="DbBackupNoFile" xml:space="preserve">
+    <value>Не удалось создать резервную копию — файл БД не найден.</value>
+  </data>
+  <data name="DbBackupError" xml:space="preserve">
+    <value>Ошибка резервного копирования: {0}</value>
+  </data>
+  <data name="DbMovePick" xml:space="preserve">
+    <value>Перемещение или переименование базы данных…</value>
+  </data>
+  <data name="DbRenameTitle" xml:space="preserve">
+    <value>Переименование базы данных</value>
+  </data>
+  <data name="DbMoveTitle" xml:space="preserve">
+    <value>Перемещение базы данных</value>
+  </data>
+  <data name="DbRenameTo" xml:space="preserve">
+    <value>Переименовать базу данных в:
+{0}</value>
+  </data>
+  <data name="DbMoveTo" xml:space="preserve">
+    <value>Переместить базу данных в:
+{0}</value>
+  </data>
+  <data name="DbMoveRestarts" xml:space="preserve">
+    <value>EVE Console перезапустится и сделает это ещё до завершения запуска, потому что это нужно делать, пока базу данных никто не использует.</value>
+  </data>
+  <data name="DbMoveSpeed" xml:space="preserve">
+    <value>В пределах одного диска это происходит мгновенно при любом размере. При переносе на другой диск файл сначала копируется, а оригинал удаляется после успешного копирования — на большой базе данных это может занять время.</value>
+  </data>
+  <data name="DbMoveNothingLeft" xml:space="preserve">
+    <value>На старом месте ничего не останется.</value>
+  </data>
+  <data name="DbRestartingRename" xml:space="preserve">
+    <value>Перезапуск для переименования базы данных…</value>
+  </data>
+  <data name="DbRestartingMove" xml:space="preserve">
+    <value>Перезапуск для перемещения базы данных…</value>
+  </data>
+  <data name="DbPointPick" xml:space="preserve">
+    <value>Выбор существующей базы данных…</value>
+  </data>
+  <data name="DbSwitchTitle" xml:space="preserve">
+    <value>Смена базы данных</value>
+  </data>
+  <data name="DbSwitchConfirm" xml:space="preserve">
+    <value>Направить EVE Console на существующую базу данных:
+{0}
+
+Приложение перезапустится.</value>
+  </data>
+  <data name="DbDoneRestarting" xml:space="preserve">
+    <value>Готово. Перезапуск…</value>
+  </data>
+  <data name="DbUnknownSize" xml:space="preserve">
+    <value>неизвестен</value>
+  </data>
+  <data name="DbShrinkWhy" xml:space="preserve">
+    <value>Удаление данных не уменьшает файл базы данных. SQLite сохраняет освободившиеся страницы и использует их позже, поэтому файл остаётся максимального размера. Сжатие перестраивает его и возвращает это место на диск.</value>
+  </data>
+  <data name="DbShrinkSize" xml:space="preserve">
+    <value>Текущий размер базы данных: {0}.</value>
+  </data>
+  <data name="DbShrinkRestarts" xml:space="preserve">
+    <value>EVE Console перезапустится и сожмёт базу данных ещё до завершения запуска, потому что для перестройки база данных нужна ей целиком. На большой базе данных это может занять время, и до окончания приложение недоступно.</value>
+  </data>
+  <data name="DbShrinkBackup" xml:space="preserve">
+    <value>Сначала создаётся резервная копия; после успешного сжатия она удаляется.</value>
+  </data>
+  <data name="DbShrinkTitle" xml:space="preserve">
+    <value>Сжатие базы данных</value>
+  </data>
+  <data name="DbRestartingShrink" xml:space="preserve">
+    <value>Перезапуск для сжатия базы данных…</value>
+  </data>
+  <data name="DbSizeNotMeasured" xml:space="preserve">
+    <value>Ещё не измерено.</value>
+  </data>
+  <data name="DbSizeSummaryPostgres" xml:space="preserve">
+    <value>База данных: {0}, таблиц: {1:N0}. Размеры точные, включая индексы и хранилище TOAST. Число строк — собственная оценка сервера, поэтому у таблицы, в которую много писали после последнего ANALYZE, оно занижено.</value>
+  </data>
+  <data name="DbSizeSummarySqlite" xml:space="preserve">
+    <value>Файл: {0}, таблиц: {1:N0}. Доли — от занятого места. Цифры измерены и масштабированы к файлу — они годятся для сравнения таблиц, но это не точное число байтов.</value>
+  </data>
+  <data name="DbSizeLoaded" xml:space="preserve">
+    <value>Загружено в {0:HH:mm:ss}.</value>
+  </data>
+  <data name="DbSizeFailed" xml:space="preserve">
+    <value>Не удалось измерить: {0}</value>
+  </data>
+  <data name="DbFileNotFound" xml:space="preserve">
+    <value>Файл не найден</value>
+  </data>
+  <data name="DbSizeUnknown" xml:space="preserve">
+    <value>Неизвестно</value>
+  </data>
+  <data name="DbSizeSampled" xml:space="preserve">
+    <value>по выборке</value>
+  </data>
+  <data name="DbSizeCounted" xml:space="preserve">
+    <value>подсчитано</value>
+  </data>
+  <data name="DbTableTipNoIndexes" xml:space="preserve">
+    <value>Строк: {0:N0}, индексов нет.</value>
+  </data>
+  <data name="DbTableTipIndexes" xml:space="preserve">
+    <value>Строк: {0:N0}, индексов: {1}, их размер: {2}.</value>
+  </data>
+  <data name="SvcTitleSystemd" xml:space="preserve">
+    <value>Фоновая служба (systemd)</value>
+  </data>
+  <data name="SvcTitleWindows" xml:space="preserve">
+    <value>Фоновая служба (Windows)</value>
+  </data>
+  <data name="SvcIntroSystemd" xml:space="preserve">
+    <value>Выполняет фоновую обработку — опрос ESI, расчёт цен, контракты, тревоги, планировщик и резервное копирование — без открытой EVE Console. Эту работу выполняет ровно один клиент: если это приложение открыто и уже её выполняет, юнит ждёт и перенимает работу, когда вы его закроете.</value>
+  </data>
+  <data name="SvcIntroWindows" xml:space="preserve">
+    <value>Выполняет фоновую обработку — опрос ESI, расчёт цен, контракты, тревоги, планировщик и резервное копирование — без открытой EVE Console и запускается автоматически вместе с Windows. Эту работу выполняет ровно один клиент: если это приложение открыто и уже её выполняет, служба ждёт и перенимает работу, когда вы его закроете.</value>
+  </data>
+  <data name="SvcInstallNoteSystemd" xml:space="preserve">
+    <value>Устанавливается как пользовательский юнит systemd в ~/.config/systemd/user, поэтому не нужны ни права root, ни ввод пароля. Он работает от вашего имени в вашем сеансе — так он получает доступ к связке ключей с сохранённым паролем базы данных, и поэтому запускается при входе в систему, а не при загрузке компьютера. Для компьютера, который загружается без участия пользователя, см. системный юнит в папке packaging проекта.</value>
+  </data>
+  <data name="SvcInstallNoteWindows" xml:space="preserve">
+    <value>Установка и удаление один раз запрашивают подтверждение администратора; последующие запуск и остановка — нет. Служба работает от имени LocalSystem, поэтому копия параметров подключения к базе данных записывается в C:\ProgramData\EveConsole, чтобы служба могла её прочитать, — эту копию может расшифровать любая программа на этом компьютере, в отличие от той, что сохранена для вашей учётной записи. При удалении службы копия удаляется.</value>
+  </data>
+  <data name="SvcUpdateNoteSystemd" xml:space="preserve">
+    <value>Обновление перезаписывает юнит, чтобы он запускал эту копию, и перезапускает его.</value>
+  </data>
+  <data name="SvcUpdateNoteWindows" xml:space="preserve">
+    <value>Обновление перезаписывает и то, что служба запускает, и то, к чему она подключается, а затем перезапускает её. Смена базы данных здесь сама этого сделать не может — для записи копии службы нужно подтверждение администратора.</value>
+  </data>
+  <data name="SvcInstallUnit" xml:space="preserve">
+    <value>Установить юнит</value>
+  </data>
+  <data name="SvcInstallService" xml:space="preserve">
+    <value>Установить службу</value>
+  </data>
+  <data name="SvcRemoveUnit" xml:space="preserve">
+    <value>Удалить юнит</value>
+  </data>
+  <data name="SvcRemoveService" xml:space="preserve">
+    <value>Удалить службу</value>
+  </data>
+  <data name="SvcUpdateUnit" xml:space="preserve">
+    <value>Обновить юнит</value>
+  </data>
+  <data name="SvcUpdateService" xml:space="preserve">
+    <value>Обновить службу</value>
+  </data>
+  <data name="SvcRunsLabel" xml:space="preserve">
+    <value>Запускает:</value>
+  </data>
+  <data name="SvcTrayCheckboxWindows" xml:space="preserve">
+    <value>Показывать значок в области уведомлений, запуская его вместе с Windows</value>
+  </data>
+  <data name="SvcTrayCheckboxLinux" xml:space="preserve">
+    <value>Показывать значок в области уведомлений, запуская его вместе с сеансом рабочего стола</value>
+  </data>
+  <data name="SvcDatabaseNoteOk" xml:space="preserve">
+    <value>Нужен PostgreSQL, который этот клиент и использует, — фоновый процесс и все клиенты работают с одним сервером.</value>
+  </data>
+  <data name="SvcDatabaseNoteSqlite" xml:space="preserve">
+    <value>Недоступно: этот клиент работает на SQLite. Файл базы данных может занимать только один процесс, так что фоновый процесс вообще не дал бы этому приложению запуститься. Сначала переключитесь на PostgreSQL на вкладке «База данных».</value>
+  </data>
+  <data name="SvcUpdateReasonBoth" xml:space="preserve">
+    <value>Эта служба подключена не к той базе данных, что этот клиент, и запускает другую копию EVE Console. Она выполняет фоновую работу там, куда вы не смотрите.</value>
+  </data>
+  <data name="SvcUpdateReasonDatabase" xml:space="preserve">
+    <value>Эта служба подключена не к той базе данных, что этот клиент. Настройки базы данных изменились после её установки, а она всё ещё работает со старой.</value>
+  </data>
+  <data name="SvcUpdateReasonUnitCopy" xml:space="preserve">
+    <value>Этот юнит запускает другую копию EVE Console, а не ту, которой вы пользуетесь сейчас, — файл был перемещён, переименован или заменён более новой загрузкой. Если та копия старее, она всё равно запустится, и тогда все клиенты не пройдут проверку версии базы данных.</value>
+  </data>
+  <data name="SvcUpdateReasonServiceCopy" xml:space="preserve">
+    <value>Эта служба запускает другую копию EVE Console, а не ту, которой вы пользуетесь сейчас. Она выполняет фоновую работу с настройками той копии.</value>
+  </data>
+  <data name="SvcTrayStartFailed" xml:space="preserve">
+    <value>Зарегистрирован для следующего входа в систему, но сейчас запустить не удалось — {0}</value>
+  </data>
+  <data name="SvcTrayRunningWindows" xml:space="preserve">
+    <value>Работает и будет запускаться вместе с Windows.</value>
+  </data>
+  <data name="SvcTrayRunningLinux" xml:space="preserve">
+    <value>Работает и будет запускаться вместе с сеансом рабочего стола.</value>
+  </data>
+  <data name="SvcTrayOffWindows" xml:space="preserve">
+    <value>Не будет запускаться вместе с Windows. Уже показанный значок останется, пока вы не выберете в его меню «{0}» или не выйдете из системы.</value>
+  </data>
+  <data name="SvcTrayOffLinux" xml:space="preserve">
+    <value>Не будет запускаться вместе с сеансом рабочего стола. Уже показанный значок останется, пока вы не выберете в его меню «{0}» или не выйдете из системы.</value>
+  </data>
+  <data name="SvcTrayChangeFailed" xml:space="preserve">
+    <value>Не удалось изменить — {0}</value>
+  </data>
+  <data name="SvcChangingStartup" xml:space="preserve">
+    <value>Изменение автозапуска…</value>
+  </data>
+  <data name="SvcChangingStartupApprove" xml:space="preserve">
+    <value>Изменение автозапуска — подтвердите запрос Windows…</value>
+  </data>
+  <data name="SvcChangeStartupFailed" xml:space="preserve">
+    <value>Не удалось изменить автозапуск — {0}</value>
+  </data>
+  <data name="SvcRepointing" xml:space="preserve">
+    <value>Перенастройка…</value>
+  </data>
+  <data name="SvcRepointingApprove" xml:space="preserve">
+    <value>Перенастройка — подтвердите запрос Windows…</value>
+  </data>
+  <data name="SvcRepointFailed" xml:space="preserve">
+    <value>Не удалось перенастроить — {0}</value>
+  </data>
+  <data name="SvcUnknownPath" xml:space="preserve">
+    <value>неизвестно</value>
+  </data>
+  <data name="SvcNotInstalled" xml:space="preserve">
+    <value>Не установлена</value>
+  </data>
+  <data name="SvcRunning" xml:space="preserve">
+    <value>Работает</value>
+  </data>
+  <data name="SvcStoppedUntilLogin" xml:space="preserve">
+    <value>Установлена, остановлена — запустится при следующем входе в систему</value>
+  </data>
+  <data name="SvcStopped" xml:space="preserve">
+    <value>Установлена, остановлена</value>
+  </data>
+  <data name="SvcNotConfigured" xml:space="preserve">
+    <value>не настроена</value>
+  </data>
+  <data name="SvcStoppedUntilBoot" xml:space="preserve">
+    <value>Установлена, остановлена — снова запустится при следующей загрузке системы</value>
+  </data>
+  <data name="SvcStarting" xml:space="preserve">
+    <value>Запуск…</value>
+  </data>
+  <data name="SvcStopping" xml:space="preserve">
+    <value>Остановка…</value>
+  </data>
+  <data name="SvcNotInstalledSqlite" xml:space="preserve">
+    <value>Не установлена — фоновая служба не может работать с SQLite.</value>
+  </data>
+  <data name="SvcInstalling" xml:space="preserve">
+    <value>Установка…</value>
+  </data>
+  <data name="SvcInstallingApprove" xml:space="preserve">
+    <value>Установка — подтвердите запрос Windows…</value>
+  </data>
+  <data name="SvcInstallFailed" xml:space="preserve">
+    <value>Не удалось установить — {0}</value>
+  </data>
+  <data name="SvcRemoving" xml:space="preserve">
+    <value>Удаление…</value>
+  </data>
+  <data name="SvcRemovingApprove" xml:space="preserve">
+    <value>Удаление — подтвердите запрос Windows…</value>
+  </data>
+  <data name="SvcRemoveFailed" xml:space="preserve">
+    <value>Не удалось удалить — {0}</value>
+  </data>
+  <data name="SvcStartFailed" xml:space="preserve">
+    <value>Не удалось запустить — {0}</value>
+  </data>
+  <data name="SvcStopFailed" xml:space="preserve">
+    <value>Не удалось остановить — {0}</value>
+  </data>
+  <data name="SvcAccessDenied" xml:space="preserve">
+    <value>Windows отказала — этой учётной записи не выдано право запускать или останавливать службу. Удалите и снова добавьте службу.</value>
+  </data>
+  <data name="StructureCharNone" xml:space="preserve">
+    <value>(нет — пробовать всех)</value>
+  </data>
+  <data name="ListAskingVoices" xml:space="preserve">
+    <value>Запрос списка голосов…</value>
+  </data>
+  <data name="ListAskingModels" xml:space="preserve">
+    <value>Запрос списка моделей…</value>
+  </data>
+  <data name="ListNoAnswer" xml:space="preserve">
+    <value>нет ответа в течение 15 секунд.</value>
+  </data>
+  <data name="ListFailedVoices" xml:space="preserve">
+    <value>Не удалось получить список голосов — {0} {1}</value>
+  </data>
+  <data name="ListFailedModels" xml:space="preserve">
+    <value>Не удалось получить список моделей — {0} {1}</value>
+  </data>
+  <data name="TypeModelNameInstead" xml:space="preserve">
+    <value>Введите название модели вручную.</value>
+  </data>
+  <data name="ModelLabelFree" xml:space="preserve">
+    <value>{0}  (бесплатно)</value>
+  </data>
+  <data name="ModelLabelPaid" xml:space="preserve">
+    <value>{0}  (платно)</value>
+  </data>
+  <data name="ModelServiceLocal" xml:space="preserve">
+    <value>Локальный сервер — Ollama, LM Studio… (бесплатно)</value>
+  </data>
+  <data name="ModelServiceClaude" xml:space="preserve">
+    <value>Claude — Anthropic (платно)</value>
+  </data>
+  <data name="ModelServiceOpenAi" xml:space="preserve">
+    <value>OpenAI (платно)</value>
+  </data>
+  <data name="ModelHintServerNames" xml:space="preserve">
+    <value>как её называет сервер</value>
+  </data>
+  <data name="ModelHintServiceNames" xml:space="preserve">
+    <value>как её называет сервис</value>
+  </data>
+  <data name="ModelHelpLocal" xml:space="preserve">
+    <value>Сервер должен поддерживать /v1/chat/completions от OpenAI, как Ollama, LM Studio и большинство локальных сред запуска.</value>
+  </data>
+  <data name="ModelNeedClaudeKey" xml:space="preserve">
+    <value>Введите ключ Claude выше, чтобы выбрать из моделей Anthropic.</value>
+  </data>
+  <data name="ModelNeedOpenAiKey" xml:space="preserve">
+    <value>Введите ключ OpenAI выше, чтобы выбрать из моделей OpenAI.</value>
+  </data>
+  <data name="ModelNeedServerAddress" xml:space="preserve">
+    <value>Введите адрес сервера, чтобы выбрать из его моделей.</value>
+  </data>
+  <data name="ModelListFoundClaude" xml:space="preserve">
+    <value>Моделей, доступных вашему ключу: {0}, сначала новые.</value>
+  </data>
+  <data name="ModelListFoundOpenAi" xml:space="preserve">
+    <value>Моделей для беседы: {0}, сначала новые.</value>
+  </data>
+  <data name="ModelListFoundLocal" xml:space="preserve">
+    <value>Моделей на сервере: {0}.</value>
+  </data>
+  <data name="ModelListEmptyLocal" xml:space="preserve">
+    <value>Сервер не сообщает ни одной модели: сначала загрузите модель, например командой «ollama pull».</value>
+  </data>
+  <data name="ModelListEmpty" xml:space="preserve">
+    <value>Сервис не сообщает ни одной модели для этого ключа.</value>
+  </data>
+  <data name="Testing" xml:space="preserve">
+    <value>Проверка…</value>
+  </data>
+  <data name="VoiceListFoundOpenAiModels" xml:space="preserve">
+    <value>Речевых моделей, доступных вашему ключу: {0}, сначала новые.</value>
+  </data>
+  <data name="VoiceListEmptyOpenAiModels" xml:space="preserve">
+    <value>OpenAI не сообщает ни одной речевой модели для этого ключа.</value>
+  </data>
+  <data name="VoiceListOpenAiVoices" xml:space="preserve">
+    <value>Голоса, которые OpenAI указывает в документации для этой модели, — списка, который можно запросить, OpenAI не публикует.</value>
+  </data>
+  <data name="VoiceNeedElevenLabsKeyVoices" xml:space="preserve">
+    <value>Введите ключ ElevenLabs выше, чтобы выбрать из его голосов.</value>
+  </data>
+  <data name="VoiceListFoundElevenLabsVoices" xml:space="preserve">
+    <value>Голосов в вашей учётной записи: {0}.</value>
+  </data>
+  <data name="VoiceListEmptyElevenLabsVoices" xml:space="preserve">
+    <value>В вашей учётной записи пока нет голосов: добавьте голос из Voice Library ElevenLabs.</value>
+  </data>
+  <data name="TypeVoiceIdInstead" xml:space="preserve">
+    <value>Введите ID голоса вручную.</value>
+  </data>
+  <data name="VoiceNeedElevenLabsKeyModels" xml:space="preserve">
+    <value>Введите ключ ElevenLabs выше, чтобы выбрать из его моделей.</value>
+  </data>
+  <data name="VoiceListFoundElevenLabsModels" xml:space="preserve">
+    <value>Моделей, умеющих говорить: {0}.</value>
+  </data>
+  <data name="VoiceListEmptyElevenLabsModels" xml:space="preserve">
+    <value>ElevenLabs не сообщает ни одной речевой модели для этого ключа.</value>
+  </data>
+  <data name="TypeModelIdInstead" xml:space="preserve">
+    <value>Введите ID модели вручную.</value>
+  </data>
+  <data name="VoiceNameHint" xml:space="preserve">
+    <value>{0} (имя помощника)</value>
+  </data>
+  <data name="VoiceEngineKokoro" xml:space="preserve">
+    <value>Kokoro (на этом ПК, бесплатно)</value>
+  </data>
+  <data name="VoiceEngineLocalServer" xml:space="preserve">
+    <value>Локальный сервер — Chatterbox, Orpheus, Kokoro-FastAPI… (бесплатно)</value>
+  </data>
+  <data name="VoiceEnginePiper" xml:space="preserve">
+    <value>Piper (на этом ПК, бесплатно)</value>
+  </data>
+  <data name="VoiceEngineElevenLabs" xml:space="preserve">
+    <value>ElevenLabs (платно)</value>
+  </data>
+  <data name="VoiceDownloading" xml:space="preserve">
+    <value>Загрузка голоса «{0}»…</value>
+  </data>
+  <data name="VoiceModelReady" xml:space="preserve">
+    <value>Модель голоса готова.</value>
+  </data>
+  <data name="DownloadFailed" xml:space="preserve">
+    <value>Не удалось загрузить: {0}</value>
+  </data>
+  <data name="VoiceNeedOpenAiKey" xml:space="preserve">
+    <value>Введите ключ OpenAI выше, чтобы выбрать из речевых моделей OpenAI.</value>
+  </data>
+  <data name="AgentHelpUserName" xml:space="preserve">
+    <value>Как {0} обращается к вам. По умолчанию: {1}. Укажите имя своего основного персонажа, и помощник будет его использовать.</value>
+  </data>
+  <data name="AgentHelpUserGuidance" xml:space="preserve">
+    <value>{0} получает эти указания с каждым сообщением, и они важнее стандартных: что значат ваши слова, кто есть кто, как вы хотите, чтобы помощник себя вёл. Одно указание на строку. Можно и просто сказать: «когда я говорю „дом“, я имею в виду Jita 4-4» — помощник сам запишет это сюда.</value>
+  </data>
+  <data name="AgentHelpAgentName" xml:space="preserve">
+    <value>Имя, которое показывается в заголовке панели и которым помощник называет себя. По умолчанию: {0}.</value>
+  </data>
+  <data name="AgentHeaderTitle" xml:space="preserve">
+    <value>Помощник {0}</value>
+  </data>
+  <data name="AgentEnableCheckbox" xml:space="preserve">
+    <value>Включить ИИ-помощника ({0})</value>
+  </data>
+  <data name="AgentHelpEnable" xml:space="preserve">
+    <value>Когда включено, панель помощника ({0}) доступна из заголовка окна. Нужна модель, настроенная ниже, — с её ключом или адресом сервера.</value>
+  </data>
+  <data name="AgentHelpHistory" xml:space="preserve">
+    <value>История сохраняется на диск и загружается при запуске приложения. Очистить её можно кнопкой ⌫ в панели помощника ({0}).</value>
+  </data>
+  <data name="AgentHelpSummarization" xml:space="preserve">
+    <value>Когда примерная длина беседы превысит это значение, {0} незаметно, в фоне, сожмёт старые сообщения в краткую сводку — обычно пока вы читаете последний ответ. Меньшие значения снижают стоимость API за сообщение, но жертвуют старым контекстом. По умолчанию: 20 000 (~0,06 $ за сообщение такого размера для Sonnet).</value>
+  </data>
+  <data name="AgentHelpTtsVolume" xml:space="preserve">
+    <value>Громкость и отключение звука доступны прямо в панели помощника ({0}), пока она открыта.</value>
+  </data>
+  <data name="AgentHelpMic" xml:space="preserve">
+    <value>Когда настроено, в панели помощника ({0}) появляется кнопка микрофона. Удерживайте её для записи, отпустите для распознавания.</value>
+  </data>
+  <data name="AgentHelpPtt" xml:space="preserve">
+    <value>Удерживайте эту клавишу для записи — работает, даже когда фокус у игры. Клавиши F13-F20 игры почти не перехватывают, поэтому их рекомендуется использовать для режима рации. Кнопка микрофона в панели помощника ({0}) работает всегда, независимо от этой настройки.</value>
+  </data>
+  <data name="VerbosityConcise" xml:space="preserve">
+    <value>Кратко</value>
+  </data>
+  <data name="VerbosityBalanced" xml:space="preserve">
+    <value>Сбалансированно</value>
+  </data>
+  <data name="VerbosityDetailed" xml:space="preserve">
+    <value>Подробно</value>
+  </data>
+  <data name="RoleNone" xml:space="preserve">
+    <value>Нет — роль просто не работает</value>
+  </data>
+  <data name="RoleSameAsConversation" xml:space="preserve">
+    <value>Та же, что для беседы</value>
+  </data>
+  <data name="RoleFirstModel" xml:space="preserve">
+    <value>первая модель</value>
+  </data>
+  <data name="RoleSummaryOne" xml:space="preserve">
+    <value>{0} делает всё: ведёт беседу, работает с инструментами приложения и отвечает на все вопросы о ваших данных, с полным промптом.</value>
+  </data>
+  <data name="RoleSummarySplit" xml:space="preserve">
+    <value>{0} разговаривает с вами и управляет приложением — с промптом примерно вдвое меньше и без доступа к вашим данным. Перед каждым сообщением её одним словом спрашивают, нужны ли для него ваши данные; если нужны, вместо неё отвечает {1} — с базой данных и ESI. Если вопрос о данных всё же проскочит, модель беседы сама передаст его. Начните сообщение с /data или /chat, чтобы в любом случае отправить его нужной модели.</value>
+  </data>
+  <data name="AgentTestChooseModel" xml:space="preserve">
+    <value>Сначала выберите модель.</value>
+  </data>
+  <data name="AgentTestNeedClaudeKey" xml:space="preserve">
+    <value>Нужен ключ Claude (выше).</value>
+  </data>
+  <data name="AgentTestNeedOpenAiKey" xml:space="preserve">
+    <value>Нужен ключ OpenAI (выше).</value>
+  </data>
+  <data name="AgentTestNeedAddress" xml:space="preserve">
+    <value>Нужен адрес сервера.</value>
+  </data>
+  <data name="AgentTestNoAnswer" xml:space="preserve">
+    <value>Модель ответила пустым сообщением.</value>
+  </data>
+  <data name="AgentTestAnswered" xml:space="preserve">
+    <value>Ответ за {0:0.0} с: «{1}»</value>
+  </data>
+  <data name="AgentTestTimedOut" xml:space="preserve">
+    <value>Нет ответа в течение 90 секунд.</value>
+  </data>
+  <data name="CacheTtl5Minutes" xml:space="preserve">
+    <value>5 минут (по умолчанию)</value>
+  </data>
+  <data name="CacheTtl1Hour" xml:space="preserve">
+    <value>1 час</value>
+  </data>
+  <data name="SpeechInputNone" xml:space="preserve">
+    <value>Нет</value>
+  </data>
+  <data name="SpeechInputOpenAiWhisper" xml:space="preserve">
+    <value>OpenAI Whisper</value>
+  </data>
+  <data name="SpeechInputLocalWhisper" xml:space="preserve">
+    <value>Локальный Whisper</value>
+  </data>
+  <data name="TranscriptionNeedOpenAiKey" xml:space="preserve">
+    <value>Введите ключ OpenAI выше, чтобы выбрать из моделей распознавания речи OpenAI.</value>
+  </data>
+  <data name="MicSystemDefault" xml:space="preserve">
+    <value>По умолчанию в системе</value>
+  </data>
+  <data name="TranscriptionListFound" xml:space="preserve">
+    <value>Моделей распознавания речи, доступных вашему ключу: {0}, сначала новые.</value>
+  </data>
+  <data name="TranscriptionListEmpty" xml:space="preserve">
+    <value>OpenAI не сообщает ни одной модели распознавания речи для этого ключа.</value>
+  </data>
+  <data name="Saved" xml:space="preserve">
+    <value>Сохранено.</value>
+  </data>
+  <data name="AgentSpeechUnavailable" xml:space="preserve">
+    <value>Речь недоступна.</value>
+  </data>
+  <data name="VoiceTestSentence" xml:space="preserve">
+    <value>{0}: проверка голоса. Ваш ИИ-помощник готов, капсулёр.</value>
+  </data>
+  <data name="KokoroDownloading" xml:space="preserve">
+    <value>Загрузка модели (~320 MB при первом запуске)…</value>
+  </data>
+  <data name="KokoroReady" xml:space="preserve">
+    <value>Модель Kokoro готова.</value>
+  </data>
+  <data name="KokoroLoadFailed" xml:space="preserve">
+    <value>Не удалось загрузить: {0}</value>
+  </data>
+  <data name="WhisperDownloading" xml:space="preserve">
+    <value>Загрузка {0}…</value>
+  </data>
+  <data name="WhisperDownloaded" xml:space="preserve">
+    <value>Загружено {0:F1} MB…</value>
+  </data>
+  <data name="WhisperModelReady" xml:space="preserve">
+    <value>Модель «{0}» готова.</value>
+  </data>
+  <data name="MethodRegion" xml:space="preserve">
+    <value>Сектор</value>
+  </data>
+  <data name="MethodPlayerStructure" xml:space="preserve">
+    <value>Сооружение игрока</value>
+  </data>
+  <data name="MarketRecalculating" xml:space="preserve">
+    <value>Пересчёт…</value>
+  </data>
+  <data name="MarketAllStations" xml:space="preserve">
+    <value>(Все станции)</value>
+  </data>
+  <data name="MarketLocationFallback" xml:space="preserve">
+    <value>Место {0}</value>
+  </data>
+  <data name="MarketNewSourceName" xml:space="preserve">
+    <value>Новый рынок</value>
+  </data>
+  <data name="MarketSourceAdded" xml:space="preserve">
+    <value>Новый источник добавлен — заполните данные и нажмите «Сохранить».</value>
+  </data>
+  <data name="MarketSourceSaved" xml:space="preserve">
+    <value>Сохранено: «{0}».</value>
+  </data>
+  <data name="MarketSourceRemoved" xml:space="preserve">
+    <value>Источник удалён.</value>
+  </data>
+  <data name="MarketRefreshingAll" xml:space="preserve">
+    <value>Обновление всех источников…</value>
+  </data>
+  <data name="MarketRefreshedAll" xml:space="preserve">
+    <value>Все источники обновлены.</value>
+  </data>
+  <data name="MarketRefreshing" xml:space="preserve">
+    <value>Обновление: {0}…</value>
+  </data>
+  <data name="MarketRefreshComplete" xml:space="preserve">
+    <value>Обновление завершено — {0} — {1}</value>
+  </data>
+  <data name="MarketRefreshFailed" xml:space="preserve">
+    <value>Не удалось обновить: {0}</value>
+  </data>
+  <data name="MarketInvalidId" xml:space="preserve">
+    <value>Неверный ID</value>
+  </data>
+  <data name="MarketResolving" xml:space="preserve">
+    <value>Определение…</value>
+  </data>
+  <data name="MarketSelectAuthChar" xml:space="preserve">
+    <value>Выберите авторизующего персонажа, чтобы искать сооружения</value>
+  </data>
+  <data name="MarketStructureNotFound" xml:space="preserve">
+    <value>Сооружение не найдено (проверьте авторизацию)</value>
+  </data>
+  <data name="MarketStationNotFound" xml:space="preserve">
+    <value>Станция не найдена</value>
+  </data>
+  <data name="MarketSearchNeedsChar" xml:space="preserve">
+    <value>Для поиска добавьте авторизующего персонажа</value>
+  </data>
+  <data name="MarketSearching" xml:space="preserve">
+    <value>Поиск…</value>
+  </data>
+  <data name="MarketResultStation" xml:space="preserve">
+    <value>Станция</value>
+  </data>
+  <data name="MarketResultStructure" xml:space="preserve">
+    <value>Сооружение</value>
+  </data>
+  <data name="MarketStructureFallback" xml:space="preserve">
+    <value>Сооружение {0}</value>
+  </data>
+  <data name="MarketNoResults" xml:space="preserve">
+    <value>Ничего не найдено</value>
+  </data>
+  <data name="MarketResultCount" xml:space="preserve">
+    <value>Найдено: {0}</value>
+  </data>
+  <data name="MarketLocationApplied" xml:space="preserve">
+    <value>Место применено — нажмите «Сохранить», чтобы запомнить его.</value>
+  </data>
+  <data name="SdeNotLoaded" xml:space="preserve">
+    <value>SDE не загружен</value>
+  </data>
+  <data name="SdeChecking" xml:space="preserve">
+    <value>проверка…</value>
+  </data>
+  <data name="SdeNotImportedShort" xml:space="preserve">
+    <value>SDE не импортирован</value>
+  </data>
+  <data name="SdeHoboNotImported" xml:space="preserve">
+    <value>Не импортировано</value>
+  </data>
+  <data name="SdeCheckError" xml:space="preserve">
+    <value>ошибка: {0}</value>
+  </data>
+  <data name="SdeUnavailable" xml:space="preserve">
+    <value>недоступно</value>
+  </data>
+  <data name="SdeHoboRevision" xml:space="preserve">
+    <value>ревизия {0:N0}</value>
+  </data>
+  <data name="SdeNotImported" xml:space="preserve">
+    <value>не импортировано</value>
+  </data>
+  <data name="SdeHoboImported" xml:space="preserve">
+    <value>ревизия {0:N0}, импортировано {1:yyyy-MM-dd HH:mm}</value>
+  </data>
+  <data name="SdeHoboImportedNoRevision" xml:space="preserve">
+    <value>последний импорт {0:yyyy-MM-dd HH:mm} (ревизия не записана)</value>
+  </data>
+  <data name="SdeStarting" xml:space="preserve">
+    <value>Запуск…</value>
+  </data>
+  <data name="SdeImportComplete" xml:space="preserve">
+    <value>Импорт SDE завершён.</value>
+  </data>
+  <data name="SdeImportCompleteWarnings" xml:space="preserve">
+    <value>Импорт SDE завершён — таблиц, на которые стоит взглянуть: {0}, см. журнал ошибок.</value>
+  </data>
+  <data name="SdeImportNamesByLanguage" xml:space="preserve">
+    <value>Названия, сохранённые на других языках игры: {0}.</value>
+  </data>
+  <data name="SdeUpdateRequired" xml:space="preserve">
+    <value>⚠ Требуется обновление — {0}</value>
+  </data>
+  <data name="SdeImportRolledBack" xml:space="preserve">
+    <value>⚠ Импорт откачен — {0}</value>
+  </data>
+  <data name="SdeImportError" xml:space="preserve">
+    <value>Ошибка: {0} — предыдущие данные SDE сохранены.</value>
+  </data>
+  <data name="HoboImportComplete" xml:space="preserve">
+    <value>Импорт Hoboleaks завершён.</value>
+  </data>
+  <data name="HoboImportCompleteWarnings" xml:space="preserve">
+    <value>Импорт Hoboleaks завершён — таблиц, на которые стоит взглянуть: {0}, см. журнал ошибок.</value>
+  </data>
+  <data name="HoboImportError" xml:space="preserve">
+    <value>Ошибка: {0} — предыдущие данные Hoboleaks сохранены.</value>
+  </data>
+  <data name="SdeBuild" xml:space="preserve">
+    <value>сборка {0}  ({1:yyyy-MM-dd})</value>
+  </data>
+  <data name="SlackConnectedTo" xml:space="preserve">
+    <value>Подключено к рабочему пространству {0}.</value>
+  </data>
+  <data name="SlackWaitingForBrowser" xml:space="preserve">
+    <value>Ожидание авторизации Slack в браузере… (нажмите «Отменить», если вы его закрыли)</value>
+  </data>
+  <data name="SlackConnectedAs" xml:space="preserve">
+    <value>Подключено — публикация от имени пользователя {0} в рабочем пространстве {1}.</value>
+  </data>
+  <data name="SlackFailed" xml:space="preserve">
+    <value>Ошибка: {0}</value>
+  </data>
+  <data name="SlackConnectionCancelled" xml:space="preserve">
+    <value>Подключение отменено.</value>
+  </data>
+  <data name="SlackDisconnected" xml:space="preserve">
+    <value>Отключено.</value>
+  </data>
+  <data name="SlackCheckingToken" xml:space="preserve">
+    <value>Проверка токена…</value>
+  </data>
+  <data name="SlackTokenCleared" xml:space="preserve">
+    <value>Токен удалён.</value>
+  </data>
+  <data name="SlackWebhookNeedsNameUrl" xml:space="preserve">
+    <value>Для веб-хука нужны название и URL с https://.</value>
+  </data>
+  <data name="SlackWebhookAdded" xml:space="preserve">
+    <value>Добавлено: «{0}».</value>
+  </data>
+  <data name="SlackAreaCorpTop10" xml:space="preserve">
+    <value>Топ-10 корпорации</value>
+  </data>
+  <data name="SlackAreaMonthlySummary" xml:space="preserve">
+    <value>Месячная сводка</value>
+  </data>
+  <data name="SlackWebhookInUse" xml:space="preserve">
+    <value>«{0}» всё ещё используется для: {1}. Сначала направьте их в другое место.</value>
+  </data>
+  <data name="SlackWebhookRemoved" xml:space="preserve">
+    <value>Удалено: «{0}».</value>
+  </data>
+  <data name="SlackWebhookLabel" xml:space="preserve">
+    <value>Веб-хук: {0}</value>
+  </data>
+  <data name="SlackEnterTokenFirst" xml:space="preserve">
+    <value>Сначала введите токен.</value>
+  </data>
+  <data name="SlackChannelsFailed" xml:space="preserve">
+    <value>Не удалось загрузить каналы: {0}</value>
+  </data>
+  <data name="SlackChannelsAvailable" xml:space="preserve">
+    <value>Доступно каналов: {0:N0}.</value>
+  </data>
+  <data name="ChatIntelParsed" xml:space="preserve">
+    <value>Из сохранённой истории разобрано сообщений разведки: {0:N0}.</value>
+  </data>
+  <data name="ChatIntelFailed" xml:space="preserve">
+    <value>Не удалось разобрать разведданные — {0}</value>
+  </data>
+  <data name="ChatIntelHelp" xml:space="preserve">
+    <value>Сообщения в отмеченных каналах разбираются на разведданные: система, сколько противников замечено и какие пилоты названы. «clr» снимает всё, что числилось в этой системе. По разведданным строятся слои «Разведка» на карте вселенной.</value>
+  </data>
+  <data name="ChatNoChannelsSelected" xml:space="preserve">
+    <value>Каналы не выбраны — ничего не будет сохранено.</value>
+  </data>
+  <data name="ChatChannelsSelected" xml:space="preserve">
+    <value>Выбрано каналов: {0:N0} из {1:N0}.</value>
+  </data>
+  <data name="ChatImportAllFiles" xml:space="preserve">
+    <value>Будут обработаны все файлы выбранных каналов ({0:N0}).</value>
+  </data>
+  <data name="ChatImportFilesSince" xml:space="preserve">
+    <value>Будет обработано файлов за последние {1:N0} дн.: {0:N0}.</value>
+  </data>
+  <data name="LogsCountFailed" xml:space="preserve">
+    <value>Не удалось посчитать файлы — {0}</value>
+  </data>
+  <data name="ChatFolderNotFound" xml:space="preserve">
+    <value>Не удалось найти локальную папку журналов чата EVE.</value>
+  </data>
+  <data name="ChatNoFolder" xml:space="preserve">
+    <value>Папка журналов чата не найдена — добавьте её ниже.</value>
+  </data>
+  <data name="LogsFolderUnreachable" xml:space="preserve">
+    <value>✗ недоступна — {0}</value>
+  </data>
+  <data name="GameLogImportAllFiles" xml:space="preserve">
+    <value>Будут обработаны все файлы журналов ({0:N0}).</value>
+  </data>
+  <data name="GameLogImportFilesSince" xml:space="preserve">
+    <value>Будет обработано файлов журналов, изменённых за последние {1:N0} дн.: {0:N0}.</value>
+  </data>
+  <data name="GameLogNoFolder" xml:space="preserve">
+    <value>Папка игровых журналов не найдена — добавьте её ниже.</value>
+  </data>
+  <data name="GameLogFolderNotFound" xml:space="preserve">
+    <value>Не удалось найти локальную папку игровых журналов EVE.</value>
+  </data>
+  <data name="TimerMinimum" xml:space="preserve">
+    <value>(не менее {0} {1})</value>
+  </data>
+  <data name="TimerUnitSeconds" xml:space="preserve">
+    <value>с</value>
+  </data>
+  <data name="TimerUnitMinutes" xml:space="preserve">
+    <value>мин</value>
+  </data>
+  <data name="TimerForceStarted" xml:space="preserve">
+    <value>запущено</value>
+  </data>
+  <data name="TimerForceDue" xml:space="preserve">
+    <value>в следующем цикле</value>
+  </data>
+  <data name="TimerMarketRefresh" xml:space="preserve">
+    <value>Обновление рыночных цен</value>
+  </data>
+  <data name="TimerPriceHistoryCheck" xml:space="preserve">
+    <value>Проверка истории цен</value>
+  </data>
+  <data name="TimerPublicContracts" xml:space="preserve">
+    <value>Общедоступные контракты (все секторы)</value>
+  </data>
+  <data name="TimerContractItems" xml:space="preserve">
+    <value>Загрузка предметов контрактов</value>
+  </data>
+  <data name="TimerLpStoreOffers" xml:space="preserve">
+    <value>Предложения магазинов наград (все NPC-корпорации)</value>
+  </data>
+  <data name="TimerContractPricing" xml:space="preserve">
+    <value>Пересчёт цен контрактов</value>
+  </data>
+  <data name="MapStatsBackfilling" xml:space="preserve">
+    <value>Дозагрузка из архива EVE Ref…</value>
+  </data>
+  <data name="MapStatsHistoryComplete" xml:space="preserve">
+    <value>История полная — поддерживается актуальность текущего часа</value>
+  </data>
+  <data name="MapStatsWaiting" xml:space="preserve">
+    <value>Ожидание запуска</value>
+  </data>
+  <data name="MapStatsNothingStored" xml:space="preserve">
+    <value>Пока ничего не сохранено.</value>
+  </data>
+  <data name="MapStatsCoverageRow" xml:space="preserve">
+    <value>{0,-24} {1,6:N0} ч   {2,4:N0} дн.   {3} → {4}</value>
+  </data>
+  <data name="Top10TypeCharacter" xml:space="preserve">
+    <value>персонаж</value>
+  </data>
+  <data name="Top10TypeCorporation" xml:space="preserve">
+    <value>корпорация</value>
+  </data>
+  <data name="Top10AddError" xml:space="preserve">
+    <value>Ошибка добавления: {0}</value>
+  </data>
+  <data name="Top10RemoveError" xml:space="preserve">
+    <value>Ошибка удаления: {0}</value>
+  </data>
+  <data name="Top10SaveError" xml:space="preserve">
+    <value>Ошибка сохранения: {0}</value>
+  </data>
+  <data name="Top10TitlesSaved" xml:space="preserve">
+    <value>Заголовки сохранены.</value>
+  </data>
+  <data name="Top10PickName" xml:space="preserve">
+    <value>Сначала выберите имя из списка.</value>
+  </data>
+  <data name="Top10AlreadyExcluded" xml:space="preserve">
+    <value>{0} уже в списке исключений.</value>
+  </data>
+  <data name="Top10Excluded" xml:space="preserve">
+    <value>В список исключений добавлено: {0}.</value>
+  </data>
+  <data name="Top10Unexcluded" xml:space="preserve">
+    <value>Из списка исключений удалено: {0}.</value>
+  </data>
+  <data name="RetentionLastPurged" xml:space="preserve">
+    <value>Последняя очистка: {0:yyyy-MM-dd HH:mm}</value>
+  </data>
+  <data name="RetentionNotRunYet" xml:space="preserve">
+    <value>Ещё не выполнялось.</value>
+  </data>
+  <data name="RetentionPurging" xml:space="preserve">
+    <value>Очистка…</value>
+  </data>
+  <data name="RetentionNothingOlder" xml:space="preserve">
+    <value>Нет ничего старше {0:N0} дн.</value>
+  </data>
+  <data name="RetentionPurgeFailed" xml:space="preserve">
+    <value>Не удалось очистить: {0}</value>
+  </data>
+  <data name="RetentionRemovedErrorLog" xml:space="preserve">
+    <value>Удалено записей старше {1:N0} дн.: {0:N0}. Файл не уменьшится, пока его не сжать, — см. «База данных → Сжать базу данных».</value>
+  </data>
+  <data name="RetentionRemovedKillmails" xml:space="preserve">
+    <value>Удалено отчётов о боях старше {1:N0} дн.: {0:N0}. Файл не уменьшится, пока его не сжать, — см. «База данных → Сжать базу данных».</value>
+  </data>
+  <data name="RetentionPurgingKillmails" xml:space="preserve">
+    <value>Очистка… удалено отчётов о боях: {0:N0} из {1:N0}</value>
+  </data>
+  <data name="RetentionIntroNote" xml:space="preserve">
+    <value>Здесь задаётся, как долго EVE Console хранит данные, которые можно без ущерба забыть. По умолчанию очищается только активность помощника — все остальные правила выключены, пока вы их не включите, — а включённое правило выполняется раз в сутки. Очистка удаляет строки, но SQLite не возвращает освободившиеся страницы на диск, а использует их повторно, поэтому сам файл уменьшается только после сжатия — см. «База данных → Сжать базу данных». «База данных → Структура занятого места» показывает, на что на самом деле ушло место.</value>
+  </data>
+  <data name="RetentionKillmailsNote" xml:space="preserve">
+    <value>Удаляет уничтожение и всё, что к нему привязано: нападающих, предметы, ссылки и отметки zKillboard. Отчёты о боях и их индексы занимают больше всего места в типичной базе данных (61% измеренного файла в 4 GB), поэтому именно эти правила действительно освобождают место. Правил два, чтобы вашу собственную историю можно было хранить дольше, чем чужую; каждое выключено, пока вы его не включите. ⚠️ Удалённые уничтожения исчезают из локальной базы; вернуть их можно, только заново загрузив из ESI или zKillboard, а ESI отдаёт лишь недавние.</value>
+  </data>
+  <data name="RetentionOurKillmails" xml:space="preserve">
+    <value>Персонажи / корпорации</value>
+  </data>
+  <data name="RetentionOurKillmailsNote" xml:space="preserve">
+    <value>Победы и потери ваших персонажей, а также всех добавленных вами корпораций — не только отмеченных как личные. Уничтожение учитывается здесь, если хотя бы один из них — жертва или находится среди нападающих.</value>
+  </data>
+  <data name="RetentionOtherKillmails" xml:space="preserve">
+    <value>Остальные</value>
+  </data>
+  <data name="RetentionOtherKillmailsNote" xml:space="preserve">
+    <value>Чужие уничтожения — импорт из zKillboard, бои, за которыми вы только наблюдали. В измеренной базе данных это 98% уничтожений, поэтому именно это правило освобождает место.</value>
+  </data>
+  <data name="RetentionRemovedPriceHistory" xml:space="preserve">
+    <value>Удалено строк старше {1:N0} дн.: {0:N0}. Файл не уменьшится, пока его не сжать, — см. «База данных → Сжать базу данных».</value>
+  </data>
+  <data name="RetentionRemovedGameLog" xml:space="preserve">
+    <value>Удалено событий старше {1:N0} дн.: {0:N0}. Файл не уменьшится, пока его не сжать, — см. «База данных → Сжать базу данных».</value>
+  </data>
+  <data name="RetentionRemovedChat" xml:space="preserve">
+    <value>Удалено сообщений старше {1:N0} дн.: {0:N0}. Файл не уменьшится, пока его не сжать, — см. «База данных → Сжать базу данных».</value>
+  </data>
+  <data name="RetentionRemovedAgent" xml:space="preserve">
+    <value>Удалено обменов с помощником старше {1:N0} дн.: {0:N0}. Файл не уменьшится, пока его не сжать, — см. «База данных → Сжать базу данных».</value>
+  </data>
+  <data name="ZkbNeverFull" xml:space="preserve">
+    <value>никогда</value>
+  </data>
+  <data name="ScopesTitleCorporation" xml:space="preserve">
+    <value>Добавление корпорации — выбор областей доступа</value>
+  </data>
+  <data name="ScopesTitleCharacter" xml:space="preserve">
+    <value>Добавление персонажа — выбор областей доступа</value>
+  </data>
+  <data name="ConfirmUpdateTitle" xml:space="preserve">
+    <value>Подтверждение обновления</value>
+  </data>
+  <data name="FileTypeSqliteDatabase" xml:space="preserve">
+    <value>База данных SQLite</value>
+  </data>
+  <data name="DbRestartFailed" xml:space="preserve">
+    <value>Не удалось перезапустить ({0}). Закройте EVE Console и откройте снова, чтобы завершить.</value>
+  </data>
+  <data name="DbRelocateNotFound" xml:space="preserve">
+    <value>Файл базы данных не найден.</value>
+  </data>
+  <data name="DbRelocateTargetExists" xml:space="preserve">
+    <value>По пути {0} уже есть файл. База данных осталась на прежнем месте.</value>
+  </data>
+  <data name="DbPreparingDatabase" xml:space="preserve">
+    <value>Подготовка базы данных…</value>
+  </data>
+  <data name="DbRelocateMoving" xml:space="preserve">
+    <value>Перемещение базы данных…</value>
+  </data>
+  <data name="DbVerifying" xml:space="preserve">
+    <value>Проверка…</value>
+  </data>
+  <data name="DbRelocateVerifyFailed" xml:space="preserve">
+    <value>Перемещённая база данных не прошла проверку ({0}) и возвращена на место: {1}.</value>
+  </data>
+  <data name="DbRelocateUpdatingConfig" xml:space="preserve">
+    <value>Обновление конфигурации…</value>
+  </data>
+  <data name="DbRelocateDone" xml:space="preserve">
+    <value>База данных перемещена.</value>
+  </data>
+  <data name="DbRelocateMovedTo" xml:space="preserve">
+    <value>База данных перемещена: {0}.</value>
+  </data>
+  <data name="DbRelocateFailed" xml:space="preserve">
+    <value>Не удалось переместить базу данных — она осталась здесь: {0}. ({1})</value>
+  </data>
+  <data name="DbVerifyNoTables" xml:space="preserve">
+    <value>в ней нет таблиц</value>
+  </data>
+  <data name="DbShrinkFileNotFound" xml:space="preserve">
+    <value>Файл базы данных не найден.</value>
+  </data>
+  <data name="DbShrinkBackingUp" xml:space="preserve">
+    <value>Резервное копирование базы данных…</value>
+  </data>
+  <data name="DbShrinkShrinking" xml:space="preserve">
+    <value>Сжатие базы данных — это может занять время…</value>
+  </data>
+  <data name="DbShrinkVerifyFailed" xml:space="preserve">
+    <value>Сжатие завершено, но база данных не прошла проверку: {0}. Копия, сделанная заранее, находится здесь: {1}.</value>
+  </data>
+  <data name="DbShrinkDone" xml:space="preserve">
+    <value>База данных сжата.</value>
+  </data>
+  <data name="DbShrinkResult" xml:space="preserve">
+    <value>База данных сжата с {0} до {1} — освобождено {2}.</value>
+  </data>
+  <data name="DbShrinkFailed" xml:space="preserve">
+    <value>Не удалось сжать — база данных не изменена. Копия, сделанная заранее, находится здесь: {0}. ({1})</value>
+  </data>
+  <data name="DbVerifyNoResult" xml:space="preserve">
+    <value>нет результата</value>
+  </data>
+  <data name="DbShrinkVerifyNoTables" xml:space="preserve">
+    <value>в перестроенном файле нет таблиц</value>
+  </data>
+  <data name="PgRestoreSkippedMissing" xml:space="preserve">
+    <value>Восстановление пропущено: файла {0} больше нет.</value>
+  </data>
+  <data name="PgRestoreSkippedNoConnection" xml:space="preserve">
+    <value>Восстановление пропущено: подключение к PostgreSQL не настроено.</value>
+  </data>
+  <data name="PgRestoreLooking" xml:space="preserve">
+    <value>Поиск pg_restore…</value>
+  </data>
+  <data name="PgRestoreFailed" xml:space="preserve">
+    <value>Не удалось восстановить: {0}</value>
+  </data>
+  <data name="PgRestoreNotBesideDump" xml:space="preserve">
+    <value>Не удалось восстановить: pg_restore не найден рядом с pg_dump ({0}).</value>
+  </data>
+  <data name="PgRestoreRestoring" xml:space="preserve">
+    <value>Восстановление {0} в {1}…</value>
+  </data>
+  <data name="PgCouldNotStart" xml:space="preserve">
+    <value>Не удалось запустить {0}.</value>
+  </data>
+  <data name="PgRestoreFinished" xml:space="preserve">
+    <value>Восстановление завершено.</value>
+  </data>
+  <data name="PgExitCode" xml:space="preserve">
+    <value>код выхода {0}</value>
+  </data>
+  <data name="PgRestoreFailedEmpty" xml:space="preserve">
+    <value>Не удалось восстановить, база данных пуста: {0}</value>
+  </data>
+  <data name="PgDumpNotFound" xml:space="preserve">
+    <value>pg_dump не найден. Он входит в клиентские инструменты PostgreSQL — пакет postgresql-client в Debian или Ubuntu, postgresql в Arch или инструменты командной строки из установщика для Windows.</value>
+  </data>
+  <data name="PgDumpServerUnreachable" xml:space="preserve">
+    <value>Найден pg_dump {0} ({1}), но не удалось связаться с сервером, чтобы проверить его версию: {2}</value>
+  </data>
+  <data name="PgDumpTooOld" xml:space="preserve">
+    <value>pg_dump {0} ({1}) старше сервера ({2}) и откажется делать его дамп. Установите клиентские инструменты версии {2} или новее.</value>
+  </data>
+  <data name="PgDumpFound" xml:space="preserve">
+    <value>pg_dump {0} ({1}); сервер {2}.</value>
+  </data>
+  <data name="PgDumpRunning" xml:space="preserve">
+    <value>Выполняется pg_dump…</value>
+  </data>
+  <data name="PgDumpFailed" xml:space="preserve">
+    <value>Ошибка pg_dump: {0}</value>
+  </data>
+  <data name="DbSecretDpapi" xml:space="preserve">
+    <value>Пароль зашифрован Windows для вашей учётной записи на этом компьютере. Если скопировать config.json в другое место, пароль в пригодном виде с ним не перенесётся.</value>
+  </data>
+  <data name="DbSecretLibSecret" xml:space="preserve">
+    <value>Пароль хранится в связке ключей рабочего стола; config.json содержит только ссылку на него.</value>
+  </data>
+  <data name="DbSecretNone" xml:space="preserve">
+    <value>Связка ключей не найдена, поэтому пароль хранится в config.json в том виде, как введён. Установите libsecret-tools (secret-tool), чтобы он хранился в связке ключей.</value>
+  </data>
+  <data name="DbSizeMeasuringTable" xml:space="preserve">
+    <value>Измерение {0} ({1} из {2})…</value>
+  </data>
+  <data name="DbSizeReadingTables" xml:space="preserve">
+    <value>Чтение размеров таблиц…</value>
+  </data>
+  <data name="DbSizeReadTables" xml:space="preserve">
+    <value>Прочитано таблиц: {0:N0}.</value>
+  </data>
+  <data name="PgRestoreDone" xml:space="preserve">
+    <value>Восстановлено из {0} — таблиц: {1:N0}.</value>
+  </data>
+  <data name="PgRestoreDoneWithErrors" xml:space="preserve">
+    <value>Восстановлено из {0} — таблиц: {1:N0}, несущественных ошибок при DROP: {2:N0}.</value>
+  </data>
+  <data name="OperationCancelled" xml:space="preserve">
+    <value>Отменено.</value>
+  </data>
+  <data name="SvcWindowsOnly" xml:space="preserve">
+    <value>Только для Windows.</value>
+  </data>
+  <data name="SvcNoAppPath" xml:space="preserve">
+    <value>Не удалось определить путь к этому приложению.</value>
+  </data>
+  <data name="SvcElevatedNotStarted" xml:space="preserve">
+    <value>Шаг с правами администратора не запустился.</value>
+  </data>
+  <data name="SvcElevatedFailed" xml:space="preserve">
+    <value>Шаг с правами администратора завершился ошибкой (код {0}). См. журнал ошибок.</value>
+  </data>
+  <data name="SvcDaemonReloadFailed" xml:space="preserve">
+    <value>Ошибка systemctl daemon-reload: {0}</value>
+  </data>
+  <data name="SvcEnableFailed" xml:space="preserve">
+    <value>Ошибка systemctl enable: {0}</value>
+  </data>
+  <data name="SvcRepointNotInstalled" xml:space="preserve">
+    <value>Юнит не установлен.</value>
+  </data>
+  <data name="SvcCouldNotRun" xml:space="preserve">
+    <value>не удалось запустить {0}</value>
+  </data>
+  <data name="MarketStatusOk" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="MarketStatusOkOrders" xml:space="preserve">
+    <value>OK (загружено ордеров: {0:N0})</value>
+  </data>
+  <data name="MarketNoSdeTypes" xml:space="preserve">
+    <value>Типы из SDE не загружены — сначала выполните импорт SDE.</value>
+  </data>
+  <data name="MarketEsiError" xml:space="preserve">
+    <value>Ошибка ESI {0}: {1}</value>
+  </data>
+  <data name="MarketNoAuthChar" xml:space="preserve">
+    <value>Для источника «Сооружение игрока» не задан авторизующий персонаж.</value>
+  </data>
+  <data name="BuildCostNotCalculated" xml:space="preserve">
+    <value>Стоимость производства: ещё не рассчитана</value>
+  </data>
+  <data name="BuildCostFetching" xml:space="preserve">
+    <value>Стоимость производства: загрузка данных ESI…</value>
+  </data>
+  <data name="BuildCostCalculating" xml:space="preserve">
+    <value>Стоимость производства: расчёт…</value>
+  </data>
+  <data name="BuildCostError" xml:space="preserve">
+    <value>Стоимость производства: ошибка — {0}</value>
+  </data>
+  <data name="BuildCostNoDefaultPark" xml:space="preserve">
+    <value>Стоимость производства: промпарк по умолчанию не задан — отметьте промпарк по умолчанию в «Промпарках»</value>
+  </data>
+  <data name="BuildCostCalculatingCycle" xml:space="preserve">
+    <value>Стоимость производства: расчёт… (в цикле зависимостей: {0}, рассчитываются последними)</value>
+  </data>
+  <data name="BuildCostUpdated" xml:space="preserve">
+    <value>Стоимость производства: обновлено в {0:t} (предметов: {1:N0})</value>
+  </data>
+  <data name="GameLogStatusNotStarted" xml:space="preserve">
+    <value>Игровые журналы: не запущено</value>
+  </data>
+  <data name="GameLogStatusStopped" xml:space="preserve">
+    <value>Игровые журналы: остановлено</value>
+  </data>
+  <data name="GameLogStatusError" xml:space="preserve">
+    <value>Игровые журналы: ошибка — {0}</value>
+  </data>
+  <data name="GameLogStatusDisabled" xml:space="preserve">
+    <value>Игровые журналы: выключено</value>
+  </data>
+  <data name="GameLogStatusNoFolder" xml:space="preserve">
+    <value>Игровые журналы: папка не найдена</value>
+  </data>
+  <data name="GameLogStatusUnreachable" xml:space="preserve">
+    <value>Игровые журналы: отслеживание, недоступных папок: {0}</value>
+  </data>
+  <data name="GameLogStatusNew" xml:space="preserve">
+    <value>Игровые журналы: +{0:N0} (новые строки)</value>
+  </data>
+  <data name="GameLogStatusWatching" xml:space="preserve">
+    <value>Игровые журналы: отслеживание</value>
+  </data>
+  <data name="GameLogScanningFolders" xml:space="preserve">
+    <value>Сканирование папок…</value>
+  </data>
+  <data name="LogImportFileProgress" xml:space="preserve">
+    <value>Файл {0:N0} из {1:N0} — {2}</value>
+  </data>
+  <data name="GameLogImportCancelled" xml:space="preserve">
+    <value>Игровые журналы: импорт отменён (файлов: {0:N0}, строк: {1:N0})</value>
+  </data>
+  <data name="GameLogImportDone" xml:space="preserve">
+    <value>Игровые журналы: импорт завершён (строк: {0:N0}, файлов: {1:N0})</value>
+  </data>
+  <data name="GameLogImportFailed" xml:space="preserve">
+    <value>Игровые журналы: ошибка импорта — {0}</value>
+  </data>
+  <data name="ChatLogStatusDisabled" xml:space="preserve">
+    <value>Журналы чата: выключено</value>
+  </data>
+  <data name="ChatLogStatusStopped" xml:space="preserve">
+    <value>Журналы чата: остановлено</value>
+  </data>
+  <data name="ChatLogStatusError" xml:space="preserve">
+    <value>Журналы чата: ошибка — {0}</value>
+  </data>
+  <data name="ChatLogScanningFolders" xml:space="preserve">
+    <value>Сканирование папок журналов чата…</value>
+  </data>
+  <data name="ChatLogChannelsFound" xml:space="preserve">
+    <value>Найдено каналов: {0:N0}.</value>
+  </data>
+  <data name="ChatLogDiscoveryFailed" xml:space="preserve">
+    <value>Не удалось найти каналы — {0}</value>
+  </data>
+  <data name="ChatLogStatusNoFolder" xml:space="preserve">
+    <value>Журналы чата: папка не найдена</value>
+  </data>
+  <data name="ChatLogStatusNoChannels" xml:space="preserve">
+    <value>Журналы чата: каналы не выбраны</value>
+  </data>
+  <data name="ChatLogStatusNew" xml:space="preserve">
+    <value>Журналы чата: +{0:N0} (новые сообщения)</value>
+  </data>
+  <data name="ChatLogStatusWatching" xml:space="preserve">
+    <value>Журналы чата: отслеживается каналов: {0}</value>
+  </data>
+  <data name="ChatLogSelectChannelFirst" xml:space="preserve">
+    <value>Журналы чата: сначала выберите хотя бы один канал</value>
+  </data>
+  <data name="ChatLogImportCancelled" xml:space="preserve">
+    <value>Журналы чата: импорт отменён (файлов: {0:N0}, сообщений: {1:N0})</value>
+  </data>
+  <data name="ChatLogImportDone" xml:space="preserve">
+    <value>Журналы чата: импорт завершён (сообщений: {0:N0}, файлов: {1:N0})</value>
+  </data>
+  <data name="ChatLogImportFailed" xml:space="preserve">
+    <value>Журналы чата: ошибка импорта — {0}</value>
+  </data>
+  <data name="MapStatsPollIdle" xml:space="preserve">
+    <value>Статистика карты: ожидание</value>
+  </data>
+  <data name="MapStatsPollStored" xml:space="preserve">
+    <value>Статистика карты: в {1:HH:mm} сохранено строк: {0:N0}</value>
+  </data>
+  <data name="MapStatsPollUpToDate" xml:space="preserve">
+    <value>Статистика карты: актуальна на {0:HH:mm}</value>
+  </data>
+  <data name="MapStatsBackfillCancelled" xml:space="preserve">
+    <value>Отменено</value>
+  </data>
+  <data name="MapStatsBackfillComplete" xml:space="preserve">
+    <value>Завершено</value>
+  </data>
+  <data name="MapStatsCompacting" xml:space="preserve">
+    <value>Сжатие имеющихся данных карты…</value>
+  </data>
+  <data name="MapStatsReclaiming" xml:space="preserve">
+    <value>Освобождение места на диске…</value>
+  </data>
+  <data name="MapStatsCompactionComplete" xml:space="preserve">
+    <value>Сжатие завершено</value>
+  </data>
+  <data name="SdeIncompatible" xml:space="preserve">
+    <value>EVE Console нужно обновить, прежде чем она сможет обновить SDE. В архиве не найдены обязательные файлы (возможно, CCP изменила формат SDE): {0}. Имеющиеся данные SDE НЕ удалены.</value>
+  </data>
+  <data name="ImportStagePreparing" xml:space="preserve">
+    <value>Подготовка</value>
+  </data>
+  <data name="SdeFetchingBuildInfo" xml:space="preserve">
+    <value>Получение сведений о сборке…</value>
+  </data>
+  <data name="SdeCreatingSchema" xml:space="preserve">
+    <value>Создание схемы…</value>
+  </data>
+  <data name="SdeReadingRowCounts" xml:space="preserve">
+    <value>Подсчёт текущего числа строк…</value>
+  </data>
+  <data name="SdeClearing" xml:space="preserve">
+    <value>Очистка имеющихся данных SDE…</value>
+  </data>
+  <data name="ImportStageVerifying" xml:space="preserve">
+    <value>Проверка</value>
+  </data>
+  <data name="ImportCheckingRowCounts" xml:space="preserve">
+    <value>Проверка числа строк…</value>
+  </data>
+  <data name="ImportStageDone" xml:space="preserve">
+    <value>Готово</value>
+  </data>
+  <data name="SdeOptionalMissing" xml:space="preserve">
+    <value>Не найдены необязательные файлы (будут пропущены): {0}</value>
+  </data>
+  <data name="SdeAllFilesPresent" xml:space="preserve">
+    <value>Все файлы SDE на месте.</value>
+  </data>
+  <data name="SdeFlatFormat" xml:space="preserve">
+    <value>Обнаружен новый плоский формат SDE</value>
+  </data>
+  <data name="SdeNestedFormat" xml:space="preserve">
+    <value>Старый вложенный формат SDE, префикс: «{0}»</value>
+  </data>
+  <data name="ImportStageWarning" xml:space="preserve">
+    <value>Предупреждение</value>
+  </data>
+  <data name="SdeRootNotDetected" xml:space="preserve">
+    <value>Не удалось определить корень ZIP — считаем формат плоским</value>
+  </data>
+  <data name="ImportStageDownloadingSde" xml:space="preserve">
+    <value>Загрузка SDE</value>
+  </data>
+  <data name="ImportStageCategories" xml:space="preserve">
+    <value>Категории</value>
+  </data>
+  <data name="SdeNotFoundInZip" xml:space="preserve">
+    <value>НЕ НАЙДЕНО в ZIP — пропущено</value>
+  </data>
+  <data name="ImportParsing" xml:space="preserve">
+    <value>Разбор…</value>
+  </data>
+  <data name="ImportStageGroups" xml:space="preserve">
+    <value>Группы</value>
+  </data>
+  <data name="SdeParsedGroups" xml:space="preserve">
+    <value>Прочитано групп из YAML: {0:N0} — сохранение…</value>
+  </data>
+  <data name="ImportStageMarketGroups" xml:space="preserve">
+    <value>Группы рынка</value>
+  </data>
+  <data name="ImportStageTypes" xml:space="preserve">
+    <value>Типы</value>
+  </data>
+  <data name="SdeParsedTypes" xml:space="preserve">
+    <value>Прочитано типов из YAML: {0:N0} — сохранение…</value>
+  </data>
+  <data name="ImportStageNames" xml:space="preserve">
+    <value>Переводы названий</value>
+  </data>
+  <data name="ImportStageDescriptions" xml:space="preserve">
+    <value>Переводы описаний</value>
+  </data>
+  <data name="ImportStageAttrCategories" xml:space="preserve">
+    <value>Категории характеристик</value>
+  </data>
+  <data name="SdeNotFoundSkipped" xml:space="preserve">
+    <value>НЕ НАЙДЕНО — пропущено</value>
+  </data>
+  <data name="ImportStageDogmaAttributes" xml:space="preserve">
+    <value>Характеристики Dogma</value>
+  </data>
+  <data name="ImportStageDogmaEffects" xml:space="preserve">
+    <value>Эффекты Dogma</value>
+  </data>
+  <data name="ImportStageTypeDogma" xml:space="preserve">
+    <value>Dogma типов</value>
+  </data>
+  <data name="ImportStageTypeDogmaAttributes" xml:space="preserve">
+    <value>Характеристики Dogma типов</value>
+  </data>
+  <data name="ImportStageTypeDogmaEffects" xml:space="preserve">
+    <value>Эффекты Dogma типов</value>
+  </data>
+  <data name="ImportStageBlueprints" xml:space="preserve">
+    <value>Чертежи</value>
+  </data>
+  <data name="ImportStageBlueprintMaterials" xml:space="preserve">
+    <value>Материалы чертежей</value>
+  </data>
+  <data name="ImportStageBlueprintProducts" xml:space="preserve">
+    <value>Продукция чертежей</value>
+  </data>
+  <data name="ImportStageBlueprintSkills" xml:space="preserve">
+    <value>Навыки для чертежей</value>
+  </data>
+  <data name="ImportStageUniverse" xml:space="preserve">
+    <value>Вселенная</value>
+  </data>
+  <data name="ImportStageRegions" xml:space="preserve">
+    <value>Секторы</value>
+  </data>
+  <data name="ImportStageConstellations" xml:space="preserve">
+    <value>Созвездия</value>
+  </data>
+  <data name="ImportStageSolarSystems" xml:space="preserve">
+    <value>Звёздные системы</value>
+  </data>
+  <data name="ImportStageStargates" xml:space="preserve">
+    <value>Звёздные врата</value>
+  </data>
+  <data name="SdeParsingBelts" xml:space="preserve">
+    <value>Разбор поясов астероидов…</value>
+  </data>
+  <data name="ImportStageCelestials" xml:space="preserve">
+    <value>Небесные объекты</value>
+  </data>
+  <data name="ImportStagePlanetResources" xml:space="preserve">
+    <value>Ресурсы планет</value>
+  </data>
+  <data name="ImportStageAgents" xml:space="preserve">
+    <value>Агенты</value>
+  </data>
+  <data name="ImportStageAgentTypes" xml:space="preserve">
+    <value>Типы агентов</value>
+  </data>
+  <data name="ImportStageCorpDivisions" xml:space="preserve">
+    <value>Подразделения корпораций</value>
+  </data>
+  <data name="SdeScanningEntries" xml:space="preserve">
+    <value>Просмотр записей…</value>
+  </data>
+  <data name="SdeFoundUniverse" xml:space="preserve">
+    <value>Найдено секторов: {0}, созвездий: {1}, систем: {2}</value>
+  </data>
+  <data name="ImportStageStations" xml:space="preserve">
+    <value>Станции</value>
+  </data>
+  <data name="SdeFetchingStationNames" xml:space="preserve">
+    <value>Получение названий станций из ESI ({0:N0})…</value>
+  </data>
+  <data name="ImportStageFactions" xml:space="preserve">
+    <value>Фракции</value>
+  </data>
+  <data name="ImportStageNpcCorporations" xml:space="preserve">
+    <value>NPC-корпорации</value>
+  </data>
+  <data name="ImportStageIndustryModifiers" xml:space="preserve">
+    <value>Влияние на промышленность</value>
+  </data>
+  <data name="ImportStageRaces" xml:space="preserve">
+    <value>Расы</value>
+  </data>
+  <data name="ImportStageMetaGroups" xml:space="preserve">
+    <value>Метагруппы</value>
+  </data>
+  <data name="ImportStageCertificates" xml:space="preserve">
+    <value>Сертификаты</value>
+  </data>
+  <data name="ImportStageTypeMaterials" xml:space="preserve">
+    <value>Материалы типов</value>
+  </data>
+  <data name="ImportStagePiSchematics" xml:space="preserve">
+    <value>Схемы планетарной промышленности</value>
+  </data>
+  <data name="ImportStagePiSchematicTypes" xml:space="preserve">
+    <value>Типы в схемах планетарной промышленности</value>
+  </data>
+  <data name="ImportStageDogmaUnits" xml:space="preserve">
+    <value>Единицы Dogma</value>
+  </data>
+  <data name="ImportStageIcons" xml:space="preserve">
+    <value>Значки</value>
+  </data>
+  <data name="ImportStageGraphics" xml:space="preserve">
+    <value>Графика</value>
+  </data>
+  <data name="ImportStageSkins" xml:space="preserve">
+    <value>Окраски</value>
+  </data>
+  <data name="ImportStageSkinTypes" xml:space="preserve">
+    <value>Типы окрасок</value>
+  </data>
+  <data name="ImportStageSkinLicenses" xml:space="preserve">
+    <value>Лицензии на окраски</value>
+  </data>
+  <data name="ImportRowsProgress" xml:space="preserve">
+    <value>строк: {0:N0}</value>
+  </data>
+  <data name="ImportRowsSaved" xml:space="preserve">
+    <value>сохранено строк: {0:N0}</value>
+  </data>
+  <data name="ImportStageStationServices" xml:space="preserve">
+    <value>Станционные службы</value>
+  </data>
+  <data name="SdeServicesCount" xml:space="preserve">
+    <value>служб: {0:N0}</value>
+  </data>
+  <data name="ImportStageStationOperations" xml:space="preserve">
+    <value>Виды станций</value>
+  </data>
+  <data name="SdeOperationsCount" xml:space="preserve">
+    <value>видов: {0:N0}</value>
+  </data>
+  <data name="HoboIncompatible" xml:space="preserve">
+    <value>EVE Console нужно обновить, прежде чем она сможет обновить данные Hoboleaks. Следующие файлы больше не публикуются в манифесте Hoboleaks: {0}. Имеющиеся данные Hoboleaks НЕ удалены.</value>
+  </data>
+  <data name="HoboCreatingSchema" xml:space="preserve">
+    <value>Создание схемы Hobo…</value>
+  </data>
+  <data name="HoboReadingManifest" xml:space="preserve">
+    <value>Чтение манифеста Hoboleaks…</value>
+  </data>
+  <data name="HoboManifestUnreadable" xml:space="preserve">
+    <value>Не удалось прочитать манифест Hoboleaks, поэтому импорт не выполнялся. Имеющиеся данные Hoboleaks НЕ изменены.</value>
+  </data>
+  <data name="ImportStageDownloading" xml:space="preserve">
+    <value>Загрузка</value>
+  </data>
+  <data name="HoboClearing" xml:space="preserve">
+    <value>Очистка имеющихся данных Hobo…</value>
+  </data>
+  <data name="HoboManifestCurrent" xml:space="preserve">
+    <value>Ревизия манифеста {0:N0}, все файлы актуальны ({1}).</value>
+  </data>
+  <data name="HoboManifestFlagged" xml:space="preserve">
+    <value>Ревизия манифеста {0:N0}, помечено файлов: {1} — см. журнал ошибок.</value>
+  </data>
+  <data name="HoboParsedBlueprints" xml:space="preserve">
+    <value>Прочитано чертежей: {0:N0} — сохранение…</value>
+  </data>
+  <data name="ImportStageBlueprintActivities" xml:space="preserve">
+    <value>Виды работ по чертежам</value>
+  </data>
+  <data name="ImportStageRepackagedVolumes" xml:space="preserve">
+    <value>Объёмы в упаковке</value>
+  </data>
+  <data name="ImportStageCompressibleTypes" xml:space="preserve">
+    <value>Сжимаемые типы</value>
+  </data>
+  <data name="ImportParsingFile" xml:space="preserve">
+    <value>Разбор {0}…</value>
+  </data>
+  <data name="ImportParsingFileLarge" xml:space="preserve">
+    <value>Разбор {0} (большой файл)…</value>
+  </data>
+  <data name="SdeFileNotFoundSkipped" xml:space="preserve">
+    <value>{0} НЕ НАЙДЕН — пропущен</value>
+  </data>
+  <data name="SdeUniverseDataFile" xml:space="preserve">
+    <value>{0} (данные вселенной)</value>
+  </data>
+  <data name="ModelNoneChosen" xml:space="preserve">
+    <value>модель не выбрана</value>
+  </data>
+  <data name="ModelDescribeLocalOn" xml:space="preserve">
+    <value>Локальная — {0} на {1}</value>
+  </data>
+  <data name="ModelDescribeLocal" xml:space="preserve">
+    <value>Локальная — {0}</value>
+  </data>
+  <data name="PiperVoiceKeyNotFound" xml:space="preserve">
+    <value>Ключ голоса «{0}» не найден в списке моделей HuggingFace.</value>
+  </data>
+  <data name="WhisperModelTiny" xml:space="preserve">
+    <value>Tiny (~75 MB)</value>
+  </data>
+  <data name="WhisperModelBase" xml:space="preserve">
+    <value>Base (~142 MB)</value>
+  </data>
+  <data name="WhisperModelSmall" xml:space="preserve">
+    <value>Small (~466 MB)</value>
+  </data>
+  <data name="WhisperModelMedium" xml:space="preserve">
+    <value>Medium (~1,5 GB)</value>
+  </data>
+  <data name="WhisperNotLoadedYet" xml:space="preserve">
+    <value>ещё не загружена</value>
+  </data>
+  <data name="PttKeyDisabled" xml:space="preserve">
+    <value>Отключено</value>
+  </data>
+  <data name="VoiceTestMuted" xml:space="preserve">
+    <value>Речь отключена — включите звук в панели помощника, чтобы услышать проверку.</value>
+  </data>
+  <data name="VoiceTestStopped" xml:space="preserve">
+    <value>Остановлено до завершения.</value>
+  </data>
+  <data name="VoiceTestSpokeTook" xml:space="preserve">
+    <value>Готово. Подготовка перед воспроизведением заняла {0:0.0} с — столько придётся ждать первого предложения ответа; каждое следующее готовится, пока звучит предыдущее.</value>
+  </data>
+  <data name="VoiceTestSpoke" xml:space="preserve">
+    <value>Готово.</value>
+  </data>
+  <data name="SlackNoteToSelf" xml:space="preserve">
+    <value>Заметки для себя</value>
+  </data>
+  <data name="SlackUnknownError" xml:space="preserve">
+    <value>неизвестная ошибка</value>
+  </data>
+  <data name="AgentModelFailoverDefault" xml:space="preserve">
+    <value>{user}, основная модель, которую я использую для {purpose}, стала недоступна, поэтому я переключаюсь на {fallback}.</value>
+  </data>
+  <data name="AgentModelReturnDefault" xml:space="preserve">
+    <value>{user}, основная модель, которую я использую для {purpose}, снова доступна, поэтому я переключаюсь обратно на {primary}.</value>
+  </data>
+  <data name="AgentVoiceHandoverDefault" xml:space="preserve">
+    <value>Извините, {previous} больше не может говорить. Я {current}, дальше продолжу я.</value>
+  </data>
+  <data name="AgentVoiceReturnDefault" xml:space="preserve">
+    <value>Это {current}, я снова с вами. Спасибо, {previous}.</value>
+  </data>
+  <data name="VoiceNoneChosen" xml:space="preserve">
+    <value>голос не выбран</value>
+  </data>
+  <data name="VoiceDescribeLocalServer" xml:space="preserve">
+    <value>Локальный сервер — {0}</value>
+  </data>
+  <data name="VoiceDescribeLocalServerVoice" xml:space="preserve">
+    <value>Локальный сервер — {0} ({1})</value>
+  </data>
+  <data name="ModelNotInListNow" xml:space="preserve">
+    <value>{0}  — сейчас нет в списке</value>
+  </data>
+  <data name="KokoroVoiceAmericanFemaleDefault" xml:space="preserve">
+    <value>{0} (американский, женский — по умолчанию)</value>
+  </data>
+  <data name="KokoroVoiceAmericanFemale" xml:space="preserve">
+    <value>{0} (американский, женский)</value>
+  </data>
+  <data name="KokoroVoiceAmericanMale" xml:space="preserve">
+    <value>{0} (американский, мужской)</value>
+  </data>
+  <data name="KokoroVoiceBritishFemale" xml:space="preserve">
+    <value>{0} (британский, женский)</value>
+  </data>
+  <data name="KokoroVoiceBritishMale" xml:space="preserve">
+    <value>{0} (британский, мужской)</value>
+  </data>
+  <data name="PiperVoiceLabel" xml:space="preserve">
+    <value>{0} — {1}, {2}</value>
+  </data>
+  <data name="PiperKindUs" xml:space="preserve">
+    <value>американский</value>
+  </data>
+  <data name="PiperKindUsMale" xml:space="preserve">
+    <value>американский, мужской</value>
+  </data>
+  <data name="PiperKindUsFemale" xml:space="preserve">
+    <value>американский, женский</value>
+  </data>
+  <data name="PiperKindGbMale" xml:space="preserve">
+    <value>британский, мужской</value>
+  </data>
+  <data name="PiperKindGbFemale" xml:space="preserve">
+    <value>британский, женский</value>
+  </data>
+  <data name="PiperQualityMedium" xml:space="preserve">
+    <value>среднее качество</value>
+  </data>
+  <data name="PiperQualityHigh" xml:space="preserve">
+    <value>высокое качество</value>
+  </data>
+  <data name="PiperQualityMediumCompact" xml:space="preserve">
+    <value>среднее качество (компактная версия)</value>
+  </data>
+  <data name="KokoroVoicesMissing" xml:space="preserve">
+    <value>Голоса Kokoro отсутствуют в {0}</value>
+  </data>
+  <data name="KokoroCouldNotLoad" xml:space="preserve">
+    <value>Не удалось загрузить голос Kokoro: {0}</value>
+  </data>
+  <data name="KokoroStillLoading" xml:space="preserve">
+    <value>Голос Kokoro всё ещё загружает свою модель.</value>
+  </data>
+  <data name="PiperNoVlc" xml:space="preserve">
+    <value>Воспроизведение звука (VLC) недоступно.</value>
+  </data>
+  <data name="PiperVoiceNotLoaded" xml:space="preserve">
+    <value>Голос Piper «{0}» не загружен, или его не удалось загрузить.</value>
+  </data>
+  <data name="PiperNoAudio" xml:space="preserve">
+    <value>Piper не выдал звука.</value>
+  </data>
+  <data name="PiperPlaybackFailed" xml:space="preserve">
+    <value>Не удалось воспроизвести звук.</value>
+  </data>
+  <data name="WhisperModelNotDownloaded" xml:space="preserve">
+    <value>Локальная модель распознавания речи «{0}» ещё не загружена. Настройки → ИИ-помощник → Голосовой ввод (STT) → Загрузить модель.</value>
+  </data>
+  <data name="ImportStageRestoring" xml:space="preserve">
+    <value>Восстановление</value>
+  </data>
+  <data name="ImportCopyingAside" xml:space="preserve">
+    <value>Резервирование текущих данных… {0}/{1}</value>
+  </data>
+  <data name="ImportPuttingBack" xml:space="preserve">
+    <value>Возврат прежних данных… {0}/{1}</value>
+  </data>
+  <data name="ImportLostTablesOne" xml:space="preserve">
+    <value>Данные {1} прочитаны без ошибок, но {0} таблица, в которой раньше были данные, оказалась пустой — так выглядит изменение формата файлов: {2} Импорт откачен, имеющиеся данные {1} НЕ изменены.</value>
+  </data>
+  <data name="ImportLostTablesOther" xml:space="preserve">
+    <value>Данные {1} прочитаны без ошибок, но {0} таблицы, в которых раньше были данные, оказались пустыми — так выглядит изменение формата файлов: {2} Импорт откачен, имеющиеся данные {1} НЕ изменены.</value>
+  </data>
+  <data name="ImportLostTablesFew" xml:space="preserve">
+    <value>Данные {1} прочитаны без ошибок, но {0} таблицы, в которых раньше были данные, оказались пустыми — так выглядит изменение формата файлов: {2} Импорт откачен, имеющиеся данные {1} НЕ изменены.</value>
+  </data>
+  <data name="ImportLostTablesMany" xml:space="preserve">
+    <value>Данные {1} прочитаны без ошибок, но {0} таблиц, в которых раньше были данные, оказались пустыми — так выглядит изменение формата файлов: {2} Импорт откачен, имеющиеся данные {1} НЕ изменены.</value>
+  </data>
+  <data name="PurposeDataAccess" xml:space="preserve">
+    <value>доступа к данным</value>
+  </data>
+  <data name="PurposeConversation" xml:space="preserve">
+    <value>нашей беседы</value>
+  </data>
+</root>

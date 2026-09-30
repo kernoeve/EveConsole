@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
              x:Class="EveConsole.Views.NetWorthView"
@@ -17,9 +18,9 @@
         <!-- Right side: options + date -->
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="16"
                     VerticalAlignment="Center">
-          <CheckBox IsChecked="{Binding AutoRange}" Content="Auto Range"
+          <CheckBox IsChecked="{Binding AutoRange}" Content="{x:Static loc:FinanceText.AutoRange}"
                     Foreground="{DynamicResource TextMutedBrush}" FontSize="11" />
-          <CheckBox IsChecked="{Binding IsLogScale}" Content="Log Scale"
+          <CheckBox IsChecked="{Binding IsLogScale}" Content="{x:Static loc:FinanceText.LogScale}"
                     Foreground="{DynamicResource TextMutedBrush}" FontSize="11" />
           <TextBlock Text="{Binding CurrentDate}"
                      Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
@@ -62,12 +63,12 @@
             Background="{DynamicResource SurfaceBaseBrush}" Padding="12 6"
             BorderBrush="{DynamicResource SurfaceRaisedBrush}" BorderThickness="0 0 0 1">
       <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-        <TextBlock Text="From" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
+        <TextBlock Text="{x:Static loc:FinanceText.From}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
                    VerticalAlignment="Center" />
         <TextBox Text="{Binding CustomFromText}"
                  Watermark="yyyy-MM-dd" Width="110" FontSize="11"
                  Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextPrimaryBrush}" />
-        <TextBlock Text="To" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
+        <TextBlock Text="{x:Static loc:FinanceText.To}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
                    VerticalAlignment="Center" Margin="8 0 0 0" />
         <TextBox Text="{Binding CustomToText}"
                  Watermark="yyyy-MM-dd" Width="110" FontSize="11"
@@ -84,7 +85,7 @@
         <Border Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1"
                 CornerRadius="4" Padding="14 7" Margin="4 2">
           <StackPanel>
-            <TextBlock Text="NET WORTH" FontSize="9" Foreground="{DynamicResource TextMutedBrush}"
+            <TextBlock Text="{x:Static loc:FinanceText.NetWorthLabel}" FontSize="9" Foreground="{DynamicResource TextMutedBrush}"
                        FontWeight="SemiBold" LetterSpacing="1" />
             <TextBlock Text="{Binding CurrentTotal}" FontSize="18"
                        Foreground="{DynamicResource AccentBrush}" FontWeight="Bold" />
@@ -94,7 +95,7 @@
         <Border Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                 CornerRadius="4" Padding="12 7" Margin="4 2">
           <StackPanel>
-            <TextBlock Text="ASSETS" FontSize="9" Foreground="{DynamicResource TextMutedBrush}"
+            <TextBlock Text="{x:Static loc:FinanceText.AssetsLabel}" FontSize="9" Foreground="{DynamicResource TextMutedBrush}"
                        FontWeight="SemiBold" LetterSpacing="1" />
             <TextBlock Text="{Binding CurrentAssets}" FontSize="15"
                        Foreground="{DynamicResource InfoBrush}" />
@@ -104,7 +105,7 @@
         <Border Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                 CornerRadius="4" Padding="12 7" Margin="4 2">
           <StackPanel>
-            <TextBlock Text="WALLET" FontSize="9" Foreground="{DynamicResource TextMutedBrush}"
+            <TextBlock Text="{x:Static loc:FinanceText.WalletLabel}" FontSize="9" Foreground="{DynamicResource TextMutedBrush}"
                        FontWeight="SemiBold" LetterSpacing="1" />
             <TextBlock Text="{Binding CurrentWallet}" FontSize="15"
                        Foreground="{DynamicResource GoodBrush}" />
@@ -114,7 +115,7 @@
         <Border Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                 CornerRadius="4" Padding="12 7" Margin="4 2">
           <StackPanel>
-            <TextBlock Text="INDUSTRY" FontSize="9" Foreground="{DynamicResource TextMutedBrush}"
+            <TextBlock Text="{x:Static loc:FinanceText.IndustryLabel}" FontSize="9" Foreground="{DynamicResource TextMutedBrush}"
                        FontWeight="SemiBold" LetterSpacing="1" />
             <TextBlock Text="{Binding CurrentIndustry}" FontSize="15"
                        Foreground="{DynamicResource WarnBrush}" />
@@ -124,7 +125,7 @@
         <Border Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                 CornerRadius="4" Padding="12 7" Margin="4 2">
           <StackPanel>
-            <TextBlock Text="SELL ORDERS" FontSize="9" Foreground="{DynamicResource TextMutedBrush}"
+            <TextBlock Text="{x:Static loc:FinanceText.SellOrdersLabel}" FontSize="9" Foreground="{DynamicResource TextMutedBrush}"
                        FontWeight="SemiBold" LetterSpacing="1" />
             <TextBlock Text="{Binding CurrentSellOrders}" FontSize="15"
                        Foreground="{DynamicResource TextDimBrush}" />
@@ -134,7 +135,7 @@
         <Border Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                 CornerRadius="4" Padding="12 7" Margin="4 2">
           <StackPanel>
-            <TextBlock Text="BUY ESCROW" FontSize="9" Foreground="{DynamicResource TextMutedBrush}"
+            <TextBlock Text="{x:Static loc:FinanceText.BuyEscrowLabel}" FontSize="9" Foreground="{DynamicResource TextMutedBrush}"
                        FontWeight="SemiBold" LetterSpacing="1" />
             <TextBlock Text="{Binding CurrentBuyEscrow}" FontSize="15"
                        Foreground="{DynamicResource InfoBrush}" />
@@ -144,7 +145,7 @@
         <Border Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                 CornerRadius="4" Padding="12 7" Margin="4 2">
           <StackPanel>
-            <TextBlock Text="CONTRACT COLLAT." FontSize="9" Foreground="{DynamicResource TextMutedBrush}"
+            <TextBlock Text="{x:Static loc:FinanceText.ContractCollatLabel}" FontSize="9" Foreground="{DynamicResource TextMutedBrush}"
                        FontWeight="SemiBold" LetterSpacing="1" />
             <TextBlock Text="{Binding CurrentCollateral}" FontSize="15"
                        Foreground="{DynamicResource BadBrush}" />
@@ -154,7 +155,7 @@
         <Border Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                 CornerRadius="4" Padding="12 7" Margin="4 2">
           <StackPanel>
-            <TextBlock Text="CONTRACT VALUE" FontSize="9" Foreground="{DynamicResource TextMutedBrush}"
+            <TextBlock Text="{x:Static loc:FinanceText.ContractValueLabel}" FontSize="9" Foreground="{DynamicResource TextMutedBrush}"
                        FontWeight="SemiBold" LetterSpacing="1" />
             <TextBlock Text="{Binding CurrentContracts}" FontSize="15"
                        Foreground="{DynamicResource WarnBrush}" />
@@ -179,9 +180,9 @@
       <StackPanel IsVisible="{Binding IsEmpty}"
                   VerticalAlignment="Center" HorizontalAlignment="Center"
                   Spacing="8">
-        <TextBlock Text="No net worth data for this period."
+        <TextBlock Text="{x:Static loc:FinanceText.NoNetWorthDataNote}"
                    Foreground="{DynamicResource TextFaintBrush}" FontSize="16" HorizontalAlignment="Center" />
-        <TextBlock Text="Data is recorded automatically each time ESI polling refreshes assets, wallet, orders, or contracts."
+        <TextBlock Text="{x:Static loc:FinanceText.DataIsRecordedAutomaticallyNote}"
                    Foreground="{DynamicResource BorderStrongBrush}" FontSize="12" HorizontalAlignment="Center" TextWrapping="Wrap" />
       </StackPanel>
     </Grid>

@@ -12,6 +12,7 @@ using Avalonia.VisualTree;
 using EveConsole.ViewModels;
 using EveConsole.Services;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -66,9 +67,10 @@ public partial class IndustryBrowserView : ReactiveUserControl<IndustryBrowserVi
         ViewModel.WhenAnyValue(vm => vm.SelectedRow).Subscribe(UpdateDetailPanel);
         ViewModel.WhenAnyValue(vm => vm.OwnerOptions).Subscribe(opts =>
         {
-            var prev = OwnerPicker.SelectedItem as string;
+            // Kept by value: the list is rebuilt, and the owner's name is what carries across.
+            var prev = (OwnerPicker.SelectedItem as Choice<string>)?.Value;
             OwnerPicker.ItemsSource   = opts;
-            OwnerPicker.SelectedIndex = opts.IndexOf(prev ?? "All Owners") is > 0 and var i ? i : 0;
+            OwnerPicker.SelectedIndex = opts.FindIndex(o => o.Value == prev) is > 0 and var i ? i : 0;
         });
 
         _ = ViewModel.LoadAsync();
@@ -86,7 +88,7 @@ public partial class IndustryBrowserView : ReactiveUserControl<IndustryBrowserVi
 
     private void OnStatusPickerChanged(object? sender, SelectionChangedEventArgs e)
     {
-        var status = StatusPicker.SelectedItem as string ?? "";
+        var status = (StatusPicker.SelectedItem as Choice<string>)?.Value ?? "";
         if (status is not ("active" or "paused" or "ready" or "All Statuses"))
         {
             if (FromDatePicker.SelectedDate is null)
@@ -130,7 +132,7 @@ public partial class IndustryBrowserView : ReactiveUserControl<IndustryBrowserVi
 
             JobsGrid.Columns.Add(new DataGridTemplateColumn
             {
-                Header = c, Tag = c, IsReadOnly = true, CanUserSort = true,
+                Header = IndustryBrowserViewModel.ColumnLabel(c), Tag = c, IsReadOnly = true, CanUserSort = true,
                 ClipboardContentBinding = GridRowCopy.Binding(c),
                 CellTemplate = new FuncDataTemplate<GridRow>(
                     (_, _) => new SelectableCell(JobsGrid, c, _selectionSvc, onClick,
@@ -235,9 +237,9 @@ public partial class IndustryBrowserView : ReactiveUserControl<IndustryBrowserVi
 
     private ContextMenu BuildContextMenu()
     {
-        var copy  = new MenuItem { Header = "Copy" };
+        var copy  = new MenuItem { Header = IndustryText.MenuCopy };
         copy.Click  += (_, _) => ExecuteCopy(includeHeaders: false);
-        var copyH = new MenuItem { Header = "Copy w/Headers" };
+        var copyH = new MenuItem { Header = IndustryText.MenuCopyWithHeaders };
         copyH.Click += (_, _) => ExecuteCopy(includeHeaders: true);
         return new ContextMenu { Items = { copy, copyH } };
     }
@@ -272,11 +274,11 @@ public partial class IndustryBrowserView : ReactiveUserControl<IndustryBrowserVi
         DateTimeOffset? thru = AsUtcDate(ThruDatePicker.SelectedDate);
 
         _ = ViewModel.ApplyFiltersAsync(
-            ActivityPicker.SelectedItem as string,
-            StatusPicker.SelectedItem  as string,
+            (ActivityPicker.SelectedItem as Choice<string>)?.Value,
+            (StatusPicker.SelectedItem   as Choice<string>)?.Value,
             SearchBox.Text?.Trim(),
             from, thru,
-            OwnerPicker.SelectedItem   as string);
+            (OwnerPicker.SelectedItem    as Choice<string>)?.Value);
         ClearSelection();
     }
 
@@ -300,7 +302,8 @@ public partial class IndustryBrowserView : ReactiveUserControl<IndustryBrowserVi
         {
             var tag = c.Tag as string ?? "";
             if (tag == RowSelectorTag) continue;
-            c.Header = tag == col ? $"{tag} {(desc ? '▼' : '▲')}" : tag;
+            var label = IndustryBrowserViewModel.ColumnLabel(tag);
+            c.Header = tag == col ? $"{label} {(desc ? '▼' : '▲')}" : label;
         }
     }
 
@@ -424,7 +427,7 @@ public partial class IndustryBrowserView : ReactiveUserControl<IndustryBrowserVi
         {
             int r0 = Math.Min(ar, cr), r1 = Math.Max(ar, cr);
             var sb = new StringBuilder();
-            if (includeHeaders) sb.AppendLine(string.Join("\t", colRange));
+            if (includeHeaders) sb.AppendLine(string.Join("\t", colRange.Select(IndustryBrowserViewModel.ColumnLabel)));
             for (int r = r0; r <= r1; r++)
                 sb.AppendLine(string.Join("\t", colRange.Select(c => allRows[r][c])));
             text = sb.ToString().TrimEnd();
@@ -471,14 +474,15 @@ public partial class IndustryBrowserView : ReactiveUserControl<IndustryBrowserVi
         }
 
         var ownerType = row["Owner Type"];
-        DetailOwnerType.Text      = ownerType == "character" ? "Player" : ownerType == "corporation" ? "Corp" : ownerType;
+        DetailOwnerType.Text      = ownerType == "character" ? IndustryText.OwnerTypePlayer
+                                  : ownerType == "corporation" ? IndustryText.OwnerTypeCorp : ownerType;
         DetailOwner.Text          = row["Owner"];
         DetailInstaller.Text      = row["Installer"];
         DetailStartDate.Text      = row["Start Date"];
         DetailEndDate.Text        = row["End Date"];
         DetailCompletedBy.Text    = row[IndustryBrowserViewModel.ColCompletedBy];
         DetailActivity.Text       = row["Activity"];
-        DetailStatus.Text         = row["Status"];
+        DetailStatus.Text         = row[IndustryBrowserViewModel.ColStatusLabel];
         DetailRuns.Text           = row["Runs"];
         DetailItemsProduced.Text  = row["Items Produced"];
         var prob = row["Probability"];
@@ -521,11 +525,12 @@ public partial class IndustryBrowserView : ReactiveUserControl<IndustryBrowserVi
 
     private async Task LoadDetailImagesAsync(GridRow row)
     {
-        long.TryParse(row[IndustryBrowserViewModel.ColBlueprintTypeId].Replace(",", ""), out var bpTypeId);
-        long.TryParse(row[IndustryBrowserViewModel.ColProductTypeId].Replace(",", ""),   out var prodTypeId);
-        long.TryParse(row[IndustryBrowserViewModel.ColFacilityTypeId].Replace(",", ""),  out var facTypeId);
+        // The ids as the grid wrote them, in the interface's number format.
+        NumberText.TryParse(row[IndustryBrowserViewModel.ColBlueprintTypeId], out long bpTypeId);
+        NumberText.TryParse(row[IndustryBrowserViewModel.ColProductTypeId],   out long prodTypeId);
+        NumberText.TryParse(row[IndustryBrowserViewModel.ColFacilityTypeId],  out long facTypeId);
 
-        int.TryParse(row[IndustryBrowserViewModel.ColActivityId].Replace(",", ""), out var actId);
+        NumberText.TryParse(row[IndustryBrowserViewModel.ColActivityId], out long actId);
         // Copying (5) and invention (8) output a blueprint COPY (lighter "bpc" icon); research
         // (3/4) outputs the original blueprint; everything else is a normal item.
         var prodVariant = actId switch { 5 or 8 => "bpc", 3 or 4 => "bp", _ => "icon" };

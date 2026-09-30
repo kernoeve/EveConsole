@@ -1,7 +1,8 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:EveConsole.Localization"
         x:Class="EveConsole.Views.AboutWindow"
-        Title="About EVE Console"
+        Title="{x:Static loc:ShellText.TitleAboutEveConsole}"
         Icon="avares://EveConsole/Assets/ec.ico"
         Width="700"
         SizeToContent="Height"
@@ -69,7 +70,7 @@
     <StackPanel Margin="40 26 40 28" Spacing="0">
 
       <!-- Description. No divider above it: the edge of the artwork already separates them. -->
-      <TextBlock Text="An EVE Online industrial companion for production planning, asset tracking, market pricing, and character management."
+      <TextBlock Text="{x:Static loc:ShellText.AnEveOnlineIndustrialNote}"
                  FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
                  TextWrapping="Wrap"
                  TextAlignment="Center"
@@ -80,16 +81,16 @@
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="14" Margin="0 0 0 22">
         <Button Classes="link" Tag="https://eveconsole.com" Click="OnLinkClick"
                 ToolTip.Tip="eveconsole.com">
-          <TextBlock Text="Website" FontSize="12" Foreground="{DynamicResource AccentBrush}" />
+          <TextBlock Text="{x:Static loc:ShellText.Website}" FontSize="12" Foreground="{DynamicResource AccentBrush}" />
         </Button>
         <TextBlock Text="·" FontSize="12" Foreground="{DynamicResource BorderStrongBrush}" />
         <Button Classes="link" Tag="https://docs.eveconsole.com" Click="OnLinkClick"
                 ToolTip.Tip="docs.eveconsole.com">
-          <TextBlock Text="Documentation" FontSize="12" Foreground="{DynamicResource AccentBrush}" />
+          <TextBlock Text="{x:Static loc:ShellText.Documentation}" FontSize="12" Foreground="{DynamicResource AccentBrush}" />
         </Button>
         <TextBlock Text="·" FontSize="12" Foreground="{DynamicResource BorderStrongBrush}" />
         <Button Classes="link" Tag="https://discord.gg/H6NaAjJMar" Click="OnLinkClick"
-                ToolTip.Tip="Community chat and support">
+                ToolTip.Tip="{x:Static loc:ShellText.TipCommunityChatAndSupport}">
           <TextBlock Text="Discord" FontSize="12" Foreground="{DynamicResource AccentBrush}" />
         </Button>
       </StackPanel>
@@ -107,7 +108,7 @@
       </TextBlock>
 
       <!-- Close button -->
-      <Button Content="Close"
+      <Button Content="{x:Static loc:ShellText.Close}"
               HorizontalAlignment="Center"
               Padding="28 6"
               Margin="0 24 0 0"

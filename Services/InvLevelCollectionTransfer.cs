@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using EveConsole.Data;
 using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -105,7 +106,7 @@ public class InvLevelCollectionTransfer(IDbContextFactory<AppDbContext> dbFactor
                              .Select(i => new InvItemFile
                              {
                                  TypeId   = i.TypeId,
-                                 TypeName = names.GetValueOrDefault(i.TypeId, $"Type {i.TypeId}"),
+                                 TypeName = names.GetValueOrDefault(i.TypeId, string.Format(AssetsText.FallbackTypeName, i.TypeId)),
                                  Target   = i.TargetQuantity,
                              })
                              .ToList(),
@@ -138,7 +139,7 @@ public class InvLevelCollectionTransfer(IDbContextFactory<AppDbContext> dbFactor
         var taken = (await db.InvLevelCollections.AsNoTracking()
             .Select(c => c.Name).ToListAsync(ct)).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        var name = string.IsNullOrWhiteSpace(file.Name) ? "Imported collection" : file.Name;
+        var name = string.IsNullOrWhiteSpace(file.Name) ? AssetsText.ImportedCollectionName : file.Name;
         var unique = name;
         for (var n = 2; taken.Contains(unique); n++) unique = $"{name} ({n})";
 

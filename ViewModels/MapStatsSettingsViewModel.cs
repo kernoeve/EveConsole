@@ -4,6 +4,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using EveConsole.Services;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -45,9 +46,9 @@ public class MapStatsSettingsViewModel : ReactiveObject
             await RefreshCoverageAsync();
         });
 
-        StartBackfillCommand .ThrownExceptions.Subscribe(ex => Status = $"Error: {ex.Message}");
-        CancelBackfillCommand.ThrownExceptions.Subscribe(ex => Status = $"Error: {ex.Message}");
-        RefreshNowCommand    .ThrownExceptions.Subscribe(ex => Status = $"Error: {ex.Message}");
+        StartBackfillCommand .ThrownExceptions.Subscribe(ex => Status = string.Format(CommonText.ErrorWithMessage, ex.Message));
+        CancelBackfillCommand.ThrownExceptions.Subscribe(ex => Status = string.Format(CommonText.ErrorWithMessage, ex.Message));
+        RefreshNowCommand    .ThrownExceptions.Subscribe(ex => Status = string.Format(CommonText.ErrorWithMessage, ex.Message));
 
         this.WhenAnyValue(x => x.Enabled).Skip(1).Subscribe(v => { if (!_loading) settings.Enabled = v; });
         this.WhenAnyValue(x => x.BackfillDays).Skip(1).Subscribe(v =>
@@ -151,15 +152,15 @@ public class MapStatsSettingsViewModel : ReactiveObject
             var total = Math.Max(_backfill.ProgressTotal, 1);
             Progress     = 100.0 * _backfill.ProgressCurrent / total;
             ProgressText = $"{_backfill.ProgressCurrent:N0} / {total:N0} — {_backfill.StatusText}";
-            Status       = "Backfilling from the EVE Ref archive…";
+            Status       = SettingsText.MapStatsBackfilling;
         }
         else
         {
             Progress     = _settings.InitialBackfillDone ? 100 : 0;
             ProgressText = _backfill.StatusText;
             Status = _settings.InitialBackfillDone
-                ? "History complete — keeping the current hour up to date"
-                : "Waiting to start";
+                ? SettingsText.MapStatsHistoryComplete
+                : SettingsText.MapStatsWaiting;
         }
 
         // Coverage means counting stored buckets, so it refreshes on a slower beat than the
@@ -183,10 +184,10 @@ public class MapStatsSettingsViewModel : ReactiveObject
         {
             var lines = await _stats.GetCoverageAsync();
             Coverage = lines.Count == 0
-                ? "Nothing stored yet."
+                ? SettingsText.MapStatsNothingStored
                 : string.Join("\n", lines.Select(c =>
-                    $"{c.Dataset,-24} {c.Buckets,6:N0} buckets   {c.Days,4:N0} days   {c.Earliest} → {c.Latest}"));
+                    string.Format(SettingsText.MapStatsCoverageRow, c.Dataset, c.Buckets, c.Days, c.Earliest, c.Latest)));
         }
-        catch (Exception ex) { Coverage = $"Error: {ex.Message}"; }
+        catch (Exception ex) { Coverage = string.Format(CommonText.ErrorWithMessage, ex.Message); }
     }
 }

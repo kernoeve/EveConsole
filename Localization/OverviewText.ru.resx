@@ -1,0 +1,941 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="PeriodLabel" xml:space="preserve">
+    <value>Период:</value>
+  </data>
+  <data name="CustomizeLayout" xml:space="preserve">
+    <value>⚙ Настроить макет</value>
+  </data>
+  <data name="ActivitySummary" xml:space="preserve">
+    <value>Сводка активности</value>
+  </data>
+  <data name="InPeriod" xml:space="preserve">
+    <value>За период</value>
+  </data>
+  <data name="Count" xml:space="preserve">
+    <value>Кол-во</value>
+  </data>
+  <data name="MarketSales" xml:space="preserve">
+    <value>Продажи на рынке</value>
+  </data>
+  <data name="MarketPurchases" xml:space="preserve">
+    <value>Покупки на рынке</value>
+  </data>
+  <data name="CompletedJobs" xml:space="preserve">
+    <value>Завершённые проекты</value>
+  </data>
+  <data name="PlayerShipKills" xml:space="preserve">
+    <value>Уничтожено кораблей игроков</value>
+  </data>
+  <data name="TipRequiresFullKillMail" xml:space="preserve">
+    <value>Чтобы отличать победы от потерь, нужно загружать полные отчёты о боях</value>
+  </data>
+  <data name="ShipsLost" xml:space="preserve">
+    <value>Потеряно кораблей</value>
+  </data>
+  <data name="CurrentState" xml:space="preserve">
+    <value>Текущее состояние</value>
+  </data>
+  <data name="Value" xml:space="preserve">
+    <value>Стоимость</value>
+  </data>
+  <data name="OutstandingSellOrders" xml:space="preserve">
+    <value>Открытые ордера на продажу</value>
+  </data>
+  <data name="OutstandingBuyOrders" xml:space="preserve">
+    <value>Открытые ордера на покупку</value>
+  </data>
+  <data name="OutstandingContracts" xml:space="preserve">
+    <value>Размещённые контракты</value>
+  </data>
+  <data name="ActiveIndyJobs" xml:space="preserve">
+    <value>Активные промышленные проекты</value>
+  </data>
+  <data name="Alerts" xml:space="preserve">
+    <value>Оповещения</value>
+  </data>
+  <data name="AlertSettings" xml:space="preserve">
+    <value>Настройки оповещений →</value>
+  </data>
+  <data name="NoActiveAlerts" xml:space="preserve">
+    <value>Активных оповещений нет.</value>
+  </data>
+  <data name="Dismiss" xml:space="preserve">
+    <value>Закрыть</value>
+  </data>
+  <data name="EveOnlineNews" xml:space="preserve">
+    <value>Новости EVE Online</value>
+  </data>
+  <data name="NewsUnavailableWillRetryNext" xml:space="preserve">
+    <value>Новости недоступны — повторная попытка при следующем обновлении.</value>
+  </data>
+  <data name="Notifications" xml:space="preserve">
+    <value>Уведомления</value>
+  </data>
+  <data name="Notifications2" xml:space="preserve">
+    <value>Уведомления →</value>
+  </data>
+  <data name="NoRecentNotifications" xml:space="preserve">
+    <value>Недавних уведомлений нет.</value>
+  </data>
+  <data name="PersonalKillmails" xml:space="preserve">
+    <value>Личные отчёты о боях</value>
+  </data>
+  <data name="Killmails" xml:space="preserve">
+    <value>Отчёты о боях →</value>
+  </data>
+  <data name="KillsLabel" xml:space="preserve">
+    <value>Победы</value>
+  </data>
+  <data name="LossesLabel" xml:space="preserve">
+    <value>Потери</value>
+  </data>
+  <data name="NoKillmailsInThisPeriod" xml:space="preserve">
+    <value>За этот период отчётов о боях нет.</value>
+  </data>
+  <data name="Income" xml:space="preserve">
+    <value>Доходы</value>
+  </data>
+  <data name="NoIncomeDataForThis" xml:space="preserve">
+    <value>Нет данных о доходах за этот период.</value>
+  </data>
+  <data name="Expenses" xml:space="preserve">
+    <value>Расходы</value>
+  </data>
+  <data name="NoExpenseDataForThis" xml:space="preserve">
+    <value>Нет данных о расходах за этот период.</value>
+  </data>
+  <data name="Orders" xml:space="preserve">
+    <value>Заказы</value>
+  </data>
+  <data name="OrderTracker" xml:space="preserve">
+    <value>Учёт заказов →</value>
+  </data>
+  <data name="NoActiveOrders" xml:space="preserve">
+    <value>Активных заказов нет.</value>
+  </data>
+  <data name="ColCreatedOn" xml:space="preserve">
+    <value>Создан</value>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>Предмет</value>
+  </data>
+  <data name="ColUnits" xml:space="preserve">
+    <value>Кол-во</value>
+  </data>
+  <data name="ColBuyer" xml:space="preserve">
+    <value>Покупатель</value>
+  </data>
+  <data name="ColEstDate" xml:space="preserve">
+    <value>Ожид. дата</value>
+  </data>
+  <data name="ColSource" xml:space="preserve">
+    <value>Источник</value>
+  </data>
+  <data name="StandingBuyOrders" xml:space="preserve">
+    <value>Постоянные ордера на покупку</value>
+  </data>
+  <data name="StandingBuyOrders2" xml:space="preserve">
+    <value>Постоянные ордера на покупку →</value>
+  </data>
+  <data name="NoStandingBuyOrders" xml:space="preserve">
+    <value>Постоянных ордеров на покупку нет.</value>
+  </data>
+  <data name="TipOpenInTheItemBrowser" xml:space="preserve">
+    <value>Открыть в разделе «Просмотр предметов»</value>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>Статус</value>
+  </data>
+  <data name="ColOurBid" xml:space="preserve">
+    <value>Наша цена</value>
+  </data>
+  <data name="ColRem" xml:space="preserve">
+    <value>Ост.</value>
+  </data>
+  <data name="ColExpires" xml:space="preserve">
+    <value>Истекает</value>
+  </data>
+  <data name="WorklistAll" xml:space="preserve">
+    <value>Список задач (все)</value>
+  </data>
+  <data name="Worklist" xml:space="preserve">
+    <value>Список задач →</value>
+  </data>
+  <data name="ColTask" xml:space="preserve">
+    <value>Задача</value>
+  </data>
+  <data name="ColValue" xml:space="preserve">
+    <value>Стоимость</value>
+  </data>
+  <data name="ColVolume" xml:space="preserve">
+    <value>Объём</value>
+  </data>
+  <data name="WorklistBuy" xml:space="preserve">
+    <value>Список задач (покупка)</value>
+  </data>
+  <data name="WorklistHaul" xml:space="preserve">
+    <value>Список задач (перевозка)</value>
+  </data>
+  <data name="WorklistJobs" xml:space="preserve">
+    <value>Список задач (проекты)</value>
+  </data>
+  <data name="WorklistStationNeeds" xml:space="preserve">
+    <value>Список задач (потребности станций)</value>
+  </data>
+  <data name="StationNeeds" xml:space="preserve">
+    <value>Потребности станций →</value>
+  </data>
+  <data name="ColShort" xml:space="preserve">
+    <value>Нехватка</value>
+  </data>
+  <data name="ColTotal" xml:space="preserve">
+    <value>Всего</value>
+  </data>
+  <data name="ColOnHand" xml:space="preserve">
+    <value>В наличии</value>
+  </data>
+  <data name="ColOrderJobs" xml:space="preserve">
+    <value>Для заказов</value>
+  </data>
+  <data name="ColJobs" xml:space="preserve">
+    <value>Проекты</value>
+  </data>
+  <data name="ColInvLevels" xml:space="preserve">
+    <value>Ур. запасов</value>
+  </data>
+  <data name="ColStnLevels" xml:space="preserve">
+    <value>Ур. станций</value>
+  </data>
+  <data name="ColShortValue" xml:space="preserve">
+    <value>Стоимость нехватки</value>
+  </data>
+  <data name="ColShortVolume" xml:space="preserve">
+    <value>Объём нехватки</value>
+  </data>
+  <data name="StandingProjects" xml:space="preserve">
+    <value>Постоянные проекты</value>
+  </data>
+  <data name="CorpActivity" xml:space="preserve">
+    <value>Активность корпорации →</value>
+  </data>
+  <data name="NoStandingProjects" xml:space="preserve">
+    <value>Постоянных проектов нет.</value>
+  </data>
+  <data name="ColProject" xml:space="preserve">
+    <value>Проект</value>
+  </data>
+  <data name="ColProjectStatus" xml:space="preserve">
+    <value>Статус проекта</value>
+  </data>
+  <data name="ColRemaining" xml:space="preserve">
+    <value>Осталось</value>
+  </data>
+  <data name="ColRem2" xml:space="preserve">
+    <value>Ост. %</value>
+  </data>
+  <data name="OverviewDataReflectsCharactersNote" xml:space="preserve">
+    <value>В «Обзоре» учитываются только персонажи и личные корпорации.</value>
+  </data>
+  <data name="TipOpenInNotifications" xml:space="preserve">
+    <value>Открыть в разделе «Уведомления»</value>
+  </data>
+  <data name="TitleCustomizeOverview" xml:space="preserve">
+    <value>Настройка «Обзора»</value>
+  </data>
+  <data name="OverviewLayout" xml:space="preserve">
+    <value>Макет «Обзора»</value>
+  </data>
+  <data name="GridSize" xml:space="preserve">
+    <value>Размер сетки —</value>
+  </data>
+  <data name="Rows" xml:space="preserve">
+    <value>Строки</value>
+  </data>
+  <data name="Columns" xml:space="preserve">
+    <value>Столбцы</value>
+  </data>
+  <data name="Sections" xml:space="preserve">
+    <value>Разделы</value>
+  </data>
+  <data name="DragASectionOntoNote" xml:space="preserve">
+    <value>Перетащите раздел на сетку, чтобы добавить его.</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Отменить</value>
+  </data>
+  <data name="Apply" xml:space="preserve">
+    <value>Применить</value>
+  </data>
+  <data name="BriefCharToCorp" xml:space="preserve">
+    <value>{0} → {1}</value>
+  </data>
+  <data name="BriefBy" xml:space="preserve">
+    <value>Инициатор: {0}</value>
+  </data>
+  <data name="BriefCharLeftCorp" xml:space="preserve">
+    <value>{0}: выход из корпорации {1}</value>
+  </data>
+  <data name="BriefBillAt" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="BriefBillFor" xml:space="preserve">
+    <value>{0} · альянс {1}</value>
+  </data>
+  <data name="BriefAmountDue" xml:space="preserve">
+    <value>{0} · оплатить до {1}</value>
+  </data>
+  <data name="BriefStandingFor" xml:space="preserve">
+    <value>{0} {1} для персонажа {2}</value>
+  </data>
+  <data name="BriefReady" xml:space="preserve">
+    <value>Готовность: {0}</value>
+  </data>
+  <data name="BriefFractures" xml:space="preserve">
+    <value>Автоматический раскол: {0}</value>
+  </data>
+  <data name="BriefOfOre" xml:space="preserve">
+    <value>{0} руды</value>
+  </data>
+  <data name="BriefByAttacker" xml:space="preserve">
+    <value>Нападающий: {0} {1}</value>
+  </data>
+  <data name="BriefShieldArmorHull" xml:space="preserve">
+    <value>Щиты {0} · броня {1} · корпус {2}</value>
+  </data>
+  <data name="BriefReinforcedUntil" xml:space="preserve">
+    <value>Укреплённый режим до {0}</value>
+  </data>
+  <data name="BriefQuantityLeft" xml:space="preserve">
+    <value>Осталось: {0}</value>
+  </data>
+  <data name="BriefTimeLeft" xml:space="preserve">
+    <value>Осталось: {0}</value>
+  </data>
+  <data name="BriefMovedTo" xml:space="preserve">
+    <value>На станцию {0}</value>
+  </data>
+  <data name="BriefDeliveredFor" xml:space="preserve">
+    <value>{0} для персонажа {1}</value>
+  </data>
+  <data name="BriefDaysLeftOne" xml:space="preserve">
+    <value>Остался {0} день</value>
+  </data>
+  <data name="BriefDaysLeftOther" xml:space="preserve">
+    <value>Осталось {0} дня</value>
+  </data>
+  <data name="BriefDaysLeftFew" xml:space="preserve">
+    <value>Осталось {0} дня</value>
+  </data>
+  <data name="BriefDaysLeftMany" xml:space="preserve">
+    <value>Осталось {0} дней</value>
+  </data>
+  <data name="BriefStructuresByOne" xml:space="preserve">
+    <value>{0} сооружение, покупатель: {1}</value>
+  </data>
+  <data name="BriefStructuresByOther" xml:space="preserve">
+    <value>{0} сооружения, покупатель: {1}</value>
+  </data>
+  <data name="BriefStructuresByFew" xml:space="preserve">
+    <value>{0} сооружения, покупатель: {1}</value>
+  </data>
+  <data name="BriefStructuresByMany" xml:space="preserve">
+    <value>{0} сооружений, покупатель: {1}</value>
+  </data>
+  <data name="BriefTransferredTo" xml:space="preserve">
+    <value>Новый владелец: {0}</value>
+  </data>
+  <data name="BriefStructureIn" xml:space="preserve">
+    <value>{0} в системе {1}</value>
+  </data>
+  <data name="BriefTowerAt" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="BriefKillRightOn" xml:space="preserve">
+    <value>Цель: {0}</value>
+  </data>
+  <data name="BriefVersus" xml:space="preserve">
+    <value>{0} против {1}</value>
+  </data>
+  <data name="BriefFightingStarts" xml:space="preserve">
+    <value>Начало битвы: {0}</value>
+  </data>
+  <data name="BriefEnds" xml:space="preserve">
+    <value>Окончание: {0}</value>
+  </data>
+  <data name="BriefJoins" xml:space="preserve">
+    <value>{0} на стороне {1}</value>
+  </data>
+  <data name="BriefAgainst" xml:space="preserve">
+    <value>Противник: {0}</value>
+  </data>
+  <data name="BriefNewCapital" xml:space="preserve">
+    <value>Новая столица: {0}</value>
+  </data>
+  <data name="NewsLess" xml:space="preserve">
+    <value>▲ Свернуть</value>
+  </data>
+  <data name="NewsMore" xml:space="preserve">
+    <value>▼ Подробнее</value>
+  </data>
+  <data name="PeriodLast24Hours" xml:space="preserve">
+    <value>Последние 24 часа</value>
+  </data>
+  <data name="PeriodLast7Days" xml:space="preserve">
+    <value>Последние 7 дней</value>
+  </data>
+  <data name="PeriodLast30Days" xml:space="preserve">
+    <value>Последние 30 дней</value>
+  </data>
+  <data name="PeriodLast90Days" xml:space="preserve">
+    <value>Последние 90 дней</value>
+  </data>
+  <data name="StepQueryingScope" xml:space="preserve">
+    <value>Определение охвата</value>
+  </data>
+  <data name="StatusNoCharacters" xml:space="preserve">
+    <value>Персонажи не найдены.</value>
+  </data>
+  <data name="StepMarketTransactions" xml:space="preserve">
+    <value>Загрузка рыночных сделок</value>
+  </data>
+  <data name="StepMarketOrders" xml:space="preserve">
+    <value>Загрузка рыночных ордеров</value>
+  </data>
+  <data name="StepContracts" xml:space="preserve">
+    <value>Загрузка контрактов</value>
+  </data>
+  <data name="StepIndustryJobs" xml:space="preserve">
+    <value>Загрузка промышленных проектов</value>
+  </data>
+  <data name="StepKillsLosses" xml:space="preserve">
+    <value>Подсчёт побед и потерь</value>
+  </data>
+  <data name="StepPersonalKillmails" xml:space="preserve">
+    <value>Личные отчёты о боях</value>
+  </data>
+  <data name="StepStandingProjects" xml:space="preserve">
+    <value>Постоянные проекты</value>
+  </data>
+  <data name="StepWorklist" xml:space="preserve">
+    <value>Список задач</value>
+  </data>
+  <data name="StepStandingBuyOrders" xml:space="preserve">
+    <value>Постоянные ордера на покупку</value>
+  </data>
+  <data name="StepOrders" xml:space="preserve">
+    <value>Заказы</value>
+  </data>
+  <data name="StepJournal" xml:space="preserve">
+    <value>Загрузка данных журнала</value>
+  </data>
+  <data name="StepCharts" xml:space="preserve">
+    <value>Построение графиков</value>
+  </data>
+  <data name="StepAlerts" xml:space="preserve">
+    <value>Проверка оповещений</value>
+  </data>
+  <data name="StepNews" xml:space="preserve">
+    <value>Загрузка новостей</value>
+  </data>
+  <data name="StepNotifications" xml:space="preserve">
+    <value>Загрузка уведомлений</value>
+  </data>
+  <data name="StatusLoaded" xml:space="preserve">
+    <value>Загружено за {0:N0} мс — владельцев: {1}, период: {2}</value>
+  </data>
+  <data name="CharacterIdNumbered" xml:space="preserve">
+    <value>ID {0}</value>
+  </data>
+  <data name="AlertSkillQueueEmpty" xml:space="preserve">
+    <value>{0}: план навыков пуст.</value>
+  </data>
+  <data name="AlertSkillQueuePaused" xml:space="preserve">
+    <value>{0}: план навыков приостановлен.</value>
+  </data>
+  <data name="DurationDaysHours" xml:space="preserve">
+    <value>{0} д {1} ч</value>
+  </data>
+  <data name="DurationHoursMinutes" xml:space="preserve">
+    <value>{0} ч {1} мин</value>
+  </data>
+  <data name="AlertSkillQueueEnds" xml:space="preserve">
+    <value>{0}: план навыков закончится через {1} (порог — {2} д).</value>
+  </data>
+  <data name="AlertAssetSafetyDeadline" xml:space="preserve">
+    <value>{0}: предметы перемещены в систему безопасности активов ({1}) — выберите, куда их доставить, до {2:d MMM HH:mm} (осталось {3} д), иначе место выберет игра.</value>
+  </data>
+  <data name="AlertAssetSafety" xml:space="preserve">
+    <value>{0}: предметы перемещены в систему безопасности активов ({1}).</value>
+  </data>
+  <data name="StatusPanelsFailed" xml:space="preserve">
+    <value>не загрузились: {0} — см. «Журнал ошибок»</value>
+  </data>
+  <data name="AlertInactiveProjectsOne" xml:space="preserve">
+    <value>{0} постоянный проект сейчас не активен.</value>
+  </data>
+  <data name="AlertInactiveProjectsOther" xml:space="preserve">
+    <value>{0} постоянных проекта сейчас не активны.</value>
+  </data>
+  <data name="AlertInactiveProjectsFew" xml:space="preserve">
+    <value>{0} постоянных проекта сейчас не активны.</value>
+  </data>
+  <data name="AlertInactiveProjectsMany" xml:space="preserve">
+    <value>{0} постоянных проектов сейчас не активны.</value>
+  </data>
+  <data name="AlertStandingBuyOrders" xml:space="preserve">
+    <value>Постоянные ордера на покупку: {0}.</value>
+  </data>
+  <data name="SboMissingOne" xml:space="preserve">
+    <value>{0} не выставлен</value>
+  </data>
+  <data name="SboMissingOther" xml:space="preserve">
+    <value>{0} не выставлены</value>
+  </data>
+  <data name="SboMissingFew" xml:space="preserve">
+    <value>{0} не выставлены</value>
+  </data>
+  <data name="SboMissingMany" xml:space="preserve">
+    <value>{0} не выставлены</value>
+  </data>
+  <data name="SboOutbidOne" xml:space="preserve">
+    <value>у {0} перебита цена</value>
+  </data>
+  <data name="SboOutbidOther" xml:space="preserve">
+    <value>у {0} перебита цена</value>
+  </data>
+  <data name="SboOutbidFew" xml:space="preserve">
+    <value>у {0} перебита цена</value>
+  </data>
+  <data name="SboOutbidMany" xml:space="preserve">
+    <value>у {0} перебита цена</value>
+  </data>
+  <data name="SboNearlyBoughtOutOne" xml:space="preserve">
+    <value>{0} почти исполнен</value>
+  </data>
+  <data name="SboNearlyBoughtOutOther" xml:space="preserve">
+    <value>{0} почти исполнены</value>
+  </data>
+  <data name="SboNearlyBoughtOutFew" xml:space="preserve">
+    <value>{0} почти исполнены</value>
+  </data>
+  <data name="SboNearlyBoughtOutMany" xml:space="preserve">
+    <value>{0} почти исполнены</value>
+  </data>
+  <data name="SboCloseToExpiryOne" xml:space="preserve">
+    <value>{0} скоро истекает</value>
+  </data>
+  <data name="SboCloseToExpiryOther" xml:space="preserve">
+    <value>{0} скоро истекают</value>
+  </data>
+  <data name="SboCloseToExpiryFew" xml:space="preserve">
+    <value>{0} скоро истекают</value>
+  </data>
+  <data name="SboCloseToExpiryMany" xml:space="preserve">
+    <value>{0} скоро истекают</value>
+  </data>
+  <data name="AlertUnriggedJobsOne" xml:space="preserve">
+    <value>{0} запущенный проект идёт на объекте без подходящих модификаторов.</value>
+  </data>
+  <data name="AlertUnriggedJobsOther" xml:space="preserve">
+    <value>{0} запущенных проекта идут на объектах без подходящих модификаторов.</value>
+  </data>
+  <data name="AlertUnriggedJobsFew" xml:space="preserve">
+    <value>{0} запущенных проекта идут на объектах без подходящих модификаторов.</value>
+  </data>
+  <data name="AlertUnriggedJobsMany" xml:space="preserve">
+    <value>{0} запущенных проектов идут на объектах без подходящих модификаторов.</value>
+  </data>
+  <data name="AlertJobsReadyOne" xml:space="preserve">
+    <value>{0} промышленный проект готов к доставке.</value>
+  </data>
+  <data name="AlertJobsReadyOther" xml:space="preserve">
+    <value>{0} промышленных проекта готовы к доставке.</value>
+  </data>
+  <data name="AlertJobsReadyFew" xml:space="preserve">
+    <value>{0} промышленных проекта готовы к доставке.</value>
+  </data>
+  <data name="AlertJobsReadyMany" xml:space="preserve">
+    <value>{0} промышленных проектов готовы к доставке.</value>
+  </data>
+  <data name="AlertContractsToYouOne" xml:space="preserve">
+    <value>{0} размещённый контракт адресован вам.</value>
+  </data>
+  <data name="AlertContractsToYouOther" xml:space="preserve">
+    <value>{0} размещённых контракта адресованы вам.</value>
+  </data>
+  <data name="AlertContractsToYouFew" xml:space="preserve">
+    <value>{0} размещённых контракта адресованы вам.</value>
+  </data>
+  <data name="AlertContractsToYouMany" xml:space="preserve">
+    <value>{0} размещённых контрактов адресованы вам.</value>
+  </data>
+  <data name="AlertContractsExpiringOne" xml:space="preserve">
+    <value>{0} контракт скоро истечёт.</value>
+  </data>
+  <data name="AlertContractsExpiringOther" xml:space="preserve">
+    <value>{0} контракта скоро истекут.</value>
+  </data>
+  <data name="AlertContractsExpiringFew" xml:space="preserve">
+    <value>{0} контракта скоро истекут.</value>
+  </data>
+  <data name="AlertContractsExpiringMany" xml:space="preserve">
+    <value>{0} контрактов скоро истекут.</value>
+  </data>
+  <data name="TokensStatusStart" xml:space="preserve">
+    <value>Добавьте персонажа, чтобы начать.</value>
+  </data>
+  <data name="TokensLoaded" xml:space="preserve">
+    <value>Загружено персонажей: {0}, корпораций: {1}.</value>
+  </data>
+  <data name="TokensStartupError" xml:space="preserve">
+    <value>Ошибка загрузки при запуске: {0}</value>
+  </data>
+  <data name="TokensOpeningLogin" xml:space="preserve">
+    <value>Открытие браузера для входа персонажа…</value>
+  </data>
+  <data name="TokensLoginCancelled" xml:space="preserve">
+    <value>Вход отменён.</value>
+  </data>
+  <data name="TokensOpeningUpdate" xml:space="preserve">
+    <value>Открытие браузера для обновления «{0}»…</value>
+  </data>
+  <data name="TokensUpdateCancelled" xml:space="preserve">
+    <value>Обновление отменено.</value>
+  </data>
+  <data name="TokensOpeningCorpLogin" xml:space="preserve">
+    <value>Открытие браузера — войдите персонажем с ролью директора или бухгалтера…</value>
+  </data>
+  <data name="TokensLoadingSkills" xml:space="preserve">
+    <value>Загрузка навыков: {0}…</value>
+  </data>
+  <data name="TokensUnknownSkill" xml:space="preserve">
+    <value>Неизвестный навык ({0})</value>
+  </data>
+  <data name="TokensExpired" xml:space="preserve">
+    <value>Токен истёк — авторизуйтесь заново</value>
+  </data>
+  <data name="TokensNotAuthenticated" xml:space="preserve">
+    <value>Не авторизован</value>
+  </data>
+  <data name="TokensAllScopes" xml:space="preserve">
+    <value>Все области доступа выданы</value>
+  </data>
+  <data name="TokensNoScopesStored" xml:space="preserve">
+    <value>области доступа не сохранены</value>
+  </data>
+  <data name="TokensCharacterRemoved" xml:space="preserve">
+    <value>Персонаж «{0}» удалён.</value>
+  </data>
+  <data name="TokensCorpRemoved" xml:space="preserve">
+    <value>Корпорация «{0}» удалена.</value>
+  </data>
+  <data name="TokensCharacterAdded" xml:space="preserve">
+    <value>Персонаж «{0}» добавлен.</value>
+  </data>
+  <data name="TokensCharacterUpdated" xml:space="preserve">
+    <value>Персонаж «{0}» обновлён.</value>
+  </data>
+  <data name="TokensCorpAdded" xml:space="preserve">
+    <value>Корпорация [{0}] {1} добавлена (авторизация через персонажа {2}).</value>
+  </data>
+  <data name="TokensCorpUpdated" xml:space="preserve">
+    <value>Корпорация [{0}] {1} обновлена (авторизация через персонажа {2}).</value>
+  </data>
+  <data name="TokensScopeShortfall" xml:space="preserve">
+    <value>Не выданы запрошенные области доступа ({0}): {1}. Добавьте персонажа заново и подтвердите доступ на экране согласия EVE, чтобы их выдать.</value>
+  </data>
+  <data name="TokensConfirmReplaceCharacter" xml:space="preserve">
+    <value>Вы вошли как «{0}», но для обновления был выбран персонаж «{1}».
+
+Заменить «{1}» на «{0}»?</value>
+  </data>
+  <data name="TokensConfirmReplaceCorp" xml:space="preserve">
+    <value>Авторизованный персонаж состоит в корпорации «{0}», но для обновления была выбрана корпорация «{1}».
+
+Заменить «{1}» на «{0}»?</value>
+  </data>
+  <data name="TokensScopesMissingOne" xml:space="preserve">
+    <value>{0} область доступа не выдана</value>
+  </data>
+  <data name="TokensScopesMissingOther" xml:space="preserve">
+    <value>{0} области доступа не выданы</value>
+  </data>
+  <data name="TokensScopesMissingFew" xml:space="preserve">
+    <value>{0} области доступа не выданы</value>
+  </data>
+  <data name="TokensScopesMissingMany" xml:space="preserve">
+    <value>{0} областей доступа не выдано</value>
+  </data>
+  <data name="TokensScopesGrantedOne" xml:space="preserve">
+    <value>Выдано {1} из {0} области доступа</value>
+  </data>
+  <data name="TokensScopesGrantedOther" xml:space="preserve">
+    <value>Выдано {1} из {0} области доступа</value>
+  </data>
+  <data name="TokensScopesGrantedFew" xml:space="preserve">
+    <value>Выдано {1} из {0} областей доступа</value>
+  </data>
+  <data name="TokensScopesGrantedMany" xml:space="preserve">
+    <value>Выдано {1} из {0} областей доступа</value>
+  </data>
+  <data name="SectionIncomePie" xml:space="preserve">
+    <value>Доходы (круговая диаграмма)</value>
+  </data>
+  <data name="SectionExpensePie" xml:space="preserve">
+    <value>Расходы (круговая диаграмма)</value>
+  </data>
+  <data name="ScopeReadLists" xml:space="preserve">
+    <value>Чтение списков доступа</value>
+  </data>
+  <data name="ScopeReadCharacter" xml:space="preserve">
+    <value>Чтение данных персонажа</value>
+  </data>
+  <data name="ScopeReadContacts" xml:space="preserve">
+    <value>Чтение контактов</value>
+  </data>
+  <data name="ScopeReadAssets" xml:space="preserve">
+    <value>Чтение имущества</value>
+  </data>
+  <data name="ScopeReadCalendarEvents" xml:space="preserve">
+    <value>Чтение событий календаря</value>
+  </data>
+  <data name="ScopeRespondCalendarEvents" xml:space="preserve">
+    <value>Ответ на события календаря</value>
+  </data>
+  <data name="ScopeReadAgentsResearch" xml:space="preserve">
+    <value>Чтение исследований у агентов</value>
+  </data>
+  <data name="ScopeReadBlueprints" xml:space="preserve">
+    <value>Чтение чертежей</value>
+  </data>
+  <data name="ScopeReadChatChannels" xml:space="preserve">
+    <value>Чтение каналов чата</value>
+  </data>
+  <data name="ScopeReadCorporationRoles" xml:space="preserve">
+    <value>Чтение ролей в корпорации</value>
+  </data>
+  <data name="ScopeReadFatigue" xml:space="preserve">
+    <value>Чтение усталости от гиперпрыжков</value>
+  </data>
+  <data name="ScopeReadFreelanceJobs" xml:space="preserve">
+    <value>Чтение внешних заказов</value>
+  </data>
+  <data name="ScopeReadFwStats" xml:space="preserve">
+    <value>Чтение статистики межгосударственных войн</value>
+  </data>
+  <data name="ScopeReadLoyalty" xml:space="preserve">
+    <value>Чтение наградных баллов</value>
+  </data>
+  <data name="ScopeReadMedals" xml:space="preserve">
+    <value>Чтение медалей</value>
+  </data>
+  <data name="ScopeReadNotifications" xml:space="preserve">
+    <value>Чтение уведомлений</value>
+  </data>
+  <data name="ScopeReadStandings" xml:space="preserve">
+    <value>Чтение отношений</value>
+  </data>
+  <data name="ScopeReadTitles" xml:space="preserve">
+    <value>Чтение должностей</value>
+  </data>
+  <data name="ScopeWriteContacts" xml:space="preserve">
+    <value>Изменение контактов</value>
+  </data>
+  <data name="ScopeReadClones" xml:space="preserve">
+    <value>Чтение клонов</value>
+  </data>
+  <data name="ScopeReadImplants" xml:space="preserve">
+    <value>Чтение имплантатов</value>
+  </data>
+  <data name="ScopeReadCharacterContracts" xml:space="preserve">
+    <value>Чтение контрактов персонажа</value>
+  </data>
+  <data name="ScopeReadFittings" xml:space="preserve">
+    <value>Чтение оснасток</value>
+  </data>
+  <data name="ScopeWriteFittings" xml:space="preserve">
+    <value>Изменение оснасток</value>
+  </data>
+  <data name="ScopeReadFleet" xml:space="preserve">
+    <value>Чтение флота</value>
+  </data>
+  <data name="ScopeWriteFleet" xml:space="preserve">
+    <value>Управление флотом</value>
+  </data>
+  <data name="ScopeReadCharacterJobs" xml:space="preserve">
+    <value>Чтение проектов персонажа</value>
+  </data>
+  <data name="ScopeReadCharacterMining" xml:space="preserve">
+    <value>Чтение добычи персонажа</value>
+  </data>
+  <data name="ScopeReadKillmails" xml:space="preserve">
+    <value>Чтение отчётов о боях</value>
+  </data>
+  <data name="ScopeReadLocation" xml:space="preserve">
+    <value>Чтение местоположения</value>
+  </data>
+  <data name="ScopeReadOnline" xml:space="preserve">
+    <value>Чтение статуса онлайн</value>
+  </data>
+  <data name="ScopeReadShipType" xml:space="preserve">
+    <value>Чтение типа корабля</value>
+  </data>
+  <data name="ScopeOrganizeMail" xml:space="preserve">
+    <value>Управление почтой</value>
+  </data>
+  <data name="ScopeReadMail" xml:space="preserve">
+    <value>Чтение почты</value>
+  </data>
+  <data name="ScopeSendMail" xml:space="preserve">
+    <value>Отправка почты</value>
+  </data>
+  <data name="ScopeReadCharacterOrders" xml:space="preserve">
+    <value>Чтение ордеров персонажа</value>
+  </data>
+  <data name="ScopeStructureMarkets" xml:space="preserve">
+    <value>Рынки сооружений</value>
+  </data>
+  <data name="ScopeManagePlanets" xml:space="preserve">
+    <value>Управление планетами</value>
+  </data>
+  <data name="ScopeReadCustomsOffices" xml:space="preserve">
+    <value>Чтение таможен</value>
+  </data>
+  <data name="ScopeSearchStructures" xml:space="preserve">
+    <value>Поиск сооружений</value>
+  </data>
+  <data name="ScopeReadSkills" xml:space="preserve">
+    <value>Чтение навыков</value>
+  </data>
+  <data name="ScopeReadSkillQueue" xml:space="preserve">
+    <value>Чтение плана навыков</value>
+  </data>
+  <data name="ScopeOpenWindow" xml:space="preserve">
+    <value>Открытие окон</value>
+  </data>
+  <data name="ScopeWriteWaypoint" xml:space="preserve">
+    <value>Установка путевых точек</value>
+  </data>
+  <data name="ScopeReadStructures" xml:space="preserve">
+    <value>Чтение сооружений</value>
+  </data>
+  <data name="ScopeReadCharacterWallet" xml:space="preserve">
+    <value>Чтение кошелька персонажа</value>
+  </data>
+  <data name="ScopeReadContracts" xml:space="preserve">
+    <value>Чтение контрактов</value>
+  </data>
+  <data name="ScopeReadContainerLogs" xml:space="preserve">
+    <value>Чтение журналов контейнеров</value>
+  </data>
+  <data name="ScopeReadMembership" xml:space="preserve">
+    <value>Чтение состава</value>
+  </data>
+  <data name="ScopeReadDivisions" xml:space="preserve">
+    <value>Чтение подразделений</value>
+  </data>
+  <data name="ScopeReadFacilities" xml:space="preserve">
+    <value>Чтение объектов</value>
+  </data>
+  <data name="ScopeReadProjects" xml:space="preserve">
+    <value>Чтение проектов корпорации</value>
+  </data>
+  <data name="ScopeReadStarbases" xml:space="preserve">
+    <value>Чтение звёздных баз</value>
+  </data>
+  <data name="ScopeTrackMembers" xml:space="preserve">
+    <value>Отслеживание участников</value>
+  </data>
+  <data name="ScopeReadJobs" xml:space="preserve">
+    <value>Чтение проектов</value>
+  </data>
+  <data name="ScopeReadMining" xml:space="preserve">
+    <value>Чтение добычи</value>
+  </data>
+  <data name="ScopeReadOrders" xml:space="preserve">
+    <value>Чтение ордеров</value>
+  </data>
+  <data name="ScopeReadCorpStructures" xml:space="preserve">
+    <value>Чтение</value>
+  </data>
+  <data name="ScopeReadWallet" xml:space="preserve">
+    <value>Чтение кошелька</value>
+  </data>
+  <data name="ScopeReadWallets" xml:space="preserve">
+    <value>Чтение счетов</value>
+  </data>
+  <data name="ScopeGroupAccess" xml:space="preserve">
+    <value>Доступ</value>
+  </data>
+  <data name="ScopeGroupActivities" xml:space="preserve">
+    <value>Деятельность</value>
+  </data>
+  <data name="ScopeGroupAlliances" xml:space="preserve">
+    <value>Альянсы</value>
+  </data>
+  <data name="ScopeGroupAssets" xml:space="preserve">
+    <value>Имущество</value>
+  </data>
+  <data name="ScopeGroupCalendar" xml:space="preserve">
+    <value>Календарь</value>
+  </data>
+  <data name="ScopeGroupCharacters" xml:space="preserve">
+    <value>Персонажи</value>
+  </data>
+  <data name="ScopeGroupClones" xml:space="preserve">
+    <value>Клоны</value>
+  </data>
+  <data name="ScopeGroupContracts" xml:space="preserve">
+    <value>Контракты</value>
+  </data>
+  <data name="ScopeGroupFittings" xml:space="preserve">
+    <value>Оснастки</value>
+  </data>
+  <data name="ScopeGroupFleets" xml:space="preserve">
+    <value>Флоты</value>
+  </data>
+  <data name="ScopeGroupIndustry" xml:space="preserve">
+    <value>Промышленность</value>
+  </data>
+  <data name="ScopeGroupKillmails" xml:space="preserve">
+    <value>Отчёты о боях</value>
+  </data>
+  <data name="ScopeGroupLocation" xml:space="preserve">
+    <value>Местоположение</value>
+  </data>
+  <data name="ScopeGroupMail" xml:space="preserve">
+    <value>Почта</value>
+  </data>
+  <data name="ScopeGroupMarkets" xml:space="preserve">
+    <value>Рынки</value>
+  </data>
+  <data name="ScopeGroupPlanets" xml:space="preserve">
+    <value>Планеты</value>
+  </data>
+  <data name="ScopeGroupSearch" xml:space="preserve">
+    <value>Поиск</value>
+  </data>
+  <data name="ScopeGroupSkills" xml:space="preserve">
+    <value>Навыки</value>
+  </data>
+  <data name="ScopeGroupStructures" xml:space="preserve">
+    <value>Сооружения</value>
+  </data>
+  <data name="ScopeGroupUi" xml:space="preserve">
+    <value>Интерфейс</value>
+  </data>
+  <data name="ScopeGroupUniverse" xml:space="preserve">
+    <value>Вселенная</value>
+  </data>
+  <data name="ScopeGroupWallet" xml:space="preserve">
+    <value>Кошелёк</value>
+  </data>
+  <data name="ScopeGroupCorp" xml:space="preserve">
+    <value>Корпорация</value>
+  </data>
+</root>

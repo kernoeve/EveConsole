@@ -1,0 +1,3268 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="WindowTitle" xml:space="preserve">
+    <value>Einstellungen</value>
+  </data>
+  <data name="TabEsiTokens" xml:space="preserve">
+    <value>ESI-Token</value>
+  </data>
+  <data name="TabCharacters" xml:space="preserve">
+    <value>Charaktere</value>
+  </data>
+  <data name="TabSde" xml:space="preserve">
+    <value>SDE</value>
+  </data>
+  <data name="TabMarket" xml:space="preserve">
+    <value>Markt</value>
+  </data>
+  <data name="TabPriceHistory" xml:space="preserve">
+    <value>Preisverlauf</value>
+  </data>
+  <data name="TabIndustry" xml:space="preserve">
+    <value>Industrie</value>
+  </data>
+  <data name="TabTimers" xml:space="preserve">
+    <value>Timer</value>
+  </data>
+  <data name="TabPolling" xml:space="preserve">
+    <value>Abfrage</value>
+  </data>
+  <data name="TabGameLogs" xml:space="preserve">
+    <value>Spielprotokolle</value>
+  </data>
+  <data name="TabChatLogs" xml:space="preserve">
+    <value>Chatprotokolle</value>
+  </data>
+  <data name="TabMapData" xml:space="preserve">
+    <value>Kartendaten</value>
+  </data>
+  <data name="TabKillMails" xml:space="preserve">
+    <value>Abschussberichte</value>
+  </data>
+  <data name="TabCorpTop10" xml:space="preserve">
+    <value>Corp Top 10 / Zusammenfassung</value>
+  </data>
+  <data name="TabAiAgent" xml:space="preserve">
+    <value>KI-Assistent</value>
+  </data>
+  <data name="TabAgent" xml:space="preserve">
+    <value>Assistent</value>
+  </data>
+  <data name="TabPersonalisation" xml:space="preserve">
+    <value>Personalisierung</value>
+  </data>
+  <data name="TabVoice" xml:space="preserve">
+    <value>Stimme (TTS)</value>
+  </data>
+  <data name="TabSpeechInput" xml:space="preserve">
+    <value>Spracheingabe (STT)</value>
+  </data>
+  <data name="TabSlack" xml:space="preserve">
+    <value>Slack</value>
+  </data>
+  <data name="TabAlerts" xml:space="preserve">
+    <value>Warnungen</value>
+  </data>
+  <data name="TabDatabase" xml:space="preserve">
+    <value>Datenbank</value>
+  </data>
+  <data name="TabDataRetention" xml:space="preserve">
+    <value>Datenaufbewahrung</value>
+  </data>
+  <data name="TabUpdates" xml:space="preserve">
+    <value>Updates</value>
+  </data>
+  <data name="TabOther" xml:space="preserve">
+    <value>Sonstiges</value>
+  </data>
+  <data name="AppearanceHeader" xml:space="preserve">
+    <value>Darstellung</value>
+  </data>
+  <data name="ThemeLabel" xml:space="preserve">
+    <value>Design:</value>
+  </data>
+  <data name="UiScaleLabel" xml:space="preserve">
+    <value>UI-Skalierung:</value>
+  </data>
+  <data name="LanguageLabel" xml:space="preserve">
+    <value>Sprache:</value>
+  </data>
+  <data name="LanguageSystemDefault" xml:space="preserve">
+    <value>Systemstandard ({0})</value>
+  </data>
+  <data name="LanguagePreviewNote" xml:space="preserve">
+    <value>Vorschau: Teile der App sind noch nicht übersetzt und erscheinen auf Englisch.</value>
+  </data>
+  <data name="LanguageRestartNote" xml:space="preserve">
+    <value>Die neue Sprache gilt ab dem nächsten Start.</value>
+  </data>
+  <data name="RestartNow" xml:space="preserve">
+    <value>Jetzt neu starten</value>
+  </data>
+  <data name="RestartFailed" xml:space="preserve">
+    <value>Neustart fehlgeschlagen: {0}</value>
+  </data>
+  <data name="AppearanceNote" xml:space="preserve">
+    <value>Design und Skalierung gelten sofort für alle Fenster und Dialoge, die Sprache ab dem nächsten Start. Alle drei werden nur für diesen Client gespeichert – ein zweiter Client an derselben Datenbank behält seine eigenen. Die Skalierung lässt sich auch rechts in der Statusleiste schnell ändern.</value>
+  </data>
+  <data name="EveTimeLinkHeader" xml:space="preserve">
+    <value>Link der EVE-Uhr</value>
+  </data>
+  <data name="EveTimeLinkNote" xml:space="preserve">
+    <value>Ein Klick auf die EVE-Uhr in der Titelleiste öffnet diese Seite. Wählen Sie einen der Vorschläge oder „Eigene URL…“ und geben Sie Ihre eigene ein.</value>
+  </data>
+  <data name="OpenLabel" xml:space="preserve">
+    <value>Öffnen:</value>
+  </data>
+  <data name="CustomUrlOption" xml:space="preserve">
+    <value>Eigene URL…</value>
+  </data>
+  <data name="EveTimeLinkEffective" xml:space="preserve">
+    <value>Ein Klick auf die Uhr öffnet: {0}</value>
+  </data>
+  <data name="ServerStatusHeader" xml:space="preserve">
+    <value>Link zum Serverstatus</value>
+  </data>
+  <data name="ServerStatusNote" xml:space="preserve">
+    <value>Ein Klick auf die Tranquility-Anzeige neben der Uhr öffnet die offizielle Statusseite von CCP. Nicht einstellbar – keine andere Seite bietet dieselben Informationen.</value>
+  </data>
+  <data name="ABrowserTabWillNote" xml:space="preserve">
+    <value>Ein Browser-Tab öffnet sich, in dem Sie sich anmelden und den Zugriff autorisieren. Prüfen Sie die Berechtigungen unten und entfernen Sie das Häkchen bei allen, die Sie nicht erteilen möchten. Diese Auswahl gilt nur für diese Authentifizierung.</value>
+  </data>
+  <data name="SelectAll" xml:space="preserve">
+    <value>Alle auswählen</value>
+  </data>
+  <data name="ClearAll" xml:space="preserve">
+    <value>Alle abwählen</value>
+  </data>
+  <data name="RemovingScopesWillDisableNote" xml:space="preserve">
+    <value>Das Entfernen von Berechtigungen deaktiviert die zugehörigen Funktionen dieser Anwendung. Sie lassen sich jederzeit mit „Aktualisieren“ erneut erteilen.</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Abbrechen</value>
+  </data>
+  <data name="ContinueToBrowser" xml:space="preserve">
+    <value>Weiter zum Browser</value>
+  </data>
+  <data name="TitleEveStaticDataUpdate" xml:space="preserve">
+    <value>Update der statischen EVE-Daten</value>
+  </data>
+  <data name="ANewerEveStaticNote" xml:space="preserve">
+    <value>Eine neuere Version der statischen EVE-Daten ist verfügbar.</value>
+  </data>
+  <data name="LoadedLabel" xml:space="preserve">
+    <value>Geladen:</value>
+  </data>
+  <data name="LatestLabel" xml:space="preserve">
+    <value>Neueste:</value>
+  </data>
+  <data name="UpdateNow" xml:space="preserve">
+    <value>Jetzt aktualisieren</value>
+  </data>
+  <data name="Later" xml:space="preserve">
+    <value>Später</value>
+  </data>
+  <data name="UpdatingEveStaticData" xml:space="preserve">
+    <value>Statische EVE-Daten werden aktualisiert…</value>
+  </data>
+  <data name="SdeUpdateComplete" xml:space="preserve">
+    <value>SDE-Update abgeschlossen.</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Schließen</value>
+  </data>
+  <data name="HoboleaksComplement" xml:space="preserve">
+    <value>Hoboleaks-Ergänzung</value>
+  </data>
+  <data name="BlueprintsReprocessingCompressionAndNote" xml:space="preserve">
+    <value>Blaupausen, Aufbereitung, Kompression und verpackte Volumen, kurz nach jedem TQ-Patch aktualisiert – oft vor dem offiziellen SDE.</value>
+  </data>
+  <data name="ImportFromHoboleaks" xml:space="preserve">
+    <value>Von Hoboleaks importieren</value>
+  </data>
+  <data name="Characters" xml:space="preserve">
+    <value>Charaktere</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Hinzufügen</value>
+  </data>
+  <data name="Update" xml:space="preserve">
+    <value>Aktualisieren</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>Entfernen</value>
+  </data>
+  <data name="GrantedScopesLabel" xml:space="preserve">
+    <value>Erteilte Berechtigungen:</value>
+  </data>
+  <data name="Corporations" xml:space="preserve">
+    <value>Corporations</value>
+  </data>
+  <data name="TipPersonalCorporation" xml:space="preserve">
+    <value>Persönliche Corporation</value>
+  </data>
+  <data name="PersonalCorporation" xml:space="preserve">
+    <value>Persönliche Corporation</value>
+  </data>
+  <data name="TipPersonalCorpsCountToward" xml:space="preserve">
+    <value>Persönliche Corps zählen zu Ihrem eigenen Gesamtkapital. Allianz- oder Arbeitgeber-Corps werden als eigenständige Entitäten behandelt.</value>
+  </data>
+  <data name="AuthCharacterScopesLabel" xml:space="preserve">
+    <value>Berechtigungen des Auth-Charakters:</value>
+  </data>
+  <data name="WhichCharactersMayBeNote" xml:space="preserve">
+    <value>Welche Charaktere Industrieaufträge erhalten dürfen, und für welche Tätigkeiten. Jeder autorisierte Charakter wird automatisch mit allen drei Tätigkeiten aufgeführt – entfernen Sie die Häkchen bei denen, die ein Charakter nicht erhalten soll; so nehmen Sie einen Alt aus der Planung. Aufträge gehen an den am wenigsten fähigen Charakter, der sie ausführen kann, damit die hochgeskillten Alts für die Arbeit frei bleiben, die nur sie erledigen können. Entfernen Sie das Häkchen bei „Warteschlange“ für einen Charakter, dessen Trainingswarteschlange absichtlich leer ist; dann löst sie keine Warnungen aus.</value>
+  </data>
+  <data name="ColCharacter" xml:space="preserve">
+    <value>Charakter</value>
+  </data>
+  <data name="ColSlotsUsedFor" xml:space="preserve">
+    <value>Slots genutzt für</value>
+  </data>
+  <data name="Mfg" xml:space="preserve">
+    <value>Fert.</value>
+  </data>
+  <data name="TipManufacturing" xml:space="preserve">
+    <value>Fertigung</value>
+  </data>
+  <data name="Rxn" xml:space="preserve">
+    <value>Reak.</value>
+  </data>
+  <data name="TipReactions" xml:space="preserve">
+    <value>Reaktionen</value>
+  </data>
+  <data name="Sci" xml:space="preserve">
+    <value>Wiss.</value>
+  </data>
+  <data name="TipScienceCopyingResearchInvention" xml:space="preserve">
+    <value>Wissenschaft – Kopieren, Forschung, Erfindung</value>
+  </data>
+  <data name="ColFreeTotal" xml:space="preserve">
+    <value>Frei / gesamt</value>
+  </data>
+  <data name="ColSkillQueue" xml:space="preserve">
+    <value>Warteschlange</value>
+  </data>
+  <data name="TipCharacterSkillQueueShould" xml:space="preserve">
+    <value>Die Trainingswarteschlange des Charakters soll nicht leerlaufen. Entfernen Sie das Häkchen für einen Alt, dessen Warteschlange absichtlich leer ist; dann melden sie weder die Warnungen der Übersicht noch die Arbeitsliste.</value>
+  </data>
+  <data name="EveStaticData" xml:space="preserve">
+    <value>Statische EVE-Daten</value>
+  </data>
+  <data name="UpdateSde" xml:space="preserve">
+    <value>SDE aktualisieren</value>
+  </data>
+  <data name="TipDownloadAndImportThe" xml:space="preserve">
+    <value>Die neuesten statischen EVE-Daten herunterladen und importieren. Auch möglich, wenn sie bereits aktuell sind.</value>
+  </data>
+  <data name="BlueprintsReprocessingCompressionAndNote2" xml:space="preserve">
+    <value>Blaupausen, Aufbereitung, Kompression und verpackte Volumen – kurz nach jedem TQ-Patch aktualisiert, oft vor dem offiziellen SDE.</value>
+  </data>
+  <data name="TipDownloadBlueprintReprocessingCompression" xml:space="preserve">
+    <value>Daten zu Blaupausen, Aufbereitung, Kompression und verpackten Volumen von sde.hoboleaks.space herunterladen.</value>
+  </data>
+  <data name="PriceSources" xml:space="preserve">
+    <value>Preisquellen</value>
+  </data>
+  <data name="Method" xml:space="preserve">
+    <value>Methode</value>
+  </data>
+  <data name="FuzzworkFetchesPreComputedNote" xml:space="preserve">
+    <value>Fuzzwork: ruft vorberechnete Perzentilpreise von fuzzwork.co.uk ab. Schnell, ohne Authentifizierung, und speichert lokal sehr wenig Daten (eine Preiszeile pro Gegenstand). Speichert keine einzelnen Aufträge – der Tab „Marktaufträge“ im Gegenstandsbrowser braucht „Region“ oder „Spielerstruktur“.</value>
+  </data>
+  <data name="EsiRegionFetchesAllNote" xml:space="preserve">
+    <value>Region: ruft alle öffentlichen Aufträge einer ganzen Region von ESI ab. Verwenden Sie dies für NPC-Handelszentren (z. B. Jita → The Forge). Hinweis: Aufträge in spielereigenen Strukturen sind nicht enthalten – nur regionale Kaufaufträge, die in Strukturen erstellt wurden, erscheinen.</value>
+  </data>
+  <data name="PlayerStructureFetchesAllNote" xml:space="preserve">
+    <value>Spielerstruktur: ruft alle Aufträge in einer bestimmten spielereigenen Struktur ab (Zitadelle, Ingenieurskomplex usw.). Erfordert einen Auth-Charakter mit Andockrecht. Verwenden Sie dies für Staging-Keepstars im Nullsicherheitsraum und andere private Märkte.</value>
+  </data>
+  <data name="LocationName" xml:space="preserve">
+    <value>Standortname</value>
+  </data>
+  <data name="HintEGJita44" xml:space="preserve">
+    <value>z. B. Jita 4-4</value>
+  </data>
+  <data name="Region" xml:space="preserve">
+    <value>Region</value>
+  </data>
+  <data name="LocationId" xml:space="preserve">
+    <value>Standort-ID</value>
+  </data>
+  <data name="HintStationOrStructureId" xml:space="preserve">
+    <value>Stations- oder Struktur-ID</value>
+  </data>
+  <data name="SectionFindLocationByName" xml:space="preserve">
+    <value>Standort nach Namen suchen…</value>
+  </data>
+  <data name="SearchForAStationNote" xml:space="preserve">
+    <value>Suchen Sie eine Station oder Struktur nach Namen. Die Ergebnisse füllen die Standort-ID oben aus.</value>
+  </data>
+  <data name="HintStationOrStructureName" xml:space="preserve">
+    <value>Name der Station oder Struktur…</value>
+  </data>
+  <data name="Search" xml:space="preserve">
+    <value>Suchen</value>
+  </data>
+  <data name="UseSelected" xml:space="preserve">
+    <value>Auswahl übernehmen</value>
+  </data>
+  <data name="StationFilter" xml:space="preserve">
+    <value>Stationsfilter</value>
+  </data>
+  <data name="RestrictPricesToANote" xml:space="preserve">
+    <value>Preise auf eine einzelne Station beschränken (z. B. Jita 4-4). Aktualisieren Sie zuerst die Quelle, um die Liste zu füllen.</value>
+  </data>
+  <data name="AuthCharacter" xml:space="preserve">
+    <value>Auth-Charakter</value>
+  </data>
+  <data name="FilterHighLowOrders" xml:space="preserve">
+    <value>Hohe/niedrige Aufträge filtern</value>
+  </data>
+  <data name="RemovesAnomaliesCausedByNote" xml:space="preserve">
+    <value>Entfernt Ausreißer durch Aufträge mit kleinem Volumen an den Rändern des Orderbuchs. Verkauf = günstigstes N-tes Perzentil; Kauf = höchstes (100-N)-tes Perzentil.</value>
+  </data>
+  <data name="Filter" xml:space="preserve">
+    <value>Filter %</value>
+  </data>
+  <data name="Enabled" xml:space="preserve">
+    <value>Aktiviert</value>
+  </data>
+  <data name="LastRefreshLabel" xml:space="preserve">
+    <value>Letzte Aktualisierung:</value>
+  </data>
+  <data name="StatusLabel" xml:space="preserve">
+    <value>Status:</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Speichern</value>
+  </data>
+  <data name="RefreshThis" xml:space="preserve">
+    <value>Diese aktualisieren</value>
+  </data>
+  <data name="DefaultPricing" xml:space="preserve">
+    <value>Standardpreise</value>
+  </data>
+  <data name="AssetValueLabel" xml:space="preserve">
+    <value>Besitzwert:</value>
+  </data>
+  <data name="ManufacturingCostLabel" xml:space="preserve">
+    <value>Fertigungskosten:</value>
+  </data>
+  <data name="MissingPriceMarkupLabel" xml:space="preserve">
+    <value>Aufschlag bei fehlendem Preis:</value>
+  </data>
+  <data name="AppliedWhenTheMarketNote" xml:space="preserve">
+    <value>Wird angewendet, wenn der Markt keine Verkaufsaufträge für einen Gegenstand hat. Preis = Baukosten × (1 + Aufschlag %). Gibt es keine Kaufaufträge, gilt der Verkaufspreis auch als Kaufpreis.</value>
+  </data>
+  <data name="FilterLowballBuyOrdersBelow" xml:space="preserve">
+    <value>Lowball-Kaufaufträge filtern unter</value>
+  </data>
+  <data name="OfBuildCost" xml:space="preserve">
+    <value>% der Baukosten</value>
+  </data>
+  <data name="AppliesToEsiRegionNote" xml:space="preserve">
+    <value>Gilt nur für ESI-Region- und Strukturmärkte. Die Aufträge bleiben in der Marktansicht sichtbar, fließen aber nicht in den Kaufpreis ein.</value>
+  </data>
+  <data name="SaveDefaults" xml:space="preserve">
+    <value>Standards speichern</value>
+  </data>
+  <data name="RefreshAll" xml:space="preserve">
+    <value>Alle aktualisieren</value>
+  </data>
+  <data name="PriceHistoryRegions" xml:space="preserve">
+    <value>Regionen für den Preisverlauf</value>
+  </data>
+  <data name="ABackgroundJobRefreshesNote" xml:space="preserve">
+    <value>Ein Hintergrundprozess aktualisiert den 30-Tage-Marktverlauf aller gehandelten Gegenstände in diesen Regionen, einmal alle 24 Stunden pro Gegenstand, sodass die Chancen-Tools und Gegenstandsdetails ihn direkt aus der Datenbank lesen. Er richtet sein Tempo nach dem Fehlerlimit von ESI und bringt die App daher nie darüber. Große Regionen (z. B. The Forge) füllen sich nach und nach über mehrere Sitzungen.</value>
+  </data>
+  <data name="ColRegionId" xml:space="preserve">
+    <value>Regions-ID</value>
+  </data>
+  <data name="ColRegionName" xml:space="preserve">
+    <value>Regionsname</value>
+  </data>
+  <data name="HintSelectARegionToAdd" xml:space="preserve">
+    <value>Region zum Hinzufügen auswählen…</value>
+  </data>
+  <data name="AddRegion" xml:space="preserve">
+    <value>Region hinzufügen</value>
+  </data>
+  <data name="TipWatchLivePerNote" xml:space="preserve">
+    <value>Tipp: Den Fortschritt je Region (aktualisiert gegenüber ausstehend, und ob der Durchlauf gerade läuft) sehen Sie live unter Hintergrundprozesse → Preisverlauf.</value>
+  </data>
+  <data name="BuildCosts" xml:space="preserve">
+    <value>Baukosten</value>
+  </data>
+  <data name="RecalculateStoredBuildCostsNote" xml:space="preserve">
+    <value>Berechnet die gespeicherten Baukosten für jeden herstellbaren Gegenstand neu. Läuft automatisch nach einer Marktaktualisierung; verwenden Sie dies, um nach Änderungen an Preisen oder Preisvorgaben eine Aktualisierung zu erzwingen.</value>
+  </data>
+  <data name="RecalculateBuildCosts" xml:space="preserve">
+    <value>Baukosten neu berechnen</value>
+  </data>
+  <data name="ProductionCalculator" xml:space="preserve">
+    <value>Produktionsrechner</value>
+  </data>
+  <data name="PurchaseAComponentInstead" xml:space="preserve">
+    <value>Komponente kaufen statt bauen bei einem Marktwert ≤</value>
+  </data>
+  <data name="OfBuildValue" xml:space="preserve">
+    <value>% des Bauwerts</value>
+  </data>
+  <data name="OffByDefaultComponentNote" xml:space="preserve">
+    <value>Standardmäßig aus. Komponentenmärkte schwanken stark, und ein paar günstig angebotene Einheiten garantieren nicht, dass die benötigte Menge zu diesem Preis verfügbar ist – noch dass es sich lohnt, sie zusammenzusuchen und zu transportieren. Ist die Option aus, bauen die Rechner jede Komponente, die sie bauen können (Gegenstände, deren Kosten sich wirklich nicht ermitteln lassen, werden weiterhin gekauft). Schalten Sie sie ein, damit das Günstigere von Bauen und Kaufen entscheidet.</value>
+  </data>
+  <data name="AdjustHowOftenEachNote" xml:space="preserve">
+    <value>Legen Sie fest, wie oft jeder Endpunkt abgefragt wird. Änderungen gelten ab dem nächsten Abfragezyklus.</value>
+  </data>
+  <data name="CharacterEndpoints" xml:space="preserve">
+    <value>Charakter-Endpunkte</value>
+  </data>
+  <data name="ForceNow" xml:space="preserve">
+    <value>Jetzt erzwingen</value>
+  </data>
+  <data name="TipResetTheInMemory" xml:space="preserve">
+    <value>Setzt den Timer im Speicher zurück, sodass dieser Endpunkt im nächsten Abfragezyklus (innerhalb von ca. 10 Sekunden) abgefragt wird.</value>
+  </data>
+  <data name="CorporationEndpoints" xml:space="preserve">
+    <value>Corporation-Endpunkte</value>
+  </data>
+  <data name="Other" xml:space="preserve">
+    <value>Sonstiges</value>
+  </data>
+  <data name="SaveTimers" xml:space="preserve">
+    <value>Timer speichern</value>
+  </data>
+  <data name="StructureNameResolution" xml:space="preserve">
+    <value>Auflösung von Strukturnamen</value>
+  </data>
+  <data name="WhenResolvingUnknownStructureNote" xml:space="preserve">
+    <value>Beim Auflösen unbekannter Strukturnamen versucht EVE Console nacheinander jeden authentifizierten Charakter, bis einer Erfolg hat. Verweigern die meisten Strukturen Ihren Charakteren den Zugriff, verhindert die Wahl eines einzelnen Charakters hier unnötige fehlgeschlagene Aufrufe und schont Ihr ESI-Fehlerbudget.</value>
+  </data>
+  <data name="CharacterLabel" xml:space="preserve">
+    <value>Charakter:</value>
+  </data>
+  <data name="SelectNoneTryAllNote" xml:space="preserve">
+    <value>Wählen Sie „(keiner – alle versuchen)“, um zum ursprünglichen Verhalten zurückzukehren und jeden Charakter zu versuchen. Die Auswahl gilt sofort – kein Neustart nötig.</value>
+  </data>
+  <data name="ABackgroundServiceIsNote" xml:space="preserve">
+    <value>Ein Hintergrunddienst ist installiert, während dieser Client SQLite verwendet. Nur ein Prozess kann eine SQLite-Datei nutzen, daher sperrt der zuerst gestartete den anderen aus. Beenden und entfernen Sie den Dienst, oder stellen Sie diesen Client auf PostgreSQL um.</value>
+  </data>
+  <data name="DatabaseLabel" xml:space="preserve">
+    <value>Datenbank:</value>
+  </data>
+  <data name="Start" xml:space="preserve">
+    <value>Starten</value>
+  </data>
+  <data name="Stop" xml:space="preserve">
+    <value>Stoppen</value>
+  </data>
+  <data name="NotificationAreaIcon" xml:space="preserve">
+    <value>Symbol im Infobereich</value>
+  </data>
+  <data name="ASmallSeparateProcessNote" xml:space="preserve">
+    <value>Ein kleiner separater Prozess, der anzeigt, welcher Client die Hintergrundarbeit erledigt, und über sein Menü das Fenster „Hintergrundprozesse“ oder eine neue EVE Console öffnet. Er erledigt nie selbst Hintergrundarbeit und verarbeitet nie Alarme – diese stoppen Sie, indem Sie EVE Console schließen.</value>
+  </data>
+  <data name="GameLogImport" xml:space="preserve">
+    <value>Import der Spielprotokolle</value>
+  </data>
+  <data name="ReadsEvesOwnGameNote" xml:space="preserve">
+    <value>Liest die Spielprotokolle von EVE und speichert, was sie enthalten – Kämpfe, Bergbau, Kopfgelder, Sprünge, Abdocken –, damit andere Tools es abfragen können. Die Protokolle werden schreibgeschützt geöffnet; es wird nie etwas zurückgeschrieben und nichts an den Spielclient gesendet.</value>
+  </data>
+  <data name="ImportGameLogsOnBy" xml:space="preserve">
+    <value>Spielprotokolle importieren (standardmäßig an)</value>
+  </data>
+  <data name="ThisCapturesActivityFromNote" xml:space="preserve">
+    <value>Damit wird die Aktivität ab jetzt erfasst. Protokolle, die EVE bereits geschrieben hat, werden nur geladen, wenn Sie unten einen Import starten.</value>
+  </data>
+  <data name="ParsePositionIsRememberedNote" xml:space="preserve">
+    <value>Die Leseposition wird pro Datei gespeichert, sodass alles, was protokolliert wurde, während EVE Console geschlossen war, beim nächsten Start übernommen wird.</value>
+  </data>
+  <data name="LogFolders" xml:space="preserve">
+    <value>Protokollordner</value>
+  </data>
+  <data name="LeaveTheListEmptyNote" xml:space="preserve">
+    <value>Lassen Sie die Liste leer, um automatisch den lokalen Ordner zu verwenden. Fügen Sie einen Netzwerkpfad hinzu (\\RECHNER\Freigabe\Gamelogs), um Protokolle von EVE-Clients auf anderen Computern zu importieren – dort muss nichts installiert werden.</value>
+  </data>
+  <data name="Detect" xml:space="preserve">
+    <value>Erkennen</value>
+  </data>
+  <data name="Open" xml:space="preserve">
+    <value>Öffnen</value>
+  </data>
+  <data name="CurrentlyReadingLabel" xml:space="preserve">
+    <value>Liest gerade:</value>
+  </data>
+  <data name="ImportPastLogs" xml:space="preserve">
+    <value>Ältere Protokolle importieren</value>
+  </data>
+  <data name="TurningTheImporterOnNote" xml:space="preserve">
+    <value>Das Einschalten des Imports erfasst nur neue Aktivität ab diesem Zeitpunkt. Um auch zu laden, was EVE bereits protokolliert hat, wählen Sie, wie weit zurück, und starten Sie den Import. Er läuft einmal – danach wird neue Aktivität automatisch übernommen.</value>
+  </data>
+  <data name="ImportLogsFromTheLastLabel" xml:space="preserve">
+    <value>Zeitraum des Imports (Tage):</value>
+  </data>
+  <data name="N0AllHistory" xml:space="preserve">
+    <value>0 = gesamter Verlauf</value>
+  </data>
+  <data name="StartImport" xml:space="preserve">
+    <value>Import starten</value>
+  </data>
+  <data name="Recount" xml:space="preserve">
+    <value>Neu zählen</value>
+  </data>
+  <data name="Options" xml:space="preserve">
+    <value>Optionen</value>
+  </data>
+  <data name="CheckForNewLinesEveryLabel" xml:space="preserve">
+    <value>Prüfintervall für neue Zeilen (s):</value>
+  </data>
+  <data name="KeepLinesThatNoRule" xml:space="preserve">
+    <value>Zeilen behalten, die keine Regel erkannt hat</value>
+  </data>
+  <data name="RecommendedEvesLogFormatNote" xml:space="preserve">
+    <value>Empfohlen. Das Protokollformat von EVE ist nicht dokumentiert und ändert sich mit der Client-Version, und Erkennungsregeln können nur Aktivitäten abdecken, die jemand tatsächlich ausgeführt hat. Werden unerkannte Zeilen behalten (als Art „unmatched“), zeigen sich Lücken in Ihren eigenen Daten, statt unbemerkt zu bleiben.</value>
+  </data>
+  <data name="ChatLogImport" xml:space="preserve">
+    <value>Import der Chatprotokolle</value>
+  </data>
+  <data name="UnlikeGameLogsChatNote" xml:space="preserve">
+    <value>Anders als Spielprotokolle enthalten Chatprotokolle, was andere geschrieben haben. Es wird nichts gespeichert, solange Sie dies nicht aktivieren und unten bestimmte Kanäle ankreuzen.</value>
+  </data>
+  <data name="NotePrivateConversationsAppearNote" xml:space="preserve">
+    <value>Hinweis: Private Unterhaltungen erscheinen als „Private Chat (2)“, „Private Chat (3)“ und so weiter. EVE vergibt diese Namen im Lauf der Zeit an verschiedene Personen, sodass ein angekreuzter Kanal Direktnachrichten mit vielen verschiedenen Spielern erfassen kann.</value>
+  </data>
+  <data name="ImportChatLogs" xml:space="preserve">
+    <value>Chatprotokolle importieren</value>
+  </data>
+  <data name="LeaveTheListEmptyNote2" xml:space="preserve">
+    <value>Lassen Sie die Liste leer, um automatisch den lokalen Ordner zu verwenden. Fügen Sie einen Netzwerkpfad hinzu (\\RECHNER\Freigabe\Chatlogs), um Protokolle von EVE-Clients auf anderen Computern zu importieren – dort muss nichts installiert werden. Die Kanalsuche unten sieht nur Kanäle aus den hier eingerichteten Ordnern.</value>
+  </data>
+  <data name="ChannelsToStore" xml:space="preserve">
+    <value>Zu speichernde Kanäle</value>
+  </data>
+  <data name="OnlyTickedChannelsAreNote" xml:space="preserve">
+    <value>Nur angekreuzte Kanäle werden überhaupt gelesen – Dateien anderer Kanäle werden nie geöffnet. Die Suche liest nur Dateinamen; das kann einen Moment dauern, da diese Ordner Zehntausende Dateien enthalten.</value>
+  </data>
+  <data name="DiscoverChannels" xml:space="preserve">
+    <value>Kanäle suchen</value>
+  </data>
+  <data name="UntickAll" xml:space="preserve">
+    <value>Alle abwählen</value>
+  </data>
+  <data name="ChannelLabel" xml:space="preserve">
+    <value>Kanal</value>
+  </data>
+  <data name="IntelLabel" xml:space="preserve">
+    <value>Intel</value>
+  </data>
+  <data name="TipParseThisChannelForSightings" xml:space="preserve">
+    <value>Diesen Kanal nach Sichtungen auswerten</value>
+  </data>
+  <data name="ParseStoredHistory" xml:space="preserve">
+    <value>Gespeicherten Verlauf auswerten</value>
+  </data>
+  <data name="ImportPastChat" xml:space="preserve">
+    <value>Älteren Chat importieren</value>
+  </data>
+  <data name="AsWithGameLogsNote" xml:space="preserve">
+    <value>Wie bei den Spielprotokollen erfasst das Aktivieren nur neue Nachrichten. Hiermit laden Sie auch den älteren Chat der ausgewählten Kanäle.</value>
+  </data>
+  <data name="ImportChatFromTheLastLabel" xml:space="preserve">
+    <value>Zeitraum des Chat-Imports (Tage):</value>
+  </data>
+  <data name="MapStatistics" xml:space="preserve">
+    <value>Kartenstatistiken</value>
+  </data>
+  <data name="JumpsKillsSovereigntyIndustryNote" xml:space="preserve">
+    <value>Sprünge, Abschüsse, Souveränität, Industrieindizes, Fraktionskrieg und Übergriffe für die Überlagerungen der Universumskarte. ESI liefert nur die aktuelle Stunde, daher stammt der Verlauf aus dem Archiv von EVE Ref – so hinterlässt das Schließen der App keine dauerhaften Lücken.</value>
+  </data>
+  <data name="CollectMapStatistics" xml:space="preserve">
+    <value>Kartenstatistiken sammeln</value>
+  </data>
+  <data name="BackfillDays" xml:space="preserve">
+    <value>Tage nachladen</value>
+  </data>
+  <data name="KeepHourlyDetailDays" xml:space="preserve">
+    <value>Stündliche Details behalten (Tage)</value>
+  </data>
+  <data name="PastTheHourlyWindowNote" xml:space="preserve">
+    <value>Jenseits des stündlichen Zeitraums werden Sprünge und Abschüsse pro Tag summiert, und von Souveränitäts-, Industrie- und Strukturdaten bleibt ein Schnappschuss pro Tag. Industrieindizes werden weiterhin stündlich aktualisiert, sodass der aktuelle Wert aktuell bleibt – nur die älteren Stunden werden ausgedünnt.</value>
+  </data>
+  <data name="History" xml:space="preserve">
+    <value>Verlauf</value>
+  </data>
+  <data name="BackfillNow" xml:space="preserve">
+    <value>Jetzt nachladen</value>
+  </data>
+  <data name="RefreshCurrentHour" xml:space="preserve">
+    <value>Aktuelle Stunde aktualisieren</value>
+  </data>
+  <data name="Coverage" xml:space="preserve">
+    <value>Abdeckung</value>
+  </data>
+  <data name="ZkillboardKillImport" xml:space="preserve">
+    <value>Abschussimport von zKillboard</value>
+  </data>
+  <data name="EsiOnlyReturnsANote" xml:space="preserve">
+    <value>ESI liefert einen Abschussbericht nur, wenn Sie das Opfer waren oder den finalen Schlag gesetzt haben – eine Beteiligung ohne finalen Schlag bleibt für ESI unsichtbar. zKillboard erfasst jeden Beteiligten, das Zusammenführen schließt also diese Lücke. Standardmäßig an, für Ihre eigenen Charaktere und deren Corporations; entfernen Sie das Häkchen, um es auszuschalten. Wird in dieselben Abschussdaten übernommen, die überall sonst verwendet werden, und dupliziert oder überschreibt nie, was ESI bereits geliefert hat.</value>
+  </data>
+  <data name="EnableZkillboardKillImport" xml:space="preserve">
+    <value>Abschussimport von zKillboard aktivieren</value>
+  </data>
+  <data name="Scope" xml:space="preserve">
+    <value>Umfang</value>
+  </data>
+  <data name="MyCharactersCorpOnly" xml:space="preserve">
+    <value>Nur meine Charaktere &amp; Corp</value>
+  </data>
+  <data name="LiveCapturePollsZkillboardNote" xml:space="preserve">
+    <value>Die Live-Erfassung fragt zKillboard im unten eingestellten Intervall nur für die Charaktere und Corps ab, die diese App bereits verfolgt.</value>
+  </data>
+  <data name="CaptureAllKills" xml:space="preserve">
+    <value>Alle Abschüsse erfassen</value>
+  </data>
+  <data name="LiveCaptureSwitchesToNote" xml:space="preserve">
+    <value>Die Live-Erfassung wechselt zum Echtzeit-Datenstrom (Firehose) von zKillboard, für den es kein Intervall gibt – er streamt ununterbrochen. Die Datenbank wächst deutlich schneller als mit „Nur meine Charaktere &amp; Corp“, da jeder Abschuss in New Eden gespeichert wird, nicht nur Ihre eigenen.</value>
+  </data>
+  <data name="LivePollInterval" xml:space="preserve">
+    <value>Abfrageintervall (live)</value>
+  </data>
+  <data name="CheckZkillboardForNewNote" xml:space="preserve">
+    <value>Prüfintervall für neue Abschüsse auf zKillboard (s):</value>
+  </data>
+  <data name="NotUsedInAllNote" xml:space="preserve">
+    <value>Wird bei „Alle Abschüsse erfassen“ nicht verwendet – dort bestimmt der Datenstrom selbst das Tempo.</value>
+  </data>
+  <data name="BackfillHistory" xml:space="preserve">
+    <value>Verlauf nachladen</value>
+  </data>
+  <data name="PullsZkillboardsDailyKillNote" xml:space="preserve">
+    <value>Lädt die täglichen Abschuss-Dumps von zKillboard für den gewählten Zeitraum und übernimmt alles, was zum Umfang oben passt. Läuft außerdem einmal pro Stunde automatisch, um Lücken seit dem letzten Lauf der App zu schließen – diese Schaltfläche dient vor allem dazu, Verlauf von vor Beginn der Erfassung zu laden.</value>
+  </data>
+  <data name="BackfillTheLastDaysLabel" xml:space="preserve">
+    <value>Zeitraum zum Nachladen (Tage):</value>
+  </data>
+  <data name="StartBackfill" xml:space="preserve">
+    <value>Nachladen starten</value>
+  </data>
+  <data name="PostKillsToZkillboard" xml:space="preserve">
+    <value>Abschüsse an zKillboard senden</value>
+  </data>
+  <data name="SubmitsKillmailsThisAppNote" xml:space="preserve">
+    <value>Übermittelt Abschussberichte, die diese App hat und die zKillboard fehlen – meist ESI-Abschüsse, die niemand sonst hochgeladen hat. Berücksichtigt werden nur Abschüsse aus dem abgedeckten Zeitraum unten, und erst wenn sie einige Stunden alt sind, damit ein Abschuss, den zKillboard noch verarbeitet, nie unnötig übermittelt wird. Nichts wird zweimal übermittelt.</value>
+  </data>
+  <data name="PostKillmailsToZkillboard" xml:space="preserve">
+    <value>Abschussberichte an zKillboard senden</value>
+  </data>
+  <data name="ThatIsTheOldestNote" xml:space="preserve">
+    <value>Das ist der älteste Abschuss, der auf zKillboard bestätigt vorhanden ist. Alles Ältere liegt vor allem, was zKillboard uns gezeigt hat, kann also nicht als fehlend beurteilt werden und bleibt unberührt – laden Sie weiter zurück nach, um den Zeitraum zu erweitern.</value>
+  </data>
+  <data name="Top10ListTitles" xml:space="preserve">
+    <value>Titel der Top-10-Listen</value>
+  </data>
+  <data name="TheHeadingEachSectionNote" xml:space="preserve">
+    <value>Die Überschrift, unter der jeder Abschnitt gepostet wird. Leer lassen, um den eingebauten Namen zu verwenden. Jede Top-10-Überschrift nennt den Monat, den sie abdeckt, sodass eine einzeln gelesene Liste trotzdem sagt, um welchen Monat es geht.</value>
+  </data>
+  <data name="SummaryTitles" xml:space="preserve">
+    <value>Titel der Zusammenfassung</value>
+  </data>
+  <data name="SummaryHeaderPrefixLabel" xml:space="preserve">
+    <value>Präfix der Zusammenfassung</value>
+  </data>
+  <data name="HintPutInFrontOf" xml:space="preserve">
+    <value>Wird der ersten Zeile der Zusammenfassung vorangestellt</value>
+  </data>
+  <data name="SaveTitles" xml:space="preserve">
+    <value>Titel speichern</value>
+  </data>
+  <data name="Top10ExcludeList" xml:space="preserve">
+    <value>Ausschlussliste für Top 10</value>
+  </data>
+  <data name="AnyoneHereIsLeftNote" xml:space="preserve">
+    <value>Wer hier steht, fehlt in jeder Top-10-Liste, auf diesem Tab und in geplanten Posts.</value>
+  </data>
+  <data name="HintTypeTwoLettersOfThe" xml:space="preserve">
+    <value>Zwei Buchstaben des Namens eingeben…</value>
+  </data>
+  <data name="Models" xml:space="preserve">
+    <value>Modelle</value>
+  </data>
+  <data name="EveryModelTheAgentNote" xml:space="preserve">
+    <value>Alle Modelle, mit denen der KI-Assistent denken kann: ein eigener Server wie Ollama, der kostenlos ist, oder ein kostenpflichtiger Dienst. Welches Modell was übernimmt, legen Sie unten unter „Rollen“ fest.</value>
+  </data>
+  <data name="TipAtLeastOneModelStays" xml:space="preserve">
+    <value>Mindestens ein Modell bleibt erhalten</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Service" xml:space="preserve">
+    <value>Dienst</value>
+  </data>
+  <data name="ClaudeAnthropicApiKey" xml:space="preserve">
+    <value>API-Schlüssel für Claude (Anthropic)</value>
+  </data>
+  <data name="HintSkAnt" xml:space="preserve">
+    <value>sk-ant-…</value>
+  </data>
+  <data name="OneKeyForEveryNote" xml:space="preserve">
+    <value>Ein Schlüssel für alle Claude-Modelle in der Liste.</value>
+  </data>
+  <data name="GetYourAnthropicApi" xml:space="preserve">
+    <value>Ihren Anthropic-API-Schlüssel erhalten Sie unter console.anthropic.com</value>
+  </data>
+  <data name="OpenaiApiKey" xml:space="preserve">
+    <value>API-Schlüssel für OpenAI</value>
+  </data>
+  <data name="HintSk" xml:space="preserve">
+    <value>sk-…</value>
+  </data>
+  <data name="OneKeyForEveryNote2" xml:space="preserve">
+    <value>Ein Schlüssel für alle OpenAI-Modelle in der Liste sowie für die Stimmen und die Spracheingabe von OpenAI.</value>
+  </data>
+  <data name="GetYourOpenaiApi" xml:space="preserve">
+    <value>Ihren OpenAI-API-Schlüssel erhalten Sie unter platform.openai.com</value>
+  </data>
+  <data name="ServerAddress" xml:space="preserve">
+    <value>Serveradresse</value>
+  </data>
+  <data name="Model" xml:space="preserve">
+    <value>Modell</value>
+  </data>
+  <data name="TipAskTheServiceFor" xml:space="preserve">
+    <value>Den Dienst erneut nach seiner Modellliste fragen</value>
+  </data>
+  <data name="LetItThinkBeforeAnswering" xml:space="preserve">
+    <value>Vor dem Antworten nachdenken lassen (langsamer)</value>
+  </data>
+  <data name="ForModelsThatThinkNote" xml:space="preserve">
+    <value>Für Modelle, die vor dem Antworten nachdenken, wie Qwen3. Das Nachdenken wird nie angezeigt, aber jede Antwort wartet darauf. Ohne Häkchen kommen Antworten schneller: Das Modell wird angewiesen, nicht nachzudenken, was etwas Sorgfalt kostet – vor allem bei der Wahl eines Tools. Modelle, die nicht nachdenken, ignorieren die Einstellung.</value>
+  </data>
+  <data name="PromptCacheLifetime" xml:space="preserve">
+    <value>Lebensdauer des Prompt-Caches</value>
+  </data>
+  <data name="AnthropicKeepsTheInstructionsNote" xml:space="preserve">
+    <value>Anthropic hält Anweisungen, Tools und Unterhaltung zwischen Nachrichten im Cache, und das Lesen aus dem Cache kostet ein Zehntel des erneuten Sendens. Der Eintrag lebt 5 Minuten ab der letzten Nachricht; jede Nachricht erneuert ihn. Liegen Ihre Nachrichten meist 5–60 Minuten auseinander, spart die 1-Stunden-Option Geld – das Schreiben in den Cache kostet dann aber 2× statt 1,25×, es wird also teurer, wenn sie dichter aufeinander folgen. Das Tool „KI-Nutzung“ zeigt Lese- und Schreibzugriffe auf den Cache pro Nachricht. Gilt für alle Claude-Modelle in der Liste.</value>
+  </data>
+  <data name="TestThisModel" xml:space="preserve">
+    <value>Dieses Modell testen</value>
+  </data>
+  <data name="TipAsksItForOne" xml:space="preserve">
+    <value>Bittet es vor dem Speichern mit diesen Einstellungen um einen Satz. Kostenlos auf einem eigenen Server; ein paar Token bei einem kostenpflichtigen Dienst.</value>
+  </data>
+  <data name="Roles" xml:space="preserve">
+    <value>Rollen</value>
+  </data>
+  <data name="Conversation" xml:space="preserve">
+    <value>Unterhaltung</value>
+  </data>
+  <data name="TalksWithYouAndNote" xml:space="preserve">
+    <value>Spricht mit Ihnen und bedient die App – öffnet und ordnet ihre Tools, stellt Alarme und Ziele ein, merkt sich Ihre dauerhaften Anweisungen.</value>
+  </data>
+  <data name="IfItStopsAnsweringNote" xml:space="preserve">
+    <value>Wenn es nicht mehr antwortet, wechseln zu</value>
+  </data>
+  <data name="SaySoWhenIt" xml:space="preserve">
+    <value>Wechsel und Rückkehr ansagen – im Chat, und laut, wenn gesprochen wird</value>
+  </data>
+  <data name="QuestionsAboutYourData" xml:space="preserve">
+    <value>Fragen zu Ihren Daten</value>
+  </data>
+  <data name="AnythingThatNeedsYourNote" xml:space="preserve">
+    <value>Alles, wofür Ihre Datenbank oder ESI nötig ist – was Sie haben, besitzen, tun oder getan haben. Das Modell hier erhält den vollständigen Prompt und alle Tools.</value>
+  </data>
+  <data name="SendAMessageToNote" xml:space="preserve">
+    <value>Eine Nachricht an dieses Modell senden, wenn…</value>
+  </data>
+  <data name="ResetToTheDefault" xml:space="preserve">
+    <value>Auf Standard zurücksetzen</value>
+  </data>
+  <data name="Summaries" xml:space="preserve">
+    <value>Zusammenfassungen</value>
+  </data>
+  <data name="CompactsOlderMessagesWhenNote" xml:space="preserve">
+    <value>Fasst ältere Nachrichten zusammen, wenn die Unterhaltung lang wird (siehe „Kontextverwaltung“). Ein kleines kostenloses Modell erledigt das gut.</value>
+  </data>
+  <data name="WhenAModelChanges" xml:space="preserve">
+    <value>Wenn ein Modell wechselt</value>
+  </data>
+  <data name="SaidForARoleNote" xml:space="preserve">
+    <value>Wird für eine Rolle, die das vorsieht (oben), angesagt, wenn ihr Modell nicht mehr antwortet und das Ausweichmodell übernimmt, und erneut, wenn ihr eigenes Modell zurück ist. {user} ist Ihr Name aus „Personalisierung“, {purpose} ist „unser Gespräch“ oder „den Datenzugriff“, {primary} und {fallback} sind die Namen der beiden Modelle. Beim Start wird nichts stillschweigend umgeschaltet: Ist das eigene Modell einer Rolle nicht da, bemerkt das die erste Nachricht und sagt es an.</value>
+  </data>
+  <data name="FallingOver" xml:space="preserve">
+    <value>Wechsel</value>
+  </data>
+  <data name="ComingBack" xml:space="preserve">
+    <value>Rückkehr</value>
+  </data>
+  <data name="AtLeast" xml:space="preserve">
+    <value>Mindestens</value>
+  </data>
+  <data name="MinutesBetweenOneChangeNote" xml:space="preserve">
+    <value>Minuten zwischen einem Wechsel und der nächsten Rückkehr</value>
+  </data>
+  <data name="UpFor" xml:space="preserve">
+    <value>Verfügbar für</value>
+  </data>
+  <data name="MinutesWithoutABreakNote" xml:space="preserve">
+    <value>Minuten ohne Unterbrechung, bevor das eigene Modell einer Rolle zurückkehrt</value>
+  </data>
+  <data name="AModelThatStopsNote" xml:space="preserve">
+    <value>Ein Modell, das nicht mehr antwortet, wird sofort ersetzt, noch vor dem ersten Wort der Antwort – diese Werte steuern nur die Rückkehr, damit ein Server, der ständig ausfällt, den KI-Assistenten nicht hin und her springen lässt. Eine Rückkehr wartet auf Ihre nächste Nachricht und auf ein echtes Wort vom zurückkehrenden Modell.</value>
+  </data>
+  <data name="ContextManagement" xml:space="preserve">
+    <value>Kontextverwaltung</value>
+  </data>
+  <data name="PersistConversationHistoryAcrossSessions" xml:space="preserve">
+    <value>Gesprächsverlauf über Sitzungen hinweg speichern</value>
+  </data>
+  <data name="SummarizationThresholdEstimatedTokens" xml:space="preserve">
+    <value>Schwelle für Zusammenfassung (geschätzte Token)</value>
+  </data>
+  <data name="Tokens" xml:space="preserve">
+    <value>Token</value>
+  </data>
+  <data name="Personalisation" xml:space="preserve">
+    <value>Personalisierung</value>
+  </data>
+  <data name="EverythingOnThisTabNote" xml:space="preserve">
+    <value>Alles auf diesem Tab betrifft Sie statt dieses PCs, daher wird es in der Datenbank gespeichert und von jedem Client geteilt, der sie öffnet. Die anderen Tabs – Anbieter, Schlüssel, Stimme, Mikrofon – gehören zu diesem Rechner.</value>
+  </data>
+  <data name="AgentName" xml:space="preserve">
+    <value>Name des Assistenten</value>
+  </data>
+  <data name="ResponseVerbosity" xml:space="preserve">
+    <value>Ausführlichkeit der Antworten</value>
+  </data>
+  <data name="ConciseShortDirectAnswersNote" xml:space="preserve">
+    <value>Knapp: kurze, direkte Antworten (1–3 Sätze). Ausgewogen: vollständig, aber ohne Füllstoff. Ausführlich: gründlich, mit Kontext und Begründung. Dies wird bei jeder Nachricht in den System-Prompt eingefügt.</value>
+  </data>
+  <data name="YourName" xml:space="preserve">
+    <value>Ihr Name</value>
+  </data>
+  <data name="StandingInstructions" xml:space="preserve">
+    <value>Dauerhafte Anweisungen</value>
+  </data>
+  <data name="Voices" xml:space="preserve">
+    <value>Stimmen</value>
+  </data>
+  <data name="SpeakTheAgentsReplies" xml:space="preserve">
+    <value>Antworten des KI-Assistenten vorlesen</value>
+  </data>
+  <data name="InOrderOfPreferenceNote" xml:space="preserve">
+    <value>In der Reihenfolge der Präferenz. Die erste Stimme, die sprechen kann, wird verwendet; fällt sie aus, übernimmt sofort die nächste, und sobald die erste wieder da ist und stabil bleibt, kehrt sie zurück. Eine Stimme kann einen eigenen Namen haben – die Stimme gehört dazu, mit wem Sie sprechen –, und solange sie spricht, ist er der Name des Assistenten, im Panel und in der Unterhaltung. Eine Stimme ohne Namen trägt den Namen des Assistenten aus „Personalisierung“.</value>
+  </data>
+  <data name="Up" xml:space="preserve">
+    <value>▲ Hoch</value>
+  </data>
+  <data name="TipPreferThisVoiceOver" xml:space="preserve">
+    <value>Diese Stimme der darüberliegenden vorziehen</value>
+  </data>
+  <data name="Down" xml:space="preserve">
+    <value>▼ Runter</value>
+  </data>
+  <data name="Engine" xml:space="preserve">
+    <value>Engine</value>
+  </data>
+  <data name="Kokoro82mRunsFullyNote" xml:space="preserve">
+    <value>Kokoro 82M läuft vollständig offline auf diesem PC. Seine Stimmen werden mit der Anwendung ausgeliefert; sein Modell wird einmalig heruntergeladen.</value>
+  </data>
+  <data name="Voice" xml:space="preserve">
+    <value>Stimme</value>
+  </data>
+  <data name="LoadModel" xml:space="preserve">
+    <value>Modell laden</value>
+  </data>
+  <data name="ModelLoaded" xml:space="preserve">
+    <value>✔ Modell geladen</value>
+  </data>
+  <data name="OneModelServesEveryNote" xml:space="preserve">
+    <value>Ein Modell bedient alle Kokoro-Stimmen. Es wird einmalig in den Datenordner dieses PCs heruntergeladen (ca. 320 MB, nur die Gewichte des neuronalen Netzes – kein ausführbarer Code), wo Updates es unberührt lassen.</value>
+  </data>
+  <data name="AnyServerThatSpeaksNote" xml:space="preserve">
+    <value>Jeder Server, der die Sprach-API von OpenAI beherrscht – Kokoro-FastAPI, Chatterbox-TTS-Server (voll oder Turbo), Orpheus-FastAPI –, meist auf der GPU eines anderen Rechners. Kostenlos; kann der Server nicht sprechen, übernimmt die nächste Stimme in der Liste.</value>
+  </data>
+  <data name="ServerAddressUpToNote" xml:space="preserve">
+    <value>Serveradresse (bis einschließlich /v1)</value>
+  </data>
+  <data name="HintAsTheServerNames" xml:space="preserve">
+    <value>wie der Server es nennt – kokoro, chatterbox, orpheus…</value>
+  </data>
+  <data name="HintAsTheServerNames2" xml:space="preserve">
+    <value>wie der Server sie nennt – af_heart, tara…</value>
+  </data>
+  <data name="ChatterboxAFileFromNote" xml:space="preserve">
+    <value>Chatterbox: eine Datei aus seinem Stimmenordner, mit .wav – Emily.wav (das Modell wird ignoriert). Orpheus: tara, leah, jess, leo, dan, mia, zac oder zoe (Modell orpheus). Kokoro-FastAPI: af_heart, bf_emma… (Modell kokoro).</value>
+  </data>
+  <data name="Speed" xml:space="preserve">
+    <value>Geschwindigkeit</value>
+  </data>
+  <data name="ApiKeyOnlyIfNote" xml:space="preserve">
+    <value>API-Schlüssel (nur, wenn der Server einen verlangt)</value>
+  </data>
+  <data name="PiperIsAFastNote" xml:space="preserve">
+    <value>Piper ist eine schnelle Offline-Engine. Ihre Laufzeitumgebung wird mit der Anwendung ausgeliefert; nur das Stimmmodell wird heruntergeladen.</value>
+  </data>
+  <data name="RuntimeLabel" xml:space="preserve">
+    <value>Laufzeitumgebung:</value>
+  </data>
+  <data name="Bundled" xml:space="preserve">
+    <value>✔ Mitgeliefert</value>
+  </data>
+  <data name="NotFoundInAppDirectory" xml:space="preserve">
+    <value>⚠ Nicht im App-Verzeichnis gefunden</value>
+  </data>
+  <data name="DownloadVoiceModel" xml:space="preserve">
+    <value>Stimmmodell herunterladen</value>
+  </data>
+  <data name="VoiceReady" xml:space="preserve">
+    <value>✔ Stimme bereit</value>
+  </data>
+  <data name="OpenaisVoicesBilledPerCharacter" xml:space="preserve">
+    <value>Die Stimmen von OpenAI, pro Zeichen abgerechnet.</value>
+  </data>
+  <data name="OneKeyForEveryNote3" xml:space="preserve">
+    <value>Ein Schlüssel für alle OpenAI-Stimmen sowie für die OpenAI-Modelle im Tab „Assistent“ und die Spracheingabe.</value>
+  </data>
+  <data name="HintAsOpenaiNamesIt" xml:space="preserve">
+    <value>wie OpenAI es nennt</value>
+  </data>
+  <data name="TipAskOpenaiForIts" xml:space="preserve">
+    <value>OpenAI erneut nach seiner Liste der Sprachmodelle fragen</value>
+  </data>
+  <data name="ElevenlabsVoicesBilledPerCharacter" xml:space="preserve">
+    <value>Die Stimmen von ElevenLabs, pro Zeichen abgerechnet.</value>
+  </data>
+  <data name="ElevenlabsApiKey" xml:space="preserve">
+    <value>API-Schlüssel für ElevenLabs</value>
+  </data>
+  <data name="OneKeyForEveryElevenlabs" xml:space="preserve">
+    <value>Ein Schlüssel für alle ElevenLabs-Stimmen.</value>
+  </data>
+  <data name="GetYourElevenlabsApi" xml:space="preserve">
+    <value>Ihren ElevenLabs-API-Schlüssel erhalten Sie unter elevenlabs.io</value>
+  </data>
+  <data name="HintTheVoicesId" xml:space="preserve">
+    <value>die ID der Stimme</value>
+  </data>
+  <data name="TipAskElevenlabsForYour" xml:space="preserve">
+    <value>ElevenLabs erneut nach Ihren Stimmen fragen – etwa nachdem Sie dort eine hinzugefügt haben</value>
+  </data>
+  <data name="HintTheModelsId" xml:space="preserve">
+    <value>die ID des Modells</value>
+  </data>
+  <data name="TipAskElevenlabsForIts" xml:space="preserve">
+    <value>ElevenLabs erneut nach seiner Modellliste fragen</value>
+  </data>
+  <data name="TestThisVoice" xml:space="preserve">
+    <value>Diese Stimme testen</value>
+  </data>
+  <data name="TipSpeaksWithThisVoice" xml:space="preserve">
+    <value>Spricht vor dem Speichern mit dieser Stimme in diesen Einstellungen – für sich allein, nicht über die Liste</value>
+  </data>
+  <data name="WhenTheVoiceChanges" xml:space="preserve">
+    <value>Wenn die Stimme wechselt</value>
+  </data>
+  <data name="AnnounceItInTheNew" xml:space="preserve">
+    <value>Mit der neuen Stimme ansagen</value>
+  </data>
+  <data name="SaidByTheVoiceNote" xml:space="preserve">
+    <value>Wird von der übernehmenden Stimme gesprochen und in der Unterhaltung behalten, damit der KI-Assistent weiß, wer er jetzt ist. Nur wenn sich der Name ändert – geben Sie jeder Stimme einen eigenen Namen, damit ein Wechsel angesagt wird. Beim Start der App wird nichts gesagt: Sie hören einfach, wer gerade spricht. {previous} und {current} stehen für die beiden Namen.</value>
+  </data>
+  <data name="TakingOver" xml:space="preserve">
+    <value>Übernahme</value>
+  </data>
+  <data name="MinutesWithoutABreakNote2" xml:space="preserve">
+    <value>Minuten ohne Unterbrechung, bevor eine bevorzugte Stimme zurückkehrt</value>
+  </data>
+  <data name="AVoiceThatFailsNote" xml:space="preserve">
+    <value>Eine ausfallende Stimme wird sofort ersetzt – diese Werte steuern nur die Rückkehr, damit ein Server, der ständig ausfällt, die Stimme nicht hin und her springen lässt. Eine Rückkehr wartet das Ende der aktuellen Antwort ab.</value>
+  </data>
+  <data name="SpeechInputPushToTalk" xml:space="preserve">
+    <value>Spracheingabe (Push-to-Talk)</value>
+  </data>
+  <data name="Provider" xml:space="preserve">
+    <value>Anbieter</value>
+  </data>
+  <data name="MicrophoneDevice" xml:space="preserve">
+    <value>Mikrofon</value>
+  </data>
+  <data name="HintSystemDefault" xml:space="preserve">
+    <value>(Systemstandard)</value>
+  </data>
+  <data name="TipRefreshTheListOfInput" xml:space="preserve">
+    <value>Liste der Eingabegeräte aktualisieren</value>
+  </data>
+  <data name="SystemDefaultFollowsWhateverNote" xml:space="preserve">
+    <value>„Systemstandard“ folgt dem Eingabegerät, das das Betriebssystem gerade verwendet, sodass ein später angeschlossenes Headset genutzt wird, ohne dass Sie hierher zurückkehren müssen. Wählen Sie ein Gerät, um es festzulegen. Funktioniert unter Windows und Linux (PortAudio); ist die Liste leer, klicken Sie auf ↺, sobald Ihr Audiotreiber initialisiert ist.</value>
+  </data>
+  <data name="GlobalPushToTalkKey" xml:space="preserve">
+    <value>Globale Push-to-Talk-Taste</value>
+  </data>
+  <data name="ApiKey" xml:space="preserve">
+    <value>API-Schlüssel</value>
+  </data>
+  <data name="TheSameOpenaiKeyNote" xml:space="preserve">
+    <value>Derselbe OpenAI-Schlüssel wie für die OpenAI-Modelle im Tab „Assistent“ und die Stimmen von OpenAI.</value>
+  </data>
+  <data name="TipAskOpenaiForIts2" xml:space="preserve">
+    <value>OpenAI erneut nach seiner Liste der Transkriptionsmodelle fragen</value>
+  </data>
+  <data name="SentToOpenaiToNote" xml:space="preserve">
+    <value>Wird zur Verschriftlichung an OpenAI gesendet. Funktioniert unter Windows und Linux.</value>
+  </data>
+  <data name="RunsWhisperNetLocallyNote" xml:space="preserve">
+    <value>Führt Whisper.net lokal auf diesem Rechner aus (nur Windows). Kein API-Schlüssel nötig. Vor der ersten Nutzung muss eine Modelldatei heruntergeladen werden.</value>
+  </data>
+  <data name="Language" xml:space="preserve">
+    <value>Sprache</value>
+  </data>
+  <data name="HintEn" xml:space="preserve">
+    <value>de</value>
+  </data>
+  <data name="ATwoLetterCodeNote" xml:space="preserve">
+    <value>Ein Code aus zwei Buchstaben wie de, oder auto, damit das Modell rät. Eine Schätzung anhand eines Zwei-Sekunden-Clips ist oft falsch und kostet einen zusätzlichen Durchgang; geben Sie die Sprache an, die Sie sprechen.</value>
+  </data>
+  <data name="DownloadModel" xml:space="preserve">
+    <value>Modell herunterladen</value>
+  </data>
+  <data name="Downloaded" xml:space="preserve">
+    <value>✔ Heruntergeladen</value>
+  </data>
+  <data name="SaveAgentSettings" xml:space="preserve">
+    <value>Einstellungen des Assistenten speichern</value>
+  </data>
+  <data name="SlackIntegration" xml:space="preserve">
+    <value>Slack-Integration</value>
+  </data>
+  <data name="PostFromEveConsoleNote" xml:space="preserve">
+    <value>Posten Sie aus EVE Console direkt in Slack. Beiträge werden mit Ihrem eigenen Benutzer-Token erstellt und erscheinen daher unter Ihrem Namen – nicht als Bot. Nichts wird automatisch gepostet; Sie entscheiden, wann gesendet wird.</value>
+  </data>
+  <data name="ConnectingOpensSlackInNote" xml:space="preserve">
+    <value>Beim Verbinden öffnet sich Slack in Ihrem Browser. Wählen Sie den Workspace, genehmigen Sie den Zugriff, fertig – EVE Console sieht Ihr Slack-Passwort nie, und Sie können den Zugriff jederzeit in Ihren Slack-Kontoeinstellungen widerrufen.</value>
+  </data>
+  <data name="ConnectToSlack" xml:space="preserve">
+    <value>Mit Slack verbinden</value>
+  </data>
+  <data name="Disconnect" xml:space="preserve">
+    <value>Trennen</value>
+  </data>
+  <data name="ReloadChannels" xml:space="preserve">
+    <value>Kanäle neu laden</value>
+  </data>
+  <data name="ManualSetup" xml:space="preserve">
+    <value>Manuelle Einrichtung</value>
+  </data>
+  <data name="N1OpenApiSlackNote" xml:space="preserve">
+    <value>1.  Öffnen Sie api.slack.com/apps und wählen Sie „Create New App“ → „From scratch“. Geben Sie ihr einen Namen (z. B. EVE Console) und wählen Sie Ihren Workspace.</value>
+  </data>
+  <data name="N2GoToOauthNote" xml:space="preserve">
+    <value>2.  Gehen Sie zu „OAuth &amp; Permissions“ und fügen Sie diese unter „User Token Scopes“ hinzu (nicht „Bot Token Scopes“):</value>
+  </data>
+  <data name="ChatWriteChannelsReadNote" xml:space="preserve">
+    <value>chat:write     channels:read     groups:read     im:read     mpim:read</value>
+  </data>
+  <data name="N3ClickInstallToNote" xml:space="preserve">
+    <value>3.  Klicken Sie auf „Install to Workspace“ und bestätigen Sie, dann kopieren Sie das „User OAuth Token“ (es beginnt mit xoxp-).</value>
+  </data>
+  <data name="OpenApiSlackComApps" xml:space="preserve">
+    <value>api.slack.com/apps öffnen</value>
+  </data>
+  <data name="UserOauthToken" xml:space="preserve">
+    <value>User OAuth Token</value>
+  </data>
+  <data name="HintXoxp" xml:space="preserve">
+    <value>xoxp-…</value>
+  </data>
+  <data name="StoredLocallyInYourNote" xml:space="preserve">
+    <value>Wird lokal in Ihrer EVE-Console-Datenbank gespeichert. Behandeln Sie es wie ein Passwort – damit kann in jedem Kanal, den Sie erreichen, in Ihrem Namen gepostet werden.</value>
+  </data>
+  <data name="SaveTest" xml:space="preserve">
+    <value>Speichern &amp; testen</value>
+  </data>
+  <data name="Webhooks" xml:space="preserve">
+    <value>Webhooks</value>
+  </data>
+  <data name="ForWorkspacesYouCannotNote" xml:space="preserve">
+    <value>Für Workspaces, mit denen Sie sich nicht als Sie selbst verbinden können – typischerweise ein Allianz-Slack, das eher einen Webhook herausgibt als ein Token. Benennen Sie hier einen, und er erscheint in jeder Zielliste unten.</value>
+  </data>
+  <data name="AWebhookCannotThreadNote" xml:space="preserve">
+    <value>⚠ Ein Webhook kann keine Threads bilden. Was darüber gepostet wird, liefert keine Nachrichten-ID zurück, daher kommen die Details einer Verkaufsanzeige als zweite Nachricht statt als Antwort unter der ersten an. Beiträge erscheinen außerdem als die App des Webhooks statt unter Ihrem Namen.</value>
+  </data>
+  <data name="ColName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="HintName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Channels" xml:space="preserve">
+    <value>Kanäle</value>
+  </data>
+  <data name="PickWhichChannelEachNote" xml:space="preserve">
+    <value>Wählen Sie, in welchen Kanal jeder Teil von EVE Console postet. Die Schaltfläche zum Posten eines Bereichs erscheint erst, wenn sein Kanal festgelegt ist.</value>
+  </data>
+  <data name="CorpActivityTop10" xml:space="preserve">
+    <value>Corp-Aktivität – Top 10</value>
+  </data>
+  <data name="HintSelectAChannel" xml:space="preserve">
+    <value>Kanal auswählen…</value>
+  </data>
+  <data name="CorpActivityMonthlySummary" xml:space="preserve">
+    <value>Corp-Aktivität – Monatszusammenfassung</value>
+  </data>
+  <data name="SalePosting" xml:space="preserve">
+    <value>Verkaufsanzeigen</value>
+  </data>
+  <data name="PrivateChannelsOnlyAppearNote" xml:space="preserve">
+    <value>Private Kanäle erscheinen nur, wenn Sie Mitglied sind. Fehlt ein Kanal, verwenden Sie „Kanäle neu laden“.</value>
+  </data>
+  <data name="AlertRules" xml:space="preserve">
+    <value>Warnregeln</value>
+  </data>
+  <data name="ConfigureWhichConditionsTriggerNote" xml:space="preserve">
+    <value>Legen Sie fest, welche Bedingungen Warnungen im Tab „Übersicht“ auslösen. Warnungen werden bei jeder Aktualisierung der Übersicht neu geprüft.</value>
+  </data>
+  <data name="SkillQueue" xml:space="preserve">
+    <value>Trainingswarteschlange</value>
+  </data>
+  <data name="CharacterSkillQueueIsEmpty" xml:space="preserve">
+    <value>Trainingswarteschlange eines Charakters ist leer</value>
+  </data>
+  <data name="CharacterSkillQueueIs" xml:space="preserve">
+    <value>Trainingswarteschlange eines Charakters ist pausiert (hat Einträge, aber nichts wird trainiert)</value>
+  </data>
+  <data name="SkillQueueWillBeEmpty" xml:space="preserve">
+    <value>Trainingswarteschlange reicht höchstens noch</value>
+  </data>
+  <data name="Days" xml:space="preserve">
+    <value>Tage</value>
+  </data>
+  <data name="SaveAlerts" xml:space="preserve">
+    <value>Warnungen speichern</value>
+  </data>
+  <data name="AssetSafety" xml:space="preserve">
+    <value>Besitzsicherheit</value>
+  </data>
+  <data name="AlertWhenItemsAre" xml:space="preserve">
+    <value>Warnen, wenn Gegenstände in die Besitzsicherheit verschoben werden</value>
+  </data>
+  <data name="TriggersWhenAStructureitemsmovedintosafetyNote" xml:space="preserve">
+    <value>Wird ausgelöst, wenn für einen beliebigen authentifizierten Charakter eine Benachrichtigung vom Typ StructureItemsMovedIntoSafety eingeht. Die Warnung bleibt bestehen, bis Sie sie manuell verwerfen.</value>
+  </data>
+  <data name="StandingProjects" xml:space="preserve">
+    <value>Dauerprojekte</value>
+  </data>
+  <data name="AlertWhenStandingProjects" xml:space="preserve">
+    <value>Warnen, wenn Dauerprojekte derzeit nicht aktiv sind</value>
+  </data>
+  <data name="TriggersWhenOneOrNote" xml:space="preserve">
+    <value>Wird ausgelöst, wenn ein oder mehrere Dauerprojekte (Corp-Aktivität → Projekte → Dauerprojekte) kein passendes aktives Corporation-Projekt in ESI haben. Wird bei jeder Aktualisierung der Übersicht neu geprüft.</value>
+  </data>
+  <data name="StandingBuyOrders" xml:space="preserve">
+    <value>Dauer-Kaufaufträge</value>
+  </data>
+  <data name="AlertWhenStandingBuy" xml:space="preserve">
+    <value>Warnen, wenn Dauer-Kaufaufträge Aufmerksamkeit brauchen</value>
+  </data>
+  <data name="TriggersWhenAStandingNote" xml:space="preserve">
+    <value>Wird ausgelöst, wenn ein Dauer-Kaufauftrag (Markt / Handel → Dauer-Kaufaufträge) keinen passenden aktiven Auftrag hat, an dieser Station überboten wurde, unter 10 % seines ursprünglichen Volumens gefallen ist oder weniger als 20 % seiner Laufzeit übrig hat. Die Warnung nennt den Grund, denn einen Auftrag erstellen, einen Preis erhöhen, einen Auftrag aufstocken und einen erneuern sind verschiedene Aufgaben. Wird bei jeder Aktualisierung der Übersicht neu geprüft.</value>
+  </data>
+  <data name="OutbidDetectionComparesAgainstNote" xml:space="preserve">
+    <value>Die Erkennung des Überbietens vergleicht mit dem öffentlichen Orderbuch, das nur Stationen und Strukturen abdeckt, die unter Einstellungen → Markt als Marktquellen eingerichtet sind. Überall sonst erscheint ein Strich, statt zu behaupten, es gebe keine Konkurrenz.</value>
+  </data>
+  <data name="IndustryFacilities" xml:space="preserve">
+    <value>Industrieanlagen</value>
+  </data>
+  <data name="AlertWhenRunningJobs" xml:space="preserve">
+    <value>Warnen, wenn laufende Aufträge in einer Anlage ohne passende Rigs sind</value>
+  </data>
+  <data name="CountsActiveManufacturingAndNote" xml:space="preserve">
+    <value>Zählt aktive Fertigungs- und Reaktionsaufträge, deren Anlage kein Rig mit Bonus für diese Art Arbeit hat. Forschung, Kopieren und Erfindung werden nicht gezählt – sie nutzen Rigs, die diese Prüfung nicht abbildet.</value>
+  </data>
+  <data name="OnlyFacilitiesLinkedToNote" xml:space="preserve">
+    <value>Beurteilt werden können nur Anlagen, die mit einer Struktur in den Indy-Parks verknüpft sind: ESI kann nicht melden, welche Rigs eine Struktur eingebaut hat, daher gelten die Rigs, die Sie in den Indy-Parks beschrieben haben. Verknüpfen Sie dort eine Struktur mit einer echten Anlage, um sie einzubeziehen. Nicht verknüpfte Anlagen werden ignoriert, statt als ohne Rigs gemeldet zu werden.</value>
+  </data>
+  <data name="AlertWhenIndustryJobs" xml:space="preserve">
+    <value>Warnen, wenn Industrieaufträge zur Auslieferung bereit sind</value>
+  </data>
+  <data name="CountsJobsPastTheirNote" xml:space="preserve">
+    <value>Zählt Aufträge, deren Enddatum vorbei ist oder die als bereit markiert sind und die noch niemand ausgeliefert hat – das Produkt wartet, und der Slot bleibt belegt, bis es jemand abholt. Umfasst jeden Charakter und jede Corporation, für die die App Aufträge abfragt; Aufträge werden standardmäßig alle 15 Minuten abgefragt (Timer), daher kann es so lange dauern, bis ein gerade fertiger Auftrag erscheint.</value>
+  </data>
+  <data name="AlertAboutOutstandingContracts" xml:space="preserve">
+    <value>Warnen bei ausstehenden Verträgen an Sie</value>
+  </data>
+  <data name="CountsActiveContractsAssignedNote" xml:space="preserve">
+    <value>Zählt aktive Verträge, die einem Ihrer Charaktere oder einer Ihrer persönlichen Corporations zugewiesen sind – die, die auf Sie warten. Die Warnung öffnet das Tool „Verträge“ mit ihnen, die zuerst ablaufenden oben.</value>
+  </data>
+  <data name="AlertAboutContractsAboutTo" xml:space="preserve">
+    <value>Warnen bei bald ablaufenden Verträgen</value>
+  </data>
+  <data name="CountsActiveContractsYouNote" xml:space="preserve">
+    <value>Zählt aktive Verträge, die Sie erstellt haben oder die Ihnen zugewiesen sind und sich in den letzten 15 % ihrer Laufzeit befinden: bei einem Zwei-Wochen-Vertrag ab dem zwölften Tag. Persönliche Corporations zählen als Sie.</value>
+  </data>
+  <data name="DatabaseType" xml:space="preserve">
+    <value>Datenbanktyp</value>
+  </data>
+  <data name="TypeLabel" xml:space="preserve">
+    <value>Typ:</value>
+  </data>
+  <data name="ThisIsNotTheNote" xml:space="preserve">
+    <value>Dies ist nicht die derzeit geöffnete Datenbank. Speichern Sie die Auswahl und starten Sie EVE Console neu, damit sie wirksam wird.</value>
+  </data>
+  <data name="SaveAndRestart" xml:space="preserve">
+    <value>Speichern und neu starten</value>
+  </data>
+  <data name="PostgresPostgresqlAndTheNote" xml:space="preserve">
+    <value>Postgres, PostgreSQL und das Slonik-Logo sind Marken oder eingetragene Marken der PostgreSQL Community Association of Canada und werden mit deren Genehmigung verwendet.</value>
+  </data>
+  <data name="PostgresqlServer" xml:space="preserve">
+    <value>PostgreSQL-Server</value>
+  </data>
+  <data name="EveConsoleNeedsToNote" xml:space="preserve">
+    <value>EVE Console muss sich mit dieser Datenbank verbinden und darin Tabellen anlegen. Am einfachsten ist eine Datenbank, die diesem Benutzer gehört – CREATE DATABASE eveconsole OWNER myuser –, das gewährt alles Nötige ohne weitere Berechtigungen.</value>
+  </data>
+  <data name="HostLabel" xml:space="preserve">
+    <value>Host:</value>
+  </data>
+  <data name="PortLabel" xml:space="preserve">
+    <value>Port:</value>
+  </data>
+  <data name="UsernameLabel" xml:space="preserve">
+    <value>Benutzername:</value>
+  </data>
+  <data name="PasswordLabel" xml:space="preserve">
+    <value>Passwort:</value>
+  </data>
+  <data name="TestConnection" xml:space="preserve">
+    <value>Verbindung testen</value>
+  </data>
+  <data name="BringYourExistingDataAcross" xml:space="preserve">
+    <value>Vorhandene Daten übernehmen</value>
+  </data>
+  <data name="ReplaceWhatIsOnThe" xml:space="preserve">
+    <value>Daten auf dem Server ersetzen</value>
+  </data>
+  <data name="CopyDataToPostgresql" xml:space="preserve">
+    <value>Daten nach PostgreSQL kopieren</value>
+  </data>
+  <data name="EraseServerDataAndCopy" xml:space="preserve">
+    <value>Serverdaten löschen und kopieren</value>
+  </data>
+  <data name="SqliteDatabase" xml:space="preserve">
+    <value>SQLite-Datenbank</value>
+  </data>
+  <data name="MovingShrinkingAndBackingNote" xml:space="preserve">
+    <value>Verschieben, Verkleinern und Sichern wirken auf die Datenbank-DATEI und gelten daher nur für SQLite. Ein PostgreSQL-Server wird mit seinen eigenen Werkzeugen gesichert.</value>
+  </data>
+  <data name="PathLabel" xml:space="preserve">
+    <value>Pfad:</value>
+  </data>
+  <data name="SizeLabel" xml:space="preserve">
+    <value>Größe:</value>
+  </data>
+  <data name="MoveRenameDatabase" xml:space="preserve">
+    <value>Datenbank verschieben / umbenennen…</value>
+  </data>
+  <data name="TipMoveTheDatabaseTo" xml:space="preserve">
+    <value>Die Datenbank in einen anderen Ordner oder auf ein anderes Laufwerk verschieben oder umbenennen. Die Anwendung startet dafür neu.</value>
+  </data>
+  <data name="PointToExistingDb" xml:space="preserve">
+    <value>Vorhandene DB auswählen…</value>
+  </data>
+  <data name="ShrinkDatabase" xml:space="preserve">
+    <value>Datenbank verkleinern…</value>
+  </data>
+  <data name="TipRebuildTheDatabaseFile" xml:space="preserve">
+    <value>Die Datenbankdatei neu aufbauen, damit der durch gelöschte Daten frei gewordene Platz an Ihr Laufwerk zurückgegeben wird. Startet die Anwendung neu.</value>
+  </data>
+  <data name="TheseOperationsCopyOrNote" xml:space="preserve">
+    <value>Diese Vorgänge kopieren oder verschieben die Datenbankdatei und starten die Anwendung neu.</value>
+  </data>
+  <data name="AutomaticallyBackUpDatabase" xml:space="preserve">
+    <value>Datenbank automatisch sichern</value>
+  </data>
+  <data name="IntervalLabel" xml:space="preserve">
+    <value>Intervall:</value>
+  </data>
+  <data name="KeepLabel" xml:space="preserve">
+    <value>Behalten:</value>
+  </data>
+  <data name="LastBackupLabel" xml:space="preserve">
+    <value>Letzte Sicherung:</value>
+  </data>
+  <data name="BackUpNow" xml:space="preserve">
+    <value>Jetzt sichern</value>
+  </data>
+  <data name="PostgresqlBackups" xml:space="preserve">
+    <value>PostgreSQL-Sicherungen</value>
+  </data>
+  <data name="AServersDatabaseCannotNote" xml:space="preserve">
+    <value>Die Datenbank eines Servers lässt sich nicht durch Kopieren einer Datei sichern – die Datei gehört dem Server und liegt vielleicht nicht einmal auf diesem Rechner –, daher führt EVE Console pg_dump aus, das den Server um einen konsistenten Schnappschuss bittet. Dumps werden im Custom-Format geschrieben, das komprimiert ist und sich mit pg_restore vollständig oder Tabelle für Tabelle wiederherstellen lässt.</value>
+  </data>
+  <data name="CheckForPgDump" xml:space="preserve">
+    <value>Nach pg_dump suchen</value>
+  </data>
+  <data name="RestoreFromABackup" xml:space="preserve">
+    <value>Aus einer Sicherung wiederherstellen</value>
+  </data>
+  <data name="ReplacesEverythingInTheNote" xml:space="preserve">
+    <value>Ersetzt alles in der Datenbank durch den Inhalt einer .dump-Datei. Alles, was seit dieser Sicherung abgefragt wurde, geht verloren. EVE Console startet dafür neu, denn die Wiederherstellung löscht jede Tabelle und kann nicht laufen, während die App sie hält.</value>
+  </data>
+  <data name="RestoreFromDump" xml:space="preserve">
+    <value>Aus Dump wiederherstellen…</value>
+  </data>
+  <data name="StorageBreakdown" xml:space="preserve">
+    <value>Speicheraufteilung</value>
+  </data>
+  <data name="WhatTheDatabaseIsNote" xml:space="preserve">
+    <value>Wofür der Platz in der Datenbank verwendet wird, Tabellendaten und Indizes getrennt. Bei SQLite werden die Werte aus den Daten gemessen und auf die belegten Seiten der Datei hochgerechnet, wobei große Tabellen stichprobenartig statt vollständig gelesen werden. Bei PostgreSQL sind die Größen exakt und die Zeilenzahlen Schätzungen des Servers. So oder so dient es der Entscheidung, was sich zu behalten lohnt, nicht einer Prüfung auf Byte-Ebene.</value>
+  </data>
+  <data name="Load" xml:space="preserve">
+    <value>Laden</value>
+  </data>
+  <data name="ColTable" xml:space="preserve">
+    <value>Tabelle</value>
+  </data>
+  <data name="ColRows" xml:space="preserve">
+    <value>Zeilen</value>
+  </data>
+  <data name="ColData" xml:space="preserve">
+    <value>Daten</value>
+  </data>
+  <data name="ColIndexes" xml:space="preserve">
+    <value>Indizes</value>
+  </data>
+  <data name="ColTotal" xml:space="preserve">
+    <value>Gesamt</value>
+  </data>
+  <data name="ColShare" xml:space="preserve">
+    <value>Anteil</value>
+  </data>
+  <data name="ColMethod" xml:space="preserve">
+    <value>Methode</value>
+  </data>
+  <data name="ErrorLog" xml:space="preserve">
+    <value>Fehlerprotokoll</value>
+  </data>
+  <data name="TheErrorLogIsNote" xml:space="preserve">
+    <value>Das Fehlerprotokoll dient zum Lesen der letzten Stunden, nicht zum Aufbewahren von Verlauf. Unbeaufsichtigt wächst es auf über hunderttausend Einträge, und dann sieht niemand mehr hinein. Es macht weniger als 1 % einer gemessenen 4-GB-Datenbank aus; diese Regel hält das Protokoll also lesbar, statt Platz zurückzugewinnen.</value>
+  </data>
+  <data name="PurgeEntriesOlderThan" xml:space="preserve">
+    <value>Einträge löschen, wenn älter als</value>
+  </data>
+  <data name="PurgeNow" xml:space="preserve">
+    <value>Jetzt bereinigen</value>
+  </data>
+  <data name="KillMails" xml:space="preserve">
+    <value>Abschussberichte</value>
+  </data>
+  <data name="PurgeKillMailsOlderThan" xml:space="preserve">
+    <value>Abschussberichte löschen, wenn älter als</value>
+  </data>
+  <data name="PriceHistory" xml:space="preserve">
+    <value>Preisverlauf</value>
+  </data>
+  <data name="RemovesDailyMarketHistoryNote" xml:space="preserve">
+    <value>Entfernt den täglichen Marktverlauf pro Region und Typ zusammen mit den daraus abgeleiteten Preisschnappschüssen pro Typ – beides gemeinsam, denn behält man eines ohne das andere, widerspricht sich der Verlauf. Etwa 15 % einer gemessenen 4-GB-Datei. ESI liefert rund ein Jahr Verlauf, daher lassen sich neuere Zeilen erneut abrufen.</value>
+  </data>
+  <data name="PurgePriceHistoryOlderThan" xml:space="preserve">
+    <value>Preisverlauf löschen, wenn älter als</value>
+  </data>
+  <data name="GameLog" xml:space="preserve">
+    <value>Spielprotokoll</value>
+  </data>
+  <data name="RemovesParsedGameLogNote" xml:space="preserve">
+    <value>Entfernt ausgewertete Ereignisse aus den Spielprotokollen – Ratting, Bergbau und Industrieaktivität aus den Protokollen Ihres EVE-Clients. Die .log-Dateien auf der Festplatte bleiben unberührt, sodass alles, was hier gelöscht wird, über Spielprotokolle → Ältere Protokolle importieren erneut importiert werden kann, solange diese Dateien existieren.</value>
+  </data>
+  <data name="PurgeGameLogEventsOlder" xml:space="preserve">
+    <value>Spielprotokoll-Ereignisse löschen, wenn älter als</value>
+  </data>
+  <data name="ChatMessages" xml:space="preserve">
+    <value>Chatnachrichten</value>
+  </data>
+  <data name="RemovesStoredChatMessagesNote" xml:space="preserve">
+    <value>Entfernt gespeicherte Chatnachrichten. Bereits daraus ausgewertete Intel-Meldungen bleiben erhalten – Meldungen, die älter sind als die älteste verbliebene Nachricht, gelten als Verlauf, der sich nicht neu aufbauen lässt, sowohl bei der Bereinigung beim Start als auch bei Chatprotokolle → Gespeicherten Verlauf auswerten, das nur den Zeitraum neu aufbaut, den es tatsächlich reproduzieren kann. Die .log-Dateien auf der Festplatte bleiben unberührt, ein erneuter Import bleibt also möglich, solange sie existieren.</value>
+  </data>
+  <data name="PurgeChatMessagesOlderThan" xml:space="preserve">
+    <value>Chatnachrichten löschen, wenn älter als</value>
+  </data>
+  <data name="AgentActivity" xml:space="preserve">
+    <value>Aktivität des KI-Assistenten</value>
+  </data>
+  <data name="RemovesTheRecordOfNote" xml:space="preserve">
+    <value>Entfernt die Aufzeichnungen früherer Anfragen an den KI-Assistenten – was jeweils angefragt wurde, welche Tools genutzt wurden und wie viele Token verbraucht wurden. Daraus werden die Nutzungs- und Kostenzahlen berechnet; das Bereinigen verkürzt also den Verlauf, den diese abdecken können. Es sind die eigenen Diagnosedaten der App, nicht Ihre Daten, daher ist diese Regel anders als die Abschnitte oben standardmäßig an; entfernen Sie das Häkchen, um alles zu behalten.</value>
+  </data>
+  <data name="PurgeAgentActivityOlderThan" xml:space="preserve">
+    <value>Aktivität des Assistenten löschen, wenn älter als</value>
+  </data>
+  <data name="AutomaticallyCheckForUpdates" xml:space="preserve">
+    <value>Automatisch nach Updates suchen</value>
+  </data>
+  <data name="ChecksOnStartupAndNote" xml:space="preserve">
+    <value>Prüft beim Start und einmal pro Stunde. Wird eine neue Version gefunden, werden Sie gefragt; lehnen Sie ab, wird erst bei der nächsten Version wieder gefragt.</value>
+  </data>
+  <data name="CurrentVersion" xml:space="preserve">
+    <value>Aktuelle Version</value>
+  </data>
+  <data name="LatestVersion" xml:space="preserve">
+    <value>Neueste Version</value>
+  </data>
+  <data name="CheckNow" xml:space="preserve">
+    <value>Jetzt prüfen</value>
+  </data>
+  <data name="FmtLastAuthenticated" xml:space="preserve">
+    <value>Zuletzt authentifiziert: {0:g}</value>
+  </data>
+  <data name="FmtLastFullDay" xml:space="preserve">
+    <value>letzter vollständiger Tag: {0}</value>
+  </data>
+  <data name="FmtCoveredFrom" xml:space="preserve">
+    <value>Abgedeckt ab: {0}</value>
+  </data>
+  <data name="FmtTheModelRunsOn" xml:space="preserve">
+    <value>Das Modell läuft auf: {0}</value>
+  </data>
+  <data name="DbConfigProfile" xml:space="preserve">
+    <value>Läuft unter dem Profil „{0}“: Einstellungen, Datenbank und Caches liegen in {1}, die der normalen Installation bleiben unberührt.</value>
+  </data>
+  <data name="DbConfigPortable" xml:space="preserve">
+    <value>Die Einstellungen werden aus {0} (neben dem Programm) gelesen, nicht aus den App-Daten.</value>
+  </data>
+  <data name="DbConfigAppData" xml:space="preserve">
+    <value>Die Einstellungen werden in den App-Daten gespeichert. Legen Sie eine config.json neben das Programm, um dieser Installation eigene zu geben.</value>
+  </data>
+  <data name="DbCopyOfferEmpty" xml:space="preserve">
+    <value>Die Serverdatenbank ist leer. Alles aus der SQLite-Datenbank kann jetzt hineinkopiert werden. Die SQLite-Datei wird nur gelesen, nie geändert, daher lässt sich das wiederholen, falls etwas schiefgeht.</value>
+  </data>
+  <data name="DbCopyOfferErase" xml:space="preserve">
+    <value>Die Serverdatenbank enthält bereits {0:N0} Tabelle(n). Sie können gelöscht und durch den Inhalt der SQLite-Datenbank ersetzt werden. Die SQLite-Datei wird weiterhin nur gelesen und nicht geändert – aber alles, was sich derzeit auf dem Server befindet, wird vernichtet.</value>
+  </data>
+  <data name="BackupHourly" xml:space="preserve">
+    <value>Stündlich</value>
+  </data>
+  <data name="BackupDaily" xml:space="preserve">
+    <value>Täglich</value>
+  </data>
+  <data name="BackupWeekly" xml:space="preserve">
+    <value>Wöchentlich</value>
+  </data>
+  <data name="BackupMonthly" xml:space="preserve">
+    <value>Monatlich</value>
+  </data>
+  <data name="Never" xml:space="preserve">
+    <value>Nie</value>
+  </data>
+  <data name="DbTestConnecting" xml:space="preserve">
+    <value>Verbindung wird hergestellt…</value>
+  </data>
+  <data name="DbTestFieldsRequired" xml:space="preserve">
+    <value>Host, Datenbank und Benutzername sind erforderlich.</value>
+  </data>
+  <data name="DbTestNoPublicSchema" xml:space="preserve">
+    <value>Mit PostgreSQL {0} verbunden, aber die Datenbank hat kein Schema „public“, daher können nirgends Tabellen angelegt werden. Führen Sie aus: CREATE SCHEMA public;</value>
+  </data>
+  <data name="DbTestCannotCreate" xml:space="preserve">
+    <value>Mit PostgreSQL {0} verbunden, aber {1} kann im Schema public keine Tabellen anlegen. Am einfachsten machen Sie diesen Benutzer zum Eigentümer der Datenbank: ALTER DATABASE "{2}" OWNER TO "{3}";</value>
+  </data>
+  <data name="DbTestEmptyCanCopy" xml:space="preserve">
+    <value>Mit PostgreSQL {0} verbunden. Die Datenbank ist leer, daher können die hier vorhandenen Daten hineinkopiert werden.</value>
+  </data>
+  <data name="DbTestEmptyBuiltOnStart" xml:space="preserve">
+    <value>Mit PostgreSQL {0} verbunden. Die Datenbank ist leer und wird beim nächsten Start aufgebaut.</value>
+  </data>
+  <data name="DbTestHasTables" xml:space="preserve">
+    <value>Mit PostgreSQL {0} verbunden. Die Datenbank enthält bereits {1:N0} Tabelle(n) und wird daher so verwendet, wie sie ist – es wird nichts hineinkopiert, außer Sie löschen sie zuerst.</value>
+  </data>
+  <data name="DbTestFailed" xml:space="preserve">
+    <value>Verbindung fehlgeschlagen: {0}</value>
+  </data>
+  <data name="DbSaveRestartTitle" xml:space="preserve">
+    <value>Speichern und neu starten</value>
+  </data>
+  <data name="DbSaveRestartConfirm" xml:space="preserve">
+    <value>Ab jetzt {0} verwenden?
+
+EVE Console startet sofort neu, denn die Datenbank wird einmal beim Start geöffnet und danach nicht erneut.
+
+Dabei wird nichts kopiert oder gelöscht. Es ändert nur, welche Datenbank die Anwendung öffnet, und lässt sich auf demselben Weg zurückstellen.</value>
+  </data>
+  <data name="DbServiceTitle" xml:space="preserve">
+    <value>Hintergrunddienst</value>
+  </data>
+  <data name="DbServiceStopWindows" xml:space="preserve">
+    <value>Der Hintergrunddienst ist installiert und kann nicht mit SQLite arbeiten.
+
+Er wird gestoppt und so eingestellt, dass er nicht mit Windows startet, bevor die Änderung gespeichert wird. Windows fragt nach Administratorfreigabe.
+
+Liefe er weiter, würde er weiter mit der PostgreSQL-Datenbank arbeiten, von der Sie wegwechseln.
+
+Fortfahren?</value>
+  </data>
+  <data name="DbServiceStopLinux" xml:space="preserve">
+    <value>Der Hintergrunddienst ist installiert und kann nicht mit SQLite arbeiten.
+
+Er wird gestoppt und so eingestellt, dass er nicht bei der Anmeldung startet, bevor die Änderung gespeichert wird. Die Unit bleibt erhalten, sodass sie beim Zurückwechseln zu PostgreSQL nur wieder gestartet werden muss.
+
+Liefe er weiter, würde er weiter mit der PostgreSQL-Datenbank arbeiten, von der Sie wegwechseln.
+
+Fortfahren?</value>
+  </data>
+  <data name="DbSaveCancelled" xml:space="preserve">
+    <value>Abgebrochen – es wurde nichts geändert.</value>
+  </data>
+  <data name="DbServiceStopFailed" xml:space="preserve">
+    <value>Der Hintergrunddienst konnte nicht gestoppt werden – {0}. Es wurde nichts geändert.</value>
+  </data>
+  <data name="DbServiceUpdating" xml:space="preserve">
+    <value>Hintergrunddienst wird aktualisiert…</value>
+  </data>
+  <data name="DbServiceRepointFailed" xml:space="preserve">
+    <value>Gespeichert, aber der Hintergrunddienst zeigt noch auf die alte Datenbank – {0}. Kein Neustart. Aktualisieren Sie ihn im Tab „Abfrage“ und starten Sie dann neu.</value>
+  </data>
+  <data name="DbSetRestarting" xml:space="preserve">
+    <value>Auf {0} umgestellt. Neustart…</value>
+  </data>
+  <data name="DbEraseTitle" xml:space="preserve">
+    <value>Serverdatenbank löschen und kopieren</value>
+  </data>
+  <data name="DbEraseConfirm" xml:space="preserve">
+    <value>Dies VERNICHTET DAUERHAFT alles in der Datenbank „{0}“ auf {1}.
+
+Alle {2:N0} Tabelle(n) im Schema „public“ und jede Zeile darin werden gelöscht. Das lässt sich NICHT rückgängig machen. Nur eine vorher angelegte Sicherung bringt die Daten zurück, und EVE Console legt keine für Sie an.
+
+Danach werden die Daten von hier – {3} – hineinkopiert. Diese SQLite-Datei wird nur gelesen und nicht geändert.
+
+Vergewissern Sie sich, dass dies die richtige Datenbank ist, bevor Sie fortfahren.</value>
+  </data>
+  <data name="DbCopyTitle" xml:space="preserve">
+    <value>Daten nach PostgreSQL kopieren</value>
+  </data>
+  <data name="DbCopyConfirm" xml:space="preserve">
+    <value>Alles aus {0} nach {1} auf {2} kopieren?
+
+Die SQLite-Datenbank wird nur gelesen und nicht geändert. Eine große Datenbank braucht eine Weile, und die App sollte bis zum Abschluss nicht verwendet werden.</value>
+  </data>
+  <data name="DbCopyPreparing" xml:space="preserve">
+    <value>Ziel wird vorbereitet…</value>
+  </data>
+  <data name="DbCopyRows" xml:space="preserve">
+    <value>{0:N0} von {1:N0} Zeilen</value>
+  </data>
+  <data name="DbCopyTable" xml:space="preserve">
+    <value>Tabelle {0:N0} von {1:N0} – {2}: {3:N0} Zeile(n)</value>
+  </data>
+  <data name="DbCopyErasing" xml:space="preserve">
+    <value>Zieldatenbank wird gelöscht…</value>
+  </data>
+  <data name="DbCopyErased" xml:space="preserve">
+    <value>{0:N0} Tabelle(n) gelöscht. Schema wird aufgebaut…</value>
+  </data>
+  <data name="DbCopyDone" xml:space="preserve">
+    <value>{0:N0} Zeile(n) kopiert. Die SQLite-Datenbank ist unverändert. Speichern Sie die Einstellung und starten Sie neu, um PostgreSQL zu verwenden.</value>
+  </data>
+  <data name="DbCopyCancelled" xml:space="preserve">
+    <value>Kopieren nach {0:N0} Zeile(n) abgebrochen. Die Serverdatenbank enthält eine unvollständige Kopie – testen Sie die Verbindung erneut, um sie zu löschen und neu zu beginnen.</value>
+  </data>
+  <data name="DbCopyFailed" xml:space="preserve">
+    <value>Kopieren fehlgeschlagen: {0}</value>
+  </data>
+  <data name="DbStopCopyTitle" xml:space="preserve">
+    <value>Kopieren stoppen</value>
+  </data>
+  <data name="DbStopCopyConfirm" xml:space="preserve">
+    <value>Kopieren stoppen? Bisher wurden {0:N0} Zeile(n) kopiert, und nichts davon bleibt erhalten: Eine unvollständige Kopie lässt sich nicht fortsetzen; ein neuer Anlauf bedeutet, die Serverdatenbank zu löschen und alles von vorn zu kopieren.
+
+Das Kopieren läuft weiter, solange diese Frage offen ist.</value>
+  </data>
+  <data name="DbRestorePick" xml:space="preserve">
+    <value>PostgreSQL-Dump zum Wiederherstellen auswählen</value>
+  </data>
+  <data name="DbRestoreTitle" xml:space="preserve">
+    <value>{0} durch diese Sicherung ersetzen?</value>
+  </data>
+  <data name="DbRestoreConfirm" xml:space="preserve">
+    <value>Alles, was sich jetzt in {0} auf {1} befindet, wird gelöscht und durch {2} ersetzt.
+
+Das lässt sich nicht rückgängig machen, und alles, was seit dieser Sicherung abgefragt wurde, geht verloren. EVE Console startet dafür neu.</value>
+  </data>
+  <data name="DbRestoreScheduled" xml:space="preserve">
+    <value>Wiederherstellung geplant: {0}. Neustart…</value>
+  </data>
+  <data name="DbPgDumpLooking" xml:space="preserve">
+    <value>Suche nach pg_dump…</value>
+  </data>
+  <data name="DbPgDumpNoConnection" xml:space="preserve">
+    <value>Es ist noch keine PostgreSQL-Verbindung eingerichtet.</value>
+  </data>
+  <data name="DbPgDumpCheckFailed" xml:space="preserve">
+    <value>pg_dump konnte nicht geprüft werden: {0}</value>
+  </data>
+  <data name="DbBackupRunning" xml:space="preserve">
+    <value>Eine Sicherung läuft bereits – sie läuft auch bei geschlossenen Einstellungen weiter.</value>
+  </data>
+  <data name="DbBackingUp" xml:space="preserve">
+    <value>Sicherung läuft…</value>
+  </data>
+  <data name="DbBackupSaved" xml:space="preserve">
+    <value>Sicherung gespeichert: {0}</value>
+  </data>
+  <data name="DbBackupNoConnection" xml:space="preserve">
+    <value>Sicherung fehlgeschlagen – keine PostgreSQL-Verbindung eingerichtet.</value>
+  </data>
+  <data name="DbBackupNoFile" xml:space="preserve">
+    <value>Sicherung fehlgeschlagen – DB-Datei nicht gefunden.</value>
+  </data>
+  <data name="DbBackupError" xml:space="preserve">
+    <value>Fehler bei der Sicherung: {0}</value>
+  </data>
+  <data name="DbMovePick" xml:space="preserve">
+    <value>Datenbank verschieben oder umbenennen…</value>
+  </data>
+  <data name="DbRenameTitle" xml:space="preserve">
+    <value>Datenbank umbenennen</value>
+  </data>
+  <data name="DbMoveTitle" xml:space="preserve">
+    <value>Datenbank verschieben</value>
+  </data>
+  <data name="DbRenameTo" xml:space="preserve">
+    <value>Datenbank umbenennen in:
+{0}</value>
+  </data>
+  <data name="DbMoveTo" xml:space="preserve">
+    <value>Datenbank verschieben nach:
+{0}</value>
+  </data>
+  <data name="DbMoveRestarts" xml:space="preserve">
+    <value>EVE Console startet neu und erledigt dies, bevor der Start abgeschlossen ist, denn es muss geschehen, während nichts die Datenbank verwendet.</value>
+  </data>
+  <data name="DbMoveSpeed" xml:space="preserve">
+    <value>Auf demselben Laufwerk geht das unabhängig von der Größe sofort. Beim Verschieben auf ein anderes Laufwerk wird die Datei zuerst kopiert und das Original erst nach Erfolg entfernt, was bei einer großen Datenbank eine Weile dauern kann.</value>
+  </data>
+  <data name="DbMoveNothingLeft" xml:space="preserve">
+    <value>Am alten Ort bleibt nichts zurück.</value>
+  </data>
+  <data name="DbRestartingRename" xml:space="preserve">
+    <value>Neustart zum Umbenennen der Datenbank…</value>
+  </data>
+  <data name="DbRestartingMove" xml:space="preserve">
+    <value>Neustart zum Verschieben der Datenbank…</value>
+  </data>
+  <data name="DbPointPick" xml:space="preserve">
+    <value>Vorhandene Datenbank auswählen…</value>
+  </data>
+  <data name="DbSwitchTitle" xml:space="preserve">
+    <value>Datenbank wechseln</value>
+  </data>
+  <data name="DbSwitchConfirm" xml:space="preserve">
+    <value>EVE Console auf die vorhandene Datenbank verweisen:
+{0}
+
+Die Anwendung wird neu gestartet.</value>
+  </data>
+  <data name="DbDoneRestarting" xml:space="preserve">
+    <value>Fertig. Neustart…</value>
+  </data>
+  <data name="DbUnknownSize" xml:space="preserve">
+    <value>unbekannt</value>
+  </data>
+  <data name="DbShrinkWhy" xml:space="preserve">
+    <value>Das Löschen von Daten macht die Datenbankdatei nicht kleiner. SQLite behält die frei gewordenen Seiten und verwendet sie später wieder, daher bleibt die Datei so groß wie zu ihrem Höchststand. Das Verkleinern baut sie neu auf und gibt diesen Platz an Ihr Laufwerk zurück.</value>
+  </data>
+  <data name="DbShrinkSize" xml:space="preserve">
+    <value>Aktuelle Größe der Datenbank: {0}.</value>
+  </data>
+  <data name="DbShrinkRestarts" xml:space="preserve">
+    <value>EVE Console startet neu und verkleinert die Datenbank, bevor der Start abgeschlossen ist, denn der Neuaufbau braucht die Datenbank ganz für sich. Das kann bei einer großen Datenbank eine Weile dauern, und die App ist bis zum Abschluss nicht verfügbar.</value>
+  </data>
+  <data name="DbShrinkBackup" xml:space="preserve">
+    <value>Zuerst wird eine Sicherungskopie angelegt und nach erfolgreichem Verkleinern entfernt.</value>
+  </data>
+  <data name="DbShrinkTitle" xml:space="preserve">
+    <value>Datenbank verkleinern</value>
+  </data>
+  <data name="DbRestartingShrink" xml:space="preserve">
+    <value>Neustart zum Verkleinern der Datenbank…</value>
+  </data>
+  <data name="DbSizeNotMeasured" xml:space="preserve">
+    <value>Noch nicht gemessen.</value>
+  </data>
+  <data name="DbSizeSummaryPostgres" xml:space="preserve">
+    <value>Datenbank {0} in {1:N0} Tabellen. Die Größen sind exakt, einschließlich Index- und TOAST-Speicher. Die Zeilenzahlen sind Schätzungen des Servers, daher zeigt eine Tabelle, in die seit ihrem letzten ANALYZE viel geschrieben wurde, zu wenig an.</value>
+  </data>
+  <data name="DbSizeSummarySqlite" xml:space="preserve">
+    <value>Datei {0} in {1:N0} Tabellen. Die Anteile beziehen sich auf den belegten Platz. Die Werte sind gemessen und auf die Datei hochgerechnet – gut zum Vergleichen von Tabellen, keine exakten Byte-Zahlen.</value>
+  </data>
+  <data name="DbSizeLoaded" xml:space="preserve">
+    <value>Geladen um {0:HH:mm:ss}.</value>
+  </data>
+  <data name="DbSizeFailed" xml:space="preserve">
+    <value>Messung fehlgeschlagen: {0}</value>
+  </data>
+  <data name="DbFileNotFound" xml:space="preserve">
+    <value>Datei nicht gefunden</value>
+  </data>
+  <data name="DbSizeUnknown" xml:space="preserve">
+    <value>Unbekannt</value>
+  </data>
+  <data name="DbSizeSampled" xml:space="preserve">
+    <value>Stichprobe</value>
+  </data>
+  <data name="DbSizeCounted" xml:space="preserve">
+    <value>Zählung</value>
+  </data>
+  <data name="DbTableTipNoIndexes" xml:space="preserve">
+    <value>{0:N0} Zeile(n), keine Indizes.</value>
+  </data>
+  <data name="DbTableTipIndexes" xml:space="preserve">
+    <value>{0:N0} Zeile(n), {1} Index(e) mit {2}.</value>
+  </data>
+  <data name="SvcTitleSystemd" xml:space="preserve">
+    <value>Hintergrunddienst (systemd)</value>
+  </data>
+  <data name="SvcTitleWindows" xml:space="preserve">
+    <value>Hintergrunddienst (Windows)</value>
+  </data>
+  <data name="SvcIntroSystemd" xml:space="preserve">
+    <value>Führt die Hintergrundverarbeitung aus – ESI-Abfrage, Preise, Verträge, Alarme, den Planer und Sicherungen –, ohne dass EVE Console geöffnet ist. Genau ein Client erledigt diese Arbeit: Ist diese App geöffnet und erledigt sie bereits, wartet die Unit und übernimmt, wenn Sie die App schließen.</value>
+  </data>
+  <data name="SvcIntroWindows" xml:space="preserve">
+    <value>Führt die Hintergrundverarbeitung aus – ESI-Abfrage, Preise, Verträge, Alarme, den Planer und Sicherungen –, ohne dass EVE Console geöffnet ist, und startet automatisch mit Windows. Genau ein Client erledigt diese Arbeit: Ist diese App geöffnet und erledigt sie bereits, wartet der Dienst und übernimmt, wenn Sie die App schließen.</value>
+  </data>
+  <data name="SvcInstallNoteSystemd" xml:space="preserve">
+    <value>Wird als systemd-Benutzer-Unit in ~/.config/systemd/user installiert, also ohne Root-Zugriff und ohne Passwortabfrage. Sie läuft als Sie, innerhalb Ihrer Anmeldesitzung – so erreicht sie Ihren Schlüsselbund mit dem gespeicherten Datenbankpasswort, und deshalb startet sie bei Ihrer Anmeldung statt beim Hochfahren des Rechners. Für einen Rechner, der unbeaufsichtigt startet, siehe die System-Unit im Packaging-Verzeichnis des Projekts.</value>
+  </data>
+  <data name="SvcInstallNoteWindows" xml:space="preserve">
+    <value>Installieren und Entfernen fragen einmal nach Administratorfreigabe; Starten und Stoppen danach nicht. Der Dienst läuft als LocalSystem, daher wird eine Kopie der Datenbankverbindung nach C:\ProgramData\EveConsole geschrieben, damit er sie lesen kann – diese Kopie kann von allem entschlüsselt werden, was auf diesem Computer läuft, anders als die für Ihr Benutzerkonto gespeicherte. Das Entfernen des Dienstes löscht sie.</value>
+  </data>
+  <data name="SvcUpdateNoteSystemd" xml:space="preserve">
+    <value>Das Aktualisieren schreibt die Unit so um, dass sie diese Kopie ausführt, und startet sie neu.</value>
+  </data>
+  <data name="SvcUpdateNoteWindows" xml:space="preserve">
+    <value>Das Aktualisieren schreibt sowohl um, was er ausführt, als auch, womit er sich verbindet, und startet ihn dann neu. Eine Änderung der Datenbank hier kann das nicht allein – das Schreiben der Kopie für den Dienst braucht Administratorfreigabe.</value>
+  </data>
+  <data name="SvcInstallUnit" xml:space="preserve">
+    <value>Unit installieren</value>
+  </data>
+  <data name="SvcInstallService" xml:space="preserve">
+    <value>Dienst installieren</value>
+  </data>
+  <data name="SvcRemoveUnit" xml:space="preserve">
+    <value>Unit entfernen</value>
+  </data>
+  <data name="SvcRemoveService" xml:space="preserve">
+    <value>Dienst entfernen</value>
+  </data>
+  <data name="SvcUpdateUnit" xml:space="preserve">
+    <value>Unit aktualisieren</value>
+  </data>
+  <data name="SvcUpdateService" xml:space="preserve">
+    <value>Dienst aktualisieren</value>
+  </data>
+  <data name="SvcRunsLabel" xml:space="preserve">
+    <value>Führt aus:</value>
+  </data>
+  <data name="SvcTrayCheckboxWindows" xml:space="preserve">
+    <value>Symbol im Infobereich anzeigen, Start mit Windows</value>
+  </data>
+  <data name="SvcTrayCheckboxLinux" xml:space="preserve">
+    <value>Symbol im Infobereich anzeigen, Start mit Ihrer Desktop-Sitzung</value>
+  </data>
+  <data name="SvcDatabaseNoteOk" xml:space="preserve">
+    <value>Erfordert PostgreSQL, das dieser Client verwendet – der Hintergrunddienst und alle Clients teilen sich denselben Server.</value>
+  </data>
+  <data name="SvcDatabaseNoteSqlite" xml:space="preserve">
+    <value>Nicht verfügbar: Dieser Client verwendet SQLite. Die Datenbankdatei wird jeweils von nur einem Prozess gehalten, daher würde ein Hintergrunddienst diese Anwendung gar nicht erst starten lassen. Wechseln Sie zuerst im Tab „Datenbank“ zu PostgreSQL.</value>
+  </data>
+  <data name="SvcUpdateReasonBoth" xml:space="preserve">
+    <value>Dieser Dienst ist mit einer anderen Datenbank verbunden als dieser Client und führt eine andere Kopie von EVE Console aus. Er erledigt die Hintergrundarbeit an einer Stelle, auf die Sie nicht schauen.</value>
+  </data>
+  <data name="SvcUpdateReasonDatabase" xml:space="preserve">
+    <value>Dieser Dienst ist mit einer anderen Datenbank verbunden als dieser Client. Ihre Datenbankeinstellungen haben sich nach seiner Installation geändert; er arbeitet noch mit der alten.</value>
+  </data>
+  <data name="SvcUpdateReasonUnitCopy" xml:space="preserve">
+    <value>Diese Unit startet eine andere Kopie von EVE Console, nicht die, die Sie gerade verwenden – die Datei wurde verschoben, umbenannt oder durch einen neueren Download ersetzt. Ist diese Kopie eine ältere Version, läuft sie trotzdem, und dann besteht kein Client mehr die Versionsprüfung gegen die Datenbank.</value>
+  </data>
+  <data name="SvcUpdateReasonServiceCopy" xml:space="preserve">
+    <value>Dieser Dienst führt eine andere Kopie von EVE Console aus, nicht die, die Sie gerade verwenden. Er erledigt die Hintergrundarbeit mit den Einstellungen dieser Kopie.</value>
+  </data>
+  <data name="SvcTrayStartFailed" xml:space="preserve">
+    <value>Für die nächste Anmeldung eingetragen, konnte aber jetzt nicht gestartet werden – {0}</value>
+  </data>
+  <data name="SvcTrayRunningWindows" xml:space="preserve">
+    <value>Läuft und startet mit Windows.</value>
+  </data>
+  <data name="SvcTrayRunningLinux" xml:space="preserve">
+    <value>Läuft und startet mit Ihrer Desktop-Sitzung.</value>
+  </data>
+  <data name="SvcTrayOffWindows" xml:space="preserve">
+    <value>Startet nicht mit Windows. Ein bereits angezeigtes Symbol bleibt, bis Sie darauf „{0}“ wählen oder sich abmelden.</value>
+  </data>
+  <data name="SvcTrayOffLinux" xml:space="preserve">
+    <value>Startet nicht mit Ihrer Desktop-Sitzung. Ein bereits angezeigtes Symbol bleibt, bis Sie darauf „{0}“ wählen oder sich abmelden.</value>
+  </data>
+  <data name="SvcTrayChangeFailed" xml:space="preserve">
+    <value>Konnte nicht geändert werden – {0}</value>
+  </data>
+  <data name="SvcChangingStartup" xml:space="preserve">
+    <value>Autostart wird geändert…</value>
+  </data>
+  <data name="SvcChangingStartupApprove" xml:space="preserve">
+    <value>Autostart wird geändert – bestätigen Sie die Windows-Abfrage…</value>
+  </data>
+  <data name="SvcChangeStartupFailed" xml:space="preserve">
+    <value>Autostart konnte nicht geändert werden – {0}</value>
+  </data>
+  <data name="SvcRepointing" xml:space="preserve">
+    <value>Wird umgestellt…</value>
+  </data>
+  <data name="SvcRepointingApprove" xml:space="preserve">
+    <value>Wird umgestellt – bestätigen Sie die Windows-Abfrage…</value>
+  </data>
+  <data name="SvcRepointFailed" xml:space="preserve">
+    <value>Umstellen fehlgeschlagen – {0}</value>
+  </data>
+  <data name="SvcUnknownPath" xml:space="preserve">
+    <value>unbekannt</value>
+  </data>
+  <data name="SvcNotInstalled" xml:space="preserve">
+    <value>Nicht installiert</value>
+  </data>
+  <data name="SvcRunning" xml:space="preserve">
+    <value>Läuft</value>
+  </data>
+  <data name="SvcStoppedUntilLogin" xml:space="preserve">
+    <value>Installiert, gestoppt – startet bei Ihrer nächsten Anmeldung</value>
+  </data>
+  <data name="SvcStopped" xml:space="preserve">
+    <value>Installiert, gestoppt</value>
+  </data>
+  <data name="SvcNotConfigured" xml:space="preserve">
+    <value>nicht eingerichtet</value>
+  </data>
+  <data name="SvcStoppedUntilBoot" xml:space="preserve">
+    <value>Installiert, gestoppt – startet beim nächsten Hochfahren wieder</value>
+  </data>
+  <data name="SvcStarting" xml:space="preserve">
+    <value>Wird gestartet…</value>
+  </data>
+  <data name="SvcStopping" xml:space="preserve">
+    <value>Wird gestoppt…</value>
+  </data>
+  <data name="SvcNotInstalledSqlite" xml:space="preserve">
+    <value>Nicht installiert – ein Hintergrunddienst kann nicht mit SQLite arbeiten.</value>
+  </data>
+  <data name="SvcInstalling" xml:space="preserve">
+    <value>Wird installiert…</value>
+  </data>
+  <data name="SvcInstallingApprove" xml:space="preserve">
+    <value>Wird installiert – bestätigen Sie die Windows-Abfrage…</value>
+  </data>
+  <data name="SvcInstallFailed" xml:space="preserve">
+    <value>Installation fehlgeschlagen – {0}</value>
+  </data>
+  <data name="SvcRemoving" xml:space="preserve">
+    <value>Wird entfernt…</value>
+  </data>
+  <data name="SvcRemovingApprove" xml:space="preserve">
+    <value>Wird entfernt – bestätigen Sie die Windows-Abfrage…</value>
+  </data>
+  <data name="SvcRemoveFailed" xml:space="preserve">
+    <value>Entfernen fehlgeschlagen – {0}</value>
+  </data>
+  <data name="SvcStartFailed" xml:space="preserve">
+    <value>Start fehlgeschlagen – {0}</value>
+  </data>
+  <data name="SvcStopFailed" xml:space="preserve">
+    <value>Stoppen fehlgeschlagen – {0}</value>
+  </data>
+  <data name="SvcAccessDenied" xml:space="preserve">
+    <value>Von Windows verweigert – diesem Benutzerkonto wurde keine Berechtigung erteilt, den Dienst zu starten oder zu stoppen. Entfernen Sie den Dienst und fügen Sie ihn erneut hinzu.</value>
+  </data>
+  <data name="StructureCharNone" xml:space="preserve">
+    <value>(keiner – alle versuchen)</value>
+  </data>
+  <data name="ListAskingVoices" xml:space="preserve">
+    <value>Liste der Stimmen wird abgefragt…</value>
+  </data>
+  <data name="ListAskingModels" xml:space="preserve">
+    <value>Liste der Modelle wird abgefragt…</value>
+  </data>
+  <data name="ListNoAnswer" xml:space="preserve">
+    <value>keine Antwort innerhalb von 15 Sekunden.</value>
+  </data>
+  <data name="ListFailedVoices" xml:space="preserve">
+    <value>Die Liste der Stimmen konnte nicht abgerufen werden – {0} {1}</value>
+  </data>
+  <data name="ListFailedModels" xml:space="preserve">
+    <value>Die Liste der Modelle konnte nicht abgerufen werden – {0} {1}</value>
+  </data>
+  <data name="TypeModelNameInstead" xml:space="preserve">
+    <value>Geben Sie stattdessen den Namen des Modells ein.</value>
+  </data>
+  <data name="ModelLabelFree" xml:space="preserve">
+    <value>{0}  (kostenlos)</value>
+  </data>
+  <data name="ModelLabelPaid" xml:space="preserve">
+    <value>{0}  (kostenpflichtig)</value>
+  </data>
+  <data name="ModelServiceLocal" xml:space="preserve">
+    <value>Lokaler Server – Ollama, LM Studio… (kostenlos)</value>
+  </data>
+  <data name="ModelServiceClaude" xml:space="preserve">
+    <value>Claude – Anthropic (kostenpflichtig)</value>
+  </data>
+  <data name="ModelServiceOpenAi" xml:space="preserve">
+    <value>OpenAI (kostenpflichtig)</value>
+  </data>
+  <data name="ModelHintServerNames" xml:space="preserve">
+    <value>wie der Server es nennt</value>
+  </data>
+  <data name="ModelHintServiceNames" xml:space="preserve">
+    <value>wie der Dienst es nennt</value>
+  </data>
+  <data name="ModelHelpLocal" xml:space="preserve">
+    <value>Der Server muss /v1/chat/completions von OpenAI anbieten, wie es Ollama, LM Studio und die meisten lokalen Runner tun.</value>
+  </data>
+  <data name="ModelNeedClaudeKey" xml:space="preserve">
+    <value>Geben Sie oben den Claude-Schlüssel ein, um aus den Modellen von Anthropic zu wählen.</value>
+  </data>
+  <data name="ModelNeedOpenAiKey" xml:space="preserve">
+    <value>Geben Sie oben den OpenAI-Schlüssel ein, um aus den Modellen von OpenAI zu wählen.</value>
+  </data>
+  <data name="ModelNeedServerAddress" xml:space="preserve">
+    <value>Geben Sie die Adresse des Servers ein, um aus seinen Modellen zu wählen.</value>
+  </data>
+  <data name="ModelListFoundClaude" xml:space="preserve">
+    <value>{0} Modelle, die Ihr Schlüssel nutzen kann, neueste zuerst.</value>
+  </data>
+  <data name="ModelListFoundOpenAi" xml:space="preserve">
+    <value>{0} Modelle für Unterhaltungen, neueste zuerst.</value>
+  </data>
+  <data name="ModelListFoundLocal" xml:space="preserve">
+    <value>{0} Modelle auf dem Server.</value>
+  </data>
+  <data name="ModelListEmptyLocal" xml:space="preserve">
+    <value>Der Server listet keine Modelle: Laden Sie zuerst eines herunter, etwa mit „ollama pull“.</value>
+  </data>
+  <data name="ModelListEmpty" xml:space="preserve">
+    <value>Der Dienst listet für diesen Schlüssel keine Modelle.</value>
+  </data>
+  <data name="Testing" xml:space="preserve">
+    <value>Wird getestet…</value>
+  </data>
+  <data name="VoiceListFoundOpenAiModels" xml:space="preserve">
+    <value>{0} Sprachmodelle, die Ihr Schlüssel nutzen kann, neueste zuerst.</value>
+  </data>
+  <data name="VoiceListEmptyOpenAiModels" xml:space="preserve">
+    <value>OpenAI listet für diesen Schlüssel keine Sprachmodelle.</value>
+  </data>
+  <data name="VoiceListOpenAiVoices" xml:space="preserve">
+    <value>Die Stimmen, die OpenAI für dieses Modell dokumentiert – eine abrufbare Liste veröffentlicht OpenAI nicht.</value>
+  </data>
+  <data name="VoiceNeedElevenLabsKeyVoices" xml:space="preserve">
+    <value>Geben Sie oben den ElevenLabs-Schlüssel ein, um aus den Stimmen zu wählen.</value>
+  </data>
+  <data name="VoiceListFoundElevenLabsVoices" xml:space="preserve">
+    <value>{0} Stimmen in Ihrem Konto.</value>
+  </data>
+  <data name="VoiceListEmptyElevenLabsVoices" xml:space="preserve">
+    <value>Ihr Konto hat noch keine Stimmen: Fügen Sie eine aus der Voice Library von ElevenLabs hinzu.</value>
+  </data>
+  <data name="TypeVoiceIdInstead" xml:space="preserve">
+    <value>Geben Sie stattdessen die ID der Stimme ein.</value>
+  </data>
+  <data name="VoiceNeedElevenLabsKeyModels" xml:space="preserve">
+    <value>Geben Sie oben den ElevenLabs-Schlüssel ein, um aus den Modellen zu wählen.</value>
+  </data>
+  <data name="VoiceListFoundElevenLabsModels" xml:space="preserve">
+    <value>{0} Modelle, die sprechen können.</value>
+  </data>
+  <data name="VoiceListEmptyElevenLabsModels" xml:space="preserve">
+    <value>ElevenLabs listet für diesen Schlüssel keine Sprachmodelle.</value>
+  </data>
+  <data name="TypeModelIdInstead" xml:space="preserve">
+    <value>Geben Sie stattdessen die ID des Modells ein.</value>
+  </data>
+  <data name="VoiceNameHint" xml:space="preserve">
+    <value>{0} (Name des Assistenten)</value>
+  </data>
+  <data name="VoiceEngineKokoro" xml:space="preserve">
+    <value>Kokoro (auf diesem PC, kostenlos)</value>
+  </data>
+  <data name="VoiceEngineLocalServer" xml:space="preserve">
+    <value>Lokaler Server – Chatterbox, Orpheus, Kokoro-FastAPI… (kostenlos)</value>
+  </data>
+  <data name="VoiceEnginePiper" xml:space="preserve">
+    <value>Piper (auf diesem PC, kostenlos)</value>
+  </data>
+  <data name="VoiceEngineElevenLabs" xml:space="preserve">
+    <value>ElevenLabs (kostenpflichtig)</value>
+  </data>
+  <data name="VoiceDownloading" xml:space="preserve">
+    <value>Stimme „{0}“ wird heruntergeladen…</value>
+  </data>
+  <data name="VoiceModelReady" xml:space="preserve">
+    <value>Stimmmodell bereit.</value>
+  </data>
+  <data name="DownloadFailed" xml:space="preserve">
+    <value>Download fehlgeschlagen: {0}</value>
+  </data>
+  <data name="VoiceNeedOpenAiKey" xml:space="preserve">
+    <value>Geben Sie oben den OpenAI-Schlüssel ein, um aus den Sprachmodellen von OpenAI zu wählen.</value>
+  </data>
+  <data name="AgentHelpUserName" xml:space="preserve">
+    <value>Wie {0} Sie anspricht. Standard: {1}. Tragen Sie Ihren Hauptcharakter ein, dann wird dieser Name verwendet.</value>
+  </data>
+  <data name="AgentHelpUserGuidance" xml:space="preserve">
+    <value>Wird {0} mit jeder Nachricht mitgegeben und hat ausdrücklich Vorrang vor den Standardvorgaben – was Ihre Worte bedeuten, wer wer ist, wie Sie sich das Verhalten wünschen. Eine Anweisung pro Zeile. Sie können es auch einfach sagen: „wenn ich Zuhause sage, meine ich Jita 4-4“ – der KI-Assistent trägt es dann selbst hier ein.</value>
+  </data>
+  <data name="AgentHelpAgentName" xml:space="preserve">
+    <value>Der Name, der im Kopf des Panels angezeigt wird und mit dem sich der KI-Assistent selbst bezeichnet. Standard: {0}.</value>
+  </data>
+  <data name="AgentHeaderTitle" xml:space="preserve">
+    <value>KI-Assistent {0}</value>
+  </data>
+  <data name="AgentEnableCheckbox" xml:space="preserve">
+    <value>KI-Assistent {0} aktivieren</value>
+  </data>
+  <data name="AgentHelpEnable" xml:space="preserve">
+    <value>Wenn aktiviert, ist das Panel von {0} über die Titelleiste erreichbar. Erfordert ein unten eingerichtetes Modell – mit seinem Schlüssel oder der Adresse seines Servers.</value>
+  </data>
+  <data name="AgentHelpHistory" xml:space="preserve">
+    <value>Der Verlauf wird auf der Festplatte gespeichert und beim Start der Anwendung neu geladen. Leeren Sie ihn mit der Schaltfläche ⌫ im Panel von {0}.</value>
+  </data>
+  <data name="AgentHelpSummarization" xml:space="preserve">
+    <value>Überschreitet die geschätzte Länge der Unterhaltung diesen Wert, fasst {0} ältere Nachrichten im Hintergrund still zu einer Zusammenfassung zusammen – typischerweise, während Sie die letzte Antwort lesen. Niedrigere Werte senken die API-Kosten pro Nachricht, opfern aber älteren Kontext. Standard: 20.000 (ca. 0,06 $ pro Nachricht bei dieser Größe mit Sonnet).</value>
+  </data>
+  <data name="AgentHelpTtsVolume" xml:space="preserve">
+    <value>Lautstärke und Stummschaltung sind direkt im Panel von {0} verfügbar, solange es geöffnet ist.</value>
+  </data>
+  <data name="AgentHelpMic" xml:space="preserve">
+    <value>Wenn eingerichtet, erscheint im Panel von {0} eine Mikrofon-Schaltfläche. Zum Aufnehmen gedrückt halten, zum Transkribieren loslassen.</value>
+  </data>
+  <data name="AgentHelpPtt" xml:space="preserve">
+    <value>Halten Sie diese Taste zum Aufnehmen gedrückt – funktioniert auch, wenn das Spiel den Fokus hat. F13-F20 werden selten von Spielen abgefangen und sind als PTT-Tasten empfohlen. Die Mikrofon-Schaltfläche im Panel von {0} funktioniert unabhängig von dieser Einstellung immer.</value>
+  </data>
+  <data name="VerbosityConcise" xml:space="preserve">
+    <value>Knapp</value>
+  </data>
+  <data name="VerbosityBalanced" xml:space="preserve">
+    <value>Ausgewogen</value>
+  </data>
+  <data name="VerbosityDetailed" xml:space="preserve">
+    <value>Ausführlich</value>
+  </data>
+  <data name="RoleNone" xml:space="preserve">
+    <value>Keines – die Rolle schlägt einfach fehl</value>
+  </data>
+  <data name="RoleSameAsConversation" xml:space="preserve">
+    <value>Wie die Unterhaltung</value>
+  </data>
+  <data name="RoleFirstModel" xml:space="preserve">
+    <value>das erste Modell</value>
+  </data>
+  <data name="RoleSummaryOne" xml:space="preserve">
+    <value>Alles erledigt {0}: die Unterhaltung, die Tools der App und jede Frage zu Ihren Daten, mit dem vollständigen Prompt.</value>
+  </data>
+  <data name="RoleSummarySplit" xml:space="preserve">
+    <value>Die Unterhaltung führt {0}, das auch die App bedient – mit einem etwa halb so großen Prompt und ohne Zugriff auf Ihre Daten. Vor jeder Nachricht wird dieses Modell mit einem Wort gefragt, ob die Nachricht Ihre Daten braucht; wenn ja, beantwortet sie stattdessen {1}, mit der Datenbank und ESI. Rutscht eine Datenfrage durch, gibt das Unterhaltungsmodell sie selbst ab. Beginnen Sie eine Nachricht mit /data oder /chat, um sie unabhängig davon in die eine oder andere Richtung zu schicken.</value>
+  </data>
+  <data name="AgentTestChooseModel" xml:space="preserve">
+    <value>Wählen Sie zuerst ein Modell.</value>
+  </data>
+  <data name="AgentTestNeedClaudeKey" xml:space="preserve">
+    <value>Dafür wird oben der Claude-Schlüssel benötigt.</value>
+  </data>
+  <data name="AgentTestNeedOpenAiKey" xml:space="preserve">
+    <value>Dafür wird oben der OpenAI-Schlüssel benötigt.</value>
+  </data>
+  <data name="AgentTestNeedAddress" xml:space="preserve">
+    <value>Dafür wird die Adresse des Servers benötigt.</value>
+  </data>
+  <data name="AgentTestNoAnswer" xml:space="preserve">
+    <value>Die Antwort war leer.</value>
+  </data>
+  <data name="AgentTestAnswered" xml:space="preserve">
+    <value>Antwort nach {0:0.0} s: „{1}“</value>
+  </data>
+  <data name="AgentTestTimedOut" xml:space="preserve">
+    <value>Keine Antwort innerhalb von 90 Sekunden.</value>
+  </data>
+  <data name="CacheTtl5Minutes" xml:space="preserve">
+    <value>5 Minuten (Standard)</value>
+  </data>
+  <data name="CacheTtl1Hour" xml:space="preserve">
+    <value>1 Stunde</value>
+  </data>
+  <data name="SpeechInputNone" xml:space="preserve">
+    <value>Keine</value>
+  </data>
+  <data name="SpeechInputOpenAiWhisper" xml:space="preserve">
+    <value>OpenAI Whisper</value>
+  </data>
+  <data name="SpeechInputLocalWhisper" xml:space="preserve">
+    <value>Whisper (lokal)</value>
+  </data>
+  <data name="TranscriptionNeedOpenAiKey" xml:space="preserve">
+    <value>Geben Sie oben den OpenAI-Schlüssel ein, um aus den Transkriptionsmodellen von OpenAI zu wählen.</value>
+  </data>
+  <data name="MicSystemDefault" xml:space="preserve">
+    <value>Systemstandard</value>
+  </data>
+  <data name="TranscriptionListFound" xml:space="preserve">
+    <value>{0} Transkriptionsmodelle, die Ihr Schlüssel nutzen kann, neueste zuerst.</value>
+  </data>
+  <data name="TranscriptionListEmpty" xml:space="preserve">
+    <value>OpenAI listet für diesen Schlüssel keine Transkriptionsmodelle.</value>
+  </data>
+  <data name="Saved" xml:space="preserve">
+    <value>Gespeichert.</value>
+  </data>
+  <data name="AgentSpeechUnavailable" xml:space="preserve">
+    <value>Sprachausgabe ist nicht verfügbar.</value>
+  </data>
+  <data name="VoiceTestSentence" xml:space="preserve">
+    <value>Stimmtest von {0}. Ihr KI-Assistent ist bereit, Kapselpilot.</value>
+  </data>
+  <data name="KokoroDownloading" xml:space="preserve">
+    <value>Modell wird heruntergeladen/geladen (ca. 320 MB beim ersten Mal)…</value>
+  </data>
+  <data name="KokoroReady" xml:space="preserve">
+    <value>Kokoro-Modell bereit.</value>
+  </data>
+  <data name="KokoroLoadFailed" xml:space="preserve">
+    <value>Laden fehlgeschlagen: {0}</value>
+  </data>
+  <data name="WhisperDownloading" xml:space="preserve">
+    <value>{0} wird heruntergeladen…</value>
+  </data>
+  <data name="WhisperDownloaded" xml:space="preserve">
+    <value>{0:F1} MB heruntergeladen…</value>
+  </data>
+  <data name="WhisperModelReady" xml:space="preserve">
+    <value>Modell „{0}“ bereit.</value>
+  </data>
+  <data name="MethodRegion" xml:space="preserve">
+    <value>Region</value>
+  </data>
+  <data name="MethodPlayerStructure" xml:space="preserve">
+    <value>Spielerstruktur</value>
+  </data>
+  <data name="MarketRecalculating" xml:space="preserve">
+    <value>Wird neu berechnet…</value>
+  </data>
+  <data name="MarketAllStations" xml:space="preserve">
+    <value>(Alle Stationen)</value>
+  </data>
+  <data name="MarketLocationFallback" xml:space="preserve">
+    <value>Standort {0}</value>
+  </data>
+  <data name="MarketNewSourceName" xml:space="preserve">
+    <value>Neuer Markt</value>
+  </data>
+  <data name="MarketSourceAdded" xml:space="preserve">
+    <value>Neue Quelle hinzugefügt – Details ausfüllen und auf „Speichern“ klicken.</value>
+  </data>
+  <data name="MarketSourceSaved" xml:space="preserve">
+    <value>„{0}“ gespeichert.</value>
+  </data>
+  <data name="MarketSourceRemoved" xml:space="preserve">
+    <value>Quelle entfernt.</value>
+  </data>
+  <data name="MarketRefreshingAll" xml:space="preserve">
+    <value>Alle Quellen werden aktualisiert…</value>
+  </data>
+  <data name="MarketRefreshedAll" xml:space="preserve">
+    <value>Alle Quellen aktualisiert.</value>
+  </data>
+  <data name="MarketRefreshing" xml:space="preserve">
+    <value>{0} wird aktualisiert…</value>
+  </data>
+  <data name="MarketRefreshComplete" xml:space="preserve">
+    <value>Aktualisierung abgeschlossen – {0} – {1}</value>
+  </data>
+  <data name="MarketRefreshFailed" xml:space="preserve">
+    <value>Aktualisierung fehlgeschlagen: {0}</value>
+  </data>
+  <data name="MarketInvalidId" xml:space="preserve">
+    <value>Ungültige ID</value>
+  </data>
+  <data name="MarketResolving" xml:space="preserve">
+    <value>Wird aufgelöst…</value>
+  </data>
+  <data name="MarketSelectAuthChar" xml:space="preserve">
+    <value>Wählen Sie einen Auth-Charakter, um Strukturen nachzuschlagen</value>
+  </data>
+  <data name="MarketStructureNotFound" xml:space="preserve">
+    <value>Struktur nicht gefunden (Auth prüfen)</value>
+  </data>
+  <data name="MarketStationNotFound" xml:space="preserve">
+    <value>Station nicht gefunden</value>
+  </data>
+  <data name="MarketSearchNeedsChar" xml:space="preserve">
+    <value>Fügen Sie einen Auth-Charakter hinzu, um zu suchen</value>
+  </data>
+  <data name="MarketSearching" xml:space="preserve">
+    <value>Suche läuft…</value>
+  </data>
+  <data name="MarketResultStation" xml:space="preserve">
+    <value>Station</value>
+  </data>
+  <data name="MarketResultStructure" xml:space="preserve">
+    <value>Struktur</value>
+  </data>
+  <data name="MarketStructureFallback" xml:space="preserve">
+    <value>Struktur {0}</value>
+  </data>
+  <data name="MarketNoResults" xml:space="preserve">
+    <value>Keine Ergebnisse gefunden</value>
+  </data>
+  <data name="MarketResultCount" xml:space="preserve">
+    <value>{0} Ergebnis(se)</value>
+  </data>
+  <data name="MarketLocationApplied" xml:space="preserve">
+    <value>Standort übernommen – zum dauerhaften Speichern auf „Speichern“ klicken.</value>
+  </data>
+  <data name="SdeNotLoaded" xml:space="preserve">
+    <value>SDE nicht geladen</value>
+  </data>
+  <data name="SdeChecking" xml:space="preserve">
+    <value>wird geprüft…</value>
+  </data>
+  <data name="SdeNotImportedShort" xml:space="preserve">
+    <value>SDE nicht importiert</value>
+  </data>
+  <data name="SdeHoboNotImported" xml:space="preserve">
+    <value>Nicht importiert</value>
+  </data>
+  <data name="SdeCheckError" xml:space="preserve">
+    <value>Fehler: {0}</value>
+  </data>
+  <data name="SdeUnavailable" xml:space="preserve">
+    <value>nicht verfügbar</value>
+  </data>
+  <data name="SdeHoboRevision" xml:space="preserve">
+    <value>Revision {0:N0}</value>
+  </data>
+  <data name="SdeNotImported" xml:space="preserve">
+    <value>nicht importiert</value>
+  </data>
+  <data name="SdeHoboImported" xml:space="preserve">
+    <value>Revision {0:N0}, importiert {1:yyyy-MM-dd HH:mm}</value>
+  </data>
+  <data name="SdeHoboImportedNoRevision" xml:space="preserve">
+    <value>zuletzt importiert {0:yyyy-MM-dd HH:mm} (Revision nicht erfasst)</value>
+  </data>
+  <data name="SdeStarting" xml:space="preserve">
+    <value>Wird gestartet…</value>
+  </data>
+  <data name="SdeImportComplete" xml:space="preserve">
+    <value>SDE-Import abgeschlossen.</value>
+  </data>
+  <data name="SdeImportCompleteWarnings" xml:space="preserve">
+    <value>SDE-Import abgeschlossen – {0} Tabelle(n) sollten Sie sich ansehen, siehe Fehlerprotokoll.</value>
+  </data>
+  <data name="SdeImportNamesByLanguage" xml:space="preserve">
+    <value>Gespeicherte Namen in den anderen Sprachen des Spiels: {0}.</value>
+  </data>
+  <data name="SdeUpdateRequired" xml:space="preserve">
+    <value>⚠ Update erforderlich – {0}</value>
+  </data>
+  <data name="SdeImportRolledBack" xml:space="preserve">
+    <value>⚠ Import zurückgesetzt – {0}</value>
+  </data>
+  <data name="SdeImportError" xml:space="preserve">
+    <value>Fehler: {0} – Ihre bisherigen SDE-Daten wurden beibehalten.</value>
+  </data>
+  <data name="HoboImportComplete" xml:space="preserve">
+    <value>Hoboleaks-Import abgeschlossen.</value>
+  </data>
+  <data name="HoboImportCompleteWarnings" xml:space="preserve">
+    <value>Hoboleaks-Import abgeschlossen – {0} Tabelle(n) sollten Sie sich ansehen, siehe Fehlerprotokoll.</value>
+  </data>
+  <data name="HoboImportError" xml:space="preserve">
+    <value>Fehler: {0} – Ihre bisherigen Hoboleaks-Daten wurden beibehalten.</value>
+  </data>
+  <data name="SdeBuild" xml:space="preserve">
+    <value>Build {0}  ({1:yyyy-MM-dd})</value>
+  </data>
+  <data name="SlackConnectedTo" xml:space="preserve">
+    <value>Verbunden mit {0}.</value>
+  </data>
+  <data name="SlackWaitingForBrowser" xml:space="preserve">
+    <value>Warte auf die Slack-Autorisierung in Ihrem Browser… („Abbrechen“, falls Sie ihn geschlossen haben)</value>
+  </data>
+  <data name="SlackConnectedAs" xml:space="preserve">
+    <value>Verbunden – Beiträge als {0} in {1}.</value>
+  </data>
+  <data name="SlackFailed" xml:space="preserve">
+    <value>Fehlgeschlagen: {0}</value>
+  </data>
+  <data name="SlackConnectionCancelled" xml:space="preserve">
+    <value>Verbindung abgebrochen.</value>
+  </data>
+  <data name="SlackDisconnected" xml:space="preserve">
+    <value>Getrennt.</value>
+  </data>
+  <data name="SlackCheckingToken" xml:space="preserve">
+    <value>Token wird geprüft…</value>
+  </data>
+  <data name="SlackTokenCleared" xml:space="preserve">
+    <value>Token entfernt.</value>
+  </data>
+  <data name="SlackWebhookNeedsNameUrl" xml:space="preserve">
+    <value>Ein Webhook braucht einen Namen und eine https://-URL.</value>
+  </data>
+  <data name="SlackWebhookAdded" xml:space="preserve">
+    <value>„{0}“ hinzugefügt.</value>
+  </data>
+  <data name="SlackAreaCorpTop10" xml:space="preserve">
+    <value>Corp Top 10</value>
+  </data>
+  <data name="SlackAreaMonthlySummary" xml:space="preserve">
+    <value>Monatszusammenfassung</value>
+  </data>
+  <data name="SlackWebhookInUse" xml:space="preserve">
+    <value>„{0}“ ist noch für {1} eingestellt. Leiten Sie diese zuerst woandershin.</value>
+  </data>
+  <data name="SlackWebhookRemoved" xml:space="preserve">
+    <value>„{0}“ entfernt.</value>
+  </data>
+  <data name="SlackWebhookLabel" xml:space="preserve">
+    <value>Webhook: {0}</value>
+  </data>
+  <data name="SlackEnterTokenFirst" xml:space="preserve">
+    <value>Geben Sie zuerst ein Token ein.</value>
+  </data>
+  <data name="SlackChannelsFailed" xml:space="preserve">
+    <value>Kanäle konnten nicht geladen werden: {0}</value>
+  </data>
+  <data name="SlackChannelsAvailable" xml:space="preserve">
+    <value>Verfügbare Kanäle: {0:N0}.</value>
+  </data>
+  <data name="ChatIntelParsed" xml:space="preserve">
+    <value>{0:N0} Sichtung(en) aus dem gespeicherten Verlauf ausgewertet.</value>
+  </data>
+  <data name="ChatIntelFailed" xml:space="preserve">
+    <value>Intel-Auswertung fehlgeschlagen – {0}</value>
+  </data>
+  <data name="ChatIntelHelp" xml:space="preserve">
+    <value>Nachrichten in den angekreuzten Kanälen werden zu Sichtungen ausgewertet: das System, wie viele gemeldet wurden, und genannte Piloten. „clr“ erklärt alles, was in diesem System gemeldet war, für erledigt. Sichtungen steuern die Intel-Überlagerungen der Universumskarte.</value>
+  </data>
+  <data name="ChatNoChannelsSelected" xml:space="preserve">
+    <value>Keine Kanäle ausgewählt – es wird nichts gespeichert.</value>
+  </data>
+  <data name="ChatChannelsSelected" xml:space="preserve">
+    <value>{0:N0} von {1:N0} Kanälen ausgewählt.</value>
+  </data>
+  <data name="ChatImportAllFiles" xml:space="preserve">
+    <value>Alle {0:N0} Datei(en) der ausgewählten Kanäle werden verarbeitet.</value>
+  </data>
+  <data name="ChatImportFilesSince" xml:space="preserve">
+    <value>{0:N0} Datei(en) der letzten {1:N0} Tag(e) werden verarbeitet.</value>
+  </data>
+  <data name="LogsCountFailed" xml:space="preserve">
+    <value>Dateien konnten nicht gezählt werden – {0}</value>
+  </data>
+  <data name="ChatFolderNotFound" xml:space="preserve">
+    <value>Kein lokaler EVE-Ordner für Chatprotokolle gefunden.</value>
+  </data>
+  <data name="ChatNoFolder" xml:space="preserve">
+    <value>Kein Ordner für Chatprotokolle gefunden – fügen Sie unten einen hinzu.</value>
+  </data>
+  <data name="LogsFolderUnreachable" xml:space="preserve">
+    <value>✗ nicht erreichbar – {0}</value>
+  </data>
+  <data name="GameLogImportAllFiles" xml:space="preserve">
+    <value>Alle {0:N0} Protokolldatei(en) werden verarbeitet.</value>
+  </data>
+  <data name="GameLogImportFilesSince" xml:space="preserve">
+    <value>{0:N0} in den letzten {1:N0} Tag(en) geänderte Protokolldatei(en) werden verarbeitet.</value>
+  </data>
+  <data name="GameLogNoFolder" xml:space="preserve">
+    <value>Kein Ordner für Spielprotokolle gefunden – fügen Sie unten einen hinzu.</value>
+  </data>
+  <data name="GameLogFolderNotFound" xml:space="preserve">
+    <value>Kein lokaler EVE-Ordner für Spielprotokolle gefunden.</value>
+  </data>
+  <data name="TimerMinimum" xml:space="preserve">
+    <value>(mind. {0} {1})</value>
+  </data>
+  <data name="TimerUnitSeconds" xml:space="preserve">
+    <value>Sek.</value>
+  </data>
+  <data name="TimerUnitMinutes" xml:space="preserve">
+    <value>Min.</value>
+  </data>
+  <data name="TimerForceStarted" xml:space="preserve">
+    <value>gestartet</value>
+  </data>
+  <data name="TimerForceDue" xml:space="preserve">
+    <value>im nächsten Zyklus fällig</value>
+  </data>
+  <data name="TimerMarketRefresh" xml:space="preserve">
+    <value>Aktualisierung der Marktpreise</value>
+  </data>
+  <data name="TimerPriceHistoryCheck" xml:space="preserve">
+    <value>Prüfung des Preisverlaufs</value>
+  </data>
+  <data name="TimerPublicContracts" xml:space="preserve">
+    <value>Öffentliche Verträge (alle Regionen)</value>
+  </data>
+  <data name="TimerContractItems" xml:space="preserve">
+    <value>Abruf der Vertragsgegenstände</value>
+  </data>
+  <data name="TimerLpStoreOffers" xml:space="preserve">
+    <value>LP-Shop-Angebote (alle NPC-Corps)</value>
+  </data>
+  <data name="TimerContractPricing" xml:space="preserve">
+    <value>Neuberechnung der Vertragspreise</value>
+  </data>
+  <data name="MapStatsBackfilling" xml:space="preserve">
+    <value>Nachladen aus dem Archiv von EVE Ref…</value>
+  </data>
+  <data name="MapStatsHistoryComplete" xml:space="preserve">
+    <value>Verlauf vollständig – die aktuelle Stunde wird aktuell gehalten</value>
+  </data>
+  <data name="MapStatsWaiting" xml:space="preserve">
+    <value>Wartet auf den Start</value>
+  </data>
+  <data name="MapStatsNothingStored" xml:space="preserve">
+    <value>Noch nichts gespeichert.</value>
+  </data>
+  <data name="MapStatsCoverageRow" xml:space="preserve">
+    <value>{0,-24} {1,6:N0} Stundenwerte   {2,4:N0} Tage   {3} → {4}</value>
+  </data>
+  <data name="Top10TypeCharacter" xml:space="preserve">
+    <value>Charakter</value>
+  </data>
+  <data name="Top10TypeCorporation" xml:space="preserve">
+    <value>Corporation</value>
+  </data>
+  <data name="Top10AddError" xml:space="preserve">
+    <value>Fehler beim Hinzufügen: {0}</value>
+  </data>
+  <data name="Top10RemoveError" xml:space="preserve">
+    <value>Fehler beim Entfernen: {0}</value>
+  </data>
+  <data name="Top10SaveError" xml:space="preserve">
+    <value>Fehler beim Speichern: {0}</value>
+  </data>
+  <data name="Top10TitlesSaved" xml:space="preserve">
+    <value>Titel gespeichert.</value>
+  </data>
+  <data name="Top10PickName" xml:space="preserve">
+    <value>Wählen Sie zuerst einen Namen aus der Liste.</value>
+  </data>
+  <data name="Top10AlreadyExcluded" xml:space="preserve">
+    <value>{0} steht bereits auf der Ausschlussliste.</value>
+  </data>
+  <data name="Top10Excluded" xml:space="preserve">
+    <value>{0} zur Ausschlussliste hinzugefügt.</value>
+  </data>
+  <data name="Top10Unexcluded" xml:space="preserve">
+    <value>{0} von der Ausschlussliste entfernt.</value>
+  </data>
+  <data name="RetentionLastPurged" xml:space="preserve">
+    <value>Zuletzt bereinigt {0:yyyy-MM-dd HH:mm}</value>
+  </data>
+  <data name="RetentionNotRunYet" xml:space="preserve">
+    <value>Noch nicht gelaufen.</value>
+  </data>
+  <data name="RetentionPurging" xml:space="preserve">
+    <value>Wird bereinigt…</value>
+  </data>
+  <data name="RetentionNothingOlder" xml:space="preserve">
+    <value>Nichts älter als {0:N0} Tage.</value>
+  </data>
+  <data name="RetentionPurgeFailed" xml:space="preserve">
+    <value>Bereinigung fehlgeschlagen: {0}</value>
+  </data>
+  <data name="RetentionRemovedErrorLog" xml:space="preserve">
+    <value>{0:N0} Einträge entfernt, die älter als {1:N0} Tage waren. Die Datei wird erst kleiner, wenn sie komprimiert wird – siehe Datenbank → Datenbank verkleinern.</value>
+  </data>
+  <data name="RetentionRemovedKillmails" xml:space="preserve">
+    <value>{0:N0} Abschussberichte entfernt, die älter als {1:N0} Tage waren. Die Datei wird erst kleiner, wenn sie komprimiert wird – siehe Datenbank → Datenbank verkleinern.</value>
+  </data>
+  <data name="RetentionPurgingKillmails" xml:space="preserve">
+    <value>Wird bereinigt… {0:N0} von {1:N0} Abschussberichten entfernt</value>
+  </data>
+  <data name="RetentionIntroNote" xml:space="preserve">
+    <value>Wie lange EVE Console Daten aufbewahrt, auf die sie verzichten kann. Standardmäßig werden nur die eigenen Aufzeichnungen des KI-Assistenten bereinigt – jede andere Regel ist aus, bis Sie sie einschalten –, und eine aktivierte Regel läuft einmal täglich. Das Bereinigen entfernt Zeilen, doch SQLite verwendet die frei gewordenen Seiten wieder, statt sie an das System zurückzugeben; die Datei selbst wird daher erst kleiner, wenn sie komprimiert wird – siehe Datenbank → Datenbank verkleinern. Datenbank → Speicheraufteilung zeigt, wo der Platz tatsächlich geblieben ist.</value>
+  </data>
+  <data name="RetentionKillmailsNote" xml:space="preserve">
+    <value>Entfernt den Abschuss und alles, was daran hängt – Angreifer, Gegenstände, Referenzen und zKillboard-Markierungen. Abschussberichte und ihre Indizes sind der größte Posten in einer typischen Datenbank (61 % einer gemessenen 4-GB-Datei); diese Regeln sind es also, die tatsächlich Platz zurückgewinnen. Zwei Regeln, damit Ihr eigener Verlauf länger aufbewahrt werden kann als der aller anderen; jede ist aus, bis Sie sie einschalten. ⚠️ Gelöschte Abschüsse sind lokal verloren; zurückholen lassen sie sich nur durch erneuten Abruf von ESI oder zKillboard, und ESI liefert nur neuere.</value>
+  </data>
+  <data name="RetentionOurKillmails" xml:space="preserve">
+    <value>Charaktere / Corps</value>
+  </data>
+  <data name="RetentionOurKillmailsNote" xml:space="preserve">
+    <value>Abschüsse und Verluste Ihrer Charaktere und jeder Corporation, die Sie hinzugefügt haben – nicht nur der als persönlich markierten. Ein Abschuss zählt hierzu, wenn einer von ihnen das Opfer ist oder zu den Angreifern gehört.</value>
+  </data>
+  <data name="RetentionOtherKillmails" xml:space="preserve">
+    <value>Alle anderen</value>
+  </data>
+  <data name="RetentionOtherKillmailsNote" xml:space="preserve">
+    <value>Die Abschüsse aller anderen – aus dem zKillboard-Import, aus Kämpfen, denen Sie nur zugesehen haben. 98 % der Abschüsse in einer gemessenen Datenbank; diese Regel ist es also, die Platz zurückgewinnt.</value>
+  </data>
+  <data name="RetentionRemovedPriceHistory" xml:space="preserve">
+    <value>{0:N0} Zeilen entfernt, die älter als {1:N0} Tage waren. Die Datei wird erst kleiner, wenn sie komprimiert wird – siehe Datenbank → Datenbank verkleinern.</value>
+  </data>
+  <data name="RetentionRemovedGameLog" xml:space="preserve">
+    <value>{0:N0} Ereignisse entfernt, die älter als {1:N0} Tage waren. Die Datei wird erst kleiner, wenn sie komprimiert wird – siehe Datenbank → Datenbank verkleinern.</value>
+  </data>
+  <data name="RetentionRemovedChat" xml:space="preserve">
+    <value>{0:N0} Nachrichten entfernt, die älter als {1:N0} Tage waren. Die Datei wird erst kleiner, wenn sie komprimiert wird – siehe Datenbank → Datenbank verkleinern.</value>
+  </data>
+  <data name="RetentionRemovedAgent" xml:space="preserve">
+    <value>{0:N0} Anfragen entfernt, die älter als {1:N0} Tage waren. Die Datei wird erst kleiner, wenn sie komprimiert wird – siehe Datenbank → Datenbank verkleinern.</value>
+  </data>
+  <data name="ZkbNeverFull" xml:space="preserve">
+    <value>nie</value>
+  </data>
+  <data name="ScopesTitleCorporation" xml:space="preserve">
+    <value>Corporation hinzufügen – Berechtigungen auswählen</value>
+  </data>
+  <data name="ScopesTitleCharacter" xml:space="preserve">
+    <value>Charakter hinzufügen – Berechtigungen auswählen</value>
+  </data>
+  <data name="ConfirmUpdateTitle" xml:space="preserve">
+    <value>Aktualisierung bestätigen</value>
+  </data>
+  <data name="FileTypeSqliteDatabase" xml:space="preserve">
+    <value>SQLite-Datenbank</value>
+  </data>
+  <data name="DbRestartFailed" xml:space="preserve">
+    <value>Neustart fehlgeschlagen ({0}). Schließen Sie EVE Console und öffnen Sie sie erneut, um den Vorgang abzuschließen.</value>
+  </data>
+  <data name="DbRelocateNotFound" xml:space="preserve">
+    <value>Die Datenbankdatei wurde nicht gefunden.</value>
+  </data>
+  <data name="DbRelocateTargetExists" xml:space="preserve">
+    <value>Unter {0} existiert bereits eine Datei. Die Datenbank wurde an ihrem Ort belassen.</value>
+  </data>
+  <data name="DbPreparingDatabase" xml:space="preserve">
+    <value>Datenbank wird vorbereitet…</value>
+  </data>
+  <data name="DbRelocateMoving" xml:space="preserve">
+    <value>Datenbank wird verschoben…</value>
+  </data>
+  <data name="DbVerifying" xml:space="preserve">
+    <value>Wird überprüft…</value>
+  </data>
+  <data name="DbRelocateVerifyFailed" xml:space="preserve">
+    <value>Die verschobene Datenbank hat die Überprüfung nicht bestanden ({0}) und wurde nach {1} zurückgelegt.</value>
+  </data>
+  <data name="DbRelocateUpdatingConfig" xml:space="preserve">
+    <value>Konfiguration wird aktualisiert…</value>
+  </data>
+  <data name="DbRelocateDone" xml:space="preserve">
+    <value>Datenbank verschoben.</value>
+  </data>
+  <data name="DbRelocateMovedTo" xml:space="preserve">
+    <value>Datenbank nach {0} verschoben.</value>
+  </data>
+  <data name="DbRelocateFailed" xml:space="preserve">
+    <value>Die Datenbank konnte nicht verschoben werden – sie bleibt unter {0}. ({1})</value>
+  </data>
+  <data name="DbVerifyNoTables" xml:space="preserve">
+    <value>sie enthält keine Tabellen</value>
+  </data>
+  <data name="DbShrinkFileNotFound" xml:space="preserve">
+    <value>Datenbankdatei nicht gefunden.</value>
+  </data>
+  <data name="DbShrinkBackingUp" xml:space="preserve">
+    <value>Datenbank wird gesichert…</value>
+  </data>
+  <data name="DbShrinkShrinking" xml:space="preserve">
+    <value>Datenbank wird verkleinert – das kann eine Weile dauern…</value>
+  </data>
+  <data name="DbShrinkVerifyFailed" xml:space="preserve">
+    <value>Verkleinern abgeschlossen, aber die Datenbank hat die Überprüfung nicht bestanden: {0}. Eine vorher angelegte Kopie liegt unter {1}.</value>
+  </data>
+  <data name="DbShrinkDone" xml:space="preserve">
+    <value>Datenbank verkleinert.</value>
+  </data>
+  <data name="DbShrinkResult" xml:space="preserve">
+    <value>Datenbank von {0} auf {1} verkleinert – {2} freigegeben.</value>
+  </data>
+  <data name="DbShrinkFailed" xml:space="preserve">
+    <value>Verkleinern fehlgeschlagen – die Datenbank blieb unverändert. Eine vorher angelegte Kopie liegt unter {0}. ({1})</value>
+  </data>
+  <data name="DbVerifyNoResult" xml:space="preserve">
+    <value>kein Ergebnis</value>
+  </data>
+  <data name="DbShrinkVerifyNoTables" xml:space="preserve">
+    <value>die neu aufgebaute Datei enthält keine Tabellen</value>
+  </data>
+  <data name="PgRestoreSkippedMissing" xml:space="preserve">
+    <value>Wiederherstellung übersprungen: {0} ist nicht mehr vorhanden.</value>
+  </data>
+  <data name="PgRestoreSkippedNoConnection" xml:space="preserve">
+    <value>Wiederherstellung übersprungen: Es ist keine PostgreSQL-Verbindung eingerichtet.</value>
+  </data>
+  <data name="PgRestoreLooking" xml:space="preserve">
+    <value>Suche nach pg_restore…</value>
+  </data>
+  <data name="PgRestoreFailed" xml:space="preserve">
+    <value>Wiederherstellung fehlgeschlagen: {0}</value>
+  </data>
+  <data name="PgRestoreNotBesideDump" xml:space="preserve">
+    <value>Wiederherstellung fehlgeschlagen: pg_restore wurde nicht neben pg_dump unter {0} gefunden.</value>
+  </data>
+  <data name="PgRestoreRestoring" xml:space="preserve">
+    <value>{0} wird in {1} wiederhergestellt…</value>
+  </data>
+  <data name="PgCouldNotStart" xml:space="preserve">
+    <value>{0} konnte nicht gestartet werden.</value>
+  </data>
+  <data name="PgRestoreFinished" xml:space="preserve">
+    <value>Wiederherstellung abgeschlossen.</value>
+  </data>
+  <data name="PgExitCode" xml:space="preserve">
+    <value>Exitcode {0}</value>
+  </data>
+  <data name="PgRestoreFailedEmpty" xml:space="preserve">
+    <value>Wiederherstellung fehlgeschlagen, und die Datenbank ist leer: {0}</value>
+  </data>
+  <data name="PgDumpNotFound" xml:space="preserve">
+    <value>pg_dump wurde nicht gefunden. Es gehört zu den PostgreSQL-Client-Tools – postgresql-client unter Debian oder Ubuntu, postgresql unter Arch oder die Kommandozeilen-Tools des Windows-Installers.</value>
+  </data>
+  <data name="PgDumpServerUnreachable" xml:space="preserve">
+    <value>pg_dump {0} unter {1} gefunden, aber der Server war zur Versionsprüfung nicht erreichbar: {2}</value>
+  </data>
+  <data name="PgDumpTooOld" xml:space="preserve">
+    <value>pg_dump {0} unter {1} ist älter als der Server ({2}) und wird ihn nicht sichern. Installieren Sie Client-Tools der Version {2} oder neuer.</value>
+  </data>
+  <data name="PgDumpFound" xml:space="preserve">
+    <value>pg_dump {0} unter {1}; Server {2}.</value>
+  </data>
+  <data name="PgDumpRunning" xml:space="preserve">
+    <value>pg_dump läuft…</value>
+  </data>
+  <data name="PgDumpFailed" xml:space="preserve">
+    <value>pg_dump fehlgeschlagen: {0}</value>
+  </data>
+  <data name="DbSecretDpapi" xml:space="preserve">
+    <value>Das Passwort wird von Windows für Ihr Benutzerkonto auf diesem Rechner verschlüsselt. Eine anderswohin kopierte config.json enthält kein verwendbares Passwort.</value>
+  </data>
+  <data name="DbSecretLibSecret" xml:space="preserve">
+    <value>Das Passwort liegt im Schlüsselbund Ihres Desktops; config.json enthält nur einen Verweis darauf.</value>
+  </data>
+  <data name="DbSecretNone" xml:space="preserve">
+    <value>Es wurde kein Schlüsselbund gefunden, daher wird das Passwort so, wie es eingegeben wurde, in config.json gespeichert. Installieren Sie libsecret-tools (secret-tool), damit es stattdessen im Schlüsselbund aufbewahrt wird.</value>
+  </data>
+  <data name="DbSizeMeasuringTable" xml:space="preserve">
+    <value>{0} wird gemessen ({1} von {2})…</value>
+  </data>
+  <data name="DbSizeReadingTables" xml:space="preserve">
+    <value>Tabellengrößen werden gelesen…</value>
+  </data>
+  <data name="DbSizeReadTables" xml:space="preserve">
+    <value>{0:N0} Tabellen gelesen.</value>
+  </data>
+  <data name="PgRestoreDone" xml:space="preserve">
+    <value>{0} wiederhergestellt – {1:N0} Tabellen.</value>
+  </data>
+  <data name="PgRestoreDoneWithErrors" xml:space="preserve">
+    <value>{0} wiederhergestellt – {1:N0} Tabellen; ignorierbare Fehler bei DROP: {2:N0}.</value>
+  </data>
+  <data name="OperationCancelled" xml:space="preserve">
+    <value>Abgebrochen.</value>
+  </data>
+  <data name="SvcWindowsOnly" xml:space="preserve">
+    <value>Nur unter Windows.</value>
+  </data>
+  <data name="SvcNoAppPath" xml:space="preserve">
+    <value>Der Pfad dieser Anwendung konnte nicht ermittelt werden.</value>
+  </data>
+  <data name="SvcElevatedNotStarted" xml:space="preserve">
+    <value>Der Schritt mit erhöhten Rechten wurde nicht gestartet.</value>
+  </data>
+  <data name="SvcElevatedFailed" xml:space="preserve">
+    <value>Der Schritt mit erhöhten Rechten ist fehlgeschlagen (Exitcode {0}). Siehe Fehlerprotokoll.</value>
+  </data>
+  <data name="SvcDaemonReloadFailed" xml:space="preserve">
+    <value>systemctl daemon-reload fehlgeschlagen: {0}</value>
+  </data>
+  <data name="SvcEnableFailed" xml:space="preserve">
+    <value>systemctl enable fehlgeschlagen: {0}</value>
+  </data>
+  <data name="SvcRepointNotInstalled" xml:space="preserve">
+    <value>Nicht installiert.</value>
+  </data>
+  <data name="SvcCouldNotRun" xml:space="preserve">
+    <value>{0} konnte nicht ausgeführt werden</value>
+  </data>
+  <data name="MarketStatusOk" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="MarketStatusOkOrders" xml:space="preserve">
+    <value>OK ({0:N0} Aufträge abgerufen)</value>
+  </data>
+  <data name="MarketNoSdeTypes" xml:space="preserve">
+    <value>Keine SDE-Typen geladen – führen Sie zuerst einen SDE-Import aus.</value>
+  </data>
+  <data name="MarketEsiError" xml:space="preserve">
+    <value>ESI-Fehler {0}: {1}</value>
+  </data>
+  <data name="MarketNoAuthChar" xml:space="preserve">
+    <value>Kein Auth-Charakter für die Quelle „Spielerstruktur“ festgelegt.</value>
+  </data>
+  <data name="BuildCostNotCalculated" xml:space="preserve">
+    <value>Baukosten: noch nicht berechnet</value>
+  </data>
+  <data name="BuildCostFetching" xml:space="preserve">
+    <value>Baukosten: ESI-Daten werden abgerufen…</value>
+  </data>
+  <data name="BuildCostCalculating" xml:space="preserve">
+    <value>Baukosten: werden berechnet…</value>
+  </data>
+  <data name="BuildCostError" xml:space="preserve">
+    <value>Baukosten: Fehler – {0}</value>
+  </data>
+  <data name="BuildCostNoDefaultPark" xml:space="preserve">
+    <value>Baukosten: kein Standard-Park festgelegt – markieren Sie in den Indy-Parks einen Park als Standard</value>
+  </data>
+  <data name="BuildCostCalculatingCycle" xml:space="preserve">
+    <value>Baukosten: werden berechnet… ({0} in einem Abhängigkeitszyklus, zuletzt berechnet)</value>
+  </data>
+  <data name="BuildCostUpdated" xml:space="preserve">
+    <value>Baukosten: zuletzt aktualisiert {0:t} ({1:N0} Gegenstände)</value>
+  </data>
+  <data name="GameLogStatusNotStarted" xml:space="preserve">
+    <value>Spielprotokolle: nicht gestartet</value>
+  </data>
+  <data name="GameLogStatusStopped" xml:space="preserve">
+    <value>Spielprotokolle: gestoppt</value>
+  </data>
+  <data name="GameLogStatusError" xml:space="preserve">
+    <value>Spielprotokolle: Fehler – {0}</value>
+  </data>
+  <data name="GameLogStatusDisabled" xml:space="preserve">
+    <value>Spielprotokolle: deaktiviert</value>
+  </data>
+  <data name="GameLogStatusNoFolder" xml:space="preserve">
+    <value>Spielprotokolle: kein Ordner gefunden</value>
+  </data>
+  <data name="GameLogStatusUnreachable" xml:space="preserve">
+    <value>Spielprotokolle: Überwachung aktiv, {0} Ordner nicht erreichbar</value>
+  </data>
+  <data name="GameLogStatusNew" xml:space="preserve">
+    <value>Spielprotokolle: +{0:N0} neu</value>
+  </data>
+  <data name="GameLogStatusWatching" xml:space="preserve">
+    <value>Spielprotokolle: Überwachung aktiv</value>
+  </data>
+  <data name="GameLogScanningFolders" xml:space="preserve">
+    <value>Ordner werden durchsucht…</value>
+  </data>
+  <data name="LogImportFileProgress" xml:space="preserve">
+    <value>Datei {0:N0} von {1:N0} – {2}</value>
+  </data>
+  <data name="GameLogImportCancelled" xml:space="preserve">
+    <value>Spielprotokolle: Import nach {0:N0} Datei(en) und {1:N0} Zeile(n) abgebrochen</value>
+  </data>
+  <data name="GameLogImportDone" xml:space="preserve">
+    <value>Spielprotokolle: {0:N0} Zeile(n) aus {1:N0} Datei(en) importiert</value>
+  </data>
+  <data name="GameLogImportFailed" xml:space="preserve">
+    <value>Spielprotokolle: Import fehlgeschlagen – {0}</value>
+  </data>
+  <data name="ChatLogStatusDisabled" xml:space="preserve">
+    <value>Chatprotokolle: deaktiviert</value>
+  </data>
+  <data name="ChatLogStatusStopped" xml:space="preserve">
+    <value>Chatprotokolle: gestoppt</value>
+  </data>
+  <data name="ChatLogStatusError" xml:space="preserve">
+    <value>Chatprotokolle: Fehler – {0}</value>
+  </data>
+  <data name="ChatLogScanningFolders" xml:space="preserve">
+    <value>Ordner der Chatprotokolle werden durchsucht…</value>
+  </data>
+  <data name="ChatLogChannelsFound" xml:space="preserve">
+    <value>Gefundene Kanäle: {0:N0}.</value>
+  </data>
+  <data name="ChatLogDiscoveryFailed" xml:space="preserve">
+    <value>Suche fehlgeschlagen – {0}</value>
+  </data>
+  <data name="ChatLogStatusNoFolder" xml:space="preserve">
+    <value>Chatprotokolle: kein Ordner gefunden</value>
+  </data>
+  <data name="ChatLogStatusNoChannels" xml:space="preserve">
+    <value>Chatprotokolle: keine Kanäle ausgewählt</value>
+  </data>
+  <data name="ChatLogStatusNew" xml:space="preserve">
+    <value>Chatprotokolle: +{0:N0} Nachricht(en)</value>
+  </data>
+  <data name="ChatLogStatusWatching" xml:space="preserve">
+    <value>Chatprotokolle: Überwachung aktiv, Kanäle: {0}</value>
+  </data>
+  <data name="ChatLogSelectChannelFirst" xml:space="preserve">
+    <value>Chatprotokolle: Wählen Sie zuerst mindestens einen Kanal</value>
+  </data>
+  <data name="ChatLogImportCancelled" xml:space="preserve">
+    <value>Chatprotokolle: Import nach {0:N0} Datei(en) und {1:N0} Nachricht(en) abgebrochen</value>
+  </data>
+  <data name="ChatLogImportDone" xml:space="preserve">
+    <value>Chatprotokolle: {0:N0} Nachricht(en) aus {1:N0} Datei(en) importiert</value>
+  </data>
+  <data name="ChatLogImportFailed" xml:space="preserve">
+    <value>Chatprotokolle: Import fehlgeschlagen – {0}</value>
+  </data>
+  <data name="MapStatsPollIdle" xml:space="preserve">
+    <value>Kartenstatistik: im Leerlauf</value>
+  </data>
+  <data name="MapStatsPollStored" xml:space="preserve">
+    <value>Kartenstatistik: {0:N0} Zeilen um {1:HH:mm} gespeichert</value>
+  </data>
+  <data name="MapStatsPollUpToDate" xml:space="preserve">
+    <value>Kartenstatistik: aktuell ({0:HH:mm})</value>
+  </data>
+  <data name="MapStatsBackfillCancelled" xml:space="preserve">
+    <value>Abgebrochen</value>
+  </data>
+  <data name="MapStatsBackfillComplete" xml:space="preserve">
+    <value>Abgeschlossen</value>
+  </data>
+  <data name="MapStatsCompacting" xml:space="preserve">
+    <value>Vorhandene Kartendaten werden verdichtet…</value>
+  </data>
+  <data name="MapStatsReclaiming" xml:space="preserve">
+    <value>Speicherplatz wird freigegeben…</value>
+  </data>
+  <data name="MapStatsCompactionComplete" xml:space="preserve">
+    <value>Verdichtung abgeschlossen</value>
+  </data>
+  <data name="SdeIncompatible" xml:space="preserve">
+    <value>EVE Console muss aktualisiert werden, bevor sie das SDE auffrischen kann. Die folgenden benötigten Dateien wurden im Archiv nicht gefunden (CCP hat das SDE-Format möglicherweise umgestellt): {0}. Ihre vorhandenen SDE-Daten wurden NICHT gelöscht.</value>
+  </data>
+  <data name="ImportStagePreparing" xml:space="preserve">
+    <value>Vorbereitung</value>
+  </data>
+  <data name="SdeFetchingBuildInfo" xml:space="preserve">
+    <value>Build-Informationen werden abgerufen…</value>
+  </data>
+  <data name="SdeCreatingSchema" xml:space="preserve">
+    <value>Schema wird angelegt…</value>
+  </data>
+  <data name="SdeReadingRowCounts" xml:space="preserve">
+    <value>Aktuelle Zeilenzahlen werden gelesen…</value>
+  </data>
+  <data name="SdeClearing" xml:space="preserve">
+    <value>Vorhandene SDE-Daten werden geleert…</value>
+  </data>
+  <data name="ImportStageVerifying" xml:space="preserve">
+    <value>Überprüfung</value>
+  </data>
+  <data name="ImportCheckingRowCounts" xml:space="preserve">
+    <value>Zeilenzahlen werden geprüft…</value>
+  </data>
+  <data name="ImportStageDone" xml:space="preserve">
+    <value>Fertig</value>
+  </data>
+  <data name="SdeOptionalMissing" xml:space="preserve">
+    <value>Optionale Dateien nicht gefunden (werden übersprungen): {0}</value>
+  </data>
+  <data name="SdeAllFilesPresent" xml:space="preserve">
+    <value>Alle SDE-Dateien vorhanden.</value>
+  </data>
+  <data name="SdeFlatFormat" xml:space="preserve">
+    <value>Neues flaches SDE-Format erkannt</value>
+  </data>
+  <data name="SdeNestedFormat" xml:space="preserve">
+    <value>Altes verschachteltes SDE-Format, Präfix: „{0}“</value>
+  </data>
+  <data name="ImportStageWarning" xml:space="preserve">
+    <value>Warnung</value>
+  </data>
+  <data name="SdeRootNotDetected" xml:space="preserve">
+    <value>ZIP-Stammverzeichnis nicht erkannt – flaches Format angenommen</value>
+  </data>
+  <data name="ImportStageDownloadingSde" xml:space="preserve">
+    <value>SDE wird heruntergeladen</value>
+  </data>
+  <data name="ImportStageCategories" xml:space="preserve">
+    <value>Kategorien</value>
+  </data>
+  <data name="SdeNotFoundInZip" xml:space="preserve">
+    <value>NICHT im ZIP GEFUNDEN – übersprungen</value>
+  </data>
+  <data name="ImportParsing" xml:space="preserve">
+    <value>Wird eingelesen…</value>
+  </data>
+  <data name="ImportStageGroups" xml:space="preserve">
+    <value>Gruppen</value>
+  </data>
+  <data name="SdeParsedGroups" xml:space="preserve">
+    <value>{0:N0} Gruppen aus YAML eingelesen – wird gespeichert…</value>
+  </data>
+  <data name="ImportStageMarketGroups" xml:space="preserve">
+    <value>Marktgruppen</value>
+  </data>
+  <data name="ImportStageTypes" xml:space="preserve">
+    <value>Typen</value>
+  </data>
+  <data name="SdeParsedTypes" xml:space="preserve">
+    <value>{0:N0} Typen aus YAML eingelesen – wird gespeichert…</value>
+  </data>
+  <data name="ImportStageNames" xml:space="preserve">
+    <value>Übersetzte Namen</value>
+  </data>
+  <data name="ImportStageDescriptions" xml:space="preserve">
+    <value>Übersetzte Beschreibungen</value>
+  </data>
+  <data name="ImportStageAttrCategories" xml:space="preserve">
+    <value>Attributkategorien</value>
+  </data>
+  <data name="SdeNotFoundSkipped" xml:space="preserve">
+    <value>NICHT GEFUNDEN – übersprungen</value>
+  </data>
+  <data name="ImportStageDogmaAttributes" xml:space="preserve">
+    <value>Dogma-Attribute</value>
+  </data>
+  <data name="ImportStageDogmaEffects" xml:space="preserve">
+    <value>Dogma-Effekte</value>
+  </data>
+  <data name="ImportStageTypeDogma" xml:space="preserve">
+    <value>Typ-Dogma</value>
+  </data>
+  <data name="ImportStageTypeDogmaAttributes" xml:space="preserve">
+    <value>Typ-Dogma-Attribute</value>
+  </data>
+  <data name="ImportStageTypeDogmaEffects" xml:space="preserve">
+    <value>Typ-Dogma-Effekte</value>
+  </data>
+  <data name="ImportStageBlueprints" xml:space="preserve">
+    <value>Blaupausen</value>
+  </data>
+  <data name="ImportStageBlueprintMaterials" xml:space="preserve">
+    <value>Blaupausen-Materialien</value>
+  </data>
+  <data name="ImportStageBlueprintProducts" xml:space="preserve">
+    <value>Blaupausen-Produkte</value>
+  </data>
+  <data name="ImportStageBlueprintSkills" xml:space="preserve">
+    <value>Blaupausen-Skills</value>
+  </data>
+  <data name="ImportStageUniverse" xml:space="preserve">
+    <value>Universum</value>
+  </data>
+  <data name="ImportStageRegions" xml:space="preserve">
+    <value>Regionen</value>
+  </data>
+  <data name="ImportStageConstellations" xml:space="preserve">
+    <value>Konstellationen</value>
+  </data>
+  <data name="ImportStageSolarSystems" xml:space="preserve">
+    <value>Sonnensysteme</value>
+  </data>
+  <data name="ImportStageStargates" xml:space="preserve">
+    <value>Sprungtore</value>
+  </data>
+  <data name="SdeParsingBelts" xml:space="preserve">
+    <value>Asteroidengürtel werden eingelesen…</value>
+  </data>
+  <data name="ImportStageCelestials" xml:space="preserve">
+    <value>Himmelskörper</value>
+  </data>
+  <data name="ImportStagePlanetResources" xml:space="preserve">
+    <value>Planetenressourcen</value>
+  </data>
+  <data name="ImportStageAgents" xml:space="preserve">
+    <value>Agenten</value>
+  </data>
+  <data name="ImportStageAgentTypes" xml:space="preserve">
+    <value>Agententypen</value>
+  </data>
+  <data name="ImportStageCorpDivisions" xml:space="preserve">
+    <value>Corp-Abteilungen</value>
+  </data>
+  <data name="SdeScanningEntries" xml:space="preserve">
+    <value>Einträge werden durchsucht…</value>
+  </data>
+  <data name="SdeFoundUniverse" xml:space="preserve">
+    <value>{0} Regionen, {1} Konstellationen, {2} Systeme gefunden</value>
+  </data>
+  <data name="ImportStageStations" xml:space="preserve">
+    <value>Stationen</value>
+  </data>
+  <data name="SdeFetchingStationNames" xml:space="preserve">
+    <value>{0:N0} Stationsnamen werden von ESI abgerufen…</value>
+  </data>
+  <data name="ImportStageFactions" xml:space="preserve">
+    <value>Fraktionen</value>
+  </data>
+  <data name="ImportStageNpcCorporations" xml:space="preserve">
+    <value>NPC-Corporations</value>
+  </data>
+  <data name="ImportStageIndustryModifiers" xml:space="preserve">
+    <value>Industriemodifikatoren</value>
+  </data>
+  <data name="ImportStageRaces" xml:space="preserve">
+    <value>Völker</value>
+  </data>
+  <data name="ImportStageMetaGroups" xml:space="preserve">
+    <value>Metagruppen</value>
+  </data>
+  <data name="ImportStageCertificates" xml:space="preserve">
+    <value>Zertifikate</value>
+  </data>
+  <data name="ImportStageTypeMaterials" xml:space="preserve">
+    <value>Typ-Materialien</value>
+  </data>
+  <data name="ImportStagePiSchematics" xml:space="preserve">
+    <value>PI-Schemata</value>
+  </data>
+  <data name="ImportStagePiSchematicTypes" xml:space="preserve">
+    <value>PI-Schema-Typen</value>
+  </data>
+  <data name="ImportStageDogmaUnits" xml:space="preserve">
+    <value>Dogma-Einheiten</value>
+  </data>
+  <data name="ImportStageIcons" xml:space="preserve">
+    <value>Symbole</value>
+  </data>
+  <data name="ImportStageGraphics" xml:space="preserve">
+    <value>Grafiken</value>
+  </data>
+  <data name="ImportStageSkins" xml:space="preserve">
+    <value>SKINs</value>
+  </data>
+  <data name="ImportStageSkinTypes" xml:space="preserve">
+    <value>SKIN-Typen</value>
+  </data>
+  <data name="ImportStageSkinLicenses" xml:space="preserve">
+    <value>SKIN-Lizenzen</value>
+  </data>
+  <data name="ImportRowsProgress" xml:space="preserve">
+    <value>{0:N0} Zeilen</value>
+  </data>
+  <data name="ImportRowsSaved" xml:space="preserve">
+    <value>{0:N0} Zeilen gespeichert</value>
+  </data>
+  <data name="ImportStageStationServices" xml:space="preserve">
+    <value>Stationsdienste</value>
+  </data>
+  <data name="SdeServicesCount" xml:space="preserve">
+    <value>{0:N0} Dienste</value>
+  </data>
+  <data name="ImportStageStationOperations" xml:space="preserve">
+    <value>Stationsbetriebe</value>
+  </data>
+  <data name="SdeOperationsCount" xml:space="preserve">
+    <value>{0:N0} Betriebe</value>
+  </data>
+  <data name="HoboIncompatible" xml:space="preserve">
+    <value>EVE Console muss aktualisiert werden, bevor sie die Hoboleaks-Daten auffrischen kann. Die folgenden Dateien werden im Hoboleaks-Manifest nicht mehr veröffentlicht: {0}. Ihre vorhandenen Hoboleaks-Daten wurden NICHT gelöscht.</value>
+  </data>
+  <data name="HoboCreatingSchema" xml:space="preserve">
+    <value>Hobo-Schema wird angelegt…</value>
+  </data>
+  <data name="HoboReadingManifest" xml:space="preserve">
+    <value>Hoboleaks-Manifest wird gelesen…</value>
+  </data>
+  <data name="HoboManifestUnreadable" xml:space="preserve">
+    <value>Das Hoboleaks-Manifest konnte nicht gelesen werden, daher wurde kein Import versucht. Ihre vorhandenen Hoboleaks-Daten wurden NICHT geändert.</value>
+  </data>
+  <data name="ImportStageDownloading" xml:space="preserve">
+    <value>Download</value>
+  </data>
+  <data name="HoboClearing" xml:space="preserve">
+    <value>Vorhandene Hobo-Daten werden geleert…</value>
+  </data>
+  <data name="HoboManifestCurrent" xml:space="preserve">
+    <value>Manifest-Revision {0:N0}, alle {1} Dateien aktuell.</value>
+  </data>
+  <data name="HoboManifestFlagged" xml:space="preserve">
+    <value>Manifest-Revision {0:N0}, {1} Datei(en) markiert – siehe Fehlerprotokoll.</value>
+  </data>
+  <data name="HoboParsedBlueprints" xml:space="preserve">
+    <value>{0:N0} Blaupausen eingelesen – wird gespeichert…</value>
+  </data>
+  <data name="ImportStageBlueprintActivities" xml:space="preserve">
+    <value>Blaupausen-Tätigkeiten</value>
+  </data>
+  <data name="ImportStageRepackagedVolumes" xml:space="preserve">
+    <value>Verpackte Volumen</value>
+  </data>
+  <data name="ImportStageCompressibleTypes" xml:space="preserve">
+    <value>Komprimierbare Typen</value>
+  </data>
+  <data name="ImportParsingFile" xml:space="preserve">
+    <value>{0} wird eingelesen…</value>
+  </data>
+  <data name="ImportParsingFileLarge" xml:space="preserve">
+    <value>{0} wird eingelesen (groß)…</value>
+  </data>
+  <data name="SdeFileNotFoundSkipped" xml:space="preserve">
+    <value>{0} NICHT GEFUNDEN – übersprungen</value>
+  </data>
+  <data name="SdeUniverseDataFile" xml:space="preserve">
+    <value>{0} (Universumsdaten)</value>
+  </data>
+  <data name="ModelNoneChosen" xml:space="preserve">
+    <value>kein Modell gewählt</value>
+  </data>
+  <data name="ModelDescribeLocalOn" xml:space="preserve">
+    <value>Lokal – {0} auf {1}</value>
+  </data>
+  <data name="ModelDescribeLocal" xml:space="preserve">
+    <value>Lokal – {0}</value>
+  </data>
+  <data name="PiperVoiceKeyNotFound" xml:space="preserve">
+    <value>Stimmschlüssel „{0}“ nicht in der Modellliste von HuggingFace gefunden.</value>
+  </data>
+  <data name="WhisperModelTiny" xml:space="preserve">
+    <value>Tiny (ca. 75 MB)</value>
+  </data>
+  <data name="WhisperModelBase" xml:space="preserve">
+    <value>Base (ca. 142 MB)</value>
+  </data>
+  <data name="WhisperModelSmall" xml:space="preserve">
+    <value>Small (ca. 466 MB)</value>
+  </data>
+  <data name="WhisperModelMedium" xml:space="preserve">
+    <value>Medium (ca. 1,5 GB)</value>
+  </data>
+  <data name="WhisperNotLoadedYet" xml:space="preserve">
+    <value>noch nicht geladen</value>
+  </data>
+  <data name="PttKeyDisabled" xml:space="preserve">
+    <value>Deaktiviert</value>
+  </data>
+  <data name="VoiceTestMuted" xml:space="preserve">
+    <value>Die Sprachausgabe ist stummgeschaltet – heben Sie die Stummschaltung im Panel des KI-Assistenten auf, um den Test zu hören.</value>
+  </data>
+  <data name="VoiceTestStopped" xml:space="preserve">
+    <value>Vor dem Ende gestoppt.</value>
+  </data>
+  <data name="VoiceTestSpokeTook" xml:space="preserve">
+    <value>Gesprochen. Die Erzeugung dauerte {0:0.0} s, bevor die Wiedergabe beginnen konnte – so lange wartet man auf den ersten Satz einer Antwort; jeder weitere wird erzeugt, während der vorige abgespielt wird.</value>
+  </data>
+  <data name="VoiceTestSpoke" xml:space="preserve">
+    <value>Gesprochen.</value>
+  </data>
+  <data name="SlackNoteToSelf" xml:space="preserve">
+    <value>Notiz an mich</value>
+  </data>
+  <data name="SlackUnknownError" xml:space="preserve">
+    <value>unbekannter Fehler</value>
+  </data>
+  <data name="AgentModelFailoverDefault" xml:space="preserve">
+    <value>{user}, das Hauptmodell, das ich für {purpose} verwende, ist nicht mehr verfügbar, daher wechsle ich zu {fallback}.</value>
+  </data>
+  <data name="AgentModelReturnDefault" xml:space="preserve">
+    <value>{user}, das Hauptmodell, das ich für {purpose} verwende, ist wieder da, daher bin ich zu {primary} zurückgewechselt.</value>
+  </data>
+  <data name="AgentVoiceHandoverDefault" xml:space="preserve">
+    <value>Entschuldigung, {previous} musste kurz weg. Ich bin {current} und übernehme ab hier.</value>
+  </data>
+  <data name="AgentVoiceReturnDefault" xml:space="preserve">
+    <value>Hier ist {current}, wieder für Sie da. Danke, {previous}.</value>
+  </data>
+  <data name="VoiceNoneChosen" xml:space="preserve">
+    <value>keine Stimme gewählt</value>
+  </data>
+  <data name="VoiceDescribeLocalServer" xml:space="preserve">
+    <value>Lokaler Server – {0}</value>
+  </data>
+  <data name="VoiceDescribeLocalServerVoice" xml:space="preserve">
+    <value>Lokaler Server – {0} ({1})</value>
+  </data>
+  <data name="ModelNotInListNow" xml:space="preserve">
+    <value>{0}  – derzeit nicht in der Liste</value>
+  </data>
+  <data name="KokoroVoiceAmericanFemaleDefault" xml:space="preserve">
+    <value>{0} (amerikanisch, weiblich – Standard)</value>
+  </data>
+  <data name="KokoroVoiceAmericanFemale" xml:space="preserve">
+    <value>{0} (amerikanisch, weiblich)</value>
+  </data>
+  <data name="KokoroVoiceAmericanMale" xml:space="preserve">
+    <value>{0} (amerikanisch, männlich)</value>
+  </data>
+  <data name="KokoroVoiceBritishFemale" xml:space="preserve">
+    <value>{0} (britisch, weiblich)</value>
+  </data>
+  <data name="KokoroVoiceBritishMale" xml:space="preserve">
+    <value>{0} (britisch, männlich)</value>
+  </data>
+  <data name="PiperVoiceLabel" xml:space="preserve">
+    <value>{0} – {1}, {2}</value>
+  </data>
+  <data name="PiperKindUs" xml:space="preserve">
+    <value>US</value>
+  </data>
+  <data name="PiperKindUsMale" xml:space="preserve">
+    <value>US männlich</value>
+  </data>
+  <data name="PiperKindUsFemale" xml:space="preserve">
+    <value>US weiblich</value>
+  </data>
+  <data name="PiperKindGbMale" xml:space="preserve">
+    <value>GB männlich</value>
+  </data>
+  <data name="PiperKindGbFemale" xml:space="preserve">
+    <value>GB weiblich</value>
+  </data>
+  <data name="PiperQualityMedium" xml:space="preserve">
+    <value>mittlere Qualität</value>
+  </data>
+  <data name="PiperQualityHigh" xml:space="preserve">
+    <value>hohe Qualität</value>
+  </data>
+  <data name="PiperQualityMediumCompact" xml:space="preserve">
+    <value>mittlere Qualität (kompakt)</value>
+  </data>
+  <data name="KokoroVoicesMissing" xml:space="preserve">
+    <value>Die Kokoro-Stimmen fehlen in {0}</value>
+  </data>
+  <data name="KokoroCouldNotLoad" xml:space="preserve">
+    <value>Die Kokoro-Stimme konnte nicht geladen werden: {0}</value>
+  </data>
+  <data name="KokoroStillLoading" xml:space="preserve">
+    <value>Die Kokoro-Stimme lädt ihr Modell noch herunter oder lädt es gerade.</value>
+  </data>
+  <data name="PiperNoVlc" xml:space="preserve">
+    <value>Audiowiedergabe (VLC) ist nicht verfügbar.</value>
+  </data>
+  <data name="PiperVoiceNotLoaded" xml:space="preserve">
+    <value>Die Piper-Stimme „{0}“ ist nicht heruntergeladen oder konnte nicht geladen werden.</value>
+  </data>
+  <data name="PiperNoAudio" xml:space="preserve">
+    <value>Piper hat kein Audio erzeugt.</value>
+  </data>
+  <data name="PiperPlaybackFailed" xml:space="preserve">
+    <value>Das Audio konnte nicht abgespielt werden.</value>
+  </data>
+  <data name="WhisperModelNotDownloaded" xml:space="preserve">
+    <value>Das lokale Sprachmodell „{0}“ wurde noch nicht heruntergeladen. Einstellungen → KI-Assistent → Spracheingabe (STT) → Modell herunterladen.</value>
+  </data>
+  <data name="ImportStageRestoring" xml:space="preserve">
+    <value>Wiederherstellung</value>
+  </data>
+  <data name="ImportCopyingAside" xml:space="preserve">
+    <value>Aktuelle Daten werden beiseitekopiert… {0}/{1}</value>
+  </data>
+  <data name="ImportPuttingBack" xml:space="preserve">
+    <value>Vorherige Daten werden zurückgelegt… {0}/{1}</value>
+  </data>
+  <data name="ImportLostTablesOne" xml:space="preserve">
+    <value>Die {1}-Daten wurden fehlerfrei gelesen, aber {0} Tabelle, die vorher Daten enthielt, ist jetzt leer – so sieht ein geändertes Dateiformat aus: {2} Der Import wurde zurückgesetzt, und Ihre vorhandenen {1}-Daten wurden NICHT geändert.</value>
+  </data>
+  <data name="ImportLostTablesOther" xml:space="preserve">
+    <value>Die {1}-Daten wurden fehlerfrei gelesen, aber {0} Tabellen, die vorher Daten enthielten, sind jetzt leer – so sieht ein geändertes Dateiformat aus: {2} Der Import wurde zurückgesetzt, und Ihre vorhandenen {1}-Daten wurden NICHT geändert.</value>
+  </data>
+  <data name="PurposeDataAccess" xml:space="preserve">
+    <value>den Datenzugriff</value>
+  </data>
+  <data name="PurposeConversation" xml:space="preserve">
+    <value>unser Gespräch</value>
+  </data>
+</root>

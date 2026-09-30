@@ -3,6 +3,7 @@ using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Avalonia.ReactiveUI;
 using EveConsole.ViewModels;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -42,15 +43,15 @@ public partial class AgentDocumentView : ReactiveUserControl<AgentDocumentViewMo
 
         var file = await storage.SaveFilePickerAsync(new FilePickerSaveOptions
         {
-            Title               = "Save document",
+            Title               = AgentText.TitleSaveDocument,
             SuggestedFileName   = suggestedName,
             DefaultExtension    = "md",
             ShowOverwritePrompt = true,
             FileTypeChoices =
             [
-                new FilePickerFileType("Markdown")  { Patterns = ["*.md"]  },
-                new FilePickerFileType("Text")      { Patterns = ["*.txt"] },
-                new FilePickerFileType("All files") { Patterns = ["*"]     },
+                new FilePickerFileType("Markdown")                 { Patterns = ["*.md"]  },
+                new FilePickerFileType(AgentText.FileTypeText)     { Patterns = ["*.txt"] },
+                new FilePickerFileType(AgentText.FileTypeAllFiles) { Patterns = ["*"]     },
             ],
         });
         if (file is null) return null;

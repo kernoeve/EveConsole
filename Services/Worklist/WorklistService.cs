@@ -2,6 +2,7 @@ using EveConsole.Data;
 using EveConsole.Models;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.Services.Worklist;
 
@@ -41,6 +42,11 @@ public class WorklistService(
         // the industry characters — is fetched once for the whole build rather than once per
         // generator. See BuildCache; it flows into the fan-out below and closes with it.
         using var _ = BuildCache.Begin();
+
+        // The generators write each row's title and reasons as they go, with the SDE names in them
+        // in the interface language — so the names have to be in before the first one runs, or a
+        // list built right after start reads English until the next refresh. At once in English.
+        await SdeNames.EnsureLoadedAsync(ct);
 
         // Newly authorised characters join the industry list here, once, before the fan-out below.
         // Inside a generator it would run once per generator in parallel, and they would race to
@@ -186,13 +192,16 @@ public class WorklistService(
                         return new WorklistWaitingJob(
                             j.Key, j.Title, j.TypeId, j.TypeName,
                             Unblocked:   outstanding.Count == 0,
+                            // Deduped on the English, then named as the screen shows them: this
+                            // list is only ever read out in the row's tooltip.
                             StillShortOf: [.. outstanding.Where(s => !cargo.ContainsKey(s.TypeId))
-                                                         .Select(s => s.TypeName).Distinct()],
+                                                         .DistinctBy(s => s.TypeName)
+                                                         .Select(s => SdeNames.Type(s.TypeId, s.TypeName))],
                             QueuedBehind: outstanding.Any(s => cargo.ContainsKey(s.TypeId)));
                     })
                     .OrderByDescending(w => w.Unblocked)
                     .ThenBy(w => w.StillShortOf.Count)
-                    .ThenBy(w => w.TypeName)
+                    .ThenBy(w => SdeNames.Type(w.TypeId, w.TypeName))
                     .ToList();
 
                 var freed = waiting.Where(w => w.Unblocked).ToList();
@@ -218,13 +227,10 @@ public class WorklistService(
 
                     Detail = haul.Detail
                            + (freed.Count > 0
-                                ? $" Restarts {freed.Count:N0} stopped job(s) on arrival: "
-                                + string.Join(", ", freed.Take(3).Select(f => f.TypeName))
-                                + (freed.Count > 3 ? $", and {freed.Count - 3:N0} more." : ".")
+                                ? " " + Listed(WorklistText.HaulRestartsJobs, WorklistText.HaulRestartsJobsMore, freed)
                                 : "")
                            + (waiting.Count > freed.Count
-                                ? $" {waiting.Count - freed.Count:N0} more job(s) want part of this "
-                                + "cargo but will not start on this load."
+                                ? " " + string.Format(WorklistText.HaulOthersWantPart, waiting.Count - freed.Count)
                                 : "")
 
                            // ⚠️ The planner's drivers, merged in above, are counted here too, or
@@ -232,12 +238,24 @@ public class WorklistService(
                            // named while the prose said one. They are not jobs — nothing has been
                            // written down for them yet — so they are counted as what they are.
                            + (also.Count > 0
-                                ? $" {also.Count:N0} more item(s) here are wanted by planned work "
-                                + "that has no stopped job of its own."
+                                ? " " + string.Format(WorklistText.HaulPlannedWantIt, also.Count)
                                 : ""),
                 };
             }
         }
+    }
+
+    /// <summary>
+    /// A count of stopped jobs and the first three of them by name, as one sentence:
+    /// <paramref name="upToThree"/> when those are all of them, <paramref name="withMore"/> when
+    /// more follow. In both, {0} is the count and {1} the names; {2} is how many more.
+    /// </summary>
+    private static string Listed(string upToThree, string withMore, IReadOnlyList<WorklistWaitingJob> jobs)
+    {
+        var names = string.Join(CommonText.ListSeparator, jobs.Take(3).Select(j => SdeNames.Type(j.TypeId, j.TypeName)));
+        return jobs.Count > 3
+            ? string.Format(withMore, jobs.Count, names, jobs.Count - 3)
+            : string.Format(upToThree, jobs.Count, names);
     }
 
 
@@ -361,10 +379,12 @@ public class WorklistService(
                 var waiting = touched
                     .Select(j =>
                     {
+                        // Deduped on the English, then named as the screen shows them — the list
+                        // is only read out in the row's tooltip.
                         var outstanding = j.Shortages
                             .Where(s => bought.GetValueOrDefault(s.TypeId) < s.Short)
-                            .Select(s => s.TypeName)
-                            .Distinct()
+                            .DistinctBy(s => s.TypeName)
+                            .Select(s => SdeNames.Type(s.TypeId, s.TypeName))
                             .ToList();
 
                         return new WorklistWaitingJob(
@@ -374,7 +394,7 @@ public class WorklistService(
                     })
                     .OrderByDescending(w => w.Unblocked)
                     .ThenBy(w => w.StillShortOf.Count)
-                    .ThenBy(w => w.TypeName)
+                    .ThenBy(w => SdeNames.Type(w.TypeId, w.TypeName))
                     .ToList();
 
                 // ⚠️ Ranking still comes from the jobs this purchase can actually release on its
@@ -397,21 +417,22 @@ public class WorklistService(
                         ? Math.Max(buy.Priority, freed.Max(f => touched.First(j => j.Key == f.Key).Priority))
                         : buy.Priority,
 
-                    Detail = buy.Detail
-                           + (freed.Count > 0
-                                ? $" Releases {freed.Count:N0} stopped job(s): "
-                                + string.Join(", ", freed.Take(3).Select(f => f.TypeName))
-                                + (freed.Count > 3 ? $", and {freed.Count - 3:N0} more." : ".")
-                                : "")
-                           // ⚠️ "More" only after a count of released jobs. Alone it read as a
-                           // further demand on top of the ones the reason lists, when the job it
-                           // meant was one of them — stopped by other shortages as well. And not
-                           // "short of other things": a job whose material is merely at another
-                           // station waits on a haul, not on anything missing.
-                           + (waiting.Count > freed.Count
-                                ? $" {waiting.Count - freed.Count:N0} {(freed.Count > 0 ? "more " : "")}job(s) " +
-                                  "waiting on this also wait on something else."
-                                : ""),
+                    Detail = Sentences.Join(
+                             Sentences.Join(buy.Detail,
+                                 freed.Count > 0
+                                     ? Listed(WorklistText.BuyReleasesJobs, WorklistText.BuyReleasesJobsMore, freed)
+                                     : ""),
+                             // ⚠️ "More" only after a count of released jobs. Alone it read as a
+                             // further demand on top of the ones the reason lists, when the job it
+                             // meant was one of them — stopped by other shortages as well. And not
+                             // "short of other things": a job whose material is merely at another
+                             // station waits on a haul, not on anything missing.
+                             waiting.Count > freed.Count
+                                 ? Plurals.Format(WorklistText.ResourceManager,
+                                       freed.Count > 0 ? nameof(WorklistText.BuyOthersWaitingMoreOther)
+                                                       : nameof(WorklistText.BuyOthersWaitingOther),
+                                       waiting.Count - freed.Count)
+                                 : ""),
                 };
             }
         }
@@ -513,6 +534,16 @@ public class WorklistService(
             // market window for something that is not on it.
             var tag = parts.Select(p => p.Item.TitleTag).FirstOrDefault(t => t is not null);
 
+            // ⚠️ The tag is a key — the grid picks the blueprint icon by it — so the words shown
+            // for it are looked up, and the tag itself is carried on unchanged.
+            var tagText = tag == "BPO/BPC" ? WorklistText.TitleTagBpoBpc : tag;
+
+            // The title is screen text; the English TypeName goes on unchanged below it.
+            var shown = SdeNames.Type(lead.Item.TypeId, lead.Item.TypeName);
+
+            // Each contributor's demand, written as the sum the detail spells out: "87 + 66".
+            string Terms() => string.Join(" + ", parts.Select(p => p.Item.GrossDemand!.Value.ToString("N0")));
+
             var merged = lead.Item with
             {
                 // Keyed off the merge key, so the combined task keeps one identity across
@@ -523,9 +554,9 @@ public class WorklistService(
                 // carries no count by design — naming a number there would invent one.
                 Title     = (tag, total) switch
                 {
-                    (null, _) => $"{lead.Item.TypeName} × {total:N0}",
-                    (_,    0) => $"{lead.Item.TypeName} — {tag}",
-                    _         => $"{lead.Item.TypeName} — {tag} × {total:N0}",
+                    (null, _) => $"{shown} × {total:N0}",
+                    (_,    0) => $"{shown} — {tagText}",
+                    _         => $"{shown} — {tagText} × {total:N0}",
                 },
                 Quantity  = total,
                 // ⚠️ The contributors' own figures do not add up to this, and saying so is the
@@ -535,15 +566,11 @@ public class WorklistService(
                 // term by term: "153 wanted between them" alone still sent a reader adding the
                 // two shortfalls (58 + 37 = 95) against a total of 124, since nothing on the row
                 // said the 153 was the job's 87 and the rule's 66.
-                Detail    = pooled
-                    ? $"{total:N0} in total: {string.Join(" + ", parts.Select(p => p.Item.GrossDemand!.Value.ToString("N0")))} " +
-                      $"= {demand:N0} wanted between them" +
-                      (supply > 0
-                          ? $", less the {supply:N0} already on hand, on order or recoverable. Each reason " +
-                            $"that follows counts those same {supply:N0} against itself, so its shortfall and " +
-                            $"the others' do not add up to the total. {reasons}"
-                          : $". {reasons}")
-                    : $"{total:N0} in total. {reasons}",
+                Detail    = !pooled
+                    ? string.Format(WorklistText.MergedDetail, total, reasons)
+                    : supply > 0
+                        ? string.Format(WorklistText.MergedDetailSumPooled, total, Terms(), demand, supply, reasons)
+                        : string.Format(WorklistText.MergedDetailSum, total, Terms(), demand, reasons),
                 Priority  = parts.Max(p => p.Item.Priority),
                 Readiness = blocked is not null ? blocked.Readiness : lead.Item.Readiness,
                 BlockedBy = blocked?.BlockedBy ?? "",

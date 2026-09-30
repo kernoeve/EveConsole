@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using EveConsole.Models;
 using EveConsole.Services;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -25,6 +26,12 @@ public partial class StandingBuyOrderDialog : Window
 
     private CancellationTokenSource? _cts;
 
+    /// <summary>
+    /// An item result as the list shows it: the name in the interface language, which the item
+    /// template binds, over the result. ⚠️ The result keeps the English, and that is what is saved.
+    /// </summary>
+    private sealed record ShownType(SdeTypeResult Result, string Name);
+
     // Parameterless ctor for the XAML designer only.
     public StandingBuyOrderDialog() : this(null!, null) { }
 
@@ -36,18 +43,21 @@ public partial class StandingBuyOrderDialog : Window
 
         if (existing is null) return;
 
-        Title = "Edit Standing Buy Order";
+        Title = MarketText.TitleEditStandingBuyOrder;
 
         _selectedTypeId   = existing.TypeId;
         _selectedTypeName = existing.TypeName;
+        // The search box keeps the English: it is searched with, and the search is on the
+        // English column. The label says it as the screen names it.
         ItemSearchBox.Text          = existing.TypeName;
-        ItemSelectedLabel.Text      = existing.TypeName;
+        ItemSelectedLabel.Text      = SdeNames.Type(existing.TypeId, existing.TypeName);
         ItemSelectedLabel.IsVisible = true;
 
+        // The station likewise: English in the box, as the screen names it in the label.
         _selectedLocationId   = existing.LocationId;
         _selectedLocationName = existing.LocationName;
         StationSearchBox.Text          = existing.LocationName;
-        StationSelectedLabel.Text      = existing.LocationName;
+        StationSelectedLabel.Text      = SdeNames.Location(existing.LocationId, existing.LocationName);
         StationSelectedLabel.IsVisible = true;
     }
 
@@ -72,8 +82,13 @@ public partial class StandingBuyOrderDialog : Window
         {
             await Task.Delay(250, ct);   // debounce
             var results = await _service.SearchSdeTypesAsync(text, ct);
+            await SdeNames.EnsureLoadedAsync(ct);
             if (ct.IsCancellationRequested) return;
-            ItemResultsList.ItemsSource = results;
+            // Named, and listed, as the screen shows them.
+            ItemResultsList.ItemsSource = results
+                .Select(r => new ShownType(r, SdeNames.Type(r.TypeId, r.Name)))
+                .OrderBy(s => s.Name, StringComparer.CurrentCulture)
+                .ToList();
             ItemResultsBorder.IsVisible = results.Count > 0;
         }
         catch (Exception) { }
@@ -81,11 +96,11 @@ public partial class StandingBuyOrderDialog : Window
 
     private void OnItemSelected(object? sender, SelectionChangedEventArgs e)
     {
-        if (ItemResultsList.SelectedItem is not SdeTypeResult r) return;
+        if (ItemResultsList.SelectedItem is not ShownType { Result: var r } shown) return;
         _selectedTypeId   = r.TypeId;
         _selectedTypeName = r.Name;
         ItemResultsBorder.IsVisible = false;
-        ItemSelectedLabel.Text      = r.Name;
+        ItemSelectedLabel.Text      = shown.Name;
         ItemSelectedLabel.IsVisible = true;
     }
 
@@ -109,7 +124,11 @@ public partial class StandingBuyOrderDialog : Window
             await Task.Delay(250, ct);
             var results = await _service.SearchSdeStationsAsync(text, ct);
             if (ct.IsCancellationRequested) return;
-            StationResultsList.ItemsSource = results;
+            // Listed in the order of the names shown, which the list's template shows; each
+            // result keeps the English that is saved.
+            StationResultsList.ItemsSource = results
+                .OrderBy(r => r.DisplayName, StringComparer.CurrentCulture)
+                .ToList();
             StationResultsBorder.IsVisible = results.Count > 0;
         }
         catch (Exception) { }
@@ -121,7 +140,7 @@ public partial class StandingBuyOrderDialog : Window
         _selectedLocationId   = r.StationId;
         _selectedLocationName = r.Name;
         StationResultsBorder.IsVisible = false;
-        StationSelectedLabel.Text      = r.Name;
+        StationSelectedLabel.Text      = r.DisplayName;
         StationSelectedLabel.IsVisible = true;
     }
 
@@ -133,12 +152,12 @@ public partial class StandingBuyOrderDialog : Window
     {
         if (_selectedTypeId is null)
         {
-            ShowError("Pick an item type from the search results.");
+            ShowError(MarketText.ErrPickItemType);
             return;
         }
         if (_selectedLocationId is null)
         {
-            ShowError("Pick a station or structure from the search results.");
+            ShowError(MarketText.ErrPickStation);
             return;
         }
 

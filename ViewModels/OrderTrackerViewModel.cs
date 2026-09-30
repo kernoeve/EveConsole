@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -46,7 +47,11 @@ public class TrackedOrderRowVm : ReactiveObject
     public Bitmap? Icon { get => _icon; private set => this.RaiseAndSetIfChanged(ref _icon, value); }
     public Task LoadIconAsync() => ItemIcons.LoadAsync(TypeId, bmp => Icon = bmp);
     public DateTimeOffset Created { get; } public long CreatedSort { get; } public string CreatedText { get; }
+
+    /// <summary>The item as the grid shows it, sorts it and copies it. The English is
+    /// <see cref="TypeEnglish"/>, which the filter also searches and the dialog is handed.</summary>
     public int    TypeId  { get; } public string Type   { get; }
+    public string TypeEnglish { get; }
     public int    Units   { get; } public string UnitsText { get; }
     public string Buyer   { get; }
 
@@ -206,7 +211,8 @@ public class TrackedOrderRowVm : ReactiveObject
         Created     = o.CreatedAt;
         CreatedSort = o.CreatedAt.UtcTicks;
         CreatedText = o.CreatedAt.UtcDateTime.ToString("yyyy-MM-dd");
-        TypeId      = o.TypeId;   Type  = typeName;
+        TypeId      = o.TypeId;   Type  = SdeNames.Type(o.TypeId, typeName);
+        TypeEnglish = typeName;
         Units       = o.Units;    UnitsText = o.Units.ToString("N0");
         Buyer       = o.Buyer;
         BuyerId     = o.BuyerId;
@@ -223,7 +229,7 @@ public class TrackedOrderRowVm : ReactiveObject
         LinkedContractId = o.LinkedContractId;
         ContractIds      = OrderContractLinks.Ids(o);
         Contract    = contractLabel;
-        ContractTip = contractTip.Length > 0 ? contractTip : "Open this contract in the Contracts tool";
+        ContractTip = contractTip.Length > 0 ? contractTip : SalesText.TipOpenContract;
         FromStock   = o.FulfilmentSource == OrderFulfilmentService.SourceStock ? "✓" : "";
 
         // Delivered and waiting on the buyer, apart: the two things contracts say about an order.
@@ -247,7 +253,7 @@ public class TrackedOrderRowVm : ReactiveObject
         UnitsInBuild = open ? o.UnitsInBuild : 0;
 
         StockText = open ? $"{o.StockOnHand:N0}/{toSupply:N0}" : "";
-        IndyJob   = UnitsInBuild > 0 ? $"{UnitsInBuild:N0} in build" : "";
+        IndyJob   = UnitsInBuild > 0 ? string.Format(SalesText.UnitsInBuild, UnitsInBuild) : "";
 
         // Never below zero: a job that overshoots the order is not a negative shortfall, it is
         // simply covered, and "-6" in a column headed Short reads as a fault.
@@ -259,8 +265,8 @@ public class TrackedOrderRowVm : ReactiveObject
         // Two settled orders for the same item can legitimately show different costs, so the cell
         // says which day it is quoting.
         BuildBasis = buildAsOf.Length > 0
-            ? $"Build cost as it stood on {buildAsOf}, the day this order settled."
-            : "Current build cost.";
+            ? string.Format(SalesText.TipBuildCostAsOf, buildAsOf)
+            : SalesText.TipBuildCostCurrent;
         var profit = buildCost is double bc ? o.PurchasePrice - bc : (double?)null;
         ProfitRaw = profit ?? double.MinValue;
         Profit    = profit is double p ? MarketFmt.Isk(p) : "—";
@@ -280,7 +286,7 @@ public class TrackedOrderRowVm : ReactiveObject
     }
 
     public OrderDialogResult ToDialog() =>
-        new(TypeId, Type, Units, Buyer, string.IsNullOrEmpty(EstDate) ? null : EstDate,
+        new(TypeId, TypeEnglish, Units, Buyer, string.IsNullOrEmpty(EstDate) ? null : EstDate,
             PurchaseRaw, StatusRaw, IsPriority, BuyerId, BuyerType, ContractIds,
             string.IsNullOrEmpty(CompletedOn) ? null : CompletedOn,
             LabelList.ToList());
@@ -310,10 +316,10 @@ public class OrderTrackerViewModel : ReactiveObject
     // ── Filters ───────────────────────────────────────────────────────────────
     public IReadOnlyList<OrderStatusFilter> StatusFilters { get; } =
     [
-        new("Active",    "pending"),
-        new("Completed", "completed"),
-        new("Canceled",  "canceled"),
-        new("All",       null),
+        new(SalesText.FilterActive,    "pending"),
+        new(SalesText.FilterCompleted, "completed"),
+        new(SalesText.FilterCanceled,  "canceled"),
+        new(SalesText.FilterAll,       null),
     ];
     private OrderStatusFilter _statusFilter;
     public OrderStatusFilter StatusFilter
@@ -419,6 +425,9 @@ public class OrderTrackerViewModel : ReactiveObject
             var buildCosts = await db.BuildCosts.AsNoTracking().Where(b => typeIds.Contains(b.TypeId))
                 .ToDictionaryAsync(b => b.TypeId, b => (double)b.TotalCost);
 
+            // The rows name their items in the interface language, and this first runs at start.
+            await SdeNames.EnsureLoadedAsync();
+
             // Build cost is a moving number, so an order that has settled is judged against what the
             // item cost on the day it settled. Otherwise the profit shown against a months-old order
             // drifts every time its materials move, and stops describing the deal that was done.
@@ -470,17 +479,17 @@ public class OrderTrackerViewModel : ReactiveObject
                         Accepted: g.Max(x => x.DateAccepted)));
 
             string Named(int id) =>
-                contractInfo.TryGetValue(id, out var c) && c.Title.Length > 0 ? $"{c.Title} ({id})" : $"Contract {id}";
+                contractInfo.TryGetValue(id, out var c) && c.Title.Length > 0 ? $"{c.Title} ({id})" : string.Format(SalesText.ContractNumbered, id);
 
             string Where(int id) => contractInfo.TryGetValue(id, out var c)
                 ? c.Status switch
                 {
-                    "finished"                  => c.Accepted is { } at ? $"accepted {at.UtcDateTime:yyyy-MM-dd}" : "accepted",
-                    "outstanding" or "in_progress" => "waiting for the buyer",
-                    "rejected"                  => "declined",
+                    "finished"                  => c.Accepted is { } at ? string.Format(SalesText.ContractAcceptedOn, at.UtcDateTime) : SalesText.ContractAccepted,
+                    "outstanding" or "in_progress" => SalesText.ContractWaiting,
+                    "rejected"                  => SalesText.ContractDeclined,
                     var other                   => other,
                 }
-                : "not in the contracts polled yet";
+                : SalesText.ContractNotPolled;
 
             _all.Clear();
             foreach (var o in orders)
@@ -500,20 +509,20 @@ public class OrderTrackerViewModel : ReactiveObject
                 {
                     0 => "",
                     1 => Named(links[0].ContractId),
-                    _ => $"{links.Count} contracts — {string.Join(", ", links.Select(l => l.ContractId))}",
+                    _ => string.Format(SalesText.ContractsListed, links.Count, string.Join(", ", links.Select(l => l.ContractId))),
                 };
                 var tip = links.Count == 0 ? "" : string.Join("\n", links.Select(l =>
-                        $"{Named(l.ContractId)} — " +
-                        (l.Units is int u ? $"{u:N0} unit{(u == 1 ? "" : "s")}" : "units not yet counted") +
-                        $", {Where(l.ContractId)}"))
-                    + (o.LinkedContractId is { } open ? $"\nClick to open contract {open} in the Contracts tool." : "");
+                        string.Format(SalesText.TipContractLine, Named(l.ContractId),
+                            l.Units is int u ? Plurals.Format(SalesText.ResourceManager, nameof(SalesText.ContractUnitsOther), u) : SalesText.ContractUnitsUncounted,
+                            Where(l.ContractId))))
+                    + (o.LinkedContractId is { } open ? string.Format(SalesText.TipClickToOpenContract, open) : "");
 
                 // ⚠️ Named, not positional. storeName, contractLabel and buildAsOf are three
                 // optional strings in a row: passing them in the wrong order compiles perfectly
                 // and puts the store's name in the Contract column, which is exactly what
                 // happened when the Store column was added.
                 _all.Add(new TrackedOrderRowVm(
-                    o, typeNames.TryGetValue(o.TypeId, out var n) ? n : $"Type {o.TypeId}", build,
+                    o, typeNames.TryGetValue(o.TypeId, out var n) ? n : string.Format(SalesText.TypeNumbered, o.TypeId), build,
                     storeName:     storeNames.GetValueOrDefault(o.StoreId, ""),
                     contractLabel: label,
                     buildAsOf:     settled is not null ? o.CompletedOn ?? "" : "",
@@ -560,8 +569,9 @@ public class OrderTrackerViewModel : ReactiveObject
         if (_statusFilter?.Value is string s) q = q.Where(r => r.StatusRaw == s);
         if (TryDate(_createdFrom, out var from)) q = q.Where(r => r.Created.UtcDateTime.Date >= from);
         if (TryDate(_createdThru, out var thru)) q = q.Where(r => r.Created.UtcDateTime.Date <= thru);
+        // The name the grid shows or the English one: names get pasted from websites and chat.
         if (!string.IsNullOrWhiteSpace(_typeFilter))
-            q = q.Where(r => r.Type.Contains(_typeFilter, StringComparison.OrdinalIgnoreCase));
+            q = q.Where(r => SdeNames.Matches(SdeNameKind.Type, r.TypeId, r.TypeEnglish, _typeFilter));
         if (!string.IsNullOrWhiteSpace(_buyerFilter))
             q = q.Where(r => r.Buyer.Contains(_buyerFilter, StringComparison.OrdinalIgnoreCase));
 
@@ -612,12 +622,12 @@ public class OrderTrackerViewModel : ReactiveObject
         {
             await _labels.AddAsync(rows.Select(r => r.Id).ToList(), clean);
             await LoadAsync();
-            StatusText = $"Labelled {rows.Count:N0} order(s) \"{clean}\".";
+            StatusText = string.Format(SalesText.StatusLabelled, rows.Count, clean);
         }
         catch (Exception ex)
         {
             _errorLogger.Log(nameof(OrderTrackerViewModel), nameof(AddLabelToAsync), ex);
-            StatusText = $"Could not label: {ex.Message}";
+            StatusText = string.Format(SalesText.StatusLabelFailed, ex.Message);
         }
     }
 
@@ -635,7 +645,7 @@ public class OrderTrackerViewModel : ReactiveObject
             await _labels.RemoveAsync(rows.Select(r => r.Id).ToList(), clean);
 
             await LoadAsync();
-            StatusText = $"Removed \"{clean}\" from {rows.Count:N0} order(s).";
+            StatusText = string.Format(SalesText.StatusLabelRemoved, clean, rows.Count);
         }
         catch (Exception ex)
         {
@@ -842,8 +852,13 @@ public class OrderTrackerViewModel : ReactiveObject
         var prefix = $"{trimmed}%";
         var any    = $"%{trimmed}%";
 
+        // And the types whose name as the screen shows it contains what was typed, which the
+        // English LIKE cannot see. Empty in English.
+        await SdeNames.EnsureLoadedAsync();
+        var shown = SdeNames.Find(SdeNameKind.Type, trimmed).Select(id => (int)id).ToList();
+
         var results = await db.SdeTypes.AsNoTracking()
-            .Where(t => EF.Functions.Like(t.Name, any) && t.Published)
+            .Where(t => (EF.Functions.Like(t.Name, any) || shown.Contains(t.TypeId)) && t.Published)
             // LIKE is case-insensitive for ASCII in SQLite, which is what a name search wants.
             .OrderByDescending(t => EF.Functions.Like(t.Name, exact))
             .ThenByDescending(t => EF.Functions.Like(t.Name, prefix))
@@ -851,6 +866,19 @@ public class OrderTrackerViewModel : ReactiveObject
             .ThenBy(t => t.Name)
             .Take(TypeSearchLimit)
             .Select(t => new { t.TypeId, t.Name }).ToListAsync();
+
+        // ⚠️ Ranked again where a shown name matched: the SQL could only rank by the English, and
+        // a name typed in the interface language is none of exact, prefix or short there. Each row
+        // counts by whichever of its two names answers what was typed better. The set is the one
+        // the SQL chose, so nothing the limit kept is lost; only the order changes.
+        if (shown.Count > 0)
+            results = results
+                .Select(r => (Row: r, Shown: SdeNames.Type(r.TypeId, r.Name)))
+                .OrderBy(x => Math.Min(NameRank(x.Row.Name, trimmed), NameRank(x.Shown, trimmed)))
+                .ThenBy(x => x.Shown.Length)
+                .ThenBy(x => x.Shown, StringComparer.CurrentCulture)
+                .Select(x => x.Row)
+                .ToList();
 
         return results.Select(r => new TypeResultVm(r.TypeId, r.Name)).ToList();
     }
@@ -892,8 +920,8 @@ public class OrderTrackerViewModel : ReactiveObject
         var chars = await _entities.SearchWithEsiAsync(EntityKind.Pilot,      trimmed);
         var corps = await _entities.SearchWithEsiAsync(EntityKind.PlayerCorp, trimmed);
 
-        return chars.Select(m => new BuyerResultVm(m.Id, m.Name, "Character",   "character"))
-            .Concat(corps.Select(m => new BuyerResultVm(m.Id, m.Name, "Corporation", "corporation")))
+        return chars.Select(m => new BuyerResultVm(m.Id, m.Name, SalesText.BuyerCharacter,   "character"))
+            .Concat(corps.Select(m => new BuyerResultVm(m.Id, m.Name, SalesText.BuyerCorporation, "corporation")))
             .GroupBy(b => b.Id).Select(g => g.First())
             // ⚠️ Re-ranked across both lists. Each arrives sorted within itself, so simply
             // concatenating them puts every character ahead of a corporation that matches better.

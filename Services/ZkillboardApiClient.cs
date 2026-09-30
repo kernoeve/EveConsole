@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using EveConsole.Localization;
 using EveConsole.Models;
 
 namespace EveConsole.Services;
@@ -131,7 +132,7 @@ public class ZkillboardApiClient(IHttpClientFactory httpClientFactory, AppErrorL
 
     /// <summary>A daily dump was not fetched: R2Z2 is refusing this machine until <see cref="Until"/>.</summary>
     public sealed class R2Z2RefusedException(DateTimeOffset until)
-        : Exception($"zKillboard is limiting this machine's requests until {until.ToLocalTime():t}")
+        : Exception(string.Format(DataText.ZkbLimitedUntil, until.ToLocalTime()))
     {
         public DateTimeOffset Until { get; } = until;
     }
@@ -280,7 +281,7 @@ public class ZkillboardApiClient(IHttpClientFactory httpClientFactory, AppErrorL
             _ => throw new ArgumentOutOfRangeException(nameof(entityType), entityType, "must be character, corporation or alliance"),
         };
         if (page > MaxEntityPage)
-            return new EntityPage(null, $"zKillboard serves no further back than page {MaxEntityPage}");
+            return new EntityPage(null, string.Format(DataText.ZkbServesNoFurther, MaxEntityPage));
 
         var url = $"https://zkillboard.com/api/{path}/{entityId}/page/{page}/";
         var context = $"GetEntityPageAsync {entityType}:{entityId} page {page}";
@@ -292,7 +293,7 @@ public class ZkillboardApiClient(IHttpClientFactory httpClientFactory, AppErrorL
             {
                 errorLogger.Log(nameof(ZkillboardApiClient), context,
                     new HttpRequestException($"zKillboard answered HTTP {(int)response.StatusCode}"));
-                return new EntityPage(null, $"zKillboard answered HTTP {(int)response.StatusCode}");
+                return new EntityPage(null, string.Format(DataText.ZkbAnsweredHttp, (int)response.StatusCode));
             }
 
             using var doc = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync(ct), cancellationToken: ct);
@@ -301,9 +302,10 @@ public class ZkillboardApiClient(IHttpClientFactory httpClientFactory, AppErrorL
             if (doc.RootElement.ValueKind != JsonValueKind.Array)
             {
                 var said = doc.RootElement.ValueKind == JsonValueKind.Object
-                        && doc.RootElement.TryGetProperty("error", out var e) ? e.ToString() : "an unexpected answer";
-                errorLogger.Log(nameof(ZkillboardApiClient), context, new InvalidOperationException($"zKillboard: {said}"));
-                return new EntityPage(null, $"zKillboard said: {said}");
+                        && doc.RootElement.TryGetProperty("error", out var e) ? e.ToString() : null;
+                errorLogger.Log(nameof(ZkillboardApiClient), context,
+                    new InvalidOperationException($"zKillboard: {said ?? "an unexpected answer"}"));
+                return new EntityPage(null, said is null ? DataText.ZkbUnexpectedAnswer : string.Format(DataText.ZkbSaid, said));
             }
 
             var kills = new List<ZkbFullKill>();
@@ -323,12 +325,12 @@ public class ZkillboardApiClient(IHttpClientFactory httpClientFactory, AppErrorL
             // The client's timeout, not the caller: HttpClient reports both the same way.
             errorLogger.Log(nameof(ZkillboardApiClient), context,
                 new TimeoutException("zKillboard did not answer within two minutes"));
-            return new EntityPage(null, "zKillboard did not answer within two minutes");
+            return new EntityPage(null, DataText.ZkbNoAnswerInTime);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             errorLogger.Log(nameof(ZkillboardApiClient), context, ex);
-            return new EntityPage(null, "zKillboard could not be reached");
+            return new EntityPage(null, DataText.ZkbUnreachable);
         }
     }
 
@@ -393,11 +395,11 @@ public class ZkillboardApiClient(IHttpClientFactory httpClientFactory, AppErrorL
         {
             using var response = await _pages.GetAsync($"https://zkillboard.com/api/stats/{path}/{entityId}/", ct);
             if (!response.IsSuccessStatusCode)
-                return new EntityStats(null, $"zKillboard answered HTTP {(int)response.StatusCode}");
+                return new EntityStats(null, string.Format(DataText.ZkbAnsweredHttp, (int)response.StatusCode));
 
             using var doc = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync(ct), cancellationToken: ct);
             var root = doc.RootElement;
-            if (root.ValueKind != JsonValueKind.Object) return new EntityStats(null, "zKillboard sent an unexpected answer");
+            if (root.ValueKind != JsonValueKind.Object) return new EntityStats(null, DataText.ZkbUnexpectedAnswer);
 
             // No record is not a failure: most entities someone looks up have none.
             if (root.TryGetProperty("error", out _) || !root.TryGetProperty("id", out _))
@@ -484,12 +486,12 @@ public class ZkillboardApiClient(IHttpClientFactory httpClientFactory, AppErrorL
         catch (OperationCanceledException) when (!ct.IsCancellationRequested)
         {
             errorLogger.Log(nameof(ZkillboardApiClient), context, new TimeoutException("zKillboard did not answer within two minutes"));
-            return new EntityStats(null, "zKillboard did not answer within two minutes");
+            return new EntityStats(null, DataText.ZkbNoAnswerInTime);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             errorLogger.Log(nameof(ZkillboardApiClient), context, ex);
-            return new EntityStats(null, "zKillboard could not be reached");
+            return new EntityStats(null, DataText.ZkbUnreachable);
         }
     }
 

@@ -10,6 +10,7 @@ using EveConsole.Models;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -25,9 +26,13 @@ public record SdeRigOption(int TypeId, string Name)
     /// held a rig there was no way back to empty. Saved as type 0, which is what an empty slot
     /// has always been stored as.</para>
     /// </summary>
-    public static readonly SdeRigOption None = new(0, "— empty —");
+    public static readonly SdeRigOption None = new(0, IndustryText.HintEmpty);
 
-    public override string ToString() => Name;
+    /// <summary>The name the dropdown shows, in the interface language. Name stays English: which
+    /// categories a rig bonuses is read from its English name (IndyRigMatching).</summary>
+    public string DisplayName => SdeNames.Type(TypeId, Name);
+
+    public override string ToString() => DisplayName;
 }
 
 // ── Rig slot (one of three per structure) ─────────────────────────────────────
@@ -104,9 +109,20 @@ public class ServiceModuleVm(StructureVm owner, int typeId, string name) : React
     public StructureVm Owner  { get; } = owner;
     public int         TypeId { get; } = typeId;
     public string      Name   { get; } = name;
+    public string      DisplayName => SdeNames.Type(TypeId, Name);
 
     public bool HasItemLink => TypeId > 0 && Name.Length > 0;
     public void OpenItem() => EntityNavigator.Instance.Item(TypeId);
+}
+
+// ── Facility search hit ───────────────────────────────────────────────────────
+
+/// <summary>One hit in a structure's facility search, as the list shows it. The pick is what a
+/// link stores — the id and ESI's English; an NPC station is listed in the interface language, and
+/// a player structure as its owner named it.</summary>
+public sealed record FacilityResultVm(SdeStationResult Pick)
+{
+    public string DisplayName => SdeNames.Location(Pick.StationId, Pick.Name);
 }
 
 // ── Structure VM ──────────────────────────────────────────────────────────────
@@ -120,7 +136,27 @@ public class StructureVm : ReactiveObject
     public string DisplayName
     {
         get => _displayName;
-        set => this.RaiseAndSetIfChanged(ref _displayName, value);
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _displayName, value);
+            this.RaisePropertyChanged(nameof(NameText));
+        }
+    }
+
+    /// <summary>
+    /// The name box's text. A structure linked to an NPC station is named after the station, in
+    /// ESI's English, and shows that name in the interface language; any other name is shown as it
+    /// was typed or linked.
+    ///
+    /// <para>⚠️ Written back only while the name is editable — the box is locked while linked —
+    /// so <see cref="DisplayName"/> stays the English the park saves, exports and is matched by.</para>
+    /// </summary>
+    public string NameText
+    {
+        get => RealStructureId is { } id && DisplayName == RealStructureName
+            ? SdeNames.Location(id, DisplayName)
+            : DisplayName;
+        set { if (NameEditable) DisplayName = value; }
     }
 
     private string _structureTypeKey;
@@ -145,7 +181,7 @@ public class StructureVm : ReactiveObject
 
     public string? TaxLockTip => TaxEditable
         ? null
-        : $"NPC stations charge a fixed {IndyParksViewModel.NpcFacilityTax}% facility tax.";
+        : string.Format(IndustryText.TipNpcFixedTax, IndyParksViewModel.NpcFacilityTax);
 
     /// <summary>
     /// An NPC station takes no rigs and no service modules — its services are the station's own —
@@ -174,22 +210,36 @@ public class StructureVm : ReactiveObject
 
     public bool TypeEditable => LinkedTypeKey is null;
 
-    public string? NameLockTip => NameEditable ? null : "Named by the linked facility. Unlink it to rename.";
+    public string? NameLockTip => NameEditable ? null : IndustryText.TipNameFromLink;
 
-    public string? TypeLockTip => TypeEditable ? null : "Set by the linked facility's hull.";
+    public string? TypeLockTip => TypeEditable ? null : IndustryText.TipTypeFromLink;
 
-    // ComboBox binds to this; setting it propagates back to StructureTypeKey
-    public string StructureTypeLabel
+    /// <summary>
+    /// The type picker's entries: this card's own list, from
+    /// <see cref="IndyParksViewModel.StructureTypeChoices"/>.
+    ///
+    /// <para>⚠️ One list per card, kept for the card's life, and the only one its picker and
+    /// <see cref="StructureTypeLabel"/> read. The labels are the hulls' names in the interface
+    /// language; a list built again once those had loaded would no longer equal the one the
+    /// picker holds, and the picker would show nothing chosen.</para>
+    /// </summary>
+    public IReadOnlyList<Choice<string>> StructureTypeOptions { get; } = IndyParksViewModel.StructureTypeChoices();
+
+    /// <summary>
+    /// The type picker's choice, one of <see cref="StructureTypeOptions"/>; choosing one sets
+    /// <see cref="StructureTypeKey"/>. Null for a key the list does not have.
+    ///
+    /// <para>⚠️ A choice, not the words shown. The picker used to hand back the displayed name
+    /// and have it looked up again among the names — which a translated name need not match.</para>
+    /// </summary>
+    public Choice<string>? StructureTypeLabel
     {
-        get
-        {
-            var idx = Array.IndexOf(IndyParksViewModel.StructureTypeKeys, _structureTypeKey);
-            return idx >= 0 ? IndyParksViewModel.StructureTypeLabels[idx] : _structureTypeKey;
-        }
+        get => StructureTypeOptions.FirstOrDefault(o => o.Value == _structureTypeKey);
         set
         {
-            var idx = Array.IndexOf(IndyParksViewModel.StructureTypeLabels, value);
-            StructureTypeKey = idx >= 0 ? IndyParksViewModel.StructureTypeKeys[idx] : value;
+            // A detaching ComboBox sets null; that is not a choice.
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            StructureTypeKey = value.Value;
         }
     }
 
@@ -211,17 +261,16 @@ public class StructureVm : ReactiveObject
         }
     }
 
-    public string SecurityLabel
+    /// <summary>The security picker's choice, one of <see cref="IndyParksViewModel.SecurityLabels"/>;
+    /// choosing one sets <see cref="SecurityClass"/>, as the type picker does its key.</summary>
+    public Choice<string>? SecurityLabel
     {
-        get
-        {
-            var idx = Array.IndexOf(IndyParksViewModel.SecurityClasses, _securityClass);
-            return idx >= 0 ? IndyParksViewModel.SecurityLabels[idx] : _securityClass;
-        }
+        get => IndyParksViewModel.SecurityLabels.FirstOrDefault(o => o.Value == _securityClass);
         set
         {
-            var idx = Array.IndexOf(IndyParksViewModel.SecurityLabels, value);
-            SecurityClass = idx >= 0 ? IndyParksViewModel.SecurityClasses[idx] : value;
+            // A detaching ComboBox sets null; that is not a choice.
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            SecurityClass = value.Value;
         }
     }
 
@@ -255,13 +304,13 @@ public class StructureVm : ReactiveObject
     // Why a field is locked, as its tooltip. Null while it is editable, so no tooltip shows.
     public string? SystemLockTip => SystemEditable
         ? null
-        : "Set by the linked facility. Unlink it to choose another system.";
+        : IndustryText.TipSystemFromLink;
 
     public string? SecurityLockTip => SecurityEditable
         ? null
         : RealStructureId is not null
-            ? "Set from the linked facility's system."
-            : "Set from the system's own security. Clear or change the system to choose it by hand.";
+            ? IndustryText.TipSecurityFromLinkedSystem
+            : IndustryText.TipSecurityFromSystem;
 
     private decimal _facilityTax = 1m;
     public decimal FacilityTax
@@ -315,15 +364,17 @@ public class StructureVm : ReactiveObject
     public string FittingSourceText =>
         IsNpcStation
             ? RealStructureId is null
-                ? "NPC station — it takes no rigs. Link the station to list the services it offers."
-                : "NPC station — it takes no rigs, and its service modules stand for the station's own services."
+                ? IndustryText.FittingNpcUnlinked
+                : IndustryText.FittingNpcLinked
         : _fittingFromAssets
-            ? "From assets — the game reports this structure's fitting, so it cannot be edited here."
+            ? IndustryText.FittingFromAssets
         : RealStructureId is null
             ? ""
-            : "Entered by hand — this fitting is also written to the linked structure.";
+            : IndustryText.FittingByHand;
 
-    public string DisplayHeader => string.IsNullOrWhiteSpace(DisplayName) ? StructureTypeLabel : DisplayName;
+    public string DisplayHeader => string.IsNullOrWhiteSpace(DisplayName)
+        ? StructureTypeLabel?.Label ?? _structureTypeKey
+        : NameText;
 
     // ── Link to a real in-game facility ──────────────────────────────────────
     // Set by hand: the user says which actual structure this park entry describes.
@@ -345,6 +396,7 @@ public class StructureVm : ReactiveObject
             this.RaisePropertyChanged(nameof(SecurityLockTip));
             this.RaisePropertyChanged(nameof(NameEditable));
             this.RaisePropertyChanged(nameof(NameLockTip));
+            this.RaisePropertyChanged(nameof(NameText));
             this.RaisePropertyChanged(nameof(FittingSourceText));
         }
     }
@@ -353,12 +405,14 @@ public class StructureVm : ReactiveObject
     public string RealStructureName
     {
         get => _realStructureName;
-        set { this.RaiseAndSetIfChanged(ref _realStructureName, value); this.RaisePropertyChanged(nameof(FacilityLinkText)); this.RaisePropertyChanged(nameof(HasFacilityLink)); }
+        set { this.RaiseAndSetIfChanged(ref _realStructureName, value); this.RaisePropertyChanged(nameof(FacilityLinkText)); this.RaisePropertyChanged(nameof(HasFacilityLink)); this.RaisePropertyChanged(nameof(NameText)); }
     }
 
-    public string FacilityLinkText => RealStructureId is null
-        ? "Not linked — jobs here won't be rig-checked"
-        : RealStructureName;
+    /// <summary>The linked facility's name as the card shows it: an NPC station's in the interface
+    /// language, a player structure's as its owner named it. RealStructureName stays English.</summary>
+    public string FacilityLinkText => RealStructureId is not { } id
+        ? IndustryText.FacilityNotLinked
+        : SdeNames.Location(id, RealStructureName);
 
     /// <summary>
     /// The linked facility, opened where it lives: an NPC station in the entity browser, a player
@@ -382,7 +436,7 @@ public class StructureVm : ReactiveObject
     }
 
     /// <summary>Search results while picking; not persisted.</summary>
-    public ObservableCollection<SdeStationResult> FacilityResults { get; } = [];
+    public ObservableCollection<FacilityResultVm> FacilityResults { get; } = [];
 
     private string _facilitySearch = "";
     public string FacilitySearch
@@ -454,6 +508,7 @@ public class ItemExceptionVm : ReactiveObject
     public int    Id       { get; }
     public int    TypeId   { get; }
     public string TypeName { get; }
+    public string DisplayName => SdeNames.Type(TypeId, TypeName);
 
     private IReadOnlyList<StructureVm?> _structureOptions = [];
     public IReadOnlyList<StructureVm?> StructureOptions
@@ -481,7 +536,11 @@ public class ItemExceptionVm : ReactiveObject
 
 public record ItemSearchResult(int TypeId, string Name)
 {
-    public override string ToString() => Name;
+    /// <summary>The name the results show, in the interface language. Name stays English: it is
+    /// what an item exception stores.</summary>
+    public string DisplayName => SdeNames.Type(TypeId, Name);
+
+    public override string ToString() => DisplayName;
 }
 
 // ── Park list entry ───────────────────────────────────────────────────────────
@@ -543,34 +602,62 @@ public class IndyParksViewModel : ReactiveObject
         (StationServiceIds.Cloning,           35894),   // Standup Cloning Center I
         (StationServiceIds.JumpCloneFacility, 35894),
     ];
-    public static readonly string[] StructureTypeLabels = ["Raitaru", "Azbel", "Sotiyo", "Athanor", "Tatara", "NPC Station"];
-    public static readonly string[] SecurityClasses     = ["highsec", "lowsec", "nullsec", "wormhole"];
-    public static readonly string[] SecurityLabels      = ["High Sec", "Low Sec", "Null Sec", "Wormhole"];
+
+    /// <summary>
+    /// The structure type picker: the key a park structure saves, and the name shown — a hull by
+    /// its name in the game, in the interface language.
+    ///
+    /// <para>Built fresh for each structure card (<see cref="StructureVm.StructureTypeOptions"/>)
+    /// rather than held once: a list made at start would be made before the names had loaded, and
+    /// show English for the rest of the run.</para>
+    /// </summary>
+    public static IReadOnlyList<Choice<string>> StructureTypeChoices() =>
+    [
+        Hull("raitaru", "Raitaru"),
+        Hull("azbel",   "Azbel"),
+        Hull("sotiyo",  "Sotiyo"),
+        Hull("athanor", "Athanor"),
+        Hull("tatara",  "Tatara"),
+        new(NpcStationKey, IndustryText.StructureTypeNpcStation),
+    ];
+
+    private static Choice<string> Hull(string key, string english) =>
+        new(key, SdeNames.Type(IndyBulkAddService.TypeIdForKey(key), english));
+
+    /// <summary>The security picker: the class a park structure saves, which sets its rig
+    /// strength, and the words shown.</summary>
+    public static readonly IReadOnlyList<Choice<string>> SecurityLabels =
+    [
+        new("highsec",  IndustryText.SecurityHighSec),
+        new("lowsec",   IndustryText.SecurityLowSec),
+        new("nullsec",  IndustryText.SecurityNullSec),
+        new("wormhole", IndustryText.SecurityWormhole),
+    ];
 
     public static readonly (string Key, string Label)[] ProductionCategories =
     [
         // Manufacturing
-        ("large_ships",        "Large Ships"),
-        ("medium_ships",       "Medium Ships"),
-        ("small_ships",        "Small Ships"),
-        ("capital_ships",      "Capital Ships"),
-        ("adv_large_ships",    "Advanced Large Ships"),
-        ("adv_medium_ships",   "Advanced Medium Ships"),
-        ("adv_small_ships",    "Advanced Small Ships"),
-        ("capital_components", "Capital Components"),
-        ("adv_components",     "Advanced Components"),
-        ("cap_adv_components", "Capital Advanced Components"),
-        ("drones_fighters",    "Drones and Fighters"),
-        ("ammo_charges",       "Ammo and Charges"),
-        ("modules_equipment",  "Modules and Equipment"),
+        ("large_ships",        IndustryText.CategoryLargeShips),
+        ("medium_ships",       IndustryText.CategoryMediumShips),
+        ("small_ships",        IndustryText.CategorySmallShips),
+        ("capital_ships",      IndustryText.CategoryCapitalShips),
+        ("adv_large_ships",    IndustryText.CategoryAdvLargeShips),
+        ("adv_medium_ships",   IndustryText.CategoryAdvMediumShips),
+        ("adv_small_ships",    IndustryText.CategoryAdvSmallShips),
+        ("capital_components", IndustryText.CategoryCapitalComponents),
+        ("adv_components",     IndustryText.CategoryAdvComponents),
+        ("cap_adv_components", IndustryText.CategoryCapAdvComponents),
+        ("drones_fighters",    IndustryText.CategoryDronesFighters),
+        ("ammo_charges",       IndustryText.CategoryAmmoCharges),
+        ("modules_equipment",  IndustryText.CategoryModulesEquipment),
         // Named for what it actually routes: structures, their components, deployables and fuel
         // blocks. It never carried ammo — that is "Ammo and Charges" above — and the old label
         // had players assigning it as though it did.
-        ("structure_ammo",     "Structures, Components and Fuel Blocks"),
+        ("structure_ammo",     IndustryText.CategoryStructuresFuel),
         // Reactions
-        ("react_composite",    "Composite Reactions"),
-        ("react_biochemical",  "Hybrid Reactions"),
-        ("react_bio_gas",      "Bio and Gas Phase Reactions"),
+        ("react_composite",    IndustryText.CategoryCompositeReactions),
+        ("react_biochemical",  IndustryText.CategoryMoonReactions),
+        ("react_bio_gas",      IndustryText.CategoryBioGasReactions),
         // "react_structure" was listed here and nothing ever mapped to it — no rig, no item, in
         // any of the three matchers. A facility assigned to it received no work, and its name
         // read like the home for structures, so it drew the assignment that belonged above.
@@ -578,9 +665,9 @@ public class IndyParksViewModel : ReactiveObject
         // rigged and usually separately housed — a copy farm and an invention structure are
         // rigged differently, and a park that could only name one would send work to the wrong
         // facility.
-        ("bp_research",        "Blueprint Research"),
-        ("bp_copying",         "Blueprint Copying"),
-        ("bp_invention",       "Blueprint Invention"),
+        ("bp_research",        IndustryText.CategoryBpResearch),
+        ("bp_copying",         IndustryText.CategoryBpCopying),
+        ("bp_invention",       IndustryText.CategoryBpInvention),
         // Reprocessing. Split three ways because the rigs are: there is an Asteroid Ore, a Moon
         // Ore and an Ice Grading Processor, and a refinery carrying two of the three refines the
         // third at no bonus. A park that could name only one facility would route ore to a
@@ -589,10 +676,10 @@ public class IndyParksViewModel : ReactiveObject
         // Gas is the odd one out and has no rig at all — compressed gas decompresses one for one
         // at any refinery. It is listed so the park can still say where that happens, since the
         // hauling has to be aimed somewhere.
-        ("refine_ore",         "Refine Standard Ore"),
-        ("refine_moon_ore",    "Refine Moon Ore"),
-        ("refine_ice",         "Refine Ice"),
-        ("decompress_gas",     "Decompress Gas"),
+        ("refine_ore",         IndustryText.CategoryRefineOre),
+        ("refine_moon_ore",    IndustryText.CategoryRefineMoonOre),
+        ("refine_ice",         IndustryText.CategoryRefineIce),
+        ("decompress_gas",     IndustryText.CategoryDecompressGas),
     ];
 
     /// <summary>
@@ -804,8 +891,13 @@ public class IndyParksViewModel : ReactiveObject
 
     private readonly Dictionary<string, IReadOnlyList<SdeRigOption>> _servicesByType = new();
 
+    /// <summary>The service modules a hull can take, by the name shown. Sorted when asked for
+    /// rather than when loaded, which is at start, before the names have.</summary>
     public IReadOnlyList<SdeRigOption> GetServicesForType(string structureTypeKey)
-        => _servicesByType.TryGetValue(structureTypeKey, out var s) ? s : [];
+        => _servicesByType.TryGetValue(structureTypeKey, out var s) ? ByShownName(s) : [];
+
+    private static List<SdeRigOption> ByShownName(IEnumerable<SdeRigOption> options)
+        => [.. options.OrderBy(o => o.DisplayName, StringComparer.CurrentCulture)];
 
     private static IReadOnlyList<SdeRigOption> LoadRigs(AppDbContext db, int sizeAttrId, double sizeValue, int[] bonusAttrIds)
     {
@@ -822,10 +914,11 @@ public class IndyParksViewModel : ReactiveObject
     }
 
     /// <summary>The rigs a hull can fit, led by <see cref="SdeRigOption.None"/> so that a fitted
-    /// slot can be emptied again. A hull that fits no rigs gets no list at all.</summary>
+    /// slot can be emptied again, then by the name shown. A hull that fits no rigs gets no list at
+    /// all.</summary>
     public IReadOnlyList<SdeRigOption> GetRigsForType(string structureTypeKey)
         => _rigsByType.TryGetValue(structureTypeKey, out var rigs) && rigs.Count > 0
-            ? [SdeRigOption.None, .. rigs]
+            ? [SdeRigOption.None, .. ByShownName(rigs)]
             : [];
 
     // ── Park list ─────────────────────────────────────────────────────────
@@ -863,7 +956,7 @@ public class IndyParksViewModel : ReactiveObject
 
         // The first park is the default. With one park there is nothing else it could be, and
         // everything that plans against "the default park" would otherwise find none at all.
-        var park = new IndyPark { Name = "New Park", IsDefault = !await db.IndyParks.AnyAsync() };
+        var park = new IndyPark { Name = IndustryText.DefaultParkName, IsDefault = !await db.IndyParks.AnyAsync() };
         db.IndyParks.Add(park);
         await db.SaveChangesAsync();
 
@@ -902,13 +995,16 @@ public class IndyParksViewModel : ReactiveObject
                 .Select(p => new { p.Id, p.Name }).FirstOrDefaultAsync()
             : null;
 
-        if (ConfirmDelete is not null && !await ConfirmDelete(
-                $"Delete the park \"{name}\"?\n\n"
-              + (structIds.Count > 0
-                    ? $"Its {structIds.Count} structure{(structIds.Count == 1 ? "" : "s")}, with their rigs and service modules, "
-                    : "")
-              + "its category assignments and its item exceptions are deleted with it. This cannot be undone."
-              + (heir is not null ? $"\n\nIt is the default park, so \"{heir.Name}\" becomes the default." : "")))
+        // A whole sentence for each case, a paragraph apiece: the park, what goes with it, and
+        // which park becomes the default.
+        var goesWithIt = structIds.Count > 0
+            ? Plurals.Format(IndustryText.ResourceManager, nameof(IndustryText.ConfirmDeleteParkStructuresOther),
+                             structIds.Count)
+            : IndustryText.ConfirmDeleteParkNoStructures;
+        var question = string.Format(IndustryText.ConfirmDeletePark, name) + "\n\n" + goesWithIt
+                     + (heir is not null ? "\n\n" + string.Format(IndustryText.ConfirmDeleteParkNewDefault, heir.Name) : "");
+
+        if (ConfirmDelete is not null && !await ConfirmDelete(question))
             return;
 
         // ⚠️ One transaction, not six. Each ExecuteDelete takes the write lock on its own, so a
@@ -1002,6 +1098,11 @@ public class IndyParksViewModel : ReactiveObject
 
         var id = parkId.Value;
 
+        // The first park loads as the app starts. Its rigs, services, hulls and item exceptions
+        // show their names in the interface language, and the hull pickers are built with theirs,
+        // so the names are waited for — once — rather than shown in English.
+        await SdeNames.EnsureLoadedAsync();
+
         await using var db = await _dbFactory.CreateDbContextAsync();
         var park = await db.IndyParks.AsNoTracking().FirstOrDefaultAsync(p => p.Id == id);
         if (park is null) return;
@@ -1070,10 +1171,11 @@ public class IndyParksViewModel : ReactiveObject
                 }
 
                 vm.AvailableServices = GetServicesForType(s.StructureTypeKey);
-                foreach (var svc in services.Where(x => x.StructureId == s.Id)
-                                            .OrderBy(x => serviceNames.GetValueOrDefault(x.TypeId, "")))
-                    vm.Services.Add(new ServiceModuleVm(
-                        vm, svc.TypeId, serviceNames.GetValueOrDefault(svc.TypeId, $"Type {svc.TypeId}")));
+                foreach (var module in services.Where(x => x.StructureId == s.Id)
+                             .Select(x => new ServiceModuleVm(
+                                 vm, x.TypeId, serviceNames.GetValueOrDefault(x.TypeId, string.Format(IndustryText.ServiceTypeNumbered, x.TypeId))))
+                             .OrderBy(m => m.DisplayName, StringComparer.CurrentCulture))
+                    vm.Services.Add(module);
 
                 vm.FittingFromAssets =
                     s.RealStructureId is { } realId && assetFed.Contains(realId);
@@ -1374,6 +1476,18 @@ public class IndyParksViewModel : ReactiveObject
                 .Select(s => new { s.SolarSystemId, s.Name, s.Security })
                 .FirstOrDefaultAsync();
 
+            // A system's whole name as the interface shows it is the same system, and the box then
+            // takes its English below, which is what the park saves and is matched by.
+            if (sys is null)
+            {
+                await SdeNames.EnsureLoadedAsync();
+                if (ShownSystemId(text) is int shownId)
+                    sys = await db.SdeSolarSystems.AsNoTracking()
+                        .Where(s => s.SolarSystemId == shownId)
+                        .Select(s => new { s.SolarSystemId, s.Name, s.Security })
+                        .FirstOrDefaultAsync();
+            }
+
             if (sys is not null)
                 hit = new ResolvedSystem(sys.SolarSystemId, sys.Name, SecurityClassFor(sys.SolarSystemId, sys.Security));
         }
@@ -1392,8 +1506,20 @@ public class IndyParksViewModel : ReactiveObject
         });
     }
 
+    /// <summary>The one system whose name in the interface language is <paramref name="text"/>,
+    /// ignoring case. Null when none is — part of a name is still being typed — and when two are,
+    /// since that says nothing about which was meant.</summary>
+    private static int? ShownSystemId(string text)
+    {
+        var ids = SdeNames.Find(SdeNameKind.SolarSystem, text)
+            .Where(id => string.Equals(SdeNames.SolarSystem(id, ""), text, StringComparison.OrdinalIgnoreCase))
+            .Take(2)
+            .ToList();
+        return ids.Count == 1 ? (int)ids[0] : null;
+    }
+
     /// <summary>Which structure the visible search results belong to. The results list
-    /// renders SdeStationResult rows, so the pick alone can't say what it links to.</summary>
+    /// renders search hits, so the pick alone can't say what it links to.</summary>
     private StructureVm? _facilitySearchTarget;
 
     /// <summary>Search real stations and structures for the facility link. Reuses the
@@ -1412,7 +1538,10 @@ public class IndyParksViewModel : ReactiveObject
 
         try
         {
-            foreach (var r in await _corpActivity.SearchSdeStationsAsync(text))
+            // In the order of the names shown; the pick carries the English the link stores.
+            foreach (var r in (await _corpActivity.SearchSdeStationsAsync(text))
+                         .Select(r => new FacilityResultVm(r))
+                         .OrderBy(r => r.DisplayName, StringComparer.CurrentCulture))
                 vm.FacilityResults.Add(r);
         }
         catch (Exception ex) { _errorLogger?.Log(nameof(IndyParksViewModel), "SearchFacility", ex); }
@@ -1596,7 +1725,7 @@ public class IndyParksViewModel : ReactiveObject
     /// </summary>
     private async Task AutoAssignAsync()
     {
-        if (_selectedPark is null) { AutoAssignStatus = "Pick a park first."; return; }
+        if (_selectedPark is null) { AutoAssignStatus = IndustryText.StatusPickParkFirst; return; }
 
         var filled = 0;
         var already = 0;
@@ -1624,15 +1753,15 @@ public class IndyParksViewModel : ReactiveObject
         await Task.CompletedTask;
 
         var parts = new List<string>();
-        parts.Add(filled == 0 ? "Nothing to assign" : $"Assigned {filled} category(ies)");
-        if (already   > 0) parts.Add($"{already} already set");
+        parts.Add(filled == 0 ? IndustryText.AutoAssignNothing : string.Format(IndustryText.AutoAssignAssigned, filled));
+        if (already   > 0) parts.Add(string.Format(IndustryText.AutoAssignAlreadySet, already));
         if (ambiguous.Count > 0)
-            parts.Add($"{ambiguous.Count} with more than one rigged structure, left for you "
-                    + $"({string.Join(", ", ambiguous.Take(3))}{(ambiguous.Count > 3 ? ", …" : "")})");
+            parts.Add(string.Format(IndustryText.AutoAssignAmbiguous, ambiguous.Count,
+                          string.Join(", ", ambiguous.Take(3)) + (ambiguous.Count > 3 ? ", …" : "")));
         if (noMatch.Count > 0)
-            parts.Add($"{noMatch.Count} with no rigged structure");
+            parts.Add(string.Format(IndustryText.AutoAssignNoMatch, noMatch.Count));
 
-        AutoAssignStatus = string.Join(" · ", parts) + ".";
+        AutoAssignStatus = string.Format(IndustryText.AutoAssignSummary, string.Join(" · ", parts));
     }
 
     /// <summary>Whether any of a structure's rigs bonuses this category.</summary>
@@ -1642,7 +1771,7 @@ public class IndyParksViewModel : ReactiveObject
         {
             // "— empty —" is a choice in the list now, and names no rig.
             if (slot.Selected is not { TypeId: > 0 } rig) continue;
-            var name = rig.Name;
+            var name = rig.Name;   // English: the rig rules match on it
             if (string.IsNullOrEmpty(name)) continue;
 
             var rigCategory = IndyRigMatching.RigCategoryFromName(name);
@@ -1657,13 +1786,14 @@ public class IndyParksViewModel : ReactiveObject
 
     // ── Add every industrial structure in a system ────────────────────────
 
-    /// <summary>Feeds the system picker beside the bulk-add button.</summary>
+    /// <summary>Feeds the system picker beside the bulk-add button. Listed in the order of the
+    /// names shown, which the list's template shows; the pick carries the English.</summary>
     public Func<string?, CancellationToken, Task<IEnumerable<object>>> SystemPopulator =>
         async (text, ct) =>
         {
             if (_corpActivity is null) return Array.Empty<object>();
             var hits = await _corpActivity.SearchSdeSystemsAsync(text ?? "", ct);
-            return hits.Cast<object>().ToList();
+            return hits.OrderBy(h => h.DisplayName, StringComparer.CurrentCulture).Cast<object>().ToList();
         };
 
     /// <summary>
@@ -1678,7 +1808,7 @@ public class IndyParksViewModel : ReactiveObject
         {
             if (_corpActivity is null) return Array.Empty<object>();
             var hits = await _corpActivity.SearchSdeSystemsAsync(text ?? "", ct, includeWormholes: true);
-            return hits.Cast<object>().ToList();
+            return hits.OrderBy(h => h.DisplayName, StringComparer.CurrentCulture).Cast<object>().ToList();
         };
 
     private object? _bulkSystem;
@@ -1704,11 +1834,11 @@ public class IndyParksViewModel : ReactiveObject
 
     private async Task AddAllInSystemAsync()
     {
-        if (_selectedPark is null) { BulkStatus = "Pick a park first."; return; }
-        if (_bulkAdd is null)      { BulkStatus = "Bulk add is unavailable."; return; }
+        if (_selectedPark is null) { BulkStatus = IndustryText.StatusPickParkFirst; return; }
+        if (_bulkAdd is null)      { BulkStatus = IndustryText.BulkUnavailable; return; }
         if (BulkSystem is not SdeSystemResult sys)
         {
-            BulkStatus = "Pick a system from the list.";
+            BulkStatus = IndustryText.BulkPickSystem;
             return;
         }
 
@@ -1722,13 +1852,14 @@ public class IndyParksViewModel : ReactiveObject
             .Where(c => !c.AlreadyInPark && !(SkipMoonRefineries && c.OnMoon))
             .ToList();
 
+        // The status line names the system as the screen does; the structures store its English.
+        var shownSystem = SdeNames.SolarSystem(sys.SystemId, sys.Name);
+
         if (toAdd.Count == 0)
         {
-            BulkStatus = candidates.Count == 0
-                ? $"No industrial structures known in {sys.Name}. Only structures the app has "
-                + "already resolved a name for can be added."
-                : $"Nothing new to add in {sys.Name} — {already} already in this park"
-                  + (skipped > 0 ? $", {skipped} moon refinery(ies) skipped" : "") + ".";
+            BulkStatus = candidates.Count == 0 ? string.Format(IndustryText.BulkNoneKnown, shownSystem)
+                       : skipped > 0 ? string.Format(IndustryText.BulkNothingNewSkipped, shownSystem, already, skipped)
+                       : string.Format(IndustryText.BulkNothingNew, shownSystem, already);
             return;
         }
 
@@ -1770,9 +1901,14 @@ public class IndyParksViewModel : ReactiveObject
 
         await LoadParkDetailAsync(parkId);
 
-        BulkStatus = $"Added {toAdd.Count} structure(s) from {sys.Name}"
-                   + (already > 0 ? $", {already} already present" : "")
-                   + (skipped > 0 ? $", {skipped} moon refinery(ies) skipped" : "") + ".";
+        // A whole sentence for each combination of the two optional counts.
+        BulkStatus = (already > 0, skipped > 0) switch
+        {
+            (true,  true)  => string.Format(IndustryText.BulkAddedAlreadySkipped, toAdd.Count, shownSystem, already, skipped),
+            (true,  false) => string.Format(IndustryText.BulkAddedAlready,        toAdd.Count, shownSystem, already),
+            (false, true)  => string.Format(IndustryText.BulkAddedSkipped,        toAdd.Count, shownSystem, skipped),
+            (false, false) => string.Format(IndustryText.BulkAdded,               toAdd.Count, shownSystem),
+        };
     }
 
     /// <summary>The park's security class for a system, which drives rig strength.</summary>
@@ -1812,7 +1948,7 @@ public class IndyParksViewModel : ReactiveObject
         var s = new IndyStructure
         {
             ParkId           = parkId,
-            DisplayName      = "New Structure",
+            DisplayName      = IndustryText.DefaultStructureName,
             StructureTypeKey = "raitaru",
             SecurityClass    = "nullsec",
         };
@@ -1841,9 +1977,8 @@ public class IndyParksViewModel : ReactiveObject
     private async Task RemoveStructureAsync(StructureVm vm)
     {
         if (ConfirmDelete is not null && !await ConfirmDelete(
-                $"Remove \"{vm.DisplayHeader}\" from this park?\n\n"
-              + "Its rigs and service modules here are deleted, and any category or item exception "
-              + "that sends work to it is left unassigned. The structure in game is not affected."))
+                string.Format(IndustryText.ConfirmRemoveStructure, vm.DisplayHeader)
+              + "\n\n" + IndustryText.ConfirmRemoveStructureDetail))
             return;
 
         await using var db = await _dbFactory.CreateDbContextAsync();
@@ -2026,7 +2161,8 @@ public class IndyParksViewModel : ReactiveObject
     {
         ItemExceptions.Clear();
         IReadOnlyList<StructureVm?> options = [null, .. Structures.Cast<StructureVm?>()];
-        foreach (var exc in saved)
+        // Listed by the name shown; the query sorted them by the English.
+        foreach (var exc in saved.OrderBy(e => SdeNames.Type(e.TypeId, e.TypeName), StringComparer.CurrentCulture))
         {
             var vm = new ItemExceptionVm(exc.Id, exc.TypeId, exc.TypeName) { StructureOptions = options };
             if (exc.StructureId is int sid)
@@ -2044,6 +2180,11 @@ public class IndyParksViewModel : ReactiveObject
             await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => ItemSearchResults.Clear());
             return;
         }
+        // The names are English. What is typed may be the name shown, in the interface language,
+        // which finds the types it names by id.
+        await SdeNames.EnsureLoadedAsync();
+        var shownIds = SdeNames.Find(SdeNameKind.Type, text).Select(id => (int)id).ToList();
+
         await using var db = await _dbFactory.CreateDbContextAsync();
         var lower = text.ToLower();
         // Ranked, not just alphabetical. A plain A-Z ordering buries the thing being
@@ -2052,7 +2193,7 @@ public class IndyParksViewModel : ReactiveObject
         // with the term, then the rest; shorter names win ties, so "Hel" beats
         // "Hel Blueprint".
         var results = await db.SdeTypes
-            .Where(t => t.Published && t.Name.ToLower().Contains(lower))
+            .Where(t => t.Published && (t.Name.ToLower().Contains(lower) || shownIds.Contains(t.TypeId)))
             .OrderBy(t => t.Name.ToLower() == lower            ? 0
                         : t.Name.ToLower().StartsWith(lower)   ? 1
                         : 2)
@@ -2061,6 +2202,20 @@ public class IndyParksViewModel : ReactiveObject
             .Take(200)
             .Select(t => new ItemSearchResult(t.TypeId, t.Name))
             .ToListAsync();
+
+        // The SQL can rank only the English. Where the text may be the name shown, each result is
+        // ranked again by the same rule, on whichever of its two names holds the text.
+        if (shownIds.Count > 0)
+            results = [.. results
+                .Select(r => (Result: r,
+                              Name: r.Name.Contains(text, StringComparison.OrdinalIgnoreCase) ? r.Name : r.DisplayName))
+                .OrderBy(x => x.Name.Equals(text, StringComparison.OrdinalIgnoreCase)     ? 0
+                            : x.Name.StartsWith(text, StringComparison.OrdinalIgnoreCase) ? 1
+                            : 2)
+                .ThenBy(x => x.Name.Length)
+                .ThenBy(x => x.Name, StringComparer.CurrentCulture)
+                .Select(x => x.Result)];
+
         await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
         {
             ItemSearchResults.Clear();

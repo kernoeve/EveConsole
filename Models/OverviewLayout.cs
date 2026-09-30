@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using EveConsole.Localization;
 
 namespace EveConsole.Models;
 
@@ -26,26 +27,28 @@ public sealed class OverviewLayout
     public List<OverviewPlacement> Sections { get; set; } = [];
 
     // Section key → display title. Order here is the order shown in the customize dialog.
+    // ⚠️ The key is what the layout saves and what everything matches on; the title is only shown,
+    // in the interface's language — the same words as the section's own heading.
     public static readonly (string Key, string Title)[] KnownSections =
     [
-        ("ActivitySummary",   "Activity Summary"),
-        ("Alerts",            "Alerts"),
-        ("Notifications",     "Notifications"),
-        ("News",              "Eve Online News"),
-        ("PersonalKillmails", "Personal Killmails"),
-        ("SaleListingBuild",  "Sale Listing (Build)"),
-        ("SaleListingMarket", "Sale Listing (Market)"),
-        ("IncomePie",         "Income (Pie)"),
-        ("ExpensePie",        "Expenses (Pie)"),
-        ("IncomeExpense",     "Income & Expense"),
-        ("Orders",            "Orders"),
-        ("StandingProjects",  "Standing Projects"),
-        ("StandingBuyOrders", "Standing Buy Orders"),
-        ("WorklistAll",       "Worklist (All)"),
-        ("WorklistBuy",       "Worklist (Buy)"),
-        ("WorklistHaul",      "Worklist (Haul)"),
-        ("WorklistJobs",      "Worklist (Jobs)"),
-        ("WorklistNeeds",     "Worklist (Station Needs)"),
+        ("ActivitySummary",   OverviewText.ActivitySummary),
+        ("Alerts",            OverviewText.Alerts),
+        ("Notifications",     OverviewText.Notifications),
+        ("News",              OverviewText.EveOnlineNews),
+        ("PersonalKillmails", OverviewText.PersonalKillmails),
+        ("SaleListingBuild",  ShellText.TabSaleListingBuild),
+        ("SaleListingMarket", ShellText.TabSaleListingMarket),
+        ("IncomePie",         OverviewText.SectionIncomePie),
+        ("ExpensePie",        OverviewText.SectionExpensePie),
+        ("IncomeExpense",     ShellText.NavIncomeExpense),
+        ("Orders",            OverviewText.Orders),
+        ("StandingProjects",  OverviewText.StandingProjects),
+        ("StandingBuyOrders", OverviewText.StandingBuyOrders),
+        ("WorklistAll",       OverviewText.WorklistAll),
+        ("WorklistBuy",       OverviewText.WorklistBuy),
+        ("WorklistHaul",      OverviewText.WorklistHaul),
+        ("WorklistJobs",      OverviewText.WorklistJobs),
+        ("WorklistNeeds",     OverviewText.WorklistStationNeeds),
     ];
 
     // Default layout: Sale Listing (Build) / Income & Expense / Personal Killmails across the top

@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using EveConsole.Localization;
 
 namespace EveConsole.Agent;
 
@@ -51,7 +52,7 @@ public sealed record AgentMessage
 
     /// <summary>When it was said, in the capsuleer's own time, for the label above the bubble.</summary>
     [JsonIgnore]
-    public string TimeText => Timestamp.ToLocalTime().ToString("d MMM yyyy HH:mm");
+    public string TimeText => Timestamp.ToLocalTime().ToString(CommonText.DateTimeFull);
 
     /// <summary>
     /// The same moment as the model is told it, on EVE time — the clock every timestamp in the
@@ -64,7 +65,26 @@ public sealed record AgentMessage
     /// and what it called.</summary>
     [JsonIgnore]
     public string MetaText => string.Join("  ·  ",
-        new[] { TimeText, AnsweredBy, ToolsUsed }.Where(s => !string.IsNullOrEmpty(s)));
+        new[] { TimeText, AnsweredBy, ToolsUsedLabel(ToolsUsed) }.Where(s => !string.IsNullOrEmpty(s)));
+
+    /// <summary>
+    /// <see cref="ToolsUsed"/> as the line above the bubble shows it, in the language of the day.
+    /// A reply keeps its tool counts (<c>{"query_database":2}</c>); older replies kept English words,
+    /// which are read back. The app's own lines carry a marker instead — "alarm", "voice change",
+    /// "model change" — which stays in English in the saved history, because the agent panel
+    /// compares it. Anything else is shown as it was saved.
+    /// </summary>
+    private static string? ToolsUsedLabel(string? toolsUsed) => toolsUsed switch
+    {
+        null or ""     => toolsUsed,
+        "alarm"        => AgentText.MetaAlarm,
+        "voice change" => AgentText.MetaVoiceChange,
+        "model change" => AgentText.MetaModelChange,
+        ['{', ..]      => ToolUseSummary.Describe(toolsUsed),
+        _              => ToolUseSummary.ReadEnglish(toolsUsed) is { } counts
+                              ? ToolUseSummary.Describe(counts)
+                              : toolsUsed,
+    };
 
     /// <summary>
     /// The tool the capsuleer had on screen when they wrote this — the Tool Reference's name for

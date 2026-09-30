@@ -4,6 +4,7 @@ using EveConsole.Data;
 using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -32,9 +33,7 @@ public class HoboCompatibilityException(IReadOnlyList<string> missing)
     public IReadOnlyList<string> MissingFiles { get; } = missing;
 
     private static string BuildMessage(IReadOnlyList<string> missing) =>
-        $"EVE Console needs to be updated before it can refresh the Hoboleaks data. The following " +
-        $"file(s) are no longer published in the Hoboleaks manifest: {string.Join(", ", missing)}. " +
-        $"Your existing Hoboleaks data has NOT been cleared.";
+        string.Format(SettingsText.HoboIncompatible, string.Join(", ", missing));
 }
 
 public class HoboImportService
@@ -108,7 +107,7 @@ public class HoboImportService
         // above the undo opened below.
         await AppDb.TuneForBulkImportAsync(db.Database, ct);
 
-        Report(progress, "Preparing", "Creating Hobo schema…", 0.01);
+        Report(progress, SettingsText.ImportStagePreparing, SettingsText.HoboCreatingSchema, 0.01);
         EnsureHoboSchema(db);
 
         using var http = _httpFactory.CreateClient();
@@ -118,18 +117,17 @@ public class HoboImportService
         // tables and then fetch four files one at a time over the network, so a dropped connection
         // partway through left the app with no blueprint data at all and nothing saying why. The
         // four together are about 17 MB, which is worth holding to make that impossible.
-        Report(progress, "Preparing", "Reading the Hoboleaks manifest…", 0.02);
+        Report(progress, SettingsText.ImportStagePreparing, SettingsText.HoboReadingManifest, 0.02);
         var meta = await GetLatestMetaAsync(ct)
             ?? throw new InvalidOperationException(
-                "The Hoboleaks manifest could not be read, so no import was attempted. " +
-                "Your existing Hoboleaks data has NOT been changed.");
+                SettingsText.HoboManifestUnreadable);
         ValidateManifest(meta, progress);
 
         var payloads = new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);
         var fetched  = 0;
         foreach (var file in RequiredFiles)
         {
-            Report(progress, "Downloading", $"{file}…", 0.04 + 0.16 * fetched / RequiredFiles.Length);
+            Report(progress, SettingsText.ImportStageDownloading, $"{file}…", 0.04 + 0.16 * fetched / RequiredFiles.Length);
             payloads[file] = await http.GetByteArrayAsync($"{BaseUrl}{file}", ct);
             fetched++;
         }
@@ -142,7 +140,7 @@ public class HoboImportService
         await using var undo = await BulkImportUndo.CreateAsync(db, "hobo", tables,
             (stage, detail, frac) => progress.Report(new HoboImportProgress(stage, detail, frac)), ct);
 
-        Report(progress, "Preparing", "Clearing existing Hobo data…", 0.22);
+        Report(progress, SettingsText.ImportStagePreparing, SettingsText.HoboClearing, 0.22);
         await BulkImport.ClearAsync(db, tables, ct);
 
         db.ChangeTracker.AutoDetectChangesEnabled = false;
@@ -166,7 +164,7 @@ public class HoboImportService
         }
         await db.SaveChangesAsync(ct);
 
-        Report(progress, "Verifying", "Checking row counts…", 0.99);
+        Report(progress, SettingsText.ImportStageVerifying, SettingsText.ImportCheckingRowCounts, 0.99);
         var (lost, warnings) = BulkImport.Compare(before, await BulkImport.CountAsync(db, tables, ct));
 
         if (lost.Count > 0)
@@ -182,7 +180,7 @@ public class HoboImportService
         foreach (var line in warnings)
             _errors.Log("HoboImport", "Verification", line);
 
-        Report(progress, "Done", "Hoboleaks import complete.", 1.0);
+        Report(progress, SettingsText.ImportStageDone, SettingsText.HoboImportComplete, 1.0);
         return warnings;
     }
 
@@ -209,9 +207,9 @@ public class HoboImportService
         foreach (var line in flagged)
             _errors.Log("HoboImport", "Manifest", line);
 
-        Report(p, "Preparing", flagged.Count == 0
-            ? $"Manifest revision {meta.Revision:N0}, all {RequiredFiles.Length} files current."
-            : $"Manifest revision {meta.Revision:N0}, {flagged.Count} file(s) flagged — see Errors.", 0.03);
+        Report(p, SettingsText.ImportStagePreparing, flagged.Count == 0
+            ? string.Format(SettingsText.HoboManifestCurrent, meta.Revision, RequiredFiles.Length)
+            : string.Format(SettingsText.HoboManifestFlagged, meta.Revision, flagged.Count), 0.03);
     }
 
     // -----------------------------------------------------------------------
@@ -281,10 +279,10 @@ public class HoboImportService
     private async Task ImportBlueprintsAsync(AppDbContext db, byte[] json,
         IProgress<HoboImportProgress> p, CancellationToken ct)
     {
-        Report(p, "Blueprints", "Parsing blueprints.json…", 0.23);
+        Report(p, SettingsText.ImportStageBlueprints, Parsing("blueprints.json"), 0.23);
         var raw = JsonSerializer.Deserialize<Dictionary<string, HoboBpJson>>(json, _json) ?? [];
 
-        Report(p, "Blueprints", $"Parsed {raw.Count:N0} blueprints — saving…", 0.25);
+        Report(p, SettingsText.ImportStageBlueprints, string.Format(SettingsText.HoboParsedBlueprints, raw.Count), 0.25);
 
         var bps = raw.Select(kv => new HoboBlueprint
             { TypeId = int.Parse(kv.Key), MaxProductionLimit = kv.Value.MaxProductionLimit });
@@ -312,17 +310,17 @@ public class HoboImportService
                     { TypeId = int.Parse(kv.Key), Activity = act.Key, SkillTypeId = sk.TypeId, Level = sk.Level })))
             .DistinctBy(x => (x.TypeId, x.Activity, x.SkillTypeId));
 
-        await SaveBatchesAsync(db, db.HoboBlueprints,          bps,    "Blueprints",          raw.Count, p, 0.25, 0.40, ct);
-        await SaveBatchesAsync(db, db.HoboBlueprintActivities, acts,   "Blueprint Activities", -1,        p, 0.40, 0.50, ct);
-        await SaveBatchesAsync(db, db.HoboBlueprintMaterials,  mats,   "Blueprint Materials",  -1,        p, 0.50, 0.65, ct);
-        await SaveBatchesAsync(db, db.HoboBlueprintProducts,   prods,  "Blueprint Products",   -1,        p, 0.65, 0.75, ct);
-        await SaveBatchesAsync(db, db.HoboBlueprintSkills,     skills, "Blueprint Skills",     -1,        p, 0.75, 0.83, ct);
+        await SaveBatchesAsync(db, db.HoboBlueprints,          bps,    SettingsText.ImportStageBlueprints,          raw.Count, p, 0.25, 0.40, ct);
+        await SaveBatchesAsync(db, db.HoboBlueprintActivities, acts,   SettingsText.ImportStageBlueprintActivities, -1,        p, 0.40, 0.50, ct);
+        await SaveBatchesAsync(db, db.HoboBlueprintMaterials,  mats,   SettingsText.ImportStageBlueprintMaterials,  -1,        p, 0.50, 0.65, ct);
+        await SaveBatchesAsync(db, db.HoboBlueprintProducts,   prods,  SettingsText.ImportStageBlueprintProducts,   -1,        p, 0.65, 0.75, ct);
+        await SaveBatchesAsync(db, db.HoboBlueprintSkills,     skills, SettingsText.ImportStageBlueprintSkills,     -1,        p, 0.75, 0.83, ct);
     }
 
     private async Task ImportTypeMaterialsAsync(AppDbContext db, byte[] json,
         IProgress<HoboImportProgress> p, CancellationToken ct)
     {
-        Report(p, "Type Materials", "Parsing typematerials.json…", 0.83);
+        Report(p, SettingsText.ImportStageTypeMaterials, Parsing("typematerials.json"), 0.83);
         var raw = JsonSerializer.Deserialize<Dictionary<string, HoboTypeMatsJson>>(json, _json) ?? [];
 
         var rows = raw.SelectMany(kv =>
@@ -330,31 +328,31 @@ public class HoboImportService
                 { TypeId = int.Parse(kv.Key), MaterialTypeId = m.MaterialTypeId, Quantity = m.Quantity }))
             .DistinctBy(x => (x.TypeId, x.MaterialTypeId));
 
-        await SaveBatchesAsync(db, db.HoboTypeMaterials, rows, "Type Materials", -1, p, 0.83, 0.90, ct);
+        await SaveBatchesAsync(db, db.HoboTypeMaterials, rows, SettingsText.ImportStageTypeMaterials, -1, p, 0.83, 0.90, ct);
     }
 
     private async Task ImportRepackagedVolumesAsync(AppDbContext db, byte[] json,
         IProgress<HoboImportProgress> p, CancellationToken ct)
     {
-        Report(p, "Repackaged Volumes", "Parsing repackagedvolumes.json…", 0.90);
+        Report(p, SettingsText.ImportStageRepackagedVolumes, Parsing("repackagedvolumes.json"), 0.90);
         var raw = JsonSerializer.Deserialize<Dictionary<string, double>>(json, _json) ?? [];
 
         var rows = raw.Select(kv => new HoboRepackagedVolume
             { TypeId = int.Parse(kv.Key), Volume = kv.Value });
 
-        await SaveBatchesAsync(db, db.HoboRepackagedVolumes, rows, "Repackaged Volumes", raw.Count, p, 0.90, 0.95, ct);
+        await SaveBatchesAsync(db, db.HoboRepackagedVolumes, rows, SettingsText.ImportStageRepackagedVolumes, raw.Count, p, 0.90, 0.95, ct);
     }
 
     private async Task ImportCompressibleTypesAsync(AppDbContext db, byte[] json,
         IProgress<HoboImportProgress> p, CancellationToken ct)
     {
-        Report(p, "Compressible Types", "Parsing compressibletypes.json…", 0.95);
+        Report(p, SettingsText.ImportStageCompressibleTypes, Parsing("compressibletypes.json"), 0.95);
         var raw = JsonSerializer.Deserialize<Dictionary<string, int>>(json, _json) ?? [];
 
         var rows = raw.Select(kv => new HoboCompressibleType
             { SourceTypeId = int.Parse(kv.Key), CompressedTypeId = kv.Value });
 
-        await SaveBatchesAsync(db, db.HoboCompressibleTypes, rows, "Compressible Types", raw.Count, p, 0.95, 0.99, ct);
+        await SaveBatchesAsync(db, db.HoboCompressibleTypes, rows, SettingsText.ImportStageCompressibleTypes, raw.Count, p, 0.95, 0.99, ct);
     }
 
     // -----------------------------------------------------------------------
@@ -389,7 +387,7 @@ public class HoboImportService
                 var frac   = estimatedTotal > 0
                     ? Math.Clamp(fracStart + (fracEnd - fracStart) * ((double)saved / estimatedTotal), fracStart, fracEnd)
                     : fracStart;
-                var detail = estimatedTotal > 0 ? $"{saved:N0} / {estimatedTotal:N0}" : $"{saved:N0} rows";
+                var detail = estimatedTotal > 0 ? $"{saved:N0} / {estimatedTotal:N0}" : string.Format(SettingsText.ImportRowsProgress, saved);
                 p.Report(new HoboImportProgress(stage, detail, frac));
             }
         }
@@ -402,18 +400,23 @@ public class HoboImportService
             saved += buffer.Count;
         }
 
-        p.Report(new HoboImportProgress(stage, $"{saved:N0} rows saved", fracEnd));
+        p.Report(new HoboImportProgress(stage, string.Format(SettingsText.ImportRowsSaved, saved), fracEnd));
 
         // ⚠️ A stage that stores NOTHING from a file that downloaded is a silent failure, and this
         // import is a wipe followed by a refill: whatever it fails to store is simply gone. The
         // SDE import lost ten tables that way, type materials among them, and nothing said so.
+        // Logged under the table's name rather than the stage's: the stage is shown to the person
+        // importing, in their language, and the error log stays in English.
         if (saved == 0)
-            _errors.Log("HoboImport", stage,
+            _errors.Log("HoboImport", db.Model.FindEntityType(typeof(T))?.GetTableName() ?? typeof(T).Name,
                 "Stored 0 rows: the file was downloaded and parsed to nothing.");
     }
 
     private static void Report(IProgress<HoboImportProgress> p, string stage, string detail, double frac)
         => p.Report(new HoboImportProgress(stage, detail, frac));
+
+    /// <summary>"Parsing blueprints.json…": a progress detail naming the file being read.</summary>
+    private static string Parsing(string file) => string.Format(SettingsText.ImportParsingFile, file);
 
     // -----------------------------------------------------------------------
     // JSON DTOs

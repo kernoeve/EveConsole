@@ -3,6 +3,7 @@ using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using EveConsole.Services;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -47,17 +48,22 @@ public class EntityTabViewModel : ReactiveObject
     /// <summary>
     /// Feeds the AutoCompleteBox. Also records how many matched in total, so the tab can
     /// say when the dropdown was truncated rather than letting 300 look like all of them.
+    ///
+    /// <para>The tab's own search: NPC names as the game shows them in the interface language,
+    /// found by those or by the English. Awaits the names first, so the very first search
+    /// after start does not list English.</para>
     /// </summary>
     public Func<string?, CancellationToken, Task<IEnumerable<object>>> Populator =>
         async (text, ct) =>
         {
-            var hits = await _service.SearchWithEsiAsync(Kind, text ?? "", ct);
+            await SdeNames.EnsureLoadedAsync(ct);
+            var hits = await _service.SearchShownAsync(Kind, text ?? "", ct);
 
             if (hits.Count >= EntityBrowserService.MaxMatches)
             {
                 var total = await _service.CountMatchesAsync(Kind, text ?? "", ct);
                 await Dispatcher.UIThread.InvokeAsync(() =>
-                    SearchNote = $"Showing {hits.Count:N0} of {total:N0} matches — keep typing to narrow it.");
+                    SearchNote = string.Format(CorpText.EntitySearchTruncated, hits.Count, total));
             }
             else await Dispatcher.UIThread.InvokeAsync(() => SearchNote = "");
 
@@ -101,7 +107,13 @@ public class EntityTabViewModel : ReactiveObject
     // ── About ─────────────────────────────────────────────────────────────────
 
     private string _name = "";
+
+    /// <summary>The entity as the header shows it — an NPC's in the interface language.</summary>
     public string Name { get => _name; private set => this.RaiseAndSetIfChanged(ref _name, value); }
+
+    /// <summary>The same name in English, as the local tables hold it: what ESI's answer is
+    /// compared with. ⚠️ Never <see cref="Name"/>, which is only for reading.</summary>
+    private string _englishName = "";
 
     private string _subtitle = "";
     public string Subtitle { get => _subtitle; private set => this.RaiseAndSetIfChanged(ref _subtitle, value); }
@@ -146,10 +158,10 @@ public class EntityTabViewModel : ReactiveObject
 
     public string MembersHeader => Kind switch
     {
-        EntityKind.Alliance => "Member Corps",
-        EntityKind.NpcCorp  => "Agents",
-        EntityKind.Station  => "Agents",
-        _                   => "Corporations",
+        EntityKind.Alliance => CorpText.TabMemberCorps,
+        EntityKind.NpcCorp  => CorpText.TabAgents,
+        EntityKind.Station  => CorpText.TabAgents,
+        _                   => CorpText.TabCorporations,
     };
 
     /// <summary>The agent roster gets real columns; the other rosters have one detail line.</summary>
@@ -159,10 +171,10 @@ public class EntityTabViewModel : ReactiveObject
     public bool ShowAgentStation    => Kind is EntityKind.NpcCorp;
     public bool ShowMemberSubtitle  => Kind is not EntityKind.NpcCorp;
 
-    public string HistoryHeader => Kind is EntityKind.Pilot ? "Corp History" : "Alliance History";
+    public string HistoryHeader => Kind is EntityKind.Pilot ? CorpText.TabCorpHistory : CorpText.TabAllianceHistory;
 
     /// <summary>The column heading over the history grid's first column.</summary>
-    public string HistoryEntityHeader => Kind is EntityKind.Pilot ? "Corporation" : "Alliance";
+    public string HistoryEntityHeader => Kind is EntityKind.Pilot ? CorpText.ColHistoryCorporation : CorpText.ColHistoryAlliance;
 
     /// <summary>Where a click in the members or history grid should go.</summary>
     public EntityKind MemberLinkKind => Kind switch
@@ -234,11 +246,6 @@ public class EntityTabViewModel : ReactiveObject
     public string WarfareStatus { get => _warfareStatus; private set => this.RaiseAndSetIfChanged(ref _warfareStatus, value); }
 
     /// <summary>
-    /// Loads a straightforward list into a collection and reports the count. The remaining
-    /// panes differ only in their source and their noun, which is not enough to justify a
-    /// method each.
-    /// </summary>
-    /// <summary>
     /// The corporation's NPC stations, and the reason when there are none.
     ///
     /// <para>⚠️ "No stations found." reads like a fault in the data, and for ten corporations
@@ -260,18 +267,26 @@ public class EntityTabViewModel : ReactiveObject
                 foreach (var r in rows) Stations.Add(r);
 
                 StationsStatus =
-                    rows.Count > 0  ? $"{rows.Count:N0} station(s)"
-                  : militia is null ? "No stations found."
-                  : $"No stations — this is the {militia} militia corporation, and a militia "
-                    + "loyalty store is not run from one.";
+                    rows.Count > 0  ? string.Format(CorpText.StationsCount, rows.Count)
+                  : militia is null ? CorpText.NoStationsFound
+                  : string.Format(CorpText.NoStationsMilitia, militia);
             });
         }
         catch (OperationCanceledException) { }
-        catch (Exception ex) { StationsStatus = $"Error: {ex.Message}"; }
+        catch (Exception ex) { StationsStatus = string.Format(CommonText.ErrorWithMessage, ex.Message); }
     }
 
+    /// <summary>
+    /// Loads a straightforward list into a collection and reports the count. The remaining
+    /// panes differ only in their source and their wording, which is not enough to justify a
+    /// method each.
+    /// </summary>
+    /// <param name="none">What the pane says when the list is empty.</param>
+    /// <param name="count">What it says otherwise, with the number as {0}.</param>
+    /// <remarks>⚠️ Two whole sentences rather than one noun: "No {noun}s found." only works in
+    /// English.</remarks>
     private async Task LoadListAsync<T>(ObservableCollection<T> target, Func<Task<List<T>>> load,
-                                        Action<string> setStatus, string noun)
+                                        Action<string> setStatus, string none, string count)
     {
         try
         {
@@ -280,11 +295,11 @@ public class EntityTabViewModel : ReactiveObject
             {
                 target.Clear();
                 foreach (var r in rows) target.Add(r);
-                setStatus(rows.Count == 0 ? $"No {noun}s found." : $"{rows.Count:N0} {noun}(s)");
+                setStatus(rows.Count == 0 ? none : string.Format(count, rows.Count));
             });
         }
         catch (OperationCanceledException) { }
-        catch (Exception ex) { setStatus($"Error: {ex.Message}"); }
+        catch (Exception ex) { setStatus(string.Format(CommonText.ErrorWithMessage, ex.Message)); }
     }
 
     /// <summary>
@@ -319,18 +334,22 @@ public class EntityTabViewModel : ReactiveObject
 
                 var buys  = Buys.Count;
                 var sells = Sells.Count;
-                var scope = total == 0    ? ""
-                          : covered == 0  ? " — no market data pulled for any region this corp holds stations in"
-                          : covered < total ? $" — market data covers {covered} of its {total} regions"
+                var scope = total == 0      ? ""
+                          : covered == 0    ? CorpText.OrdersScopeNoMarketData
+                          : covered < total ? string.Format(CorpText.OrdersScopeCoverage, covered, total)
                           : "";
 
                 OrdersStatus = rows.Count == 0
-                    ? $"No orders found{(scope.Length > 0 ? scope : " in the market data pulled so far")}."
-                    : $"{sells:N0} sell, {buys:N0} buy{scope}";
+                    ? scope.Length > 0
+                        ? string.Format(CorpText.NoOrdersFoundScoped, scope)
+                        : CorpText.NoOrdersFound
+                    : scope.Length > 0
+                        ? string.Format(CorpText.OrdersCountScoped, sells, buys, scope)
+                        : string.Format(CorpText.OrdersCount, sells, buys);
             });
         }
         catch (OperationCanceledException) { }
-        catch (Exception ex) { OrdersStatus = $"Error: {ex.Message}"; }
+        catch (Exception ex) { OrdersStatus = string.Format(CommonText.ErrorWithMessage, ex.Message); }
     }
 
     private string _membersStatus = "";
@@ -358,21 +377,28 @@ public class EntityTabViewModel : ReactiveObject
 
         try
         {
+            // Everything below words SDE names in the interface language — the header here, the
+            // facts and every list in the service — so the names are awaited once, first.
+            await SdeNames.EnsureLoadedAsync(ct);
+
             var detail = await _service.DetailAsync(Kind, id, ct);
             if (detail is null || ct.IsCancellationRequested) return;
+
+            var shown = EntityBrowserService.ShownName(Kind, id, detail.Name);
 
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 _loadedId = id;
 
                 // Keep the picker in step with what a link loaded, so the box does not
-                // still read the previous entity.
-                _selectedMatch = new EntityMatch(id, detail.Name, "");
+                // still read the previous entity. It reads what the dropdown would have shown.
+                _selectedMatch = new EntityMatch(id, shown, "");
                 this.RaisePropertyChanged(nameof(SelectedMatch));
-                _searchText = detail.Name;
+                _searchText = shown;
                 this.RaisePropertyChanged(nameof(SearchText));
 
-                Name        = detail.Name;
+                _englishName = detail.Name;
+                Name         = shown;
                 Subtitle    = detail.Subtitle;
                 Description = detail.Description;
                 Image = null; CorpLogo = null; AllianceLogo = null; HasAffiliation = false;
@@ -399,7 +425,7 @@ public class EntityTabViewModel : ReactiveObject
                 StartZkbIfWanted();
 
                 ZkbStats       = null;
-                ZkbStatsStatus = HasKills ? "Loading zKillboard stats…" : "";
+                ZkbStatsStatus = HasKills ? CorpText.ZkbStatsLoading : "";
             });
 
             // Everything below is optional detail — the About pane is already usable, so
@@ -414,14 +440,18 @@ public class EntityTabViewModel : ReactiveObject
             if (HasStations) _ = LoadStationsAsync(id, ct);
             if (Kind is EntityKind.NpcCorp or EntityKind.PlayerCorp) _ = LoadOrdersAsync(id, ct);
             if (HasLpOffers) _ = LoadListAsync(LpOffers, () => _service.NpcCorpLpOffersAsync(id, ct),
-                                               v => LpOffersStatus = v, "LP offer");
+                                               v => LpOffersStatus = v,
+                                               CorpText.NoLpOffersFound,
+                                               CorpText.LpOffersCount);
             if (HasWarfare)  _ = LoadListAsync(Warfare, () => _service.FactionWarfareAsync(id, ct),
-                                               v => WarfareStatus = v, "faction warfare system");
+                                               v => WarfareStatus = v,
+                                               CorpText.NoWarfareSystemsFound,
+                                               CorpText.WarfareSystemsCount);
         }
         catch (OperationCanceledException) { }
         catch (Exception ex)
         {
-            await Dispatcher.UIThread.InvokeAsync(() => Status = $"Error: {ex.Message}");
+            await Dispatcher.UIThread.InvokeAsync(() => Status = string.Format(CommonText.ErrorWithMessage, ex.Message));
         }
     }
 
@@ -443,17 +473,20 @@ public class EntityTabViewModel : ReactiveObject
 
                 // The local name cache can have no row for an entity reached by id alone, in
                 // which case the header is showing "Unknown 90000001". ESI just told us what it
-                // is actually called.
-                if (!string.IsNullOrWhiteSpace(esiName) && Name != esiName)
+                // is actually called. ⚠️ Compared in English — ESI's is English, and the header
+                // is not, for an NPC corporation.
+                if (!string.IsNullOrWhiteSpace(esiName) && _englishName != esiName)
                 {
-                    Name = esiName!;
+                    _englishName = esiName!;
+                    var shown    = EntityBrowserService.ShownName(Kind, id, esiName!);
+                    Name = shown;
 
                     // The picker was filled from the same unknown name, so it has to follow —
                     // otherwise the box still reads "Unknown 3004245" beside a header that now
                     // has the real one.
-                    _selectedMatch = new EntityMatch(id, esiName!, "");
+                    _selectedMatch = new EntityMatch(id, shown, "");
                     this.RaisePropertyChanged(nameof(SelectedMatch));
-                    _searchText = esiName!;
+                    _searchText = shown;
                     this.RaisePropertyChanged(nameof(SearchText));
                 }
 
@@ -462,7 +495,11 @@ public class EntityTabViewModel : ReactiveObject
 
                 foreach (var f in facts)
                 {
-                    if (f.LinkKind == EntityKind.PlayerCorp && f.Label == "Corporation")
+                    // ⚠️ Not by the fact's label ("Corporation"), which is words on the screen and
+                    // will not be English in every language. A pilot's corporation is the only
+                    // player-corp fact outside an alliance, whose creator and executor corps are
+                    // not an affiliation (see HasAffiliation below).
+                    if (f.LinkKind == EntityKind.PlayerCorp && Kind is not EntityKind.Alliance)
                         _ = LoadLogoAsync(EntityBrowserService.ImageUrlFor(EntityKind.PlayerCorp, f.LinkId),
                                           v => CorpLogo = v, ct);
                     if (f.LinkKind == EntityKind.Alliance)
@@ -501,16 +538,20 @@ public class EntityTabViewModel : ReactiveObject
                 if (ct.IsCancellationRequested) return;
                 Members.Clear();
                 foreach (var r in rows) Members.Add(r);
-                var noun = Kind is EntityKind.NpcCorp or EntityKind.Station ? "agent" : "member corporation";
+                var agents = Kind is EntityKind.NpcCorp or EntityKind.Station;
                 MembersStatus = rows.Count == 0
-                    ? (Kind is EntityKind.Alliance
-                        ? "No member corporations returned. ESI reports current membership only."
-                        : $"No {noun}s found.")
-                    : $"{rows.Count:N0} {noun}(s)";
+                    ? Kind is EntityKind.Alliance
+                        ? CorpText.NoMemberCorpsReturned
+                        : agents
+                            ? CorpText.NoAgentsFound
+                            : CorpText.NoMemberCorpsFound
+                    : agents
+                        ? string.Format(CorpText.AgentsCount, rows.Count)
+                        : string.Format(CorpText.MemberCorpsCount, rows.Count);
             });
         }
         catch (OperationCanceledException) { }
-        catch (Exception ex) { MembersStatus = $"Error: {ex.Message}"; }
+        catch (Exception ex) { MembersStatus = string.Format(CommonText.ErrorWithMessage, ex.Message); }
     }
 
     private async Task LoadHistoryAsync(long id, CancellationToken ct)
@@ -526,12 +567,12 @@ public class EntityTabViewModel : ReactiveObject
                 History.Clear();
                 foreach (var r in rows) History.Add(r);
                 HistoryStatus = rows.Count == 0
-                    ? "No alliance history recorded for this corporation."
-                    : $"{rows.Count:N0} period(s), newest first";
+                    ? Kind is EntityKind.Pilot ? CorpText.NoCorpHistory : CorpText.NoAllianceHistory
+                    : string.Format(CorpText.HistoryPeriodsCount, rows.Count);
             });
         }
         catch (OperationCanceledException) { }
-        catch (Exception ex) { HistoryStatus = $"Error: {ex.Message}"; }
+        catch (Exception ex) { HistoryStatus = string.Format(CommonText.ErrorWithMessage, ex.Message); }
     }
 
     private async Task LoadLogoAsync(string? url, Action<Bitmap> set, CancellationToken ct)
@@ -577,13 +618,14 @@ public class EntityTabViewModel : ReactiveObject
                 // While zKillboard is being asked, its own status stands.
                 if (_zkbBusyFor == id) return;
                 KillsStatus = rows.Count == 0
-                    ? "No killmails recorded for this entity."
-                    : $"{rows.Count:N0} most recent killmail(s)"
-                      + (rows.Count >= EntityBrowserService.MaxDetailRows ? " (capped)" : "");
+                    ? CorpText.NoKillmailsForEntity
+                    : rows.Count >= EntityBrowserService.MaxDetailRows
+                        ? string.Format(CorpText.RecentKillmailsCapped, rows.Count)
+                        : string.Format(CorpText.RecentKillmailsCount, rows.Count);
             });
         }
         catch (OperationCanceledException) { }
-        catch (Exception ex) { KillsStatus = $"Error: {ex.Message}"; }
+        catch (Exception ex) { KillsStatus = string.Format(CommonText.ErrorWithMessage, ex.Message); }
     }
 
     // ── zKillboard stats, in the header ───────────────────────────────────────
@@ -620,12 +662,12 @@ public class EntityTabViewModel : ReactiveObject
                 if (ct.IsCancellationRequested || _loadedId != id) return;
                 if (answer.Problem is { } problem)
                 {
-                    ZkbStatsStatus = $"{problem}, so there are no stats to show.";
+                    ZkbStatsStatus = string.Format(CorpText.ZkbStatsProblem, problem);
                     return;
                 }
                 if (answer.Stats is not { } stats)
                 {
-                    ZkbStatsStatus = "zKillboard has no kills or losses for this entity.";
+                    ZkbStatsStatus = CorpText.ZkbStatsNone;
                     return;
                 }
                 ZkbStats       = new ZkbStatsVm(stats, ZkbUrl(Kind, id));
@@ -637,7 +679,7 @@ public class EntityTabViewModel : ReactiveObject
         {
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                if (_loadedId == id) ZkbStatsStatus = $"zKillboard stats failed: {ex.Message}";
+                if (_loadedId == id) ZkbStatsStatus = string.Format(CorpText.ZkbStatsFailed, ex.Message);
             });
         }
     }
@@ -672,8 +714,8 @@ public class EntityTabViewModel : ReactiveObject
         }
     }
 
-    private const string MoreKillsText  = "Load 200 more from zKillboard";
-    private const string RetryKillsText = "Try zKillboard again";
+    private static string MoreKillsText  => CorpText.KillsLoadMore;
+    private static string RetryKillsText => CorpText.KillsTryAgain;
 
     /// <summary>The Load more button: shown while zKillboard may hold older kills.</summary>
     private bool _canLoadMoreKills;
@@ -727,9 +769,8 @@ public class EntityTabViewModel : ReactiveObject
         _zkbBusyFor      = id;
         CanLoadMoreKills = false;
         KillsStatus      = page == 1
-            ? "Asking zKillboard for the kills not stored here…"
-            : $"{Kills.Count:N0} shown — loading page {page} from zKillboard. A page it has not served "
-            + "lately can take a minute.";
+            ? CorpText.KillsAsking
+            : string.Format(CorpText.KillsLoadingPage, Kills.Count, page);
 
         // Where the last page stopped; page one runs to the present.
         var previous = _zkbOldest;
@@ -757,9 +798,10 @@ public class EntityTabViewModel : ReactiveObject
 
                 if (!result.Reached)
                 {
-                    KillsStatus = $"{result.Problem ?? "zKillboard could not be reached"} — "
-                                + (page == 1 ? "so these are only the kills stored here."
-                                             : $"{Kills.Count:N0} shown, page {page} not loaded.");
+                    var why = result.Problem ?? DataText.ZkbUnreachable;
+                    KillsStatus = page == 1
+                        ? string.Format(CorpText.KillsProblemStoredOnly, why)
+                        : string.Format(CorpText.KillsProblemPage, why, Kills.Count, page);
                     LoadMoreKillsText = RetryKillsText;
                     CanLoadMoreKills  = true;
                     return;
@@ -772,9 +814,9 @@ public class EntityTabViewModel : ReactiveObject
                     CanLoadMoreKills = false;
                     KillsStatus = page == 1
                         ? (Kills.Count == 0
-                            ? "No killmails for this entity, here or on zKillboard."
-                            : $"{Kills.Count:N0} stored here; zKillboard has none for this entity.")
-                        : $"{Kills.Count:N0} kills and losses — everything zKillboard has.";
+                            ? CorpText.KillsNoneAnywhere
+                            : string.Format(CorpText.KillsStoredNoneOnZkb, Kills.Count))
+                        : string.Format(CorpText.KillsEverything, Kills.Count);
                     return;
                 }
 
@@ -792,9 +834,9 @@ public class EntityTabViewModel : ReactiveObject
                 // than leaving a reader to wonder where it went.
                 var last = page >= ZkillboardApiClient.MaxEntityPage;
                 CanLoadMoreKills = !last;
-                KillsStatus = $"{Kills.Count:N0} kills and losses back to {result.Oldest!.Value.ToLocalTime():yyyy-MM-dd HH:mm} — "
-                            + $"complete from zKillboard, {_zkbStored:N0} fetched that were not stored here."
-                            + (last ? $" zKillboard serves no further back than this: its page limit is {ZkillboardApiClient.MaxEntityPage}." : "");
+                KillsStatus = Sentences.Join(
+                    string.Format(CorpText.KillsBackTo, Kills.Count, result.Oldest!.Value.ToLocalTime(), _zkbStored),
+                    last ? string.Format(CorpText.KillsPageLimit, ZkillboardApiClient.MaxEntityPage) : "");
             });
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested) { }
@@ -803,7 +845,7 @@ public class EntityTabViewModel : ReactiveObject
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 if (_loadedId != id) return;
-                KillsStatus       = $"zKillboard page failed: {ex.Message}";
+                KillsStatus       = string.Format(CorpText.KillsPageFailed, ex.Message);
                 LoadMoreKillsText = RetryKillsText;
                 CanLoadMoreKills  = true;
             });
@@ -825,11 +867,11 @@ public class EntityTabViewModel : ReactiveObject
                 Intel.Clear();
                 foreach (var r in rows) Intel.Add(r);
                 IntelStatus = rows.Count == 0
-                    ? "No intel sightings. These come from intel channels via the chat log importer."
-                    : $"{rows.Count:N0} sighting(s)";
+                    ? CorpText.NoIntelSightings
+                    : string.Format(CorpText.IntelSightingsCount, rows.Count);
             });
         }
         catch (OperationCanceledException) { }
-        catch (Exception ex) { IntelStatus = $"Error: {ex.Message}"; }
+        catch (Exception ex) { IntelStatus = string.Format(CommonText.ErrorWithMessage, ex.Message); }
     }
 }

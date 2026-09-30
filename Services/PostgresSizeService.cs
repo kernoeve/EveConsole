@@ -1,4 +1,5 @@
 using Npgsql;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -25,7 +26,7 @@ public sealed class PostgresSizeService
     private static async Task<DatabaseSizeReport> AnalyseCoreAsync(
         string connectionString, IProgress<string>? progress, CancellationToken ct)
     {
-        progress?.Report("Reading table sizes…");
+        progress?.Report(SettingsText.DbSizeReadingTables);
 
         await using var conn = new NpgsqlConnection(connectionString);
         await conn.OpenAsync(ct);
@@ -78,7 +79,7 @@ public sealed class PostgresSizeService
         // on the SQLite side, not shown as reclaimable.
         var freeBytes = Math.Max(0, databaseBytes - usedBytes);
 
-        progress?.Report($"Read {tables.Count:N0} tables.");
+        progress?.Report(string.Format(SettingsText.DbSizeReadTables, tables.Count));
         return new DatabaseSizeReport(databaseBytes, usedBytes, freeBytes, pageSize, tables);
     }
 }

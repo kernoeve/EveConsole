@@ -1,0 +1,1078 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TitleGroup" xml:space="preserve">
+    <value>그룹</value>
+  </data>
+  <data name="GroupNameLabel" xml:space="preserve">
+    <value>그룹 이름</value>
+  </data>
+  <data name="CollectionLabel" xml:space="preserve">
+    <value>컬렉션</value>
+  </data>
+  <data name="StationLabel" xml:space="preserve">
+    <value>정거장</value>
+  </data>
+  <data name="OnlyStationsWithCachedNote" xml:space="preserve">
+    <value>캐시된 판매 주문이 있는 정거장만 여기에 표시됩니다.</value>
+  </data>
+  <data name="MarketPriceSourceLabel" xml:space="preserve">
+    <value>거래소 가격 출처</value>
+  </data>
+  <data name="MaxPriceOverSourceLabel" xml:space="preserve">
+    <value>출처 대비 최대 가격 (%)</value>
+  </data>
+  <data name="HintEG100Leave" xml:space="preserve">
+    <value>예: 100 — 비워 두면 사용 안 함</value>
+  </data>
+  <data name="MultiplierLabel" xml:space="preserve">
+    <value>배수</value>
+  </data>
+  <data name="TargetQuantitiesForAllNote" xml:space="preserve">
+    <value>× 이 그룹 모든 아이템의 목표 수량</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>취소</value>
+  </data>
+  <data name="Ok" xml:space="preserve">
+    <value>확인</value>
+  </data>
+  <data name="Issuer" xml:space="preserve">
+    <value>발행자</value>
+  </data>
+  <data name="TipOpenInTheEntityBrowser" xml:space="preserve">
+    <value>개체 브라우저에서 열기</value>
+  </data>
+  <data name="Assignee" xml:space="preserve">
+    <value>지정 대상</value>
+  </data>
+  <data name="Acceptor" xml:space="preserve">
+    <value>수락인</value>
+  </data>
+  <data name="Price" xml:space="preserve">
+    <value>가격</value>
+  </data>
+  <data name="Reward" xml:space="preserve">
+    <value>보상금</value>
+  </data>
+  <data name="Collateral" xml:space="preserve">
+    <value>담보금</value>
+  </data>
+  <data name="Buyout" xml:space="preserve">
+    <value>즉시 구매가</value>
+  </data>
+  <data name="Volume" xml:space="preserve">
+    <value>부피</value>
+  </data>
+  <data name="From" xml:space="preserve">
+    <value>위치</value>
+  </data>
+  <data name="To" xml:space="preserve">
+    <value>도착지</value>
+  </data>
+  <data name="Issued" xml:space="preserve">
+    <value>발행일</value>
+  </data>
+  <data name="Expires" xml:space="preserve">
+    <value>만료일</value>
+  </data>
+  <data name="Accepted" xml:space="preserve">
+    <value>수락일</value>
+  </data>
+  <data name="Completed" xml:space="preserve">
+    <value>완료일</value>
+  </data>
+  <data name="PullItemsFromEsi" xml:space="preserve">
+    <value>ESI에서 아이템 가져오기</value>
+  </data>
+  <data name="TipAskEveryEndpointThis" xml:space="preserve">
+    <value>이 계약의 모든 엔드포인트에 아이템을 한 번 더 요청하고, 각 엔드포인트의 응답을 표시합니다.</value>
+  </data>
+  <data name="Offered" xml:space="preserve">
+    <value>제공 아이템</value>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>아이템</value>
+  </data>
+  <data name="TipOpenInTheItemBrowser" xml:space="preserve">
+    <value>아이템 브라우저에서 열기</value>
+  </data>
+  <data name="ColQty" xml:space="preserve">
+    <value>수량</value>
+  </data>
+  <data name="ColMarketValue" xml:space="preserve">
+    <value>거래소 가치</value>
+  </data>
+  <data name="ColBuildValue" xml:space="preserve">
+    <value>제조 가치</value>
+  </data>
+  <data name="ColDetails" xml:space="preserve">
+    <value>세부 정보</value>
+  </data>
+  <data name="Requested" xml:space="preserve">
+    <value>요구 아이템</value>
+  </data>
+  <data name="TabCorporationPersonal" xml:space="preserve">
+    <value>코퍼레이션 및 개인</value>
+  </data>
+  <data name="ScopeLabel" xml:space="preserve">
+    <value>범위:</value>
+  </data>
+  <data name="StatusLabel" xml:space="preserve">
+    <value>상태:</value>
+  </data>
+  <data name="AssigneeLabel" xml:space="preserve">
+    <value>지정 대상:</value>
+  </data>
+  <data name="AcceptorLabel" xml:space="preserve">
+    <value>수락인:</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>↻ 새로고침</value>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>종류</value>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>상태</value>
+  </data>
+  <data name="ColContents" xml:space="preserve">
+    <value>내용</value>
+  </data>
+  <data name="ColFrom" xml:space="preserve">
+    <value>발행자</value>
+  </data>
+  <data name="ColAssignee" xml:space="preserve">
+    <value>지정 대상</value>
+  </data>
+  <data name="ColAcceptor" xml:space="preserve">
+    <value>수락인</value>
+  </data>
+  <data name="ColPrice" xml:space="preserve">
+    <value>가격</value>
+  </data>
+  <data name="ColReward" xml:space="preserve">
+    <value>보상금</value>
+  </data>
+  <data name="ColIssued" xml:space="preserve">
+    <value>발행일</value>
+  </data>
+  <data name="ColExpires" xml:space="preserve">
+    <value>만료일</value>
+  </data>
+  <data name="SelectAContractToNote" xml:space="preserve">
+    <value>계약을 선택하면 세부 정보를 볼 수 있습니다.</value>
+  </data>
+  <data name="TabPublic" xml:space="preserve">
+    <value>공개</value>
+  </data>
+  <data name="ShowLabel" xml:space="preserve">
+    <value>표시:</value>
+  </data>
+  <data name="ContractLabel" xml:space="preserve">
+    <value>계약:</value>
+  </data>
+  <data name="RegionLabel" xml:space="preserve">
+    <value>지역:</value>
+  </data>
+  <data name="CategoryLabel" xml:space="preserve">
+    <value>분류:</value>
+  </data>
+  <data name="ItemLabel" xml:space="preserve">
+    <value>아이템:</value>
+  </data>
+  <data name="HintTypeName" xml:space="preserve">
+    <value>아이템 이름…</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>지우기</value>
+  </data>
+  <data name="SortLabel" xml:space="preserve">
+    <value>정렬:</value>
+  </data>
+  <data name="ColRegion" xml:space="preserve">
+    <value>지역</value>
+  </data>
+  <data name="ColVolM" xml:space="preserve">
+    <value>부피 m³</value>
+  </data>
+  <data name="First" xml:space="preserve">
+    <value>⏮ 처음</value>
+  </data>
+  <data name="Prev" xml:space="preserve">
+    <value>◀ 이전</value>
+  </data>
+  <data name="Next" xml:space="preserve">
+    <value>다음 ▶</value>
+  </data>
+  <data name="Last" xml:space="preserve">
+    <value>마지막 ⏭</value>
+  </data>
+  <data name="TabCurrentValues" xml:space="preserve">
+    <value>현재 가치</value>
+  </data>
+  <data name="Recalculate" xml:space="preserve">
+    <value>다시 계산</value>
+  </data>
+  <data name="TipRePriceEveryOffer" xml:space="preserve">
+    <value>현재 거래소 가격과 계약 가격으로 모든 상품의 가치를 다시 매깁니다. 거래소 가격이 갱신될 때 자동으로 실행되며, 이 버튼은 지금 바로 실행합니다.</value>
+  </data>
+  <data name="MeanIskPerLoyaltyNote" xml:space="preserve">
+    <value>각 스토어에서 가치가 0보다 큰 상품들의 로열티 포인트당 평균 ISK입니다. 가치가 0 이하인 상품은 아무도 LP를 쓰지 않으므로 아이템 브라우저에서 아이템별로는 표시되지만 여기서는 세지 않으며, 중앙값도 정확히 같은 상품들을 대상으로 합니다. LP를 보유한 코퍼레이션이 먼저 표시됩니다. 행을 두 번 클릭하면 기록을 볼 수 있습니다.</value>
+  </data>
+  <data name="ColCorporation" xml:space="preserve">
+    <value>코퍼레이션</value>
+  </data>
+  <data name="TipOpenInNpcEntities" xml:space="preserve">
+    <value>NPC 개체에서 열기</value>
+  </data>
+  <data name="ColIskLp" xml:space="preserve">
+    <value>ISK / LP</value>
+  </data>
+  <data name="TipMeanIskPerLp" xml:space="preserve">
+    <value>이 코퍼레이션에서 집계된 상품들의 LP당 평균 ISK입니다.</value>
+  </data>
+  <data name="ColMedian" xml:space="preserve">
+    <value>중앙값</value>
+  </data>
+  <data name="TipTheMiddleOfferOver" xml:space="preserve">
+    <value>평균과 같은 집계 대상 상품 중 가운데에 있는 상품입니다. 평균보다 크게 낮으면 강조 표시되며, 이는 소수의 매우 높은 상품이 평균을 일반적인 상품의 수익보다 높게 끌어올리고 있다는 뜻입니다.</value>
+  </data>
+  <data name="ColBestOffer" xml:space="preserve">
+    <value>최고 상품</value>
+  </data>
+  <data name="ColBestItem" xml:space="preserve">
+    <value>최고 아이템</value>
+  </data>
+  <data name="TipOpenInItemBrowser" xml:space="preserve">
+    <value>아이템 브라우저에서 열기</value>
+  </data>
+  <data name="ColCounted" xml:space="preserve">
+    <value>집계 수</value>
+  </data>
+  <data name="TipOffersBehindTheseFigures" xml:space="preserve">
+    <value>이 수치의 근거가 된 상품 수와 스토어 전체 상품 수입니다. 가격을 매길 수 없는 상품과 가치가 0 이하인 상품은 제외합니다 — 아무도 그런 상품에 LP를 쓰지 않으므로, 아이템별로는 표시되지만 여기서 평균을 내지는 않습니다.</value>
+  </data>
+  <data name="ColYourLp" xml:space="preserve">
+    <value>보유 LP</value>
+  </data>
+  <data name="ColHoldingWorth" xml:space="preserve">
+    <value>보유 가치</value>
+  </data>
+  <data name="ColUpdated" xml:space="preserve">
+    <value>갱신 시각</value>
+  </data>
+  <data name="TabHistory" xml:space="preserve">
+    <value>기록</value>
+  </data>
+  <data name="CorporationLabel" xml:space="preserve">
+    <value>코퍼레이션:</value>
+  </data>
+  <data name="PeriodLabel" xml:space="preserve">
+    <value>기간:</value>
+  </data>
+  <data name="AddGroup" xml:space="preserve">
+    <value>+ 그룹 추가</value>
+  </data>
+  <data name="Collection" xml:space="preserve">
+    <value>+ 컬렉션</value>
+  </data>
+  <data name="MenuOpenInItemBrowser" xml:space="preserve">
+    <value>아이템 브라우저에서 열기</value>
+  </data>
+  <data name="MenuAddItemsFromFit" xml:space="preserve">
+    <value>피팅에서 아이템 추가</value>
+  </data>
+  <data name="MenuAddItemsFromMarketGroup" xml:space="preserve">
+    <value>거래소 그룹에서 아이템 추가</value>
+  </data>
+  <data name="MenuAddItemsFromBlueprint" xml:space="preserve">
+    <value>블루프린트에서 아이템 추가</value>
+  </data>
+  <data name="MenuDeleteItem" xml:space="preserve">
+    <value>아이템 삭제</value>
+  </data>
+  <data name="ColGroupItem" xml:space="preserve">
+    <value>그룹 / 아이템</value>
+  </data>
+  <data name="TipExpandAllGroups" xml:space="preserve">
+    <value>모든 그룹 펼치기</value>
+  </data>
+  <data name="TipCollapseAllGroups" xml:space="preserve">
+    <value>모든 그룹 접기</value>
+  </data>
+  <data name="Rename" xml:space="preserve">
+    <value>이름 변경</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>삭제</value>
+  </data>
+  <data name="Item" xml:space="preserve">
+    <value>+ 아이템</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>수정</value>
+  </data>
+  <data name="ColTarget" xml:space="preserve">
+    <value>목표</value>
+  </data>
+  <data name="ColTgtTotal" xml:space="preserve">
+    <value>목표 합계</value>
+  </data>
+  <data name="ColAvail" xml:space="preserve">
+    <value>판매 중</value>
+  </data>
+  <data name="ColDiff" xml:space="preserve">
+    <value>차이</value>
+  </data>
+  <data name="ColMktPrice" xml:space="preserve">
+    <value>시세</value>
+  </data>
+  <data name="ColStMin" xml:space="preserve">
+    <value>정거장 최저</value>
+  </data>
+  <data name="ColStAvg" xml:space="preserve">
+    <value>정거장 평균</value>
+  </data>
+  <data name="ColStMax" xml:space="preserve">
+    <value>정거장 최고</value>
+  </data>
+  <data name="ColBuildPrice" xml:space="preserve">
+    <value>제조 가격</value>
+  </data>
+  <data name="ColVolumeM" xml:space="preserve">
+    <value>부피 (m³)</value>
+  </data>
+  <data name="TitleMarketLevels" xml:space="preserve">
+    <value>거래소 재고 수준</value>
+  </data>
+  <data name="TabSummary" xml:space="preserve">
+    <value>요약</value>
+  </data>
+  <data name="SellOrderCountLabel" xml:space="preserve">
+    <value>판매 주문 수</value>
+  </data>
+  <data name="SellOrderIskLabel" xml:space="preserve">
+    <value>판매 주문 ISK</value>
+  </data>
+  <data name="SellOrderTypesLabel" xml:space="preserve">
+    <value>판매 주문 종류 수</value>
+  </data>
+  <data name="BuyOrderCountLabel" xml:space="preserve">
+    <value>구매 주문 수</value>
+  </data>
+  <data name="BuyOrderIskLabel" xml:space="preserve">
+    <value>구매 주문 ISK</value>
+  </data>
+  <data name="BuyOrderTypesLabel" xml:space="preserve">
+    <value>구매 주문 종류 수</value>
+  </data>
+  <data name="SalesUnitsLabel" xml:space="preserve">
+    <value>판매 수량</value>
+  </data>
+  <data name="SalesIskLabel" xml:space="preserve">
+    <value>판매 ISK</value>
+  </data>
+  <data name="SalesTypesLabel" xml:space="preserve">
+    <value>판매 종류 수</value>
+  </data>
+  <data name="SellOrdersByType" xml:space="preserve">
+    <value>종류별 판매 주문</value>
+  </data>
+  <data name="NoSellOrdersForThis" xml:space="preserve">
+    <value>선택한 범위에 판매 주문이 없습니다.</value>
+  </data>
+  <data name="BuyOrdersByType" xml:space="preserve">
+    <value>종류별 구매 주문</value>
+  </data>
+  <data name="NoBuyOrdersForThis" xml:space="preserve">
+    <value>선택한 범위에 구매 주문이 없습니다.</value>
+  </data>
+  <data name="SalesByMarketGroup" xml:space="preserve">
+    <value>거래소 그룹별 판매</value>
+  </data>
+  <data name="NoSalesForThisSelection" xml:space="preserve">
+    <value>선택한 범위에 판매 내역이 없습니다.</value>
+  </data>
+  <data name="DailySalesIsk" xml:space="preserve">
+    <value>일일 판매 ISK</value>
+  </data>
+  <data name="NoSalesHistoryForThis" xml:space="preserve">
+    <value>선택한 범위에 판매 기록이 없습니다.</value>
+  </data>
+  <data name="TabByMarketGroup" xml:space="preserve">
+    <value>거래소 그룹별</value>
+  </data>
+  <data name="ColMarketGroup" xml:space="preserve">
+    <value>거래소 그룹</value>
+  </data>
+  <data name="ColSellOrderUnits" xml:space="preserve">
+    <value>판매 주문 수량</value>
+  </data>
+  <data name="ColSellOrderIsk" xml:space="preserve">
+    <value>판매 주문 ISK</value>
+  </data>
+  <data name="ColBuyOrderUnits" xml:space="preserve">
+    <value>구매 주문 수량</value>
+  </data>
+  <data name="ColBuyOrderIsk" xml:space="preserve">
+    <value>구매 주문 ISK</value>
+  </data>
+  <data name="ColSalesUnits" xml:space="preserve">
+    <value>판매 수량</value>
+  </data>
+  <data name="ColSalesIsk" xml:space="preserve">
+    <value>판매 ISK</value>
+  </data>
+  <data name="TabByType" xml:space="preserve">
+    <value>종류별</value>
+  </data>
+  <data name="TabSellOrdersByType" xml:space="preserve">
+    <value>종류별 판매 주문</value>
+  </data>
+  <data name="ColUnits" xml:space="preserve">
+    <value>수량</value>
+  </data>
+  <data name="TabBuyOrdersByType" xml:space="preserve">
+    <value>종류별 구매 주문</value>
+  </data>
+  <data name="TitleStandingBuyOrder" xml:space="preserve">
+    <value>상시 구매 주문</value>
+  </data>
+  <data name="DeclareABuyOrderNote" xml:space="preserve">
+    <value>계속 유지하려는 구매 주문을 등록합니다. EVE Console은 이 위치에 일치하는 실제 구매 주문이 있는지, 그리고 얼마나 남아 있는지 알려 줍니다.</value>
+  </data>
+  <data name="ItemTypeLabel" xml:space="preserve">
+    <value>아이템 종류</value>
+  </data>
+  <data name="HintSearchForItemType" xml:space="preserve">
+    <value>아이템 종류 검색…</value>
+  </data>
+  <data name="StationStructureLabel" xml:space="preserve">
+    <value>정거장 / 구조물</value>
+  </data>
+  <data name="HintSearchForStationOrStructure" xml:space="preserve">
+    <value>정거장 또는 구조물 검색…</value>
+  </data>
+  <data name="NpcStationsPlayerStructuresNote" xml:space="preserve">
+    <value>NPC 정거장, 플레이어 구조물, 내 코퍼레이션의 구조물을 모두 검색할 수 있습니다.</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>저장</value>
+  </data>
+  <data name="StandingBuyOrders" xml:space="preserve">
+    <value>상시 구매 주문</value>
+  </data>
+  <data name="BuyOrdersYouIntendNote" xml:space="preserve">
+    <value>정거장이나 구조물에 계속 유지하려는 구매 주문입니다. 각 주문은 내 캐릭터와 코퍼레이션의 실제 구매 주문과 대조됩니다.</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>추가</value>
+  </data>
+  <data name="Refresh2" xml:space="preserve">
+    <value>새로고침</value>
+  </data>
+  <data name="ColLocation" xml:space="preserve">
+    <value>위치</value>
+  </data>
+  <data name="TipOpenThisStationOrStructure" xml:space="preserve">
+    <value>이 정거장 또는 구조물 열기</value>
+  </data>
+  <data name="ColHeldBy" xml:space="preserve">
+    <value>보유자</value>
+  </data>
+  <data name="ColOurBid" xml:space="preserve">
+    <value>내 주문가</value>
+  </data>
+  <data name="ColStationBestBid" xml:space="preserve">
+    <value>정거장 최고 입찰가</value>
+  </data>
+  <data name="ColRemaining" xml:space="preserve">
+    <value>잔여량</value>
+  </data>
+  <data name="ColNote" xml:space="preserve">
+    <value>비고</value>
+  </data>
+  <data name="Calculate" xml:space="preserve">
+    <value>계산</value>
+  </data>
+  <data name="HintTypeToFilter" xml:space="preserve">
+    <value>필터 입력…</value>
+  </data>
+  <data name="CargoM" xml:space="preserve">
+    <value>화물 용량 (m³)</value>
+  </data>
+  <data name="IskCap" xml:space="preserve">
+    <value>ISK 상한</value>
+  </data>
+  <data name="HintNoLimit" xml:space="preserve">
+    <value>제한 없음</value>
+  </data>
+  <data name="Min30dIskVol" xml:space="preserve">
+    <value>최소 30일 ISK 거래액</value>
+  </data>
+  <data name="HintNoFilter" xml:space="preserve">
+    <value>필터 없음</value>
+  </data>
+  <data name="Min30dUnitVol" xml:space="preserve">
+    <value>최소 30일 거래량</value>
+  </data>
+  <data name="ExcludeGroups" xml:space="preserve">
+    <value>제외할 그룹</value>
+  </data>
+  <data name="TipRemoveThisExclusion" xml:space="preserve">
+    <value>이 제외 항목 제거</value>
+  </data>
+  <data name="VolumeLabel" xml:space="preserve">
+    <value>부피</value>
+  </data>
+  <data name="CostLabel" xml:space="preserve">
+    <value>비용</value>
+  </data>
+  <data name="ProfitLabel" xml:space="preserve">
+    <value>이익</value>
+  </data>
+  <data name="ColSellPrice" xml:space="preserve">
+    <value>판매가</value>
+  </data>
+  <data name="ColDestPrice" xml:space="preserve">
+    <value>목적지 가격</value>
+  </data>
+  <data name="ColProfitUnit" xml:space="preserve">
+    <value>개당 이익</value>
+  </data>
+  <data name="ColProfitM" xml:space="preserve">
+    <value>m³당 이익</value>
+  </data>
+  <data name="ColVolumeM2" xml:space="preserve">
+    <value>부피 (m³)</value>
+  </data>
+  <data name="ColTotalCost" xml:space="preserve">
+    <value>총 비용</value>
+  </data>
+  <data name="ColTotalProfit" xml:space="preserve">
+    <value>총 이익</value>
+  </data>
+  <data name="ScanningForTradeOpportunities" xml:space="preserve">
+    <value>무역 기회 검색 중…</value>
+  </data>
+  <data name="TitleTradeOpportunities" xml:space="preserve">
+    <value>무역 기회</value>
+  </data>
+  <data name="ContractTypeItemExchange" xml:space="preserve">
+    <value>아이템 교환</value>
+  </data>
+  <data name="ContractTypeAuction" xml:space="preserve">
+    <value>경매</value>
+  </data>
+  <data name="ContractTypeCourier" xml:space="preserve">
+    <value>운송</value>
+  </data>
+  <data name="ContractTypeLoan" xml:space="preserve">
+    <value>대여</value>
+  </data>
+  <data name="ContractExpired" xml:space="preserve">
+    <value>만료됨</value>
+  </data>
+  <data name="ContractTotalRow" xml:space="preserve">
+    <value>합계</value>
+  </data>
+  <data name="TipLinesUnpriced" xml:space="preserve">
+    <value>거래소 가격이 없는 {0:N0}개 행은 집계에 포함되지 않습니다</value>
+  </data>
+  <data name="TipEveryLinePriced" xml:space="preserve">
+    <value>모든 행에 가격이 있습니다</value>
+  </data>
+  <data name="TipLinesUncosted" xml:space="preserve">
+    <value>제조 비용이 없는 {0:N0}개 행은 집계에 포함되지 않습니다</value>
+  </data>
+  <data name="TipEveryLineCosted" xml:space="preserve">
+    <value>모든 행에 제조 비용이 있습니다</value>
+  </data>
+  <data name="ItemOffered" xml:space="preserve">
+    <value>제공</value>
+  </data>
+  <data name="ItemRequested" xml:space="preserve">
+    <value>요구</value>
+  </data>
+  <data name="TipNoMarketPrice" xml:space="preserve">
+    <value>이 아이템의 거래소 가격이 없습니다</value>
+  </data>
+  <data name="TipIskPerUnitMarket" xml:space="preserve">
+    <value>자산 가치 거래소 출처 기준 개당 {0} ISK</value>
+  </data>
+  <data name="TipNoBuildCost" xml:space="preserve">
+    <value>이 아이템의 제조 비용이 없습니다</value>
+  </data>
+  <data name="TipIskPerUnitBuild" xml:space="preserve">
+    <value>개당 제조 비용 {0} ISK</value>
+  </data>
+  <data name="AskingEsi" xml:space="preserve">
+    <value>ESI에 요청하는 중…</value>
+  </data>
+  <data name="ItemsHttpError" xml:space="preserve">
+    <value>아이템을 요청하자 ESI가 HTTP {0} 응답을 보냈습니다.</value>
+  </data>
+  <data name="ItemsNoneListed" xml:space="preserve">
+    <value>ESI가 아이템을 하나도 알려 주지 않았습니다.</value>
+  </data>
+  <data name="ItemsNotAskedYet" xml:space="preserve">
+    <value>아직 요청하지 않았습니다 — 백그라운드 수집에서 처리됩니다.</value>
+  </data>
+  <data name="NoTitle" xml:space="preserve">
+    <value>(제목 없음)</value>
+  </data>
+  <data name="AvailabilityPublic" xml:space="preserve">
+    <value>공개</value>
+  </data>
+  <data name="AvailabilityPrivate" xml:space="preserve">
+    <value>비공개</value>
+  </data>
+  <data name="LocationNumbered" xml:space="preserve">
+    <value>위치 {0}</value>
+  </data>
+  <data name="TipIssuedForCorp" xml:space="preserve">
+    <value>{0}이(가) 코퍼레이션 명의로 발행했습니다. 클릭하면 개체 브라우저에서 열립니다.</value>
+  </data>
+  <data name="TipOpenEntity" xml:space="preserve">
+    <value>개체 브라우저에서 열기</value>
+  </data>
+  <data name="FilterAllStatuses" xml:space="preserve">
+    <value>모든 상태</value>
+  </data>
+  <data name="FilterActive" xml:space="preserve">
+    <value>활성</value>
+  </data>
+  <data name="ContractNotStored" xml:space="preserve">
+    <value>계약 {0}은(는) 이곳에 저장되어 있지 않습니다 — 공개 계약이거나 아직 폴링되지 않았을 수 있습니다.</value>
+  </data>
+  <data name="ContractContentsAndMore" xml:space="preserve">
+    <value>{0} 외 {1}개</value>
+  </data>
+  <data name="ContractContentsItems" xml:space="preserve">
+    <value>아이템 {0}개</value>
+  </data>
+  <data name="ContractContentsCourier" xml:space="preserve">
+    <value>(운송)</value>
+  </data>
+  <data name="ContractItemBpc" xml:space="preserve">
+    <value>BPC</value>
+  </data>
+  <data name="ContractItemBpo" xml:space="preserve">
+    <value>BPO</value>
+  </data>
+  <data name="ContractItemRuns" xml:space="preserve">
+    <value>{0}회</value>
+  </data>
+  <data name="ContractItemAssembled" xml:space="preserve">
+    <value>조립 완료</value>
+  </data>
+  <data name="NotAvailable" xml:space="preserve">
+    <value>사용할 수 없습니다.</value>
+  </data>
+  <data name="LoadingContracts" xml:space="preserve">
+    <value>계약 불러오는 중…</value>
+  </data>
+  <data name="ScopeAllOwners" xml:space="preserve">
+    <value>모든 소유자</value>
+  </data>
+  <data name="ScopeAllCharsCorps" xml:space="preserve">
+    <value>모든 캐릭터 및 개인 코퍼레이션</value>
+  </data>
+  <data name="AllianceNumbered" xml:space="preserve">
+    <value>얼라이언스 {0}</value>
+  </data>
+  <data name="AllAssignees" xml:space="preserve">
+    <value>모든 지정 대상</value>
+  </data>
+  <data name="AllAcceptors" xml:space="preserve">
+    <value>모든 수락인</value>
+  </data>
+  <data name="NoContractsStored" xml:space="preserve">
+    <value>아직 저장된 코퍼레이션 또는 개인 계약이 없습니다.</value>
+  </data>
+  <data name="SortPriceLowHigh" xml:space="preserve">
+    <value>가격: 낮은 순</value>
+  </data>
+  <data name="SortPriceHighLow" xml:space="preserve">
+    <value>가격: 높은 순</value>
+  </data>
+  <data name="SortNewest" xml:space="preserve">
+    <value>최신순</value>
+  </data>
+  <data name="SortOldest" xml:space="preserve">
+    <value>오래된 순</value>
+  </data>
+  <data name="SortRewardHighLow" xml:space="preserve">
+    <value>보상금: 높은 순</value>
+  </data>
+  <data name="SortVolumeHighLow" xml:space="preserve">
+    <value>부피: 큰 순</value>
+  </data>
+  <data name="SortContentsAz" xml:space="preserve">
+    <value>내용 (A → Z)</value>
+  </data>
+  <data name="AllCategories" xml:space="preserve">
+    <value>모든 분류</value>
+  </data>
+  <data name="NoResults" xml:space="preserve">
+    <value>결과 없음</value>
+  </data>
+  <data name="PageOfContracts" xml:space="preserve">
+    <value>{0:N0} / {1:N0} 페이지  ·  계약 {2:N0}건</value>
+  </data>
+  <data name="AllRegions" xml:space="preserve">
+    <value>모든 지역</value>
+  </data>
+  <data name="FilterHistorical" xml:space="preserve">
+    <value>지난 계약</value>
+  </data>
+  <data name="FilterAllContracts" xml:space="preserve">
+    <value>전체</value>
+  </data>
+  <data name="ContractTypeAll" xml:space="preserve">
+    <value>모든 종류</value>
+  </data>
+  <data name="ContractStatusOutstanding" xml:space="preserve">
+    <value>미체결</value>
+  </data>
+  <data name="ContractStatusInProgress" xml:space="preserve">
+    <value>진행 중</value>
+  </data>
+  <data name="ContractStatusFinished" xml:space="preserve">
+    <value>완료</value>
+  </data>
+  <data name="ContractStatusFinishedIssuer" xml:space="preserve">
+    <value>완료 (발행자)</value>
+  </data>
+  <data name="ContractStatusFinishedContractor" xml:space="preserve">
+    <value>완료 (계약자)</value>
+  </data>
+  <data name="ContractStatusCancelled" xml:space="preserve">
+    <value>취소됨</value>
+  </data>
+  <data name="ContractStatusRejected" xml:space="preserve">
+    <value>거절됨</value>
+  </data>
+  <data name="ContractStatusFailed" xml:space="preserve">
+    <value>실패</value>
+  </data>
+  <data name="ContractStatusDeleted" xml:space="preserve">
+    <value>삭제됨</value>
+  </data>
+  <data name="ContractStatusReversed" xml:space="preserve">
+    <value>철회됨</value>
+  </data>
+  <data name="PeriodAllTime" xml:space="preserve">
+    <value>전체 기간</value>
+  </data>
+  <data name="PeriodLast365Days" xml:space="preserve">
+    <value>최근 365일</value>
+  </data>
+  <data name="PeriodLast90Days" xml:space="preserve">
+    <value>최근 90일</value>
+  </data>
+  <data name="PeriodLast30Days" xml:space="preserve">
+    <value>최근 30일</value>
+  </data>
+  <data name="PeriodLast7Days" xml:space="preserve">
+    <value>최근 7일</value>
+  </data>
+  <data name="RegionNumbered" xml:space="preserve">
+    <value>지역 {0}</value>
+  </data>
+  <data name="TypeNumbered" xml:space="preserve">
+    <value>종류 {0}</value>
+  </data>
+  <data name="SeriesSalesIsk" xml:space="preserve">
+    <value>판매 ISK</value>
+  </data>
+  <data name="StatusAllRegions" xml:space="preserve">
+    <value>모든 지역</value>
+  </data>
+  <data name="PieOther" xml:space="preserve">
+    <value>기타</value>
+  </data>
+  <data name="GroupNumbered" xml:space="preserve">
+    <value>그룹 {0}</value>
+  </data>
+  <data name="NoMarketDataForSelection" xml:space="preserve">
+    <value>선택한 범위에 거래소 데이터가 없습니다.</value>
+  </data>
+  <data name="StatusMarketGroupCount" xml:space="preserve">
+    <value>거래소 그룹 {0:N0}개</value>
+  </data>
+  <data name="StatusTypeCount" xml:space="preserve">
+    <value>아이템 {0:N0}종</value>
+  </data>
+  <data name="NoOrdersForSelection" xml:space="preserve">
+    <value>선택한 범위에 주문이 없습니다.</value>
+  </data>
+  <data name="StatusAllItemsAlreadyInGroup" xml:space="preserve">
+    <value>'{0}'의 모든 아이템이 이미 그룹에 있습니다.</value>
+  </data>
+  <data name="TypeIdNumbered" xml:space="preserve">
+    <value>타입 ID {0}</value>
+  </data>
+  <data name="StatusAddedItemsSkipped" xml:space="preserve">
+    <value>'{1}'에서 아이템 {0}개를 추가했습니다. {2}개는 이미 있어 건너뛰었습니다.</value>
+  </data>
+  <data name="StatusAddedItems" xml:space="preserve">
+    <value>'{1}'에서 아이템 {0}개를 추가했습니다.</value>
+  </data>
+  <data name="StatusLoadingItemsIn" xml:space="preserve">
+    <value>'{0}'의 아이템 불러오는 중…</value>
+  </data>
+  <data name="StatusNoPublishedItemsUnder" xml:space="preserve">
+    <value>'{0}' 아래에서 게임에 등록된 아이템을 찾을 수 없습니다.</value>
+  </data>
+  <data name="StatusCancelled" xml:space="preserve">
+    <value>취소되었습니다.</value>
+  </data>
+  <data name="StatusNoGroupSelected" xml:space="preserve">
+    <value>선택된 그룹이 없습니다.</value>
+  </data>
+  <data name="StatusCalculatingMaterials" xml:space="preserve">
+    <value>재료 계산 중…</value>
+  </data>
+  <data name="StatusCalculationError" xml:space="preserve">
+    <value>계산 오류: {0}</value>
+  </data>
+  <data name="StatusNoMaterialsForBlueprint" xml:space="preserve">
+    <value>해당 블루프린트의 재료를 찾을 수 없습니다.</value>
+  </data>
+  <data name="SourceAssetDefault" xml:space="preserve">
+    <value>— 자산 기본값 —</value>
+  </data>
+  <data name="CollectionDefaultChoice" xml:space="preserve">
+    <value>— 기본 —</value>
+  </data>
+  <data name="CollectionDefault" xml:space="preserve">
+    <value>기본</value>
+  </data>
+  <data name="StatusNoGroups" xml:space="preserve">
+    <value>설정된 그룹이 없습니다. '{0}'을(를) 클릭하여 그룹을 만드십시오.</value>
+  </data>
+  <data name="StatusGroupsAndItems" xml:space="preserve">
+    <value>그룹 {0}개, 아이템 {1}개</value>
+  </data>
+  <data name="DataFromHoursAgo" xml:space="preserve">
+    <value>{0}시간 {1}분 전 데이터</value>
+  </data>
+  <data name="DataFromMinutesAgo" xml:space="preserve">
+    <value>{0}분 전 데이터</value>
+  </data>
+  <data name="DataFromJustNow" xml:space="preserve">
+    <value>방금 가져온 데이터</value>
+  </data>
+  <data name="StatusNoCachedOrders" xml:space="preserve">
+    <value>캐시된 주문이 없습니다 — 거래소 가격 계산을 실행하여 채우십시오.</value>
+  </data>
+  <data name="StatusGroupCount" xml:space="preserve">
+    <value>그룹 {0}개</value>
+  </data>
+  <data name="StatusCollectionDeleted" xml:space="preserve">
+    <value>컬렉션 '{0}'을(를) 삭제했습니다.</value>
+  </data>
+  <data name="StatusCollectionAdded" xml:space="preserve">
+    <value>컬렉션 '{0}'을(를) 추가했습니다.</value>
+  </data>
+  <data name="ModeSellToBuyOrder" xml:space="preserve">
+    <value>판매 주문에서 구매 → 구매 주문에 판매</value>
+  </data>
+  <data name="ModeUndercutSellOrder" xml:space="preserve">
+    <value>판매 주문에서 구매 → 최저가보다 싸게 판매 주문</value>
+  </data>
+  <data name="StatusSelectStations" xml:space="preserve">
+    <value>출발 정거장과 목적지 정거장을 선택한 다음 {0}을(를) 클릭하십시오.</value>
+  </data>
+  <data name="ErrSelectBothStations" xml:space="preserve">
+    <value>출발 정거장과 목적지 정거장을 모두 선택하십시오.</value>
+  </data>
+  <data name="ErrSameStation" xml:space="preserve">
+    <value>출발지와 목적지는 서로 다른 정거장이어야 합니다.</value>
+  </data>
+  <data name="ErrInvalidCargo" xml:space="preserve">
+    <value>올바른 화물 용량을 m³ 단위로 입력하십시오.</value>
+  </data>
+  <data name="ErrInvalidIskCap" xml:space="preserve">
+    <value>올바른 ISK 상한을 입력하십시오 (제한이 없으면 비워 두십시오).</value>
+  </data>
+  <data name="ErrInvalidMinIskVolume" xml:space="preserve">
+    <value>올바른 최소 ISK 거래액을 입력하십시오 (필터를 쓰지 않으려면 비워 두십시오).</value>
+  </data>
+  <data name="ErrInvalidMinUnitVolume" xml:space="preserve">
+    <value>올바른 최소 거래량을 입력하십시오 (필터를 쓰지 않으려면 비워 두십시오).</value>
+  </data>
+  <data name="StatusCalculating" xml:space="preserve">
+    <value>계산 중…</value>
+  </data>
+  <data name="ErrNoDestinationRegion" xml:space="preserve">
+    <value>목적지 정거장의 지역을 확인할 수 없습니다 — 거래량 필터가 작동하도록 그 위치의 거래소 데이터를 불러왔는지 확인하십시오.</value>
+  </data>
+  <data name="StatusNoOpportunities" xml:space="preserve">
+    <value>이 경로에서 이익이 나는 기회를 찾지 못했습니다.</value>
+  </data>
+  <data name="PeriodPast30Days" xml:space="preserve">
+    <value>지난 30일</value>
+  </data>
+  <data name="PeriodPast90Days" xml:space="preserve">
+    <value>지난 90일</value>
+  </data>
+  <data name="PeriodPast365Days" xml:space="preserve">
+    <value>지난 365일</value>
+  </data>
+  <data name="StatusRecalculatingLp" xml:space="preserve">
+    <value>LP 가치 다시 계산 중…</value>
+  </data>
+  <data name="StatusRecalculationFailed" xml:space="preserve">
+    <value>다시 계산 실패: {0}</value>
+  </data>
+  <data name="StatusNoLpValues" xml:space="preserve">
+    <value>아직 LP 가치가 없습니다 — 거래소 가격이 갱신될 때 계산됩니다.</value>
+  </data>
+  <data name="CorpNumbered" xml:space="preserve">
+    <value>코퍼레이션 {0}</value>
+  </data>
+  <data name="StatusCorpsValued" xml:space="preserve">
+    <value>코퍼레이션 {0:N0}개 평가 완료 — {1:M월 d일 HH:mm} 갱신</value>
+  </data>
+  <data name="HistoryNoneForCorp" xml:space="preserve">
+    <value>이 기간에는 {0}의 기록이 아직 없습니다. 가치를 다시 계산할 때마다 데이터 지점이 하나씩 기록됩니다.</value>
+  </data>
+  <data name="SeriesIskPerLp" xml:space="preserve">
+    <value>LP당 ISK</value>
+  </data>
+  <data name="HistoryRange" xml:space="preserve">
+    <value>{0:N0}일 — {1:N2} ~ {2:N2} ISK/LP</value>
+  </data>
+  <data name="TipStationNotTracked" xml:space="preserve">
+    <value>이 정거장은 설정된 거래소 출처가 아니므로 경쟁 입찰가를 알 수 없습니다. 설정 → 거래소에서 추가하십시오.</value>
+  </data>
+  <data name="TipOutbidBy" xml:space="preserve">
+    <value>{0:N2} ISK 차이로 가격 밀림 — 정거장 최고 입찰가는 {1:N2}입니다.</value>
+  </data>
+  <data name="TipNoOtherBids" xml:space="preserve">
+    <value>이곳에는 이 아이템의 다른 구매 주문이 없습니다.</value>
+  </data>
+  <data name="OrderStateMissing" xml:space="preserve">
+    <value>누락</value>
+  </data>
+  <data name="OrderStateOutbid" xml:space="preserve">
+    <value>가격 밀림</value>
+  </data>
+  <data name="OrderStateActive" xml:space="preserve">
+    <value>활성</value>
+  </data>
+  <data name="NoteNoLiveOrder" xml:space="preserve">
+    <value>이 위치에 실제 구매 주문이 없음</value>
+  </data>
+  <data name="NoteOutbidBy" xml:space="preserve">
+    <value>{0:N2} ISK 차이로 가격 밀림 (정거장 최고 {1:N2})</value>
+  </data>
+  <data name="NoteBelowVolume" xml:space="preserve">
+    <value>원래 수량의 {0:N0}% 미만</value>
+  </data>
+  <data name="NoteUnderDuration" xml:space="preserve">
+    <value>남은 기간 {0:N0}% 미만</value>
+  </data>
+  <data name="NoteNeedsAttention" xml:space="preserve">
+    <value>{0} — 조치 필요</value>
+  </data>
+  <data name="StatusNoStandingOrders" xml:space="preserve">
+    <value>아직 정의된 상시 구매 주문이 없습니다.</value>
+  </data>
+  <data name="StatusCountDefined" xml:space="preserve">
+    <value>{0:N0}건 정의됨</value>
+  </data>
+  <data name="StatusCountMissing" xml:space="preserve">
+    <value>{0:N0}건 누락</value>
+  </data>
+  <data name="StatusCountOutbid" xml:space="preserve">
+    <value>{0:N0}건 가격 밀림</value>
+  </data>
+  <data name="StatusCountRunningLow" xml:space="preserve">
+    <value>{0:N0}건 잔량 부족</value>
+  </data>
+  <data name="StatusCountExpiringSoon" xml:space="preserve">
+    <value>{0:N0}건 곧 만료</value>
+  </data>
+  <data name="StatusAllHealthy" xml:space="preserve">
+    <value>모두 정상</value>
+  </data>
+  <data name="StatusStandingOrderExists" xml:space="preserve">
+    <value>{1}에 {0}의 상시 주문이 이미 있습니다.</value>
+  </data>
+  <data name="ConfirmAddLargeGroup" xml:space="preserve">
+    <value>선택한 그룹에 아이템이 {0}개 있습니다. 모두 추가하시겠습니까?</value>
+  </data>
+  <data name="TitleAddCollection" xml:space="preserve">
+    <value>컬렉션 추가</value>
+  </data>
+  <data name="CollectionNameLabel" xml:space="preserve">
+    <value>컬렉션 이름</value>
+  </data>
+  <data name="TitleRenameCollection" xml:space="preserve">
+    <value>컬렉션 이름 변경</value>
+  </data>
+  <data name="TitleEditStandingBuyOrder" xml:space="preserve">
+    <value>상시 구매 주문 수정</value>
+  </data>
+  <data name="ErrPickItemType" xml:space="preserve">
+    <value>검색 결과에서 아이템 종류를 선택하십시오.</value>
+  </data>
+  <data name="ErrPickStation" xml:space="preserve">
+    <value>검색 결과에서 정거장이나 구조물을 선택하십시오.</value>
+  </data>
+  <data name="ConfirmDeleteStandingOrder" xml:space="preserve">
+    <value>이 상시 구매 주문을 삭제하시겠습니까?</value>
+  </data>
+  <data name="TitleAddGroup" xml:space="preserve">
+    <value>그룹 추가</value>
+  </data>
+  <data name="TitleEditGroup" xml:space="preserve">
+    <value>그룹 수정</value>
+  </data>
+  <data name="ErrGroupNameRequired" xml:space="preserve">
+    <value>그룹 이름을 입력해야 합니다.</value>
+  </data>
+  <data name="StatusItemTypesLoadedOther" xml:space="preserve">
+    <value>아이템 {0}종  ·  {1:N1} m³ 적재</value>
+  </data>
+  <data name="StationUnknown" xml:space="preserve">
+    <value>알 수 없음 ({0})</value>
+  </data>
+  <data name="CharacterNumbered" xml:space="preserve">
+    <value>#{0}</value>
+  </data>
+  <data name="NoOtherBids" xml:space="preserve">
+    <value>다른 입찰 없음</value>
+  </data>
+  <data name="PriceMaxOf" xml:space="preserve">
+    <value>{0:N2} (주문 {1}건 중 최고)</value>
+  </data>
+  <data name="OwnersCount" xml:space="preserve">
+    <value>보유자 {0}명</value>
+  </data>
+  <data name="TipOwnerOrderLine" xml:space="preserve">
+    <value>{0} — {1:N2} ISK, {2:N0}/{3:N0}, {4:yyyy-MM-dd} 만료</value>
+  </data>
+  <data name="OwnerOrdersCount" xml:space="preserve">
+    <value>{0} (주문 {1}건)</value>
+  </data>
+  <data name="ExpiryExpired" xml:space="preserve">
+    <value>{0:yyyy-MM-dd}  (만료됨)</value>
+  </data>
+  <data name="ExpiryDaysLeft" xml:space="preserve">
+    <value>{0:yyyy-MM-dd}  ({1}일 남음)</value>
+  </data>
+  <data name="ExpiryHoursLeft" xml:space="preserve">
+    <value>{0:yyyy-MM-dd}  ({1}시간 남음)</value>
+  </data>
+  <data name="ExpiryFirst" xml:space="preserve">
+    <value>{0} (가장 먼저 만료)</value>
+  </data>
+</root>

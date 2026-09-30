@@ -1,4 +1,5 @@
 using System.Text.Json;
+using EveConsole.Localization;
 
 namespace EveConsole.Agent;
 
@@ -13,6 +14,9 @@ namespace EveConsole.Agent;
 /// <para>The point of it is the zero. A reply that names ships, ISK and stations after calling
 /// nothing did not read the database, however plausible it sounds — and a model that has drifted
 /// into answering from memory is indistinguishable from one that looked, except here.</para>
+///
+/// <para>In the interface language. The chat history keeps the words a reply was saved with, so
+/// replies from before a language change keep the old language under them.</para>
 /// </summary>
 public static class ToolUseSummary
 {
@@ -22,8 +26,33 @@ public static class ToolUseSummary
             .Select(c => c.Value > 1 ? $"{c.Key} ×{c.Value}" : c.Key)
             .ToList();
         var total = counts.Sum(c => c.Value);
-        if (total == 0) return "no tool calls";
-        return $"{total} tool call{(total == 1 ? "" : "s")}: {string.Join(", ", parts)}";
+        if (total == 0) return AgentText.ToolCallsNone;
+        return Plurals.Format(AgentText.ResourceManager, nameof(AgentText.ToolCallsOther), total, string.Join(", ", parts));
+    }
+
+    /// <summary>The counts as the chat history and the telemetry keep them,
+    /// <c>{"query_database":2,"show_table":1}</c>; <c>{}</c> for a turn that called nothing.</summary>
+    public static string Encode(IReadOnlyDictionary<string, int> counts) => JsonSerializer.Serialize(counts);
+
+    /// <summary>
+    /// What a reply saved before the counts were kept: the English words, "no tool calls" or
+    /// "3 tool calls: query_database ×2, show_table". Read back into counts, so they are worded in
+    /// the language of the day too; null for anything else.
+    /// </summary>
+    public static IReadOnlyList<KeyValuePair<string, int>>? ReadEnglish(string text)
+    {
+        if (text == "no tool calls") return [];
+        var m = System.Text.RegularExpressions.Regex.Match(text, @"^\d+ tool calls?: (.+)$");
+        if (!m.Success) return null;
+        var counts = new List<KeyValuePair<string, int>>();
+        foreach (var part in m.Groups[1].Value.Split(", "))
+        {
+            var x = part.LastIndexOf(" ×", StringComparison.Ordinal);
+            if (x < 0) counts.Add(new(part, 1));
+            else if (int.TryParse(part[(x + 2)..], out var n)) counts.Add(new(part[..x], n));
+            else return null;
+        }
+        return counts;
     }
 
     /// <summary>From the telemetry's own record, <c>{"query_database":2,"show_table":1}</c>.</summary>

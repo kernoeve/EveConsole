@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="CopyMarkdown" xml:space="preserve">
+    <value>Markdown 복사</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>저장</value>
+  </data>
+  <data name="CopySelected" xml:space="preserve">
+    <value>선택 항목 복사</value>
+  </data>
+  <data name="TipCopiesTheSelectedRows" xml:space="preserve">
+    <value>선택한 행을 머리글과 함께 탭으로 구분된 텍스트로 복사합니다 — 스프레드시트에 바로 붙여 넣을 수 있습니다. Ctrl+C도 같은 기능을 합니다.</value>
+  </data>
+  <data name="CopyAll" xml:space="preserve">
+    <value>모두 복사</value>
+  </data>
+  <data name="SaveCsv" xml:space="preserve">
+    <value>CSV 저장</value>
+  </data>
+  <data name="AiCompanion" xml:space="preserve">
+    <value>AI 도우미</value>
+  </data>
+  <data name="TipVoiceVolumeIndependentOfSystem" xml:space="preserve">
+    <value>음성 볼륨 (시스템 볼륨과 별개)</value>
+  </data>
+  <data name="TipClearConversation" xml:space="preserve">
+    <value>대화 지우기</value>
+  </data>
+  <data name="TipClosePanel" xml:space="preserve">
+    <value>패널 닫기</value>
+  </data>
+  <data name="EarlierContextSummarized" xml:space="preserve">
+    <value>— 이전 대화 내용 요약됨 —</value>
+  </data>
+  <data name="TipHoldToTalkRelease" xml:space="preserve">
+    <value>누르고 있는 동안 말하고, 놓으면 전송합니다. 전역 단축키를 누르고 있어도 됩니다.</value>
+  </data>
+  <data name="FmtMuteUnmuteVoice" xml:space="preserve">
+    <value>{0} 음성 음소거 / 음소거 해제</value>
+  </data>
+  <data name="AskWatermark" xml:space="preserve">
+    <value>{0}에게 질문…</value>
+  </data>
+  <data name="ErrMicrophoneFailed" xml:space="preserve">
+    <value>마이크 녹음을 시작하지 못했습니다. 설정 → {0}에서 마이크를 확인하십시오.</value>
+  </data>
+  <data name="StatusRecording" xml:space="preserve">
+    <value>녹음 중…</value>
+  </data>
+  <data name="StatusTranscribing" xml:space="preserve">
+    <value>텍스트로 변환 중…</value>
+  </data>
+  <data name="StatusNoSpeechCaptured" xml:space="preserve">
+    <value>녹음된 음성이 없습니다 — 말하는 동안 키를 누르고 계십시오.</value>
+  </data>
+  <data name="StatusNoSpeechDetected" xml:space="preserve">
+    <value>음성이 감지되지 않았습니다 — 조금 더 길게 말해 보십시오.</value>
+  </data>
+  <data name="ErrTranscriptionFailed" xml:space="preserve">
+    <value>텍스트 변환 실패: {0}</value>
+  </data>
+  <data name="ErrNoModel" xml:space="preserve">
+    <value>설정된 모델이 없습니다. 설정 → {0}에서 키 또는 서버 주소와 함께 모델을 추가하십시오.</value>
+  </data>
+  <data name="ErrAgentDisabled" xml:space="preserve">
+    <value>AI 도우미가 비활성화되어 있습니다. 설정 → {0}에서 활성화하십시오.</value>
+  </data>
+  <data name="StatusOrganizingContext" xml:space="preserve">
+    <value>대화 내용 정리 중…</value>
+  </data>
+  <data name="StatusThinking" xml:space="preserve">
+    <value>생각 중…</value>
+  </data>
+  <data name="StatusLookingIntoIt" xml:space="preserve">
+    <value>알아보는 중…</value>
+  </data>
+  <data name="ToolStatusQueryDatabase" xml:space="preserve">
+    <value>데이터베이스 읽는 중…</value>
+  </data>
+  <data name="ToolStatusDescribeTables" xml:space="preserve">
+    <value>스키마 확인 중…</value>
+  </data>
+  <data name="ToolStatusGetAssets" xml:space="preserve">
+    <value>자산 조회 중…</value>
+  </data>
+  <data name="ToolStatusGetIndustryJobs" xml:space="preserve">
+    <value>산업 작업 조회 중…</value>
+  </data>
+  <data name="ToolStatusGetCharacterInfo" xml:space="preserve">
+    <value>캐릭터 조회 중…</value>
+  </data>
+  <data name="ToolStatusGetMarketPrices" xml:space="preserve">
+    <value>거래소 시세 확인 중…</value>
+  </data>
+  <data name="ToolStatusSearchItems" xml:space="preserve">
+    <value>아이템 검색 중…</value>
+  </data>
+  <data name="ToolStatusCaptureTab" xml:space="preserve">
+    <value>화면 보는 중…</value>
+  </data>
+  <data name="ToolStatusManageAlarms" xml:space="preserve">
+    <value>알람 설정 중…</value>
+  </data>
+  <data name="ToolStatusWorking" xml:space="preserve">
+    <value>작업 중…</value>
+  </data>
+  <data name="StatusCopiedRows" xml:space="preserve">
+    <value>{0:N0}개 행을 머리글과 함께 복사했습니다.</value>
+  </data>
+  <data name="StatusSavedRows" xml:space="preserve">
+    <value>{0:N0}개 행을 {1}에 저장했습니다</value>
+  </data>
+  <data name="StatusCopiedDocument" xml:space="preserve">
+    <value>문서를 Markdown으로 복사했습니다.</value>
+  </data>
+  <data name="StatusSavedTo" xml:space="preserve">
+    <value>{0}에 저장했습니다</value>
+  </data>
+  <data name="TitleSaveDocument" xml:space="preserve">
+    <value>문서 저장</value>
+  </data>
+  <data name="FileTypeText" xml:space="preserve">
+    <value>텍스트</value>
+  </data>
+  <data name="FileTypeAllFiles" xml:space="preserve">
+    <value>모든 파일</value>
+  </data>
+  <data name="TitleSaveGrid" xml:space="preserve">
+    <value>표 저장</value>
+  </data>
+  <data name="ErrDocumentRender" xml:space="preserve">
+    <value>이 문서를 표시할 수 없습니다: {0}</value>
+  </data>
+  <data name="GridRowsOther" xml:space="preserve">
+    <value>{0:N0}행</value>
+  </data>
+  <data name="ToolCallsNone" xml:space="preserve">
+    <value>도구 호출 없음</value>
+  </data>
+  <data name="ToolCallsOther" xml:space="preserve">
+    <value>도구 호출 {0}회: {1}</value>
+  </data>
+  <data name="MetaAlarm" xml:space="preserve">
+    <value>알람</value>
+  </data>
+  <data name="MetaVoiceChange" xml:space="preserve">
+    <value>음성 변경</value>
+  </data>
+  <data name="MetaModelChange" xml:space="preserve">
+    <value>모델 변경</value>
+  </data>
+</root>

@@ -1,6 +1,7 @@
 using EveConsole.Data;
 using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.Services.Worklist;
 
@@ -30,8 +31,8 @@ public sealed record BlueprintStock
     public required bool   LockedInJob  { get; init; }
 
     public string Describe() => IsOriginal
-        ? $"BPO ME{Me}/TE{Te}"
-        : $"BPC ME{Me}/TE{Te}, {Runs:N0} run(s) left";
+        ? string.Format(WorklistText.PrintDescribeBpo, Me, Te)
+        : string.Format(WorklistText.PrintDescribeBpc, Me, Te, Runs);
 }
 
 /// <summary>
