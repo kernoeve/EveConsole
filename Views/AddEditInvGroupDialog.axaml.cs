@@ -108,7 +108,7 @@ public partial class AddEditInvGroupDialog : Window
             .OrderBy(x => x.Name, StringComparer.CurrentCulture)
             .ToList();
 
-        LocationListBox.ItemsSource      = shown.Select(x => x.Name).ToList();
+        LocationListBox.ItemsSource      = shown.Select(x => new ShownPlace(x.Name, x.Option.RegionLabel)).ToList();
         LocationResultsBorder.IsVisible  = results.Count > 0;
         LocationListBox.Tag              = shown.Select(x => x.Option).ToList();
     }

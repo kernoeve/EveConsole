@@ -114,10 +114,30 @@
         <TextBlock Classes="flabel" Text="{x:Static loc:MapText.AddBridgeLabel}" />
         <AutoCompleteBox Text="{Binding FromText}" ItemsSource="{Binding FromPlaces}" SelectedItem="{Binding From}"
                          FilterMode="None" MinimumPrefixLength="2" FontSize="11"
-                         Watermark="{x:Static loc:MapText.HintBridgeFrom}" />
+                         Watermark="{x:Static loc:MapText.HintBridgeFrom}">          <AutoCompleteBox.ItemTemplate>
+            <DataTemplate>
+              <!-- The region beside the system, as every system picker shows it. -->
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="{Binding Label}" FontSize="11.5" Foreground="{DynamicResource TextPrimaryBrush}" />
+                <TextBlock Text="{Binding Detail}" FontSize="10" Foreground="{DynamicResource TextDimBrush}"
+                           VerticalAlignment="Center" />
+              </StackPanel>
+            </DataTemplate>
+          </AutoCompleteBox.ItemTemplate>
+        </AutoCompleteBox>
         <AutoCompleteBox Text="{Binding ToText}" ItemsSource="{Binding ToPlaces}" SelectedItem="{Binding To}"
                          FilterMode="None" MinimumPrefixLength="2" FontSize="11"
-                         Watermark="{x:Static loc:MapText.HintBridgeTo}" />
+                         Watermark="{x:Static loc:MapText.HintBridgeTo}">          <AutoCompleteBox.ItemTemplate>
+            <DataTemplate>
+              <!-- The region beside the system, as every system picker shows it. -->
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="{Binding Label}" FontSize="11.5" Foreground="{DynamicResource TextPrimaryBrush}" />
+                <TextBlock Text="{Binding Detail}" FontSize="10" Foreground="{DynamicResource TextDimBrush}"
+                           VerticalAlignment="Center" />
+              </StackPanel>
+            </DataTemplate>
+          </AutoCompleteBox.ItemTemplate>
+        </AutoCompleteBox>
         <TextBox Text="{Binding Note}" FontSize="11" Watermark="{x:Static loc:MapText.HintBridgeNote}" />
         <Button Classes="action" Content="{x:Static loc:MapText.AddBridge}" Command="{Binding AddCommand}"
                 HorizontalAlignment="Left" />

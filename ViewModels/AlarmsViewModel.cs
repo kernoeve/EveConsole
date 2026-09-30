@@ -307,7 +307,8 @@ public sealed class AlarmFieldVm : ReactiveObject
 /// <para>⚠️ The box takes <see cref="ToString"/> — the English — when one is picked, so the saved
 /// config keeps the name the checks match on, whatever language the list was read in.</para>
 /// </summary>
-public sealed record AlarmNameSuggestion(string English, string Shown)
+/// <param name="Region">A system's region, shown to its right in the list; "" for anything else.</param>
+public sealed record AlarmNameSuggestion(string English, string Shown, string Region = "")
 {
     /// <summary>The English, beside the shown name, when the two differ.</summary>
     public bool IsTranslated => !string.Equals(English, Shown, StringComparison.Ordinal);
@@ -1213,10 +1214,15 @@ public sealed class AlarmsViewModel : ReactiveObject
                     .Where(r => r.Name.ToLower().Contains(lower) || regionIds.Contains(r.RegionId))
                     .Select(r => new { r.RegionId, r.Name }).Take(20).ToListAsync(ct))
                 .Select(r => new AlarmNameSuggestion(r.Name, SdeNames.Region(r.RegionId, r.Name))));
+            // Systems carry their region, shown beside them as every system picker shows it.
             hits.AddRange((await db.SdeSolarSystems.AsNoTracking()
                     .Where(s => s.Name.ToLower().Contains(lower) || systemIds.Contains(s.SolarSystemId))
-                    .Select(s => new { s.SolarSystemId, s.Name }).Take(50).ToListAsync(ct))
-                .Select(s => new AlarmNameSuggestion(s.Name, SdeNames.SolarSystem(s.SolarSystemId, s.Name))));
+                    .Take(50)
+                    .Join(db.SdeRegions.AsNoTracking(), s => s.RegionId, r => r.RegionId,
+                          (s, r) => new { s.SolarSystemId, s.Name, s.RegionId, Region = r.Name })
+                    .ToListAsync(ct))
+                .Select(s => new AlarmNameSuggestion(s.Name, SdeNames.SolarSystem(s.SolarSystemId, s.Name),
+                                                     SdeNames.Region(s.RegionId, s.Region))));
             hits.AddRange((await db.Structures.AsNoTracking()
                 .Where(s => s.Name.ToLower().Contains(lower)).Select(s => s.Name).Take(50).ToListAsync(ct)).Select(AsIs));
             hits.AddRange((await db.EsiStructureNames.AsNoTracking()

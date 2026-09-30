@@ -20,7 +20,8 @@ public sealed record ScopeStationRow(int Id, string LocationName);
 /// name the list shows. ⚠️ The box writes ToString back into its text when one is picked, which
 /// is why that is the shown name — nothing reads the text back as a choice.
 /// </summary>
-public sealed record ScopePlaceOption(long Id, string Name, string Shown)
+/// <param name="Region">A system's region, shown to its right in the list; empty for a region.</param>
+public sealed record ScopePlaceOption(long Id, string Name, string Shown, string Region = "")
 {
     public override string ToString() => Shown;
 }
@@ -361,7 +362,7 @@ public class WorklistIndustryViewModel : ReactiveObject
     public Func<string?, CancellationToken, Task<IEnumerable<object>>> ScopePlacePopulator =>
         async (text, ct) => (_selectedScope == "System"
                 ? (await _corpActivity.SearchSdeSystemsAsync(text ?? "", ct))
-                    .Select(s => new ScopePlaceOption(s.SystemId, s.Name, SdeNames.SolarSystem(s.SystemId, s.Name)))
+                    .Select(s => new ScopePlaceOption(s.SystemId, s.Name, SdeNames.SolarSystem(s.SystemId, s.Name), s.RegionLabel))
                 : (await _corpActivity.SearchSdeRegionsAsync(text ?? "", ct))
                     .Select(r => new ScopePlaceOption(r.RegionId, r.Name, SdeNames.Region(r.RegionId, r.Name))))
             .OrderBy(o => o.Shown, StringComparer.CurrentCulture)

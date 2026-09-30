@@ -162,7 +162,12 @@
                   </ListBox.Styles>
                   <ListBox.ItemTemplate>
                     <DataTemplate>
-                      <TextBlock Text="{Binding Name}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
+                      <!-- The region beside the system, as every system picker shows it. -->
+                      <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <TextBlock Grid.Column="1" Text="{Binding Detail}" FontSize="10" Margin="10 0 0 0"
+                                   Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+                      </Grid>
                     </DataTemplate>
                   </ListBox.ItemTemplate>
                 </ListBox>

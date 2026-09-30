@@ -38,11 +38,12 @@ public partial class StandingProjectDialog : Window
     /// template binds, over the result. ⚠️ The result keeps the English, and that is what the
     /// project saves — it is also what the posted report prints.
     /// </summary>
-    private sealed record Shown<T>(T Result, string Name);
+    /// <param name="Detail">Shown to the right of the name: a system's region.</param>
+    private sealed record Shown<T>(T Result, string Name, string Detail = "");
 
     /// <summary>Results named, and listed, as the screen shows them.</summary>
-    private static List<Shown<T>> ShownAll<T>(IEnumerable<T> results, Func<T, string> name) =>
-        [.. results.Select(r => new Shown<T>(r, name(r))).OrderBy(s => s.Name, StringComparer.CurrentCulture)];
+    private static List<Shown<T>> ShownAll<T>(IEnumerable<T> results, Func<T, string> name, Func<T, string>? detail = null) =>
+        [.. results.Select(r => new Shown<T>(r, name(r), detail?.Invoke(r) ?? "")).OrderBy(s => s.Name, StringComparer.CurrentCulture)];
 
     public StandingProjectDialog(CorpActivityService service, CorpStandingProject? existing = null)
     {
@@ -259,7 +260,7 @@ public partial class StandingProjectDialog : Window
             var results = await _service.SearchSdeSystemsAsync(text, ct);
             await SdeNames.EnsureLoadedAsync(ct);
             if (ct.IsCancellationRequested) return;
-            SystemResultsList.ItemsSource = ShownAll(results, r => SdeNames.SolarSystem(r.SystemId, r.Name));
+            SystemResultsList.ItemsSource = ShownAll(results, r => SdeNames.SolarSystem(r.SystemId, r.Name), r => r.RegionLabel);
             SystemResultsBorder.IsVisible = results.Count > 0;
         }
         catch (Exception) { }
