@@ -1,0 +1,499 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AccelerationGateFee" xml:space="preserve">
+    <value>アクセラレーションゲートの料金</value>
+  </data>
+  <data name="AchievementCategoryMilestoneReward" xml:space="preserve">
+    <value>実績カテゴリのマイルストーン報酬</value>
+  </data>
+  <data name="AchievementMilestoneReward" xml:space="preserve">
+    <value>実績マイルストーン報酬</value>
+  </data>
+  <data name="AdvertisementListingFee" xml:space="preserve">
+    <value>広告掲載料</value>
+  </data>
+  <data name="AgentDonation" xml:space="preserve">
+    <value>エージェントへの寄付</value>
+  </data>
+  <data name="AgentLocationServices" xml:space="preserve">
+    <value>エージェントの人物捜索サービス</value>
+  </data>
+  <data name="AgentMiscellaneous" xml:space="preserve">
+    <value>その他のエージェント</value>
+  </data>
+  <data name="AgentMissionCollateralPaid" xml:space="preserve">
+    <value>支払われたエージェントミッションの担保金</value>
+  </data>
+  <data name="AgentMissionCollateralRefunded" xml:space="preserve">
+    <value>払い戻されたエージェントミッションの担保金</value>
+  </data>
+  <data name="AgentMissionReward" xml:space="preserve">
+    <value>エージェントミッションの報酬</value>
+  </data>
+  <data name="AgentMissionRewardCorporationTax" xml:space="preserve">
+    <value>エージェントミッション報酬のコーポレーション税</value>
+  </data>
+  <data name="AgentMissionSecurityTax" xml:space="preserve">
+    <value>エージェントミッションのセキュリティ税</value>
+  </data>
+  <data name="AgentMissionTimeBonusReward" xml:space="preserve">
+    <value>エージェントミッションのタイムボーナスの報酬</value>
+  </data>
+  <data name="AgentMissionTimeBonusRewardCorporationTax" xml:space="preserve">
+    <value>エージェントミッションタイムボーナス報酬のコーポレーション税</value>
+  </data>
+  <data name="AgentSecurityServices" xml:space="preserve">
+    <value>エージェントの警護サービス</value>
+  </data>
+  <data name="AgentServicesRendered" xml:space="preserve">
+    <value>エージェントのサービス</value>
+  </data>
+  <data name="AgentsPreward" xml:space="preserve">
+    <value>エージェントの前払い報酬</value>
+  </data>
+  <data name="AirCareerProgramReward" xml:space="preserve">
+    <value>AIRキャリアプログラム報酬</value>
+  </data>
+  <data name="AllianceMaintainanceFee" xml:space="preserve">
+    <value>アライアンスのメンテナンス料</value>
+  </data>
+  <data name="AllianceRegistrationFee" xml:space="preserve">
+    <value>アライアンス登録料</value>
+  </data>
+  <data name="AllignmentBasedGateToll" xml:space="preserve">
+    <value>所属勢力に応じたゲート利用料</value>
+  </data>
+  <data name="AssetSafetyRecoveryTax" xml:space="preserve">
+    <value>アセットセーフティ・リカバリー税</value>
+  </data>
+  <data name="Bounty" xml:space="preserve">
+    <value>懸賞金</value>
+  </data>
+  <data name="BountyPrize" xml:space="preserve">
+    <value>獲得賞金/懸賞金</value>
+  </data>
+  <data name="BountyPrizeCorporationTax" xml:space="preserve">
+    <value>獲得賞金/懸賞金のコーポレーション税</value>
+  </data>
+  <data name="BountyPrizes" xml:space="preserve">
+    <value>獲得賞金/懸賞金</value>
+  </data>
+  <data name="BountyReimbursement" xml:space="preserve">
+    <value>賞金の払い戻し</value>
+  </data>
+  <data name="BountySurcharge" xml:space="preserve">
+    <value>懸賞金の追加料金</value>
+  </data>
+  <data name="BrokersFee" xml:space="preserve">
+    <value>ブローカー料</value>
+  </data>
+  <data name="CampaignObjectiveIskReward" xml:space="preserve">
+    <value>キャンペーン目標のISK報酬</value>
+  </data>
+  <data name="CloneActivation" xml:space="preserve">
+    <value>クローンの起動</value>
+  </data>
+  <data name="CloneTransfer" xml:space="preserve">
+    <value>クローンの転送</value>
+  </data>
+  <data name="ContrabandFine" xml:space="preserve">
+    <value>密輸品の罰則金</value>
+  </data>
+  <data name="ContractAuctionBid" xml:space="preserve">
+    <value>契約オークション入札金</value>
+  </data>
+  <data name="ContractAuctionBidCorp" xml:space="preserve">
+    <value>契約オークション入札金（コーポレーション）</value>
+  </data>
+  <data name="ContractAuctionBidRefund" xml:space="preserve">
+    <value>契約オークション入札金払い戻し</value>
+  </data>
+  <data name="ContractAuctionSold" xml:space="preserve">
+    <value>売却済の契約オークション</value>
+  </data>
+  <data name="ContractBrokersFee" xml:space="preserve">
+    <value>契約仲介者のブローカー料</value>
+  </data>
+  <data name="ContractBrokersFeeCorp" xml:space="preserve">
+    <value>契約仲介者のブローカー料（コーポレーション）</value>
+  </data>
+  <data name="ContractCollateral" xml:space="preserve">
+    <value>契約担保金</value>
+  </data>
+  <data name="ContractCollateralDepositedCorp" xml:space="preserve">
+    <value>預けられた契約担保金（コーポレーション）</value>
+  </data>
+  <data name="ContractCollateralPayout" xml:space="preserve">
+    <value>契約担保金の支払い</value>
+  </data>
+  <data name="ContractCollateralRefund" xml:space="preserve">
+    <value>契約担保金の払い戻し</value>
+  </data>
+  <data name="ContractDeposit" xml:space="preserve">
+    <value>契約保証金</value>
+  </data>
+  <data name="ContractDepositCorp" xml:space="preserve">
+    <value>契約保証金（コーポレーション）</value>
+  </data>
+  <data name="ContractDepositRefund" xml:space="preserve">
+    <value>契約保証金の払い戻し</value>
+  </data>
+  <data name="ContractDepositSalesTax" xml:space="preserve">
+    <value>契約保証金に伴う物品税</value>
+  </data>
+  <data name="ContractPrice" xml:space="preserve">
+    <value>契約料金</value>
+  </data>
+  <data name="ContractPricePaymentCorp" xml:space="preserve">
+    <value>契約料金の支払い（コーポレーション）</value>
+  </data>
+  <data name="ContractReversal" xml:space="preserve">
+    <value>契約の取り消し</value>
+  </data>
+  <data name="ContractReward" xml:space="preserve">
+    <value>契約報酬</value>
+  </data>
+  <data name="ContractRewardDeposited" xml:space="preserve">
+    <value>預けられた契約報酬</value>
+  </data>
+  <data name="ContractRewardDepositedCorp" xml:space="preserve">
+    <value>預けられた契約報酬（コーポレーション）</value>
+  </data>
+  <data name="ContractRewardRefund" xml:space="preserve">
+    <value>契約報酬の払い戻し</value>
+  </data>
+  <data name="ContractSalesTax" xml:space="preserve">
+    <value>契約に伴う物品税</value>
+  </data>
+  <data name="Copying" xml:space="preserve">
+    <value>コピー</value>
+  </data>
+  <data name="CorporateRewardPayout" xml:space="preserve">
+    <value>コーポレーション報酬の支払い</value>
+  </data>
+  <data name="CorporateRewardTax" xml:space="preserve">
+    <value>コーポレーション報酬の税金</value>
+  </data>
+  <data name="CorporationAccountWithdrawal" xml:space="preserve">
+    <value>コーポレーションアカウント出金</value>
+  </data>
+  <data name="CorporationBulkPayment" xml:space="preserve">
+    <value>コーポレーションの一括支払い</value>
+  </data>
+  <data name="CorporationDividendPayment" xml:space="preserve">
+    <value>コーポレーション配当金支払い</value>
+  </data>
+  <data name="CorporationLiquidation" xml:space="preserve">
+    <value>コーポレーションの清算</value>
+  </data>
+  <data name="CorporationLogoChangeCost" xml:space="preserve">
+    <value>コーポレーションロゴ変更費用</value>
+  </data>
+  <data name="CorporationPayment" xml:space="preserve">
+    <value>コーポレーションの支払い</value>
+  </data>
+  <data name="CorporationRegistrationFee" xml:space="preserve">
+    <value>コーポレーション登録料</value>
+  </data>
+  <data name="CosmeticMarketComponentItemPurchase" xml:space="preserve">
+    <value>パラゴンハブでのデザイン要素購入</value>
+  </data>
+  <data name="CosmeticMarketSkinPurchase" xml:space="preserve">
+    <value>パラゴンハブでのSKIN購入</value>
+  </data>
+  <data name="CosmeticMarketSkinSale" xml:space="preserve">
+    <value>パラゴンハブでのSKIN販売</value>
+  </data>
+  <data name="CosmeticMarketSkinSaleBrokerFee" xml:space="preserve">
+    <value>パラゴンハブでの掲載費</value>
+  </data>
+  <data name="CosmeticMarketSkinSaleTax" xml:space="preserve">
+    <value>パラゴンハブでの販売費</value>
+  </data>
+  <data name="CosmeticMarketSkinTransaction" xml:space="preserve">
+    <value>パラゴンハブでのSKIN取り引き</value>
+  </data>
+  <data name="CourierMissionEscrow" xml:space="preserve">
+    <value>輸送ミッションのエスクロー</value>
+  </data>
+  <data name="Cspa" xml:space="preserve">
+    <value>CSPA料金</value>
+  </data>
+  <data name="Cspaofflinerefund" xml:space="preserve">
+    <value>CSPAオフライン払い戻し</value>
+  </data>
+  <data name="DailyChallengeReward" xml:space="preserve">
+    <value>デイリーチャレンジ報酬</value>
+  </data>
+  <data name="DailyGoalPayouts" xml:space="preserve">
+    <value>デイリー目標報酬</value>
+  </data>
+  <data name="DailyGoalPayoutsTax" xml:space="preserve">
+    <value>デイリー目標報酬税</value>
+  </data>
+  <data name="DatacoreFee" xml:space="preserve">
+    <value>データコアの料金</value>
+  </data>
+  <data name="DnaModificationFee" xml:space="preserve">
+    <value>DNA 修正費</value>
+  </data>
+  <data name="DockingFee" xml:space="preserve">
+    <value>入港料</value>
+  </data>
+  <data name="DuelWagerEscrow" xml:space="preserve">
+    <value>決闘の掛け金の預託費</value>
+  </data>
+  <data name="DuelWagerPayment" xml:space="preserve">
+    <value>決闘の掛けで得た利益</value>
+  </data>
+  <data name="DuelWagerRefund" xml:space="preserve">
+    <value>決闘の掛け金の払い戻し</value>
+  </data>
+  <data name="EssEscrowTransfer" xml:space="preserve">
+    <value>ESS預託費支払い</value>
+  </data>
+  <data name="ExternalTradeDelivery" xml:space="preserve">
+    <value>外部トレードによる配送</value>
+  </data>
+  <data name="ExternalTradeFreeze" xml:space="preserve">
+    <value>外部トレードの停止</value>
+  </data>
+  <data name="ExternalTradeThaw" xml:space="preserve">
+    <value>外部トレードの解禁</value>
+  </data>
+  <data name="FactorySlotRentalFee" xml:space="preserve">
+    <value>工場スロットのレンタル料金</value>
+  </data>
+  <data name="FluxPayout" xml:space="preserve">
+    <value>ハイパーネットリレーの支払い</value>
+  </data>
+  <data name="FluxTax" xml:space="preserve">
+    <value>ハイパーネットリレー費用</value>
+  </data>
+  <data name="FluxTicketRepayment" xml:space="preserve">
+    <value>ハイパーノードの払い戻し</value>
+  </data>
+  <data name="FluxTicketSale" xml:space="preserve">
+    <value>ハイパーノード取引</value>
+  </data>
+  <data name="FreelanceJobsBroadcastingFee" xml:space="preserve">
+    <value>フリーランスジョブの配信費用</value>
+  </data>
+  <data name="FreelanceJobsDurationFee" xml:space="preserve">
+    <value>フリーランスジョブの期間費用</value>
+  </data>
+  <data name="FreelanceJobsEscrowRefund" xml:space="preserve">
+    <value>フリーランスジョブのエスクローの払い戻し</value>
+  </data>
+  <data name="FreelanceJobsReward" xml:space="preserve">
+    <value>フリーランスジョブの報酬</value>
+  </data>
+  <data name="FreelanceJobsRewardCorporationTax" xml:space="preserve">
+    <value>フリーランスジョブ報酬のコーポレーション税</value>
+  </data>
+  <data name="FreelanceJobsRewardEscrow" xml:space="preserve">
+    <value>フリーランスジョブの報酬エスクロー</value>
+  </data>
+  <data name="GmCashTransfer" xml:space="preserve">
+    <value>GM現金振替</value>
+  </data>
+  <data name="GmPlexFeeRefund" xml:space="preserve">
+    <value>GM PLEX手数料の払い戻し</value>
+  </data>
+  <data name="IndustryJobTax" xml:space="preserve">
+    <value>インダストリータックス</value>
+  </data>
+  <data name="IndustrySecurityTax" xml:space="preserve">
+    <value>インダストリーのセキュリティ税</value>
+  </data>
+  <data name="InfrastructureHubMaintenance" xml:space="preserve">
+    <value>領域管理用拠点の維持費</value>
+  </data>
+  <data name="Inheritance" xml:space="preserve">
+    <value>継承</value>
+  </data>
+  <data name="Insurance" xml:space="preserve">
+    <value>保険</value>
+  </data>
+  <data name="InsurgencyCorruptionContributionReward" xml:space="preserve">
+    <value>反乱イベントの腐敗功績報酬</value>
+  </data>
+  <data name="InsurgencySuppressionContributionReward" xml:space="preserve">
+    <value>反乱イベントの鎮圧功績報酬</value>
+  </data>
+  <data name="ItemTraderPayment" xml:space="preserve">
+    <value>アイテムトレーダーへの支払い</value>
+  </data>
+  <data name="JumpCloneActivationFee" xml:space="preserve">
+    <value>ジャンプクローンの起動費用</value>
+  </data>
+  <data name="JumpCloneInstallationFee" xml:space="preserve">
+    <value>ジャンプクローンのインストール料金</value>
+  </data>
+  <data name="KillRightFee" xml:space="preserve">
+    <value>殺害許可の料金</value>
+  </data>
+  <data name="LpStore" xml:space="preserve">
+    <value>LPストア</value>
+  </data>
+  <data name="Manufacturing" xml:space="preserve">
+    <value>製造</value>
+  </data>
+  <data name="ManufacturingTax" xml:space="preserve">
+    <value>製造税</value>
+  </data>
+  <data name="MarketEscrow" xml:space="preserve">
+    <value>マーケットエスクロー</value>
+  </data>
+  <data name="MarketFinePaid" xml:space="preserve">
+    <value>支払われた市場法違反罰則金</value>
+  </data>
+  <data name="MarketProviderTax" xml:space="preserve">
+    <value>マーケット提供者税</value>
+  </data>
+  <data name="MarketSecurityTax" xml:space="preserve">
+    <value>マーケットのセキュリティ税</value>
+  </data>
+  <data name="MarketTransaction" xml:space="preserve">
+    <value>マーケットの取引記録</value>
+  </data>
+  <data name="MedalCreation" xml:space="preserve">
+    <value>メダル作成</value>
+  </data>
+  <data name="MedalIssued" xml:space="preserve">
+    <value>メダル授与</value>
+  </data>
+  <data name="MilestoneRewardPayment" xml:space="preserve">
+    <value>マイルストーン報酬の支払い</value>
+  </data>
+  <data name="MiningTax" xml:space="preserve">
+    <value>採掘税</value>
+  </data>
+  <data name="MissionCompletion" xml:space="preserve">
+    <value>ミッション完了</value>
+  </data>
+  <data name="MissionCost" xml:space="preserve">
+    <value>ミッションの経費</value>
+  </data>
+  <data name="MissionExpiration" xml:space="preserve">
+    <value>ミッションの有効期限</value>
+  </data>
+  <data name="MissionReward" xml:space="preserve">
+    <value>ミッションの報酬</value>
+  </data>
+  <data name="NpcBountySecurityTax" xml:space="preserve">
+    <value>NPC懸賞金のセキュリティ税</value>
+  </data>
+  <data name="OfficeRentalFee" xml:space="preserve">
+    <value>オフィスのレンタル料金</value>
+  </data>
+  <data name="OperationBonus" xml:space="preserve">
+    <value>作戦ボーナス</value>
+  </data>
+  <data name="OpportunityReward" xml:space="preserve">
+    <value>オポチュニティ報酬</value>
+  </data>
+  <data name="PlanetaryConstruction" xml:space="preserve">
+    <value>惑星建設</value>
+  </data>
+  <data name="PlanetaryExportTax" xml:space="preserve">
+    <value>惑星輸出税</value>
+  </data>
+  <data name="PlanetaryImportTax" xml:space="preserve">
+    <value>惑星輸入税</value>
+  </data>
+  <data name="PlayerDonation" xml:space="preserve">
+    <value>プレイヤーの寄付</value>
+  </data>
+  <data name="PlayerTrading" xml:space="preserve">
+    <value>プレイヤーのトレード</value>
+  </data>
+  <data name="ProjectDiscoveryReward" xml:space="preserve">
+    <value>プロジェクト・ディスカバリーの報酬</value>
+  </data>
+  <data name="ProjectDiscoveryTax" xml:space="preserve">
+    <value>プロジェクト・ディスカバリーの税金</value>
+  </data>
+  <data name="ProjectPayouts" xml:space="preserve">
+    <value>プロジェクト報酬の支払い</value>
+  </data>
+  <data name="Reaction" xml:space="preserve">
+    <value>反応</value>
+  </data>
+  <data name="RedeemedIskToken" xml:space="preserve">
+    <value>引き換え済みISKトークン</value>
+  </data>
+  <data name="ReleaseOfImpoundedProperty" xml:space="preserve">
+    <value>差押資産の凍結解除</value>
+  </data>
+  <data name="RepairBill" xml:space="preserve">
+    <value>リペア請求書</value>
+  </data>
+  <data name="ReprocessingTax" xml:space="preserve">
+    <value>再処理税</value>
+  </data>
+  <data name="ResearchingMaterialProductivity" xml:space="preserve">
+    <value>資源効率研究</value>
+  </data>
+  <data name="ResearchingTechnology" xml:space="preserve">
+    <value>技術研究</value>
+  </data>
+  <data name="ResearchingTimeProductivity" xml:space="preserve">
+    <value>時間効率研究</value>
+  </data>
+  <data name="ResourceWarsReward" xml:space="preserve">
+    <value>資源紛争の報酬</value>
+  </data>
+  <data name="ReverseEngineering" xml:space="preserve">
+    <value>リバースエンジニアリング</value>
+  </data>
+  <data name="SeasonChallengeReward" xml:space="preserve">
+    <value>シーズンチャレンジの報酬</value>
+  </data>
+  <data name="SecurityProcessingFee" xml:space="preserve">
+    <value>セキュリティタグの処理費用</value>
+  </data>
+  <data name="Shares" xml:space="preserve">
+    <value>シェア</value>
+  </data>
+  <data name="SkillPurchase" xml:space="preserve">
+    <value>スキルの購入</value>
+  </data>
+  <data name="SkyhookClaimFee" xml:space="preserve">
+    <value>スカイフックの取得費用</value>
+  </data>
+  <data name="SovereignityBill" xml:space="preserve">
+    <value>領有権保持金</value>
+  </data>
+  <data name="StorePurchase" xml:space="preserve">
+    <value>ストアでの購入</value>
+  </data>
+  <data name="StorePurchaseRefund" xml:space="preserve">
+    <value>ストアでの購入の払い戻し</value>
+  </data>
+  <data name="StructureGateJump" xml:space="preserve">
+    <value>ジャンプブリッジ利用料</value>
+  </data>
+  <data name="TransactionTax" xml:space="preserve">
+    <value>取引税</value>
+  </data>
+  <data name="UnderConstruction" xml:space="preserve">
+    <value>建設中</value>
+  </data>
+  <data name="UpkeepAdjustmentFee" xml:space="preserve">
+    <value>維持調整料金</value>
+  </data>
+  <data name="WarAllyContract" xml:space="preserve">
+    <value>戦争同盟契約</value>
+  </data>
+  <data name="WarFee" xml:space="preserve">
+    <value>戦争に関する費用</value>
+  </data>
+  <data name="WarFeeSurrender" xml:space="preserve">
+    <value>戦争降伏料金</value>
+  </data>
+</root>

@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              xmlns:svc="clr-namespace:EveConsole.Services"
              x:Class="EveConsole.Views.SchedulerView"
@@ -59,15 +60,15 @@
             BorderThickness="0 0 0 1" BorderBrush="{DynamicResource BorderSubtleBrush}">
       <StackPanel Spacing="5">
       <Grid ColumnDefinitions="Auto,Auto,*,Auto">
-        <Button Grid.Column="0" Classes="tool" Command="{Binding NewCommand}" Content="New Task" />
+        <Button Grid.Column="0" Classes="tool" Command="{Binding NewCommand}" Content="{x:Static loc:AlarmsText.NewTask}" />
         <Button Grid.Column="1" Classes="tool" Command="{Binding RefreshCommand}"
-                Content="Refresh" Margin="8 0 0 0" />
+                Content="{x:Static loc:AlarmsText.Refresh}" Margin="8 0 0 0" />
         <TextBlock Grid.Column="2" Text="{Binding StatusText}" FontSize="11" Foreground="{DynamicResource TextDimBrush}"
                    VerticalAlignment="Center" Margin="16 0 0 0" TextTrimming="CharacterEllipsis" />
-        <TextBlock Grid.Column="3" Text="Times are EVE time" FontSize="10.5"
+        <TextBlock Grid.Column="3" Text="{x:Static loc:AlarmsText.TimesAreEveTime}" FontSize="10.5"
                    Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" Margin="12 0 0 0" />
       </Grid>
-        <TextBlock Text="Early development — this tool is still taking shape, and its behaviour, layout and stored settings are all subject to change."
+        <TextBlock Text="{x:Static loc:AlarmsText.EarlyDevelopmentThisToolNote}"
                    FontSize="10.5" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap" Margin="1 0 0 0" />
       </StackPanel>
     </Border>
@@ -105,7 +106,7 @@
       <Grid Grid.Column="2" RowDefinitions="*,Auto">
 
         <TextBlock Grid.Row="0" IsVisible="{Binding !HasEditor}"
-                   Text="Select a task, or create one."
+                   Text="{x:Static loc:AlarmsText.SelectATaskOrCreate}"
                    HorizontalAlignment="Center" VerticalAlignment="Center"
                    FontSize="12" Foreground="{DynamicResource TextFaintBrush}" />
 
@@ -123,31 +124,31 @@
             <StackPanel Spacing="10">
               <Grid ColumnDefinitions="*,Auto">
                 <StackPanel Grid.Column="0" Margin="0 0 12 0">
-                  <TextBlock Classes="flabel" Text="NAME" />
-                  <TextBox Text="{Binding Name}" Watermark="What does this task do?" />
+                  <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.NameLabel}" />
+                  <TextBox Text="{Binding Name}" Watermark="{x:Static loc:AlarmsText.HintWhatDoesThisTaskDo}" />
                 </StackPanel>
-                <CheckBox Grid.Column="1" IsChecked="{Binding Enabled}" Content="Enabled"
+                <CheckBox Grid.Column="1" IsChecked="{Binding Enabled}" Content="{x:Static loc:AlarmsText.Enabled}"
                           VerticalAlignment="Bottom" Margin="0 0 0 5" />
               </Grid>
 
               <!-- Its own line under the name. Sharing the row with the name put it against the
                    right edge, where it was the first thing to go when the pane narrowed. -->
               <StackPanel Width="260" HorizontalAlignment="Left">
-                <TextBlock Classes="flabel" Text="TASK TYPE" />
+                <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.TaskTypeLabel}" />
                 <ComboBox ItemsSource="{Binding TaskTypes}" SelectedItem="{Binding SelectedTaskType}"
                           HorizontalAlignment="Stretch" />
               </StackPanel>
             </StackPanel>
 
             <StackPanel Spacing="8">
-              <TextBlock Classes="section" Text="WHEN" Margin="0" />
+              <TextBlock Classes="section" Text="{x:Static loc:AlarmsText.WhenLabel}" Margin="0" />
 
               <!-- One row: the kind, then whatever that kind needs. Hidden panels take no
                    space, so the row closes up rather than leaving gaps. -->
               <StackPanel Orientation="Horizontal" Spacing="12">
 
                 <StackPanel Width="180">
-                  <TextBlock Classes="flabel" Text="REPEATS" />
+                  <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.RepeatsLabel}" />
                   <ComboBox ItemsSource="{Binding Kinds}" SelectedItem="{Binding SelectedKind}"
                             HorizontalAlignment="Stretch" />
                 </StackPanel>
@@ -155,22 +156,22 @@
                 <!-- Interval -->
                 <StackPanel Orientation="Horizontal" Spacing="10" IsVisible="{Binding IsInterval}">
                   <StackPanel Width="120">
-                    <TextBlock Classes="flabel" Text="EVERY" />
+                    <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.EveryLabel}" />
                     <NumericUpDown Value="{Binding IntervalValue}" Minimum="1" Maximum="9999"
                                    Increment="1" FormatString="0" FontSize="11" />
                   </StackPanel>
                   <StackPanel Orientation="Horizontal" Spacing="10"
                               VerticalAlignment="Bottom" Margin="0 0 0 6">
                     <RadioButton GroupName="unit" IsChecked="{Binding IntervalInMinutes}"
-                                 Content="minutes" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
+                                 Content="{x:Static loc:AlarmsText.Minutes}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
                     <RadioButton GroupName="unit" IsChecked="{Binding IntervalInHours}"
-                                 Content="hours" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
+                                 Content="{x:Static loc:AlarmsText.Hours}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
                   </StackPanel>
                 </StackPanel>
 
                 <!-- Weekly -->
                 <StackPanel IsVisible="{Binding IsWeekly}">
-                  <TextBlock Classes="flabel" Text="ON THESE DAYS" />
+                  <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.OnTheseDaysLabel}" />
                   <ItemsControl ItemsSource="{Binding Days}" Margin="0 4 0 0">
                     <ItemsControl.ItemsPanel>
                       <ItemsPanelTemplate>
@@ -188,7 +189,7 @@
 
                 <!-- Monthly -->
                 <StackPanel Width="110" IsVisible="{Binding IsMonthly}">
-                  <TextBlock Classes="flabel" Text="DAY OF MONTH" />
+                  <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.DayOfMonthLabel}" />
                   <NumericUpDown Value="{Binding DayOfMonth}" Minimum="1" Maximum="31"
                                  Increment="1" FormatString="0" FontSize="11" />
                 </StackPanel>
@@ -196,12 +197,12 @@
                 <!-- Yearly -->
                 <StackPanel Orientation="Horizontal" Spacing="10" IsVisible="{Binding IsYearly}">
                   <StackPanel Width="150">
-                    <TextBlock Classes="flabel" Text="MONTH" />
+                    <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.MonthLabel}" />
                     <ComboBox ItemsSource="{Binding MonthNames}" SelectedItem="{Binding MonthOfYear}"
                               HorizontalAlignment="Stretch" />
                   </StackPanel>
                   <StackPanel Width="110">
-                    <TextBlock Classes="flabel" Text="DAY" />
+                    <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.DayLabel}" />
                     <NumericUpDown Value="{Binding DayOfMonth}" Minimum="1" Maximum="31"
                                    Increment="1" FormatString="0" FontSize="11" />
                   </StackPanel>
@@ -211,12 +212,12 @@
                 <!-- The zone belongs on the field, not only in the corner of the toolbar: this is
                      the one control whose meaning changes with it. -->
                 <StackPanel Width="125" IsVisible="{Binding HasClock}">
-                  <TextBlock Classes="flabel" Text="AT (HH:MM EVE)" />
+                  <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.AtHhMmEveLabel}" />
                   <TextBox Text="{Binding TimeOfDay}" Watermark="00:01" />
                 </StackPanel>
 
                 <CheckBox IsVisible="{Binding CanSkipIfMissed}" IsChecked="{Binding SkipIfMissed}"
-                          Content="Skip if the app was closed on the day"
+                          Content="{x:Static loc:AlarmsText.SkipIfTheApp}"
                           VerticalAlignment="Bottom" Margin="0 0 0 6" />
               </StackPanel>
 
@@ -231,7 +232,7 @@
             <StackPanel Spacing="14" IsVisible="{Binding IsSlackPost}">
 
               <StackPanel Spacing="6">
-                <TextBlock Classes="section" Text="POST TO" Margin="0" />
+                <TextBlock Classes="section" Text="{x:Static loc:AlarmsText.PostToLabel}" Margin="0" />
                 <ComboBox ItemsSource="{Binding Destinations}" SelectedItem="{Binding Destination}"
                           Width="340" HorizontalAlignment="Left">
                   <ComboBox.ItemTemplate>
@@ -241,18 +242,18 @@
                   </ComboBox.ItemTemplate>
                 </ComboBox>
                 <TextBlock Classes="hint"
-                           Text="Workspace channels and webhooks defined in Slack settings, in one list." />
+                           Text="{x:Static loc:AlarmsText.WorkspaceChannelsAndWebhooksNote}" />
 
                 <CheckBox IsChecked="{Binding SkipIfNoDynamicContent}" Margin="0 4 0 0"
-                          Content="Do not post if the dynamic sections are empty" />
+                          Content="{x:Static loc:AlarmsText.DoNotPostIf}" />
                 <TextBlock Classes="hint" MaxWidth="560" HorizontalAlignment="Left"
-                           Text="Off, the message goes out whatever the data says. On, it is held back unless at least one section that reads from the data — anything but a Text section — actually has something to say." />
+                           Text="{x:Static loc:AlarmsText.OffTheMessageGoesNote}" />
               </StackPanel>
 
               <StackPanel Spacing="10">
 
                 <Grid ColumnDefinitions="Auto,*">
-                  <TextBlock Grid.Column="0" Classes="section" Text="MESSAGE" Margin="0"
+                  <TextBlock Grid.Column="0" Classes="section" Text="{x:Static loc:AlarmsText.MessageLabel}" Margin="0"
                              VerticalAlignment="Center" />
                   <!-- One picker and one Add, rather than a button per section type: the list of
                        types is going to keep growing, and a row of buttons does not. -->
@@ -260,11 +261,11 @@
                               HorizontalAlignment="Left" Margin="16 0 0 0">
                     <ComboBox ItemsSource="{Binding SectionTypes}"
                               SelectedItem="{Binding SelectedSectionType}" Width="180" />
-                    <Button Classes="small" Content="Add Section" Padding="10 3"
+                    <Button Classes="small" Content="{x:Static loc:AlarmsText.AddSection}" Padding="10 3"
                             Command="{Binding AddSectionCommand}" />
-                    <Button Classes="small" Content="Preview" Padding="10 3"
+                    <Button Classes="small" Content="{x:Static loc:AlarmsText.Preview2}" Padding="10 3"
                             Command="{Binding PreviewCommand}"
-                            ToolTip.Tip="Renders the sections as they would be posted, without posting." />
+                            ToolTip.Tip="{x:Static loc:AlarmsText.TipRendersTheSectionsAs}" />
                   </StackPanel>
                 </Grid>
 
@@ -274,7 +275,7 @@
                   <StackPanel Grid.Column="0" Spacing="8">
 
                     <TextBlock Classes="hint" IsVisible="{Binding !Blocks.Count}"
-                               Text="Nothing to say yet. Pick a section type and add it — sections go out in this order, as one message." />
+                               Text="{x:Static loc:AlarmsText.NothingToSayYetNote}" />
 
                     <ItemsControl ItemsSource="{Binding Blocks}">
                       <ItemsControl.ItemTemplate>
@@ -303,17 +304,17 @@
                               <!-- Static text -->
                               <TextBox IsVisible="{Binding IsText}" Text="{Binding Text}"
                                        AcceptsReturn="True" TextWrapping="Wrap" MinHeight="70"
-                                       Watermark="What to say. Slack markup works here." />
+                                       Watermark="{x:Static loc:AlarmsText.HintWhatToSaySlack}" />
 
                               <!-- Whose figures. Top 10, Monthly and Standing Projects all need one. -->
                               <Grid ColumnDefinitions="*,150" IsVisible="{Binding NeedsCorp}">
                                 <StackPanel Grid.Column="0" Margin="0 0 8 0">
-                                  <TextBlock Classes="flabel" Text="CORP" />
+                                  <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.CorpLabel}" />
                                   <ComboBox ItemsSource="{Binding Corps}" SelectedItem="{Binding Corp}"
                                             HorizontalAlignment="Stretch" />
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" IsVisible="{Binding NeedsMonth}">
-                                  <TextBlock Classes="flabel" Text="MONTH" />
+                                  <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.MonthLabel}" />
                                   <ComboBox ItemsSource="{Binding Months}" SelectedItem="{Binding Month}"
                                             HorizontalAlignment="Stretch" />
                                 </StackPanel>
@@ -324,7 +325,7 @@
 
                               <!-- Top 10: which lists -->
                               <StackPanel IsVisible="{Binding IsTop10}" Spacing="4">
-                                <TextBlock Classes="flabel" Text="LISTS TO INCLUDE" />
+                                <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.ListsToIncludeLabel}" />
                                 <ItemsControl ItemsSource="{Binding Categories}">
                                   <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
@@ -340,43 +341,43 @@
                                 </ItemsControl>
 
                                 <CheckBox IsChecked="{Binding HideIsk}" Margin="0 4 0 0"
-                                          Content="Show only the share of the total, not the ISK" />
+                                          Content="{x:Static loc:AlarmsText.ShowOnlyTheShare}" />
                                 <TextBlock Classes="hint"
-                                           Text="Each list prints the amount and its share. Ticked, the amount comes off — except Kills, whose number is a count rather than a value." />
+                                           Text="{x:Static loc:AlarmsText.EachListPrintsTheNote}" />
                               </StackPanel>
 
                               <!-- Charts: whose figures, and a word about where they can go -->
                           <StackPanel IsVisible="{Binding IsChart}" Spacing="6">
                             <TextBlock Classes="hint"
-                                       Text="Twelve months of trends, drawn as an image and uploaded under the message." />
+                                       Text="{x:Static loc:AlarmsText.TwelveMonthsOfTrendsNote}" />
                             <Border IsVisible="{Binding ShowWebhookChartWarning}"
                                     Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource WarnSurfaceBrush}" BorderThickness="1"
                                     CornerRadius="3" Padding="8 6">
                               <TextBlock FontSize="10.5" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap"
-                                         Text="This section will not be posted. The task is aimed at a webhook, and a webhook cannot carry an image — pick a workspace channel above, or this section is skipped when the task runs." />
+                                         Text="{x:Static loc:AlarmsText.ThisSectionWillNotNote}" />
                             </Border>
                           </StackPanel>
 
                           <!-- Sale posting: which one -->
                               <StackPanel IsVisible="{Binding IsSale}" Spacing="4">
-                                <TextBlock Classes="flabel" Text="POSTING" />
+                                <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.PostingLabel}" />
                                 <ComboBox ItemsSource="{Binding Postings}" SelectedItem="{Binding Posting}"
                                           HorizontalAlignment="Stretch" />
                                 <TextBlock Classes="hint"
-                                           Text="Priced and counted exactly as the Sale Posting tool shows it. Its post blocks are joined in order into this one section." />
+                                           Text="{x:Static loc:AlarmsText.PricedAndCountedExactlyNote}" />
                               </StackPanel>
 
                               <!-- Standing projects: which type, then which of them -->
                               <StackPanel IsVisible="{Binding IsProjects}" Spacing="6">
                                 <Grid ColumnDefinitions="180,10,220" HorizontalAlignment="Left">
                                   <StackPanel Grid.Column="0">
-                                    <TextBlock Classes="flabel" Text="PROJECT TYPE" />
+                                    <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.ProjectTypeLabel}" />
                                     <ComboBox ItemsSource="{Binding ProjectTypes}"
                                               SelectedItem="{Binding ProjectType}"
                                               HorizontalAlignment="Stretch" />
                                   </StackPanel>
                                   <StackPanel Grid.Column="2">
-                                    <TextBlock Classes="flabel" Text="REPORT" />
+                                    <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.ReportLabel}" />
                                     <ComboBox ItemsSource="{Binding ReportFilters}"
                                               SelectedItem="{Binding ProjectFilter}"
                                               HorizontalAlignment="Stretch" />
@@ -384,22 +385,22 @@
                                 </Grid>
 
                                 <TextBlock Classes="hint"
-                                           Text="Missing is anything no active project is covering — including any the app could not check. Low adds the ones under 10% remaining, about to need replacing." />
+                                           Text="{x:Static loc:AlarmsText.MissingIsAnythingNoNote}" />
 
                                 <Grid ColumnDefinitions="*,12,Auto">
                                   <StackPanel Grid.Column="0">
-                                    <TextBlock Classes="flabel" Text="SECTION TITLE" />
+                                    <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.SectionTitleLabel}" />
                                     <TextBox Text="{Binding SectionTitle}"
-                                             Watermark="No title" />
+                                             Watermark="{x:Static loc:AlarmsText.HintNoTitle}" />
                                   </StackPanel>
                                   <CheckBox Grid.Column="2" IsChecked="{Binding ShowHeaders}"
-                                            Content="Column headers"
+                                            Content="{x:Static loc:AlarmsText.ColumnHeaders}"
                                             VerticalAlignment="Bottom" Margin="0 0 0 5" />
                                 </Grid>
 
                                 <StackPanel Orientation="Horizontal" Spacing="14">
-                                  <CheckBox IsChecked="{Binding ShowIskLeft}" Content="ISK Left column" />
-                                  <CheckBox IsChecked="{Binding ShowLastCompleted}" Content="Last Completed column" />
+                                  <CheckBox IsChecked="{Binding ShowIskLeft}" Content="{x:Static loc:AlarmsText.IskLeftColumn}" />
+                                  <CheckBox IsChecked="{Binding ShowLastCompleted}" Content="{x:Static loc:AlarmsText.LastCompletedColumn}" />
                                 </StackPanel>
 
                                 <TextBlock Classes="hint" Text="{Binding ProjectsNote}"
@@ -408,11 +409,11 @@
                                 <StackPanel IsVisible="{Binding Projects.Count}" Spacing="4">
                                   <Grid ColumnDefinitions="Auto,*">
                                     <TextBlock Grid.Column="0" Classes="flabel"
-                                               Text="PROJECTS TO INCLUDE" VerticalAlignment="Center" />
+                                               Text="{x:Static loc:AlarmsText.ProjectsToIncludeLabel}" VerticalAlignment="Center" />
                                     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6"
                                                 HorizontalAlignment="Left" Margin="12 0 0 2">
-                                      <Button Classes="small" Content="All"  Command="{Binding SelectAllCommand}" />
-                                      <Button Classes="small" Content="None" Command="{Binding SelectNoneCommand}" />
+                                      <Button Classes="small" Content="{x:Static loc:AlarmsText.All}"  Command="{Binding SelectAllCommand}" />
+                                      <Button Classes="small" Content="{x:Static loc:AlarmsText.None}" Command="{Binding SelectNoneCommand}" />
                                     </StackPanel>
                                   </Grid>
                                   <ItemsControl ItemsSource="{Binding Projects}">
@@ -424,7 +425,7 @@
                                     </ItemsControl.ItemTemplate>
                                   </ItemsControl>
                                   <TextBlock Classes="hint"
-                                             Text="One row per project as defined; a project scoped to a region or constellation is listed once here and expands to a row per qualifying system when it is posted. What is ticked when you save is what gets posted — a project defined later will not join on its own." />
+                                             Text="{x:Static loc:AlarmsText.OneRowPerProjectNote}" />
                                 </StackPanel>
                               </StackPanel>
 
@@ -440,9 +441,9 @@
                           BorderThickness="1" CornerRadius="3" Padding="10 8"
                           VerticalAlignment="Top" MinHeight="120">
                     <StackPanel Spacing="6">
-                      <TextBlock Classes="flabel" Text="PREVIEW" />
+                      <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.PreviewLabel}" />
                       <TextBlock Classes="hint" IsVisible="{Binding !HasPreview}"
-                                 Text="Press Preview to render the sections as they would be posted." />
+                                 Text="{x:Static loc:AlarmsText.PressPreviewToRenderNote}" />
                       <!-- Its own horizontal scroll: a fenced table is monospace and as wide as
                            its widest row, and wrapping one would destroy the columns it is made of. -->
                       <ScrollViewer HorizontalScrollBarVisibility="Auto"
@@ -462,22 +463,22 @@
 
             <!-- ── Raise an alert ─────────────────────────────────────────── -->
             <StackPanel Spacing="8" IsVisible="{Binding IsRaiseAlert}">
-              <TextBlock Classes="section" Text="ALERT" Margin="0" />
+              <TextBlock Classes="section" Text="{x:Static loc:AlarmsText.AlertLabel}" Margin="0" />
 
               <StackPanel MaxWidth="820" HorizontalAlignment="Left">
-                <TextBlock Classes="flabel" Text="HEADLINE" />
+                <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.HeadlineLabel}" />
                 <TextBox Text="{Binding AlertTitle}"
-                         Watermark="Leave empty to use the task's name." />
+                         Watermark="{x:Static loc:AlarmsText.HintLeaveEmptyToUse}" />
               </StackPanel>
 
               <StackPanel MaxWidth="820" HorizontalAlignment="Left">
-                <TextBlock Classes="flabel" Text="TEXT" />
+                <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.TextLabel}" />
                 <TextBox Text="{Binding AlertText}" AcceptsReturn="True" TextWrapping="Wrap"
-                         MinHeight="170" Watermark="What the alert should say." />
+                         MinHeight="170" Watermark="{x:Static loc:AlarmsText.HintWhatTheAlertShouldSay}" />
               </StackPanel>
 
               <TextBlock Classes="hint" MaxWidth="820" HorizontalAlignment="Left"
-                         Text="Shows on the Overview and in the Alarms tool until it is dismissed, the same as an alarm's own alert." />
+                         Text="{x:Static loc:AlarmsText.ShowsOnTheOverviewNote}" />
             </StackPanel>
 
           </StackPanel>
@@ -493,14 +494,14 @@
                 BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 0">
           <Grid ColumnDefinitions="Auto,*">
             <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10">
-              <Button Classes="tool" Content="Save"    Command="{Binding SaveCommand}" />
-              <Button Classes="tool" Content="Discard Changes" Command="{Binding DiscardCommand}"
-                      ToolTip.Tip="Puts the editor back to what is saved." />
-              <Button Classes="tool" Content="Preview" Command="{Binding PreviewCommand}"
+              <Button Classes="tool" Content="{x:Static loc:AlarmsText.Save}"    Command="{Binding SaveCommand}" />
+              <Button Classes="tool" Content="{x:Static loc:AlarmsText.DiscardChanges}" Command="{Binding DiscardCommand}"
+                      ToolTip.Tip="{x:Static loc:AlarmsText.TipPutsTheEditorBack}" />
+              <Button Classes="tool" Content="{x:Static loc:AlarmsText.Preview2}" Command="{Binding PreviewCommand}"
                       IsVisible="{Binding CanPreview}" />
               <Button Classes="tool" Content="{Binding RunLabel}" Command="{Binding RunNowCommand}"
-                      ToolTip.Tip="Runs what is on screen, for real, and counts as the scheduled run." />
-              <Button Content="Delete" Command="{Binding DeleteCommand}"
+                      ToolTip.Tip="{x:Static loc:AlarmsText.TipRunsWhatIsOn}" />
+              <Button Content="{x:Static loc:AlarmsText.Delete}" Command="{Binding DeleteCommand}"
                       Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource BadBrush}" BorderBrush="{DynamicResource BadSurfaceBrush}"
                       BorderThickness="1" Padding="12 4" FontSize="11" />
             </StackPanel>

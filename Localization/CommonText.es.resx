@@ -1,0 +1,346 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TitleAddItem" xml:space="preserve">
+    <value>Añadir objeto</value>
+  </data>
+  <data name="TypeNumbered" xml:space="preserve">
+    <value>Tipo {0}</value>
+  </data>
+  <data name="SearchForItemLabel" xml:space="preserve">
+    <value>Buscar objeto</value>
+  </data>
+  <data name="HintStartTypingItemName" xml:space="preserve">
+    <value>Empieza a escribir el nombre del objeto…</value>
+  </data>
+  <data name="Change" xml:space="preserve">
+    <value>Cambiar</value>
+  </data>
+  <data name="TargetQuantityLabel" xml:space="preserve">
+    <value>Cantidad objetivo</value>
+  </data>
+  <data name="SelectAnItemFromNote" xml:space="preserve">
+    <value>Selecciona un objeto de la lista de arriba.</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Añadir</value>
+  </data>
+  <data name="TitleAddItemsFromBlueprint" xml:space="preserve">
+    <value>Añadir objetos desde un plano</value>
+  </data>
+  <data name="BlueprintSearchByProductName" xml:space="preserve">
+    <value>Plano (buscar por nombre del producto)</value>
+  </data>
+  <data name="HintTypeToSearch" xml:space="preserve">
+    <value>Escribe para buscar…</value>
+  </data>
+  <data name="MeLevelLabel" xml:space="preserve">
+    <value>Nivel de ME</value>
+  </data>
+  <data name="RunsLabel" xml:space="preserve">
+    <value>Iteraciones</value>
+  </data>
+  <data name="MaterialsFromLabel" xml:space="preserve">
+    <value>Materiales de</value>
+  </data>
+  <data name="ThisBlueprint" xml:space="preserve">
+    <value>Este plano</value>
+  </data>
+  <data name="WholeChain" xml:space="preserve">
+    <value>Toda la cadena</value>
+  </data>
+  <data name="IndyParkWholeChain" xml:space="preserve">
+    <value>Parque industrial (toda la cadena)</value>
+  </data>
+  <data name="AddItems" xml:space="preserve">
+    <value>Añadir objetos</value>
+  </data>
+  <data name="Cancel2" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="TitleCustomColour" xml:space="preserve">
+    <value>Color personalizado</value>
+  </data>
+  <data name="EveMailIsDrawnNote" xml:space="preserve">
+    <value>El correo de EVE se muestra sobre un fondo casi negro, así que en él los colores muy oscuros casi desaparecen. La muestra de abajo está sobre ese fondo, no sobre el de este cuadro de diálogo.</value>
+  </data>
+  <data name="Archon10002" xml:space="preserve">
+    <value>Archon  (10,0,0) - 2.12B</value>
+  </data>
+  <data name="UseThisColour" xml:space="preserve">
+    <value>Usar este color</value>
+  </data>
+  <data name="TitleConfirm" xml:space="preserve">
+    <value>Confirmar</value>
+  </data>
+  <data name="No" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>Sí</value>
+  </data>
+  <data name="TitleOpenInBrowser" xml:space="preserve">
+    <value>¿Abrir en el navegador?</value>
+  </data>
+  <data name="ThisLinkOpensANote" xml:space="preserve">
+    <value>Este enlace abre un sitio web en tu navegador.</value>
+  </data>
+  <data name="DontAskMeAgain" xml:space="preserve">
+    <value>No volver a preguntar</value>
+  </data>
+  <data name="Open" xml:space="preserve">
+    <value>Abrir</value>
+  </data>
+  <data name="TitleAddItemsFromFit" xml:space="preserve">
+    <value>Añadir objetos desde un equipamiento</value>
+  </data>
+  <data name="AddToGroupLabel" xml:space="preserve">
+    <value>Añadir al grupo:</value>
+  </data>
+  <data name="FitsLabel" xml:space="preserve">
+    <value>Equipamientos</value>
+  </data>
+  <data name="FitContentsLabel" xml:space="preserve">
+    <value>Contenido del equipamiento</value>
+  </data>
+  <data name="AddItems2" xml:space="preserve">
+    <value>Añadir objetos</value>
+  </data>
+  <data name="TitleAddItemsFromMarketGroup" xml:space="preserve">
+    <value>Añadir objetos desde un grupo de mercado</value>
+  </data>
+  <data name="TargetQtyPerItemLabel" xml:space="preserve">
+    <value>Cantidad objetivo por objeto</value>
+  </data>
+  <data name="Ok" xml:space="preserve">
+    <value>Vale</value>
+  </data>
+  <data name="HintRrggbb" xml:space="preserve">
+    <value>#rrggbb</value>
+  </data>
+  <data name="TipPickAColour" xml:space="preserve">
+    <value>Elige un color</value>
+  </data>
+  <data name="EveMailColoursLabel" xml:space="preserve">
+    <value>Colores del correo de EVE</value>
+  </data>
+  <data name="Custom" xml:space="preserve">
+    <value>Personalizado…</value>
+  </data>
+  <data name="NoColour" xml:space="preserve">
+    <value>Sin color</value>
+  </data>
+  <data name="TipShowEveryLabelAlreadyIn" xml:space="preserve">
+    <value>Mostrar todas las etiquetas que ya se usan</value>
+  </data>
+  <data name="NoMatchesPressEnterNote" xml:space="preserve">
+    <value>Sin coincidencias: pulsa Enter para crearla.</value>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>Cargando…</value>
+  </data>
+  <data name="Checking" xml:space="preserve">
+    <value>Comprobando…</value>
+  </data>
+  <data name="ErrorWithMessage" xml:space="preserve">
+    <value>Error: {0}</value>
+  </data>
+  <data name="PriceTypeBuy" xml:space="preserve">
+    <value>Compra</value>
+  </data>
+  <data name="PriceTypeSell" xml:space="preserve">
+    <value>Venta</value>
+  </data>
+  <data name="PriceTypeSplit" xml:space="preserve">
+    <value>Intermedio</value>
+  </data>
+  <data name="JobReady" xml:space="preserve">
+    <value>Listo</value>
+  </data>
+  <data name="DurationDaysHoursMinutes" xml:space="preserve">
+    <value>{0} d {1} h {2} min</value>
+  </data>
+  <data name="DurationHoursMinutes" xml:space="preserve">
+    <value>{0} h {1} min</value>
+  </data>
+  <data name="DurationMinutesSeconds" xml:space="preserve">
+    <value>{0} min {1} s</value>
+  </data>
+  <data name="DurationSeconds" xml:space="preserve">
+    <value>{0} s</value>
+  </data>
+  <data name="AlarmActionSound" xml:space="preserve">
+    <value>Sonido</value>
+  </data>
+  <data name="AlarmActionTtsDirect" xml:space="preserve">
+    <value>TTS directo (sin el asistente)</value>
+  </data>
+  <data name="AlarmActionAgentNotify" xml:space="preserve">
+    <value>Avisar al asistente</value>
+  </data>
+  <data name="AlarmActionAlert" xml:space="preserve">
+    <value>Alerta</value>
+  </data>
+  <data name="AlarmActionDialog" xml:space="preserve">
+    <value>Cuadro de diálogo</value>
+  </data>
+  <data name="PagerNoResults" xml:space="preserve">
+    <value>Sin resultados</value>
+  </data>
+  <data name="PagerPageOf" xml:space="preserve">
+    <value>Página {0:N0} de {1:N0}  ·  {2:N0}</value>
+  </data>
+  <data name="NoPark" xml:space="preserve">
+    <value>— Sin parque —</value>
+  </data>
+  <data name="SelectBlueprintFirst" xml:space="preserve">
+    <value>Selecciona primero un plano.</value>
+  </data>
+  <data name="TypeToConfirm" xml:space="preserve">
+    <value>Escribe {0} para confirmar:</value>
+  </data>
+  <data name="NameRequired" xml:space="preserve">
+    <value>El nombre es obligatorio.</value>
+  </data>
+  <data name="LoadingMarketGroups" xml:space="preserve">
+    <value>Cargando grupos de mercado…</value>
+  </data>
+  <data name="SelectMarketGroup" xml:space="preserve">
+    <value>Selecciona un grupo de mercado para añadir sus objetos.</value>
+  </data>
+  <data name="FitBadgePersonal" xml:space="preserve">
+    <value>P</value>
+  </data>
+  <data name="FitBadgeCorp" xml:space="preserve">
+    <value>C</value>
+  </data>
+  <data name="FetchingFits" xml:space="preserve">
+    <value>Obteniendo equipamientos de ESI…</value>
+  </data>
+  <data name="BuildingFitTree" xml:space="preserve">
+    <value>Creando el árbol…</value>
+  </data>
+  <data name="NoFitsFound" xml:space="preserve">
+    <value>No se han encontrado equipamientos. Comprueba que los personajes tienen el ámbito esi-fittings.read_fittings.v1.</value>
+  </data>
+  <data name="TypeIdWithId" xml:space="preserve">
+    <value>ID de tipo {0}</value>
+  </data>
+  <data name="FitsSummary" xml:space="preserve">
+    <value>{0} equipamiento(s) en {1} tipo(s) de nave</value>
+  </data>
+  <data name="FitSectionHigh" xml:space="preserve">
+    <value>Ranuras superiores</value>
+  </data>
+  <data name="FitSectionMed" xml:space="preserve">
+    <value>Ranuras medias</value>
+  </data>
+  <data name="FitSectionLow" xml:space="preserve">
+    <value>Ranuras inferiores</value>
+  </data>
+  <data name="FitSectionRigs" xml:space="preserve">
+    <value>Complementos</value>
+  </data>
+  <data name="FitSectionSubsystems" xml:space="preserve">
+    <value>Subsistemas</value>
+  </data>
+  <data name="FitSectionDrones" xml:space="preserve">
+    <value>Drones</value>
+  </data>
+  <data name="FitSectionFighters" xml:space="preserve">
+    <value>Cazas</value>
+  </data>
+  <data name="FitSectionCargo" xml:space="preserve">
+    <value>Bodega</value>
+  </data>
+  <data name="FitSectionFleetHangar" xml:space="preserve">
+    <value>Hangar de la flota</value>
+  </data>
+  <data name="FitSectionOther" xml:space="preserve">
+    <value>Otros</value>
+  </data>
+  <data name="FitSectionHull" xml:space="preserve">
+    <value>Casco</value>
+  </data>
+  <data name="ListSeparator" xml:space="preserve">
+    <value>, </value>
+  </data>
+  <data name="ClauseSeparator" xml:space="preserve">
+    <value>, </value>
+  </data>
+  <data name="LanguageEnglish" xml:space="preserve">
+    <value>Inglés</value>
+  </data>
+  <data name="LanguageChineseSimplified" xml:space="preserve">
+    <value>Chino simplificado</value>
+  </data>
+  <data name="LanguageGerman" xml:space="preserve">
+    <value>Alemán</value>
+  </data>
+  <data name="LanguageSpanish" xml:space="preserve">
+    <value>Español</value>
+  </data>
+  <data name="LanguageFrench" xml:space="preserve">
+    <value>Francés</value>
+  </data>
+  <data name="LanguageJapanese" xml:space="preserve">
+    <value>Japonés</value>
+  </data>
+  <data name="LanguageKorean" xml:space="preserve">
+    <value>Coreano</value>
+  </data>
+  <data name="LanguageRussian" xml:space="preserve">
+    <value>Ruso</value>
+  </data>
+  <data name="LanguageLocalAndNative" xml:space="preserve">
+    <value>{0} ({1})</value>
+  </data>
+  <data name="DateMonthDay" xml:space="preserve">
+    <value>d MMM</value>
+  </data>
+  <data name="DateMonthDayTime" xml:space="preserve">
+    <value>d MMM, HH:mm</value>
+  </data>
+  <data name="DateMonthDayTime12" xml:space="preserve">
+    <value>d MMM, HH:mm</value>
+  </data>
+  <data name="DateMonthDayYear" xml:space="preserve">
+    <value>d MMM yyyy</value>
+  </data>
+  <data name="DateMonthDayYearTime" xml:space="preserve">
+    <value>d MMM yyyy HH:mm</value>
+  </data>
+  <data name="DateMonthYear" xml:space="preserve">
+    <value>MMMM 'de' yyyy</value>
+  </data>
+  <data name="DateMonthYearShort" xml:space="preserve">
+    <value>MMM yy</value>
+  </data>
+  <data name="DateDayTime" xml:space="preserve">
+    <value>d MMM HH:mm</value>
+  </data>
+  <data name="DateDayTimeSeconds" xml:space="preserve">
+    <value>d MMM HH:mm:ss</value>
+  </data>
+  <data name="DateFull" xml:space="preserve">
+    <value>d MMM yyyy</value>
+  </data>
+  <data name="DateTimeFull" xml:space="preserve">
+    <value>d MMM yyyy HH:mm</value>
+  </data>
+  <data name="DateTimeLong" xml:space="preserve">
+    <value>d 'de' MMMM 'de' yyyy, HH:mm</value>
+  </data>
+  <data name="DateWeekdayTime" xml:space="preserve">
+    <value>dddd, d MMM yyyy  HH:mm</value>
+  </data>
+  <data name="DateFullBinding" xml:space="preserve">
+    <value>{0:dd MMM yyyy}</value>
+  </data>
+</root>

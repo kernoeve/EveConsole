@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="HowToOrder" xml:space="preserve">
+    <value>{0}——如何下单</value>
+  </data>
+  <data name="SubjectAbout" xml:space="preserve">
+    <value>{0}——商店介绍</value>
+  </data>
+  <data name="SubjectPriceList" xml:space="preserve">
+    <value>{0}——价目表</value>
+  </data>
+  <data name="SubjectOrderNotUnderstood" xml:space="preserve">
+    <value>{0}——订单无法识别</value>
+  </data>
+  <data name="SubjectOrderOverLimit" xml:space="preserve">
+    <value>{0}——订单超出购买限制</value>
+  </data>
+  <data name="SubjectOrder" xml:space="preserve">
+    <value>{0}——订单 {1}</value>
+  </data>
+  <data name="SubjectNoOpenOrders" xml:space="preserve">
+    <value>{0}——没有未完成的订单</value>
+  </data>
+  <data name="SubjectOrderStatus" xml:space="preserve">
+    <value>{0}——订单状态</value>
+  </data>
+  <data name="SubjectOrderNotFound" xml:space="preserve">
+    <value>{0}——找不到订单</value>
+  </data>
+  <data name="SubjectOrderCancelled" xml:space="preserve">
+    <value>{0}——订单 {1} 已取消</value>
+  </data>
+  <data name="SubjectOrdersCancelled" xml:space="preserve">
+    <value>{0}——订单 {1} 已取消</value>
+  </data>
+  <data name="SubjectPart" xml:space="preserve">
+    <value>{0}（{1}/{2}）</value>
+  </data>
+  <data name="UsageSubjectWord" xml:space="preserve">
+    <value>请在邮件&lt;b&gt;主题&lt;/b&gt;中写入以下命令之一。</value>
+  </data>
+  <data name="UsagePrices" xml:space="preserve">
+    <value>获取当前价目表。</value>
+  </data>
+  <data name="UsageOrder" xml:space="preserve">
+    <value>下单，正文中每行一个物品。</value>
+  </data>
+  <data name="UsageDragIn" xml:space="preserve">
+    <value>最简单的方法是&lt;b&gt;直接把物品拖进来&lt;/b&gt;——价目表、市场或你的机库中的物品都可以——要订购多个时，在它后面写上数量。</value>
+  </data>
+  <data name="UsageTyping" xml:space="preserve">
+    <value>也可以直接输入物品名称。数量一律写在物品之后，而不是之前：</value>
+  </data>
+  <data name="UsageSomeoneElse" xml:space="preserve">
+    <value>&lt;b&gt;要发给别人？&lt;/b&gt;把那个角色或军团拖到正文任意位置，合同就会发给对方，而不是你。</value>
+  </data>
+  <data name="UsageStatus" xml:space="preserve">
+    <value>查看你的订单进度。</value>
+  </data>
+  <data name="UsageStatusNoReference" xml:space="preserve">
+    <value>无需订单号——会列出你所有未完成的订单。</value>
+  </data>
+  <data name="UsageStatusOneOrder" xml:space="preserve">
+    <value>如需查询某个订单，请把订单号写在主题或正文中：</value>
+  </data>
+  <data name="UsageCancel" xml:space="preserve">
+    <value>撤回订单。</value>
+  </data>
+  <data name="UsageCancelReference" xml:space="preserve">
+    <value>此命令必须附上订单号（见确认邮件），写在主题或正文中均可：</value>
+  </data>
+  <data name="UsageInfo" xml:space="preserve">
+    <value>了解此商店。</value>
+  </data>
+  <data name="UsageHelp" xml:space="preserve">
+    <value>获取本说明。</value>
+  </data>
+  <data name="UsagePricesNote" xml:space="preserve">
+    <value>价格以商店读取你的订单时价目表所列为准。——{0}</value>
+  </data>
+  <data name="NotRecognised" xml:space="preserve">
+    <value>未能将这封邮件识别为订单。</value>
+  </data>
+  <data name="NothingMatched" xml:space="preserve">
+    <value>此订单中没有与价目表相符的物品。</value>
+  </data>
+  <data name="NotFound" xml:space="preserve">
+    <value>未找到：{0}</value>
+  </data>
+  <data name="OverLimitNotTaken" xml:space="preserve">
+    <value>此订单超出了商店的购买限制，因此未被接收。</value>
+  </data>
+  <data name="OrderReceived" xml:space="preserve">
+    <value>已收到订单 {0}</value>
+  </data>
+  <data name="PriceEach" xml:space="preserve">
+    <value>（单价 {0}）</value>
+  </data>
+  <data name="IskAmount" xml:space="preserve">
+    <value>{0:N0} ISK</value>
+  </data>
+  <data name="OrderTotalLine" xml:space="preserve">
+    <value>总价 {0}</value>
+  </data>
+  <data name="ContractMadeOutTo" xml:space="preserve">
+    <value>合同将发给 &lt;b&gt;{0}&lt;/b&gt;。</value>
+  </data>
+  <data name="NotOrdered" xml:space="preserve">
+    <value>不在价目表上，因此未订购：{0}</value>
+  </data>
+  <data name="OrderTrimmed" xml:space="preserve">
+    <value>此订单超出了单封邮件可订购的上限——最多 {0} 种物品，每种 {1:N0} 个——已削减至上限以内。请核对上方各行；更大的订单请直接发邮件给我们。</value>
+  </data>
+  <data name="ReplyWithStatus" xml:space="preserve">
+    <value>发送 STATUS 查看进度；发送 CANCEL 加此订单号即可撤回订单。</value>
+  </data>
+  <data name="NoOpenOrders" xml:space="preserve">
+    <value>你在此商店没有未完成的订单。</value>
+  </data>
+  <data name="OrderHeading" xml:space="preserve">
+    <value>订单 {0}</value>
+  </data>
+  <data name="YourOpenOrders" xml:space="preserve">
+    <value>你的未完成订单</value>
+  </data>
+  <data name="ContractTo" xml:space="preserve">
+    <value>合同接收方：{0}</value>
+  </data>
+  <data name="OrderTotal" xml:space="preserve">
+    <value>订单总价：{0}</value>
+  </data>
+  <data name="NoOrderMatches" xml:space="preserve">
+    <value>你没有与 &lt;b&gt;{0}&lt;/b&gt; 相符的未完成订单。</value>
+  </data>
+  <data name="NoReferenceFound" xml:space="preserve">
+    <value>这封邮件中找不到订单号。</value>
+  </data>
+  <data name="ReferencesLookLike" xml:space="preserve">
+    <value>订单号形如 K7P2QX，可在确认邮件中找到。单独发送 STATUS 即可列出你所有未完成的订单。</value>
+  </data>
+  <data name="OrderCancelled" xml:space="preserve">
+    <value>订单 {0} 已取消</value>
+  </data>
+  <data name="OrdersCancelled" xml:space="preserve">
+    <value>订单 {0} 已取消</value>
+  </data>
+  <data name="NothingOpenToCancelSingle" xml:space="preserve">
+    <value>此订单中已没有可以取消的物品。</value>
+  </data>
+  <data name="NothingOpenToCancelSeveral" xml:space="preserve">
+    <value>这些订单中已没有可以取消的物品。</value>
+  </data>
+  <data name="LinesLeftAsTheyAreOther" xml:space="preserve">
+    <value>{0} 种物品已交付或已取消，未作更改。</value>
+  </data>
+  <data name="UpdateHeading" xml:space="preserve">
+    <value>订单 &lt;b&gt;{0}&lt;/b&gt;——进度更新</value>
+  </data>
+  <data name="TypeFallback" xml:space="preserve">
+    <value>类型 {0}</value>
+  </data>
+  <data name="UnknownLink" xml:space="preserve">
+    <value>类型 {0}</value>
+  </data>
+  <data name="PageOf" xml:space="preserve">
+    <value>第 {0} 页，共 {1} 页</value>
+  </data>
+  <data name="HeadingPart" xml:space="preserve">
+    <value>{0}（{1}/{2}）</value>
+  </data>
+  <data name="PagesDidNotFitOther" xml:space="preserve">
+    <value>还有 {0} 页未能发出。</value>
+  </data>
+  <data name="StatusOneOrderHint" xml:space="preserve">
+    <value>发送 STATUS 加订单号即可查询单个订单。</value>
+  </data>
+  <data name="MessageCut" xml:space="preserve">
+    <value>…此邮件超出了 EVE 邮件的长度上限，已在此处截断。</value>
+  </data>
+  <data name="ExpectContractWaiting" xml:space="preserve">
+    <value>合同已发出，等待你接受。</value>
+  </data>
+  <data name="ExpectInStock" xml:space="preserve">
+    <value>有现货，已为你预留——合同发出后会通知你。</value>
+  </data>
+  <data name="ExpectInStockDue" xml:space="preserve">
+    <value>有现货，已为你预留——预计 {0} 发出合同。</value>
+  </data>
+  <data name="ExpectInBuild" xml:space="preserve">
+    <value>已在制造中。</value>
+  </data>
+  <data name="ExpectInBuildDue" xml:space="preserve">
+    <value>已在制造中，预计 {0}。</value>
+  </data>
+  <data name="ExpectOutOfStock" xml:space="preserve">
+    <value>暂无现货——你的预订已登记，开始制造后会告知你完成日期。</value>
+  </data>
+  <data name="ExpectOutOfStockDue" xml:space="preserve">
+    <value>暂无现货——你的预订已登记，预计 {0}。</value>
+  </data>
+  <data name="StateDelivered" xml:space="preserve">
+    <value>已交付</value>
+  </data>
+  <data name="StateDeliveredRestCancelledOther" xml:space="preserve">
+    <value>已交付 {0:N0} 个（共 {1:N0} 个），其余已取消</value>
+  </data>
+  <data name="StateContractDeclined" xml:space="preserve">
+    <value>合同已被拒绝，此订单已关闭</value>
+  </data>
+  <data name="StateCancelled" xml:space="preserve">
+    <value>已取消</value>
+  </data>
+  <data name="StateContractWaiting" xml:space="preserve">
+    <value>合同已发出，等待你接受</value>
+  </data>
+  <data name="StateReadyContractDue" xml:space="preserve">
+    <value>现货，预计 {0} 发出合同</value>
+  </data>
+  <data name="StateReady" xml:space="preserve">
+    <value>现货，合同发出后会通知你</value>
+  </data>
+  <data name="StateInProductionDue" xml:space="preserve">
+    <value>制造中，预计 {0}</value>
+  </data>
+  <data name="StateInProduction" xml:space="preserve">
+    <value>制造中</value>
+  </data>
+  <data name="StateExpected" xml:space="preserve">
+    <value>预计 {0}</value>
+  </data>
+  <data name="StateWaitingOnMaterials" xml:space="preserve">
+    <value>等待材料</value>
+  </data>
+  <data name="PartDeliveredOther" xml:space="preserve">
+    <value>已交付 {0:N0} 个（共 {1:N0} 个）</value>
+  </data>
+  <data name="PartOnContractOther" xml:space="preserve">
+    <value>{0:N0} 个已发出合同，等待你接受</value>
+  </data>
+  <data name="PartReadyOther" xml:space="preserve">
+    <value>现货 {0:N0} 个</value>
+  </data>
+  <data name="PartReadyContractDueOther" xml:space="preserve">
+    <value>现货 {0:N0} 个，预计 {1} 发出合同</value>
+  </data>
+  <data name="PartInProductionOther" xml:space="preserve">
+    <value>制造中 {0:N0} 个</value>
+  </data>
+  <data name="PartInProductionDueOther" xml:space="preserve">
+    <value>制造中 {0:N0} 个，预计 {1}</value>
+  </data>
+  <data name="PartWaitingOnMaterialsOther" xml:space="preserve">
+    <value>等待材料 {0:N0} 个</value>
+  </data>
+  <data name="PartExpectedOther" xml:space="preserve">
+    <value>{0:N0} 个预计 {1}</value>
+  </data>
+  <data name="PartsSeparator" xml:space="preserve">
+    <value>；</value>
+  </data>
+  <data name="LimitScopeItem" xml:space="preserve">
+    <value>每种物品</value>
+  </data>
+  <data name="LimitScopeGroup" xml:space="preserve">
+    <value>每个物品分组</value>
+  </data>
+  <data name="LimitScopeStore" xml:space="preserve">
+    <value>全店</value>
+  </data>
+  <data name="LimitPerDay" xml:space="preserve">
+    <value>每天</value>
+  </data>
+  <data name="LimitPerDaysOther" xml:space="preserve">
+    <value>每 {0} 天</value>
+  </data>
+  <data name="LimitPerMonth" xml:space="preserve">
+    <value>每月</value>
+  </data>
+  <data name="LimitPerMonthsOther" xml:space="preserve">
+    <value>每 {0} 个月</value>
+  </data>
+  <data name="LimitPerYear" xml:space="preserve">
+    <value>每年</value>
+  </data>
+  <data name="LimitPerYearsOther" xml:space="preserve">
+    <value>每 {0} 年</value>
+  </data>
+  <data name="LimitEver" xml:space="preserve">
+    <value>累计</value>
+  </data>
+  <data name="LimitRuleOther" xml:space="preserve">
+    <value>每位买家限购：{1}{2} {0:N0} 个。</value>
+  </data>
+  <data name="LimitOver" xml:space="preserve">
+    <value>超出商店的购买限制（{1}{2} {0:N0} 个）：此订单订购 {3:N0} × {4}，此前已订购 {5:N0} 个。</value>
+  </data>
+  <data name="PriceListLimitReached" xml:space="preserve">
+    <value>已达限购上限</value>
+  </data>
+  <data name="WebNoBuyer" xml:space="preserve">
+    <value>订单中没有买家。</value>
+  </data>
+  <data name="WebNoLines" xml:space="preserve">
+    <value>订单中没有物品。</value>
+  </data>
+  <data name="WebTooManyLinesOther" xml:space="preserve">
+    <value>{0} 种物品超过了单个订单的上限（{1} 种）。</value>
+  </data>
+  <data name="WebNotOnPriceList" xml:space="preserve">
+    <value>类型 {0} 不在价目表上。</value>
+  </data>
+  <data name="WebUnitsAskedOther" xml:space="preserve">
+    <value>有一种物品的订购数量为 {0}。</value>
+  </data>
+  <data name="WebTooManyUnitsOther" xml:space="preserve">
+    <value>订购 {0:N0} 个，超过了每个订单中每种物品的上限（{1:N0} 个）。</value>
+  </data>
+  <data name="WebWithdrawn" xml:space="preserve">
+    <value>买家在商店确认前已撤回。</value>
+  </data>
+  <data name="WebDeclined" xml:space="preserve">
+    <value>商店拒绝了此订单。</value>
+  </data>
+</root>

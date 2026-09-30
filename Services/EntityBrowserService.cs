@@ -3,6 +3,7 @@ using EveConsole.Data;
 using EveConsole.Models;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -79,8 +80,13 @@ public record LpOfferRow(string Item, int TypeId, int Quantity, int LpCost, long
     public string LpText  => LpCost.ToString("N0");
     public string IskText => IskCost > 0 ? IskCost.ToString("N0") : "—";
 }
+/// <param name="Contested">The system's state as the screen words it.</param>
+/// <param name="Role">Whether the faction owns the system or occupies it, as the screen words it.</param>
+/// <param name="State">ESI's word for the state — "contested", "captured"… ⚠️ Compare this,
+/// never Contested.</param>
 public record FactionWarfareRow(string System, string Region, string Contested, int Points, int Threshold,
-                                string Role, string Owner, string Occupier)
+                                string Role, string Owner, string Occupier,
+                                long OwnerFactionId = 0, long OccupierFactionId = 0, string State = "")
 {
     /// <summary>Progress toward a flip. The raw pair means little without the ratio.</summary>
     public string ContestedPercent => Threshold > 0 ? $"{(double)Points / Threshold * 100:0.#}%" : "";
@@ -92,8 +98,9 @@ public record FactionWarfareRow(string System, string Region, string Contested, 
     public string PointsText       => Points.ToString("N0");
     public string ThresholdText    => Threshold.ToString("N0");
 
-    /// <summary>A system held by someone other than its owner has been taken and not reset.</summary>
-    public bool   IsOccupied    => Occupier.Length > 0 && Owner.Length > 0 && Occupier != Owner;
+    /// <summary>A system held by someone other than its owner has been taken and not reset.
+    /// ⚠️ Decided on the ids: the two names are in the interface language, which is for reading.</summary>
+    public bool   IsOccupied    => Occupier.Length > 0 && Owner.Length > 0 && OccupierFactionId != OwnerFactionId;
     public string OccupierColor => IsOccupied ? "#c85a5a" : "#7a8896";
 }
 
@@ -109,6 +116,12 @@ public record IntelSightingRow(string When, string System, string Channel, strin
 ///
 /// Raw SQL rather than LINQ: the detail rows draw counts from several tables at once, which
 /// EF turns into either a cartesian join or a query per row.
+///
+/// <para>The detail rows are the tools' and nobody else's, so the SDE names in them — NPC
+/// corporations, factions, agents and their divisions, items, places — are in the interface
+/// language (see SdeNames), and the lists are ordered by what they show. The searches are
+/// shared: <see cref="SearchWithEsiAsync(EntityKind, string, CancellationToken)"/> stays English
+/// for the agent and the order tracker, and <see cref="SearchShownAsync"/> is the tools' own.</para>
 /// </summary>
 public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, EsiClient? esi = null)
 {
@@ -122,45 +135,62 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
 
     // ── Search ───────────────────────────────────────────────────────────────
 
-    public async Task<List<EntityMatch>> SearchAsync(EntityKind kind, string text,
-                                                     CancellationToken ct = default)
+    /// <summary>Dropdown candidates by their English names, which is what the agent and the
+    /// order tracker match on and report. The tools' own box uses <see cref="SearchShownAsync"/>.</summary>
+    public Task<List<EntityMatch>> SearchAsync(EntityKind kind, string text, CancellationToken ct = default) =>
+        SearchLocalAsync(kind, text, shown: false, ct);
+
+    /// <summary>
+    /// The local search. <paramref name="shown"/> is the tools' own box: it also finds what was
+    /// typed in the interface language, and words the NPC names the way the dropdown shows them.
+    /// Without it every name and subtitle is exactly what the SDE and the name cache hold.
+    /// </summary>
+    private async Task<List<EntityMatch>> SearchLocalAsync(EntityKind kind, string text, bool shown,
+                                                           CancellationToken ct)
     {
         var q = (text ?? "").Trim();
         if (q.Length < MinSearch) return [];
 
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
+        var also = shown ? ShownMatches(kind, q) : "";
+
+        // The subtitle's parts come back separately — SubId and SubName for the division, the
+        // faction or the owner, PlaceId and Place for an agent's station — so that the dropdown
+        // can word them.
         var sql = kind switch
         {
-            EntityKind.Pilot or EntityKind.PlayerCorp or EntityKind.Alliance => """
+            EntityKind.Pilot or EntityKind.PlayerCorp or EntityKind.Alliance => $"""
                 SELECT "EntityId" AS "Id", "Name",
-                       '' AS "Subtitle"
+                       0 AS "Level", 0 AS "SubId", '' AS "SubName", 0 AS "PlaceId", '' AS "Place"
                 FROM "UniverseNames"
-                WHERE "Category" = @cat AND LOWER("Name") LIKE LOWER(@q)
+                WHERE "Category" = @cat AND (LOWER("Name") LIKE LOWER(@q){also})
                 ORDER BY CASE WHEN LOWER("Name") LIKE LOWER(@prefix) THEN 0 ELSE 1 END, LENGTH("Name"), "Name"
                 LIMIT @lim
                 """,
 
             // Agents are searched by their own name, their corporation or their station:
             // "who is in this station" is as common a question as "where is this agent".
-            EntityKind.Agent => """
-                SELECT a."AgentId" AS "Id", a."Name",
-                       'L' || a."Level" || ' · ' || COALESCE(d."Name",'') || ' · ' || COALESCE(s."Name",'') AS "Subtitle"
+            EntityKind.Agent => $"""
+                SELECT a."AgentId" AS "Id", a."Name", a."Level",
+                       COALESCE(d."DivisionId", 0) AS "SubId", COALESCE(d."Name",'') AS "SubName",
+                       COALESCE(s."StationId", 0) AS "PlaceId", COALESCE(s."Name",'') AS "Place"
                 FROM "SdeAgents" a
                 LEFT JOIN "SdeCorpDivisions"   d ON d."DivisionId"    = a."DivisionId"
                 LEFT JOIN "SdeNpcCorporations" n ON n."CorporationId" = a."CorporationId"
                 LEFT JOIN "SdeStations"        s ON s."StationId"     = a."LocationId"
-                WHERE LOWER(a."Name") LIKE LOWER(@q) OR LOWER(COALESCE(n."Name",'')) LIKE LOWER(@q) OR LOWER(COALESCE(s."Name",'')) LIKE LOWER(@q)
+                WHERE LOWER(a."Name") LIKE LOWER(@q) OR LOWER(COALESCE(n."Name",'')) LIKE LOWER(@q) OR LOWER(COALESCE(s."Name",'')) LIKE LOWER(@q){also}
                 ORDER BY CASE WHEN LOWER(a."Name") LIKE LOWER(@prefix) THEN 0 ELSE 1 END, a."Level" DESC, a."Name"
                 LIMIT @lim
                 """,
 
-            EntityKind.NpcCorp => """
-                SELECT n."CorporationId" AS "Id", n."Name",
-                       COALESCE(f."Name",'') AS "Subtitle"
+            EntityKind.NpcCorp => $"""
+                SELECT n."CorporationId" AS "Id", n."Name", 0 AS "Level",
+                       COALESCE(f."FactionId", 0) AS "SubId", COALESCE(f."Name",'') AS "SubName",
+                       0 AS "PlaceId", '' AS "Place"
                 FROM "SdeNpcCorporations" n
                 LEFT JOIN "SdeFactions" f ON f."FactionId" = n."FactionId"
-                WHERE LOWER(n."Name") LIKE LOWER(@q) OR LOWER(COALESCE(f."Name",'')) LIKE LOWER(@q)
+                WHERE LOWER(n."Name") LIKE LOWER(@q) OR LOWER(COALESCE(f."Name",'')) LIKE LOWER(@q){also}
                 ORDER BY CASE WHEN LOWER(n."Name") LIKE LOWER(@prefix) THEN 0 ELSE 1 END, n."Name"
                 LIMIT @lim
                 """,
@@ -168,36 +198,121 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
             // Station names embed their system ("Jita IV - Moon 4 - ..."), so a name search
             // already finds "everything in Jita". The region is matched too, for the times you
             // know the neighbourhood but not the name.
-            EntityKind.Station => """
-                SELECT s."StationId" AS "Id", s."Name",
-                       COALESCE(n."Name",'') AS "Subtitle"
+            EntityKind.Station => $"""
+                SELECT s."StationId" AS "Id", s."Name", 0 AS "Level",
+                       COALESCE(n."CorporationId", 0) AS "SubId", COALESCE(n."Name",'') AS "SubName",
+                       0 AS "PlaceId", '' AS "Place"
                 FROM "SdeStations" s
                 LEFT JOIN "SdeNpcCorporations" n ON n."CorporationId" = s."CorporationId"
                 LEFT JOIN "SdeRegions"         r ON r."RegionId"      = s."RegionId"
-                WHERE LOWER(s."Name") LIKE LOWER(@q) OR LOWER(COALESCE(r."Name",'')) LIKE LOWER(@q)
+                WHERE LOWER(s."Name") LIKE LOWER(@q) OR LOWER(COALESCE(r."Name",'')) LIKE LOWER(@q){also}
                 ORDER BY CASE WHEN LOWER(s."Name") LIKE LOWER(@prefix) THEN 0 ELSE 1 END, s."Name"
                 LIMIT @lim
                 """,
 
-            _ => """
-                SELECT "FactionId" AS "Id", "Name", '' AS "Subtitle"
+            _ => $"""
+                SELECT "FactionId" AS "Id", "Name", 0 AS "Level", 0 AS "SubId", '' AS "SubName",
+                       0 AS "PlaceId", '' AS "Place"
                 FROM "SdeFactions"
-                WHERE LOWER("Name") LIKE LOWER(@q)
+                WHERE LOWER("Name") LIKE LOWER(@q){also}
                 ORDER BY CASE WHEN LOWER("Name") LIKE LOWER(@prefix) THEN 0 ELSE 1 END, "Name"
                 LIMIT @lim
                 """,
         };
 
-        return await db.Database.SqlQueryRaw<EntityMatch>(sql,
+        var raw = await db.Database.SqlQueryRaw<MatchRaw>(sql,
             AppDb.Param("@cat",    CategoryOf(kind)),
             AppDb.Param("@q",      $"%{q}%"),
             AppDb.Param("@prefix", $"{q}%"),
             AppDb.Param("@lim",    MaxMatches)).ToListAsync(ct);
+
+        var matches = raw.Select(r => (Raw: r, Match: new EntityMatch(
+            r.Id, shown ? ShownName(kind, r.Id, r.Name) : r.Name, Subtitle(kind, r, shown)))).ToList();
+
+        // The tools' own dropdown lists NPC names as it shows them, so it is ordered by them: what
+        // starts with the typed text first, in either language, then agents by level, then by
+        // name. A player list keeps the query's order, which puts the shortest names first.
+        if (shown && kind is not (EntityKind.Pilot or EntityKind.PlayerCorp or EntityKind.Alliance))
+            matches = [.. matches
+                .OrderBy(m => m.Match.Name.StartsWith(q, StringComparison.OrdinalIgnoreCase)
+                           || m.Raw.Name.StartsWith(q, StringComparison.OrdinalIgnoreCase) ? 0 : 1)
+                .ThenByDescending(m => m.Raw.Level)
+                .ThenBy(m => m.Match.Name, StringComparer.CurrentCulture)];
+
+        return [.. matches.Select(m => m.Match)];
     }
+
+    /// <summary>A search hit as the query returns it, before it is worded for the dropdown.</summary>
+    private sealed record MatchRaw(long Id, string Name, int Level, long SubId, string SubName,
+                                   long PlaceId, string Place);
+
+    /// <summary>The dropdown's second column. In English — <paramref name="shown"/> false — it is
+    /// exactly what the queries used to build themselves.</summary>
+    private static string Subtitle(EntityKind kind, MatchRaw r, bool shown) => kind switch
+    {
+        EntityKind.Agent   => shown
+            ? $"L{r.Level} · {SdeNames.Get(SdeNameKind.NpcCorporationDivision, r.SubId, r.SubName)} · {SdeNames.Station(r.PlaceId, r.Place)}"
+            : $"L{r.Level} · {r.SubName} · {r.Place}",
+        EntityKind.NpcCorp => shown ? SdeNames.Faction(r.SubId, r.SubName) : r.SubName,
+        EntityKind.Station => shown ? SdeNames.NpcCorporation(r.SubId, r.SubName) : r.SubName,
+        _                  => "",
+    };
+
+    /// <summary>
+    /// What the search matches in the interface language, as SQL to OR onto its match on the
+    /// English: the same things in both — an agent by its name, its corporation's or its
+    /// station's, an NPC corporation by its own or its faction's, a station by its own or its
+    /// region's. Players, their corporations and alliances have no other name, so only the NPC
+    /// ones the name cache holds are added there.
+    /// </summary>
+    private static string ShownMatches(EntityKind kind, string q) => kind switch
+    {
+        EntityKind.Pilot      => OrIdIn("\"EntityId\"",         SdeNameKind.Agent,          q),
+        EntityKind.PlayerCorp => OrIdIn("\"EntityId\"",         SdeNameKind.NpcCorporation, q),
+        EntityKind.Agent      => OrIdIn("a.\"AgentId\"",        SdeNameKind.Agent,          q)
+                               + OrIdIn("a.\"CorporationId\"",  SdeNameKind.NpcCorporation, q)
+                               + OrIdIn("a.\"LocationId\"",     SdeNameKind.Station,        q),
+        EntityKind.NpcCorp    => OrIdIn("n.\"CorporationId\"",  SdeNameKind.NpcCorporation, q)
+                               + OrIdIn("n.\"FactionId\"",      SdeNameKind.Faction,        q),
+        EntityKind.Station    => OrIdIn("s.\"StationId\"",      SdeNameKind.Station,        q)
+                               + OrIdIn("s.\"RegionId\"",       SdeNameKind.Region,         q),
+        EntityKind.Faction    => OrIdIn("\"FactionId\"",        SdeNameKind.Faction,        q),
+        _                     => "",
+    };
+
+    /// <summary>" OR column IN (…)" for the ids whose name in the interface language contains
+    /// <paramref name="q"/>, or nothing — always nothing in English. The ids are the SDE's own
+    /// numbers, never the typed text, so they go into the statement as a literal list.</summary>
+    private static string OrIdIn(string column, SdeNameKind kind, string q)
+    {
+        var ids = SdeNames.Find(kind, q);
+        return ids.Count == 0 ? "" : $" OR {column} IN ({string.Join(",", ids)})";
+    }
+
+    /// <summary>
+    /// What an entity is called on a screen: an NPC's name in the interface language where the SDE
+    /// has one, and an NPC station's as the import built it. Players, their corporations and
+    /// alliances have no other name. Safe with any id of the kind — a player's is in no SDE table.
+    ///
+    /// <para>⚠️ Display only. The searches, the agent and the order tracker go on matching the
+    /// English.</para>
+    /// </summary>
+    public static string ShownName(EntityKind kind, long id, string english) => kind switch
+    {
+        // A pilot can be an agent the name cache has met — paying a mission reward, say.
+        EntityKind.Agent   or EntityKind.Pilot      => SdeNames.Agent(id, english),
+        // Every capsuleer starts in an NPC corporation, so the player tab meets plenty of them.
+        EntityKind.NpcCorp or EntityKind.PlayerCorp => SdeNames.NpcCorporation(id, english),
+        EntityKind.Faction                          => SdeNames.Faction(id, english),
+        EntityKind.Station                          => SdeNames.Station(id, english),
+        _                                           => english,
+    };
 
     /// <summary>
     /// How many entities the search actually matched, so the UI can say when the dropdown
     /// was truncated. A picker that silently stops at 300 hides the one you wanted.
+    /// Counts what the tools' own box finds (<see cref="SearchShownAsync"/>): the English and the
+    /// interface language both.
     /// </summary>
     public async Task<int> CountMatchesAsync(EntityKind kind, string text, CancellationToken ct = default)
     {
@@ -206,27 +321,29 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
 
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
+        var also = ShownMatches(kind, q);
+
         var sql = kind switch
         {
             EntityKind.Pilot or EntityKind.PlayerCorp or EntityKind.Alliance =>
-                """SELECT CAST(COUNT(*) AS INTEGER) AS "Value" FROM "UniverseNames" WHERE "Category" = @cat AND LOWER("Name") LIKE LOWER(@q)""",
-            EntityKind.Agent => """
+                $"""SELECT CAST(COUNT(*) AS INTEGER) AS "Value" FROM "UniverseNames" WHERE "Category" = @cat AND (LOWER("Name") LIKE LOWER(@q){also})""",
+            EntityKind.Agent => $"""
                 SELECT CAST(COUNT(*) AS INTEGER) AS "Value" FROM "SdeAgents" a
                 LEFT JOIN "SdeNpcCorporations" n ON n."CorporationId" = a."CorporationId"
                 LEFT JOIN "SdeStations"        s ON s."StationId"     = a."LocationId"
-                WHERE LOWER(a."Name") LIKE LOWER(@q) OR LOWER(COALESCE(n."Name",'')) LIKE LOWER(@q) OR LOWER(COALESCE(s."Name",'')) LIKE LOWER(@q)
+                WHERE LOWER(a."Name") LIKE LOWER(@q) OR LOWER(COALESCE(n."Name",'')) LIKE LOWER(@q) OR LOWER(COALESCE(s."Name",'')) LIKE LOWER(@q){also}
                 """,
-            EntityKind.NpcCorp => """
+            EntityKind.NpcCorp => $"""
                 SELECT CAST(COUNT(*) AS INTEGER) AS "Value" FROM "SdeNpcCorporations" n
                 LEFT JOIN "SdeFactions" f ON f."FactionId" = n."FactionId"
-                WHERE LOWER(n."Name") LIKE LOWER(@q) OR LOWER(COALESCE(f."Name",'')) LIKE LOWER(@q)
+                WHERE LOWER(n."Name") LIKE LOWER(@q) OR LOWER(COALESCE(f."Name",'')) LIKE LOWER(@q){also}
                 """,
-            EntityKind.Station => """
+            EntityKind.Station => $"""
                 SELECT CAST(COUNT(*) AS INTEGER) AS "Value" FROM "SdeStations" s
                 LEFT JOIN "SdeRegions" r ON r."RegionId" = s."RegionId"
-                WHERE LOWER(s."Name") LIKE LOWER(@q) OR LOWER(COALESCE(r."Name",'')) LIKE LOWER(@q)
+                WHERE LOWER(s."Name") LIKE LOWER(@q) OR LOWER(COALESCE(r."Name",'')) LIKE LOWER(@q){also}
                 """,
-            _ => """SELECT CAST(COUNT(*) AS INTEGER) AS "Value" FROM "SdeFactions" WHERE LOWER("Name") LIKE LOWER(@q)""",
+            _ => $"""SELECT CAST(COUNT(*) AS INTEGER) AS "Value" FROM "SdeFactions" WHERE LOWER("Name") LIKE LOWER(@q){also}""",
         };
 
         return (await db.Database.SqlQueryRaw<int>(sql,
@@ -243,11 +360,29 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
     /// ESI's search is authenticated and needs a character token, so this is best-effort:
     /// with no characters signed in, or the scope withheld, the local result stands.
     /// Anything found is written back to the cache, so the next search finds it locally.
+    ///
+    /// <para>⚠️ English throughout: the agent reports these names and the order tracker keeps the
+    /// one picked, and both go by the first match. The tools' own box is
+    /// <see cref="SearchShownAsync"/>.</para>
     /// </summary>
-    public async Task<List<EntityMatch>> SearchWithEsiAsync(EntityKind kind, string text,
-                                                            CancellationToken ct = default)
+    public Task<List<EntityMatch>> SearchWithEsiAsync(EntityKind kind, string text,
+                                                      CancellationToken ct = default) =>
+        SearchWithEsiAsync(kind, text, shown: false, ct);
+
+    /// <summary>
+    /// The entity tools' own search box: <see cref="SearchWithEsiAsync(EntityKind, string, CancellationToken)"/>
+    /// as a capsuleer reading the game in their language expects it. It finds what the dropdown
+    /// shows and the English both — names get pasted from killboards and chat — and lists the NPC
+    /// names in the interface language. For the screen only.
+    /// </summary>
+    public Task<List<EntityMatch>> SearchShownAsync(EntityKind kind, string text,
+                                                    CancellationToken ct = default) =>
+        SearchWithEsiAsync(kind, text, shown: true, ct);
+
+    private async Task<List<EntityMatch>> SearchWithEsiAsync(EntityKind kind, string text, bool shown,
+                                                             CancellationToken ct)
     {
-        var local = await SearchAsync(kind, text, ct);
+        var local = await SearchLocalAsync(kind, text, shown, ct);
 
         var q = (text ?? "").Trim();
         if (esi is null || q.Length < MinSearch) return local;
@@ -293,7 +428,8 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
             }
 
             return local
-                .Concat(names.Select(n => new EntityMatch(n.Id, n.Name, "via ESI")))
+                .Concat(names.Select(n => new EntityMatch(
+                    n.Id, shown ? ShownName(kind, n.Id, n.Name) : n.Name, CorpText.SearchViaEsi)))
                 .OrderBy(m => m.Name.StartsWith(q, StringComparison.OrdinalIgnoreCase) ? 0 : 1)
                 .ThenBy(m => m.Name.Length)
                 .ThenBy(m => m.Name)
@@ -325,29 +461,35 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                     var c = await esi.GetPublicAsync<EsiPublicCharacter>($"characters/{id}/", ct);
                     if (c is null) break;
 
+                    // The corporation in the interface language where it is an NPC one — a starter
+                    // corporation, most often; a player corporation has no other name. The same
+                    // for the militia's faction and the race.
                     var corpName = await NameOfAsync(c.CorporationId, ct);
-                    facts.Add(new("Corporation", corpName ?? c.CorporationId.ToString("N0"),
+                    facts.Add(new(CorpText.FactCorporation,
+                                  SdeNames.NpcCorporation(c.CorporationId, corpName ?? c.CorporationId.ToString("N0")),
                                   EntityKind.PlayerCorp, c.CorporationId));
                     if (c.AllianceId is { } aid)
-                        facts.Add(new("Alliance", await NameOfAsync(aid, ct) ?? aid.ToString("N0"),
+                        facts.Add(new(CorpText.FactAlliance, await NameOfAsync(aid, ct) ?? aid.ToString("N0"),
                                       EntityKind.Alliance, aid));
                     if (c.SecurityStatus is { } sec)
-                        facts.Add(new("Security status", sec.ToString("0.00")));
+                        facts.Add(new(CorpText.FactSecurityStatus, sec.ToString("0.00")));
                     if (c.FactionId is { } fid)
-                        facts.Add(new("Faction", await NameOfAsync(fid, ct) ?? fid.ToString("N0"),
+                        facts.Add(new(CorpText.FactFaction,
+                                      SdeNames.Faction(fid, await NameOfAsync(fid, ct) ?? fid.ToString("N0")),
                                       EntityKind.Faction, fid));
                     if (!string.IsNullOrWhiteSpace(c.Gender))
-                        facts.Add(new("Gender", char.ToUpper(c.Gender![0]) + c.Gender[1..]));
+                        facts.Add(new(CorpText.FactGender, GenderText(c.Gender!)));
                     if (c.RaceId is { } race)
-                        facts.Add(new("Race", await RaceNameAsync(race, ct) ?? race.ToString()));
+                        facts.Add(new(CorpText.FactRace,
+                                      SdeNames.Get(SdeNameKind.Race, race, await RaceNameAsync(race, ct) ?? race.ToString())));
                     if (c.BloodlineId is { } bl)
-                        facts.Add(new("Bloodline", await BloodlineNameAsync(bl, ct) ?? bl.ToString()));
+                        facts.Add(new(CorpText.FactBloodline, await BloodlineNameAsync(bl, ct) ?? bl.ToString()));
                     if (c.AchievementScore is { } score)
-                        facts.Add(new("Achievement score", score.ToString("N0")));
+                        facts.Add(new(CorpText.FactAchievementScore, score.ToString("N0")));
                     if (c.Birthday is { } b)
-                        facts.Add(new("Born", b.ToLocalTime().ToString("d MMM yyyy")));
+                        facts.Add(new(CorpText.FactBorn, b.ToLocalTime().ToString(CommonText.DateFull)));
                     if (!string.IsNullOrWhiteSpace(c.Title))
-                        facts.Add(new("Title", c.Title!));
+                        facts.Add(new(CorpText.FactTitle, c.Title!));
 
                     await CacheNameAsync(c.Name, id, CategoryOf(kind), ct);
                     return (facts, StripHtml(c.Description), c.Name);
@@ -358,19 +500,22 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                     var c = await esi.GetPublicAsync<EsiPublicCorporation>($"corporations/{id}/", ct);
                     if (c is null) break;
 
-                    if (!string.IsNullOrWhiteSpace(c.Ticker)) facts.Add(new("Ticker", $"[{c.Ticker}]"));
-                    facts.Add(new("Members", c.MemberCount.ToString("N0")));
-                    facts.Add(new("CEO", await NameOfAsync(c.CeoId, ct) ?? c.CeoId.ToString("N0"),
+                    if (!string.IsNullOrWhiteSpace(c.Ticker)) facts.Add(new(CorpText.FactTicker, $"[{c.Ticker}]"));
+                    facts.Add(new(CorpText.FactMembers, c.MemberCount.ToString("N0")));
+                    // A character ESI named: in the interface language where it is an NPC agent (an
+                    // NPC corporation's CEO can be), and as it is for a player.
+                    facts.Add(new(CorpText.FactCeo,
+                                  SdeNames.Agent(c.CeoId, await NameOfAsync(c.CeoId, ct) ?? c.CeoId.ToString("N0")),
                                   EntityKind.Pilot, c.CeoId));
                     if (c.AllianceId is { } aid)
-                        facts.Add(new("Alliance", await NameOfAsync(aid, ct) ?? aid.ToString("N0"),
+                        facts.Add(new(CorpText.FactAlliance, await NameOfAsync(aid, ct) ?? aid.ToString("N0"),
                                       EntityKind.Alliance, aid));
                     if (c.DateFounded is { } d)
-                        facts.Add(new("Founded", d.ToLocalTime().ToString("d MMM yyyy")));
-                    if (c.TaxRate is { } t) facts.Add(new("Tax rate", $"{t * 100:0.#}%"));
-                    if (c.WarEligible is true) facts.Add(new("War eligible", "Yes"));
+                        facts.Add(new(CorpText.FactFounded, d.ToLocalTime().ToString(CommonText.DateFull)));
+                    if (c.TaxRate is { } t) facts.Add(new(CorpText.FactTaxRate, $"{t * 100:0.#}%"));
+                    if (c.WarEligible is true) facts.Add(new(CorpText.FactWarEligible, CorpText.FactYes));
                     if (!string.IsNullOrWhiteSpace(c.Url) && c.Url != "http://")
-                        facts.Add(new("URL", c.Url!, Url: c.Url));
+                        facts.Add(new(CorpText.FactUrl, c.Url!, Url: c.Url));
 
                     await CacheNameAsync(c.Name, id, CategoryOf(kind), ct);
                     return (facts, StripHtml(c.Description), c.Name);
@@ -381,17 +526,17 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                     var a = await esi.GetPublicAsync<EsiPublicAlliance>($"alliances/{id}/", ct);
                     if (a is null) break;
 
-                    if (!string.IsNullOrWhiteSpace(a.Ticker)) facts.Add(new("Ticker", $"[{a.Ticker}]"));
-                    facts.Add(new("Creator", await NameOfAsync(a.CreatorId, ct) ?? a.CreatorId.ToString("N0"),
+                    if (!string.IsNullOrWhiteSpace(a.Ticker)) facts.Add(new(CorpText.FactTicker, $"[{a.Ticker}]"));
+                    facts.Add(new(CorpText.FactCreator, await NameOfAsync(a.CreatorId, ct) ?? a.CreatorId.ToString("N0"),
                                   EntityKind.Pilot, a.CreatorId));
-                    facts.Add(new("Creator corp",
+                    facts.Add(new(CorpText.FactCreatorCorp,
                                   await NameOfAsync(a.CreatorCorporationId, ct) ?? a.CreatorCorporationId.ToString("N0"),
                                   EntityKind.PlayerCorp, a.CreatorCorporationId));
                     if (a.ExecutorCorporationId is { } ex)
-                        facts.Add(new("Executor corp", await NameOfAsync(ex, ct) ?? ex.ToString("N0"),
+                        facts.Add(new(CorpText.FactExecutorCorp, await NameOfAsync(ex, ct) ?? ex.ToString("N0"),
                                       EntityKind.PlayerCorp, ex));
                     if (a.DateFounded is { } d)
-                        facts.Add(new("Founded", d.ToLocalTime().ToString("d MMM yyyy")));
+                        facts.Add(new(CorpText.FactFounded, d.ToLocalTime().ToString(CommonText.DateFull)));
 
                     await CacheNameAsync(a.Name, id, CategoryOf(kind), ct);
                     name = a.Name;
@@ -420,7 +565,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
 
             var names = await ResolveNamesAsync(ids.Select(i => (long)i).ToList(), "corporation", ct);
             return ids
-                .Select(i => new EntityMemberRow(i, names.GetValueOrDefault(i, $"Corporation {i}"), ""))
+                .Select(i => new EntityMemberRow(i, names.GetValueOrDefault(i, string.Format(CorpText.FallbackCorporationName, i)), ""))
                 .OrderBy(r => r.Name)
                 .ToList();
         }
@@ -453,15 +598,15 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
             {
                 var r    = ordered[i];
                 var name = r.AllianceId is > 0
-                    ? names.GetValueOrDefault(r.AllianceId.Value, $"Alliance {r.AllianceId}")
-                    : "— no alliance —";
+                    ? names.GetValueOrDefault(r.AllianceId.Value, string.Format(CorpText.FallbackAllianceName, r.AllianceId))
+                    : CorpText.HistoryNoAlliance;
 
                 // The record has no end date; a membership ran until the next one began.
-                var until = i == 0 ? "present" : ordered[i - 1].StartDate.ToLocalTime().ToString("d MMM yyyy");
-                var from  = r.StartDate.ToLocalTime().ToString("d MMM yyyy");
+                var until = i == 0 ? CorpText.HistoryPresent : ordered[i - 1].StartDate.ToLocalTime().ToString(CommonText.DateFull);
+                var from  = r.StartDate.ToLocalTime().ToString(CommonText.DateFull);
                 var days  = ((i == 0 ? DateTimeOffset.UtcNow : ordered[i - 1].StartDate) - r.StartDate).Days;
 
-                result.Add(new EntityHistoryRow(name, from, until, days < 0 ? "" : $"{days:N0} day(s)",
+                result.Add(new EntityHistoryRow(name, from, until, days < 0 ? "" : string.Format(CorpText.HistoryDays, days),
                                                 r.IsDeleted == true, r.AllianceId ?? 0));
             }
             return result;
@@ -527,12 +672,15 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
             var names = await ResolveNamesAsync(
                 rows.Select(r => (long)r.CorporationId).Distinct().ToList(), "corporation", ct);
 
+            // Every capsuleer's history starts in an NPC corporation, named in the interface
+            // language; a player corporation has no other name.
             var ordered = rows.OrderByDescending(r => r.StartDate).ToList();
             return ordered.Select((r, i) => new EntityHistoryRow(
-                names.GetValueOrDefault(r.CorporationId, $"Corporation {r.CorporationId}"),
-                r.StartDate.ToLocalTime().ToString("d MMM yyyy"),
-                i == 0 ? "present" : ordered[i - 1].StartDate.ToLocalTime().ToString("d MMM yyyy"),
-                $"{((i == 0 ? DateTimeOffset.UtcNow : ordered[i - 1].StartDate) - r.StartDate).Days:N0} day(s)",
+                SdeNames.NpcCorporation(r.CorporationId,
+                    names.GetValueOrDefault(r.CorporationId, string.Format(CorpText.FallbackCorporationName, r.CorporationId))),
+                r.StartDate.ToLocalTime().ToString(CommonText.DateFull),
+                i == 0 ? CorpText.HistoryPresent : ordered[i - 1].StartDate.ToLocalTime().ToString(CommonText.DateFull),
+                string.Format(CorpText.HistoryDays, ((i == 0 ? DateTimeOffset.UtcNow : ordered[i - 1].StartDate) - r.StartDate).Days),
                 r.IsDeleted == true,
                 r.CorporationId)).ToList();
         }
@@ -544,17 +692,35 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
     public async Task<List<EntityMemberRow>> NpcCorpAgentsAsync(long corpId, CancellationToken ct = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
-        return await db.Database.SqlQueryRaw<EntityMemberRow>("""
-            SELECT a."AgentId" AS "Id", a."Name", '' AS "Subtitle",
-                   a."Level", COALESCE(d."Name",'') AS "Division",
+        return AgentRoster(await db.Database.SqlQueryRaw<AgentRaw>("""
+            SELECT a."AgentId" AS "Id", a."Name", a."Level",
+                   COALESCE(d."DivisionId", 0) AS "DivisionId", COALESCE(d."Name",'') AS "Division",
+                   0 AS "CorporationId", '' AS "Corporation",
                    COALESCE(s."Name",'') AS "Station", COALESCE(s."StationId", 0) AS "StationId"
             FROM "SdeAgents" a
             LEFT JOIN "SdeCorpDivisions" d ON d."DivisionId" = a."DivisionId"
             LEFT JOIN "SdeStations"      s ON s."StationId"  = a."LocationId"
             WHERE a."CorporationId" = @id
-            ORDER BY a."Level" DESC, a."Name"
-            """, AppDb.Param("@id", corpId)).ToListAsync(ct);
+            """, AppDb.Param("@id", corpId)).ToListAsync(ct));
     }
+
+    /// <summary>
+    /// An agent roster as the grid shows it: the agents, their divisions, their corporations and
+    /// their stations in the interface language, the strongest first and then by the name shown.
+    /// The subtitle is the corporation, where the query gave one.
+    /// </summary>
+    private static List<EntityMemberRow> AgentRoster(List<AgentRaw> rows) =>
+    [
+        .. rows.Select(r => new EntityMemberRow(
+                   r.Id, SdeNames.Agent(r.Id, r.Name), SdeNames.NpcCorporation(r.CorporationId, r.Corporation),
+                   r.Level, SdeNames.Get(SdeNameKind.NpcCorporationDivision, r.DivisionId, r.Division),
+                   SdeNames.Station(r.StationId, r.Station), r.StationId))
+               .OrderByDescending(r => r.Level)
+               .ThenBy(r => r.Name, StringComparer.CurrentCulture),
+    ];
+
+    private sealed record AgentRaw(long Id, string Name, int Level, long DivisionId, string Division,
+                                   long CorporationId, string Corporation, string Station, long StationId);
 
     /// <summary>Stations an NPC corporation owns.</summary>
 
@@ -567,10 +733,13 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
     public async Task<string?> MilitiaFactionAsync(long corpId, CancellationToken ct = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
-        return await db.SdeFactions.AsNoTracking()
+        var faction = await db.SdeFactions.AsNoTracking()
             .Where(f => f.MilitiaCorporationId == (int)corpId)
-            .Select(f => f.Name)
+            .Select(f => new { f.FactionId, f.Name })
             .FirstOrDefaultAsync(ct);
+
+        // Named in a sentence on the Stations tab, so in the interface language.
+        return faction is null ? null : SdeNames.Faction(faction.FactionId, faction.Name);
     }
 
     /// <summary>
@@ -623,8 +792,10 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
     public async Task<List<EntityStationRow>> NpcCorpStationsAsync(long corpId, CancellationToken ct = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
-        return await db.Database.SqlQueryRaw<EntityStationRow>("""
-            SELECT s."Name", COALESCE(ss."Name",'') AS "System", COALESCE(r."Name",'') AS "Region",
+        var rows = await db.Database.SqlQueryRaw<StationRaw>("""
+            SELECT s."Name",
+                   s."SolarSystemId", COALESCE(ss."Name",'') AS "System",
+                   s."RegionId",      COALESCE(r."Name",'')  AS "Region",
                    s."Security",
                    (SELECT COUNT(*) FROM "SdeAgents" a WHERE a."LocationId" = s."StationId") AS "Agents",
                    s."StationId"
@@ -632,9 +803,22 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
             LEFT JOIN "SdeSolarSystems" ss ON ss."SolarSystemId" = s."SolarSystemId"
             LEFT JOIN "SdeRegions"      r  ON r."RegionId"       = s."RegionId"
             WHERE s."CorporationId" = @id
-            ORDER BY r."Name", ss."Name", s."Name"
             """, AppDb.Param("@id", corpId)).ToListAsync(ct);
+
+        // The station, its system and its region in the interface language, and ordered by them
+        // as shown.
+        return [.. rows
+            .Select(r => new EntityStationRow(
+                SdeNames.Station(r.StationId, r.Name),
+                SdeNames.SolarSystem(r.SolarSystemId, r.System), SdeNames.Region(r.RegionId, r.Region),
+                r.Security, r.Agents, r.StationId))
+            .OrderBy(r => r.Region, StringComparer.CurrentCulture)
+            .ThenBy(r => r.System, StringComparer.CurrentCulture)
+            .ThenBy(r => r.Name, StringComparer.CurrentCulture)];
     }
+
+    private sealed record StationRaw(string Name, int SolarSystemId, string System, int RegionId, string Region,
+                                     double Security, int Agents, long StationId);
 
     /// <summary>
     /// The agents working out of one station. A station tab with no sub-tab at all would be an
@@ -643,19 +827,19 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
     public async Task<List<EntityMemberRow>> StationAgentsAsync(long stationId, CancellationToken ct = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
-        return await db.Database.SqlQueryRaw<EntityMemberRow>("""
-            SELECT a."AgentId" AS "Id", a."Name",
-                   COALESCE(n."Name",'')  AS "Subtitle",
-                   a."Level",
-                   COALESCE(d."Name",'')  AS "Division",
-                   ''                     AS "Station",
-                   0                      AS "StationId"
+        return AgentRoster(await db.Database.SqlQueryRaw<AgentRaw>("""
+            SELECT a."AgentId" AS "Id", a."Name", a."Level",
+                   COALESCE(d."DivisionId", 0)    AS "DivisionId",
+                   COALESCE(d."Name",'')          AS "Division",
+                   COALESCE(n."CorporationId", 0) AS "CorporationId",
+                   COALESCE(n."Name",'')          AS "Corporation",
+                   ''                             AS "Station",
+                   0                              AS "StationId"
             FROM "SdeAgents" a
             LEFT JOIN "SdeCorpDivisions"   d ON d."DivisionId"    = a."DivisionId"
             LEFT JOIN "SdeNpcCorporations" n ON n."CorporationId" = a."CorporationId"
             WHERE a."LocationId" = @id
-            ORDER BY a."Level" DESC, a."Name"
-            """, AppDb.Param("@id", stationId)).ToListAsync(ct);
+            """, AppDb.Param("@id", stationId)).ToListAsync(ct));
     }
 
     /// <summary>
@@ -674,9 +858,9 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
     public async Task<List<NpcOrderItemRow>> NpcCorpOrdersAsync(long corpId, CancellationToken ct = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
-        return await db.Database.SqlQueryRaw<NpcOrderItemRow>("""
+        var rows = await db.Database.SqlQueryRaw<NpcOrderItemRow>("""
             SELECT o."IsBuyOrder", o."TypeId",
-                   COALESCE(t."Name", 'Type ' || o."TypeId") AS "Item",
+                   COALESCE(t."Name", '') AS "Item",
                    MIN(o."Price") AS "LowPrice",
                    MAX(o."Price") AS "HighPrice"
             FROM (SELECT DISTINCT "OrderId", "TypeId", "IsBuyOrder", "Price", "LocationId"
@@ -688,9 +872,17 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
             -- functional dependency only from the grouped table's own primary key. One-to-one
             -- with TypeId, so no result changes.
             GROUP BY o."IsBuyOrder", o."TypeId", t."Name"
-            ORDER BY "Item"
             """, AppDb.Param("@id", corpId)).ToListAsync(ct);
+
+        // The items in the interface language, in the order they read.
+        return [.. rows.Select(r => r with { Item = ItemShown(r.TypeId, r.Item) })
+                       .OrderBy(r => r.Item, StringComparer.CurrentCulture)];
     }
+
+    /// <summary>An item as the entity tools show it: in the interface language, or by its number
+    /// when the SDE has no row for it — the queries leave the name blank rather than word that.</summary>
+    private static string ItemShown(int typeId, string english) =>
+        english.Length > 0 ? SdeNames.Type(typeId, english) : string.Format(CommonText.TypeNumbered, typeId);
 
     /// <summary>
     /// Which regions the order list above could have drawn on — the market configs actually
@@ -741,7 +933,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
         var offers = await db.Database.SqlQueryRaw<LpOfferRaw>("""
-            SELECT o."OfferId", COALESCE(t."Name", 'Type ' || o."TypeId") AS "Item",
+            SELECT o."OfferId", COALESCE(t."Name", '') AS "Item",
                    o."TypeId", o."Quantity", o."LpCost", o."IskCost"
             FROM "EsiLpStoreOffers" o
             LEFT JOIN "SdeTypes" t ON t."TypeId" = o."TypeId"
@@ -750,17 +942,20 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
             """, AppDb.Param("@id", corpId)).ToListAsync(ct);
         if (offers.Count == 0) return [];
 
+        // The items, offered and required, in the interface language. The offers keep their
+        // order by LP cost.
         var required = (await db.Database.SqlQueryRaw<LpReqRaw>("""
-            SELECT i."OfferId", i."Quantity", COALESCE(t."Name", 'Type ' || i."TypeId") AS "Item"
+            SELECT i."OfferId", i."Quantity", i."TypeId", COALESCE(t."Name", '') AS "Item"
             FROM "EsiLpStoreOfferItems" i
             LEFT JOIN "SdeTypes" t ON t."TypeId" = i."TypeId"
             WHERE i."CorporationId" = @id
             """, AppDb.Param("@id", corpId)).ToListAsync(ct))
             .GroupBy(r => r.OfferId)
-            .ToDictionary(g => g.Key, g => string.Join(", ", g.Select(x => $"{x.Quantity:N0} × {x.Item}")));
+            .ToDictionary(g => g.Key, g => string.Join(", ",
+                g.Select(x => $"{x.Quantity:N0} × {ItemShown(x.TypeId, x.Item)}")));
 
         return offers.Select(o => new LpOfferRow(
-            o.Item, o.TypeId, o.Quantity, o.LpCost, o.IskCost,
+            ItemShown(o.TypeId, o.Item), o.TypeId, o.Quantity, o.LpCost, o.IskCost,
             required.GetValueOrDefault(o.OfferId, "—"))).ToList();
     }
 
@@ -768,22 +963,25 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
     public async Task<List<EntityMemberRow>> FactionCorpsAsync(long factionId, CancellationToken ct = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
-        // ⚠️ Every column EntityMemberRow declares has to be in the SELECT, even the ones this
-        // query has nothing to say about. The record gives Level, Division, Station and StationId
-        // C# defaults, but a default applies to a constructor called from C# — EF materialising a
-        // FromSql result demands the column exist and fails the whole query otherwise ("The
-        // required column 'Division' was not present"). The agent queries above happen to select
-        // all seven, which is why this was the only one that broke.
-        return await db.Database.SqlQueryRaw<EntityMemberRow>("""
+        // The station count as a number, and the rows made here: the subtitle is a counted phrase,
+        // which takes a different form per number in some languages (Plurals). ⚠️ Not read straight
+        // into EntityMemberRow: EF materialising a FromSql result wants every column the record
+        // declares in the SELECT, defaults or not ("The required column 'Division' was not present").
+        var rows = await db.Database.SqlQueryRaw<FactionCorpRaw>("""
             SELECT n."CorporationId" AS "Id", n."Name",
-                   (SELECT COUNT(*) FROM "SdeStations" s WHERE s."CorporationId" = n."CorporationId")
-                       || ' station(s)' AS "Subtitle",
-                   0 AS "Level", '' AS "Division", '' AS "Station", 0 AS "StationId"
+                   CAST((SELECT COUNT(*) FROM "SdeStations" s WHERE s."CorporationId" = n."CorporationId")
+                        AS INTEGER) AS "Stations"
             FROM "SdeNpcCorporations" n
             WHERE n."FactionId" = @id
-            ORDER BY n."Name"
             """, AppDb.Param("@id", factionId)).ToListAsync(ct);
+
+        // The corporations in the interface language, in the order they read.
+        return [.. rows.Select(r => new EntityMemberRow(r.Id, SdeNames.NpcCorporation(r.Id, r.Name),
+                           Plurals.Format(CorpText.ResourceManager, nameof(CorpText.CorpStationsOther), r.Stations)))
+                       .OrderBy(r => r.Name, StringComparer.CurrentCulture)];
     }
+
+    private sealed record FactionCorpRaw(long Id, string Name, int Stations);
 
     /// <summary>
     /// Faction warfare systems, from the same snapshot the map overlay uses. Held systems
@@ -797,14 +995,17 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
         // unqualified query returns every snapshot ever taken and the same system appears once
         // per hour with a different point total. This wants current standings, so it reads the
         // newest bucket only.
-        return await db.Database.SqlQueryRaw<FactionWarfareRow>("""
-            SELECT COALESCE(ss."Name", 'System ' || fw."SystemId") AS "System",
+        var rows = await db.Database.SqlQueryRaw<WarfareRaw>("""
+            SELECT fw."SystemId",
+                   COALESCE(ss."Name",'')       AS "System",
+                   COALESCE(r."RegionId", 0)    AS "RegionId",
                    COALESCE(r."Name",'')       AS "Region",
                    fw."ContestedState"          AS "Contested",
                    fw."VictoryPoints"           AS "Points",
                    fw."VictoryPointsThreshold"  AS "Threshold",
-                   CASE WHEN fw."OwnerFactionId" = @id THEN 'Owner' ELSE 'Occupier' END AS "Role",
+                   fw."OwnerFactionId",
                    COALESCE(fo."Name",'')       AS "Owner",
+                   fw."OccupierFactionId",
                    COALESCE(fc."Name",'')       AS "Occupier"
             FROM "MapFactionWarfares" fw
             LEFT JOIN "SdeSolarSystems" ss ON ss."SolarSystemId"   = fw."SystemId"
@@ -814,13 +1015,42 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
             LEFT JOIN "SdeFactions" fc      ON fc."FactionId"      = fw."OccupierFactionId"
             WHERE fw."Bucket" = (SELECT MAX("Bucket") FROM "MapFactionWarfares")
               AND (fw."OwnerFactionId" = @id OR fw."OccupierFactionId" = @id)
-            ORDER BY CASE WHEN fw."ContestedState" IN ('contested','captured') THEN 0 ELSE 1 END,
-                     r."Name", ss."Name"
             """, AppDb.Param("@id", factionId)).ToListAsync(ct);
+
+        // The places and the factions in the interface language, and the role and the state worded
+        // for the screen; ESI's word for the state rides along as State, which the sort reads.
+        // Contested and captured systems first, then by region and system as they read.
+        return [.. rows
+            .Select(r => new FactionWarfareRow(
+                r.System.Length > 0 ? SdeNames.SolarSystem(r.SystemId, r.System)
+                                    : string.Format(CorpText.FallbackSystemName, r.SystemId),
+                SdeNames.Region(r.RegionId, r.Region),
+                ContestedShown(r.Contested), r.Points, r.Threshold,
+                r.OwnerFactionId == factionId ? CorpText.FwRoleOwner : CorpText.FwRoleOccupier,
+                SdeNames.Faction(r.OwnerFactionId, r.Owner), SdeNames.Faction(r.OccupierFactionId, r.Occupier),
+                r.OwnerFactionId, r.OccupierFactionId, r.Contested))
+            .OrderBy(r => (r.State is "contested" or "captured") ? 0 : 1)
+            .ThenBy(r => r.Region, StringComparer.CurrentCulture)
+            .ThenBy(r => r.System, StringComparer.CurrentCulture)];
     }
 
+    /// <summary>A faction warfare system's state as shown, in the words the map's overlay uses for
+    /// the same states; ESI's own word for one they do not cover.</summary>
+    private static string ContestedShown(string state) => state switch
+    {
+        "captured"    => MapText.FwCaptured,
+        "contested"   => MapText.FwContested,
+        "uncontested" => MapText.FwUncontested,
+        "vulnerable"  => MapText.FwVulnerable,
+        _             => state,
+    };
+
+    private sealed record WarfareRaw(int SystemId, string System, int RegionId, string Region, string Contested,
+                                     int Points, int Threshold,
+                                     int OwnerFactionId, string Owner, int OccupierFactionId, string Occupier);
+
     private record LpOfferRaw(int OfferId, string Item, int TypeId, int Quantity, int LpCost, long IskCost);
-    private record LpReqRaw(int OfferId, int Quantity, string Item);
+    private record LpReqRaw(int OfferId, int Quantity, int TypeId, string Item);
 
     /// <summary>Race name from the SDE.</summary>
     private async Task<string?> RaceNameAsync(int raceId, CancellationToken ct)
@@ -883,6 +1113,15 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
         return System.Net.WebUtility.HtmlDecode(text).Trim();
     }
 
+    /// <summary>A character's gender as a word. Keyed on ESI's value ("male", "female"); anything
+    /// else ESI might send shows as it came, capitalised.</summary>
+    private static string GenderText(string gender) => gender switch
+    {
+        "male"   => CorpText.GenderMale,
+        "female" => CorpText.GenderFemale,
+        _        => char.ToUpper(gender[0]) + gender[1..],
+    };
+
     private static string CategoryOf(EntityKind kind) => kind switch
     {
         EntityKind.Pilot      => "character",
@@ -930,6 +1169,12 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
 
     // ── Detail ───────────────────────────────────────────────────────────────
 
+    /// <summary>
+    /// The About pane. The subtitle and the facts are worded here, with their SDE names in the
+    /// interface language, and so is an SDE description (<see cref="SdeTexts"/>); the entity's own
+    /// Name stays English, because the tab compares ESI's answer against it, and shows it through
+    /// <see cref="ShownName"/>.
+    /// </summary>
     public async Task<EntityDetail?> DetailAsync(EntityKind kind, long id, CancellationToken ct = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
@@ -939,12 +1184,12 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
         {
             case EntityKind.Pilot:
             {
+                // ⚠️ No kill or loss count. It could only count the kills stored here — a sample for
+                // anyone but our own — and a header reading "12 kills" for a pilot with thousands
+                // looked like their record. The Kills / Losses tab pages in zKillboard's.
                 var r = (await db.Database.SqlQueryRaw<PilotDetailRaw>("""
                     SELECT COALESCE(u."Name", 'Unknown ' || @id) AS "Name",
-                           (SELECT COUNT(*) FROM "KillMailAttackers" a WHERE a."CharacterId" = @id)  AS "Kills",
-                           (SELECT COUNT(*) FROM "KillMailDetails"   d WHERE d."VictimCharId" = @id) AS "Losses",
                            (SELECT COUNT(*) FROM "Characters" c WHERE c."Id" = @id)                  AS "IsOurs",
-                           COALESCE((SELECT MAX(a."SecurityStatus") FROM "KillMailAttackers" a WHERE a."CharacterId" = @id), 0) AS "SecStatus",
                            -- ⚠️ Cast to TEXT before the COALESCE. KillMailTime is a timestamptz on a
                            -- server, so COALESCE cannot match it with '', and the row reads LastSeen
                            -- into a string, which it also cannot do. Both ends want text. This is the
@@ -959,12 +1204,11 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                 if (r is null) return null;
 
                 return new EntityDetail(id, r.Name,
-                    r.IsOurs > 0 ? "One of your characters" : "Player character",
+                    r.IsOurs > 0 ? CorpText.SubtitleOurCharacter : CorpText.SubtitlePlayerCharacter,
                     "",
                     [
-                        new("Character ID",   id.ToString("N0")),
-                        new("Killmails on",   $"{r.Kills:N0} kill(s), {r.Losses:N0} loss(es)"),
-                        new("Last seen",      Pretty(r.LastSeen)),
+                        new(CorpText.FactCharacterId, id.ToString("N0")),
+                        new(CorpText.FactLastSeen,    Pretty(r.LastSeen)),
                     ], url);
             }
 
@@ -972,20 +1216,18 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
             case EntityKind.Alliance:
             {
                 bool corp = kind == EntityKind.PlayerCorp;
+
+                // ⚠️ No counts from the killmails here, for the pilot's reason above: kills and
+                // losses, and the pilots or corporations "seen" on them, are only what happens to
+                // be stored — and for a large alliance each was a count over millions of rows.
                 var sql = corp
                     ? """
                       SELECT COALESCE(u."Name", 'Unknown ' || @id) AS "Name",
-                             (SELECT COUNT(DISTINCT a."CharacterId") FROM "KillMailAttackers" a WHERE a."CorporationId" = @id) AS "Members",
-                             (SELECT COUNT(*) FROM "KillMailAttackers" a WHERE a."CorporationId" = @id) AS "Kills",
-                             (SELECT COUNT(*) FROM "KillMailDetails"   d WHERE d."VictimCorpId"  = @id) AS "Losses",
-                             (SELECT COUNT(*) FROM "Corporations" c WHERE c."Id" = @id)                 AS "IsOurs"
+                             (SELECT COUNT(*) FROM "Corporations" c WHERE c."Id" = @id) AS "IsOurs"
                       FROM (SELECT 1) x LEFT JOIN "UniverseNames" u ON u."EntityId" = @id
                       """
                     : """
                       SELECT COALESCE(u."Name", 'Unknown ' || @id) AS "Name",
-                             (SELECT COUNT(DISTINCT a."CorporationId") FROM "KillMailAttackers" a WHERE a."AllianceId" = @id) AS "Members",
-                             (SELECT COUNT(*) FROM "KillMailAttackers" a WHERE a."AllianceId"       = @id) AS "Kills",
-                             (SELECT COUNT(*) FROM "KillMailDetails"   d WHERE d."VictimAllianceId" = @id) AS "Losses",
                              0 AS "IsOurs"
                       FROM (SELECT 1) x LEFT JOIN "UniverseNames" u ON u."EntityId" = @id
                       """;
@@ -995,13 +1237,11 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                 if (r is null) return null;
 
                 return new EntityDetail(id, r.Name,
-                    corp ? (r.IsOurs > 0 ? "One of your corporations" : "Player corporation")
-                         : "Player alliance",
+                    corp ? (r.IsOurs > 0 ? CorpText.SubtitleOurCorporation : CorpText.SubtitlePlayerCorporation)
+                         : CorpText.SubtitlePlayerAlliance,
                     "",
                     [
-                        new(corp ? "Corporation ID" : "Alliance ID", id.ToString("N0")),
-                        new(corp ? "Pilots seen"    : "Corporations seen", $"{r.Members:N0}"),
-                        new("Killmails on", $"{r.Kills:N0} kill(s), {r.Losses:N0} loss(es)"),
+                        new(corp ? CorpText.FactCorporationId : CorpText.FactAllianceId, id.ToString("N0")),
                     ], url);
             }
 
@@ -1011,6 +1251,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                     SELECT a."Name", a."Level", a."IsLocator",
                            COALESCE(ty."Name",'') AS "AgentType",
                            COALESCE(d."Name",'')  AS "Division",
+                           COALESCE(d."DivisionId", 0) AS "DivisionId",
                            COALESCE(n."Name",'')  AS "Corporation",
                            COALESCE(s."Name",'')  AS "Station",
                            COALESCE(f."Name",'')  AS "Faction",
@@ -1026,15 +1267,20 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                     """, AppDb.Param("@id", id)).ToListAsync(ct)).FirstOrDefault();
                 if (r is null) return null;
 
-                return new EntityDetail(id, r.Name, $"Level {r.Level} {r.Division} agent", "",
+                // The agent type is not an SDE name the side table carries; the rest is in the
+                // interface language. The few agents that sit somewhere other than an NPC station
+                // keep the blank station the query gave them.
+                var division = SdeNames.Get(SdeNameKind.NpcCorporationDivision, r.DivisionId, r.Division);
+                return new EntityDetail(id, r.Name, string.Format(CorpText.SubtitleAgent, r.Level, division), "",
                     [
-                        new("Agent ID",     id.ToString("N0")),
-                        new("Corporation",  r.Corporation, EntityKind.NpcCorp, r.CorporationId),
-                        new("Faction",      r.Faction,     EntityKind.Faction, r.FactionId),
-                        new("Station",      r.Station, EntityKind.Station, r.StationId),
-                        new("Division",     r.Division),
-                        new("Agent type",   r.AgentType),
-                        new("Locator",      r.IsLocator ? "Yes" : "No"),
+                        new(CorpText.FactAgentId,     id.ToString("N0")),
+                        new(CorpText.FactCorporation, SdeNames.NpcCorporation(r.CorporationId, r.Corporation),
+                            EntityKind.NpcCorp, r.CorporationId),
+                        new(CorpText.FactFaction,     SdeNames.Faction(r.FactionId, r.Faction), EntityKind.Faction, r.FactionId),
+                        new(CorpText.FactStation,     SdeNames.Station(r.StationId, r.Station), EntityKind.Station, r.StationId),
+                        new(CorpText.FactDivision,    division),
+                        new(CorpText.FactAgentType,   r.AgentType),
+                        new(CorpText.FactLocator,     r.IsLocator ? CorpText.FactYes : CorpText.FactNo),
                     ], url);
             }
 
@@ -1063,7 +1309,11 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                 var p = await NpcCorpProfileAsync(id, ct);
 
                 var ticker = r.Ticker.Length      > 0 ? r.Ticker      : p?.Ticker      ?? "";
-                var about  = r.Description.Length > 0 ? r.Description : p?.Description ?? "";
+                // The SDE's description in the interface language; the ESI profile's, which stands
+                // in where the SDE has none, is English.
+                var about  = r.Description.Length > 0
+                    ? await SdeTexts.GetAsync(SdeTextKind.NpcCorporationDescription, id, r.Description, ct)
+                    : p?.Description ?? "";
                 var hqId   = r.StationId > 0 ? r.StationId : p?.HomeStationId ?? 0;
                 var hqName = r.HqName.Length > 0 ? r.HqName
                            : hqId <= 0 ? ""
@@ -1072,40 +1322,44 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                                  .FirstOrDefaultAsync(ct) ?? "";
                 var tax    = r.TaxRate > 0 ? r.TaxRate : p?.TaxRate ?? 0;
 
+                // The faction and the headquarters, a station, in the interface language.
+                var faction = SdeNames.Faction(r.FactionId, r.Faction);
+
                 var facts = new List<EntityFact>
                 {
-                    new("Corporation ID", id.ToString("N0")),
-                    new("Faction",        r.Faction, EntityKind.Faction, r.FactionId),
+                    new(CorpText.FactCorporationId, id.ToString("N0")),
+                    new(CorpText.FactFaction,       faction, EntityKind.Faction, r.FactionId),
                 };
 
-                if (ticker.Length > 0) facts.Add(new("Ticker", ticker));
+                if (ticker.Length > 0) facts.Add(new(CorpText.FactTicker, ticker));
 
                 // ⚠️ The headquarters is NOT one of the "Stations" beside it, and the two
                 // disagreeing is the normal case rather than a fault. A militia corporation owns
                 // no station and is still based somewhere: Malakim Zealots run out of an
                 // Archangels station in Curse.
-                if (hqName.Length > 0) facts.Add(new("Headquarters", hqName, EntityKind.Station, hqId));
+                if (hqName.Length > 0)
+                    facts.Add(new(CorpText.FactHeadquarters, SdeNames.Station(hqId, hqName), EntityKind.Station, hqId));
 
-                facts.Add(new("Stations", r.Stations.ToString("N0")));
-                facts.Add(new("Agents",   r.Agents.ToString("N0")));
+                facts.Add(new(CorpText.FactStations, r.Stations.ToString("N0")));
+                facts.Add(new(CorpText.FactAgents,   r.Agents.ToString("N0")));
 
-                if (p is { MemberCount: > 0 }) facts.Add(new("Members", p.MemberCount.ToString("N0")));
-                if (tax > 0)                   facts.Add(new("Tax rate", tax.ToString("P1")));
+                if (p is { MemberCount: > 0 }) facts.Add(new(CorpText.FactMembers, p.MemberCount.ToString("N0")));
+                if (tax > 0)                   facts.Add(new(CorpText.FactTaxRate, tax.ToString("P1")));
 
                 // What it takes to join — the question anyone reading a militia corporation's page
                 // is actually asking.
                 if (r.JoinStanding != 0 || r.MinSecurity != 0)
-                    facts.Add(new("To join", $"standing {r.JoinStanding:N1}, security {r.MinSecurity:N1} or better"));
+                    facts.Add(new(CorpText.FactToJoin, string.Format(CorpText.FactToJoinValue, r.JoinStanding, r.MinSecurity)));
 
-                facts.Add(new("LP store",   r.LpOffers > 0 ? $"{r.LpOffers:N0} offer(s)" : "none"));
-                facts.Add(new("Your LP",    r.LpHeld   > 0 ? $"{r.LpHeld:N0}" : "—"));
-                facts.Add(new("ISK per LP", r.IskPerLp > 0 ? r.IskPerLp.ToString("N0") : "—"));
+                facts.Add(new(CorpText.FactLpStore,  r.LpOffers > 0 ? string.Format(CorpText.FactLpOffers, r.LpOffers) : CorpText.FactLpStoreNone));
+                facts.Add(new(CorpText.FactYourLp,   r.LpHeld   > 0 ? $"{r.LpHeld:N0}" : "—"));
+                facts.Add(new(CorpText.FactIskPerLp, r.IskPerLp > 0 ? r.IskPerLp.ToString("N0") : "—"));
 
-                if (p is { Url.Length: > 0 }) facts.Add(new("Website", p.Url, Url: p.Url));
+                if (p is { Url.Length: > 0 }) facts.Add(new(CorpText.FactWebsite, p.Url, Url: p.Url));
 
                 // The Description tab shows itself as soon as there is one to show.
                 return new EntityDetail(id, r.Name,
-                    $"NPC corporation{(r.Faction.Length > 0 ? " · " + r.Faction : "")}",
+                    CorpText.SubtitleNpcCorp + (r.Faction.Length > 0 ? " · " + faction : ""),
                     about, facts, url);
             }
 
@@ -1125,13 +1379,16 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                     """, AppDb.Param("@id", id)).ToListAsync(ct)).FirstOrDefault();
                 if (r is null) return null;
 
-                return new EntityDetail(id, r.Name, "Faction", r.Description,
+                // The description in the interface language, where the SDE has one.
+                var description = await SdeTexts.GetAsync(SdeTextKind.FactionDescription, id, r.Description, ct);
+
+                return new EntityDetail(id, r.Name, CorpText.SubtitleFaction, description,
                     [
-                        new("Faction ID",   id.ToString("N0")),
-                        new("Militia corp", r.MilitiaCorp.Length > 0 ? r.MilitiaCorp : "—",
+                        new(CorpText.FactFactionId,    id.ToString("N0")),
+                        new(CorpText.FactMilitiaCorp,  r.MilitiaCorp.Length > 0 ? SdeNames.NpcCorporation(r.MilitiaCorpId, r.MilitiaCorp) : "—",
                             r.MilitiaCorpId > 0 ? EntityKind.NpcCorp : null, r.MilitiaCorpId),
-                        new("Home system",  r.HomeSystem, SystemId: r.HomeSystemId),
-                        new("Corporations", r.Corporations.ToString("N0")),
+                        new(CorpText.FactHomeSystem,   SdeNames.SolarSystem(r.HomeSystemId, r.HomeSystem), SystemId: r.HomeSystemId),
+                        new(CorpText.FactCorporations, r.Corporations.ToString("N0")),
                     ], url);
             }
 
@@ -1145,7 +1402,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                            COALESCE(n."Name",'')   AS "Corporation",
                            COALESCE(f."Name",'')   AS "Faction",
                            COALESCE(ty."Name",'')  AS "StationType",
-                           s."SolarSystemId", s."RegionId",
+                           s."SolarSystemId", s."RegionId", s."ConstellationId",
                            COALESCE(s."CorporationId", 0) AS "CorporationId",
                            COALESCE(f."FactionId", 0)     AS "FactionId",
                            COALESCE(s."StationTypeId", 0) AS "StationTypeId",
@@ -1168,18 +1425,21 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                     ? $"https://images.evetech.net/types/{r.StationTypeId}/render?size=128"
                     : null;
 
-                return new EntityDetail(id, r.Name, "NPC station", "",
+                // Everything about the station in the interface language. Its own name is English
+                // here, as every entity's is, and the tab shows it through ShownName.
+                return new EntityDetail(id, r.Name, CorpText.SubtitleNpcStation, "",
                     [
-                        new("Station ID",    id.ToString("N0")),
-                        new("System",        r.System,        SystemId: r.SolarSystemId),
-                        new("Constellation", r.Constellation),
-                        new("Region",        r.Region,        RegionId: r.RegionId),
-                        new("Security",      $"{SecurityColors.Text(r.Security)}  (true {SecurityColors.TrueText(r.Security)})"),
-                        new("Corporation",   r.Corporation,   EntityKind.NpcCorp, r.CorporationId),
-                        new("Faction",       r.Faction,       EntityKind.Faction, r.FactionId),
-                        new("Type",          r.StationType),
-                        new("Agents",        r.Agents.ToString("N0")),
-                        new("Reprocessing",  $"{r.ReprocessingEfficiency * 100:0.#}% · {r.ReprocessingTax * 100:0.#}% tax"),
+                        new(CorpText.FactStationId,     id.ToString("N0")),
+                        new(CorpText.FactSystem,        SdeNames.SolarSystem(r.SolarSystemId, r.System), SystemId: r.SolarSystemId),
+                        new(CorpText.FactConstellation, SdeNames.Constellation(r.ConstellationId, r.Constellation)),
+                        new(CorpText.FactRegion,        SdeNames.Region(r.RegionId, r.Region), RegionId: r.RegionId),
+                        new(CorpText.FactSecurity,      string.Format(CorpText.FactSecurityValue, SecurityColors.Text(r.Security), SecurityColors.TrueText(r.Security))),
+                        new(CorpText.FactCorporation,   SdeNames.NpcCorporation(r.CorporationId, r.Corporation),
+                            EntityKind.NpcCorp, r.CorporationId),
+                        new(CorpText.FactFaction,       SdeNames.Faction(r.FactionId, r.Faction), EntityKind.Faction, r.FactionId),
+                        new(CorpText.FactType,          SdeNames.Type(r.StationTypeId, r.StationType)),
+                        new(CorpText.FactAgents,        r.Agents.ToString("N0")),
+                        new(CorpText.FactReprocessing,  string.Format(CorpText.FactReprocessingValue, r.ReprocessingEfficiency * 100, r.ReprocessingTax * 100)),
                     ], stationImg);
             }
         }
@@ -1244,10 +1504,12 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
-        return await db.Database.SqlQueryRaw<IntelSightingRow>("""
+        var rows = await db.Database.SqlQueryRaw<IntelRaw>("""
             SELECT substr(r."ReportedAt", 1, 16) AS "When",
+                   r."SystemId",
                    r."SystemName"                AS "System",
                    r."ChannelName"               AS "Channel",
+                   COALESCE(c."ShipTypeId", 0)   AS "ShipTypeId",
                    COALESCE(c."ShipName", '')    AS "Ship",
                    r."ReporterName"              AS "Reporter"
             FROM "IntelReportCharacters" c
@@ -1258,13 +1520,22 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
             """,
             AppDb.Param("@id",  characterId),
             AppDb.Param("@lim", MaxDetailRows)).ToListAsync(ct);
+
+        // The system and the hull in the interface language, where the parser recognised them;
+        // otherwise the words the reporter typed.
+        return [.. rows.Select(r => new IntelSightingRow(
+            r.When, SdeNames.SolarSystem(r.SystemId, r.System), r.Channel,
+            SdeNames.Type(r.ShipTypeId, r.Ship), r.Reporter))];
     }
 
+    private sealed record IntelRaw(string When, int SystemId, string System, string Channel,
+                                   int ShipTypeId, string Ship, string Reporter);
+
     // Raw row shapes — property names match the SELECT aliases.
-    private record PilotDetailRaw(string Name, int Kills, int Losses, int IsOurs, double SecStatus, string LastSeen);
-    private record GroupDetailRaw(string Name, int Members, int Kills, int Losses, int IsOurs);
+    private record PilotDetailRaw(string Name, int IsOurs, string LastSeen);
+    private record GroupDetailRaw(string Name, int IsOurs);
     private record AgentDetailRaw(string Name, int Level, bool IsLocator, string AgentType,
-                                  string Division, string Corporation, string Station, string Faction,
+                                  string Division, long DivisionId, string Corporation, string Station, string Faction,
                                   long CorporationId, long FactionId, long StationId);
     private record NpcCorpDetailRaw(string Name, string Faction, int Stations, int Agents,
                                     int LpOffers, int LpHeld, double IskPerLp, long FactionId,
@@ -1276,10 +1547,10 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
 
     private record StationDetailRaw(string Name, string System, string Region, string Constellation,
                                     string Corporation, string Faction, string StationType,
-                                    int SolarSystemId, int RegionId, long CorporationId, long FactionId,
+                                    int SolarSystemId, int RegionId, int ConstellationId, long CorporationId, long FactionId,
                                     int StationTypeId, double Security,
                                     double ReprocessingEfficiency, double ReprocessingTax, int Agents);
 
     private static string Pretty(string iso) =>
-        DateTimeOffset.TryParse(iso, out var d) ? d.ToLocalTime().ToString("d MMM yyyy HH:mm") : "—";
+        DateTimeOffset.TryParse(iso, out var d) ? d.ToLocalTime().ToString(CommonText.DateTimeFull) : "—";
 }

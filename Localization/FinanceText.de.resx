@@ -1,0 +1,358 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="IncomeExpense" xml:space="preserve">
+    <value>Einnahmen &amp; Ausgaben</value>
+  </data>
+  <data name="IncomeLabel" xml:space="preserve">
+    <value>Einnahmen</value>
+  </data>
+  <data name="ExpensesLabel" xml:space="preserve">
+    <value>Ausgaben</value>
+  </data>
+  <data name="DailyIncomeExpenseCashflow" xml:space="preserve">
+    <value>Tägliche Einnahmen · Ausgaben · Cashflow</value>
+  </data>
+  <data name="FmtNet" xml:space="preserve">
+    <value>Netto: {0}</value>
+  </data>
+  <data name="AutoRange" xml:space="preserve">
+    <value>Auto-Bereich</value>
+  </data>
+  <data name="LogScale" xml:space="preserve">
+    <value>Log-Skala</value>
+  </data>
+  <data name="From" xml:space="preserve">
+    <value>Von</value>
+  </data>
+  <data name="To" xml:space="preserve">
+    <value>Bis</value>
+  </data>
+  <data name="NetWorthLabel" xml:space="preserve">
+    <value>Gesamtkapital</value>
+  </data>
+  <data name="AssetsLabel" xml:space="preserve">
+    <value>Besitz</value>
+  </data>
+  <data name="WalletLabel" xml:space="preserve">
+    <value>Konto</value>
+  </data>
+  <data name="IndustryLabel" xml:space="preserve">
+    <value>Industrie</value>
+  </data>
+  <data name="SellOrdersLabel" xml:space="preserve">
+    <value>Verkaufsaufträge</value>
+  </data>
+  <data name="BuyEscrowLabel" xml:space="preserve">
+    <value>Kauf-Hinterlegung</value>
+  </data>
+  <data name="ContractCollatLabel" xml:space="preserve">
+    <value>Vertragssicherh.</value>
+  </data>
+  <data name="ContractValueLabel" xml:space="preserve">
+    <value>Vertragswert</value>
+  </data>
+  <data name="NoNetWorthDataNote" xml:space="preserve">
+    <value>Für diesen Zeitraum liegen keine Daten zum Gesamtkapital vor.</value>
+  </data>
+  <data name="DataIsRecordedAutomaticallyNote" xml:space="preserve">
+    <value>Die Daten werden jedes Mal automatisch erfasst, wenn die ESI-Abfrage Besitz, Konto, Aufträge oder Verträge aktualisiert.</value>
+  </data>
+  <data name="TitleNetWorth" xml:space="preserve">
+    <value>Gesamtkapital</value>
+  </data>
+  <data name="OwnerLabel" xml:space="preserve">
+    <value>Inhaber:</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>↻ Aktualisieren</value>
+  </data>
+  <data name="BalanceLabel" xml:space="preserve">
+    <value>Kontostand:</value>
+  </data>
+  <data name="TabOverview" xml:space="preserve">
+    <value>Übersicht</value>
+  </data>
+  <data name="Income" xml:space="preserve">
+    <value>Einnahmen</value>
+  </data>
+  <data name="NoIncomeDataForThis" xml:space="preserve">
+    <value>Für diesen Zeitraum liegen keine Einnahmen vor.</value>
+  </data>
+  <data name="Expenses" xml:space="preserve">
+    <value>Ausgaben</value>
+  </data>
+  <data name="NoExpenseDataForThis" xml:space="preserve">
+    <value>Für diesen Zeitraum liegen keine Ausgaben vor.</value>
+  </data>
+  <data name="TabJournal" xml:space="preserve">
+    <value>Logbuch</value>
+  </data>
+  <data name="TypeLabel" xml:space="preserve">
+    <value>Typ:</value>
+  </data>
+  <data name="HintFilter" xml:space="preserve">
+    <value>Filter…</value>
+  </data>
+  <data name="DivLabel" xml:space="preserve">
+    <value>Konto:</value>
+  </data>
+  <data name="FromLabel" xml:space="preserve">
+    <value>Von:</value>
+  </data>
+  <data name="ThruLabel" xml:space="preserve">
+    <value>Bis:</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>Zurücksetzen</value>
+  </data>
+  <data name="SortLabel" xml:space="preserve">
+    <value>Sortierung:</value>
+  </data>
+  <data name="ColDate" xml:space="preserve">
+    <value>Datum</value>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>Typ</value>
+  </data>
+  <data name="ColAmount" xml:space="preserve">
+    <value>Betrag</value>
+  </data>
+  <data name="ColBalance" xml:space="preserve">
+    <value>Kontostand</value>
+  </data>
+  <data name="ColOwner" xml:space="preserve">
+    <value>Inhaber</value>
+  </data>
+  <data name="TipOpenInTheEntityBrowser" xml:space="preserve">
+    <value>Im Entitätsbrowser öffnen</value>
+  </data>
+  <data name="ColDiv" xml:space="preserve">
+    <value>Konto</value>
+  </data>
+  <data name="ColDescription" xml:space="preserve">
+    <value>Beschreibung</value>
+  </data>
+  <data name="First" xml:space="preserve">
+    <value>⏮ Erste</value>
+  </data>
+  <data name="Prev" xml:space="preserve">
+    <value>◀ Zurück</value>
+  </data>
+  <data name="Next" xml:space="preserve">
+    <value>Weiter ▶</value>
+  </data>
+  <data name="Last" xml:space="preserve">
+    <value>Letzte ⏭</value>
+  </data>
+  <data name="TabMarketTransactions" xml:space="preserve">
+    <value>Markttransaktionen</value>
+  </data>
+  <data name="ItemLabel" xml:space="preserve">
+    <value>Gegenstand:</value>
+  </data>
+  <data name="LocationLabel" xml:space="preserve">
+    <value>Standort:</value>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>Gegenstand</value>
+  </data>
+  <data name="TipOpenInTheItemBrowser" xml:space="preserve">
+    <value>Im Gegenstandsbrowser öffnen</value>
+  </data>
+  <data name="ColQty" xml:space="preserve">
+    <value>Menge</value>
+  </data>
+  <data name="ColUnitPrice" xml:space="preserve">
+    <value>Stückpreis</value>
+  </data>
+  <data name="ColTotal" xml:space="preserve">
+    <value>Gesamt</value>
+  </data>
+  <data name="ColLocation" xml:space="preserve">
+    <value>Standort</value>
+  </data>
+  <data name="TipOpenThisStationOrStructure" xml:space="preserve">
+    <value>Diese Station oder Struktur öffnen</value>
+  </data>
+  <data name="TabDivisions" xml:space="preserve">
+    <value>Konto-Unterteilungen</value>
+  </data>
+  <data name="ColName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="TitleWallet" xml:space="preserve">
+    <value>Konto</value>
+  </data>
+  <data name="BuySellLabel" xml:space="preserve">
+    <value>K/V:</value>
+  </data>
+  <data name="ColBuySell" xml:space="preserve">
+    <value>K/V</value>
+  </data>
+  <data name="MasterWallet" xml:space="preserve">
+    <value>Hauptkonto</value>
+  </data>
+  <data name="DivisionShort" xml:space="preserve">
+    <value>Konto {0}</value>
+  </data>
+  <data name="DirBuy" xml:space="preserve">
+    <value>Kauf</value>
+  </data>
+  <data name="DirSell" xml:space="preserve">
+    <value>Verkauf</value>
+  </data>
+  <data name="SortDateNewest" xml:space="preserve">
+    <value>Datum: neueste zuerst</value>
+  </data>
+  <data name="SortDateOldest" xml:space="preserve">
+    <value>Datum: älteste zuerst</value>
+  </data>
+  <data name="SortAmountHighLow" xml:space="preserve">
+    <value>Betrag: hoch → niedrig</value>
+  </data>
+  <data name="SortAmountLowHigh" xml:space="preserve">
+    <value>Betrag: niedrig → hoch</value>
+  </data>
+  <data name="SortBalanceHighLow" xml:space="preserve">
+    <value>Kontostand: hoch → niedrig</value>
+  </data>
+  <data name="SortTotalHighLow" xml:space="preserve">
+    <value>Gesamt: hoch → niedrig</value>
+  </data>
+  <data name="SortTotalLowHigh" xml:space="preserve">
+    <value>Gesamt: niedrig → hoch</value>
+  </data>
+  <data name="SortUnitPriceHighLow" xml:space="preserve">
+    <value>Stückpreis: hoch → niedrig</value>
+  </data>
+  <data name="SortQuantityHighLow" xml:space="preserve">
+    <value>Menge: hoch → niedrig</value>
+  </data>
+  <data name="Last24Hours" xml:space="preserve">
+    <value>Letzte 24 Stunden</value>
+  </data>
+  <data name="Last7Days" xml:space="preserve">
+    <value>Letzte 7 Tage</value>
+  </data>
+  <data name="Last30Days" xml:space="preserve">
+    <value>Letzte 30 Tage</value>
+  </data>
+  <data name="Last90Days" xml:space="preserve">
+    <value>Letzte 90 Tage</value>
+  </data>
+  <data name="OwnerAllCharsCorps" xml:space="preserve">
+    <value>Alle Charaktere &amp; persönlichen Corps</value>
+  </data>
+  <data name="LoadingBalances" xml:space="preserve">
+    <value>Kontostände werden geladen…</value>
+  </data>
+  <data name="BuildingCharts" xml:space="preserve">
+    <value>Diagramme werden erstellt…</value>
+  </data>
+  <data name="LoadingDivisions" xml:space="preserve">
+    <value>Konto-Unterteilungen werden geladen…</value>
+  </data>
+  <data name="SliceMarketSales" xml:space="preserve">
+    <value>Marktverkäufe</value>
+  </data>
+  <data name="SliceNpcBounties" xml:space="preserve">
+    <value>NPC-Kopfgelder</value>
+  </data>
+  <data name="SliceContractSales" xml:space="preserve">
+    <value>Vertragsverkäufe</value>
+  </data>
+  <data name="SliceOtherIncome" xml:space="preserve">
+    <value>Sonstige Einnahmen</value>
+  </data>
+  <data name="SliceMarketPurchases" xml:space="preserve">
+    <value>Marktkäufe</value>
+  </data>
+  <data name="SliceContractPurchases" xml:space="preserve">
+    <value>Vertragskäufe</value>
+  </data>
+  <data name="SliceBrokerFees" xml:space="preserve">
+    <value>Maklergebühren</value>
+  </data>
+  <data name="SliceTransactionTax" xml:space="preserve">
+    <value>Transaktionssteuer</value>
+  </data>
+  <data name="SliceIndustryTax" xml:space="preserve">
+    <value>Industriesteuer</value>
+  </data>
+  <data name="SliceOtherExpenses" xml:space="preserve">
+    <value>Sonstige Ausgaben</value>
+  </data>
+  <data name="DivisionNumbered" xml:space="preserve">
+    <value>Konto-Unterteilung {0}</value>
+  </data>
+  <data name="Last365Days" xml:space="preserve">
+    <value>Letzte 365 Tage</value>
+  </data>
+  <data name="YearToDate" xml:space="preserve">
+    <value>Seit Jahresbeginn</value>
+  </data>
+  <data name="PriorYear" xml:space="preserve">
+    <value>Vorjahr</value>
+  </data>
+  <data name="CustomRange" xml:space="preserve">
+    <value>Eigener Zeitraum</value>
+  </data>
+  <data name="OwnerPersonal" xml:space="preserve">
+    <value>Persönlich</value>
+  </data>
+  <data name="LineNetWorthTotal" xml:space="preserve">
+    <value>Gesamtkapital (Summe)</value>
+  </data>
+  <data name="LineAssets" xml:space="preserve">
+    <value>Besitz</value>
+  </data>
+  <data name="LineWallet" xml:space="preserve">
+    <value>Konto</value>
+  </data>
+  <data name="LineIndustryJobs" xml:space="preserve">
+    <value>Industrieaufträge</value>
+  </data>
+  <data name="LineSellOrders" xml:space="preserve">
+    <value>Verkaufsaufträge</value>
+  </data>
+  <data name="LineBuyEscrow" xml:space="preserve">
+    <value>Kauf-Hinterlegung</value>
+  </data>
+  <data name="LineContractCollateral" xml:space="preserve">
+    <value>Vertragssicherh.</value>
+  </data>
+  <data name="LineContractValue" xml:space="preserve">
+    <value>Vertragswert</value>
+  </data>
+  <data name="AsOfDate" xml:space="preserve">
+    <value>Stand: {0}</value>
+  </data>
+  <data name="CategoryOther" xml:space="preserve">
+    <value>Sonstiges</value>
+  </data>
+  <data name="NoCharacters" xml:space="preserve">
+    <value>Keine Charaktere.</value>
+  </data>
+  <data name="SeriesIncome" xml:space="preserve">
+    <value>Einnahmen</value>
+  </data>
+  <data name="SeriesExpense" xml:space="preserve">
+    <value>Ausgaben</value>
+  </data>
+  <data name="SeriesCashflow" xml:space="preserve">
+    <value>Cashflow</value>
+  </data>
+  <data name="LastDaysNoteOne" xml:space="preserve">
+    <value>Zeitraum: {0} Tag – ISK-Überweisungen zwischen Ihren eigenen Konten sind nicht berücksichtigt</value>
+  </data>
+  <data name="LastDaysNoteOther" xml:space="preserve">
+    <value>Zeitraum: {0} Tage – ISK-Überweisungen zwischen Ihren eigenen Konten sind nicht berücksichtigt</value>
+  </data>
+  <data name="DirAll" xml:space="preserve">
+    <value>Alle</value>
+  </data>
+</root>

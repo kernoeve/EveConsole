@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -16,7 +17,7 @@ public partial class AlarmDialogWindow : Window
     public AlarmDialogWindow(string title, string message, string? button = null, Func<Task>? onAcknowledge = null)
     {
         InitializeComponent();
-        Title            = string.IsNullOrWhiteSpace(title) ? "Alarm" : title;
+        Title            = string.IsNullOrWhiteSpace(title) ? AlarmsText.DialogDefaultTitle : title;
         TitleText.Text   = Title;
         MessageText.Text = message;
         _onAcknowledge   = onAcknowledge;

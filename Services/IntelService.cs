@@ -4,6 +4,7 @@ using EveConsole.Models;
 using EveConsole.Monitoring;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -31,12 +32,16 @@ public sealed class IntelService(
     // invisible: there is no way to tell a long backlog apart from a feature that is not
     // working. Surfaced in Settings → Chat Logs and on the Chat Log viewer.
 
-    private string _statusText = "Intel: idle";
+    private string _statusText = DataText.IntelStatusIdle;
     public string StatusText
     {
         get => _statusText;
-        private set => this.RaiseAndSetIfChanged(ref _statusText, value);
+        private set { _statusUntouched = false; this.RaiseAndSetIfChanged(ref _statusText, value); }
     }
+
+    /// <summary>True until anything replaces the opening "idle" line. Asked instead of comparing
+    /// the line with that text, which is translated.</summary>
+    private bool _statusUntouched = true;
 
     private bool _isRunning;
     public bool IsRunning
@@ -277,8 +282,8 @@ public sealed class IntelService(
             var day  = batch[^1].OccurredAt.Length >= 10 ? batch[^1].OccurredAt[..10] : "";
             var left = Backlog;
             StatusText = left > 0
-                ? $"Intel: parsing {day} — {written:N0} sightings, {left:N0} messages to go"
-                : $"Intel: parsing {day} — {written:N0} sightings";
+                ? string.Format(DataText.IntelStatusParsingMore, day, written, left)
+                : string.Format(DataText.IntelStatusParsing, day, written);
             progress?.Report(StatusText);
 
             if (once || batch.Count < MessageBatch) break;
@@ -302,7 +307,7 @@ public sealed class IntelService(
         {
             IsRunning = false;
             Backlog   = 0;
-            if (written > 0 || StatusText == "Intel: idle")
+            if (written > 0 || _statusUntouched)
                 StatusText = await SummaryAsync(ct);
         }
     }
@@ -314,12 +319,12 @@ public sealed class IntelService(
         {
             using var db = dbFactory.CreateDbContext();
             var total = await db.IntelReports.CountAsync(ct);
-            if (total == 0) return "Intel: nothing parsed yet";
+            if (total == 0) return DataText.IntelStatusNothing;
 
             var newest = await db.IntelReports.AsNoTracking()
                 .OrderByDescending(r => r.ReportedAt).Select(r => r.ReportedAt).FirstAsync(ct);
 
-            return $"Intel: up to date — {total:N0} sightings, newest {newest.Replace('T', ' ').TrimEnd('Z')}";
+            return string.Format(DataText.IntelStatusUpToDate, total, newest.Replace('T', ' ').TrimEnd('Z'));
         }
         catch (Exception ex)
         {
@@ -328,7 +333,7 @@ public sealed class IntelService(
             // reassurance the mining tab gave when it blamed a polling setting for a broken
             // query. Say the status could not be read, and log why.
             errorLogger.Log(nameof(IntelService), "status", ex);
-            return "Intel: status unavailable";
+            return DataText.IntelStatusUnavailable;
         }
     }
 

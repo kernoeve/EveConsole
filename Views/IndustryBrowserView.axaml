@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              x:Class="EveConsole.Views.IndustryBrowserView"
              x:DataType="vm:IndustryBrowserViewModel"
@@ -40,17 +41,17 @@
         <Grid Grid.Column="0"
               ColumnDefinitions="86,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto"
               VerticalAlignment="Top">
-          <TextBlock Grid.Row="0"  Grid.Column="0" Text="Owner Type"     Foreground="{DynamicResource TextFaintBrush}" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
-          <TextBlock Grid.Row="1"  Grid.Column="0" Text="Owner"          Foreground="{DynamicResource TextFaintBrush}" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
-          <TextBlock Grid.Row="2"  Grid.Column="0" Text="Installer"      Foreground="{DynamicResource TextFaintBrush}" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
-          <TextBlock Grid.Row="3"  Grid.Column="0" Text="Start Date"     Foreground="{DynamicResource TextFaintBrush}" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
-          <TextBlock Grid.Row="4"  Grid.Column="0" Text="End Date"       Foreground="{DynamicResource TextFaintBrush}" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
-          <TextBlock Grid.Row="5"  Grid.Column="0" Text="Completed By"   Foreground="{DynamicResource TextFaintBrush}" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
-          <TextBlock Grid.Row="6"  Grid.Column="0" Text="Activity"       Foreground="{DynamicResource TextFaintBrush}" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
-          <TextBlock Grid.Row="7"  Grid.Column="0" Text="Status"         Foreground="{DynamicResource TextFaintBrush}" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
-          <TextBlock Grid.Row="8"  Grid.Column="0" Text="Runs"           Foreground="{DynamicResource TextFaintBrush}" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
-          <TextBlock Grid.Row="9"  Grid.Column="0" Text="Items"          Foreground="{DynamicResource TextFaintBrush}" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
-          <TextBlock Grid.Row="10" Grid.Column="0" Text="Success Chance" Foreground="{DynamicResource TextFaintBrush}" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
+          <TextBlock Grid.Row="0"  Grid.Column="0" Text="{x:Static loc:IndustryText.OwnerType}"     Foreground="{DynamicResource TextFaintBrush}" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
+          <TextBlock Grid.Row="1"  Grid.Column="0" Text="{x:Static loc:IndustryText.Owner}"          Foreground="{DynamicResource TextFaintBrush}" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
+          <TextBlock Grid.Row="2"  Grid.Column="0" Text="{x:Static loc:IndustryText.Installer}"      Foreground="{DynamicResource TextFaintBrush}" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
+          <TextBlock Grid.Row="3"  Grid.Column="0" Text="{x:Static loc:IndustryText.StartDate}"     Foreground="{DynamicResource TextFaintBrush}" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
+          <TextBlock Grid.Row="4"  Grid.Column="0" Text="{x:Static loc:IndustryText.EndDate}"       Foreground="{DynamicResource TextFaintBrush}" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
+          <TextBlock Grid.Row="5"  Grid.Column="0" Text="{x:Static loc:IndustryText.CompletedBy}"   Foreground="{DynamicResource TextFaintBrush}" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
+          <TextBlock Grid.Row="6"  Grid.Column="0" Text="{x:Static loc:IndustryText.Activity}"       Foreground="{DynamicResource TextFaintBrush}" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
+          <TextBlock Grid.Row="7"  Grid.Column="0" Text="{x:Static loc:IndustryText.Status}"         Foreground="{DynamicResource TextFaintBrush}" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
+          <TextBlock Grid.Row="8"  Grid.Column="0" Text="{x:Static loc:IndustryText.Runs}"           Foreground="{DynamicResource TextFaintBrush}" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
+          <TextBlock Grid.Row="9"  Grid.Column="0" Text="{x:Static loc:IndustryText.Items}"          Foreground="{DynamicResource TextFaintBrush}" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
+          <TextBlock Grid.Row="10" Grid.Column="0" Text="{x:Static loc:IndustryText.SuccessChance}" Foreground="{DynamicResource TextFaintBrush}" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
 
           <TextBlock x:Name="DetailOwnerType"    Grid.Row="0"  Grid.Column="1" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="10" Margin="0 0 0 3" VerticalAlignment="Center"/>
           <TextBlock x:Name="DetailOwner"        Grid.Row="1"  Grid.Column="1" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="10" Margin="0 0 0 3" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
@@ -134,12 +135,12 @@
             <StackPanel Grid.Column="3" Orientation="Vertical" Spacing="8"
                         VerticalAlignment="Center" Margin="20 0 0 0">
               <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                <TextBlock Text="Time Left" Foreground="{DynamicResource TextFaintBrush}" FontSize="10" VerticalAlignment="Center"/>
+                <TextBlock Text="{x:Static loc:IndustryText.TimeLeft}" Foreground="{DynamicResource TextFaintBrush}" FontSize="10" VerticalAlignment="Center"/>
                 <TextBlock x:Name="DetailTimeLeft" Foreground="{DynamicResource AccentBrush}" FontSize="13"
                            FontWeight="SemiBold" VerticalAlignment="Center"/>
               </StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                <TextBlock Text="Cost" Foreground="{DynamicResource TextFaintBrush}" FontSize="10" VerticalAlignment="Center"/>
+                <TextBlock Text="{x:Static loc:IndustryText.Cost}" Foreground="{DynamicResource TextFaintBrush}" FontSize="10" VerticalAlignment="Center"/>
                 <TextBlock x:Name="DetailCost" Foreground="{DynamicResource GoodBrush}" FontSize="13"
                            FontWeight="SemiBold" VerticalAlignment="Center"/>
               </StackPanel>
@@ -157,41 +158,41 @@
       <WrapPanel Orientation="Horizontal">
 
         <StackPanel Orientation="Horizontal" Spacing="4" Margin="0 0 8 0" VerticalAlignment="Center">
-          <TextBlock Text="Owner:" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+          <TextBlock Text="{x:Static loc:IndustryText.OwnerLabel}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
           <ComboBox x:Name="OwnerPicker" Width="160" FontSize="11" MaxDropDownHeight="300"
                     ItemsSource="{Binding OwnerOptions}"/>
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" Spacing="4" Margin="0 0 8 0" VerticalAlignment="Center">
-          <TextBlock Text="Activity:" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+          <TextBlock Text="{x:Static loc:IndustryText.ActivityLabel}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
           <ComboBox x:Name="ActivityPicker" Width="145" FontSize="11" MaxDropDownHeight="250"/>
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" Spacing="4" Margin="0 0 8 0" VerticalAlignment="Center">
-          <TextBlock Text="Status:" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+          <TextBlock Text="{x:Static loc:IndustryText.StatusLabel}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
           <ComboBox x:Name="StatusPicker" Width="120" FontSize="11" MaxDropDownHeight="250"/>
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" Spacing="4" Margin="0 0 8 0" VerticalAlignment="Center">
-          <TextBlock Text="Started:" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+          <TextBlock Text="{x:Static loc:IndustryText.StartedLabel}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
           <CalendarDatePicker x:Name="FromDatePicker" Width="115" FontSize="11"
-                              Watermark="From…" IsTodayHighlighted="True" SelectedDateFormat="Short"/>
+                              Watermark="{x:Static loc:IndustryText.HintFrom}" IsTodayHighlighted="True" SelectedDateFormat="Short"/>
           <TextBlock Text="–" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center"/>
           <CalendarDatePicker x:Name="ThruDatePicker" Width="115" FontSize="11"
-                              Watermark="Thru…" IsTodayHighlighted="True" SelectedDateFormat="Short"/>
+                              Watermark="{x:Static loc:IndustryText.HintThru}" IsTodayHighlighted="True" SelectedDateFormat="Short"/>
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" Spacing="4" Margin="0 0 8 0" VerticalAlignment="Center">
-          <TextBlock Text="Search:" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
-          <TextBox x:Name="SearchBox" Watermark="blueprint or product…"
+          <TextBlock Text="{x:Static loc:IndustryText.SearchLabel}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+          <TextBox x:Name="SearchBox" Watermark="{x:Static loc:IndustryText.HintBlueprintOrProduct}"
                    Width="180" FontSize="11" KeyDown="OnSearchKeyDown"/>
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
-          <Button Content="Apply" Click="OnApplyClick" Padding="14 3"
+          <Button Content="{x:Static loc:IndustryText.Apply}" Click="OnApplyClick" Padding="14 3"
                   Background="{DynamicResource BorderSubtleBrush}" Foreground="{DynamicResource AccentBrush}"
                   BorderThickness="1" BorderBrush="{DynamicResource AccentSurfaceBrush}" FontSize="11"/>
-          <Button Content="Clear" Click="OnClearClick" Padding="14 3" FontSize="11"/>
+          <Button Content="{x:Static loc:IndustryText.Clear}" Click="OnClearClick" Padding="14 3" FontSize="11"/>
         </StackPanel>
 
       </WrapPanel>

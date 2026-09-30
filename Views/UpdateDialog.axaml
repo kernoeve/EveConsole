@@ -1,9 +1,10 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:EveConsole.Localization"
         xmlns:vm="clr-namespace:EveConsole.ViewModels"
         x:Class="EveConsole.Views.UpdateDialog"
         x:DataType="vm:UpdateViewModel"
-        Title="Update Available"
+        Title="{x:Static loc:ShellText.TitleUpdateAvailable}"
         Width="460" Height="240"
         CanResize="False"
         WindowStartupLocation="CenterOwner"
@@ -14,33 +15,33 @@
     <!-- ── Prompt ── -->
     <StackPanel x:Name="PromptPanel" Spacing="14">
 
-      <TextBlock Text="A new version of EVE Console is available."
+      <TextBlock Text="{x:Static loc:ShellText.ANewVersionOfNote}"
                  FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
 
       <Grid ColumnDefinitions="70,*" RowDefinitions="Auto,Auto">
-        <TextBlock Grid.Row="0" Grid.Column="0" Text="Current:"
+        <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static loc:ShellText.CurrentLabel}"
                    Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="0 0 0 4" />
         <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding CurrentVersionText}"
                    Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0 0 0 4" />
-        <TextBlock Grid.Row="1" Grid.Column="0" Text="Latest:"
+        <TextBlock Grid.Row="1" Grid.Column="0" Text="{x:Static loc:ShellText.LatestLabel}"
                    Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" />
         <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding LatestVersionText}"
                    Foreground="{DynamicResource WarnBrush}" VerticalAlignment="Center" />
       </Grid>
 
       <TextBlock FontSize="11" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
-                 Text="The app will download the update and restart to apply it." />
+                 Text="{x:Static loc:ShellText.TheAppWillDownloadNote}" />
 
       <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right">
-        <Button Content="Update Now" Click="OnUpdateNow" Padding="16 5" />
-        <Button Content="Not Now"    Click="OnNotNow"    Padding="16 5" />
+        <Button Content="{x:Static loc:ShellText.UpdateNow}" Click="OnUpdateNow" Padding="16 5" />
+        <Button Content="{x:Static loc:ShellText.NotNow}"    Click="OnNotNow"    Padding="16 5" />
       </StackPanel>
 
     </StackPanel>
 
     <!-- ── Progress (shown while downloading/applying) ── -->
     <StackPanel x:Name="ProgressPanel" IsVisible="False" Spacing="10">
-      <TextBlock Text="Updating EVE Console…"
+      <TextBlock Text="{x:Static loc:ShellText.UpdatingEveConsole}"
                  FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
       <ProgressBar IsIndeterminate="True" Height="8" />
       <TextBlock Text="{Binding StatusText}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap" />

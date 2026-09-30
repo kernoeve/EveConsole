@@ -523,7 +523,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                 await dialog.ShowDialog(this);
             });
 
-        vm.OverviewVm.OpenAlertSettingsRequested = () => _ = OpenSettingsAsync(vm, "Alerts");
+        vm.OverviewVm.OpenAlertSettingsRequested = () => _ = OpenSettingsAsync(vm, EveConsole.Localization.SettingsText.TabAlerts);
 
         // Normally already done during startup, while the splash was up; the cached task makes this
         // a no-op in that case.
@@ -713,7 +713,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     /// </summary>
     private void OnSdeUpdateLinkClick(object? sender, RoutedEventArgs e)
     {
-        if (DataContext is MainWindowViewModel vm) _ = OpenSettingsAsync(vm, "SDE");
+        if (DataContext is MainWindowViewModel vm) _ = OpenSettingsAsync(vm, EveConsole.Localization.SettingsText.TabSde);
     }
 
     /// <summary>
@@ -755,7 +755,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     // ESI Tokens page, so that is where it goes.
     private void OnStatusWarningClick(object? sender, RoutedEventArgs e)
     {
-        if (DataContext is MainWindowViewModel vm) _ = OpenSettingsAsync(vm, "ESI Tokens");
+        if (DataContext is MainWindowViewModel vm) _ = OpenSettingsAsync(vm, EveConsole.Localization.SettingsText.TabEsiTokens);
     }
 
     // ── Tab detach (right-click → Open in New Window) ─────────────────────────
@@ -884,7 +884,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         // The clock, first. Every message in the history carries the time it was sent, and this
         // is what those are measured against — without it the stamps are dates with no "ago".
         var now = DateTimeOffset.UtcNow;
-        sb.AppendLine($"Now: {now:yyyy-MM-dd HH:mm} EVE time ({now.ToLocalTime():d MMM yyyy HH:mm} for the capsuleer, {now.ToLocalTime():dddd}).");
+        sb.AppendLine(FormattableString.Invariant($"Now: {now:yyyy-MM-dd HH:mm} EVE time ({now.ToLocalTime():d MMM yyyy HH:mm} for the capsuleer, {now.ToLocalTime():dddd})."));
 
         // ⚠️ What is on screen, first and unmistakable, with the guide's own words about it. A
         // small model asked "what is this?" answered from memory, named the wrong tool, and went
@@ -898,7 +898,9 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         else if (onScreen is not null)
             sb.AppendLine("The Tool Reference has no entry for it: say only what its name makes plain, and that you have no description of it.");
 
-        var otherTabs = vm.OpenTabs.Where(t => !ReferenceEquals(t, active)).Select(t => t.Title).ToList();
+        // By the Tool Reference's names, like the tab on screen: a tab's title is in the interface
+        // language, and this is read by the model.
+        var otherTabs = vm.OpenTabs.Where(t => !ReferenceEquals(t, active)).Select(t => OnScreenName(t) ?? t.Title).ToList();
         if (otherTabs.Count > 0)
             sb.AppendLine($"Other tabs open behind it (not on screen): {string.Join(", ", otherTabs)}");
 
@@ -953,8 +955,11 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                 using var ms = new MemoryStream();
                 bmp.Save(ms);
 
-                var title  = tabName == "current" ? (vm?.SelectedTab?.Title ?? "") : tabName;
-                var intent = EveConsole.Agent.AppKnowledge.TabIntent(title);
+                // ⚠️ Named from the tab's id, not its title: the title is in the interface
+                // language, and the agent's guide knows every tool by its English name.
+                var current = tabName == "current" ? vm?.SelectedTab : null;
+                var title   = current is not null ? OnScreenName(current) ?? "" : tabName;
+                var intent  = EveConsole.Agent.AppKnowledge.TabIntent(current?.Id ?? title);
                 var desc   = $"Screenshot of the {title} tab.";
                 if (!string.IsNullOrEmpty(intent)) desc += $" ({intent})";
 

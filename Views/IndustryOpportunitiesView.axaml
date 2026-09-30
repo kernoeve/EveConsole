@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              x:Class="EveConsole.Views.IndustryOpportunitiesView"
              x:DataType="vm:IndustryOpportunitiesViewModel"
@@ -49,7 +50,7 @@
       <DockPanel>
 
         <Button DockPanel.Dock="Right"
-                Content="Calculate"
+                Content="{x:Static loc:IndustryText.Calculate}"
                 Command="{Binding CalculateCommand}"
                 Padding="18 6"
                 Background="{DynamicResource BorderSubtleBrush}"
@@ -71,7 +72,7 @@
             </ComboBox.ItemTemplate>
           </ComboBox>
 
-          <TextBlock Text="Price at" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
+          <TextBlock Text="{x:Static loc:IndustryText.PriceAt}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
                      VerticalAlignment="Center" />
           <ComboBox ItemsSource="{Binding MarketConfigs}"
                     SelectedItem="{Binding SelectedConfig}"
@@ -84,35 +85,35 @@
             </ComboBox.ItemTemplate>
           </ComboBox>
 
-          <TextBlock Text="Min 30d ISK Vol" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
+          <TextBlock Text="{x:Static loc:IndustryText.Min30dIskVol}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
                      VerticalAlignment="Center" />
           <TextBox Text="{Binding MinIskVolume}" Width="110" FontSize="12"
-                   Watermark="No filter"
+                   Watermark="{x:Static loc:IndustryText.HintNoFilter}"
                    Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextPrimaryBrush}" />
 
-          <TextBlock Text="Min 30d Unit Vol" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
+          <TextBlock Text="{x:Static loc:IndustryText.Min30dUnitVol}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
                      VerticalAlignment="Center" />
           <TextBox Text="{Binding MinUnitVolume}" Width="110" FontSize="12"
-                   Watermark="No filter"
+                   Watermark="{x:Static loc:IndustryText.HintNoFilter}"
                    Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextPrimaryBrush}" />
 
           <CheckBox IsChecked="{Binding SkipFactionItems}"
-                    Content="Skip faction"
+                    Content="{x:Static loc:IndustryText.SkipFaction}"
                     Foreground="{DynamicResource TextPrimaryBrush}" FontSize="11"
                     VerticalAlignment="Center" />
 
           <CheckBox IsChecked="{Binding BpoOnly}"
-                    Content="Skip Non BPO traceable Items"
+                    Content="{x:Static loc:IndustryText.SkipNonBpoTraceableItems}"
                     Foreground="{DynamicResource TextPrimaryBrush}" FontSize="11"
                     VerticalAlignment="Center"
-                    ToolTip.Tip="Only items whose blueprint is a buyable BPO, or is invented from one (e.g. T2 from a T1 BPO). Excludes faction/limited-run BPC items with no obtainable BPO, storyline, officer and deadspace items, and 'Limited Time' event items whose BPO can no longer be bought in game." />
+                    ToolTip.Tip="{x:Static loc:IndustryText.TipOnlyItemsWhoseBlueprint}" />
 
         </StackPanel>
       </DockPanel>
 
       <!-- ── Excluded market groups ─────────────────────────────────────────── -->
       <StackPanel Orientation="Horizontal" Spacing="8">
-        <TextBlock Text="Exclude Groups" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
+        <TextBlock Text="{x:Static loc:IndustryText.ExcludeGroups}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
                    VerticalAlignment="Center" />
 
         <ItemsControl ItemsSource="{Binding ExcludedMarketGroups}">
@@ -133,7 +134,7 @@
                           Background="Transparent" BorderThickness="0"
                           Foreground="{DynamicResource BadBrush}" FontSize="10" Padding="0"
                           Cursor="Hand" VerticalAlignment="Center"
-                          ToolTip.Tip="Remove this exclusion" />
+                          ToolTip.Tip="{x:Static loc:IndustryText.TipRemoveThisExclusion}" />
                   <TextBlock Text="{Binding Name}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"
                              VerticalAlignment="Center" />
                 </StackPanel>
@@ -142,7 +143,7 @@
           </ItemsControl.ItemTemplate>
         </ItemsControl>
 
-        <Button Content="+ Add Group"
+        <Button Content="{x:Static loc:IndustryText.AddGroup}"
                 Command="{Binding AddExcludedGroupCommand}"
                 Padding="8 3" FontSize="11"
                 Background="{DynamicResource SurfacePanelAltBrush}" Foreground="{DynamicResource InfoBrush}"
@@ -177,12 +178,12 @@
 
       <DataGrid.Columns>
 
-        <DataGridTemplateColumn Header="Item" SortMemberPath="TypeName" Width="*" ClipboardContentBinding="{Binding TypeName}">
+        <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColItem}" SortMemberPath="TypeName" Width="*" ClipboardContentBinding="{Binding TypeName}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:IndustryRow">
               <Panel>
                 <Button Classes="link" Click="OnOpenRowItem" IsVisible="{Binding HasItemLink}"
-                        ToolTip.Tip="Open in the Item Browser">
+                        ToolTip.Tip="{x:Static loc:IndustryText.TipOpenInTheItemBrowser}">
                   <TextBlock Text="{Binding TypeName}" Classes="linktext" FontSize="10"
                              VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                 </Button>
@@ -193,7 +194,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Build Cost" Width="110" SortMemberPath="BuildCost" ClipboardContentBinding="{Binding BuildCostDisplay}">
+        <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColBuildCost}" Width="110" SortMemberPath="BuildCost" ClipboardContentBinding="{Binding BuildCostDisplay}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding BuildCostDisplay}"
@@ -204,7 +205,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Sell Price" Width="110" SortMemberPath="SellPrice" ClipboardContentBinding="{Binding SellPriceDisplay}">
+        <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColSellPrice}" Width="110" SortMemberPath="SellPrice" ClipboardContentBinding="{Binding SellPriceDisplay}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding SellPriceDisplay}"
@@ -214,7 +215,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Profit / Unit" Width="110" SortMemberPath="ProfitPerUnit" ClipboardContentBinding="{Binding ProfitUnitDisplay}">
+        <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColProfitUnit}" Width="110" SortMemberPath="ProfitPerUnit" ClipboardContentBinding="{Binding ProfitUnitDisplay}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding ProfitUnitDisplay}"
@@ -225,7 +226,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Margin" Width="80" SortMemberPath="Margin" ClipboardContentBinding="{Binding MarginDisplay}">
+        <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColMargin}" Width="80" SortMemberPath="Margin" ClipboardContentBinding="{Binding MarginDisplay}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding MarginDisplay}"
@@ -236,7 +237,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Build Time" Width="100" SortMemberPath="BuildSeconds" ClipboardContentBinding="{Binding BuildTimeDisplay}">
+        <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColBuildTime}" Width="100" SortMemberPath="BuildSeconds" ClipboardContentBinding="{Binding BuildTimeDisplay}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding BuildTimeDisplay}"
@@ -246,7 +247,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Slot Days" Width="90" SortMemberPath="SlotDays" ClipboardContentBinding="{Binding SlotDaysDisplay}">
+        <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColSlotDays}" Width="90" SortMemberPath="SlotDays" ClipboardContentBinding="{Binding SlotDaysDisplay}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding SlotDaysDisplay}"
@@ -256,7 +257,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Profit / Slot Day" Width="130" SortMemberPath="ProfitPerSlotDay" ClipboardContentBinding="{Binding ProfitPerSlotDayDisplay}">
+        <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColProfitSlotDay}" Width="130" SortMemberPath="ProfitPerSlotDay" ClipboardContentBinding="{Binding ProfitPerSlotDayDisplay}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding ProfitPerSlotDayDisplay}"
@@ -267,7 +268,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="Units Sold 30d" Width="105" SortMemberPath="UnitVol30d" ClipboardContentBinding="{Binding UnitVol30dDisplay}">
+        <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColUnitsSold30d}" Width="105" SortMemberPath="UnitVol30d" ClipboardContentBinding="{Binding UnitVol30dDisplay}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding UnitVol30dDisplay}"
@@ -278,7 +279,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
-        <DataGridTemplateColumn Header="ISK Sold 30d" Width="110" SortMemberPath="IskVol30d" ClipboardContentBinding="{Binding IskVol30dDisplay}">
+        <DataGridTemplateColumn Header="{x:Static loc:IndustryText.ColIskSold30d}" Width="110" SortMemberPath="IskVol30d" ClipboardContentBinding="{Binding IskVol30dDisplay}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock Text="{Binding IskVol30dDisplay}"
@@ -304,7 +305,7 @@
                      Width="240" Height="3"
                      Foreground="{DynamicResource AccentBrush}"
                      Background="{DynamicResource SurfaceRaisedBrush}" />
-        <TextBlock Text="Scanning for industry opportunities…"
+        <TextBlock Text="{x:Static loc:IndustryText.ScanningForIndustryOpportunities}"
                    FontSize="14" FontWeight="SemiBold"
                    Foreground="{DynamicResource AccentBrush}"
                    HorizontalAlignment="Center" />

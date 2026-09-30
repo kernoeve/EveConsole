@@ -6,6 +6,7 @@ using Avalonia.Input;
 using Avalonia.ReactiveUI;
 using Avalonia.VisualTree;
 using EveConsole.ViewModels;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -49,8 +50,8 @@ public partial class OrderTrackerView : ReactiveUserControl<OrderTrackerViewMode
         RemoveLabelMenu.IsEnabled = rows.Count > 0;
         if (rows.Count == 0) return;
 
-        AddLabelMenu.Header    = rows.Count > 1 ? $"Add label to {rows.Count} orders" : "Add label";
-        RemoveLabelMenu.Header = rows.Count > 1 ? $"Remove label from {rows.Count} orders" : "Remove label";
+        AddLabelMenu.Header    = rows.Count > 1 ? string.Format(SalesText.AddLabelToOrders, rows.Count) : SalesText.AddLabel;
+        RemoveLabelMenu.Header = rows.Count > 1 ? string.Format(SalesText.RemoveLabelFromOrders, rows.Count) : SalesText.RemoveLabel;
 
         foreach (var label in await vm.KnownLabelsAsync())
         {
@@ -63,7 +64,7 @@ public partial class OrderTrackerView : ReactiveUserControl<OrderTrackerViewMode
         // deliberately so. Without this entry the menu would only ever offer what already exists,
         // and the first label could never be made from here at all.
         if (AddLabelMenu.Items.Count > 0) AddLabelMenu.Items.Add(new Separator());
-        var newItem = new MenuItem { Header = "New label…" };
+        var newItem = new MenuItem { Header = SalesText.NewLabelMenu };
         newItem.Click += async (_, _) => await PromptForLabelAsync(vm);
         AddLabelMenu.Items.Add(newItem);
 
@@ -87,7 +88,7 @@ public partial class OrderTrackerView : ReactiveUserControl<OrderTrackerViewMode
 
         var rows  = SelectedRows();
         var typed = await new TextPromptDialog(
-            "New label", "Label", "e.g. Capital Program").ShowDialog<string?>(owner);
+            SalesText.NewLabelTitle, SalesText.LabelPrompt, SalesText.NewLabelHint).ShowDialog<string?>(owner);
 
         if (!string.IsNullOrWhiteSpace(typed)) await vm.AddLabelToAsync(rows, typed);
     }

@@ -1,0 +1,638 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="NavGroupGeneral" xml:space="preserve">
+    <value>Общее</value>
+  </data>
+  <data name="NavGroupAssets" xml:space="preserve">
+    <value>Имущество</value>
+  </data>
+  <data name="NavGroupStructures" xml:space="preserve">
+    <value>Сооружения / навигация</value>
+  </data>
+  <data name="NavGroupIndustry" xml:space="preserve">
+    <value>Промышленность</value>
+  </data>
+  <data name="NavGroupMarket" xml:space="preserve">
+    <value>Рынок / торговля</value>
+  </data>
+  <data name="NavGroupFinance" xml:space="preserve">
+    <value>Финансы</value>
+  </data>
+  <data name="NavGroupCorp" xml:space="preserve">
+    <value>Корпорация / взаимодействие</value>
+  </data>
+  <data name="NavGroupCommunication" xml:space="preserve">
+    <value>Связь</value>
+  </data>
+  <data name="NavGroupData" xml:space="preserve">
+    <value>Данные / журналы</value>
+  </data>
+  <data name="NavOverview" xml:space="preserve">
+    <value>Обзор</value>
+  </data>
+  <data name="NavWorklist" xml:space="preserve">
+    <value>Список задач</value>
+  </data>
+  <data name="NavCharacters" xml:space="preserve">
+    <value>Персонажи</value>
+  </data>
+  <data name="NavAssets" xml:space="preserve">
+    <value>Имущество</value>
+  </data>
+  <data name="NavItemBrowser" xml:space="preserve">
+    <value>Просмотр предметов</value>
+  </data>
+  <data name="NavInventoryLevels" xml:space="preserve">
+    <value>Уровни запасов</value>
+  </data>
+  <data name="NavStructureBrowser" xml:space="preserve">
+    <value>Просмотр сооружений</value>
+  </data>
+  <data name="NavUniverseMap" xml:space="preserve">
+    <value>Карта вселенной</value>
+  </data>
+  <data name="NavJumpPlanner" xml:space="preserve">
+    <value>Планировщик прыжков</value>
+  </data>
+  <data name="NavIndustryJobs" xml:space="preserve">
+    <value>Промышленные проекты</value>
+  </data>
+  <data name="NavIndyParks" xml:space="preserve">
+    <value>Промпарки</value>
+  </data>
+  <data name="NavProductionCalc" xml:space="preserve">
+    <value>Расчёт производства</value>
+  </data>
+  <data name="NavPriceOverrides" xml:space="preserve">
+    <value>Ручные цены</value>
+  </data>
+  <data name="NavIndustryOpportunities" xml:space="preserve">
+    <value>Возможности производства</value>
+  </data>
+  <data name="NavMarketOverview" xml:space="preserve">
+    <value>Обзор рынка</value>
+  </data>
+  <data name="NavItemValuation" xml:space="preserve">
+    <value>Оценка предметов</value>
+  </data>
+  <data name="NavLpMarketValues" xml:space="preserve">
+    <value>Рыночная ценность LP</value>
+  </data>
+  <data name="NavMarketLevels" xml:space="preserve">
+    <value>Запасы на рынке</value>
+  </data>
+  <data name="NavContracts" xml:space="preserve">
+    <value>Контракты</value>
+  </data>
+  <data name="NavTradeOpportunities" xml:space="preserve">
+    <value>Торговые возможности</value>
+  </data>
+  <data name="NavStandingBuyOrders" xml:space="preserve">
+    <value>Постоянные ордера на покупку</value>
+  </data>
+  <data name="NavOrderTracker" xml:space="preserve">
+    <value>Учёт заказов</value>
+  </data>
+  <data name="NavSalesTracker" xml:space="preserve">
+    <value>Учёт продаж</value>
+  </data>
+  <data name="NavSalePosting" xml:space="preserve">
+    <value>Объявления о продаже</value>
+  </data>
+  <data name="NavStores" xml:space="preserve">
+    <value>Магазины</value>
+  </data>
+  <data name="NavNetWorth" xml:space="preserve">
+    <value>Капитал</value>
+  </data>
+  <data name="NavIncomeExpense" xml:space="preserve">
+    <value>Доходы и расходы</value>
+  </data>
+  <data name="NavWallet" xml:space="preserve">
+    <value>Кошелёк</value>
+  </data>
+  <data name="NavCorpActivity" xml:space="preserve">
+    <value>Активность корпорации</value>
+  </data>
+  <data name="NavKillmails" xml:space="preserve">
+    <value>Отчёты о боях</value>
+  </data>
+  <data name="NavPlayerEntities" xml:space="preserve">
+    <value>Справочник игроков</value>
+  </data>
+  <data name="NavNpcEntities" xml:space="preserve">
+    <value>Справочник NPC</value>
+  </data>
+  <data name="NavEveMail" xml:space="preserve">
+    <value>Почта EVE</value>
+  </data>
+  <data name="NavNotifications" xml:space="preserve">
+    <value>Уведомления</value>
+  </data>
+  <data name="NavBackgroundProcesses" xml:space="preserve">
+    <value>Фоновые процессы</value>
+  </data>
+  <data name="NavEsiExplorer" xml:space="preserve">
+    <value>Обозреватель ESI</value>
+  </data>
+  <data name="NavErrorLog" xml:space="preserve">
+    <value>Журнал ошибок</value>
+  </data>
+  <data name="NavAiUsage" xml:space="preserve">
+    <value>Использование ИИ</value>
+  </data>
+  <data name="NavGameLog" xml:space="preserve">
+    <value>Игровой журнал</value>
+  </data>
+  <data name="NavChatLog" xml:space="preserve">
+    <value>Журнал чата</value>
+  </data>
+  <data name="TabUniverse" xml:space="preserve">
+    <value>Вселенная</value>
+  </data>
+  <data name="TabAlarms" xml:space="preserve">
+    <value>Тревоги</value>
+  </data>
+  <data name="TabScheduler" xml:space="preserve">
+    <value>Планировщик</value>
+  </data>
+  <data name="TabTrade" xml:space="preserve">
+    <value>Торговля</value>
+  </data>
+  <data name="TabIndustryOpps" xml:space="preserve">
+    <value>Возм. производства</value>
+  </data>
+  <data name="TabInvLevels" xml:space="preserve">
+    <value>Ур. запасов</value>
+  </data>
+  <data name="TabSaleListingBuild" xml:space="preserve">
+    <value>Список продаж (производство)</value>
+  </data>
+  <data name="TabSaleListingMarket" xml:space="preserve">
+    <value>Список продаж (рынок)</value>
+  </data>
+  <data name="TipScheduler" xml:space="preserve">
+    <value>Планировщик</value>
+  </data>
+  <data name="TipSettings" xml:space="preserve">
+    <value>Настройки</value>
+  </data>
+  <data name="TipAbout" xml:space="preserve">
+    <value>О программе EVE Console</value>
+  </data>
+  <data name="TipVersion" xml:space="preserve">
+    <value>Версия, которая сейчас запущена.</value>
+  </data>
+  <data name="TipReleasePage" xml:space="preserve">
+    <value>Открыть страницу выпуска на GitHub</value>
+  </data>
+  <data name="TitleAboutEveConsole" xml:space="preserve">
+    <value>О программе EVE Console</value>
+  </data>
+  <data name="AnEveOnlineIndustrialNote" xml:space="preserve">
+    <value>Приложение-компаньон для промышленников EVE Online: планирование производства, учёт имущества, рыночные цены и управление персонажами.</value>
+  </data>
+  <data name="Website" xml:space="preserve">
+    <value>Сайт</value>
+  </data>
+  <data name="Documentation" xml:space="preserve">
+    <value>Документация</value>
+  </data>
+  <data name="TipCommunityChatAndSupport" xml:space="preserve">
+    <value>Чат сообщества и поддержка</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Закрыть</value>
+  </data>
+  <data name="TitleEveConsoleDatabaseProblem" xml:space="preserve">
+    <value>EVE Console — проблема с базой данных</value>
+  </data>
+  <data name="TheDatabaseCouldNotBe" xml:space="preserve">
+    <value>Не удалось открыть базу данных</value>
+  </data>
+  <data name="ReportedLabel" xml:space="preserve">
+    <value>Причина</value>
+  </data>
+  <data name="RestoreFromABackup" xml:space="preserve">
+    <value>Восстановление из резервной копии</value>
+  </data>
+  <data name="TheMostRecentIsNote" xml:space="preserve">
+    <value>Выбрана самая свежая копия. Всё, что было записано после её создания, нужно будет снова получить опросом.</value>
+  </data>
+  <data name="NoBackupsWereFoundNote" xml:space="preserve">
+    <value>Рядом с базой данных не найдено резервных копий, так что восстанавливать не из чего. «Начать заново» создаст пустую базу данных, а повреждённую оставит на месте.</value>
+  </data>
+  <data name="Quit" xml:space="preserve">
+    <value>Выйти</value>
+  </data>
+  <data name="StartFresh" xml:space="preserve">
+    <value>Начать заново</value>
+  </data>
+  <data name="RestoreBackup" xml:space="preserve">
+    <value>Восстановить копию</value>
+  </data>
+  <data name="UpToDate" xml:space="preserve">
+    <value>актуально</value>
+  </data>
+  <data name="UpdateAvailable" xml:space="preserve">
+    <value>есть обновление</value>
+  </data>
+  <data name="BackgroundLabel" xml:space="preserve">
+    <value>Фоновая работа:</value>
+  </data>
+  <data name="NoneOfYourCharactersAre" xml:space="preserve">
+    <value>Никого из ваших персонажей нет в игре.</value>
+  </data>
+  <data name="FmtStaticDataExport" xml:space="preserve">
+    <value>Статические данные игры (SDE): {0}</value>
+  </data>
+  <data name="FmtNewestFromCcpIs" xml:space="preserve">
+    <value>Новейшая версия от CCP: {0}</value>
+  </data>
+  <data name="FmtNewestIsOpenTheSde" xml:space="preserve">
+    <value>Новейшая версия: {0} — откройте настройки SDE</value>
+  </data>
+  <data name="FmtToggleAiCompanion" xml:space="preserve">
+    <value>Показать или скрыть ИИ-помощника ({0})</value>
+  </data>
+  <data name="Initializing" xml:space="preserve">
+    <value>Инициализация…</value>
+  </data>
+  <data name="TitleUpdateAvailable" xml:space="preserve">
+    <value>Доступно обновление</value>
+  </data>
+  <data name="ANewVersionOfNote" xml:space="preserve">
+    <value>Доступна новая версия EVE Console.</value>
+  </data>
+  <data name="CurrentLabel" xml:space="preserve">
+    <value>Текущая:</value>
+  </data>
+  <data name="LatestLabel" xml:space="preserve">
+    <value>Новая:</value>
+  </data>
+  <data name="TheAppWillDownloadNote" xml:space="preserve">
+    <value>Приложение загрузит обновление и перезапустится, чтобы установить его.</value>
+  </data>
+  <data name="UpdateNow" xml:space="preserve">
+    <value>Обновить сейчас</value>
+  </data>
+  <data name="NotNow" xml:space="preserve">
+    <value>Не сейчас</value>
+  </data>
+  <data name="UpdatingEveConsole" xml:space="preserve">
+    <value>Обновление EVE Console…</value>
+  </data>
+  <data name="ThisBuildIsOlderNote" xml:space="preserve">
+    <value>Эта сборка старше базы данных</value>
+  </data>
+  <data name="CheckingForAnUpdate" xml:space="preserve">
+    <value>Проверка обновлений…</value>
+  </data>
+  <data name="ReleasesPage" xml:space="preserve">
+    <value>Страница выпусков</value>
+  </data>
+  <data name="UpdateAndRestart" xml:space="preserve">
+    <value>Обновить и перезапустить</value>
+  </data>
+  <data name="TitleWelcomeToEveConsole" xml:space="preserve">
+    <value>Добро пожаловать в EVE Console</value>
+  </data>
+  <data name="EveConsoleIsDownloadingNote" xml:space="preserve">
+    <value>EVE Console загружает в фоне нужные ей игровые данные EVE (Static Data Export и данные Hoboleaks). Это может занять несколько минут — поиск предметов, рыночные цены и промышленные инструменты заработают по мере загрузки. Ход загрузки виден на вкладке SDE в настройках.</value>
+  </data>
+  <data name="OnceThatFinishesRestartNote" xml:space="preserve">
+    <value>Когда загрузка завершится, перезапустите EVE Console. Некоторые инструменты загружают справочные данные при первом открытии, поэтому перезапуск гарантирует, что все они увидят только что импортированные данные.</value>
+  </data>
+  <data name="ToPullInYourNote" xml:space="preserve">
+    <value>Чтобы загрузить данные своих персонажей и корпорации, добавьте ESI-токены персонажей. Затем откроется окно настроек на вкладке «Токены ESI» — нажмите там «Добавить» в разделе «Персонажи», чтобы войти через SSO EVE.</value>
+  </data>
+  <data name="GetStarted" xml:space="preserve">
+    <value>Начать</value>
+  </data>
+  <data name="DbSizeUnknown" xml:space="preserve">
+    <value>неизвестно</value>
+  </data>
+  <data name="DbFileNotFound" xml:space="preserve">
+    <value>файл не найден</value>
+  </data>
+  <data name="TipDbUnreadable" xml:space="preserve">
+    <value>{0} — не удалось прочитать сведения: {1}</value>
+  </data>
+  <data name="TipWorkerChecking" xml:space="preserve">
+    <value>Проверка, какой клиент выполняет фоновую работу…</value>
+  </data>
+  <data name="WorkerThisClient" xml:space="preserve">
+    <value>этот клиент</value>
+  </data>
+  <data name="WorkerHeadlineMine" xml:space="preserve">
+    <value>Фоновые процессы работают в этом клиенте.</value>
+  </data>
+  <data name="WorkerNone" xml:space="preserve">
+    <value>нет</value>
+  </data>
+  <data name="WorkerHeadlineStale" xml:space="preserve">
+    <value>Фоновую работу сейчас никто не выполняет — это последний клиент, который её выполнял.</value>
+  </data>
+  <data name="WorkerHeadlineOther" xml:space="preserve">
+    <value>Фоновые процессы работают в другом клиенте.</value>
+  </data>
+  <data name="AgoSeconds" xml:space="preserve">
+    <value>{0} с назад</value>
+  </data>
+  <data name="AgoMinutes" xml:space="preserve">
+    <value>{0} мин назад</value>
+  </data>
+  <data name="AgoHours" xml:space="preserve">
+    <value>{0} ч назад</value>
+  </data>
+  <data name="AlarmsNoneArmed" xml:space="preserve">
+    <value>Тревоги — ни одна не взведена</value>
+  </data>
+  <data name="OnlineOfTotal" xml:space="preserve">
+    <value>Онлайн: {0} из {1}</value>
+  </data>
+  <data name="NoCharactersOnline" xml:space="preserve">
+    <value>Нет персонажей онлайн</value>
+  </data>
+  <data name="LocationUnknown" xml:space="preserve">
+    <value>местоположение неизвестно</value>
+  </data>
+  <data name="StructureInSystem" xml:space="preserve">
+    <value>сооружение в системе {0}</value>
+  </data>
+  <data name="ShipUnknown" xml:space="preserve">
+    <value>корабль неизвестен</value>
+  </data>
+  <data name="TipEveTimeLink" xml:space="preserve">
+    <value>Время EVE (UTC) — нажмите, чтобы открыть {0}</value>
+  </data>
+  <data name="ThemeFallback" xml:space="preserve">
+    <value>Тема</value>
+  </data>
+  <data name="TipTheme" xml:space="preserve">
+    <value>Тема: {0} — нажмите, чтобы сменить</value>
+  </data>
+  <data name="TipUiScale" xml:space="preserve">
+    <value>Масштаб интерфейса: {0} — нажмите, чтобы сменить</value>
+  </data>
+  <data name="ServerOnline" xml:space="preserve">
+    <value>Онлайн</value>
+  </data>
+  <data name="TipServerStatus" xml:space="preserve">
+    <value>Состояние сервера Tranquility</value>
+  </data>
+  <data name="TipTranquilityOffline" xml:space="preserve">
+    <value>Сервер Tranquility не работает — опрос ESI приостановлен, пока он не вернётся</value>
+  </data>
+  <data name="BuildCostsNotYet" xml:space="preserve">
+    <value>Стоимость производства: ещё не рассчитана</value>
+  </data>
+  <data name="TipDbPostgres" xml:space="preserve">
+    <value>PostgreSQL на {0}
+База данных: {1}
+Размер: {2}</value>
+  </data>
+  <data name="TipDbSqlite" xml:space="preserve">
+    <value>SQLite
+{0}
+Размер: {1}</value>
+  </data>
+  <data name="TipWorkerSqlite" xml:space="preserve">
+    <value>{0}
+
+Компьютер: {1}
+PID: {2}
+Версия: {3}
+
+SQLite допускает только один клиент одновременно, поэтому передавать работу некому.</value>
+  </data>
+  <data name="TipWorkerUnclaimed" xml:space="preserve">
+    <value>Ни один клиент не взял на себя фоновую работу.
+
+Опрос ESI, расчёт стоимости производства и резервное копирование не выполняются.</value>
+  </data>
+  <data name="TipWorkerDetails" xml:space="preserve">
+    <value>{0}
+
+Компьютер: {1}
+PID: {2}
+Версия: {3}
+Работает с: {4:yyyy-MM-dd HH:mm}
+Последний отклик: {5}</value>
+  </data>
+  <data name="WorkerHostHeadless" xml:space="preserve">
+    <value>{0}  (без окна)</value>
+  </data>
+  <data name="AlarmsArmedOne" xml:space="preserve">
+    <value>Тревоги — взведена {0}</value>
+  </data>
+  <data name="AlarmsArmedOther" xml:space="preserve">
+    <value>Тревоги — взведено {0}</value>
+  </data>
+  <data name="AlarmsArmedFew" xml:space="preserve">
+    <value>Тревоги — взведены {0}</value>
+  </data>
+  <data name="AlarmsArmedMany" xml:space="preserve">
+    <value>Тревоги — взведено {0}</value>
+  </data>
+  <data name="AlarmsMutedNote" xml:space="preserve">
+    <value>В этом клиенте тревоги заглушены: здесь не будет ни звука, ни окон, ни сообщений помощнику. Оповещения по-прежнему записываются.
+
+Щёлкните правой кнопкой мыши, чтобы включить их снова.</value>
+  </data>
+  <data name="AlarmsMuteHint" xml:space="preserve">
+    <value>Щёлкните правой кнопкой мыши, чтобы заглушить тревоги в этом клиенте.</value>
+  </data>
+  <data name="TipTranquilityOnline" xml:space="preserve">
+    <value>Сервер Tranquility работает</value>
+  </data>
+  <data name="TipTranquilityOnlinePlayersOne" xml:space="preserve">
+    <value>Сервер Tranquility работает — в игре {0:N0} игрок</value>
+  </data>
+  <data name="TipTranquilityOnlinePlayersOther" xml:space="preserve">
+    <value>Сервер Tranquility работает — в игре {0:N0} игрока</value>
+  </data>
+  <data name="TipTranquilityOnlinePlayersFew" xml:space="preserve">
+    <value>Сервер Tranquility работает — в игре {0:N0} игрока</value>
+  </data>
+  <data name="TipTranquilityOnlinePlayersMany" xml:space="preserve">
+    <value>Сервер Tranquility работает — в игре {0:N0} игроков</value>
+  </data>
+  <data name="UpdateVersionUnknown" xml:space="preserve">
+    <value>неизвестна</value>
+  </data>
+  <data name="UpdateBadgeDevBuild" xml:space="preserve">
+    <value>dev-сборка</value>
+  </data>
+  <data name="UpdateLatestNotInstalled" xml:space="preserve">
+    <value>н/д — сборка не из установщика</value>
+  </data>
+  <data name="UpdateStatusChecking" xml:space="preserve">
+    <value>Проверка обновлений…</value>
+  </data>
+  <data name="UpdateStatusUpToDate" xml:space="preserve">
+    <value>Установлена последняя версия.</value>
+  </data>
+  <data name="UpdateStatusAvailable" xml:space="preserve">
+    <value>Доступно обновление.</value>
+  </data>
+  <data name="UpdateStatusDownloading" xml:space="preserve">
+    <value>Загрузка обновления…</value>
+  </data>
+  <data name="UpdateStatusRestarting" xml:space="preserve">
+    <value>Перезапуск для установки…</value>
+  </data>
+  <data name="UpdateBadgeAvailable" xml:space="preserve">
+    <value>доступна {0}</value>
+  </data>
+  <data name="UpdateDownloadingVersion" xml:space="preserve">
+    <value>Загрузка {0}…</value>
+  </data>
+  <data name="UpdateDownloadingVersionPercent" xml:space="preserve">
+    <value>Загрузка {0}… {1}%</value>
+  </data>
+  <data name="UpdateInstallingVersion" xml:space="preserve">
+    <value>Установка {0} и перезапуск…</value>
+  </data>
+  <data name="UpdateFailedGetRelease" xml:space="preserve">
+    <value>Не удалось обновить: {0}. Скачайте {1} со страницы выпусков.</value>
+  </data>
+  <data name="RecoveryCouldNotRead" xml:space="preserve">
+    <value>EVE Console не удалось прочитать базу данных по пути {0}. Пока ничего не изменено и не удалено.</value>
+  </data>
+  <data name="RecoveryDamagedFileNote" xml:space="preserve">
+    <value>Что бы вы ни выбрали, повреждённый файл не удаляется, а переименовывается — он остаётся в своей папке, а к его имени добавляются «.damaged-» и дата, — так что его можно будет изучить или восстановить позже.</value>
+  </data>
+  <data name="RecoveryQuarantineFailed" xml:space="preserve">
+    <value>Не удалось переименовать повреждённый файл: {0}</value>
+  </data>
+  <data name="RecoveryRestoreFailed" xml:space="preserve">
+    <value>Не удалось восстановить: {0}</value>
+  </data>
+  <data name="ServerOffline" xml:space="preserve">
+    <value>Офлайн</value>
+  </data>
+  <data name="ServerPlayersOnline" xml:space="preserve">
+    <value>{0:N0} в игре</value>
+  </data>
+  <data name="ThemeDark" xml:space="preserve">
+    <value>Тёмная</value>
+  </data>
+  <data name="ThemeLight" xml:space="preserve">
+    <value>Светлая</value>
+  </data>
+  <data name="ThemeBlueDark" xml:space="preserve">
+    <value>Синяя (тёмная)</value>
+  </data>
+  <data name="ThemeBlueLight" xml:space="preserve">
+    <value>Синяя (светлая)</value>
+  </data>
+  <data name="ThemePinkDark" xml:space="preserve">
+    <value>Розовая (тёмная)</value>
+  </data>
+  <data name="ThemePinkLight" xml:space="preserve">
+    <value>Розовая (светлая)</value>
+  </data>
+  <data name="ThemeBeigeDark" xml:space="preserve">
+    <value>Бежевая (тёмная)</value>
+  </data>
+  <data name="ThemeBeigeLight" xml:space="preserve">
+    <value>Бежевая (светлая)</value>
+  </data>
+  <data name="UpdateAheadNotInstalled" xml:space="preserve">
+    <value>Эта копия установлена не установщиком, поэтому не может обновиться сама. Установите {0} или новее со страницы выпусков.</value>
+  </data>
+  <data name="UpdateAheadCheckFailed" xml:space="preserve">
+    <value>Не удалось проверить обновления: {0}. Скачайте {1} или новее со страницы выпусков.</value>
+  </data>
+  <data name="UpdateAheadCheckFailedNoReason" xml:space="preserve">
+    <value>Не удалось проверить обновления: причина не указана. Скачайте {0} или новее со страницы выпусков.</value>
+  </data>
+  <data name="UpdateAheadNoRelease" xml:space="preserve">
+    <value>Более нового выпуска пока нет. Версия {0} ещё не выпущена: базу данных открыла сборка для разработки, или выпуск ещё публикуется.</value>
+  </data>
+  <data name="UpdateAheadReleaseTooOld" xml:space="preserve">
+    <value>Новейший выпуск, {0}, всё ещё старше этой базы данных ({1}), которую открыла невыпущенная сборка.</value>
+  </data>
+  <data name="UpdateAheadAvailable" xml:space="preserve">
+    <value>Доступна версия {0}. Обновление установит её и перезапустит EVE Console с этой базой данных.</value>
+  </data>
+  <data name="RecoveryReasonUnknown" xml:space="preserve">
+    <value>неизвестна</value>
+  </data>
+  <data name="VersionMismatchDatabaseAhead" xml:space="preserve">
+    <value>Версия этой базы данных — {0}, а этого клиента — {1}.
+
+Более новая сборка уже внесла в базу данных изменения, о которых эта ничего не знает, а изменения схемы делаются только вперёд.
+
+Обновите этот клиент до версии {0} или новее.</value>
+  </data>
+  <data name="VersionMismatchWorkerBehind" xml:space="preserve">
+    <value>Версия этой базы данных — {0}, а этого клиента — {1}.
+
+Фоновые процессы выполняет другой клиент версии {0}, и менять схему может только он. Изменения, на которые рассчитывает эта сборка, не внесены, так что многое в ней не будет работать.
+
+Обновите клиент, выполняющий фоновые процессы, до версии {1} или закройте его и сначала запустите этот, чтобы он взял работу на себя и внёс изменения.</value>
+  </data>
+  <data name="VersionMismatchHeading" xml:space="preserve">
+    <value>Эта сборка не соответствует базе данных</value>
+  </data>
+  <data name="SplashShrinking" xml:space="preserve">
+    <value>Сжатие базы данных — прошло {0}. Пожалуйста, не закрывайте приложение.</value>
+  </data>
+  <data name="SplashWaitingDatabase" xml:space="preserve">
+    <value>Ожидание — не удалось открыть базу данных</value>
+  </data>
+  <data name="SplashStartupFailed" xml:space="preserve">
+    <value>Ошибка запуска — {0}  (подробности в журнале ошибок)</value>
+  </data>
+  <data name="SplashStoppingMismatch" xml:space="preserve">
+    <value>Остановка — несоответствие версий</value>
+  </data>
+  <data name="SplashInitializingDatabase" xml:space="preserve">
+    <value>Инициализация базы данных…</value>
+  </data>
+  <data name="SplashCharacterTables" xml:space="preserve">
+    <value>Подготовка таблиц персонажей…</value>
+  </data>
+  <data name="SplashCorporationTables" xml:space="preserve">
+    <value>Подготовка таблиц корпораций…</value>
+  </data>
+  <data name="SplashMarketTables" xml:space="preserve">
+    <value>Подготовка таблиц рынка…</value>
+  </data>
+  <data name="SplashIndustryTables" xml:space="preserve">
+    <value>Подготовка таблиц промышленности…</value>
+  </data>
+  <data name="SplashFinalizingSchema" xml:space="preserve">
+    <value>Завершение обновления схемы…</value>
+  </data>
+  <data name="SplashLoadingSettings" xml:space="preserve">
+    <value>Загрузка настроек…</value>
+  </data>
+  <data name="SplashPreparingTools" xml:space="preserve">
+    <value>Подготовка инструментов…</value>
+  </data>
+  <data name="SplashStartingServices" xml:space="preserve">
+    <value>Запуск фоновых служб…</value>
+  </data>
+  <data name="SplashLoadingOverview" xml:space="preserve">
+    <value>Загрузка обзора…</value>
+  </data>
+  <data name="SplashOpening" xml:space="preserve">
+    <value>Открытие…</value>
+  </data>
+  <data name="SplashReady" xml:space="preserve">
+    <value>Готово.</value>
+  </data>
+  <data name="TrayOpenApp" xml:space="preserve">
+    <value>Открыть EVE Console</value>
+  </data>
+  <data name="TrayExit" xml:space="preserve">
+    <value>Выход</value>
+  </data>
+</root>

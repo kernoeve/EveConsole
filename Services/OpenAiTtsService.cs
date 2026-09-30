@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using LibVLCSharp.Shared;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -178,7 +179,7 @@ public sealed class OpenAiTtsService : IDisposable
     /// </summary>
     public async Task<Func<CancellationToken, Task>> PrepareAsync(string text, CancellationToken ct = default)
     {
-        if (_vlc is null) throw new InvalidOperationException("Audio playback (VLC) is not available.");
+        if (_vlc is null) throw new InvalidOperationException(SettingsText.PiperNoVlc);
         if (IsOpenAi && string.IsNullOrEmpty(_apiKey)) throw new InvalidOperationException("No OpenAI API key is set.");
         if (!IsSetUp) throw new InvalidOperationException("No OpenAI voice or model is chosen for this voice — choose them in Settings.");
         var stripped = StripMarkdown(text);
@@ -293,7 +294,7 @@ public sealed class OpenAiTtsService : IDisposable
             using var reg = ct.Register(() => tcs.TrySetCanceled(ct));
 
             void OnEnd(object? s, EventArgs e) => tcs.TrySetResult(true);
-            void OnError(object? s, EventArgs e) => tcs.TrySetException(new InvalidOperationException("The audio could not be played."));
+            void OnError(object? s, EventArgs e) => tcs.TrySetException(new InvalidOperationException(SettingsText.PiperPlaybackFailed));
             player.EndReached       += OnEnd;
             player.EncounteredError += OnError;
 

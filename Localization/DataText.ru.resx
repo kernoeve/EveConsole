@@ -1,0 +1,1630 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AiUsageCost" xml:space="preserve">
+    <value>Использование и стоимость ИИ</value>
+  </data>
+  <data name="From" xml:space="preserve">
+    <value>С</value>
+  </data>
+  <data name="Thru" xml:space="preserve">
+    <value>По</value>
+  </data>
+  <data name="HintToday" xml:space="preserve">
+    <value>(сегодня)</value>
+  </data>
+  <data name="GroupBy" xml:space="preserve">
+    <value>Группировать</value>
+  </data>
+  <data name="Service" xml:space="preserve">
+    <value>Сервис</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Обновить</value>
+  </data>
+  <data name="EstimatedCostLabel" xml:space="preserve">
+    <value>Оценка стоимости</value>
+  </data>
+  <data name="AgentLabel" xml:space="preserve">
+    <value>Помощник</value>
+  </data>
+  <data name="SpeechOutLabel" xml:space="preserve">
+    <value>Озвучка</value>
+  </data>
+  <data name="SpeechInLabel" xml:space="preserve">
+    <value>Голосовой ввод</value>
+  </data>
+  <data name="CallsLabel" xml:space="preserve">
+    <value>Запросы</value>
+  </data>
+  <data name="TabSummary" xml:space="preserve">
+    <value>Сводка</value>
+  </data>
+  <data name="ColPeriod" xml:space="preserve">
+    <value>Период</value>
+  </data>
+  <data name="ColService" xml:space="preserve">
+    <value>Сервис</value>
+  </data>
+  <data name="ColProvider" xml:space="preserve">
+    <value>Провайдер</value>
+  </data>
+  <data name="ColModel" xml:space="preserve">
+    <value>Модель</value>
+  </data>
+  <data name="ColCalls" xml:space="preserve">
+    <value>Запр.</value>
+  </data>
+  <data name="ColInput" xml:space="preserve">
+    <value>Вход</value>
+  </data>
+  <data name="ColOutput" xml:space="preserve">
+    <value>Выход</value>
+  </data>
+  <data name="ColCacheRd" xml:space="preserve">
+    <value>Кэш (чт.)</value>
+  </data>
+  <data name="ColCacheWr" xml:space="preserve">
+    <value>Кэш (зап.)</value>
+  </data>
+  <data name="ColUnits" xml:space="preserve">
+    <value>Единицы</value>
+  </data>
+  <data name="ColAvg" xml:space="preserve">
+    <value>Ср.</value>
+  </data>
+  <data name="ColErrors" xml:space="preserve">
+    <value>Ошибки</value>
+  </data>
+  <data name="ColCost" xml:space="preserve">
+    <value>Стоимость</value>
+  </data>
+  <data name="TabDetail" xml:space="preserve">
+    <value>Подробно</value>
+  </data>
+  <data name="ColTime" xml:space="preserve">
+    <value>Время</value>
+  </data>
+  <data name="ColTook" xml:space="preserve">
+    <value>Время</value>
+  </data>
+  <data name="ColActivity" xml:space="preserve">
+    <value>Действия</value>
+  </data>
+  <data name="ColError" xml:space="preserve">
+    <value>Ошибка</value>
+  </data>
+  <data name="First" xml:space="preserve">
+    <value>⏮ В начало</value>
+  </data>
+  <data name="Prev" xml:space="preserve">
+    <value>◀ Назад</value>
+  </data>
+  <data name="Next" xml:space="preserve">
+    <value>Вперёд ▶</value>
+  </data>
+  <data name="Last" xml:space="preserve">
+    <value>В конец ⏭</value>
+  </data>
+  <data name="TabRates" xml:space="preserve">
+    <value>Тарифы</value>
+  </data>
+  <data name="WhatEachServiceChargesNote" xml:space="preserve">
+    <value>Сколько берёт каждый сервис. Стоимость рассчитывается по этим тарифам в момент просмотра и никогда не сохраняется вместе с использованием — опубликованные цены меняются, а число, зашитое в выпуск полгода назад, выглядит авторитетно и при этом неверно. Значения ниже — прейскурантные цены на момент сборки этой версии; исправьте те, что изменились. Тарифы вводятся в том масштабе, в котором их указывает каждый поставщик, — он показан рядом с каждой строкой. Провайдер, для которого здесь нет строки, считается неоценённым, а не бесплатным — по-настоящему бесплатны только строки с пометкой «локально».</value>
+  </data>
+  <data name="Input" xml:space="preserve">
+    <value>Вход</value>
+  </data>
+  <data name="Output" xml:space="preserve">
+    <value>Выход</value>
+  </data>
+  <data name="CacheRead" xml:space="preserve">
+    <value>Чтение кэша</value>
+  </data>
+  <data name="CacheWrite" xml:space="preserve">
+    <value>Запись в кэш</value>
+  </data>
+  <data name="Notes" xml:space="preserve">
+    <value>Примечания</value>
+  </data>
+  <data name="SaveRates" xml:space="preserve">
+    <value>Сохранить тарифы</value>
+  </data>
+  <data name="TitleBackgroundProcesses" xml:space="preserve">
+    <value>Фоновые процессы</value>
+  </data>
+  <data name="TabEsiActivityLog" xml:space="preserve">
+    <value>Журнал активности ESI</value>
+  </data>
+  <data name="InProgress" xml:space="preserve">
+    <value>Выполняются</value>
+  </data>
+  <data name="NoCallsInProgress" xml:space="preserve">
+    <value>Нет выполняющихся запросов.</value>
+  </data>
+  <data name="Character" xml:space="preserve">
+    <value>Персонаж</value>
+  </data>
+  <data name="Endpoint" xml:space="preserve">
+    <value>Конечная точка</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>Очистить</value>
+  </data>
+  <data name="Timestamp" xml:space="preserve">
+    <value>Время</value>
+  </data>
+  <data name="Result" xml:space="preserve">
+    <value>Результат</value>
+  </data>
+  <data name="TabEsiCallSchedule" xml:space="preserve">
+    <value>Расписание запросов ESI</value>
+  </data>
+  <data name="TabCharacterCorporation" xml:space="preserve">
+    <value>Персонаж / корпорация</value>
+  </data>
+  <data name="TokenLabel" xml:space="preserve">
+    <value>Токен:</value>
+  </data>
+  <data name="SelectATokenToNote" xml:space="preserve">
+    <value>Выберите токен, чтобы увидеть его расписание опроса.</value>
+  </data>
+  <data name="LastCalled" xml:space="preserve">
+    <value>Последний запрос</value>
+  </data>
+  <data name="NextCall" xml:space="preserve">
+    <value>Следующий запрос</value>
+  </data>
+  <data name="TimeUntil" xml:space="preserve">
+    <value>Осталось</value>
+  </data>
+  <data name="TabMarketRefresh" xml:space="preserve">
+    <value>Обновление рынка</value>
+  </data>
+  <data name="MarketSource" xml:space="preserve">
+    <value>Источник рыночных данных</value>
+  </data>
+  <data name="LastRefresh" xml:space="preserve">
+    <value>Последнее обновление</value>
+  </data>
+  <data name="NextRefresh" xml:space="preserve">
+    <value>Следующее обновление</value>
+  </data>
+  <data name="TabPriceHistory" xml:space="preserve">
+    <value>История цен</value>
+  </data>
+  <data name="Region" xml:space="preserve">
+    <value>Сектор</value>
+  </data>
+  <data name="RefreshedTotal24h" xml:space="preserve">
+    <value>Обновлено / всего (24 ч)</value>
+  </data>
+  <data name="Queued" xml:space="preserve">
+    <value>В очереди</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Статус</value>
+  </data>
+  <data name="TabContractItems" xml:space="preserve">
+    <value>Предметы контрактов</value>
+  </data>
+  <data name="ColSource" xml:space="preserve">
+    <value>Источник</value>
+  </data>
+  <data name="ColContracts" xml:space="preserve">
+    <value>Контракты</value>
+  </data>
+  <data name="ColItemsPulled" xml:space="preserve">
+    <value>Загружено</value>
+  </data>
+  <data name="ColQueued" xml:space="preserve">
+    <value>В очереди</value>
+  </data>
+  <data name="ColNote" xml:space="preserve">
+    <value>Примечание</value>
+  </data>
+  <data name="ItemsArePulledOneNote" xml:space="preserve">
+    <value>Предметы загружаются по одному контракту за раз, по запросу на каждый: сначала ваши собственные контракты, затем общедоступные. Каждый контракт загружается один раз и сохраняется.</value>
+  </data>
+  <data name="TabLpStore" xml:space="preserve">
+    <value>Магазин наград</value>
+  </data>
+  <data name="ColCorporation" xml:space="preserve">
+    <value>Корпорация</value>
+  </data>
+  <data name="ColStore" xml:space="preserve">
+    <value>Магазин</value>
+  </data>
+  <data name="ColOffers" xml:space="preserve">
+    <value>Предлож.</value>
+  </data>
+  <data name="ColLastChecked" xml:space="preserve">
+    <value>Последняя проверка</value>
+  </data>
+  <data name="LpStoreCataloguesComeNote" xml:space="preserve">
+    <value>Каталоги магазинов наград берутся из общедоступной конечной точки ESI, по одному запросу на NPC-корпорацию, с ежедневным обходом. Пока первый проход не завершится, вкладка «Магазин наград» у предмета скрыта, продаёт его кто-нибудь или нет, — неполный каталог и настоящее отсутствие выглядят одинаково.</value>
+  </data>
+  <data name="TabKillmails" xml:space="preserve">
+    <value>Отчёты о боях</value>
+  </data>
+  <data name="ScopeLabel" xml:space="preserve">
+    <value>Охват: </value>
+  </data>
+  <data name="CoverageLabel" xml:space="preserve">
+    <value>Покрытие: </value>
+  </data>
+  <data name="ColStage" xml:space="preserve">
+    <value>Этап</value>
+  </data>
+  <data name="ColState" xml:space="preserve">
+    <value>Состояние</value>
+  </data>
+  <data name="ColDetail" xml:space="preserve">
+    <value>Подробности</value>
+  </data>
+  <data name="TabIntel" xml:space="preserve">
+    <value>Разведка</value>
+  </data>
+  <data name="Channels" xml:space="preserve">
+    <value>Каналы</value>
+  </data>
+  <data name="Parsing" xml:space="preserve">
+    <value>Разбор</value>
+  </data>
+  <data name="Backlog" xml:space="preserve">
+    <value>Очередь</value>
+  </data>
+  <data name="ParsingRunsStraightAfterNote" xml:space="preserve">
+    <value>Разбор запускается сразу после каждого чтения новых строк журнала чата, так что разведданные попадают на карту в том же проходе, в котором сохранено сообщение. Каналы выбираются в «Настройки → Журналы чата», там же есть кнопка для разбора истории, уже лежащей на диске.</value>
+  </data>
+  <data name="TabAlarms" xml:space="preserve">
+    <value>Тревоги</value>
+  </data>
+  <data name="NextCheckLabel" xml:space="preserve">
+    <value>Следующая проверка: </value>
+  </data>
+  <data name="LastFiringLabel" xml:space="preserve">
+    <value>Последнее срабатывание: </value>
+  </data>
+  <data name="ColAlarm" xml:space="preserve">
+    <value>Тревога</value>
+  </data>
+  <data name="ColCondition" xml:space="preserve">
+    <value>Условие</value>
+  </data>
+  <data name="ColEnabled" xml:space="preserve">
+    <value>Вкл.</value>
+  </data>
+  <data name="ColEvery" xml:space="preserve">
+    <value>Интервал</value>
+  </data>
+  <data name="ColLastFired" xml:space="preserve">
+    <value>Посл. срабатывание</value>
+  </data>
+  <data name="ColFired" xml:space="preserve">
+    <value>Сраб.</value>
+  </data>
+  <data name="ColLastError" xml:space="preserve">
+    <value>Последняя ошибка</value>
+  </data>
+  <data name="EachAlarmIsCheckedNote" xml:space="preserve">
+    <value>Каждая тревога проверяется со своим интервалом, поэтому цикл обращается к базе данных, только когда какой-то тревоге действительно пора. Тревога сообщает только о том, о чём ещё не сообщала, — условие, которое остаётся истинным, не повторяется, — поэтому проверка, которая продолжает совпадать, показана здесь как взведённая, а не как срабатывающая снова и снова.</value>
+  </data>
+  <data name="TabOrderFulfilment" xml:space="preserve">
+    <value>Выполнение заказов</value>
+  </data>
+  <data name="OrderFulfilment" xml:space="preserve">
+    <value>Выполнение заказов</value>
+  </data>
+  <data name="State" xml:space="preserve">
+    <value>Состояние</value>
+  </data>
+  <data name="LastCheck" xml:space="preserve">
+    <value>Последняя проверка</value>
+  </data>
+  <data name="NextCheck" xml:space="preserve">
+    <value>Следующая проверка</value>
+  </data>
+  <data name="EveryThirtySecondsAndNote" xml:space="preserve">
+    <value>Каждые тридцать секунд, а также сразу после того, как опрос принесёт проекты, контракты или имущество, каждый ожидающий заказ из «Учёта заказов» сопоставляется с тем, чем его можно выполнить: контракт, выставленный этому покупателю одним из ваших персонажей или личных корпораций после размещения заказа, сразу его выполняет; иначе — незарезервированный запас в наличии или ближайший промышленный проект, производящий этот предмет, и дата завершения проекта становится ожидаемой датой заказа. Запасы и проекты резервируются по мере распределения, так что два заказа никогда не учитывают одни и те же единицы, а контракт, уже связанный с одним заказом, никогда не используется для другого.</value>
+  </data>
+  <data name="TabStructures" xml:space="preserve">
+    <value>Сооружения</value>
+  </data>
+  <data name="ColSweep" xml:space="preserve">
+    <value>Обход</value>
+  </data>
+  <data name="ColLastRun" xml:space="preserve">
+    <value>Последний запуск</value>
+  </data>
+  <data name="ColNextRun" xml:space="preserve">
+    <value>Следующий запуск</value>
+  </data>
+  <data name="ColResult" xml:space="preserve">
+    <value>Результат</value>
+  </data>
+  <data name="SweepNow" xml:space="preserve">
+    <value>Обойти сейчас</value>
+  </data>
+  <data name="CollectsPlayerStructureIdsNote" xml:space="preserve">
+    <value>Собирает ID сооружений игроков из имущества, контрактов, промышленных проектов, рыночных ордеров и записей кошелька, а затем определяет для каждого название, тип, владельца и местоположение. Обход — каждый час; общедоступный список сооружений просматривается раз в день, чтобы найти сооружения, где здесь никто не бывал. Строки, которые наше собственное имущество определяет как корабли, контейнеры или упаковки имущества, удаляются, а не хранятся как неизвестные сооружения. Для определения нужны esi-universe.read_structures.v1 и доступ к доку, поэтому закрытое сооружение остаётся неопределённым — именно такие стоит описать вручную в разделе «Просмотр сооружений».</value>
+  </data>
+  <data name="TabNameCache" xml:space="preserve">
+    <value>Кэш имён</value>
+  </data>
+  <data name="CachedNames" xml:space="preserve">
+    <value>Имён в кэше</value>
+  </data>
+  <data name="WhatThisDoes" xml:space="preserve">
+    <value>Что это делает</value>
+  </data>
+  <data name="ResolvesCharacterCorporationAndNote" xml:space="preserve">
+    <value>Определяет имена по ID персонажей, корпораций и альянсов, найденным где угодно в базе данных, заранее — до того, как они понадобятся какому-либо экрану. Обход — каждый час. Имена в EVE изменить нельзя, поэтому каждое имя запрашивается один раз и хранится всегда.</value>
+  </data>
+  <data name="ChatLog" xml:space="preserve">
+    <value>Журнал чата</value>
+  </data>
+  <data name="HintNow" xml:space="preserve">
+    <value>(сейчас)</value>
+  </data>
+  <data name="Find" xml:space="preserve">
+    <value>Поиск</value>
+  </data>
+  <data name="HintSenderOrText" xml:space="preserve">
+    <value>отправитель или текст…</value>
+  </data>
+  <data name="HideSystem" xml:space="preserve">
+    <value>Скрывать системные</value>
+  </data>
+  <data name="ColSender" xml:space="preserve">
+    <value>Отправитель</value>
+  </data>
+  <data name="ColMessage" xml:space="preserve">
+    <value>Сообщение</value>
+  </data>
+  <data name="ColListener" xml:space="preserve">
+    <value>Слушатель</value>
+  </data>
+  <data name="ErrorLog" xml:space="preserve">
+    <value>Журнал ошибок</value>
+  </data>
+  <data name="ColClient" xml:space="preserve">
+    <value>Клиент</value>
+  </data>
+  <data name="ColContext" xml:space="preserve">
+    <value>Контекст</value>
+  </data>
+  <data name="ColInner" xml:space="preserve">
+    <value>Внутренняя</value>
+  </data>
+  <data name="SelectAnErrorToNote" xml:space="preserve">
+    <value>Выберите ошибку, чтобы увидеть подробности.</value>
+  </data>
+  <data name="EsiTables" xml:space="preserve">
+    <value>Таблицы ESI</value>
+  </data>
+  <data name="Apply" xml:space="preserve">
+    <value>Применить</value>
+  </data>
+  <data name="Filter" xml:space="preserve">
+    <value>+ Фильтр</value>
+  </data>
+  <data name="TipWriteEveryRowThat" xml:space="preserve">
+    <value>Записать в файл CSV все строки, подходящие под фильтры, в этом порядке — все, а не только загруженные здесь. Ctrl+C на выделенных строках копирует их вместе со строкой заголовков.</value>
+  </data>
+  <data name="LoadMore" xml:space="preserve">
+    <value>Загрузить ещё</value>
+  </data>
+  <data name="TitleEsiDataExplorer" xml:space="preserve">
+    <value>Обозреватель данных ESI</value>
+  </data>
+  <data name="GameLog" xml:space="preserve">
+    <value>Игровой журнал</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>Тип</value>
+  </data>
+  <data name="HintNameOrText" xml:space="preserve">
+    <value>имя или текст…</value>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>Тип</value>
+  </data>
+  <data name="ColCharacter" xml:space="preserve">
+    <value>Персонаж</value>
+  </data>
+  <data name="ColAmount" xml:space="preserve">
+    <value>Значение</value>
+  </data>
+  <data name="ColTarget" xml:space="preserve">
+    <value>Цель</value>
+  </data>
+  <data name="SelectAnEntryToNote" xml:space="preserve">
+    <value>Выберите запись, чтобы увидеть все подробности.</value>
+  </data>
+  <data name="CellYes" xml:space="preserve">
+    <value>да</value>
+  </data>
+  <data name="CellStoreNone" xml:space="preserve">
+    <value>нет</value>
+  </data>
+  <data name="TimeNeverLower" xml:space="preserve">
+    <value>никогда</value>
+  </data>
+  <data name="CellNo" xml:space="preserve">
+    <value>нет</value>
+  </data>
+  <data name="EveryHours" xml:space="preserve">
+    <value>{0} ч</value>
+  </data>
+  <data name="EveryMinutes" xml:space="preserve">
+    <value>{0} мин</value>
+  </data>
+  <data name="EverySeconds" xml:space="preserve">
+    <value>{0} с</value>
+  </data>
+  <data name="StatusBarLabel" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="HistoryNoTrackedItems" xml:space="preserve">
+    <value>Нет отслеживаемых предметов</value>
+  </data>
+  <data name="HistoryCurrent" xml:space="preserve">
+    <value>Актуально</value>
+  </data>
+  <data name="HistoryEmpty" xml:space="preserve">
+    <value>Пусто</value>
+  </data>
+  <data name="HistoryFilling" xml:space="preserve">
+    <value>Заполняется</value>
+  </data>
+  <data name="TimeNever" xml:space="preserve">
+    <value>Никогда</value>
+  </data>
+  <data name="ScheduleDue" xml:space="preserve">
+    <value>Сейчас</value>
+  </data>
+  <data name="DurationHoursMinutes" xml:space="preserve">
+    <value>{0} ч {1:00} мин</value>
+  </data>
+  <data name="DurationMinutesSeconds" xml:space="preserve">
+    <value>{0} мин {1:00} с</value>
+  </data>
+  <data name="DurationSeconds" xml:space="preserve">
+    <value>{0} с</value>
+  </data>
+  <data name="LogCountFiltered" xml:space="preserve">
+    <value>Показано записей: {0:N0} из {1:N0} · хранятся последние 1000 запросов</value>
+  </data>
+  <data name="RelayNothingReported" xml:space="preserve">
+    <value>○ Клиент, выполняющий фоновые процессы, пока ничего не сообщил</value>
+  </data>
+  <data name="BarEsiCalls" xml:space="preserve">
+    <value>Запросы ESI</value>
+  </data>
+  <data name="BarPriceHistory" xml:space="preserve">
+    <value>История цен</value>
+  </data>
+  <data name="BarContractItems" xml:space="preserve">
+    <value>Предметы контрактов</value>
+  </data>
+  <data name="BarLpStore" xml:space="preserve">
+    <value>Магазин наград</value>
+  </data>
+  <data name="BarKillmails" xml:space="preserve">
+    <value>Отчёты о боях</value>
+  </data>
+  <data name="StageKillmailDetails" xml:space="preserve">
+    <value>Подробности отчётов о боях из ESI</value>
+  </data>
+  <data name="StageLiveCapture" xml:space="preserve">
+    <value>Запись в реальном времени</value>
+  </data>
+  <data name="StageDailyDumpBackfill" xml:space="preserve">
+    <value>Дозагрузка ежедневных выгрузок</value>
+  </data>
+  <data name="StagePostingToZkb" xml:space="preserve">
+    <value>Отправка на zKillboard</value>
+  </data>
+  <data name="StageHourlySweep" xml:space="preserve">
+    <value>Ежечасный обход</value>
+  </data>
+  <data name="StagePublicListDaily" xml:space="preserve">
+    <value>Общедоступный список, ежедневно</value>
+  </data>
+  <data name="SourcePublicListings" xml:space="preserve">
+    <value>Общедоступные контракты</value>
+  </data>
+  <data name="SourceCharacterAndCorporation" xml:space="preserve">
+    <value>Персонажи и корпорации</value>
+  </data>
+  <data name="SourceRefused" xml:space="preserve">
+    <value>Отказано</value>
+  </data>
+  <data name="StateFetching" xml:space="preserve">
+    <value>Загрузка</value>
+  </data>
+  <data name="StateIdle" xml:space="preserve">
+    <value>Ожидание</value>
+  </data>
+  <data name="StateOff" xml:space="preserve">
+    <value>Выключено</value>
+  </data>
+  <data name="StateFirehose" xml:space="preserve">
+    <value>Поток</value>
+  </data>
+  <data name="StateIntervalPoll" xml:space="preserve">
+    <value>Опрос по интервалу</value>
+  </data>
+  <data name="StateImporting" xml:space="preserve">
+    <value>Импорт</value>
+  </data>
+  <data name="StateOn" xml:space="preserve">
+    <value>Включено</value>
+  </data>
+  <data name="StateSweeping" xml:space="preserve">
+    <value>Обход</value>
+  </data>
+  <data name="StateWatching" xml:space="preserve">
+    <value>Наблюдение</value>
+  </data>
+  <data name="NextRunOnceADay" xml:space="preserve">
+    <value>раз в день</value>
+  </data>
+  <data name="ZkbLiveDisabled" xml:space="preserve">
+    <value>○ Выключено — импорт из zKillboard отключён</value>
+  </data>
+  <data name="ZkbLiveAllKills" xml:space="preserve">
+    <value>● Все уничтожения — запись в реальном времени через поток R2Z2</value>
+  </data>
+  <data name="ZkbLiveMine" xml:space="preserve">
+    <value>● Мои персонажи и корпорация — запись в реальном времени через опрос по интервалу</value>
+  </data>
+  <data name="ZkbScopeAll" xml:space="preserve">
+    <value>Все уничтожения (по всей вселенной)</value>
+  </data>
+  <data name="ZkbScopeMine" xml:space="preserve">
+    <value>Мои персонажи и корпорация</value>
+  </data>
+  <data name="ZkbPostOff" xml:space="preserve">
+    <value>○ Выключено — уничтожения на zKillboard не отправляются</value>
+  </data>
+  <data name="ZkbCoverageThrough" xml:space="preserve">
+    <value>Ежедневные выгрузки импортированы по {0:yyyy-MM-dd}</value>
+  </data>
+  <data name="ZkbCoverageNone" xml:space="preserve">
+    <value>Ни одна ежедневная выгрузка ещё не импортирована</value>
+  </data>
+  <data name="IntelDisabled" xml:space="preserve">
+    <value>○ Выключено — импорт журналов чата отключён</value>
+  </data>
+  <data name="IntelNoChannels" xml:space="preserve">
+    <value>○ Нет каналов разведки — отметьте хотя бы один в «Настройки → Журналы чата»</value>
+  </data>
+  <data name="IntelParsing" xml:space="preserve">
+    <value>● Разбор каналов разведки</value>
+  </data>
+  <data name="IntelWatching" xml:space="preserve">
+    <value>● Наблюдение за каналами разведки</value>
+  </data>
+  <data name="IntelChannelsNone" xml:space="preserve">
+    <value>нет</value>
+  </data>
+  <data name="IntelBacklogCount" xml:space="preserve">
+    <value>Осталось рассмотреть сообщений: {0:N0}</value>
+  </data>
+  <data name="IntelCaughtUp" xml:space="preserve">
+    <value>Всё разобрано</value>
+  </data>
+  <data name="StructuresSweeping" xml:space="preserve">
+    <value>● Обход — сооружения определяются прямо сейчас</value>
+  </data>
+  <data name="StructuresWatching" xml:space="preserve">
+    <value>● Наблюдение — обход каждый час, общедоступный список — раз в день</value>
+  </data>
+  <data name="StructuresNotYet" xml:space="preserve">
+    <value>ещё не было в этом сеансе</value>
+  </data>
+  <data name="StructuresDueNow" xml:space="preserve">
+    <value>сейчас</value>
+  </data>
+  <data name="StructuresNextAt" xml:space="preserve">
+    <value>{0:HH:mm:ss} ({1:N0} мин)</value>
+  </data>
+  <data name="AlarmsNoneArmed" xml:space="preserve">
+    <value>○ Ни одна тревога не взведена — создайте тревогу в разделе «Тревоги»</value>
+  </data>
+  <data name="AlarmsWatching" xml:space="preserve">
+    <value>● Отслеживается тревог: {0}</value>
+  </data>
+  <data name="AlarmsNothingFired" xml:space="preserve">
+    <value>В этом сеансе ничего не срабатывало</value>
+  </data>
+  <data name="NameCacheCount" xml:space="preserve">
+    <value>Имён в кэше: {0:N0}</value>
+  </data>
+  <data name="ContractsPulledQueued" xml:space="preserve">
+    <value>Загружено: {0:N0} / {1:N0} · в очереди: {2:N0}</value>
+  </data>
+  <data name="ContractsRefusedCount" xml:space="preserve">
+    <value>Отказано: {0:N0} (ESI ответил 400/403/404, предметов по ним нет)</value>
+  </data>
+  <data name="ContractsRunning" xml:space="preserve">
+    <value>● Работает — контрактов в очереди на загрузку предметов: {0:N0}</value>
+  </data>
+  <data name="ContractsIdleQueued" xml:space="preserve">
+    <value>○ Ожидание — контрактов в очереди на загрузку предметов: {0:N0}</value>
+  </data>
+  <data name="ContractsIdleComplete" xml:space="preserve">
+    <value>○ Ожидание — предметы всех контрактов загружены</value>
+  </data>
+  <data name="ContractsNotePublic" xml:space="preserve">
+    <value>общедоступные контракты секторов, найденные при просмотре</value>
+  </data>
+  <data name="ContractsNoteOwned" xml:space="preserve">
+    <value>принадлежащие вашим персонажам и корпорациям — сначала ваши, затем открытые для корпорации</value>
+  </data>
+  <data name="ContractsNoteRefused" xml:space="preserve">
+    <value>запрошены, но получен отказ — ESI ответил 400, 403 или 404 через каждую конечную точку, где они были; учитываются среди загруженных</value>
+  </data>
+  <data name="LpStoreProgress" xml:space="preserve">
+    <value>Проверено корпораций: {0:N0} / {1:N0} · осталось: {2:N0}</value>
+  </data>
+  <data name="LpStoreOffers" xml:space="preserve">
+    <value>Предложений: {0:N0}, магазинов: {1:N0}</value>
+  </data>
+  <data name="LpStoreSweeping" xml:space="preserve">
+    <value>● Обход — осталось проверить корпораций: {0:N0}</value>
+  </data>
+  <data name="LpStoreIdleNoneChecked" xml:space="preserve">
+    <value>○ Ожидание — ни одна корпорация ещё не проверена; первый обход начнётся вскоре после запуска</value>
+  </data>
+  <data name="LpStoreIdleIncomplete" xml:space="preserve">
+    <value>○ Ожидание — ещё не проверено корпораций: {0:N0}, каталог неполный</value>
+  </data>
+  <data name="LpStoreIdleComplete" xml:space="preserve">
+    <value>○ Ожидание — все корпорации проверены</value>
+  </data>
+  <data name="HistoryIdleCurrent" xml:space="preserve">
+    <value>○ Ожидание — все отслеживаемые предметы актуальны</value>
+  </data>
+  <data name="TokenCorpName" xml:space="preserve">
+    <value>[Корп.] {0}</value>
+  </data>
+  <data name="FilterAll" xml:space="preserve">
+    <value>Все</value>
+  </data>
+  <data name="LogCountOne" xml:space="preserve">
+    <value>{0:N0} запись · хранятся последние 1000 запросов</value>
+  </data>
+  <data name="LogCountOther" xml:space="preserve">
+    <value>{0:N0} записи · хранятся последние 1000 запросов</value>
+  </data>
+  <data name="LogCountFew" xml:space="preserve">
+    <value>{0:N0} записи · хранятся последние 1000 запросов</value>
+  </data>
+  <data name="LogCountMany" xml:space="preserve">
+    <value>{0:N0} записей · хранятся последние 1000 запросов</value>
+  </data>
+  <data name="BadTokensOne" xml:space="preserve">
+    <value>{0} недействительный токен</value>
+  </data>
+  <data name="BadTokensOther" xml:space="preserve">
+    <value>{0} недействительного токена</value>
+  </data>
+  <data name="BadTokensFew" xml:space="preserve">
+    <value>{0} недействительных токена</value>
+  </data>
+  <data name="BadTokensMany" xml:space="preserve">
+    <value>{0} недействительных токенов</value>
+  </data>
+  <data name="HistoryRunningQueuedOne" xml:space="preserve">
+    <value>● Работает — в очереди {0:N0} предмет</value>
+  </data>
+  <data name="HistoryRunningQueuedOther" xml:space="preserve">
+    <value>● Работает — в очереди {0:N0} предмета</value>
+  </data>
+  <data name="HistoryRunningQueuedFew" xml:space="preserve">
+    <value>● Работает — в очереди {0:N0} предмета</value>
+  </data>
+  <data name="HistoryRunningQueuedMany" xml:space="preserve">
+    <value>● Работает — в очереди {0:N0} предметов</value>
+  </data>
+  <data name="HistoryIdleQueuedOne" xml:space="preserve">
+    <value>○ Ожидание — в очереди на следующий обход {0:N0} предмет</value>
+  </data>
+  <data name="HistoryIdleQueuedOther" xml:space="preserve">
+    <value>○ Ожидание — в очереди на следующий обход {0:N0} предмета</value>
+  </data>
+  <data name="HistoryIdleQueuedFew" xml:space="preserve">
+    <value>○ Ожидание — в очереди на следующий обход {0:N0} предмета</value>
+  </data>
+  <data name="HistoryIdleQueuedMany" xml:space="preserve">
+    <value>○ Ожидание — в очереди на следующий обход {0:N0} предметов</value>
+  </data>
+  <data name="OpContains" xml:space="preserve">
+    <value>Содержит</value>
+  </data>
+  <data name="OpDoesNotContain" xml:space="preserve">
+    <value>Не содержит</value>
+  </data>
+  <data name="OpEqual" xml:space="preserve">
+    <value>Равно</value>
+  </data>
+  <data name="OpNotEqual" xml:space="preserve">
+    <value>Не равно</value>
+  </data>
+  <data name="OpGreaterThan" xml:space="preserve">
+    <value>Больше</value>
+  </data>
+  <data name="OpGreaterThanOrEqual" xml:space="preserve">
+    <value>Больше или равно</value>
+  </data>
+  <data name="OpLessThan" xml:space="preserve">
+    <value>Меньше</value>
+  </data>
+  <data name="OpLessThanOrEqual" xml:space="preserve">
+    <value>Меньше или равно</value>
+  </data>
+  <data name="TableWalletBalances" xml:space="preserve">
+    <value>Балансы кошельков</value>
+  </data>
+  <data name="TableWalletJournal" xml:space="preserve">
+    <value>Журнал кошелька</value>
+  </data>
+  <data name="TableWalletTransactions" xml:space="preserve">
+    <value>Рыночные сделки</value>
+  </data>
+  <data name="TableSkills" xml:space="preserve">
+    <value>Навыки</value>
+  </data>
+  <data name="TableSkillQueue" xml:space="preserve">
+    <value>План навыков</value>
+  </data>
+  <data name="TableAttributes" xml:space="preserve">
+    <value>Характеристики</value>
+  </data>
+  <data name="TableFatigue" xml:space="preserve">
+    <value>Усталость от гиперпрыжков</value>
+  </data>
+  <data name="TableCloneState" xml:space="preserve">
+    <value>Состояние клонов</value>
+  </data>
+  <data name="TableJumpClones" xml:space="preserve">
+    <value>Джамп-клоны</value>
+  </data>
+  <data name="TableJumpCloneImplants" xml:space="preserve">
+    <value>Имплантаты джамп-клонов</value>
+  </data>
+  <data name="TableImplants" xml:space="preserve">
+    <value>Имплантаты</value>
+  </data>
+  <data name="TableAssets" xml:space="preserve">
+    <value>Имущество</value>
+  </data>
+  <data name="TableBlueprints" xml:space="preserve">
+    <value>Чертежи</value>
+  </data>
+  <data name="TableIndustryJobs" xml:space="preserve">
+    <value>Промышленные проекты</value>
+  </data>
+  <data name="TableMarketOrders" xml:space="preserve">
+    <value>Рыночные ордера</value>
+  </data>
+  <data name="TableContracts" xml:space="preserve">
+    <value>Контракты</value>
+  </data>
+  <data name="TableContacts" xml:space="preserve">
+    <value>Контакты</value>
+  </data>
+  <data name="TableKillMails" xml:space="preserve">
+    <value>Отчёты о боях</value>
+  </data>
+  <data name="TableStandings" xml:space="preserve">
+    <value>Отношения</value>
+  </data>
+  <data name="TableMining" xml:space="preserve">
+    <value>Добыча</value>
+  </data>
+  <data name="TableNotifications" xml:space="preserve">
+    <value>Уведомления</value>
+  </data>
+  <data name="TablePlanetaryColonies" xml:space="preserve">
+    <value>Планетарные колонии</value>
+  </data>
+  <data name="TableAgentResearch" xml:space="preserve">
+    <value>Исследования у агентов</value>
+  </data>
+  <data name="TableLoyaltyPoints" xml:space="preserve">
+    <value>Наградные баллы</value>
+  </data>
+  <data name="TableMedals" xml:space="preserve">
+    <value>Медали</value>
+  </data>
+  <data name="TableTitles" xml:space="preserve">
+    <value>Должности</value>
+  </data>
+  <data name="TableRoles" xml:space="preserve">
+    <value>Полномочия</value>
+  </data>
+  <data name="TableFittings" xml:space="preserve">
+    <value>Оснастки</value>
+  </data>
+  <data name="TableFittingItems" xml:space="preserve">
+    <value>Предметы оснасток</value>
+  </data>
+  <data name="TableCorpDivisions" xml:space="preserve">
+    <value>Подразделения корпорации</value>
+  </data>
+  <data name="TableCorpMembers" xml:space="preserve">
+    <value>Члены корпорации</value>
+  </data>
+  <data name="TableCorpMemberRoles" xml:space="preserve">
+    <value>Полномочия членов корпорации</value>
+  </data>
+  <data name="TableCorpTitles" xml:space="preserve">
+    <value>Должности корпорации</value>
+  </data>
+  <data name="TableCorpMedals" xml:space="preserve">
+    <value>Медали корпорации</value>
+  </data>
+  <data name="TableCorpStructures" xml:space="preserve">
+    <value>Сооружения корпорации</value>
+  </data>
+  <data name="TableCorpStarbases" xml:space="preserve">
+    <value>Звёздные базы корпорации</value>
+  </data>
+  <data name="TableCorpFacilities" xml:space="preserve">
+    <value>Объекты корпорации</value>
+  </data>
+  <data name="TableApiCallRecords" xml:space="preserve">
+    <value>Записи о запросах API</value>
+  </data>
+  <data name="ExplorerSelectTable" xml:space="preserve">
+    <value>Выберите таблицу в списке, чтобы посмотреть её данные.</value>
+  </data>
+  <data name="ExportCancel" xml:space="preserve">
+    <value>Отменить экспорт</value>
+  </data>
+  <data name="ExportCsv" xml:space="preserve">
+    <value>Экспорт в CSV</value>
+  </data>
+  <data name="ExplorerNoRows" xml:space="preserve">
+    <value>Нет строк.</value>
+  </data>
+  <data name="ExplorerShowingRows" xml:space="preserve">
+    <value>Показано строк: {0:N0} из {1:N0}</value>
+  </data>
+  <data name="ExplorerRowsTotal" xml:space="preserve">
+    <value>Всего строк: {0:N0}</value>
+  </data>
+  <data name="ExportRunning" xml:space="preserve">
+    <value>Экспорт…</value>
+  </data>
+  <data name="ExportProgress" xml:space="preserve">
+    <value>Экспорт… строк: {0:N0}</value>
+  </data>
+  <data name="ExportDone" xml:space="preserve">
+    <value>Экспортировано строк: {0:N0}, файл: {1}</value>
+  </data>
+  <data name="ExportCancelled" xml:space="preserve">
+    <value>Экспорт отменён (записано строк: {0:N0}); файл не сохранён.</value>
+  </data>
+  <data name="ExportFailed" xml:space="preserve">
+    <value>Не удалось экспортировать: {0}</value>
+  </data>
+  <data name="HintColumn" xml:space="preserve">
+    <value>столбец…</value>
+  </data>
+  <data name="HintValue" xml:space="preserve">
+    <value>значение…</value>
+  </data>
+  <data name="KindAgent" xml:space="preserve">
+    <value>Помощник</value>
+  </data>
+  <data name="KindSpeechOut" xml:space="preserve">
+    <value>Озвучка</value>
+  </data>
+  <data name="KindSpeechIn" xml:space="preserve">
+    <value>Голосовой ввод</value>
+  </data>
+  <data name="RatePer1MTokens" xml:space="preserve">
+    <value>за 1 млн токенов</value>
+  </data>
+  <data name="RatePer1MCharacters" xml:space="preserve">
+    <value>за 1 млн символов</value>
+  </data>
+  <data name="RatePerMinute" xml:space="preserve">
+    <value>за минуту</value>
+  </data>
+  <data name="RatePerUnit" xml:space="preserve">
+    <value>за единицу</value>
+  </data>
+  <data name="RateAnyModel" xml:space="preserve">
+    <value>(любая модель)</value>
+  </data>
+  <data name="SecondsOneDecimal" xml:space="preserve">
+    <value>{0:0.0} с</value>
+  </data>
+  <data name="CostLocal" xml:space="preserve">
+    <value>локально</value>
+  </data>
+  <data name="CostNoRate" xml:space="preserve">
+    <value>нет тарифа</value>
+  </data>
+  <data name="UsageNothingRecorded" xml:space="preserve">
+    <value>За этот период ничего не записано.</value>
+  </data>
+  <data name="UsageServiceCalls" xml:space="preserve">
+    <value>Запросов к сервисам: {0:N0}</value>
+  </data>
+  <data name="UsageCalls" xml:space="preserve">
+    <value>запросов: {0:N0}</value>
+  </data>
+  <data name="CaveatNoPrices" xml:space="preserve">
+    <value>не удалось прочитать ни одной цены, поэтому вся стоимость выше равна нулю — {0}</value>
+  </data>
+  <data name="CaveatRowCeiling" xml:space="preserve">
+    <value>прочитаны только последние строки ({0:N0}) — сузьте период, чтобы получить точный итог</value>
+  </data>
+  <data name="CaveatUnpriced" xml:space="preserve">
+    <value>запросов без заданного тарифа: {0:N0} — они НЕ вошли в итог</value>
+  </data>
+  <data name="CaveatEstimated" xml:space="preserve">
+    <value>запросов с оценочными, а не сообщёнными провайдером счётчиками: {0:N0}</value>
+  </data>
+  <data name="EstimatedShort" xml:space="preserve">
+    <value>оцен.</value>
+  </data>
+  <data name="ActivityRounds" xml:space="preserve">
+    <value>обращений: {0}</value>
+  </data>
+  <data name="ActivityFailed" xml:space="preserve">
+    <value>ошибка</value>
+  </data>
+  <data name="RatesNothingChanged" xml:space="preserve">
+    <value>Ничего не изменилось.</value>
+  </data>
+  <data name="RatesSaved" xml:space="preserve">
+    <value>Сохранено тарифов: {0}.</value>
+  </data>
+  <data name="PeriodWeekOf" xml:space="preserve">
+    <value>Неделя с {0:yyyy-MM-dd}</value>
+  </data>
+  <data name="PeriodDay" xml:space="preserve">
+    <value>По дням</value>
+  </data>
+  <data name="PeriodWeek" xml:space="preserve">
+    <value>По неделям</value>
+  </data>
+  <data name="PeriodMonth" xml:space="preserve">
+    <value>По месяцам</value>
+  </data>
+  <data name="KindAllServices" xml:space="preserve">
+    <value>Все сервисы</value>
+  </data>
+  <data name="UnitTokens" xml:space="preserve">
+    <value>токены</value>
+  </data>
+  <data name="UnitCharacters" xml:space="preserve">
+    <value>символы</value>
+  </data>
+  <data name="UnitSeconds" xml:space="preserve">
+    <value>секунды</value>
+  </data>
+  <data name="GameLogMinedResidue" xml:space="preserve">
+    <value>{0:N0} × {1} (отходы: {2:N0})</value>
+  </data>
+  <data name="GameLogBounty" xml:space="preserve">
+    <value>Награда за голову: {0:N0} ISK</value>
+  </data>
+  <data name="GameLogFieldCharacter" xml:space="preserve">
+    <value>Персонаж</value>
+  </data>
+  <data name="GameLogFieldAmount" xml:space="preserve">
+    <value>Значение</value>
+  </data>
+  <data name="GameLogFieldSecondary" xml:space="preserve">
+    <value>Доп. значение</value>
+  </data>
+  <data name="GameLogFieldSource" xml:space="preserve">
+    <value>Источник</value>
+  </data>
+  <data name="GameLogFieldSourceShip" xml:space="preserve">
+    <value>Корабль источн.</value>
+  </data>
+  <data name="GameLogFieldSourceCorp" xml:space="preserve">
+    <value>Корп. источника</value>
+  </data>
+  <data name="GameLogFieldSourceAlliance" xml:space="preserve">
+    <value>Альянс источн.</value>
+  </data>
+  <data name="GameLogFieldTarget" xml:space="preserve">
+    <value>Цель</value>
+  </data>
+  <data name="GameLogFieldTargetShip" xml:space="preserve">
+    <value>Корабль цели</value>
+  </data>
+  <data name="GameLogFieldTargetCorp" xml:space="preserve">
+    <value>Корп. цели</value>
+  </data>
+  <data name="GameLogFieldTargetAlliance" xml:space="preserve">
+    <value>Альянс цели</value>
+  </data>
+  <data name="GameLogFieldWeapon" xml:space="preserve">
+    <value>Оружие</value>
+  </data>
+  <data name="GameLogFieldQuality" xml:space="preserve">
+    <value>Качество</value>
+  </data>
+  <data name="GameLogFieldFromSystem" xml:space="preserve">
+    <value>Из системы</value>
+  </data>
+  <data name="GameLogFieldToSystem" xml:space="preserve">
+    <value>В систему</value>
+  </data>
+  <data name="GameLogFieldLocation" xml:space="preserve">
+    <value>Место</value>
+  </data>
+  <data name="GameLogFieldSourceFile" xml:space="preserve">
+    <value>Исходный файл</value>
+  </data>
+  <data name="GameLogFieldLine" xml:space="preserve">
+    <value>Строка</value>
+  </data>
+  <data name="GameLogNoEntries" xml:space="preserve">
+    <value>За этот период записей нет.</value>
+  </data>
+  <data name="GameLogEntriesCapped" xml:space="preserve">
+    <value>Записей: {0:N0} (ограничено — сузьте период)</value>
+  </data>
+  <data name="ChatChannelCount" xml:space="preserve">
+    <value>Каналов: {0:N0}</value>
+  </data>
+  <data name="ChatImportOff" xml:space="preserve">
+    <value>Импорт журналов чата выключен — включите его в «Настройки → Журналы чата».</value>
+  </data>
+  <data name="ChatNoChannels" xml:space="preserve">
+    <value>Каналы не выбраны — выберите их в «Настройки → Журналы чата».</value>
+  </data>
+  <data name="ChatNothingImported" xml:space="preserve">
+    <value>Для выбранных каналов ещё ничего не импортировано. Новые сообщения подхватываются по мере появления; для более старых используйте «Импорт прошлых сообщений чата» в настройках.</value>
+  </data>
+  <data name="ChatSelectChannel" xml:space="preserve">
+    <value>Выберите канал.</value>
+  </data>
+  <data name="ChatNoMessages" xml:space="preserve">
+    <value>За этот период сообщений нет.</value>
+  </data>
+  <data name="ChatMessagesCapped" xml:space="preserve">
+    <value>Сообщений: {0:N0} (ограничено — сузьте период)</value>
+  </data>
+  <data name="ChatMessageCount" xml:space="preserve">
+    <value>Сообщений: {0:N0}</value>
+  </data>
+  <data name="ErrorClientWorker" xml:space="preserve">
+    <value>{0} (фоновый клиент)</value>
+  </data>
+  <data name="ErrorLogNone" xml:space="preserve">
+    <value>За этот период ошибок нет.</value>
+  </data>
+  <data name="ErrorLogCount" xml:space="preserve">
+    <value>Ошибок: {0:N0}</value>
+  </data>
+  <data name="ErrorInner" xml:space="preserve">
+    <value>Внутренняя ошибка: {0}</value>
+  </data>
+  <data name="GameLogAllTypes" xml:space="preserve">
+    <value>(все типы)</value>
+  </data>
+  <data name="GameLogFieldRaw" xml:space="preserve">
+    <value>Исходная строка:</value>
+  </data>
+  <data name="GameLogEntriesOne" xml:space="preserve">
+    <value>{0:N0} запись</value>
+  </data>
+  <data name="GameLogEntriesOther" xml:space="preserve">
+    <value>{0:N0} записи</value>
+  </data>
+  <data name="GameLogEntriesFew" xml:space="preserve">
+    <value>{0:N0} записи</value>
+  </data>
+  <data name="GameLogEntriesMany" xml:space="preserve">
+    <value>{0:N0} записей</value>
+  </data>
+  <data name="ZkbFirehoseNotStarted" xml:space="preserve">
+    <value>Поток zKillboard: не запущен</value>
+  </data>
+  <data name="ZkbFirehoseStopped" xml:space="preserve">
+    <value>Поток zKillboard: остановлен</value>
+  </data>
+  <data name="ZkbFirehoseError" xml:space="preserve">
+    <value>Поток zKillboard: ошибка — {0}</value>
+  </data>
+  <data name="ZkbFirehoseDisabled" xml:space="preserve">
+    <value>Поток zKillboard: отключён</value>
+  </data>
+  <data name="ZkbFirehoseIdle" xml:space="preserve">
+    <value>Поток zKillboard: не используется (в режиме «{0}» вместо него работает опрос по интервалу)</value>
+  </data>
+  <data name="ZkbFirehoseSequence" xml:space="preserve">
+    <value>Поток zKillboard: позиция {0:N0} — импортировано за сеанс: {1:N0}</value>
+  </data>
+  <data name="ZkbFirehoseSkipped" xml:space="preserve">
+    <value>Поток zKillboard: пропущена пустая позиция {0:N0} (последняя: {1:N0})</value>
+  </data>
+  <data name="ZkbFirehoseLimited" xml:space="preserve">
+    <value>Поток zKillboard: zKillboard ограничивает запросы с этого компьютера — следующая попытка в {0:t}</value>
+  </data>
+  <data name="ZkbLimitedUntil" xml:space="preserve">
+    <value>zKillboard ограничивает запросы с этого компьютера до {0:t}</value>
+  </data>
+  <data name="ZkbFirehoseRetrying" xml:space="preserve">
+    <value>Поток zKillboard: не удалось связаться с zKillboard — повтор через {0} с</value>
+  </data>
+  <data name="ZkbBackfillStopped" xml:space="preserve">
+    <value>Дозагрузка zKillboard: остановлена ({0}) — {1}</value>
+  </data>
+  <data name="ZkbGapFillWaiting" xml:space="preserve">
+    <value>Заполнение пробелов zKillboard: ожидание, данные есть по {0:yyyy-MM-dd} — {1}</value>
+  </data>
+  <data name="ZkbServesNoFurther" xml:space="preserve">
+    <value>zKillboard не отдаёт данные дальше страницы {0}</value>
+  </data>
+  <data name="ZkbAnsweredHttp" xml:space="preserve">
+    <value>zKillboard ответил кодом HTTP {0}</value>
+  </data>
+  <data name="ZkbSaid" xml:space="preserve">
+    <value>zKillboard сообщил: {0}</value>
+  </data>
+  <data name="ZkbNoAnswerInTime" xml:space="preserve">
+    <value>zKillboard не ответил в течение двух минут</value>
+  </data>
+  <data name="ZkbUnreachable" xml:space="preserve">
+    <value>zKillboard недоступен</value>
+  </data>
+  <data name="ZkbUnexpectedAnswer" xml:space="preserve">
+    <value>zKillboard вернул неожиданный ответ</value>
+  </data>
+  <data name="ZkbFirehoseCaughtUp" xml:space="preserve">
+    <value>Поток zKillboard: всё получено (позиция {0:N0})</value>
+  </data>
+  <data name="ZkbFirehoseWaitingBackfill" xml:space="preserve">
+    <value>Поток zKillboard: ожидание завершения дозагрузки ежедневных выгрузок</value>
+  </data>
+  <data name="ZkbFirehoseResuming" xml:space="preserve">
+    <value>Поток zKillboard: возобновление с {0:yyyy-MM-dd} (позиция {1:N0}); более ранние дни берутся из ежедневных выгрузок</value>
+  </data>
+  <data name="ZkbPollNotStarted" xml:space="preserve">
+    <value>Опрос zKillboard: не запущен</value>
+  </data>
+  <data name="ZkbPollStopped" xml:space="preserve">
+    <value>Опрос zKillboard: остановлен</value>
+  </data>
+  <data name="ZkbPollError" xml:space="preserve">
+    <value>Опрос zKillboard: ошибка — {0}</value>
+  </data>
+  <data name="ZkbPollDisabled" xml:space="preserve">
+    <value>Опрос zKillboard: отключён</value>
+  </data>
+  <data name="ZkbPollIdle" xml:space="preserve">
+    <value>Опрос zKillboard: не используется (в режиме «{0}» вместо него работает поток)</value>
+  </data>
+  <data name="ZkbPollNoOwners" xml:space="preserve">
+    <value>Опрос zKillboard: нет отслеживаемых персонажей и корпораций</value>
+  </data>
+  <data name="ZkbPollAdded" xml:space="preserve">
+    <value>Опрос zKillboard: новых ссылок на уничтожения: +{0}, владельцев: {1}</value>
+  </data>
+  <data name="ZkbPollWatching" xml:space="preserve">
+    <value>Опрос zKillboard: отслеживается владельцев: {0}</value>
+  </data>
+  <data name="ZkbPollWatchingPending" xml:space="preserve">
+    <value>Опрос zKillboard: отслеживается владельцев: {0} (следующая проверка ещё впереди)</value>
+  </data>
+  <data name="ZkbBackfillNotStarted" xml:space="preserve">
+    <value>Дозагрузка zKillboard: не запущена</value>
+  </data>
+  <data name="ZkbBackfillStarting" xml:space="preserve">
+    <value>Запуск…</value>
+  </data>
+  <data name="ZkbBackfillDay" xml:space="preserve">
+    <value>День {0:N0} из {1:N0} — {2:yyyy-MM-dd}</value>
+  </data>
+  <data name="ZkbBackfillCancelled" xml:space="preserve">
+    <value>Дозагрузка zKillboard: отменена (дней: {0:N0}, уничтожений: {1:N0})</value>
+  </data>
+  <data name="ZkbBackfillImported" xml:space="preserve">
+    <value>Дозагрузка zKillboard: импортировано уничтожений: {0:N0}, дней: {1:N0}</value>
+  </data>
+  <data name="ZkbBackfillFailed" xml:space="preserve">
+    <value>Дозагрузка zKillboard: ошибка — {0}</value>
+  </data>
+  <data name="ZkbGapFillDay" xml:space="preserve">
+    <value>Заполнение пробела: {0:N0} из {1:N0} — {2:yyyy-MM-dd}</value>
+  </data>
+  <data name="ZkbGapFillCancelled" xml:space="preserve">
+    <value>Заполнение пробелов zKillboard: отменено, данные есть по {0:yyyy-MM-dd}</value>
+  </data>
+  <data name="ZkbGapFillDone" xml:space="preserve">
+    <value>Заполнение пробелов zKillboard: данные есть по {0:yyyy-MM-dd}, уничтожений: {1:N0}</value>
+  </data>
+  <data name="ZkbGapFillFailed" xml:space="preserve">
+    <value>Заполнение пробелов zKillboard: ошибка — {0}</value>
+  </data>
+  <data name="ZkbPostingNotStarted" xml:space="preserve">
+    <value>Отправка на zKillboard: не запущена</value>
+  </data>
+  <data name="ZkbCoverageChecking" xml:space="preserve">
+    <value>проверка…</value>
+  </data>
+  <data name="ZkbCoverageNoneYet" xml:space="preserve">
+    <value>пока нет — ни одно уничтожение не подтверждено на zKillboard</value>
+  </data>
+  <data name="ZkbPostingOff" xml:space="preserve">
+    <value>Отправка на zKillboard: выключена</value>
+  </data>
+  <data name="ZkbPostingDisabled" xml:space="preserve">
+    <value>Отправка на zKillboard: отключена</value>
+  </data>
+  <data name="ZkbPostingError" xml:space="preserve">
+    <value>Отправка на zKillboard: ошибка — {0}</value>
+  </data>
+  <data name="ZkbPostingNoConfirmed" xml:space="preserve">
+    <value>Отправка на zKillboard: на zKillboard ещё не подтверждено ни одного уничтожения — сначала запустите дозагрузку</value>
+  </data>
+  <data name="ZkbPostingNoFullDay" xml:space="preserve">
+    <value>Отправка на zKillboard: ещё ни один день не импортирован из zKillboard полностью</value>
+  </data>
+  <data name="ZkbPostingNothing" xml:space="preserve">
+    <value>Отправка на zKillboard: отправлять нечего (покрытие с {0})</value>
+  </data>
+  <data name="ZkbPostingHalted" xml:space="preserve">
+    <value>Отправка на zKillboard: остановлена — zKillboard отклонил этот клиент как недоверенный</value>
+  </data>
+  <data name="NameCacheNotStarted" xml:space="preserve">
+    <value>Кэш имён: не запущен</value>
+  </data>
+  <data name="NameCacheError" xml:space="preserve">
+    <value>Кэш имён: ошибка — {0}</value>
+  </data>
+  <data name="NameCacheIdleResolved" xml:space="preserve">
+    <value>○ Ожидание — имена всех известных персонажей, корпораций и альянсов определены</value>
+  </data>
+  <data name="NameCacheRunningCapped" xml:space="preserve">
+    <value>● Работает — {0:N0} из {1:N0} в этом проходе (осталось ещё)</value>
+  </data>
+  <data name="NameCacheRunning" xml:space="preserve">
+    <value>● Работает — {0:N0} из {1:N0} оставшихся имён</value>
+  </data>
+  <data name="NameCacheIdleAddedCapped" xml:space="preserve">
+    <value>○ Ожидание — в этом проходе добавлено имён: {0:N0}, осталось ещё</value>
+  </data>
+  <data name="NameCacheIdleAdded" xml:space="preserve">
+    <value>○ Ожидание — добавлено имён: {0:N0}, имена всех известных персонажей, корпораций и альянсов определены</value>
+  </data>
+  <data name="IntelStatusIdle" xml:space="preserve">
+    <value>Разведка: ожидание</value>
+  </data>
+  <data name="IntelStatusParsingMore" xml:space="preserve">
+    <value>Разведка: разбор за {0} — сообщений разведки: {1:N0}, осталось сообщений чата: {2:N0}</value>
+  </data>
+  <data name="IntelStatusParsing" xml:space="preserve">
+    <value>Разведка: разбор за {0} — сообщений разведки: {1:N0}</value>
+  </data>
+  <data name="IntelStatusNothing" xml:space="preserve">
+    <value>Разведка: пока ничего не разобрано</value>
+  </data>
+  <data name="IntelStatusUpToDate" xml:space="preserve">
+    <value>Разведка: всё актуально — сообщений разведки: {0:N0}, последнее: {1}</value>
+  </data>
+  <data name="IntelStatusUnavailable" xml:space="preserve">
+    <value>Разведка: состояние недоступно</value>
+  </data>
+  <data name="NotRunYet" xml:space="preserve">
+    <value>Ещё не запускалось</value>
+  </data>
+  <data name="OrderFulfilmentFailed" xml:space="preserve">
+    <value>Последний проход завершился ошибкой: {0}</value>
+  </data>
+  <data name="OrderFulfilmentNoPending" xml:space="preserve">
+    <value>Нет ожидающих заказов</value>
+  </data>
+  <data name="OrderFulfilmentLinked" xml:space="preserve">
+    <value>Ожидающих заказов с источником: {0:N0} из {1:N0}</value>
+  </data>
+  <data name="LpStoreStatusIdle" xml:space="preserve">
+    <value>Магазин наград: ожидание</value>
+  </data>
+  <data name="LpStoreStatusNoSde" xml:space="preserve">
+    <value>Магазин наград: в SDE нет NPC-корпораций — сначала импортируйте SDE</value>
+  </data>
+  <data name="LpStoreStatusProgress" xml:space="preserve">
+    <value>Магазин наград: корпораций {0:N0}/{1:N0}, предложений: {2:N0}…</value>
+  </data>
+  <data name="AlarmsStatusNoneArmed" xml:space="preserve">
+    <value>Ни одна тревога не взведена</value>
+  </data>
+  <data name="EndpointSkills" xml:space="preserve">
+    <value>Навыки</value>
+  </data>
+  <data name="EndpointSkillQueue" xml:space="preserve">
+    <value>План навыков</value>
+  </data>
+  <data name="EndpointWalletBalance" xml:space="preserve">
+    <value>Баланс кошелька</value>
+  </data>
+  <data name="EndpointWalletJournal" xml:space="preserve">
+    <value>Журнал кошелька</value>
+  </data>
+  <data name="EndpointWalletTransactions" xml:space="preserve">
+    <value>Рыночные сделки</value>
+  </data>
+  <data name="EndpointIndustryJobs" xml:space="preserve">
+    <value>Промышленные проекты</value>
+  </data>
+  <data name="EndpointActiveOrders" xml:space="preserve">
+    <value>Активные ордера</value>
+  </data>
+  <data name="EndpointOrderHistory" xml:space="preserve">
+    <value>История ордеров</value>
+  </data>
+  <data name="EndpointAssets" xml:space="preserve">
+    <value>Имущество</value>
+  </data>
+  <data name="EndpointBlueprints" xml:space="preserve">
+    <value>Чертежи</value>
+  </data>
+  <data name="EndpointContracts" xml:space="preserve">
+    <value>Контракты</value>
+  </data>
+  <data name="EndpointAttributes" xml:space="preserve">
+    <value>Характеристики</value>
+  </data>
+  <data name="EndpointClones" xml:space="preserve">
+    <value>Клоны</value>
+  </data>
+  <data name="EndpointImplants" xml:space="preserve">
+    <value>Имплантаты</value>
+  </data>
+  <data name="EndpointJumpFatigue" xml:space="preserve">
+    <value>Усталость от гиперпрыжков</value>
+  </data>
+  <data name="EndpointMiningLedger" xml:space="preserve">
+    <value>Журнал учёта добычи</value>
+  </data>
+  <data name="EndpointNotifications" xml:space="preserve">
+    <value>Уведомления</value>
+  </data>
+  <data name="EndpointContacts" xml:space="preserve">
+    <value>Контакты</value>
+  </data>
+  <data name="EndpointKillMails" xml:space="preserve">
+    <value>Отчёты о боях</value>
+  </data>
+  <data name="EndpointPlanetaryInteraction" xml:space="preserve">
+    <value>Планетарная промышленность</value>
+  </data>
+  <data name="EndpointAgentResearch" xml:space="preserve">
+    <value>Исследования у агентов</value>
+  </data>
+  <data name="EndpointLoyaltyPoints" xml:space="preserve">
+    <value>Наградные баллы</value>
+  </data>
+  <data name="EndpointMedals" xml:space="preserve">
+    <value>Медали</value>
+  </data>
+  <data name="EndpointStandings" xml:space="preserve">
+    <value>Отношения</value>
+  </data>
+  <data name="EndpointTitles" xml:space="preserve">
+    <value>Должности</value>
+  </data>
+  <data name="EndpointRoles" xml:space="preserve">
+    <value>Полномочия</value>
+  </data>
+  <data name="EndpointFittings" xml:space="preserve">
+    <value>Оснастки</value>
+  </data>
+  <data name="EndpointEveMail" xml:space="preserve">
+    <value>Почта EVE</value>
+  </data>
+  <data name="EndpointOnlineStatus" xml:space="preserve">
+    <value>Статус онлайн</value>
+  </data>
+  <data name="EndpointLocation" xml:space="preserve">
+    <value>Местоположение</value>
+  </data>
+  <data name="EndpointCurrentShip" xml:space="preserve">
+    <value>Текущий корабль</value>
+  </data>
+  <data name="EndpointWalletBalances" xml:space="preserve">
+    <value>Балансы счетов</value>
+  </data>
+  <data name="EndpointDivisions" xml:space="preserve">
+    <value>Подразделения</value>
+  </data>
+  <data name="EndpointStructures" xml:space="preserve">
+    <value>Сооружения</value>
+  </data>
+  <data name="EndpointStarbases" xml:space="preserve">
+    <value>Звёздные базы</value>
+  </data>
+  <data name="EndpointFacilities" xml:space="preserve">
+    <value>Объекты</value>
+  </data>
+  <data name="EndpointMembers" xml:space="preserve">
+    <value>Члены корпорации</value>
+  </data>
+  <data name="EndpointMemberTracking" xml:space="preserve">
+    <value>Отслеживание членов корпорации</value>
+  </data>
+  <data name="EndpointCorpProjects" xml:space="preserve">
+    <value>Проекты корпорации</value>
+  </data>
+  <data name="EndpointMiningExtractions" xml:space="preserve">
+    <value>Извлечение породы</value>
+  </data>
+  <data name="EndpointMiningObservers" xml:space="preserve">
+    <value>Наблюдатели добычи и журнал учёта</value>
+  </data>
+  <data name="EndpointMarketPriceRefresh" xml:space="preserve">
+    <value>Обновление рыночных цен</value>
+  </data>
+  <data name="EndpointBuildCostCalculation" xml:space="preserve">
+    <value>Расчёт стоимости производства</value>
+  </data>
+  <data name="EndpointPublicContracts" xml:space="preserve">
+    <value>Общедоступные контракты</value>
+  </data>
+  <data name="EndpointContractItems" xml:space="preserve">
+    <value>Предметы контрактов</value>
+  </data>
+  <data name="StructureSweepNotRun" xml:space="preserve">
+    <value>В этом сеансе ещё не запускался</value>
+  </data>
+  <data name="PublicStructuresSummary" xml:space="preserve">
+    <value>В списке: {0:N0} · уже известно: {1:N0} · новых для определения: {2:N0}</value>
+  </data>
+  <data name="StructureSweepFailed" xml:space="preserve">
+    <value>Ошибка — {0}</value>
+  </data>
+  <data name="CallOk" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="StructureSweepCounts" xml:space="preserve">
+    <value>Проверено ID: {0:N0} · синхронизировано: {1:N0} · удалено: {2:N0} · сооружений хранится: {3:N0}, опознано: {4:N0}</value>
+  </data>
+  <data name="StructureSweepSuperseded" xml:space="preserve">
+    <value>оснасток заменено данными имущества: {0:N0}</value>
+  </data>
+  <data name="StructureSweepEveRef" xml:space="preserve">
+    <value>EVE Ref: известно: {0:N0}, дополнено: {1:N0}</value>
+  </data>
+  <data name="StructureSweepLinked" xml:space="preserve">
+    <value>обновлено оснасток связанных сооружений промпарков: {0:N0}</value>
+  </data>
+  <data name="ZkbPostingSubmitted" xml:space="preserve">
+    <value>Отправка на zKillboard: отправлено: {0:N0}, уже было на zKillboard: {1:N0}</value>
+  </data>
+  <data name="ZkbPostingSubmittedRejected" xml:space="preserve">
+    <value>Отправка на zKillboard: отправлено: {0:N0}, уже было на zKillboard: {1:N0}, отклонено: {2:N0}</value>
+  </data>
+  <data name="LpStoreStatusDone" xml:space="preserve">
+    <value>Магазин наград: магазинов: {0:N0}, предложений: {1:N0}, без магазина: {2:N0} — {3:t}</value>
+  </data>
+  <data name="LpStoreStatusDoneFailed" xml:space="preserve">
+    <value>Магазин наград: магазинов: {0:N0}, предложений: {1:N0}, без магазина: {2:N0}, с ошибкой: {3:N0} — {4:t}</value>
+  </data>
+  <data name="AlarmsStatusNextCheck" xml:space="preserve">
+    <value>Взведено: {0} · следующая проверка {1}</value>
+  </data>
+  <data name="AlarmsNextCheckNow" xml:space="preserve">
+    <value>сейчас</value>
+  </data>
+  <data name="AlarmsNextCheckInSeconds" xml:space="preserve">
+    <value>через {0:F0} с</value>
+  </data>
+  <data name="AlarmsNextCheckInMinutes" xml:space="preserve">
+    <value>через {0:F0} мин</value>
+  </data>
+  <data name="AlarmsNextCheckInHours" xml:space="preserve">
+    <value>через {0:F0} ч</value>
+  </data>
+  <data name="AlarmsStatusChecked" xml:space="preserve">
+    <value>Взведено: {0} · проверено: {1}</value>
+  </data>
+  <data name="AlarmsStatusCheckedFired" xml:space="preserve">
+    <value>Взведено: {0} · проверено: {1} · сработало: {2}</value>
+  </data>
+  <data name="BarEsiActiveQueued" xml:space="preserve">
+    <value>активных: {0:N0}, в очереди: {1:N0}</value>
+  </data>
+  <data name="BarProcessing" xml:space="preserve">
+    <value>обработка</value>
+  </data>
+  <data name="BarProcessingItemsOne" xml:space="preserve">
+    <value>в обработке {0:N0} предмет</value>
+  </data>
+  <data name="BarProcessingItemsOther" xml:space="preserve">
+    <value>в обработке {0:N0} предмета</value>
+  </data>
+  <data name="BarProcessingItemsFew" xml:space="preserve">
+    <value>в обработке {0:N0} предмета</value>
+  </data>
+  <data name="BarProcessingItemsMany" xml:space="preserve">
+    <value>в обработке {0:N0} предметов</value>
+  </data>
+  <data name="BarStarting" xml:space="preserve">
+    <value>запуск</value>
+  </data>
+  <data name="BarContractsProgressOne" xml:space="preserve">
+    <value>{1:N0} из {0:N0} контракта</value>
+  </data>
+  <data name="BarContractsProgressOther" xml:space="preserve">
+    <value>{1:N0} из {0:N0} контракта</value>
+  </data>
+  <data name="BarContractsProgressFew" xml:space="preserve">
+    <value>{1:N0} из {0:N0} контрактов</value>
+  </data>
+  <data name="BarContractsProgressMany" xml:space="preserve">
+    <value>{1:N0} из {0:N0} контрактов</value>
+  </data>
+  <data name="BarCorporationsProgressOne" xml:space="preserve">
+    <value>{1:N0} из {0:N0} корпорации</value>
+  </data>
+  <data name="BarCorporationsProgressOther" xml:space="preserve">
+    <value>{1:N0} из {0:N0} корпорации</value>
+  </data>
+  <data name="BarCorporationsProgressFew" xml:space="preserve">
+    <value>{1:N0} из {0:N0} корпораций</value>
+  </data>
+  <data name="BarCorporationsProgressMany" xml:space="preserve">
+    <value>{1:N0} из {0:N0} корпораций</value>
+  </data>
+  <data name="BarFetching" xml:space="preserve">
+    <value>загрузка</value>
+  </data>
+  <data name="BarFetchingProgress" xml:space="preserve">
+    <value>загрузка: {0:N0} из {1:N0}</value>
+  </data>
+  <data name="BarFetchingProgressMore" xml:space="preserve">
+    <value>загрузка: {0:N0} из {1:N0}, ещё осталось: {2:N0}</value>
+  </data>
+  <data name="KillmailsWithoutDetailsOne" xml:space="preserve">
+    <value>{0:N0} отчёт о бое пока без подробностей — следующий опрос загрузит до 200</value>
+  </data>
+  <data name="KillmailsWithoutDetailsOther" xml:space="preserve">
+    <value>{0:N0} отчёта о боях пока без подробностей — следующий опрос загрузит до 200</value>
+  </data>
+  <data name="KillmailsWithoutDetailsFew" xml:space="preserve">
+    <value>{0:N0} отчёта о боях пока без подробностей — следующий опрос загрузит до 200</value>
+  </data>
+  <data name="KillmailsWithoutDetailsMany" xml:space="preserve">
+    <value>{0:N0} отчётов о боях пока без подробностей — следующий опрос загрузит до 200</value>
+  </data>
+  <data name="KillmailsAllDetailed" xml:space="preserve">
+    <value>у всех известных приложению отчётов о боях есть подробности</value>
+  </data>
+  <data name="BarBackfill" xml:space="preserve">
+    <value>дозагрузка</value>
+  </data>
+  <data name="BarBackfillProgress" xml:space="preserve">
+    <value>дозагрузка: {0:N0} из {1:N0}</value>
+  </data>
+  <data name="CallsNotRelayedOne" xml:space="preserve">
+    <value>(ещё {0} запрос не передан)</value>
+  </data>
+  <data name="CallsNotRelayedOther" xml:space="preserve">
+    <value>(ещё {0} запроса не передано)</value>
+  </data>
+  <data name="CallsNotRelayedFew" xml:space="preserve">
+    <value>(ещё {0} запроса не передано)</value>
+  </data>
+  <data name="CallsNotRelayedMany" xml:space="preserve">
+    <value>(ещё {0} запросов не передано)</value>
+  </data>
+</root>

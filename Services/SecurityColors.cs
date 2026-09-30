@@ -1,4 +1,5 @@
 using Avalonia.Media;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -84,9 +85,9 @@ public static class SecurityColors
     /// <summary>Band name, from the rounded value, for tooltips and grouping.</summary>
     public static string Band(double trueSecurity) => Rounded(trueSecurity) switch
     {
-        >= 0.5 => "High sec",
-        > 0.0  => "Low sec",
-        _      => "Null sec",
+        >= 0.5 => MapText.SecBandHigh,
+        > 0.0  => MapText.SecBandLow,
+        _      => MapText.SecBandNull,
     };
 
     /// <summary>
@@ -94,5 +95,5 @@ public static class SecurityColors
     /// security belongs — available on demand, not competing with the headline.
     /// </summary>
     public static string Tip(double trueSecurity) =>
-        $"{Band(trueSecurity)} · true security {TrueText(trueSecurity)}";
+        string.Format(MapText.SecurityTip, Band(trueSecurity), TrueText(trueSecurity));
 }

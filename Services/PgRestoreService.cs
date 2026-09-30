@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Npgsql;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -48,17 +49,17 @@ public static class PgRestoreService
         string file, IProgress<(double, string)>? progress, CancellationToken ct)
     {
         if (!File.Exists(file))
-            return new RestoreResult(true, false, $"Restore skipped: {file} is no longer there.");
+            return new RestoreResult(true, false, string.Format(SettingsText.PgRestoreSkippedMissing, file));
 
         var cs = AppConfig.GetPostgresConnection();
         if (string.IsNullOrWhiteSpace(cs))
-            return new RestoreResult(true, false, "Restore skipped: no PostgreSQL connection is configured.");
+            return new RestoreResult(true, false, SettingsText.PgRestoreSkippedNoConnection);
 
-        progress?.Report((10, "Looking for pg_restore…"));
+        progress?.Report((10, SettingsText.PgRestoreLooking));
 
         var probe = await PgDumpService.ProbeAsync(cs, ct);
         if (probe.Path is null)
-            return new RestoreResult(true, false, "Restore failed: " + probe.Message);
+            return new RestoreResult(true, false, string.Format(SettingsText.PgRestoreFailed, probe.Message));
 
         // pg_restore sits beside pg_dump, so the search that found one finds the other.
         var exe = Path.Combine(
@@ -67,10 +68,10 @@ public static class PgRestoreService
 
         if (!File.Exists(exe))
             return new RestoreResult(true, false,
-                $"Restore failed: pg_restore was not found beside pg_dump at {probe.Path}.");
+                string.Format(SettingsText.PgRestoreNotBesideDump, probe.Path));
 
         var b = new NpgsqlConnectionStringBuilder(cs);
-        progress?.Report((25, $"Restoring {Path.GetFileName(file)} into {b.Database}…"));
+        progress?.Report((25, string.Format(SettingsText.PgRestoreRestoring, Path.GetFileName(file), b.Database)));
 
         var psi = new ProcessStartInfo(exe)
         {
@@ -106,12 +107,12 @@ public static class PgRestoreService
         try
         {
             using var proc = Process.Start(psi)
-                ?? throw new InvalidOperationException($"Could not start {exe}.");
+                ?? throw new InvalidOperationException(string.Format(SettingsText.PgCouldNotStart, exe));
 
             var stderr = await proc.StandardError.ReadToEndAsync(ct);
             await proc.WaitForExitAsync(ct);
 
-            progress?.Report((90, "Restore finished."));
+            progress?.Report((90, SettingsText.PgRestoreFinished));
 
             // ⚠️ A non-zero exit is not necessarily failure. pg_restore reports errors for every
             // DROP of an object that was not there, which is normal on a database that does not
@@ -122,17 +123,17 @@ public static class PgRestoreService
             if (tables > 0)
             {
                 var warnings = stderr.Split('\n').Count(l => l.Contains("error:", StringComparison.OrdinalIgnoreCase));
-                return new RestoreResult(true, true,
-                    $"Restored {Path.GetFileName(file)} — {tables:N0} tables"
-                    + (warnings > 0 ? $", {warnings:N0} ignorable error(s) during DROP." : "."));
+                return new RestoreResult(true, true, warnings > 0
+                    ? string.Format(SettingsText.PgRestoreDoneWithErrors, Path.GetFileName(file), tables, warnings)
+                    : string.Format(SettingsText.PgRestoreDone, Path.GetFileName(file), tables));
             }
 
-            var why = string.IsNullOrWhiteSpace(stderr) ? $"exit code {proc.ExitCode}" : Tail(stderr);
-            return new RestoreResult(true, false, $"Restore failed and the database is empty: {why}");
+            var why = string.IsNullOrWhiteSpace(stderr) ? string.Format(SettingsText.PgExitCode, proc.ExitCode) : Tail(stderr);
+            return new RestoreResult(true, false, string.Format(SettingsText.PgRestoreFailedEmpty, why));
         }
         catch (Exception ex)
         {
-            return new RestoreResult(true, false, $"Restore failed: {ex.Message}");
+            return new RestoreResult(true, false, string.Format(SettingsText.PgRestoreFailed, ex.Message));
         }
     }
 

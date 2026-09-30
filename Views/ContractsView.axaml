@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              xmlns:views="clr-namespace:EveConsole.Views"
              xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base"
@@ -47,7 +48,7 @@
   <TabControl Background="{DynamicResource SurfaceBaseBrush}" SelectedIndex="{Binding TabIndex}">
 
     <!-- ══ Tab 1: Corporation & Personal ═══════════════════════════════════════ -->
-    <TabItem Header="Corporation &amp; Personal">
+    <TabItem Header="{x:Static loc:MarketText.TabCorporationPersonal}">
       <Grid DataContext="{Binding Owned}" x:DataType="vm:OwnedContractsViewModel"
             RowDefinitions="Auto,*">
 
@@ -57,19 +58,19 @@
           <StackPanel Orientation="Horizontal" Spacing="8">
             <!-- Scope: the contracts from, to, or accepted by the party chosen — every
                  character and personal corporation together by default. -->
-            <TextBlock Classes="flabel" Text="Scope:" />
+            <TextBlock Classes="flabel" Text="{x:Static loc:MarketText.ScopeLabel}" />
             <ComboBox ItemsSource="{Binding Scopes}" SelectedItem="{Binding SelectedScope}"
                       MinWidth="230" FontSize="11" VerticalAlignment="Center" />
-            <TextBlock Classes="flabel" Text="Status:" />
+            <TextBlock Classes="flabel" Text="{x:Static loc:MarketText.StatusLabel}" />
             <ComboBox ItemsSource="{Binding Statuses}" SelectedItem="{Binding SelectedStatus}"
                       MinWidth="120" FontSize="11" VerticalAlignment="Center" />
-            <TextBlock Classes="flabel" Text="Assignee:" />
+            <TextBlock Classes="flabel" Text="{x:Static loc:MarketText.AssigneeLabel}" />
             <ComboBox ItemsSource="{Binding Assignees}" SelectedItem="{Binding SelectedAssignee}"
                       MinWidth="170" FontSize="11" VerticalAlignment="Center" />
-            <TextBlock Classes="flabel" Text="Acceptor:" />
+            <TextBlock Classes="flabel" Text="{x:Static loc:MarketText.AcceptorLabel}" />
             <ComboBox ItemsSource="{Binding Acceptors}" SelectedItem="{Binding SelectedAcceptor}"
                       MinWidth="170" FontSize="11" VerticalAlignment="Center" />
-            <Button Command="{Binding RefreshCommand}" Content="↻ Refresh"
+            <Button Command="{Binding RefreshCommand}" Content="{x:Static loc:MarketText.Refresh}"
                     FontSize="11" VerticalAlignment="Center" />
             <TextBlock Text="{Binding StatusText}" Classes="flabel" Foreground="{DynamicResource TextMutedBrush}" />
           </StackPanel>
@@ -85,8 +86,8 @@
                     Background="{DynamicResource SurfaceBaseBrush}">
             <DataGrid.Columns>
               <DataGridTextColumn Header="#"        Binding="{Binding ContractId}" Width="80" />
-              <DataGridTextColumn Header="Type"     Binding="{Binding TypeLabel}"  Width="110" />
-              <DataGridTemplateColumn Header="Status" Width="100" SortMemberPath="Status" ClipboardContentBinding="{Binding Status}">
+              <DataGridTextColumn Header="{x:Static loc:MarketText.ColType}"     Binding="{Binding TypeLabel}"  Width="110" />
+              <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColStatus}" Width="100" SortMemberPath="Status" ClipboardContentBinding="{Binding Status}">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate x:DataType="vm:ContractRowVm">
                     <TextBlock Text="{Binding Status}" Foreground="{Binding StatusColor}"
@@ -94,12 +95,12 @@
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
-              <DataGridTemplateColumn Header="Contents" Width="*" SortMemberPath="Contents" ClipboardContentBinding="{Binding Contents}">
+              <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColContents}" Width="*" SortMemberPath="Contents" ClipboardContentBinding="{Binding Contents}">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate x:DataType="vm:ContractRowVm">
                     <Panel>
                       <Button Classes="link" Click="OnOpenContents" IsVisible="{Binding HasContentsLink}"
-                              ToolTip.Tip="Open in the Item Browser">
+                              ToolTip.Tip="{x:Static loc:MarketText.TipOpenInTheItemBrowser}">
                         <TextBlock Text="{Binding Contents}" Classes="linktext"
                                    TextTrimming="CharacterEllipsis" />
                       </Button>
@@ -110,7 +111,7 @@
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
               <!-- From: whose contract it is — the corporation when issued on its behalf, else the character; the character who clicked is in the tooltip. -->
-              <DataGridTemplateColumn Header="From" Width="150" SortMemberPath="From" ClipboardContentBinding="{Binding From}">
+              <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColFrom}" Width="150" SortMemberPath="From" ClipboardContentBinding="{Binding From}">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate x:DataType="vm:ContractRowVm">
                     <Panel>
@@ -125,12 +126,12 @@
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
-              <DataGridTemplateColumn Header="Assignee" Width="140" SortMemberPath="Assignee" ClipboardContentBinding="{Binding Assignee}">
+              <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColAssignee}" Width="140" SortMemberPath="Assignee" ClipboardContentBinding="{Binding Assignee}">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate x:DataType="vm:ContractRowVm">
                     <Panel>
                       <Button Classes="link" Click="OnOpenAssignee" IsVisible="{Binding HasAssigneeLink}"
-                              ToolTip.Tip="Open in the entity browser">
+                              ToolTip.Tip="{x:Static loc:MarketText.TipOpenInTheEntityBrowser}">
                         <TextBlock Text="{Binding Assignee}" Classes="linktext"
                                    TextTrimming="CharacterEllipsis" />
                       </Button>
@@ -140,11 +141,11 @@
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
-              <DataGridTextColumn Header="Acceptor" Binding="{Binding Acceptor}" Width="140" />
-              <DataGridTextColumn Header="Price"    Binding="{Binding Price}"  SortMemberPath="PriceRaw"  Width="90" CellStyleClasses="num" />
-              <DataGridTextColumn Header="Reward"   Binding="{Binding Reward}" SortMemberPath="RewardRaw" Width="90" CellStyleClasses="num" />
-              <DataGridTextColumn Header="Issued"   Binding="{Binding DateIssued}"  SortMemberPath="DateIssuedRaw"  Width="130" />
-              <DataGridTextColumn Header="Expires"  Binding="{Binding DateExpires}" SortMemberPath="DateExpiresRaw" Width="130" />
+              <DataGridTextColumn Header="{x:Static loc:MarketText.ColAcceptor}" Binding="{Binding Acceptor}" Width="140" />
+              <DataGridTextColumn Header="{x:Static loc:MarketText.ColPrice}"    Binding="{Binding Price}"  SortMemberPath="PriceRaw"  Width="90" CellStyleClasses="num" />
+              <DataGridTextColumn Header="{x:Static loc:MarketText.ColReward}"   Binding="{Binding Reward}" SortMemberPath="RewardRaw" Width="90" CellStyleClasses="num" />
+              <DataGridTextColumn Header="{x:Static loc:MarketText.ColIssued}"   Binding="{Binding DateIssued}"  SortMemberPath="DateIssuedRaw"  Width="130" />
+              <DataGridTextColumn Header="{x:Static loc:MarketText.ColExpires}"  Binding="{Binding DateExpires}" SortMemberPath="DateExpiresRaw" Width="130" />
             </DataGrid.Columns>
           </DataGrid>
 
@@ -158,7 +159,7 @@
                 </DataTemplate>
               </ContentControl.DataTemplates>
             </ContentControl>
-            <TextBlock Text="Select a contract to view its details."
+            <TextBlock Text="{x:Static loc:MarketText.SelectAContractToNote}"
                        IsVisible="{Binding Detail, Converter={x:Static conv:ObjectConverters.IsNull}}"
                        FontSize="12" Foreground="{DynamicResource BorderStrongBrush}"
                        HorizontalAlignment="Center" VerticalAlignment="Center" />
@@ -174,7 +175,7 @@
     </TabItem>
 
     <!-- ══ Tab 2: Public ═══════════════════════════════════════════════════════ -->
-    <TabItem Header="Public">
+    <TabItem Header="{x:Static loc:MarketText.TabPublic}">
       <Grid DataContext="{Binding Public}" x:DataType="vm:PublicContractsViewModel"
             RowDefinitions="Auto,*,Auto">
 
@@ -182,31 +183,31 @@
         <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 0 0 1"
                 Padding="12 8">
           <StackPanel Orientation="Horizontal" Spacing="8">
-            <TextBlock Classes="flabel" Text="Show:" />
+            <TextBlock Classes="flabel" Text="{x:Static loc:MarketText.ShowLabel}" />
             <ComboBox ItemsSource="{Binding StatusOptions}" SelectedItem="{Binding SelectedStatus}"
                       MinWidth="100" FontSize="11" VerticalAlignment="Center" />
-            <TextBlock Classes="flabel" Text="Contract:" />
+            <TextBlock Classes="flabel" Text="{x:Static loc:MarketText.ContractLabel}" />
             <ComboBox ItemsSource="{Binding ContractTypeOptions}" SelectedItem="{Binding SelectedContractType}"
                       MinWidth="120" FontSize="11" VerticalAlignment="Center" />
-            <TextBlock Classes="flabel" Text="Region:" />
+            <TextBlock Classes="flabel" Text="{x:Static loc:MarketText.RegionLabel}" />
             <ComboBox ItemsSource="{Binding Regions}" SelectedItem="{Binding SelectedRegion}"
                       MinWidth="180" FontSize="11" VerticalAlignment="Center" />
-            <TextBlock Classes="flabel" Text="Category:" />
+            <TextBlock Classes="flabel" Text="{x:Static loc:MarketText.CategoryLabel}" />
             <ComboBox ItemsSource="{Binding Categories}" SelectedItem="{Binding SelectedCategory}"
                       MinWidth="180" FontSize="11" VerticalAlignment="Center" />
-            <TextBlock Classes="flabel" Text="Item:" />
-            <TextBox Text="{Binding TypeFilter, Mode=TwoWay}" Watermark="type name…"
+            <TextBlock Classes="flabel" Text="{x:Static loc:MarketText.ItemLabel}" />
+            <TextBox Text="{Binding TypeFilter, Mode=TwoWay}" Watermark="{x:Static loc:MarketText.HintTypeName}"
                      FontSize="11" Width="160" Height="24"
                      Background="{DynamicResource SurfaceBaseBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Padding="5 2"
                      VerticalAlignment="Center" />
-            <Button Command="{Binding ClearFiltersCommand}" Content="Clear"
+            <Button Command="{Binding ClearFiltersCommand}" Content="{x:Static loc:MarketText.Clear}"
                     FontSize="10" Padding="8 2" Height="24"
                     Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                     VerticalAlignment="Center" />
-            <TextBlock Classes="flabel" Text="Sort:" />
+            <TextBlock Classes="flabel" Text="{x:Static loc:MarketText.SortLabel}" />
             <ComboBox ItemsSource="{Binding SortOptions}" SelectedItem="{Binding SelectedSort}"
                       MinWidth="150" FontSize="11" VerticalAlignment="Center" />
-            <Button Command="{Binding RefreshCommand}" Content="↻ Refresh"
+            <Button Command="{Binding RefreshCommand}" Content="{x:Static loc:MarketText.Refresh}"
                     FontSize="11" VerticalAlignment="Center" />
             <TextBlock Text="{Binding StatusText}" Classes="flabel" Foreground="{DynamicResource TextMutedBrush}" />
           </StackPanel>
@@ -222,8 +223,8 @@
                     Background="{DynamicResource SurfaceBaseBrush}">
             <DataGrid.Columns>
               <DataGridTextColumn Header="#"        Binding="{Binding ContractId}" Width="80" />
-              <DataGridTextColumn Header="Type"     Binding="{Binding TypeLabel}"  Width="110" />
-              <DataGridTemplateColumn Header="Status" Width="90" ClipboardContentBinding="{Binding Status}">
+              <DataGridTextColumn Header="{x:Static loc:MarketText.ColType}"     Binding="{Binding TypeLabel}"  Width="110" />
+              <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColStatus}" Width="90" ClipboardContentBinding="{Binding Status}">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate x:DataType="vm:ContractRowVm">
                     <TextBlock Text="{Binding Status}" Foreground="{Binding StatusColor}"
@@ -231,12 +232,12 @@
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
-              <DataGridTemplateColumn Header="Contents" Width="*" SortMemberPath="Contents" ClipboardContentBinding="{Binding Contents}">
+              <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColContents}" Width="*" SortMemberPath="Contents" ClipboardContentBinding="{Binding Contents}">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate x:DataType="vm:ContractRowVm">
                     <Panel>
                       <Button Classes="link" Click="OnOpenContents" IsVisible="{Binding HasContentsLink}"
-                              ToolTip.Tip="Open in the Item Browser">
+                              ToolTip.Tip="{x:Static loc:MarketText.TipOpenInTheItemBrowser}">
                         <TextBlock Text="{Binding Contents}" Classes="linktext"
                                    TextTrimming="CharacterEllipsis" />
                       </Button>
@@ -246,9 +247,9 @@
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
-              <DataGridTextColumn Header="Region"   Binding="{Binding Region}"     Width="140" />
+              <DataGridTextColumn Header="{x:Static loc:MarketText.ColRegion}"   Binding="{Binding Region}"     Width="140" />
               <!-- From: whose contract it is — the corporation when issued on its behalf, else the character; the character who clicked is in the tooltip. -->
-              <DataGridTemplateColumn Header="From" Width="150" SortMemberPath="From" ClipboardContentBinding="{Binding From}">
+              <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColFrom}" Width="150" SortMemberPath="From" ClipboardContentBinding="{Binding From}">
                 <DataGridTemplateColumn.CellTemplate>
                   <DataTemplate x:DataType="vm:ContractRowVm">
                     <Panel>
@@ -263,11 +264,11 @@
                   </DataTemplate>
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
-              <DataGridTextColumn Header="Price"    Binding="{Binding Price}"  SortMemberPath="PriceRaw"  Width="90" CellStyleClasses="num" />
-              <DataGridTextColumn Header="Reward"   Binding="{Binding Reward}" SortMemberPath="RewardRaw" Width="90" CellStyleClasses="num" />
-              <DataGridTextColumn Header="Vol m³"   Binding="{Binding Volume}"     Width="80" CellStyleClasses="num" />
-              <DataGridTextColumn Header="Issued"   Binding="{Binding DateIssued}"  SortMemberPath="DateIssuedRaw"  Width="130" />
-              <DataGridTextColumn Header="Expires"  Binding="{Binding DateExpires}" SortMemberPath="DateExpiresRaw" Width="130" />
+              <DataGridTextColumn Header="{x:Static loc:MarketText.ColPrice}"    Binding="{Binding Price}"  SortMemberPath="PriceRaw"  Width="90" CellStyleClasses="num" />
+              <DataGridTextColumn Header="{x:Static loc:MarketText.ColReward}"   Binding="{Binding Reward}" SortMemberPath="RewardRaw" Width="90" CellStyleClasses="num" />
+              <DataGridTextColumn Header="{x:Static loc:MarketText.ColVolM}"   Binding="{Binding Volume}"     Width="80" CellStyleClasses="num" />
+              <DataGridTextColumn Header="{x:Static loc:MarketText.ColIssued}"   Binding="{Binding DateIssued}"  SortMemberPath="DateIssuedRaw"  Width="130" />
+              <DataGridTextColumn Header="{x:Static loc:MarketText.ColExpires}"  Binding="{Binding DateExpires}" SortMemberPath="DateExpiresRaw" Width="130" />
             </DataGrid.Columns>
           </DataGrid>
 
@@ -281,7 +282,7 @@
                 </DataTemplate>
               </ContentControl.DataTemplates>
             </ContentControl>
-            <TextBlock Text="Select a contract to view its details."
+            <TextBlock Text="{x:Static loc:MarketText.SelectAContractToNote}"
                        IsVisible="{Binding Detail, Converter={x:Static conv:ObjectConverters.IsNull}}"
                        FontSize="12" Foreground="{DynamicResource BorderStrongBrush}"
                        HorizontalAlignment="Center" VerticalAlignment="Center" />
@@ -300,16 +301,16 @@
           <StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center"
                       VerticalAlignment="Center">
             <Button Command="{Binding FirstPageCommand}" IsEnabled="{Binding CanPrev}"
-                    Content="⏮ First" FontSize="11" Padding="8 2" />
+                    Content="{x:Static loc:MarketText.First}" FontSize="11" Padding="8 2" />
             <Button Command="{Binding PrevPageCommand}"  IsEnabled="{Binding CanPrev}"
-                    Content="◀ Prev"  FontSize="11" Padding="8 2" />
+                    Content="{x:Static loc:MarketText.Prev}"  FontSize="11" Padding="8 2" />
             <TextBlock Text="{Binding PageInfo}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
                        VerticalAlignment="Center" Margin="12 0" MinWidth="220"
                        TextAlignment="Center" />
             <Button Command="{Binding NextPageCommand}"  IsEnabled="{Binding CanNext}"
-                    Content="Next ▶"  FontSize="11" Padding="8 2" />
+                    Content="{x:Static loc:MarketText.Next}"  FontSize="11" Padding="8 2" />
             <Button Command="{Binding LastPageCommand}"  IsEnabled="{Binding CanNext}"
-                    Content="Last ⏭"  FontSize="11" Padding="8 2" />
+                    Content="{x:Static loc:MarketText.Last}"  FontSize="11" Padding="8 2" />
           </StackPanel>
         </Border>
       </Grid>

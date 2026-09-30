@@ -1,7 +1,8 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:EveConsole.Localization"
         x:Class="EveConsole.Views.ExternalLinkDialog"
-        Title="Open in browser?"
+        Title="{x:Static loc:CommonText.TitleOpenInBrowser}"
         Width="460"
         MinWidth="360"
         WindowStartupLocation="CenterOwner"
@@ -12,7 +13,7 @@
   <Grid RowDefinitions="Auto,Auto,Auto,Auto">
 
     <TextBlock Grid.Row="0"
-               Text="This link opens a website in your browser."
+               Text="{x:Static loc:CommonText.ThisLinkOpensANote}"
                TextWrapping="Wrap"
                Foreground="{DynamicResource TextPrimaryBrush}"
                FontSize="13"
@@ -35,14 +36,14 @@
 
     <CheckBox Grid.Row="2"
               x:Name="DontAskBox"
-              Content="Don't ask me again"
+              Content="{x:Static loc:CommonText.DontAskMeAgain}"
               FontSize="12"
               Margin="20 0 20 14" />
 
     <Border Grid.Row="3" Background="{DynamicResource SurfaceBaseBrush}" Padding="16 12">
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
-        <Button Content="Cancel" Click="OnCancel" Padding="20 5" IsCancel="True" />
-        <Button Content="Open"   Click="OnOpen"   Padding="20 5" IsDefault="True" x:Name="OpenButton" />
+        <Button Content="{x:Static loc:CommonText.Cancel}" Click="OnCancel" Padding="20 5" IsCancel="True" />
+        <Button Content="{x:Static loc:CommonText.Open}"   Click="OnOpen"   Padding="20 5" IsDefault="True" x:Name="OpenButton" />
       </StackPanel>
     </Border>
 

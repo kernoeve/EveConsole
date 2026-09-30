@@ -5,6 +5,7 @@ using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -71,7 +72,7 @@ public sealed class ZkillboardPostService(
     private Task?                    _runTask;
     private bool                     _trustHalted;
 
-    private string _statusText = "zKillboard posting: not started";
+    private string _statusText = DataText.ZkbPostingNotStarted;
     public string StatusText
     {
         get => _statusText;
@@ -81,7 +82,7 @@ public sealed class ZkillboardPostService(
     /// <summary>The coverage floor, for display — refreshed every tick whether or not
     /// posting is switched on, so the settings page shows how far back the window
     /// reaches while the user decides.</summary>
-    private string _coverageText = "checking…";
+    private string _coverageText = DataText.ZkbCoverageChecking;
     public string CoverageText
     {
         get => _coverageText;
@@ -118,18 +119,18 @@ public sealed class ZkillboardPostService(
 
                 var coverage = await GetCoverageFloorAsync(db, ct);
                 CoverageText = coverage is null
-                    ? "none yet — no kills confirmed on zKillboard"
+                    ? DataText.ZkbCoverageNoneYet
                     : coverage.Value.ToString("yyyy-MM-dd");
 
                 if (settings.Enabled && settings.PostEnabled && !_trustHalted)
                     await PostPendingAsync(db, coverage, ct);
                 else if (!_trustHalted)
-                    StatusText = settings.Enabled ? "zKillboard posting: off" : "zKillboard posting: disabled";
+                    StatusText = settings.Enabled ? DataText.ZkbPostingOff : DataText.ZkbPostingDisabled;
             }
             catch (OperationCanceledException) when (ct.IsCancellationRequested) { break; }
             catch (Exception ex)
             {
-                StatusText = $"zKillboard posting: error — {Truncate(ex.Message)}";
+                StatusText = string.Format(DataText.ZkbPostingError, Truncate(ex.Message));
                 errorLogger.Log(nameof(ZkillboardPostService), nameof(RunAsync), ex);
             }
 
@@ -141,20 +142,20 @@ public sealed class ZkillboardPostService(
     {
         if (coverageFloor is null)
         {
-            StatusText = "zKillboard posting: no kills confirmed on zKillboard yet — run a backfill first";
+            StatusText = DataText.ZkbPostingNoConfirmed;
             return;
         }
 
         if (settings.LastFullDay is not { } lastFullDay)
         {
-            StatusText = "zKillboard posting: no day fully imported from zKillboard yet";
+            StatusText = DataText.ZkbPostingNoFullDay;
             return;
         }
 
         var candidates = await GetCandidatesAsync(db, coverageFloor.Value, lastFullDay, ct);
         if (candidates.Count == 0)
         {
-            StatusText = $"zKillboard posting: nothing to submit (covered from {CoverageText})";
+            StatusText = string.Format(DataText.ZkbPostingNothing, CoverageText);
             return;
         }
 
@@ -185,7 +186,7 @@ public sealed class ZkillboardPostService(
             if (outcome.TrustHalted)
             {
                 _trustHalted = true;
-                StatusText   = "zKillboard posting: halted — zKillboard rejected this client as untrusted";
+                StatusText   = DataText.ZkbPostingHalted;
                 break;
             }
 
@@ -200,8 +201,9 @@ public sealed class ZkillboardPostService(
         await db.SaveChangesAsync(ct);
 
         if (!_trustHalted)
-            StatusText = $"zKillboard posting: {newlyAdded:N0} submitted, {alreadyHeld + duplicates:N0} already on zKillboard"
-                       + (rejected > 0 ? $", {rejected:N0} rejected" : "");
+            StatusText = rejected > 0
+                ? string.Format(DataText.ZkbPostingSubmittedRejected, newlyAdded, alreadyHeld + duplicates, rejected)
+                : string.Format(DataText.ZkbPostingSubmitted, newlyAdded, alreadyHeld + duplicates);
     }
 
     /// <summary>Time of the oldest kill we have confirmed on zKillboard, as the raw

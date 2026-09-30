@@ -8,38 +8,42 @@ using System.Threading.Tasks;
 using EveConsole.Models;
 using EveConsole.Services;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
 // One editable row in the Price Override grid. The three value cells are exposed as text so blank
-// means "no override" (null) and typos don't throw binding exceptions; parsing is culture-invariant
-// and tolerant of thousands separators.
+// means "no override" (null) and typos don't throw binding exceptions; they are written and read in
+// the interface's number format (NumberText).
 public class PriceOverrideRow : ReactiveObject
 {
     public int    TypeId   { get; }
+
+    /// <summary>English: saved with the override.</summary>
     public string TypeName { get; }
+
+    /// <summary>The name in the interface language, which the grid shows and sorts on.</summary>
+    public string DisplayName { get; }
 
     public bool HasItemLink => TypeId > 0 && TypeName.Length > 0;
     public void OpenItem() => EveConsole.Services.EntityNavigator.Instance.Item(TypeId);
 
     public PriceOverrideRow(int typeId, string typeName, decimal? build, decimal? market, decimal? contract)
     {
-        TypeId   = typeId;
-        TypeName = typeName;
+        TypeId      = typeId;
+        TypeName    = typeName;
+        DisplayName = SdeNames.Type(typeId, typeName);
         _buildCostText     = Fmt(build);
         _marketValueText   = Fmt(market);
         _contractValueText = Fmt(contract);
     }
 
-    private static string Fmt(decimal? v) => v.HasValue ? v.Value.ToString("0.##", CultureInfo.InvariantCulture) : "";
+    // In the interface's own number format, both ways — "1234,5" in French. NumberText also reads
+    // English, so a value pasted from elsewhere goes in too.
+    private static string Fmt(decimal? v) => v.HasValue ? v.Value.ToString("0.##", CultureInfo.CurrentCulture) : "";
 
-    private static decimal? Parse(string? s)
-    {
-        if (string.IsNullOrWhiteSpace(s)) return null;
-        var cleaned = s.Replace(",", "").Replace("_", "").Trim();
-        return decimal.TryParse(cleaned, NumberStyles.Any, CultureInfo.InvariantCulture, out var d) && d >= 0
-            ? d : (decimal?)null;
-    }
+    private static decimal? Parse(string? s) =>
+        NumberText.TryParse(s, out decimal d) && d >= 0 ? d : null;
 
     private string _buildCostText;
     public string BuildCostText
@@ -121,11 +125,14 @@ public class PriceOverrideViewModel : ReactiveObject
     private async Task LoadAsync()
     {
         var all = await _svc.GetAllAsync();
+        await SdeNames.EnsureLoadedAsync();   // the rows keep the names they are built with
         Rows.Clear();
-        foreach (var o in all)
-            Rows.Add(new PriceOverrideRow(o.TypeId, o.TypeName, o.BuildCost, o.MarketValue, o.ContractValue));
-        Status = Rows.Count == 0 ? "No overrides. Add a type to pin its build, market, or contract value."
-                                 : $"{Rows.Count} override(s).";
+        foreach (var row in all
+                     .Select(o => new PriceOverrideRow(o.TypeId, o.TypeName, o.BuildCost, o.MarketValue, o.ContractValue))
+                     .OrderBy(r => r.DisplayName, StringComparer.CurrentCulture))
+            Rows.Add(row);
+        Status = Rows.Count == 0 ? IndustryText.OverrideStatusNone
+                                 : string.Format(IndustryText.OverrideStatusCount, Rows.Count);
     }
 
     private async Task AddAsync()
@@ -140,7 +147,7 @@ public class PriceOverrideViewModel : ReactiveObject
         var row = new PriceOverrideRow(result.TypeId, result.TypeName, null, null, null);
         Rows.Add(row);
         SelectedRow = row;
-        Status = $"Added {result.TypeName}. Enter a value and Save.";
+        Status = string.Format(IndustryText.OverrideStatusAdded, row.DisplayName, IndustryText.SaveRecalculate);
     }
 
     private async Task DeleteSelectedAsync()
@@ -149,7 +156,7 @@ public class PriceOverrideViewModel : ReactiveObject
         var row = SelectedRow;
         await _svc.DeleteAsync(row.TypeId);
         Rows.Remove(row);
-        Status = $"Removed {row.TypeName}. Save/recalculate to refresh costs.";
+        Status = string.Format(IndustryText.OverrideStatusRemoved, row.DisplayName);
     }
 
     private async Task SaveAndRecalcAsync()
@@ -176,13 +183,13 @@ public class PriceOverrideViewModel : ReactiveObject
                 });
             }
 
-            Status = "Saved — recalculating build costs…";
+            Status = IndustryText.OverrideStatusSaving;
             await _buildCosts.RecalculateAllAsync();
-            Status = $"Saved {Rows.Count} override(s) and recalculated build costs at {DateTimeOffset.Now:t}.";
+            Status = string.Format(IndustryText.OverrideStatusSaved, Rows.Count, DateTimeOffset.Now);
         }
         catch (Exception ex)
         {
-            Status = $"Save failed: {ex.Message}";
+            Status = string.Format(IndustryText.OverrideStatusSaveFailed, ex.Message);
         }
         finally
         {

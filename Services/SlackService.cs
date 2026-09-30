@@ -4,6 +4,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using EveConsole.Auth;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -208,7 +209,7 @@ public class SlackService
             // auth.test confirms the token works and gives us the display name to show.
             return await TestAuthAsync(ct: ct);
         }
-        catch (OperationCanceledException) { return new SlackAuthResult(false, null, null, "Cancelled."); }
+        catch (OperationCanceledException) { return new SlackAuthResult(false, null, null, SettingsText.OperationCancelled); }
         catch (Exception ex)
         {
             _errors.Log("SlackService", "Connect", ex);
@@ -311,7 +312,7 @@ public class SlackService
                             // A DM's "user" is the other party — only your own self-DM is nameable
                             // without users:read, so that's the only DM we surface.
                             if (selfId is null || Str(c, "user") != selfId) continue;
-                            all.Add(new SlackChannel { Id = Str(c, "id") ?? "", Name = "Note to Self", IsSelfDm = true });
+                            all.Add(new SlackChannel { Id = Str(c, "id") ?? "", Name = SettingsText.SlackNoteToSelf, IsSelfDm = true });
                             continue;
                         }
                         all.Add(new SlackChannel
@@ -552,5 +553,5 @@ public class SlackService
         => el.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString() : null;
 
     // Slack error codes are terse (invalid_auth, not_in_channel, channel_not_found…) — surface as-is.
-    private static string? Err(JsonElement root) => Str(root, "error") ?? "unknown error";
+    private static string? Err(JsonElement root) => Str(root, "error") ?? SettingsText.SlackUnknownError;
 }

@@ -1,7 +1,9 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:EveConsole.Localization"
+        xmlns:views="using:EveConsole.Views"
         x:Class="EveConsole.Views.WelcomeWindow"
-        Title="Welcome to EVE Console"
+        Title="{x:Static loc:ShellText.TitleWelcomeToEveConsole}"
         Icon="avares://EveConsole/Assets/ec.ico"
         Width="460"
         SizeToContent="Height"
@@ -11,22 +13,18 @@
 
   <StackPanel Margin="36 30 36 26" Spacing="0">
 
-    <!-- Two-tone app name -->
-    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 0 0 6">
-      <TextBlock Text="Welcome to EVE "
-                 FontSize="22" FontWeight="Bold"
-                 Foreground="{DynamicResource TextBrightBrush}" />
-      <TextBlock Text="Console"
-                 FontSize="22" FontWeight="Bold"
-                 Foreground="{DynamicResource AccentBrush}" />
-    </StackPanel>
+    <!-- Two-tone app name, wherever the language puts it (see WelcomeWindow.axaml.cs).
+         ⚠️ The runs on one line, touching: a line break between them is drawn as a space. -->
+    <TextBlock HorizontalAlignment="Center" Margin="0 0 0 6"
+               FontSize="22" FontWeight="Bold"
+               Foreground="{DynamicResource TextBrightBrush}"><Run Text="{x:Static views:WelcomeWindow.HeadingBefore}" /><Run Text="EVE " /><Run Text="Console" Foreground="{DynamicResource AccentBrush}" /><Run Text="{x:Static views:WelcomeWindow.HeadingAfter}" /></TextBlock>
 
     <Rectangle Height="1" Fill="{DynamicResource BorderSubtleBrush}" Margin="0 18 0 20" />
 
     <!-- Data download notice -->
     <TextBlock FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="20"
                Margin="0 0 0 16"
-               Text="EVE Console is downloading the EVE game data it needs (the Static Data Export and Hoboleaks data) in the background. This can take a few minutes — item lookups, market pricing, and industry tools will fill in as it completes. You can watch progress on the SDE tab in Settings." />
+               Text="{x:Static loc:ShellText.EveConsoleIsDownloadingNote}" />
 
     <!-- Restart advice. Several tools read their reference data once, when they are first
          opened, so a tool opened before the import finishes can hold an empty picture of the
@@ -34,17 +32,17 @@
          saying so here costs a sentence; leaving it out costs a confused first impression. -->
     <TextBlock FontSize="13" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap" LineHeight="20"
                Margin="0 0 0 16"
-               Text="Once that finishes, restart EVE Console. Some tools load their reference data when they first open, so a restart makes sure everything sees the freshly imported data." />
+               Text="{x:Static loc:ShellText.OnceThatFinishesRestartNote}" />
 
     <!-- ESI setup notice -->
     <TextBlock FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" LineHeight="20"
                Margin="0 0 0 4"
-               Text="To pull in your own characters and corporation data, add your ESI character tokens. The Settings window will open on the ESI Tokens tab next — click Add Character there to log in through EVE's SSO." />
+               Text="{x:Static loc:ShellText.ToPullInYourNote}" />
 
     <Rectangle Height="1" Fill="{DynamicResource BorderSubtleBrush}" Margin="0 22 0 18" />
 
     <Button x:Name="OkButton"
-            Content="Get Started"
+            Content="{x:Static loc:ShellText.GetStarted}"
             HorizontalAlignment="Center"
             Background="{DynamicResource AccentBrush}" Foreground="{DynamicResource SurfaceBaseBrush}"
             FontWeight="SemiBold" FontSize="13"

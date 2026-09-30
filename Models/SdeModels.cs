@@ -325,11 +325,11 @@ public class SdeCorpDivision
 /// planetResources.yaml — the Equinox planetary production figures, per planet.
 ///
 /// The reagent is not named in the file; it is decided by the planet's type, and only two types
-/// carry one at all: Lava planets yield Magmatic Gas, Ice planets yield Sublimated Ice. Verified
-/// across every reagent-bearing planet in the SDE — exactly 2,337 Lava and 1,125 Ice, nothing
-/// else.
+/// carry one at all: Lava planets yield Magmatic Gas (type 81143), Ice planets yield Superionic
+/// Ice (type 81144). Verified across every reagent-bearing planet in the SDE — exactly 2,337 Lava
+/// and 1,125 Ice, nothing else.
 ///
-/// ⚠️ Sublimated Ice is a sovereignty reagent harvested from an ice planet. It is NOT an ice
+/// ⚠️ Superionic Ice is a sovereignty reagent harvested from an ice planet. It is NOT an ice
 /// mining anomaly and must not be used to infer one: 54% of known-space systems hold an ice
 /// planet, far more than actually have ice belts.
 /// </summary>
@@ -621,4 +621,111 @@ public class SdeSkinLicense
     public int LicenseTypeId { get; set; }
     public int SkinId        { get; set; }
     public int Duration      { get; set; }
+}
+
+/// <summary>
+/// Which SDE entity an <see cref="SdeName"/> row names — and so which table its Id is a key of.
+///
+/// <para>⚠️ Stored as its number. Never renumber or reuse a value: a database written by one build
+/// is read by every other build pointed at it. A new kind takes the next free number. Zero is
+/// deliberately not a kind.</para>
+/// </summary>
+public enum SdeNameKind
+{
+    Type                   = 1,   // SdeTypes.Name
+    Group                  = 2,   // SdeGroups.Name
+    Category               = 3,   // SdeCategories.Name
+    MarketGroup            = 4,   // SdeMarketGroups.Name
+    MetaGroup              = 5,   // SdeMetaGroups.Name
+    DogmaAttribute         = 6,   // SdeDogmaAttributes.DisplayName — the display name, not Name
+    DogmaUnit              = 7,   // SdeDogmaUnits.DisplayName
+    DogmaAttributeCategory = 8,   // SdeDogmaAttributeCategories.Name
+    DogmaEffect            = 9,   // SdeDogmaEffects.DisplayName
+    Region                 = 10,  // SdeRegions.Name
+    Constellation          = 11,  // SdeConstellations.Name
+    SolarSystem            = 12,  // SdeSolarSystems.Name
+    Faction                = 13,  // SdeFactions.Name
+    NpcCorporation         = 14,  // SdeNpcCorporations.Name
+    NpcCorporationDivision = 15,  // SdeCorpDivisions.Name
+    Agent                  = 16,  // SdeAgents.Name
+    Race                   = 17,  // SdeRaces.Name
+    Certificate            = 18,  // SdeCertificates.Name
+    PlanetSchematic        = 19,  // SdePlanetSchematics.Name
+    StationService         = 20,  // SdeStationServices.Name
+    StationOperation       = 21,  // SdeStationOperations.Name
+    // SdeStations.Name, which is ESI's English. ⚠️ The one kind the SDE does not carry: neither it
+    // nor ESI has a station's name in another language, so the import BUILDS those from the
+    // station's parts, the way the game client does — see Localization/LocationNames.cs.
+    Station                = 22,
+}
+
+/// <summary>
+/// An SDE name in one of the game client's other languages.
+///
+/// <para>⚠️ A side table, and the English stays where it was. Every Name and DisplayName column
+/// keeps the English, because everything that MATCHES on a name reads those — the agent, parsers,
+/// saved alarm configs, search. These rows are for people to read, on a screen or in a post or
+/// mail, through <c>EveConsole.Localization.SdeNames</c>, which falls back to the English column;
+/// and for text people write back in their game client's language — a pasted list, an alarm's
+/// names, a store order — looked up to the English it stands for.</para>
+///
+/// <para>All seven other languages are stored whatever language anybody's interface is in: several
+/// clients can share one PostgreSQL database, each in its own language, so the choice is made when
+/// reading. Only a name that differs from the English is stored — a ship called the same in every
+/// language costs no rows.</para>
+/// </summary>
+public class SdeName
+{
+    public SdeNameKind Kind { get; set; }
+
+    /// <summary>The entity's id in the table <see cref="Kind"/> names.</summary>
+    public long        Id   { get; set; }
+
+    /// <summary>The SDE's own language key: de, es, fr, ja, ko, ru or zh. Never en.</summary>
+    public string      Lang { get; set; } = "";
+
+    public string      Name { get; set; } = "";
+}
+
+/// <summary>
+/// Which SDE text an <see cref="SdeText"/> row holds — and so which table its Id is a key of.
+///
+/// <para>⚠️ Stored as its number, as <see cref="SdeNameKind"/> is: never renumber or reuse a value,
+/// and a new kind takes the next free number. Zero is deliberately not a kind.</para>
+/// </summary>
+public enum SdeTextKind
+{
+    TypeDescription           = 1,  // SdeTypes.Description — published types only
+    MarketGroupDescription    = 2,  // SdeMarketGroups.Description
+    FactionDescription        = 3,  // SdeFactions.Description
+    NpcCorporationDescription = 4,  // SdeNpcCorporations.Description
+    RaceDescription           = 5,  // SdeRaces.Description
+    CertificateDescription    = 6,  // SdeCertificates.Description
+    MetaGroupDescription      = 7,  // SdeMetaGroups.Description
+}
+
+/// <summary>
+/// An SDE description in one of the game client's other languages.
+///
+/// <para>⚠️ A table of its own rather than more rows in <see cref="SdeName"/>, because of its size:
+/// the English type descriptions alone come to 12.5 MB, and the other seven languages to several
+/// times that. <c>SdeNames</c> is loaded whole, one language at a time, and these must never be —
+/// they are read a row at a time, when a screen shows one, through
+/// <c>EveConsole.Localization.SdeTexts</c>.</para>
+///
+/// <para>The same rules as <see cref="SdeName"/> otherwise: display only, the English stays in the
+/// entity's own Description column, every language is stored whatever anybody's interface is in,
+/// and only a text that differs from the English costs a row.</para>
+/// </summary>
+public class SdeText
+{
+    public SdeTextKind Kind { get; set; }
+
+    /// <summary>The entity's id in the table <see cref="Kind"/> names.</summary>
+    public long        Id   { get; set; }
+
+    /// <summary>The SDE's own language key: de, es, fr, ja, ko, ru or zh. Never en.</summary>
+    public string      Lang { get; set; } = "";
+
+    public string      Text { get; set; } = "";
 }

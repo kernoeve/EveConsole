@@ -4,6 +4,9 @@ using ReactiveUI;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using System.Linq;
+using EveConsole.Localization;
+// The enum by another name: SpeechInputProvider is also the name of the property the list binds to.
+using SpeechInputKind = EveConsole.Agent.SpeechInputProvider;
 
 namespace EveConsole.ViewModels;
 
@@ -60,36 +63,47 @@ public sealed class AgentSettingsViewModel : ReactiveObject
     }
 
     public string UserNameHelpText =>
-        $"What {DisplayAgentName} calls you. Default: {AgentSettings.DefaultUserName}. Set it to your main and they will use it.";
+        string.Format(SettingsText.AgentHelpUserName, DisplayAgentName, AgentSettings.DefaultUserName);
 
     public string UserGuidanceHelpText =>
-        $"Given to {DisplayAgentName} with every message, and declared to override their standard guidance — what your words mean, who people are, how you want them to behave. One instruction per line. " +
-        $"You can also just tell them: \"when I say home, I mean Jita 4-4\" — they record it here themselves.";
+        string.Format(SettingsText.AgentHelpUserGuidance, DisplayAgentName);
 
     public string DefaultAgentNameHelpText =>
-        $"The name shown in the panel header and used when the agent refers to itself. Default: {AgentSettings.DefaultAgentName}.";
+        string.Format(SettingsText.AgentHelpAgentName, AgentSettings.DefaultAgentName);
 
-    public string HeaderTitleText     => $"{DisplayAgentName} Agent";
-    public string EnableCheckboxText  => $"Enable {DisplayAgentName} AI companion";
+    public string HeaderTitleText     => string.Format(SettingsText.AgentHeaderTitle, DisplayAgentName);
+    public string EnableCheckboxText  => string.Format(SettingsText.AgentEnableCheckbox, DisplayAgentName);
     public string EnableHelpText      =>
-        $"When enabled, the {DisplayAgentName} panel is available from the title bar. Requires a model set up below — with its key, or its server's address.";
+        string.Format(SettingsText.AgentHelpEnable, DisplayAgentName);
     public string HistoryHelpText     =>
-        $"History is saved to disk and reloaded when the application starts. Clear it using the ⌫ button in the {DisplayAgentName} panel.";
+        string.Format(SettingsText.AgentHelpHistory, DisplayAgentName);
     public string SummarizationHelpText =>
-        $"When the estimated conversation length crosses this value, {DisplayAgentName} will silently compact older messages into a summary in the background — typically while you are reading their last response. Lower values reduce API cost per message but sacrifice older context. Default: 20,000 (~$0.06/message at that size for Sonnet).";
-    public string TtsVolumeHelpText   => $"Volume and mute are available directly in the {DisplayAgentName} panel while it is open.";
-    public string MicHelpText         => $"When configured, a mic button appears in the {DisplayAgentName} panel. Hold it to record, release to transcribe.";
+        string.Format(SettingsText.AgentHelpSummarization, DisplayAgentName);
+    public string TtsVolumeHelpText   => string.Format(SettingsText.AgentHelpTtsVolume, DisplayAgentName);
+    public string MicHelpText         => string.Format(SettingsText.AgentHelpMic, DisplayAgentName);
     public string PttHelpText         =>
-        $"Hold this key to record — works even when the game has focus. F13-F20 are rarely captured by games and recommended as PTT keys. The mic button in the {DisplayAgentName} panel always works regardless of this setting.";
+        string.Format(SettingsText.AgentHelpPtt, DisplayAgentName);
 
-    public IReadOnlyList<VerbositySetting> VerbosityOptions { get; } =
-        Enum.GetValues<VerbositySetting>();
+    /// <summary>The verbosity settings, by the value the settings keep, with the word shown for each
+    /// (the list used to show the enum's own names).</summary>
+    public IReadOnlyList<Choice<VerbositySetting>> VerbosityOptions { get; } =
+    [
+        new(VerbositySetting.Concise,  SettingsText.VerbosityConcise),
+        new(VerbositySetting.Balanced, SettingsText.VerbosityBalanced),
+        new(VerbositySetting.Detailed, SettingsText.VerbosityDetailed),
+    ];
 
     private VerbositySetting _verbosity = VerbositySetting.Balanced;
-    public VerbositySetting Verbosity
+    public Choice<VerbositySetting> Verbosity
     {
-        get => _verbosity;
-        set => this.RaiseAndSetIfChanged(ref _verbosity, value);
+        get => VerbosityOptions.FirstOrDefault(o => o.Value == _verbosity) ?? VerbosityOptions[1];
+        set
+        {
+            // A detaching ComboBox sets null; that is not a choice.
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            _verbosity = value.Value;
+            this.RaisePropertyChanged();
+        }
     }
 
     // ── master enable ──────────────────────────────────────────────────────────
@@ -164,8 +178,8 @@ public sealed class AgentSettingsViewModel : ReactiveObject
 
     // What each role's list offers. The models are the entries; "None" and "Same as conversation"
     // are fixed ones in front.
-    private readonly FixedModelChoice _none = new("None — the role simply fails");
-    private readonly FixedModelChoice _same = new("Same as the conversation");
+    private readonly FixedModelChoice _none = new(SettingsText.RoleNone);
+    private readonly FixedModelChoice _same = new(SettingsText.RoleSameAsConversation);
 
     public System.Collections.ObjectModel.ObservableCollection<ModelChoice> ConversationChoices { get; } = [];
     public System.Collections.ObjectModel.ObservableCollection<ModelChoice> AnalystChoices      { get; } = [];
@@ -317,14 +331,11 @@ public sealed class AgentSettingsViewModel : ReactiveObject
     {
         get
         {
-            var conversation = (SelectedConversationModel as ModelProfileVm)?.ToProfile().Label ?? "the first model";
+            var conversation = (SelectedConversationModel as ModelProfileVm)?.ToProfile().Label ?? SettingsText.RoleFirstModel;
             if (!IsSplit)
-                return $"{conversation} does everything: the conversation, the app's tools and every question about your data, with the whole prompt.";
+                return string.Format(SettingsText.RoleSummaryOne, conversation);
             var analyst = Models.FirstOrDefault(m => m.Id == _analystModelId)?.ToProfile().Label ?? "?";
-            return $"{conversation} talks with you and works the app, with a prompt about half the size and no access to your data. " +
-                   $"Before each message it is asked, in one word, whether the message needs your data; if it does, {analyst} answers it " +
-                   "instead, with the database and ESI. If a data question slips through, the conversation model hands it over itself. " +
-                   "Start a message with /data or /chat to send it one way or the other regardless.";
+            return string.Format(SettingsText.RoleSummarySplit, conversation, analyst);
         }
     }
 
@@ -384,10 +395,10 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         if (AgentService.BuildProvider(profile, keys) is not { } provider)
             return (false, profile.Provider switch
             {
-                _ when profile.ModelName.Length == 0 => "Choose a model first.",
-                AgentProviderType.Claude => "It needs the Claude key, above.",
-                AgentProviderType.OpenAI => "It needs the OpenAI key, above.",
-                _                        => "It needs the server's address.",
+                _ when profile.ModelName.Length == 0 => SettingsText.AgentTestChooseModel,
+                AgentProviderType.Claude => SettingsText.AgentTestNeedClaudeKey,
+                AgentProviderType.OpenAI => SettingsText.AgentTestNeedOpenAiKey,
+                _                        => SettingsText.AgentTestNeedAddress,
             });
 
         var telemetry = _service.Telemetry;
@@ -410,11 +421,11 @@ public sealed class AgentSettingsViewModel : ReactiveObject
             }
 
             var text = reply.ToString().Trim();
-            if (text.Length == 0) { failure = "no answer"; return (false, "It answered with nothing."); }
+            if (text.Length == 0) { failure = "no answer"; return (false, SettingsText.AgentTestNoAnswer); }
             if (text.Length > 90) text = text[..90] + "…";
-            return (true, $"Answered in {(first ?? watch.Elapsed).TotalSeconds:0.0} s: \"{text}\"");
+            return (true, string.Format(SettingsText.AgentTestAnswered, (first ?? watch.Elapsed).TotalSeconds, text));
         }
-        catch (OperationCanceledException) { failure = "timed out"; return (false, "No answer within 90 seconds."); }
+        catch (OperationCanceledException) { failure = "timed out"; return (false, SettingsText.AgentTestTimedOut); }
         catch (Exception ex) { failure = ex.Message; return (false, ex.GetBaseException().Message); }
         finally { telemetry?.Complete(reply.Length, failure); }
     }
@@ -432,17 +443,24 @@ public sealed class AgentSettingsViewModel : ReactiveObject
     }
 
     // ── Claude prompt-cache lifetime ────────────────────────────────────────────
-    public IReadOnlyList<string> ClaudeCacheTtlOptions { get; } = ["5 minutes (default)", "1 hour"];
+    /// <summary>The cache lifetimes, by the value the settings keep ("5m", "1h"), with the words shown.</summary>
+    public IReadOnlyList<Choice<string>> ClaudeCacheTtlOptions { get; } =
+    [
+        new("5m", SettingsText.CacheTtl5Minutes),
+        new("1h", SettingsText.CacheTtl1Hour),
+    ];
 
     private string _claudeCacheTtl = "5m";
-    public string ClaudeCacheTtlOption
+    public Choice<string> ClaudeCacheTtlOption
     {
-        get => _claudeCacheTtl == "1h" ? ClaudeCacheTtlOptions[1] : ClaudeCacheTtlOptions[0];
+        get => ClaudeCacheTtlOptions.FirstOrDefault(o => o.Value == _claudeCacheTtl) ?? ClaudeCacheTtlOptions[0];
         set
         {
-            var ttl = value == ClaudeCacheTtlOptions[1] ? "1h" : "5m";
-            if (ttl == _claudeCacheTtl) return;
-            _claudeCacheTtl = ttl;
+            // A detaching ComboBox sets null; that is not a choice. (It used to be read as
+            // "not 1 hour" and quietly set the lifetime back to 5 minutes.)
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            if (value.Value == _claudeCacheTtl) return;
+            _claudeCacheTtl = value.Value;
             this.RaisePropertyChanged();
         }
     }
@@ -457,7 +475,7 @@ public sealed class AgentSettingsViewModel : ReactiveObject
             this.RaiseAndSetIfChanged(ref _openAiApiKey, value);
             if (_selectedModel?.Provider == AgentProviderType.OpenAI) _selectedModel.KeyChanged();
             if (_selectedVoice?.Provider == TtsProvider.OpenAi) _selectedVoice.KeyChanged();
-            if (_speechInputProvider == SpeechInputProvider.OpenAiWhisper) _relistTranscription.OnNext(System.Reactive.Unit.Default);
+            if (_speechInputProvider == SpeechInputKind.OpenAiWhisper) _relistTranscription.OnNext(System.Reactive.Unit.Default);
         }
     }
 
@@ -619,22 +637,31 @@ public sealed class AgentSettingsViewModel : ReactiveObject
     public ICommand DownloadKokoroModelCommand { get; }
 
     // ── Speech input (push-to-talk) ───────────────────────────────────────────
-    public IReadOnlyList<SpeechInputProvider> SpeechInputProviders { get; } =
-        Enum.GetValues<SpeechInputProvider>();
+    /// <summary>The speech-input providers, by the value the settings keep, with the words shown for
+    /// each (the list used to show the enum's own names).</summary>
+    public IReadOnlyList<Choice<SpeechInputKind>> SpeechInputProviders { get; } =
+    [
+        new(SpeechInputKind.None,          SettingsText.SpeechInputNone),
+        new(SpeechInputKind.OpenAiWhisper, SettingsText.SpeechInputOpenAiWhisper),
+        new(SpeechInputKind.LocalWhisper,  SettingsText.SpeechInputLocalWhisper),
+    ];
 
-    private SpeechInputProvider _speechInputProvider;
-    public SpeechInputProvider SpeechInputProvider
+    private SpeechInputKind _speechInputProvider;
+    public Choice<SpeechInputKind> SpeechInputProvider
     {
-        get => _speechInputProvider;
+        get => SpeechInputProviders.FirstOrDefault(o => o.Value == _speechInputProvider) ?? SpeechInputProviders[0];
         set
         {
-            this.RaiseAndSetIfChanged(ref _speechInputProvider, value);
+            // A detaching ComboBox sets null; that is not a choice.
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            _speechInputProvider = value.Value;
+            this.RaisePropertyChanged();
             this.RaisePropertyChanged(nameof(ShowLocalWhisperSettings));
             this.RaisePropertyChanged(nameof(ShowCloudWhisperSettings));
             this.RaisePropertyChanged(nameof(ShowMicrophoneSettings));
-            if (value != SpeechInputProvider.None && _microphoneDevices.Count == 0)
+            if (value.Value != SpeechInputKind.None && _microphoneDevices.Count == 0)
                 RefreshMicrophoneDevices();
-            if (value == SpeechInputProvider.OpenAiWhisper) _ = TranscriptionList.LoadAsync();
+            if (value.Value == SpeechInputKind.OpenAiWhisper) _ = TranscriptionList.LoadAsync();
         }
     }
 
@@ -673,14 +700,14 @@ public sealed class AgentSettingsViewModel : ReactiveObject
     {
         var key = _openAiApiKey.Trim();
         return key.Length == 0
-            ? ServiceListChoice.Source.Unavailable("Enter the OpenAI key above to choose from OpenAI's transcription models.", "none")
+            ? ServiceListChoice.Source.Unavailable(SettingsText.TranscriptionNeedOpenAiKey, "none")
             : new(null, $"openai-stt|{key.Length}:{key.GetHashCode()}",   // not the key itself
                   ct => EveConsole.Agent.Providers.OpenAiCompatibleProvider.ListOpenAiTranscriptionModelsAsync(key, ct));
     }
 
-    public bool ShowLocalWhisperSettings => _speechInputProvider == SpeechInputProvider.LocalWhisper;
-    public bool ShowCloudWhisperSettings => _speechInputProvider == SpeechInputProvider.OpenAiWhisper;
-    public bool ShowMicrophoneSettings   => _speechInputProvider != SpeechInputProvider.None;
+    public bool ShowLocalWhisperSettings => _speechInputProvider == SpeechInputKind.LocalWhisper;
+    public bool ShowCloudWhisperSettings => _speechInputProvider == SpeechInputKind.OpenAiWhisper;
+    public bool ShowMicrophoneSettings   => _speechInputProvider != SpeechInputKind.None;
 
     // ── Microphone device selection ────────────────────────────────────────────
     //
@@ -688,48 +715,64 @@ public sealed class AgentSettingsViewModel : ReactiveObject
     // default input", which the recorder has always supported as an empty name and which the
     // list never offered. Without it the tab pinned the capsuleer to whichever device happened
     // to be first the day they opened it, and a headset plugged in later was never heard.
-    public const string SystemDefaultMicrophone = "System default";
+    //
+    // ⚠️ Each entry is the name the recorder is given and the words shown for it: "" and
+    // "System default" for that first entry, a device's own name for the rest. The default is
+    // told apart by its empty name, never by the words, which are translated.
 
-    private IReadOnlyList<string> _microphoneDevices = [];
-    public IReadOnlyList<string> MicrophoneDevices
+    private IReadOnlyList<Choice<string>> _microphoneDevices = [];
+    public IReadOnlyList<Choice<string>> MicrophoneDevices
     {
         get => _microphoneDevices;
         private set => this.RaiseAndSetIfChanged(ref _microphoneDevices, value);
     }
 
-    private string? _selectedMicrophoneDevice;
-    public string? SelectedMicrophoneDevice
+    /// <summary>The device the recorder is given, as saved; empty for the system default.</summary>
+    private string _microphoneDevice = "";
+    public Choice<string>? SelectedMicrophoneDevice
     {
-        get => _selectedMicrophoneDevice;
-        set => this.RaiseAndSetIfChanged(ref _selectedMicrophoneDevice, value);
+        get => _microphoneDevices.FirstOrDefault(d => d.Value == _microphoneDevice);
+        set
+        {
+            // A detaching ComboBox sets null; that is not a choice.
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            _microphoneDevice = value.Value;
+            this.RaisePropertyChanged();
+        }
     }
 
     private void RefreshMicrophoneDevices()
     {
         var found   = _speech?.GetInputDeviceNames() ?? (IReadOnlyList<string>)[];
-        var devices = new List<string>(found.Count + 1) { SystemDefaultMicrophone };
-        devices.AddRange(found);
+        var devices = new List<Choice<string>>(found.Count + 1) { new("", SettingsText.MicSystemDefault) };
+        devices.AddRange(found.Select(name => new Choice<string>(name, name)));
         MicrophoneDevices = devices;
 
-        if (_selectedMicrophoneDevice is not null && devices.Contains(_selectedMicrophoneDevice))
-            return; // keep saved selection
-
-        // A saved device that is no longer present, or nothing saved at all: the system default,
-        // which is what the recorder falls back to anyway.
-        SelectedMicrophoneDevice = SystemDefaultMicrophone;
+        // A saved device that is no longer present: the system default, which is what the
+        // recorder falls back to anyway. One still present keeps its selection.
+        if (devices.All(d => d.Value != _microphoneDevice)) _microphoneDevice = "";
+        this.RaisePropertyChanged(nameof(SelectedMicrophoneDevice));
     }
 
     // ── Push-to-talk global key ────────────────────────────────────────────────
-    public IReadOnlyList<string> PushToTalkKeyNames { get; } =
-        GlobalHotkeyService.KeyOptions.Select(k => k.Name).ToList();
+    /// <summary>The keys offered, by the virtual-key code the settings keep (0 for none), with the
+    /// words shown for each. Chosen by the code, never by the name: "Disabled" is translated.</summary>
+    public IReadOnlyList<Choice<int>> PushToTalkKeyNames { get; } =
+        GlobalHotkeyService.KeyOptions.Select(k => new Choice<int>(k.WinVk, k.Name)).ToList();
 
-    private string _selectedPushToTalkKeyName =
-        GlobalHotkeyService.KeyOptions[0].Name; // "Disabled"
+    /// <summary>The Win32 virtual-key code, as saved; 0 = disabled.</summary>
+    private int _pushToTalkKey;
 
-    public string SelectedPushToTalkKeyName
+    public Choice<int> SelectedPushToTalkKeyName
     {
-        get => _selectedPushToTalkKeyName;
-        set => this.RaiseAndSetIfChanged(ref _selectedPushToTalkKeyName, value);
+        get => PushToTalkKeyNames.FirstOrDefault(k => k.Value == _pushToTalkKey) ?? PushToTalkKeyNames[0];
+        set
+        {
+            // A detaching ComboBox sets null; that is not a choice.
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            _pushToTalkKey = value.Value;
+            this.RaisePropertyChanged();
+        }
     }
 
     public ICommand RefreshMicDevicesCommand { get; }
@@ -754,16 +797,20 @@ public sealed class AgentSettingsViewModel : ReactiveObject
     /// <summary>Where the local model runs, once it has loaded.</summary>
     public string LocalWhisperRuntime => _speech?.LocalWhisper.LoadedRuntime ?? "";
 
-    public IReadOnlyList<string> LocalWhisperModelLabels =>
-        LocalWhisperService.Models.Select(m => m.Label).ToList();
+    /// <summary>The local models, by the id the settings keep, with the words shown for each —
+    /// chosen by the id, never by the words, which are translated.</summary>
+    public IReadOnlyList<Choice<string>> LocalWhisperModelLabels { get; } =
+        [.. LocalWhisperService.Models.Select(m => new Choice<string>(m.Id, m.Label))];
 
-    public string? SelectedWhisperModelLabel
+    public Choice<string>? SelectedWhisperModelLabel
     {
-        get => LocalWhisperService.Models.FirstOrDefault(m => m.Id == _whisperLocalModel).Label;
+        get => LocalWhisperModelLabels.FirstOrDefault(m => m.Value == _whisperLocalModel);
         set
         {
-            var match = LocalWhisperService.Models.FirstOrDefault(m => m.Label == value);
-            WhisperLocalModel = match.Id ?? _whisperLocalModel;
+            // A detaching ComboBox sets null; that is not a choice.
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            WhisperLocalModel = value.Value;
+            this.RaisePropertyChanged();
             this.RaisePropertyChanged(nameof(IsSelectedModelDownloaded));
         }
     }
@@ -822,8 +869,8 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         ResetHandOffWhenCommand    = ReactiveCommand.Create(() => { HandOffWhen = AgentSettings.DefaultHandOffWhen; });
         RefreshMicDevicesCommand  = ReactiveCommand.Create(RefreshMicrophoneDevices);
         TranscriptionList         = new ServiceListChoice(() => _transcriptionModel, id => TranscriptionModel = id, TranscriptionSource,
-            n => $"{n} transcription models your key can use, newest first.", () => "OpenAI lists no transcription models for this key.",
-            "models", "Type the model's name instead.", listed => AddListedRates(ListedRates.OpenAiTranscribe, listed));
+            n => string.Format(SettingsText.TranscriptionListFound, n), () => SettingsText.TranscriptionListEmpty,
+            ServiceListChoice.Holds.Models, SettingsText.TypeModelNameInstead, listed => AddListedRates(ListedRates.OpenAiTranscribe, listed));
         _relistTranscription.Throttle(TimeSpan.FromMilliseconds(700))
                             .ObserveOnUi("transcription list")
                             .Subscribe(settled => _ = TranscriptionList.LoadAsync());
@@ -837,7 +884,8 @@ public sealed class AgentSettingsViewModel : ReactiveObject
                 .Subscribe(s =>
                 {
                     AgentName    = string.IsNullOrWhiteSpace(s.AgentName) ? AgentSettings.DefaultAgentName : s.AgentName;
-                    Verbosity    = s.Verbosity;
+                    _verbosity   = s.Verbosity;
+                    this.RaisePropertyChanged(nameof(Verbosity));
                     UserGuidance = s.UserGuidance ?? "";
                     UserName     = string.IsNullOrWhiteSpace(s.UserName) ? AgentSettings.DefaultUserName : s.UserName;
                 });
@@ -898,13 +946,14 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         _speechInputProvider      = s.SpeechInputProvider;
         s.NormalizeTranscription();
         _transcriptionModel       = s.OpenAiTranscriptionModel ?? "";
-        if (_speechInputProvider == SpeechInputProvider.OpenAiWhisper) _ = TranscriptionList.LoadAsync();
+        if (_speechInputProvider == SpeechInputKind.OpenAiWhisper) _ = TranscriptionList.LoadAsync();
         _whisperLocalModel        = s.WhisperLocalModel;
         _whisperLanguage          = string.IsNullOrWhiteSpace(s.WhisperLanguage) ? "en" : s.WhisperLanguage;
-        _selectedMicrophoneDevice = string.IsNullOrEmpty(s.MicrophoneDeviceName) ? SystemDefaultMicrophone : s.MicrophoneDeviceName;
-        _selectedPushToTalkKeyName = GlobalHotkeyService.VkName(s.PushToTalkKey) ?? GlobalHotkeyService.KeyOptions[0].Name;
+        _microphoneDevice         = s.MicrophoneDeviceName ?? "";
+        // A key the list does not offer reads, and is saved, as none — as it always was.
+        _pushToTalkKey = GlobalHotkeyService.KeyOptions.Any(k => k.WinVk == s.PushToTalkKey) ? s.PushToTalkKey : 0;
 
-        if (s.SpeechInputProvider != SpeechInputProvider.None)
+        if (s.SpeechInputProvider != SpeechInputKind.None)
             RefreshMicrophoneDevices();
     }
 
@@ -962,9 +1011,8 @@ public sealed class AgentSettingsViewModel : ReactiveObject
             WhisperLanguage       = string.IsNullOrWhiteSpace(_whisperLanguage) ? "en" : _whisperLanguage.Trim(),
             OpenAiTranscriptionModel = (_transcriptionModel ?? "").Trim(),
             // The empty name is what the recorder reads as "the system default".
-            MicrophoneDeviceName  = _selectedMicrophoneDevice is null or SystemDefaultMicrophone ? "" : _selectedMicrophoneDevice,
-            PushToTalkKey         = GlobalHotkeyService.KeyOptions
-                .FirstOrDefault(k => k.Name == _selectedPushToTalkKeyName).WinVk,
+            MicrophoneDeviceName  = _microphoneDevice,
+            PushToTalkKey         = _pushToTalkKey,
         };
 
         // Configure speech and TTS FIRST so their IsAvailable/HasTts are already true
@@ -976,7 +1024,7 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         _tts?.Configure(settings);
         _service.Configure(settings);
 
-        SaveStatus = "Saved.";
+        SaveStatus = SettingsText.Saved;
     }
 
     /// <summary>
@@ -985,28 +1033,28 @@ public sealed class AgentSettingsViewModel : ReactiveObject
     /// </summary>
     public Task<VoiceTestResult> TestVoiceAsync(VoiceProfileVm voice)
     {
-        if (_tts is null) return Task.FromResult(new VoiceTestResult(false, "Speech is not available."));
+        if (_tts is null) return Task.FromResult(new VoiceTestResult(false, SettingsText.AgentSpeechUnavailable));
         var keys = new AgentSettings { OpenAiApiKey = _openAiApiKey.Trim(), ElevenLabsApiKey = _elevenLabsApiKey.Trim() };
-        return _tts.TestVoiceAsync(voice.ToProfile(), keys, $"{voice.SpokenName} voice test. Your AI companion is ready, Capsuleer.");
+        return _tts.TestVoiceAsync(voice.ToProfile(), keys, string.Format(SettingsText.VoiceTestSentence, voice.SpokenName));
     }
 
     private void DownloadKokoroModel()
     {
         if (IsDownloadingKokoroModel || _tts is null) return;
         IsDownloadingKokoroModel = true;
-        KokoroModelStatus = "Downloading/loading model (~320 MB on first run)…";
+        KokoroModelStatus = SettingsText.KokoroDownloading;
 
         _ = Task.Run(async () =>
         {
             try
             {
                 await _tts.Kokoro.LoadAsync(); // downloads the model into the data folder the first time
-                KokoroModelStatus = "Kokoro model ready.";
+                KokoroModelStatus = SettingsText.KokoroReady;
                 this.RaisePropertyChanged(nameof(IsKokoroModelDownloaded));
             }
             catch (Exception ex)
             {
-                KokoroModelStatus = $"Load failed: {ex.Message}";
+                KokoroModelStatus = string.Format(SettingsText.KokoroLoadFailed, ex.Message);
             }
             finally
             {
@@ -1022,7 +1070,7 @@ public sealed class AgentSettingsViewModel : ReactiveObject
 
         IsDownloadingModel    = true;
         ModelDownloadProgress = 0;
-        ModelDownloadStatus   = $"Downloading {model}…";
+        ModelDownloadStatus   = string.Format(SettingsText.WhisperDownloading, model);
 
         _ = Task.Run(async () =>
         {
@@ -1033,16 +1081,16 @@ public sealed class AgentSettingsViewModel : ReactiveObject
                     new Progress<double>(bytes =>
                     {
                         ModelDownloadProgress = bytes;
-                        ModelDownloadStatus   = $"Downloaded {bytes / 1_048_576.0:F1} MB…";
+                        ModelDownloadStatus   = string.Format(SettingsText.WhisperDownloaded, bytes / 1_048_576.0);
                     }),
                     CancellationToken.None);
 
-                ModelDownloadStatus = $"Model '{model}' ready.";
+                ModelDownloadStatus = string.Format(SettingsText.WhisperModelReady, model);
                 this.RaisePropertyChanged(nameof(IsSelectedModelDownloaded));
             }
             catch (Exception ex)
             {
-                ModelDownloadStatus = $"Download failed: {ex.Message}";
+                ModelDownloadStatus = string.Format(SettingsText.DownloadFailed, ex.Message);
             }
             finally
             {

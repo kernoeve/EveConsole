@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              x:Class="EveConsole.Views.StandingBuyOrdersView"
              x:DataType="vm:StandingBuyOrdersViewModel"
@@ -47,20 +48,20 @@
             BorderBrush="{DynamicResource SurfaceRaisedBrush}" BorderThickness="0 0 0 1">
       <StackPanel Spacing="7">
         <Grid ColumnDefinitions="*,Auto">
-          <TextBlock Text="Standing Buy Orders" FontSize="13" FontWeight="SemiBold"
+          <TextBlock Text="{x:Static loc:MarketText.StandingBuyOrders}" FontSize="13" FontWeight="SemiBold"
                      Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
           <TextBlock Grid.Column="1" Text="{Binding StatusText}" FontSize="11"
                      Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
         </Grid>
 
         <TextBlock FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
-                   Text="Buy orders you intend to keep standing at a station or structure. Each is matched against your characters' and corporations' live buy orders." />
+                   Text="{x:Static loc:MarketText.BuyOrdersYouIntendNote}" />
 
         <StackPanel Orientation="Horizontal" Spacing="8">
-          <Button Classes="tool" Content="Add"     Command="{Binding AddCommand}" />
-          <Button Classes="tool" Content="Edit"    Command="{Binding EditCommand}" />
-          <Button Classes="tool" Content="Delete"  Command="{Binding DeleteCommand}" />
-          <Button Classes="tool" Content="Refresh" Command="{Binding RefreshCommand}" />
+          <Button Classes="tool" Content="{x:Static loc:MarketText.Add}"     Command="{Binding AddCommand}" />
+          <Button Classes="tool" Content="{x:Static loc:MarketText.Edit}"    Command="{Binding EditCommand}" />
+          <Button Classes="tool" Content="{x:Static loc:MarketText.Delete}"  Command="{Binding DeleteCommand}" />
+          <Button Classes="tool" Content="{x:Static loc:MarketText.Refresh2}" Command="{Binding RefreshCommand}" />
         </StackPanel>
       </StackPanel>
     </Border>
@@ -70,7 +71,7 @@
               CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
               Background="{DynamicResource SurfaceBaseBrush}">
       <DataGrid.Columns>
-        <DataGridTemplateColumn Header="Status" Width="80" SortMemberPath="Status" ClipboardContentBinding="{Binding Status}">
+        <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColStatus}" Width="80" SortMemberPath="Status" ClipboardContentBinding="{Binding Status}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:StandingBuyOrderRowVm">
               <TextBlock Text="{Binding Status}" FontSize="11" FontWeight="SemiBold"
@@ -78,11 +79,11 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
-        <DataGridTemplateColumn Header="Item" SortMemberPath="TypeName" Width="220" ClipboardContentBinding="{Binding TypeName}">
+        <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColItem}" SortMemberPath="TypeName" Width="220" ClipboardContentBinding="{Binding TypeName}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:StandingBuyOrderRowVm">
               <Panel>
-                <Button Classes="link" Click="OnOpenRowItem" IsVisible="{Binding HasItemLink}" ToolTip.Tip="Open in the Item Browser">
+                <Button Classes="link" Click="OnOpenRowItem" IsVisible="{Binding HasItemLink}" ToolTip.Tip="{x:Static loc:MarketText.TipOpenInTheItemBrowser}">
                   <TextBlock Text="{Binding TypeName}" Classes="linktext"
                              VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                 </Button>
@@ -92,11 +93,11 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
-        <DataGridTemplateColumn Header="Location" SortMemberPath="LocationName" Width="*" ClipboardContentBinding="{Binding LocationName}">
+        <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColLocation}" SortMemberPath="LocationName" Width="*" ClipboardContentBinding="{Binding LocationName}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:StandingBuyOrderRowVm">
               <Panel>
-                <Button Classes="link" Click="OnOpenRowLocation" IsVisible="{Binding HasLocationLink}" ToolTip.Tip="Open this station or structure">
+                <Button Classes="link" Click="OnOpenRowLocation" IsVisible="{Binding HasLocationLink}" ToolTip.Tip="{x:Static loc:MarketText.TipOpenThisStationOrStructure}">
                   <TextBlock Text="{Binding LocationName}" Classes="linktext"
                              VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                 </Button>
@@ -106,14 +107,14 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
-        <DataGridTemplateColumn Header="Held by" Width="180" SortMemberPath="Owner" ClipboardContentBinding="{Binding Owner}">
+        <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColHeldBy}" Width="180" SortMemberPath="Owner" ClipboardContentBinding="{Binding Owner}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:StandingBuyOrderRowVm">
               <!-- Linked only where a single owner holds the order; an aggregated "3 owners" cell
                    names nobody to open, so it stays plain and keeps its breakdown tooltip. -->
               <Panel>
                 <Button Classes="link" Click="OnOpenRowOwner" IsVisible="{Binding HasOwnerLink}"
-                        ToolTip.Tip="Open in the entity browser">
+                        ToolTip.Tip="{x:Static loc:MarketText.TipOpenInTheEntityBrowser}">
                   <TextBlock Text="{Binding Owner}" Classes="linktext" FontSize="11"
                              Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" />
                 </Button>
@@ -125,7 +126,7 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
-        <DataGridTemplateColumn Header="Our bid" Width="150" SortMemberPath="Price" ClipboardContentBinding="{Binding Price}">
+        <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColOurBid}" Width="150" SortMemberPath="Price" ClipboardContentBinding="{Binding Price}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:StandingBuyOrderRowVm">
               <TextBlock Text="{Binding Price}" FontSize="11" Foreground="{Binding PriceColor}"
@@ -133,7 +134,7 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
-        <DataGridTemplateColumn Header="Station best bid" Width="150" SortMemberPath="StationBid" ClipboardContentBinding="{Binding StationBid}">
+        <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColStationBestBid}" Width="150" SortMemberPath="StationBid" ClipboardContentBinding="{Binding StationBid}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:StandingBuyOrderRowVm">
               <TextBlock Text="{Binding StationBid}" FontSize="11" Foreground="{Binding StationBidColor}"
@@ -141,9 +142,9 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
-        <DataGridTextColumn Header="Remaining"  Binding="{Binding Remaining}"    Width="150" />
+        <DataGridTextColumn Header="{x:Static loc:MarketText.ColRemaining}"  Binding="{Binding Remaining}"    Width="150" />
         <DataGridTextColumn Header="%"          Binding="{Binding RemainingPct}" Width="70"  />
-        <DataGridTemplateColumn Header="Expires" Width="180" SortMemberPath="Expiry" ClipboardContentBinding="{Binding Expiry}">
+        <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColExpires}" Width="180" SortMemberPath="Expiry" ClipboardContentBinding="{Binding Expiry}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate x:DataType="vm:StandingBuyOrderRowVm">
               <TextBlock Text="{Binding Expiry}" FontSize="11"
@@ -151,7 +152,7 @@
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
-        <DataGridTextColumn Header="Note"       Binding="{Binding Note}"         Width="320" />
+        <DataGridTextColumn Header="{x:Static loc:MarketText.ColNote}"       Binding="{Binding Note}"         Width="320" />
       </DataGrid.Columns>
     </DataGrid>
 

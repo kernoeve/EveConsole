@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              x:Class="EveConsole.Views.EsiExplorerView"
              x:DataType="vm:EsiExplorerViewModel"
@@ -11,7 +12,7 @@
     <Grid Grid.Column="0" RowDefinitions="Auto,*" Background="{DynamicResource SurfaceInputBrush}">
 
       <Border Grid.Row="0" Background="{DynamicResource SurfaceHeaderBrush}" Padding="10 8">
-        <TextBlock Text="ESI Tables"
+        <TextBlock Text="{x:Static loc:DataText.EsiTables}"
                    FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
       </Border>
 
@@ -69,7 +70,7 @@
                       Spacing="4"
                       Margin="8 0 0 0"
                       VerticalAlignment="Top">
-            <Button Content="Apply"
+            <Button Content="{x:Static loc:DataText.Apply}"
                     Click="OnApplyFilterClick"
                     HorizontalAlignment="Stretch"
                     Padding="12 3"
@@ -78,13 +79,13 @@
                     BorderThickness="1"
                     BorderBrush="{DynamicResource AccentSurfaceBrush}"
                     FontSize="11" />
-            <Button Content="Clear"
+            <Button Content="{x:Static loc:DataText.Clear}"
                     Click="OnClearFilterClick"
                     HorizontalAlignment="Stretch"
                     Padding="12 3"
                     FontSize="11" />
             <Button x:Name="AddFilterButton"
-                    Content="+ Filter"
+                    Content="{x:Static loc:DataText.Filter}"
                     Click="OnAddFilterClick"
                     HorizontalAlignment="Stretch"
                     Padding="12 3"
@@ -116,9 +117,9 @@
                   Padding="14 4"
                   Margin="8 0 0 0"
                   FontSize="11"
-                  ToolTip.Tip="Write every row that matches the filters, in this order, to a CSV file — all of them, not only the rows loaded here. Ctrl+C on selected rows copies them with a header row." />
+                  ToolTip.Tip="{x:Static loc:DataText.TipWriteEveryRowThat}" />
           <Button DockPanel.Dock="Right"
-                  Content="Load More"
+                  Content="{x:Static loc:DataText.LoadMore}"
                   IsVisible="{Binding HasMore}"
                   Click="OnLoadMoreClick"
                   Padding="14 4"

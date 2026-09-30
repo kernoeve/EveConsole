@@ -29,6 +29,16 @@ public class Store
     public int    PostingId     { get; set; }
 
     /// <summary>
+    /// The language the shop speaks to its buyers: its mail, and the item names on its web site.
+    /// A code from <c>Localization.Languages</c> ("de", "zh-Hans"), or empty for the app's own
+    /// interface language: the language of the client that serves the shop.
+    ///
+    /// <para>A seller may play in Russian and sell in English, or offer one price list twice, as
+    /// an English shop and a Russian one.</para>
+    /// </summary>
+    public string Language      { get; set; } = "";
+
+    /// <summary>
     /// Who may be served: "Anyone", or "List" to mean the entries in <see cref="StoreSender"/>.
     ///
     /// <para>⚠️ Defaults to List, which with no entries serves nobody. A shop that answered

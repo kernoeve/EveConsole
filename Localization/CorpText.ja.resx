@@ -1,0 +1,1774 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="CorporationLabel" xml:space="preserve">
+    <value>コーポレーション：</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>更新</value>
+  </data>
+  <data name="TabActivity24h" xml:space="preserve">
+    <value>活動（24時間）</value>
+  </data>
+  <data name="PlayersActiveLabel" xml:space="preserve">
+    <value>アクティブなプレイヤー：</value>
+  </data>
+  <data name="IncomeLabel" xml:space="preserve">
+    <value>収入：</value>
+  </data>
+  <data name="ExpensesLabel" xml:space="preserve">
+    <value>支出：</value>
+  </data>
+  <data name="RattingLabel" xml:space="preserve">
+    <value>ラッティング</value>
+  </data>
+  <data name="ColCharacter" xml:space="preserve">
+    <value>キャラクター</value>
+  </data>
+  <data name="TipOpenInTheEntityBrowser" xml:space="preserve">
+    <value>エンティティブラウザで開きます</value>
+  </data>
+  <data name="ColValue" xml:space="preserve">
+    <value>金額</value>
+  </data>
+  <data name="IndustryLabel" xml:space="preserve">
+    <value>インダストリー</value>
+  </data>
+  <data name="MiningLabel" xml:space="preserve">
+    <value>採掘</value>
+  </data>
+  <data name="RecentKillsLossesLabel" xml:space="preserve">
+    <value>最近のキルとロス</value>
+  </data>
+  <data name="TabMonthlyActivity" xml:space="preserve">
+    <value>月別の活動</value>
+  </data>
+  <data name="ColMonth" xml:space="preserve">
+    <value>月</value>
+  </data>
+  <data name="ColTotalIncome" xml:space="preserve">
+    <value>総収入</value>
+  </data>
+  <data name="ColTotalExpense" xml:space="preserve">
+    <value>総支出</value>
+  </data>
+  <data name="ColRattingTax" xml:space="preserve">
+    <value>ラッティング税</value>
+  </data>
+  <data name="ColIndustryTax" xml:space="preserve">
+    <value>インダストリータックス</value>
+  </data>
+  <data name="ColProjPayouts" xml:space="preserve">
+    <value>プロジェクト支払い</value>
+  </data>
+  <data name="ColMinedValue" xml:space="preserve">
+    <value>採掘額</value>
+  </data>
+  <data name="ColKills" xml:space="preserve">
+    <value>キル</value>
+  </data>
+  <data name="ColLosses" xml:space="preserve">
+    <value>ロス</value>
+  </data>
+  <data name="ColIskEff" xml:space="preserve">
+    <value>ISK効率</value>
+  </data>
+  <data name="ColPlayersActive" xml:space="preserve">
+    <value>アクティブなプレイヤー</value>
+  </data>
+  <data name="IskTrendsBillions" xml:space="preserve">
+    <value>ISKの推移（10億）</value>
+  </data>
+  <data name="KillsLossesIskEfficiencyRight" xml:space="preserve">
+    <value>キル・ロス（右軸：ISK効率）</value>
+  </data>
+  <data name="PlayersActiveLabel2" xml:space="preserve">
+    <value>アクティブなプレイヤー</value>
+  </data>
+  <data name="MiningReprocessedValue" xml:space="preserve">
+    <value>採掘（再処理価値）</value>
+  </data>
+  <data name="TabIncome" xml:space="preserve">
+    <value>収入</value>
+  </data>
+  <data name="IncomeByTypeLabel" xml:space="preserve">
+    <value>タイプ別の収入</value>
+  </data>
+  <data name="PeriodLabel" xml:space="preserve">
+    <value>期間：</value>
+  </data>
+  <data name="TabSummary" xml:space="preserve">
+    <value>概要</value>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>タイプ</value>
+  </data>
+  <data name="ColCount" xml:space="preserve">
+    <value>件数</value>
+  </data>
+  <data name="ColAmount" xml:space="preserve">
+    <value>金額</value>
+  </data>
+  <data name="TabDetail" xml:space="preserve">
+    <value>詳細</value>
+  </data>
+  <data name="TypeLabel" xml:space="preserve">
+    <value>タイプ</value>
+  </data>
+  <data name="NameLabel" xml:space="preserve">
+    <value>名前</value>
+  </data>
+  <data name="HintContains" xml:space="preserve">
+    <value>名前の一部…</value>
+  </data>
+  <data name="ColDateTime" xml:space="preserve">
+    <value>日時</value>
+  </data>
+  <data name="ColName" xml:space="preserve">
+    <value>名前</value>
+  </data>
+  <data name="ColReason" xml:space="preserve">
+    <value>理由</value>
+  </data>
+  <data name="TabExpense" xml:space="preserve">
+    <value>支出</value>
+  </data>
+  <data name="ExpensesByTypeLabel" xml:space="preserve">
+    <value>タイプ別の支出</value>
+  </data>
+  <data name="TabRattingTaxes" xml:space="preserve">
+    <value>ラッティング税</value>
+  </data>
+  <data name="RattingTaxLabel" xml:space="preserve">
+    <value>ラッティング税</value>
+  </data>
+  <data name="DailyRattingTaxLabel" xml:space="preserve">
+    <value>日別のラッティング税</value>
+  </data>
+  <data name="TabIndustryTaxes" xml:space="preserve">
+    <value>インダストリータックス</value>
+  </data>
+  <data name="IndustryTaxLabel" xml:space="preserve">
+    <value>インダストリータックス</value>
+  </data>
+  <data name="DailyIndustryTaxLabel" xml:space="preserve">
+    <value>日別のインダストリータックス</value>
+  </data>
+  <data name="TabDonations" xml:space="preserve">
+    <value>寄付</value>
+  </data>
+  <data name="DonationsLabel" xml:space="preserve">
+    <value>寄付</value>
+  </data>
+  <data name="ColDonated" xml:space="preserve">
+    <value>寄付額</value>
+  </data>
+  <data name="DailyDonationsLabel" xml:space="preserve">
+    <value>日別の寄付</value>
+  </data>
+  <data name="ColDonor" xml:space="preserve">
+    <value>寄付者</value>
+  </data>
+  <data name="TabMining" xml:space="preserve">
+    <value>採掘</value>
+  </data>
+  <data name="MiningLedgerLabel" xml:space="preserve">
+    <value>採掘台帳</value>
+  </data>
+  <data name="NoMiningDataForNote" xml:space="preserve">
+    <value>この期間の採掘データはありません。失敗した手順があれば、上のステータス行に表示されます。</value>
+  </data>
+  <data name="ColDate" xml:space="preserve">
+    <value>日付</value>
+  </data>
+  <data name="ColOreType" xml:space="preserve">
+    <value>鉱石の種類</value>
+  </data>
+  <data name="TipOpenInTheItemBrowser" xml:space="preserve">
+    <value>アイテムブラウザで開きます</value>
+  </data>
+  <data name="ColQuantity" xml:space="preserve">
+    <value>数量</value>
+  </data>
+  <data name="ColReprocessedValue" xml:space="preserve">
+    <value>再処理価値</value>
+  </data>
+  <data name="TabKillmails" xml:space="preserve">
+    <value>キルレポート</value>
+  </data>
+  <data name="KillmailsLabel" xml:space="preserve">
+    <value>キルレポート</value>
+  </data>
+  <data name="DailyKillsLossesLabel" xml:space="preserve">
+    <value>日別のキル・ロス</value>
+  </data>
+  <data name="TabProjects" xml:space="preserve">
+    <value>プロジェクト</value>
+  </data>
+  <data name="TabActive" xml:space="preserve">
+    <value>有効</value>
+  </data>
+  <data name="TotalRewardLabel" xml:space="preserve">
+    <value>報酬総額：</value>
+  </data>
+  <data name="RemainingLabel" xml:space="preserve">
+    <value>残り：</value>
+  </data>
+  <data name="NoActiveCorpProjects" xml:space="preserve">
+    <value>有効なコーポレーションプロジェクトはありません。</value>
+  </data>
+  <data name="ColCareer" xml:space="preserve">
+    <value>キャリア</value>
+  </data>
+  <data name="ColProgress" xml:space="preserve">
+    <value>進捗</value>
+  </data>
+  <data name="ColRemReward" xml:space="preserve">
+    <value>残り報酬</value>
+  </data>
+  <data name="ColCreator" xml:space="preserve">
+    <value>作成者</value>
+  </data>
+  <data name="ColCreated" xml:space="preserve">
+    <value>作成日</value>
+  </data>
+  <data name="TabHistory" xml:space="preserve">
+    <value>履歴</value>
+  </data>
+  <data name="NoProjectHistoryAvailable" xml:space="preserve">
+    <value>プロジェクトの履歴はありません。</value>
+  </data>
+  <data name="ColState" xml:space="preserve">
+    <value>状態</value>
+  </data>
+  <data name="ColCompleted" xml:space="preserve">
+    <value>完了日</value>
+  </data>
+  <data name="TabStandingProjects" xml:space="preserve">
+    <value>常設プロジェクト</value>
+  </data>
+  <data name="AddProject" xml:space="preserve">
+    <value>+ プロジェクトを追加</value>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>読み込み中…</value>
+  </data>
+  <data name="MenuCloneItem" xml:space="preserve">
+    <value>項目を複製</value>
+  </data>
+  <data name="MenuOpenItemInItemBrowser" xml:space="preserve">
+    <value>アイテムをアイテムブラウザで開く</value>
+  </data>
+  <data name="ColDescription" xml:space="preserve">
+    <value>説明</value>
+  </data>
+  <data name="ColLocation" xml:space="preserve">
+    <value>場所</value>
+  </data>
+  <data name="TipOpenThisStationOrStructure" xml:space="preserve">
+    <value>このステーションまたはストラクチャを開きます</value>
+  </data>
+  <data name="ColProjectStatus" xml:space="preserve">
+    <value>プロジェクトのステータス</value>
+  </data>
+  <data name="ColRemaining" xml:space="preserve">
+    <value>残り</value>
+  </data>
+  <data name="ColRem" xml:space="preserve">
+    <value>残り%</value>
+  </data>
+  <data name="ColPayout" xml:space="preserve">
+    <value>支払額</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>編集</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>削除</value>
+  </data>
+  <data name="NoStandingProjectsDefinedNote" xml:space="preserve">
+    <value>常設プロジェクトが定義されていません。「+ プロジェクトを追加」をクリックして作成してください。</value>
+  </data>
+  <data name="SelectAProjectAboveNote" xml:space="preserve">
+    <value>上でプロジェクトを選択すると、詳細が表示されます。</value>
+  </data>
+  <data name="TabDetails" xml:space="preserve">
+    <value>詳細</value>
+  </data>
+  <data name="ConfigurationLabel" xml:space="preserve">
+    <value>設定</value>
+  </data>
+  <data name="TabContributors" xml:space="preserve">
+    <value>貢献者</value>
+  </data>
+  <data name="ColContributed" xml:space="preserve">
+    <value>貢献量</value>
+  </data>
+  <data name="ColOfTarget" xml:space="preserve">
+    <value>目標に対する%</value>
+  </data>
+  <data name="TabTop10Lists" xml:space="preserve">
+    <value>トップ10リスト</value>
+  </data>
+  <data name="Top10ByMonthLabel" xml:space="preserve">
+    <value>月別トップ10</value>
+  </data>
+  <data name="MonthLabel" xml:space="preserve">
+    <value>月：</value>
+  </data>
+  <data name="YearLabel" xml:space="preserve">
+    <value>年：</value>
+  </data>
+  <data name="Loading2" xml:space="preserve">
+    <value>読み込み中…</value>
+  </data>
+  <data name="TipFormatUsedForExport" xml:space="preserve">
+    <value>「クリップボードにエクスポート」と「Slackに投稿」で使う形式です</value>
+  </data>
+  <data name="ExportToClipboard" xml:space="preserve">
+    <value>クリップボードにエクスポート</value>
+  </data>
+  <data name="ExportNoIsk" xml:space="preserve">
+    <value>エクスポート（ISKなし）</value>
+  </data>
+  <data name="PostToSlack" xml:space="preserve">
+    <value>Slackに投稿</value>
+  </data>
+  <data name="MiningUnitsMinedLabel" xml:space="preserve">
+    <value>採掘 — 採掘量</value>
+  </data>
+  <data name="KillsLabel" xml:space="preserve">
+    <value>キル</value>
+  </data>
+  <data name="ProjectContributorsLabel" xml:space="preserve">
+    <value>プロジェクトの貢献者</value>
+  </data>
+  <data name="TabMonthlySummary" xml:space="preserve">
+    <value>月次概要</value>
+  </data>
+  <data name="MonthlySummaryLabel" xml:space="preserve">
+    <value>月次概要</value>
+  </data>
+  <data name="ThisMonth" xml:space="preserve">
+    <value>今月</value>
+  </data>
+  <data name="Change" xml:space="preserve">
+    <value>変化</value>
+  </data>
+  <data name="TipChangeVsThePreviousMonth" xml:space="preserve">
+    <value>前月からの変化</value>
+  </data>
+  <data name="TipPercentChangeVsThePrevious" xml:space="preserve">
+    <value>前月からの変化率</value>
+  </data>
+  <data name="FmtRows" xml:space="preserve">
+    <value>{0:N0}行</value>
+  </data>
+  <data name="TitleCorpActivity" xml:space="preserve">
+    <value>コーポの活動</value>
+  </data>
+  <data name="HintTypeAtLeastTwo" xml:space="preserve">
+    <value>2文字以上入力して検索…</value>
+  </data>
+  <data name="SearchAboveAndPickNote" xml:space="preserve">
+    <value>上で検索してエンティティを選ぶと、その詳細が表示されます。</value>
+  </data>
+  <data name="TabDescription" xml:space="preserve">
+    <value>説明</value>
+  </data>
+  <data name="TabKillsLosses" xml:space="preserve">
+    <value>キル・ロス</value>
+  </data>
+  <data name="KillsLoadMore" xml:space="preserve">
+    <value>zKillboardからさらに200件読み込む</value>
+  </data>
+  <data name="KillsTryAgain" xml:space="preserve">
+    <value>zKillboardからもう一度読み込む</value>
+  </data>
+  <data name="KillsAsking" xml:space="preserve">
+    <value>ここに保存されていないキルをzKillboardに問い合わせ中…</value>
+  </data>
+  <data name="KillsLoadingPage" xml:space="preserve">
+    <value>{0:N0}件を表示中 — zKillboardから{1}ページ目を読み込んでいます。最近提供されていないページは、1分ほどかかることがあります。</value>
+  </data>
+  <data name="KillsProblemStoredOnly" xml:space="preserve">
+    <value>{0}ため、表示しているのはここに保存されているキルだけです。</value>
+  </data>
+  <data name="KillsProblemPage" xml:space="preserve">
+    <value>{0}ため、{2}ページ目は読み込まれていません（{1:N0}件を表示中）。</value>
+  </data>
+  <data name="KillsNoneAnywhere" xml:space="preserve">
+    <value>このエンティティのキルレポートは、ここにもzKillboardにもありません。</value>
+  </data>
+  <data name="KillsStoredNoneOnZkb" xml:space="preserve">
+    <value>ここに{0:N0}件保存されていますが、zKillboardにはこのエンティティのものは1件もありません。</value>
+  </data>
+  <data name="KillsEverything" xml:space="preserve">
+    <value>キル・ロス{0:N0}件 — zKillboardにあるものはこれですべてです。</value>
+  </data>
+  <data name="KillsBackTo" xml:space="preserve">
+    <value>{1:yyyy-MM-dd HH:mm}以降のキル・ロス{0:N0}件 — zKillboardから漏れなく補完しました（ここに保存されていなかった{2:N0}件を取得）。</value>
+  </data>
+  <data name="KillsPageLimit" xml:space="preserve">
+    <value>zKillboardが提供するのはここまでです：ページの上限は{0}です。</value>
+  </data>
+  <data name="KillsPageFailed" xml:space="preserve">
+    <value>zKillboardのページの読み込みに失敗しました：{0}</value>
+  </data>
+  <data name="ZkbStatsLoading" xml:space="preserve">
+    <value>zKillboardの統計を読み込み中…</value>
+  </data>
+  <data name="ZkbStatsProblem" xml:space="preserve">
+    <value>{0}ため、表示できる統計はありません。</value>
+  </data>
+  <data name="ZkbStatsNone" xml:space="preserve">
+    <value>zKillboardにはこのエンティティのキルもロスもありません。</value>
+  </data>
+  <data name="ZkbStatsFailed" xml:space="preserve">
+    <value>zKillboardの統計の読み込みに失敗しました：{0}</value>
+  </data>
+  <data name="ZkbAllTime" xml:space="preserve">
+    <value>全期間</value>
+  </data>
+  <data name="ZkbDays90" xml:space="preserve">
+    <value>90日</value>
+  </data>
+  <data name="ZkbDays7" xml:space="preserve">
+    <value>7日</value>
+  </data>
+  <data name="ZkbDestroyed" xml:space="preserve">
+    <value>破壊</value>
+  </data>
+  <data name="ZkbLost" xml:space="preserve">
+    <value>損失</value>
+  </data>
+  <data name="ZkbRank" xml:space="preserve">
+    <value>順位</value>
+  </data>
+  <data name="ZkbEfficiency" xml:space="preserve">
+    <value>効率</value>
+  </data>
+  <data name="ZkbShips" xml:space="preserve">
+    <value>艦船</value>
+  </data>
+  <data name="ZkbPoints" xml:space="preserve">
+    <value>ポイント</value>
+  </data>
+  <data name="ZkbIsk" xml:space="preserve">
+    <value>ISK</value>
+  </data>
+  <data name="ZkbRankOverall" xml:space="preserve">
+    <value>総合{0:N0}位</value>
+  </data>
+  <data name="ZkbDangerous" xml:space="preserve">
+    <value>危険度{0}%</value>
+  </data>
+  <data name="ZkbSnuggly" xml:space="preserve">
+    <value>ほのぼの度{0}%</value>
+  </data>
+  <data name="ZkbGang" xml:space="preserve">
+    <value>集団{0}%</value>
+  </data>
+  <data name="ZkbSolo" xml:space="preserve">
+    <value>ソロ{0}%</value>
+  </data>
+  <data name="ZkbAverageGang" xml:space="preserve">
+    <value>平均集団規模{0:0.#}人</value>
+  </data>
+  <data name="ZkbSoloKillsOther" xml:space="preserve">
+    <value>ソロキル{0:N0}件</value>
+  </data>
+  <data name="ZkbSoloLossesOther" xml:space="preserve">
+    <value>ソロロス{0:N0}件</value>
+  </data>
+  <data name="ZkbNone90" xml:space="preserve">
+    <value>過去90日間にキルもロスもありません。</value>
+  </data>
+  <data name="ZkbNone7" xml:space="preserve">
+    <value>過去7日間にキルもロスもありません。</value>
+  </data>
+  <data name="ZkbNoneAllTime" xml:space="preserve">
+    <value>zKillboardにはキルもロスもありません。</value>
+  </data>
+  <data name="ColName2" xml:space="preserve">
+    <value>名前</value>
+  </data>
+  <data name="ColDetails" xml:space="preserve">
+    <value>詳細</value>
+  </data>
+  <data name="ColLvl" xml:space="preserve">
+    <value>Lv</value>
+  </data>
+  <data name="ColDivision" xml:space="preserve">
+    <value>部門</value>
+  </data>
+  <data name="ColStation" xml:space="preserve">
+    <value>ステーション</value>
+  </data>
+  <data name="TipOpenInTheStationsTab" xml:space="preserve">
+    <value>「ステーション」タブで開きます</value>
+  </data>
+  <data name="ColFrom" xml:space="preserve">
+    <value>開始日</value>
+  </data>
+  <data name="ColUntil" xml:space="preserve">
+    <value>終了日</value>
+  </data>
+  <data name="ColDuration" xml:space="preserve">
+    <value>期間</value>
+  </data>
+  <data name="TabStations" xml:space="preserve">
+    <value>ステーション</value>
+  </data>
+  <data name="ColSystem" xml:space="preserve">
+    <value>システム</value>
+  </data>
+  <data name="ColRegion" xml:space="preserve">
+    <value>リージョン</value>
+  </data>
+  <data name="ColSec" xml:space="preserve">
+    <value>Sec</value>
+  </data>
+  <data name="ColAgents" xml:space="preserve">
+    <value>エージェント</value>
+  </data>
+  <data name="TabOrders" xml:space="preserve">
+    <value>注文</value>
+  </data>
+  <data name="Sells" xml:space="preserve">
+    <value>売り</value>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>アイテム</value>
+  </data>
+  <data name="TipOpenInItemBrowser" xml:space="preserve">
+    <value>アイテムブラウザで開きます</value>
+  </data>
+  <data name="ColLowPrice" xml:space="preserve">
+    <value>最低価格</value>
+  </data>
+  <data name="ColHighPrice" xml:space="preserve">
+    <value>最高価格</value>
+  </data>
+  <data name="Buys" xml:space="preserve">
+    <value>買い</value>
+  </data>
+  <data name="TabLpOffers" xml:space="preserve">
+    <value>LPオファー</value>
+  </data>
+  <data name="ColQty" xml:space="preserve">
+    <value>数量</value>
+  </data>
+  <data name="ColRequires" xml:space="preserve">
+    <value>必要なアイテム</value>
+  </data>
+  <data name="TabFactionWarfare" xml:space="preserve">
+    <value>国家間戦争</value>
+  </data>
+  <data name="ColRole" xml:space="preserve">
+    <value>役割</value>
+  </data>
+  <data name="ColOwner" xml:space="preserve">
+    <value>所有者</value>
+  </data>
+  <data name="ColHeldBy" xml:space="preserve">
+    <value>占領者</value>
+  </data>
+  <data name="FwRoleOwner" xml:space="preserve">
+    <value>所有者</value>
+  </data>
+  <data name="FwRoleOccupier" xml:space="preserve">
+    <value>占領者</value>
+  </data>
+  <data name="ColContested" xml:space="preserve">
+    <value>紛争度</value>
+  </data>
+  <data name="ColPoints" xml:space="preserve">
+    <value>ポイント</value>
+  </data>
+  <data name="ColThreshold" xml:space="preserve">
+    <value>しきい値</value>
+  </data>
+  <data name="TabIntelReports" xml:space="preserve">
+    <value>インテル報告</value>
+  </data>
+  <data name="ColWhen" xml:space="preserve">
+    <value>日時</value>
+  </data>
+  <data name="ColShip" xml:space="preserve">
+    <value>艦船</value>
+  </data>
+  <data name="ColChannel" xml:space="preserve">
+    <value>チャンネル</value>
+  </data>
+  <data name="ColReporter" xml:space="preserve">
+    <value>報告者</value>
+  </data>
+  <data name="HintCharacter" xml:space="preserve">
+    <value>キャラクター…</value>
+  </data>
+  <data name="HintCorp" xml:space="preserve">
+    <value>コーポレーション…</value>
+  </data>
+  <data name="FromLabel" xml:space="preserve">
+    <value>開始：</value>
+  </data>
+  <data name="ThruLabel" xml:space="preserve">
+    <value>終了：</value>
+  </data>
+  <data name="HintShip" xml:space="preserve">
+    <value>艦船…</value>
+  </data>
+  <data name="HintSystemRegion" xml:space="preserve">
+    <value>システム・リージョン…</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>クリア</value>
+  </data>
+  <data name="LoadMore" xml:space="preserve">
+    <value>さらに読み込む</value>
+  </data>
+  <data name="SelectAKillmailToView" xml:space="preserve">
+    <value>キルレポートを選択すると、詳細が表示されます。</value>
+  </data>
+  <data name="TipOpenOnTheUniverseMap" xml:space="preserve">
+    <value>宇宙マップで開きます</value>
+  </data>
+  <data name="DestroyedLabel" xml:space="preserve">
+    <value>破壊</value>
+  </data>
+  <data name="DroppedLabel" xml:space="preserve">
+    <value>ドロップ</value>
+  </data>
+  <data name="TotalLabel" xml:space="preserve">
+    <value>合計</value>
+  </data>
+  <data name="AttackersLabel" xml:space="preserve">
+    <value>攻撃者</value>
+  </data>
+  <data name="TitleKillmails" xml:space="preserve">
+    <value>キルレポート</value>
+  </data>
+  <data name="TabAgents" xml:space="preserve">
+    <value>エージェント</value>
+  </data>
+  <data name="TabCorporations" xml:space="preserve">
+    <value>コーポレーション</value>
+  </data>
+  <data name="TabFactions" xml:space="preserve">
+    <value>勢力</value>
+  </data>
+  <data name="TabPilots" xml:space="preserve">
+    <value>パイロット</value>
+  </data>
+  <data name="TabAlliances" xml:space="preserve">
+    <value>アライアンス</value>
+  </data>
+  <data name="TitleStandingProject" xml:space="preserve">
+    <value>常設プロジェクト</value>
+  </data>
+  <data name="ProjectTypeLabel" xml:space="preserve">
+    <value>プロジェクトの種類</value>
+  </data>
+  <data name="DeliverItem" xml:space="preserve">
+    <value>アイテム配送</value>
+  </data>
+  <data name="DestroyNpc" xml:space="preserve">
+    <value>NPC撃墜</value>
+  </data>
+  <data name="ItemTypeLabel" xml:space="preserve">
+    <value>アイテムタイプ</value>
+  </data>
+  <data name="HintSearchForItemType" xml:space="preserve">
+    <value>アイテムタイプを検索…</value>
+  </data>
+  <data name="DestinationStationStructureLabel" xml:space="preserve">
+    <value>届け先のステーション・ストラクチャ</value>
+  </data>
+  <data name="HintSearchForStationOrStructure" xml:space="preserve">
+    <value>ステーションまたはストラクチャを検索…</value>
+  </data>
+  <data name="ScopeLabel" xml:space="preserve">
+    <value>対象範囲</value>
+  </data>
+  <data name="SpecificSystem" xml:space="preserve">
+    <value>特定のシステム</value>
+  </data>
+  <data name="AllSystemsInA" xml:space="preserve">
+    <value>最低ADMを下回るリージョン内の全システム</value>
+  </data>
+  <data name="AllSystemsInA2" xml:space="preserve">
+    <value>最低ADMを下回るコンステレーション内の全システム</value>
+  </data>
+  <data name="AllSystemsWhereAn" xml:space="preserve">
+    <value>アライアンスが領有権を持つ全システム</value>
+  </data>
+  <data name="SolarSystemLabel" xml:space="preserve">
+    <value>ソーラーシステム</value>
+  </data>
+  <data name="HintSearchForSolarSystem" xml:space="preserve">
+    <value>ソーラーシステムを検索…</value>
+  </data>
+  <data name="RegionLabel" xml:space="preserve">
+    <value>リージョン</value>
+  </data>
+  <data name="HintSearchForRegion" xml:space="preserve">
+    <value>リージョンを検索…</value>
+  </data>
+  <data name="MinAdmLabel" xml:space="preserve">
+    <value>最低ADM：</value>
+  </data>
+  <data name="ConstellationLabel" xml:space="preserve">
+    <value>コンステレーション</value>
+  </data>
+  <data name="HintSearchForConstellation" xml:space="preserve">
+    <value>コンステレーションを検索…</value>
+  </data>
+  <data name="AllianceLabel" xml:space="preserve">
+    <value>アライアンス</value>
+  </data>
+  <data name="NoAllianceFoundOnNote" xml:space="preserve">
+    <value>追跡中のキャラクターにアライアンスが見つかりません。</value>
+  </data>
+  <data name="EverySystemThisAllianceNote" xml:space="preserve">
+    <value>このアライアンスが保有するシステムのうち、場所を問わずADMを下回るすべてのシステムです。グリッドを作成するたびに領有権マップから読み直します。</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>キャンセル</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="StatusNoSystemsBelowMinAdm" xml:space="preserve">
+    <value>最低ADMを下回るシステムはありません</value>
+  </data>
+  <data name="StatusScopeNoSystems" xml:space="preserve">
+    <value>対象範囲にシステムがありません</value>
+  </data>
+  <data name="StatusSovUnavailableNote" xml:space="preserve">
+    <value>領有権データを取得できません — {0}</value>
+  </data>
+  <data name="StatusSovUnavailable" xml:space="preserve">
+    <value>領有権データを取得できません</value>
+  </data>
+  <data name="StatusOfficeUnavailableNote" xml:space="preserve">
+    <value>オフィスの場所が不明です — {0}</value>
+  </data>
+  <data name="StatusOfficeUnavailableLoading" xml:space="preserve">
+    <value>オフィスの場所が不明です — 資産データを読み込み中</value>
+  </data>
+  <data name="StatusProjectNotActive" xml:space="preserve">
+    <value>プロジェクトが有効ではありません</value>
+  </data>
+  <data name="StatusSelectCorp" xml:space="preserve">
+    <value>上でコーポレーションを選択すると、データを読み込みます。</value>
+  </data>
+  <data name="PeriodLast30Days" xml:space="preserve">
+    <value>過去30日間</value>
+  </data>
+  <data name="PeriodLast60Days" xml:space="preserve">
+    <value>過去60日間</value>
+  </data>
+  <data name="PeriodLast90Days" xml:space="preserve">
+    <value>過去90日間</value>
+  </data>
+  <data name="PeriodLast6Months" xml:space="preserve">
+    <value>過去6か月間</value>
+  </data>
+  <data name="PeriodLastYear" xml:space="preserve">
+    <value>過去1年間</value>
+  </data>
+  <data name="PeriodLast7Days" xml:space="preserve">
+    <value>過去7日間</value>
+  </data>
+  <data name="StatusFilterFailed" xml:space="preserve">
+    <value>フィルターに失敗しました：{0}</value>
+  </data>
+  <data name="FormatPlainText" xml:space="preserve">
+    <value>プレーンテキスト</value>
+  </data>
+  <data name="FormatEveMail" xml:space="preserve">
+    <value>EVEメール</value>
+  </data>
+  <data name="StepMining" xml:space="preserve">
+    <value>採掘</value>
+  </data>
+  <data name="StepRatting" xml:space="preserve">
+    <value>ラッティング</value>
+  </data>
+  <data name="StepIndustry" xml:space="preserve">
+    <value>インダストリー</value>
+  </data>
+  <data name="StepDonations" xml:space="preserve">
+    <value>寄付</value>
+  </data>
+  <data name="StepKills" xml:space="preserve">
+    <value>キル</value>
+  </data>
+  <data name="StepIncome" xml:space="preserve">
+    <value>収入</value>
+  </data>
+  <data name="StepExpense" xml:space="preserve">
+    <value>支出</value>
+  </data>
+  <data name="StepWallet" xml:space="preserve">
+    <value>ウォレット</value>
+  </data>
+  <data name="StepDailyChart" xml:space="preserve">
+    <value>日別グラフ</value>
+  </data>
+  <data name="StepMonthlyActivity" xml:space="preserve">
+    <value>月別の活動</value>
+  </data>
+  <data name="StepProjects" xml:space="preserve">
+    <value>プロジェクト</value>
+  </data>
+  <data name="StepTop10" xml:space="preserve">
+    <value>トップ10</value>
+  </data>
+  <data name="StepMonthlySummary" xml:space="preserve">
+    <value>月次概要</value>
+  </data>
+  <data name="StepIncomeByType" xml:space="preserve">
+    <value>タイプ別の収入</value>
+  </data>
+  <data name="StepExpenseByType" xml:space="preserve">
+    <value>タイプ別の支出</value>
+  </data>
+  <data name="Step24hActivity" xml:space="preserve">
+    <value>24時間の活動</value>
+  </data>
+  <data name="StatusLoadingStep" xml:space="preserve">
+    <value>{0}を読み込み中…</value>
+  </data>
+  <data name="StatusStepFailed" xml:space="preserve">
+    <value>警告：{0}に失敗しました — {1}</value>
+  </data>
+  <data name="StatusLoaded" xml:space="preserve">
+    <value>読み込み完了 — {0}</value>
+  </data>
+  <data name="StatusLoadedWithFailures" xml:space="preserve">
+    <value>読み込み完了 — {0}。ただし{1}に失敗しました。理由はエラーログを参照してください。</value>
+  </data>
+  <data name="StatusRefreshingStep" xml:space="preserve">
+    <value>{0}を更新中…</value>
+  </data>
+  <data name="StatusReady" xml:space="preserve">
+    <value>準備完了</value>
+  </data>
+  <data name="StatusStepReloadFailed" xml:space="preserve">
+    <value>警告：{0}の再読み込みに失敗しました — {1}</value>
+  </data>
+  <data name="SlackViaWebhook" xml:space="preserve">
+    <value>Webhook経由</value>
+  </data>
+  <data name="SlackNoDestination" xml:space="preserve">
+    <value>SlackのチャンネルもWebhookも設定されていません。</value>
+  </data>
+  <data name="Top10AlreadyPosted" xml:space="preserve">
+    <value>このトップ10リストは{0}にすでにSlackへ投稿されています。</value>
+  </data>
+  <data name="PostItAgain" xml:space="preserve">
+    <value>もう一度投稿しますか？</value>
+  </data>
+  <data name="SlackPostCancelled" xml:space="preserve">
+    <value>投稿をキャンセルしました。</value>
+  </data>
+  <data name="SlackPosting" xml:space="preserve">
+    <value>Slackに投稿中…</value>
+  </data>
+  <data name="SlackPosted" xml:space="preserve">
+    <value>{0}に投稿しました — {1:t}</value>
+  </data>
+  <data name="SlackPostFailed" xml:space="preserve">
+    <value>Slackへの投稿に失敗しました：{0}</value>
+  </data>
+  <data name="SlackPostedPartly" xml:space="preserve">
+    <value>{2}に{1}件中{0}件のメッセージを投稿しました。Slackが次のメッセージを拒否しました：{3}</value>
+  </data>
+  <data name="SummaryAlreadyPosted" xml:space="preserve">
+    <value>この月次概要は{0}にすでにSlackへ投稿されています。</value>
+  </data>
+  <data name="Top10ExportHeader" xml:space="preserve">
+    <value>トップ10 — {1}年{0}</value>
+  </data>
+  <data name="Top10ExportHeaderCorp" xml:space="preserve">
+    <value>{0} — トップ10 — {2}年{1}</value>
+  </data>
+  <data name="StepTop10Ratters" xml:space="preserve">
+    <value>トップ10（ラッティング）</value>
+  </data>
+  <data name="StepTop10Industry" xml:space="preserve">
+    <value>トップ10（インダストリー）</value>
+  </data>
+  <data name="StepTop10Killers" xml:space="preserve">
+    <value>トップ10（キル）</value>
+  </data>
+  <data name="StepTop10Miners" xml:space="preserve">
+    <value>トップ10（採掘）</value>
+  </data>
+  <data name="StepTop10Contributors" xml:space="preserve">
+    <value>トップ10（貢献者）</value>
+  </data>
+  <data name="AllTypes" xml:space="preserve">
+    <value>すべてのタイプ</value>
+  </data>
+  <data name="SeriesAmount" xml:space="preserve">
+    <value>金額</value>
+  </data>
+  <data name="Step24hSummary" xml:space="preserve">
+    <value>24時間の概要</value>
+  </data>
+  <data name="Step24hRatters" xml:space="preserve">
+    <value>24時間のラッティング</value>
+  </data>
+  <data name="Step24hIndustry" xml:space="preserve">
+    <value>24時間のインダストリー</value>
+  </data>
+  <data name="Step24hMiners" xml:space="preserve">
+    <value>24時間の採掘</value>
+  </data>
+  <data name="Step24hKills" xml:space="preserve">
+    <value>24時間のキル</value>
+  </data>
+  <data name="SeriesTotal" xml:space="preserve">
+    <value>合計</value>
+  </data>
+  <data name="FallbackCharacterName" xml:space="preserve">
+    <value>キャラクター{0}</value>
+  </data>
+  <data name="SeriesKills" xml:space="preserve">
+    <value>キル</value>
+  </data>
+  <data name="SeriesLosses" xml:space="preserve">
+    <value>ロス</value>
+  </data>
+  <data name="FieldName" xml:space="preserve">
+    <value>名前</value>
+  </data>
+  <data name="FieldState" xml:space="preserve">
+    <value>状態</value>
+  </data>
+  <data name="FieldType" xml:space="preserve">
+    <value>タイプ</value>
+  </data>
+  <data name="FieldCareer" xml:space="preserve">
+    <value>キャリア</value>
+  </data>
+  <data name="FieldCreated" xml:space="preserve">
+    <value>作成日時</value>
+  </data>
+  <data name="FieldLastModified" xml:space="preserve">
+    <value>最終更新</value>
+  </data>
+  <data name="FieldCreator" xml:space="preserve">
+    <value>作成者</value>
+  </data>
+  <data name="FieldProgress" xml:space="preserve">
+    <value>進捗</value>
+  </data>
+  <data name="FieldTotalReward" xml:space="preserve">
+    <value>報酬総額</value>
+  </data>
+  <data name="FieldRemainingReward" xml:space="preserve">
+    <value>残り報酬</value>
+  </data>
+  <data name="FieldDescription" xml:space="preserve">
+    <value>説明</value>
+  </data>
+  <data name="ProjectTypeCaptureFwComplex" xml:space="preserve">
+    <value>国家間戦争の複合施設を占領</value>
+  </data>
+  <data name="ProjectTypeDamageShip" xml:space="preserve">
+    <value>艦船にダメージを与える</value>
+  </data>
+  <data name="ProjectTypeDefendFwComplex" xml:space="preserve">
+    <value>国家間戦争の複合施設を防衛</value>
+  </data>
+  <data name="ProjectTypeDestroyNonCapsuleers" xml:space="preserve">
+    <value>非カプセラの撃破</value>
+  </data>
+  <data name="ProjectTypeDestroyShip" xml:space="preserve">
+    <value>カプセラの艦船を撃墜</value>
+  </data>
+  <data name="ProjectTypeEarnLoyaltyPoints" xml:space="preserve">
+    <value>ロイヤルティポイントの獲得</value>
+  </data>
+  <data name="ProjectTypeLoseShip" xml:space="preserve">
+    <value>艦船の喪失</value>
+  </data>
+  <data name="ProjectTypeManual" xml:space="preserve">
+    <value>手動</value>
+  </data>
+  <data name="ProjectTypeManufactureItem" xml:space="preserve">
+    <value>アイテムの製造</value>
+  </data>
+  <data name="ProjectTypeMineMaterial" xml:space="preserve">
+    <value>鉱物採掘</value>
+  </data>
+  <data name="ProjectTypeRemoteBoostShield" xml:space="preserve">
+    <value>シールドをリモートブースト</value>
+  </data>
+  <data name="ProjectTypeRemoteRepairArmor" xml:space="preserve">
+    <value>アーマーをリモートリペア</value>
+  </data>
+  <data name="ProjectTypeSalvageWreck" xml:space="preserve">
+    <value>残骸のサルベージ</value>
+  </data>
+  <data name="ProjectTypeScanSignature" xml:space="preserve">
+    <value>シグネチャをスキャン</value>
+  </data>
+  <data name="ProjectTypeShipInsurance" xml:space="preserve">
+    <value>艦船保険</value>
+  </data>
+  <data name="ProjectTypeUnknown" xml:space="preserve">
+    <value>不明</value>
+  </data>
+  <data name="FallbackStructureName" xml:space="preserve">
+    <value>ストラクチャ{0}</value>
+  </data>
+  <data name="ConfigLocations" xml:space="preserve">
+    <value>場所</value>
+  </data>
+  <data name="ConfigItems" xml:space="preserve">
+    <value>アイテム</value>
+  </data>
+  <data name="ConfigDestinations" xml:space="preserve">
+    <value>届け先</value>
+  </data>
+  <data name="ConfigDestination" xml:space="preserve">
+    <value>届け先</value>
+  </data>
+  <data name="ConfigOwner" xml:space="preserve">
+    <value>所有者</value>
+  </data>
+  <data name="ConfigShipTypes" xml:space="preserve">
+    <value>艦船のタイプ</value>
+  </data>
+  <data name="ConfigTargets" xml:space="preserve">
+    <value>ターゲット</value>
+  </data>
+  <data name="ConfigKilledBy" xml:space="preserve">
+    <value>撃墜者</value>
+  </data>
+  <data name="ConfigConflictType" xml:space="preserve">
+    <value>紛争の種類</value>
+  </data>
+  <data name="ConfigMaterials" xml:space="preserve">
+    <value>資源</value>
+  </data>
+  <data name="ConfigSignatureTypes" xml:space="preserve">
+    <value>シグネチャのタイプ</value>
+  </data>
+  <data name="ConfigFactions" xml:space="preserve">
+    <value>勢力</value>
+  </data>
+  <data name="ConfigArchetypes" xml:space="preserve">
+    <value>複合施設の種類</value>
+  </data>
+  <data name="ConfigCorporations" xml:space="preserve">
+    <value>コーポレーション</value>
+  </data>
+  <data name="ConfigSubType" xml:space="preserve">
+    <value>サブタイプ</value>
+  </data>
+  <data name="StatusMaintainLoadFailed" xml:space="preserve">
+    <value>常設プロジェクトの読み込みに失敗しました：{0}</value>
+  </data>
+  <data name="SlackPostedInPartsOther" xml:space="preserve">
+    <value>{1}に{0}件のメッセージに分けて投稿しました — {2:t}</value>
+  </data>
+  <data name="ConfirmDeleteStandingProject" xml:space="preserve">
+    <value>この常設プロジェクトを削除しますか？</value>
+  </data>
+  <data name="ErrSelectItemType" xml:space="preserve">
+    <value>アイテムタイプを選択してください。</value>
+  </data>
+  <data name="ErrSelectDestination" xml:space="preserve">
+    <value>届け先のステーションまたはストラクチャを選択してください。</value>
+  </data>
+  <data name="ErrSelectSolarSystem" xml:space="preserve">
+    <value>ソーラーシステムを選択してください。</value>
+  </data>
+  <data name="ErrSelectRegion" xml:space="preserve">
+    <value>リージョンを選択してください。</value>
+  </data>
+  <data name="ErrSelectAlliance" xml:space="preserve">
+    <value>アライアンスを選択してください。</value>
+  </data>
+  <data name="ErrSelectConstellation" xml:space="preserve">
+    <value>コンステレーションを選択してください。</value>
+  </data>
+  <data name="KillQtyDestroyed" xml:space="preserve">
+    <value>{0}個破壊</value>
+  </data>
+  <data name="KillQtyDropped" xml:space="preserve">
+    <value>{0}個ドロップ</value>
+  </data>
+  <data name="RoleFinalBlow" xml:space="preserve">
+    <value>★ 最終攻撃</value>
+  </data>
+  <data name="RoleTopDamage" xml:space="preserve">
+    <value>▲ 最大ダメージ</value>
+  </data>
+  <data name="DamageTaken" xml:space="preserve">
+    <value>{0:N0}ダメージ</value>
+  </data>
+  <data name="StatusLoadingKillmails" xml:space="preserve">
+    <value>キルレポートを読み込み中…</value>
+  </data>
+  <data name="KillmailsLoadedMore" xml:space="preserve">
+    <value>キルレポートを{0:N0}件読み込みました — まだあります。「さらに読み込む」をクリックしてください</value>
+  </data>
+  <data name="KillmailsCount" xml:space="preserve">
+    <value>キルレポート{0:N0}件</value>
+  </data>
+  <data name="EntitySearchTruncated" xml:space="preserve">
+    <value>{1:N0}件中{0:N0}件を表示しています — 入力を続けて絞り込んでください。</value>
+  </data>
+  <data name="TabMemberCorps" xml:space="preserve">
+    <value>所属コーポ</value>
+  </data>
+  <data name="TabCorpHistory" xml:space="preserve">
+    <value>雇用履歴</value>
+  </data>
+  <data name="TabAllianceHistory" xml:space="preserve">
+    <value>アライアンス履歴</value>
+  </data>
+  <data name="ColHistoryCorporation" xml:space="preserve">
+    <value>コーポレーション</value>
+  </data>
+  <data name="ColHistoryAlliance" xml:space="preserve">
+    <value>アライアンス</value>
+  </data>
+  <data name="StationsCount" xml:space="preserve">
+    <value>ステーション{0:N0}か所</value>
+  </data>
+  <data name="CorpStationsOther" xml:space="preserve">
+    <value>ステーション{0:N0}か所</value>
+  </data>
+  <data name="NoStationsFound" xml:space="preserve">
+    <value>ステーションが見つかりません。</value>
+  </data>
+  <data name="NoStationsMilitia" xml:space="preserve">
+    <value>ステーションはありません — これは{0}の義勇軍コーポレーションで、義勇軍のLPストアはステーションで運営されるものではありません。</value>
+  </data>
+  <data name="OrdersScopeNoMarketData" xml:space="preserve">
+    <value>このコーポレーションがステーションを持つリージョンのマーケットデータは、どれも取得されていません</value>
+  </data>
+  <data name="OrdersScopeCoverage" xml:space="preserve">
+    <value>マーケットデータは{1}リージョン中{0}リージョンを網羅しています</value>
+  </data>
+  <data name="NoOrdersFoundScoped" xml:space="preserve">
+    <value>注文は見つかりません — {0}。</value>
+  </data>
+  <data name="NoOrdersFound" xml:space="preserve">
+    <value>これまでに取得したマーケットデータに注文は見つかりません。</value>
+  </data>
+  <data name="OrdersCountScoped" xml:space="preserve">
+    <value>売り{0:N0}件、買い{1:N0}件 — {2}</value>
+  </data>
+  <data name="OrdersCount" xml:space="preserve">
+    <value>売り{0:N0}件、買い{1:N0}件</value>
+  </data>
+  <data name="NoLpOffersFound" xml:space="preserve">
+    <value>LPオファーが見つかりません。</value>
+  </data>
+  <data name="LpOffersCount" xml:space="preserve">
+    <value>LPオファー{0:N0}件</value>
+  </data>
+  <data name="NoWarfareSystemsFound" xml:space="preserve">
+    <value>国家間戦争のシステムが見つかりません。</value>
+  </data>
+  <data name="WarfareSystemsCount" xml:space="preserve">
+    <value>国家間戦争のシステム{0:N0}件</value>
+  </data>
+  <data name="NoMemberCorpsReturned" xml:space="preserve">
+    <value>所属コーポレーションは返されませんでした。ESIは現在の所属のみを報告します。</value>
+  </data>
+  <data name="NoAgentsFound" xml:space="preserve">
+    <value>エージェントが見つかりません。</value>
+  </data>
+  <data name="NoMemberCorpsFound" xml:space="preserve">
+    <value>所属コーポレーションが見つかりません。</value>
+  </data>
+  <data name="AgentsCount" xml:space="preserve">
+    <value>エージェント{0:N0}人</value>
+  </data>
+  <data name="MemberCorpsCount" xml:space="preserve">
+    <value>所属コーポレーション{0:N0}件</value>
+  </data>
+  <data name="NoAllianceHistory" xml:space="preserve">
+    <value>このコーポレーションのアライアンス履歴は記録されていません。</value>
+  </data>
+  <data name="HistoryPeriodsCount" xml:space="preserve">
+    <value>{0:N0}期間（新しい順）</value>
+  </data>
+  <data name="NoKillmailsForEntity" xml:space="preserve">
+    <value>このエンティティのキルレポートは記録されていません。</value>
+  </data>
+  <data name="RecentKillmailsCapped" xml:space="preserve">
+    <value>最新のキルレポート{0:N0}件（上限）</value>
+  </data>
+  <data name="RecentKillmailsCount" xml:space="preserve">
+    <value>最新のキルレポート{0:N0}件</value>
+  </data>
+  <data name="NoIntelSightings" xml:space="preserve">
+    <value>目撃情報はありません。目撃情報は、チャットログのインポーターを通じてインテルチャンネルから取得されます。</value>
+  </data>
+  <data name="IntelSightingsCount" xml:space="preserve">
+    <value>目撃情報{0:N0}件</value>
+  </data>
+  <data name="SlackDestinationWebhook" xml:space="preserve">
+    <value>Slack（Webhook）</value>
+  </data>
+  <data name="SlackDestinationSlack" xml:space="preserve">
+    <value>Slack</value>
+  </data>
+  <data name="NoCorpHistory" xml:space="preserve">
+    <value>このキャラクターのコーポレーション履歴は記録されていません。</value>
+  </data>
+  <data name="FallbackSystemName" xml:space="preserve">
+    <value>システム{0}</value>
+  </data>
+  <data name="SovAdmNoLevels" xml:space="preserve">
+    <value>領有権のエンドポイントが占有レベルを返しませんでした</value>
+  </data>
+  <data name="ScopeRegionAdm" xml:space="preserve">
+    <value>リージョン：{0}（ADM &lt; {1:F1}）</value>
+  </data>
+  <data name="ScopeAllianceSov" xml:space="preserve">
+    <value>領有権：{0}（ADM &lt; {1:F1}）</value>
+  </data>
+  <data name="ScopeConstellationAdm" xml:space="preserve">
+    <value>コンステレーション：{0}（ADM &lt; {1:F1}）</value>
+  </data>
+  <data name="RemainingComplete" xml:space="preserve">
+    <value>完了</value>
+  </data>
+  <data name="StandingProjectSummary" xml:space="preserve">
+    <value>{0}：{1}</value>
+  </data>
+  <data name="ReportStatusActive" xml:space="preserve">
+    <value>有効</value>
+  </data>
+  <data name="ReportStatusAllHealthy" xml:space="preserve">
+    <value>すべて正常</value>
+  </data>
+  <data name="ReportStatusNoProject" xml:space="preserve">
+    <value>プロジェクトなし</value>
+  </data>
+  <data name="ReportStatusNoSystems" xml:space="preserve">
+    <value>対象システムなし</value>
+  </data>
+  <data name="ReportStatusNoOffice" xml:space="preserve">
+    <value>オフィスなし</value>
+  </data>
+  <data name="ReportStatusAdmUnavailable" xml:space="preserve">
+    <value>ADM取得不可</value>
+  </data>
+  <data name="ReportColProject" xml:space="preserve">
+    <value>プロジェクト</value>
+  </data>
+  <data name="ReportColStatus" xml:space="preserve">
+    <value>状態</value>
+  </data>
+  <data name="ReportColRemaining" xml:space="preserve">
+    <value>残り</value>
+  </data>
+  <data name="ReportColIskLeft" xml:space="preserve">
+    <value>残りISK</value>
+  </data>
+  <data name="ReportColLastCompleted" xml:space="preserve">
+    <value>最終完了</value>
+  </data>
+  <data name="PickerScopeRegionAdm" xml:space="preserve">
+    <value>{0} — リージョン、ADM {1:0.##}未満</value>
+  </data>
+  <data name="PickerScopeConstellationAdm" xml:space="preserve">
+    <value>{0} — コンステレーション、ADM {1:0.##}未満</value>
+  </data>
+  <data name="PickerScopeAllianceSov" xml:space="preserve">
+    <value>{0} — 領有権、ADM {1:0.##}未満</value>
+  </data>
+  <data name="ProjectsTitleDeliverMissing" xml:space="preserve">
+    <value>アイテム配送プロジェクト — 不足しているプロジェクト</value>
+  </data>
+  <data name="ProjectsTitleDestroyMissing" xml:space="preserve">
+    <value>NPC撃墜プロジェクト — 不足しているプロジェクト</value>
+  </data>
+  <data name="ProjectsTitleDeliverMissingLow" xml:space="preserve">
+    <value>アイテム配送プロジェクト — 不足・残りわずかのプロジェクト</value>
+  </data>
+  <data name="ProjectsTitleDestroyMissingLow" xml:space="preserve">
+    <value>NPC撃墜プロジェクト — 不足・残りわずかのプロジェクト</value>
+  </data>
+  <data name="ProjectsTitleDeliverAll" xml:space="preserve">
+    <value>アイテム配送プロジェクト</value>
+  </data>
+  <data name="ProjectsTitleDestroyAll" xml:space="preserve">
+    <value>NPC撃墜プロジェクト</value>
+  </data>
+  <data name="Top10TitleRatting" xml:space="preserve">
+    <value>ラッティング税</value>
+  </data>
+  <data name="Top10TitleMining" xml:space="preserve">
+    <value>採掘 — 再処理価値</value>
+  </data>
+  <data name="Top10TitleKills" xml:space="preserve">
+    <value>キル</value>
+  </data>
+  <data name="Top10TitleProjects" xml:space="preserve">
+    <value>プロジェクトの貢献者</value>
+  </data>
+  <data name="Top10TitleIndustry" xml:space="preserve">
+    <value>インダストリータックス</value>
+  </data>
+  <data name="SummarySectionIncome" xml:space="preserve">
+    <value>収入</value>
+  </data>
+  <data name="SummarySectionExpenses" xml:space="preserve">
+    <value>支出</value>
+  </data>
+  <data name="SummarySectionNet" xml:space="preserve">
+    <value>収支</value>
+  </data>
+  <data name="SummarySectionCombat" xml:space="preserve">
+    <value>戦闘</value>
+  </data>
+  <data name="SummarySectionMining" xml:space="preserve">
+    <value>採掘</value>
+  </data>
+  <data name="SummarySectionProjects" xml:space="preserve">
+    <value>コーポレーションプロジェクト</value>
+  </data>
+  <data name="SummarySectionMembers" xml:space="preserve">
+    <value>メンバー</value>
+  </data>
+  <data name="SummaryRowRattingTax" xml:space="preserve">
+    <value>ラッティング税</value>
+  </data>
+  <data name="SummaryRowIndustryTax" xml:space="preserve">
+    <value>インダストリータックス</value>
+  </data>
+  <data name="SummaryRowDonations" xml:space="preserve">
+    <value>寄付</value>
+  </data>
+  <data name="SummaryRowContracts" xml:space="preserve">
+    <value>契約</value>
+  </data>
+  <data name="SummaryRowMarket" xml:space="preserve">
+    <value>マーケット</value>
+  </data>
+  <data name="SummaryRowOther" xml:space="preserve">
+    <value>その他</value>
+  </data>
+  <data name="SummaryRowTotalIncome" xml:space="preserve">
+    <value>総収入</value>
+  </data>
+  <data name="SummaryRowProjectPayouts" xml:space="preserve">
+    <value>プロジェクト支払い</value>
+  </data>
+  <data name="SummaryRowWithdrawals" xml:space="preserve">
+    <value>引き出し</value>
+  </data>
+  <data name="SummaryRowTotalExpenses" xml:space="preserve">
+    <value>総支出</value>
+  </data>
+  <data name="SummaryRowNetPosition" xml:space="preserve">
+    <value>純収支</value>
+  </data>
+  <data name="SummaryRowKills" xml:space="preserve">
+    <value>キル</value>
+  </data>
+  <data name="SummaryRowLosses" xml:space="preserve">
+    <value>ロス</value>
+  </data>
+  <data name="SummaryRowIskDestroyed" xml:space="preserve">
+    <value>撃破ISK</value>
+  </data>
+  <data name="SummaryRowIskLost" xml:space="preserve">
+    <value>損失ISK</value>
+  </data>
+  <data name="SummaryRowIskEfficiency" xml:space="preserve">
+    <value>ISK効率</value>
+  </data>
+  <data name="SummaryChangePoints" xml:space="preserve">
+    <value>{0}{1:F1}ポイント</value>
+  </data>
+  <data name="SummaryRowUnitsMined" xml:space="preserve">
+    <value>採掘量</value>
+  </data>
+  <data name="SummaryRowMinedValue" xml:space="preserve">
+    <value>採掘額</value>
+  </data>
+  <data name="SummaryRowCreated" xml:space="preserve">
+    <value>作成数</value>
+  </data>
+  <data name="SummaryRowCreatedValue" xml:space="preserve">
+    <value>作成額</value>
+  </data>
+  <data name="SummaryRowCompleted" xml:space="preserve">
+    <value>完了数</value>
+  </data>
+  <data name="SummaryRowCompletedValue" xml:space="preserve">
+    <value>完了額</value>
+  </data>
+  <data name="SummaryRowActivePlayers" xml:space="preserve">
+    <value>アクティブなプレイヤー</value>
+  </data>
+  <data name="SummaryExportSubtitle" xml:space="preserve">
+    <value>変化の列は前月と比較しています。</value>
+  </data>
+  <data name="SummaryColItem" xml:space="preserve">
+    <value>項目</value>
+  </data>
+  <data name="SummaryColAmount" xml:space="preserve">
+    <value>金額</value>
+  </data>
+  <data name="SummaryHeader" xml:space="preserve">
+    <value>月次概要 — {1}年{0}</value>
+  </data>
+  <data name="SummaryHeaderCorp" xml:space="preserve">
+    <value>{0} — 月次概要 — {2}年{1}</value>
+  </data>
+  <data name="SeriesIncome" xml:space="preserve">
+    <value>収入</value>
+  </data>
+  <data name="SeriesExpenses" xml:space="preserve">
+    <value>支出</value>
+  </data>
+  <data name="SeriesRattingTax" xml:space="preserve">
+    <value>ラッティング税</value>
+  </data>
+  <data name="SeriesIndustryTax" xml:space="preserve">
+    <value>インダストリータックス</value>
+  </data>
+  <data name="SeriesProjPayouts" xml:space="preserve">
+    <value>プロジェクト支払い</value>
+  </data>
+  <data name="ChartTitleIskTrends" xml:space="preserve">
+    <value>ISKの推移（10億）</value>
+  </data>
+  <data name="SeriesUnitsMined" xml:space="preserve">
+    <value>採掘量</value>
+  </data>
+  <data name="ChartTitleActivityTrends" xml:space="preserve">
+    <value>活動の推移（左軸：キル・ロス、右軸：採掘量）</value>
+  </data>
+  <data name="SeriesIskEfficiency" xml:space="preserve">
+    <value>ISK効率</value>
+  </data>
+  <data name="ChartTitleKillTrends" xml:space="preserve">
+    <value>キルとロス（右軸：ISK効率）</value>
+  </data>
+  <data name="SeriesMinedValue" xml:space="preserve">
+    <value>採掘額</value>
+  </data>
+  <data name="ChartTitleMining" xml:space="preserve">
+    <value>採掘（再処理価値）</value>
+  </data>
+  <data name="ChartPlayersActive" xml:space="preserve">
+    <value>アクティブなプレイヤー</value>
+  </data>
+  <data name="SlotShip" xml:space="preserve">
+    <value>艦船</value>
+  </data>
+  <data name="KillmailItemCopy" xml:space="preserve">
+    <value>{0}（コピー）</value>
+  </data>
+  <data name="KillmailGroupOther" xml:space="preserve">
+    <value>その他</value>
+  </data>
+  <data name="SlotHigh" xml:space="preserve">
+    <value>ハイパワースロット</value>
+  </data>
+  <data name="SlotMid" xml:space="preserve">
+    <value>ミディアムスロット</value>
+  </data>
+  <data name="SlotLow" xml:space="preserve">
+    <value>ローパワースロット</value>
+  </data>
+  <data name="SlotRig" xml:space="preserve">
+    <value>リグスロット</value>
+  </data>
+  <data name="SlotSubsystem" xml:space="preserve">
+    <value>サブシステムスロット</value>
+  </data>
+  <data name="SlotDroneBay" xml:space="preserve">
+    <value>ドローンベイ</value>
+  </data>
+  <data name="SlotFighterBay" xml:space="preserve">
+    <value>戦闘機ベイ</value>
+  </data>
+  <data name="SlotFighterTubes" xml:space="preserve">
+    <value>戦闘機発進用チューブ</value>
+  </data>
+  <data name="SlotShipHangar" xml:space="preserve">
+    <value>船舶修理場</value>
+  </data>
+  <data name="SlotFleetHangar" xml:space="preserve">
+    <value>フリートハンガー</value>
+  </data>
+  <data name="SlotFuelBay" xml:space="preserve">
+    <value>燃料ベイ</value>
+  </data>
+  <data name="SlotOreHold" xml:space="preserve">
+    <value>鉱石ホールド</value>
+  </data>
+  <data name="SlotIceHold" xml:space="preserve">
+    <value>アイスホールド</value>
+  </data>
+  <data name="SlotAsteroidHold" xml:space="preserve">
+    <value>アステロイドホールド</value>
+  </data>
+  <data name="SlotGasHold" xml:space="preserve">
+    <value>ガスホールド</value>
+  </data>
+  <data name="SlotMineralHold" xml:space="preserve">
+    <value>無機物ホールド</value>
+  </data>
+  <data name="SlotSalvageHold" xml:space="preserve">
+    <value>サルベージホールド</value>
+  </data>
+  <data name="SlotShipHold" xml:space="preserve">
+    <value>シップホールド</value>
+  </data>
+  <data name="SlotSmallShipHold" xml:space="preserve">
+    <value>小型船ホールド</value>
+  </data>
+  <data name="SlotMediumShipHold" xml:space="preserve">
+    <value>中型船ホールド</value>
+  </data>
+  <data name="SlotLargeShipHold" xml:space="preserve">
+    <value>大型船ホールド</value>
+  </data>
+  <data name="SlotIndustrialShipHold" xml:space="preserve">
+    <value>輸送艦ホールド</value>
+  </data>
+  <data name="SlotAmmoHold" xml:space="preserve">
+    <value>弾薬ホールド</value>
+  </data>
+  <data name="SlotCargoHold" xml:space="preserve">
+    <value>カーゴホールド</value>
+  </data>
+  <data name="SearchViaEsi" xml:space="preserve">
+    <value>ESI経由</value>
+  </data>
+  <data name="FactCorporation" xml:space="preserve">
+    <value>コーポレーション</value>
+  </data>
+  <data name="FactAlliance" xml:space="preserve">
+    <value>アライアンス</value>
+  </data>
+  <data name="FactSecurityStatus" xml:space="preserve">
+    <value>セキュリティステータス</value>
+  </data>
+  <data name="FactFaction" xml:space="preserve">
+    <value>勢力</value>
+  </data>
+  <data name="FactGender" xml:space="preserve">
+    <value>性別</value>
+  </data>
+  <data name="FactRace" xml:space="preserve">
+    <value>種族</value>
+  </data>
+  <data name="FactBloodline" xml:space="preserve">
+    <value>血統</value>
+  </data>
+  <data name="FactAchievementScore" xml:space="preserve">
+    <value>実績スコア</value>
+  </data>
+  <data name="FactBorn" xml:space="preserve">
+    <value>生年月日</value>
+  </data>
+  <data name="FactTitle" xml:space="preserve">
+    <value>タイトル</value>
+  </data>
+  <data name="FactTicker" xml:space="preserve">
+    <value>略称</value>
+  </data>
+  <data name="FactMembers" xml:space="preserve">
+    <value>メンバー</value>
+  </data>
+  <data name="FactCeo" xml:space="preserve">
+    <value>CEO</value>
+  </data>
+  <data name="FactFounded" xml:space="preserve">
+    <value>設立日</value>
+  </data>
+  <data name="FactTaxRate" xml:space="preserve">
+    <value>税率</value>
+  </data>
+  <data name="FactWarEligible" xml:space="preserve">
+    <value>戦争参加可</value>
+  </data>
+  <data name="FactYes" xml:space="preserve">
+    <value>はい</value>
+  </data>
+  <data name="FactUrl" xml:space="preserve">
+    <value>URL</value>
+  </data>
+  <data name="FactCreator" xml:space="preserve">
+    <value>作成者</value>
+  </data>
+  <data name="FactCreatorCorp" xml:space="preserve">
+    <value>作成したコーポレーション</value>
+  </data>
+  <data name="FactExecutorCorp" xml:space="preserve">
+    <value>執行コーポレーション</value>
+  </data>
+  <data name="FallbackCorporationName" xml:space="preserve">
+    <value>コーポレーション{0}</value>
+  </data>
+  <data name="FallbackAllianceName" xml:space="preserve">
+    <value>アライアンス{0}</value>
+  </data>
+  <data name="HistoryNoAlliance" xml:space="preserve">
+    <value>— アライアンスなし —</value>
+  </data>
+  <data name="HistoryPresent" xml:space="preserve">
+    <value>現在</value>
+  </data>
+  <data name="HistoryDays" xml:space="preserve">
+    <value>{0:N0}日</value>
+  </data>
+  <data name="GenderMale" xml:space="preserve">
+    <value>男性</value>
+  </data>
+  <data name="GenderFemale" xml:space="preserve">
+    <value>女性</value>
+  </data>
+  <data name="SubtitleOurCharacter" xml:space="preserve">
+    <value>あなたのキャラクター</value>
+  </data>
+  <data name="SubtitlePlayerCharacter" xml:space="preserve">
+    <value>プレイヤーキャラクター</value>
+  </data>
+  <data name="FactCharacterId" xml:space="preserve">
+    <value>キャラクターID</value>
+  </data>
+  <data name="FactLastSeen" xml:space="preserve">
+    <value>最終確認</value>
+  </data>
+  <data name="SubtitleOurCorporation" xml:space="preserve">
+    <value>あなたのコーポレーション</value>
+  </data>
+  <data name="SubtitlePlayerCorporation" xml:space="preserve">
+    <value>プレイヤーコーポレーション</value>
+  </data>
+  <data name="SubtitlePlayerAlliance" xml:space="preserve">
+    <value>プレイヤーアライアンス</value>
+  </data>
+  <data name="FactCorporationId" xml:space="preserve">
+    <value>コーポレーションID</value>
+  </data>
+  <data name="FactAllianceId" xml:space="preserve">
+    <value>アライアンスID</value>
+  </data>
+  <data name="SubtitleAgent" xml:space="preserve">
+    <value>レベル{0}の{1}エージェント</value>
+  </data>
+  <data name="FactAgentId" xml:space="preserve">
+    <value>エージェントID</value>
+  </data>
+  <data name="FactStation" xml:space="preserve">
+    <value>ステーション</value>
+  </data>
+  <data name="FactDivision" xml:space="preserve">
+    <value>部門</value>
+  </data>
+  <data name="FactAgentType" xml:space="preserve">
+    <value>エージェントタイプ</value>
+  </data>
+  <data name="FactLocator" xml:space="preserve">
+    <value>位置探知</value>
+  </data>
+  <data name="FactNo" xml:space="preserve">
+    <value>いいえ</value>
+  </data>
+  <data name="FactHeadquarters" xml:space="preserve">
+    <value>本部</value>
+  </data>
+  <data name="FactStations" xml:space="preserve">
+    <value>ステーション</value>
+  </data>
+  <data name="FactAgents" xml:space="preserve">
+    <value>エージェント</value>
+  </data>
+  <data name="FactToJoin" xml:space="preserve">
+    <value>入社条件</value>
+  </data>
+  <data name="FactToJoinValue" xml:space="preserve">
+    <value>スタンディング{0:N1}以上、セキュリティ{1:N1}以上</value>
+  </data>
+  <data name="FactLpStore" xml:space="preserve">
+    <value>LPストア</value>
+  </data>
+  <data name="FactLpOffers" xml:space="preserve">
+    <value>オファー{0:N0}件</value>
+  </data>
+  <data name="FactLpStoreNone" xml:space="preserve">
+    <value>なし</value>
+  </data>
+  <data name="FactYourLp" xml:space="preserve">
+    <value>所持LP</value>
+  </data>
+  <data name="FactIskPerLp" xml:space="preserve">
+    <value>1LPあたりのISK</value>
+  </data>
+  <data name="FactWebsite" xml:space="preserve">
+    <value>ウェブサイト</value>
+  </data>
+  <data name="SubtitleNpcCorp" xml:space="preserve">
+    <value>NPCコーポレーション</value>
+  </data>
+  <data name="SubtitleFaction" xml:space="preserve">
+    <value>勢力</value>
+  </data>
+  <data name="FactFactionId" xml:space="preserve">
+    <value>勢力ID</value>
+  </data>
+  <data name="FactMilitiaCorp" xml:space="preserve">
+    <value>義勇軍コーポレーション</value>
+  </data>
+  <data name="FactHomeSystem" xml:space="preserve">
+    <value>ホームシステム</value>
+  </data>
+  <data name="FactCorporations" xml:space="preserve">
+    <value>コーポレーション</value>
+  </data>
+  <data name="SubtitleNpcStation" xml:space="preserve">
+    <value>NPCステーション</value>
+  </data>
+  <data name="FactStationId" xml:space="preserve">
+    <value>ステーションID</value>
+  </data>
+  <data name="FactSystem" xml:space="preserve">
+    <value>システム</value>
+  </data>
+  <data name="FactConstellation" xml:space="preserve">
+    <value>コンステレーション</value>
+  </data>
+  <data name="FactRegion" xml:space="preserve">
+    <value>リージョン</value>
+  </data>
+  <data name="FactSecurity" xml:space="preserve">
+    <value>セキュリティ</value>
+  </data>
+  <data name="FactSecurityValue" xml:space="preserve">
+    <value>{0}（実値{1}）</value>
+  </data>
+  <data name="FactType" xml:space="preserve">
+    <value>タイプ</value>
+  </data>
+  <data name="FactReprocessing" xml:space="preserve">
+    <value>再処理</value>
+  </data>
+  <data name="FactReprocessingValue" xml:space="preserve">
+    <value>{0:0.#}% · 税{1:0.#}%</value>
+  </data>
+</root>

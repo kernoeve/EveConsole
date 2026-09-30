@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Globalization;
 using Avalonia.Data.Converters;
+using EveConsole.Localization;
 using EveConsole.ViewModels;
 
 namespace EveConsole.Views;
@@ -31,7 +32,7 @@ public sealed class GroupTotalConverter : IValueConverter
         {
             // Counted here rather than bound to the group's own ItemCount so the label can be
             // written out, and so a single-item group reads "1 Task" rather than "1 Tasks".
-            "Count"  => $"{rows.Count:N0} Task{(rows.Count == 1 ? "" : "s")}",
+            "Count"  => Plurals.Format(WorklistText.ResourceManager, nameof(WorklistText.TasksOther), rows.Count),
             "Volume" => Volume(rows.Sum(r => r.VolumeRaw)),
             "Value"  => Isk(rows.Sum(r => r.Value)),
             _        => "",

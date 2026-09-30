@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              xmlns:conv="clr-namespace:Avalonia.Data.Converters;assembly=Avalonia.Base"
              x:Class="EveConsole.Views.ErrorLogView"
@@ -31,17 +32,17 @@
     <Border Grid.Row="0" Background="{DynamicResource SurfaceBaseBrush}" Padding="10 6" BorderBrush="{DynamicResource SurfaceRaisedBrush}" BorderThickness="0 0 0 1">
       <StackPanel Spacing="7">
         <Grid ColumnDefinitions="*,Auto">
-          <TextBlock Text="Error Log" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"
+          <TextBlock Text="{x:Static loc:DataText.ErrorLog}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"
                      VerticalAlignment="Center" />
           <TextBlock Grid.Column="1" Text="{Binding StatusText}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
                      VerticalAlignment="Center" />
         </Grid>
         <StackPanel Orientation="Horizontal" Spacing="8">
-          <TextBlock Classes="fl" Text="From" />
+          <TextBlock Classes="fl" Text="{x:Static loc:DataText.From}" />
           <TextBox Text="{Binding DateFrom}" Watermark="yyyy-MM-dd HH:mm" Width="140" />
-          <TextBlock Classes="fl" Text="Thru" />
-          <TextBox Text="{Binding DateThru}" Watermark="(now)" Width="140" />
-          <Button Command="{Binding RefreshCommand}" Content="Refresh" FontSize="10" Padding="8 2"
+          <TextBlock Classes="fl" Text="{x:Static loc:DataText.Thru}" />
+          <TextBox Text="{Binding DateThru}" Watermark="{x:Static loc:DataText.HintNow}" Width="140" />
+          <Button Command="{Binding RefreshCommand}" Content="{x:Static loc:DataText.Refresh}" FontSize="10" Padding="8 2"
                   Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                   VerticalAlignment="Center" />
         </StackPanel>
@@ -54,12 +55,12 @@
               CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
               Background="{DynamicResource SurfaceBaseBrush}">
       <DataGrid.Columns>
-        <DataGridTextColumn Header="Time"    Binding="{Binding TimeText}" SortMemberPath="TimeSort" Width="150" />
-        <DataGridTextColumn Header="Client"  Binding="{Binding Client}"   Width="150" />
-        <DataGridTextColumn Header="Source"  Binding="{Binding Source}"   Width="180" />
-        <DataGridTextColumn Header="Context" Binding="{Binding Context}"  Width="180" />
-        <DataGridTextColumn Header="Message" Binding="{Binding Message}"  Width="*" />
-        <DataGridTextColumn Header="Inner"   Binding="{Binding Inner}"    Width="280" />
+        <DataGridTextColumn Header="{x:Static loc:DataText.ColTime}"    Binding="{Binding TimeText}" SortMemberPath="TimeSort" Width="150" />
+        <DataGridTextColumn Header="{x:Static loc:DataText.ColClient}"  Binding="{Binding Client}"   Width="150" />
+        <DataGridTextColumn Header="{x:Static loc:DataText.ColSource}"  Binding="{Binding Source}"   Width="180" />
+        <DataGridTextColumn Header="{x:Static loc:DataText.ColContext}" Binding="{Binding Context}"  Width="180" />
+        <DataGridTextColumn Header="{x:Static loc:DataText.ColMessage}" Binding="{Binding Message}"  Width="*" />
+        <DataGridTextColumn Header="{x:Static loc:DataText.ColInner}"   Binding="{Binding Inner}"    Width="280" />
       </DataGrid.Columns>
     </DataGrid>
 
@@ -82,7 +83,7 @@
                                  FontFamily="Consolas, Menlo, DejaVu Sans Mono, Liberation Mono, monospace" TextWrapping="Wrap" />
           </StackPanel>
         </ScrollViewer>
-        <TextBlock Text="Select an error to view its details."
+        <TextBlock Text="{x:Static loc:DataText.SelectAnErrorToNote}"
                    IsVisible="{Binding Selected, Converter={x:Static conv:ObjectConverters.IsNull}}"
                    FontSize="12" Foreground="{DynamicResource BorderStrongBrush}"
                    HorizontalAlignment="Center" VerticalAlignment="Center" />

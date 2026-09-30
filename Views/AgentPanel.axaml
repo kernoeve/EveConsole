@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              xmlns:agent="clr-namespace:EveConsole.Agent"
              xmlns:views="clr-namespace:EveConsole.Views"
@@ -32,7 +33,7 @@
                      FontSize="14"
                      FontWeight="Bold"
                      LetterSpacing="4"/>
-          <TextBlock Text="AI Companion"
+          <TextBlock Text="{x:Static loc:AgentText.AiCompanion}"
                      Foreground="{DynamicResource TextFaintBrush}"
                      FontSize="9"/>
         </StackPanel>
@@ -48,7 +49,7 @@
                     BorderThickness="0"
                     FontSize="11"
                     Padding="5 2"
-                    ToolTip.Tip="{Binding AgentName, StringFormat='Mute / unmute {0} voice'}"
+                    ToolTip.Tip="{Binding AgentName, StringFormat={x:Static loc:AgentText.FmtMuteUnmuteVoice}}"
                     Click="OnMuteClick">
               <Panel>
                 <TextBlock Text="♦" Foreground="{DynamicResource AccentBrush}" IsVisible="{Binding !IsMuted}" />
@@ -59,11 +60,11 @@
                     Minimum="0" Maximum="1"
                     Width="64"
                     VerticalAlignment="Center"
-                    ToolTip.Tip="Voice volume (independent of system volume)" />
+                    ToolTip.Tip="{x:Static loc:AgentText.TipVoiceVolumeIndependentOfSystem}" />
           </StackPanel>
 
           <Button Content="⌫"
-                  ToolTip.Tip="Clear conversation"
+                  ToolTip.Tip="{x:Static loc:AgentText.TipClearConversation}"
                   Background="Transparent"
                   Foreground="{DynamicResource InfoBrush}"
                   BorderThickness="0"
@@ -71,7 +72,7 @@
                   Padding="6 2"
                   Click="OnClearClick"/>
           <Button Content="✕"
-                  ToolTip.Tip="Close panel"
+                  ToolTip.Tip="{x:Static loc:AgentText.TipClosePanel}"
                   Background="Transparent"
                   Foreground="{DynamicResource InfoBrush}"
                   BorderThickness="0"
@@ -97,7 +98,7 @@
 
                 <!-- Summary separator label -->
                 <TextBlock IsVisible="{Binding IsSummary}"
-                           Text="— earlier context summarized —"
+                           Text="{x:Static loc:AgentText.EarlierContextSummarized}"
                            Foreground="{DynamicResource GoodBrush}"
                            FontSize="9"
                            FontStyle="Italic"
@@ -215,7 +216,7 @@
                 Padding="8 5"
                 IsEnabled="{Binding !IsBusy}"
                 IsVisible="{Binding HasSpeechInput}"
-                ToolTip.Tip="Hold to talk, release to send. Or hold the global hotkey.">
+                ToolTip.Tip="{x:Static loc:AgentText.TipHoldToTalkRelease}">
           <Panel>
             <TextBlock Text="🎙" IsVisible="{Binding !IsRecording}" />
             <TextBlock Text="⏹" Foreground="{DynamicResource BadBrush}" IsVisible="{Binding IsRecording}" />

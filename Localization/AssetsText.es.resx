@@ -1,0 +1,1315 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TitleGroup" xml:space="preserve">
+    <value>Grupo</value>
+  </data>
+  <data name="GroupNameLabel" xml:space="preserve">
+    <value>Nombre del grupo</value>
+  </data>
+  <data name="CollectionLabel" xml:space="preserve">
+    <value>Colección</value>
+  </data>
+  <data name="ScopeLabel" xml:space="preserve">
+    <value>Alcance</value>
+  </data>
+  <data name="Station" xml:space="preserve">
+    <value>Estación</value>
+  </data>
+  <data name="System" xml:space="preserve">
+    <value>Sistema</value>
+  </data>
+  <data name="Region" xml:space="preserve">
+    <value>Región</value>
+  </data>
+  <data name="Everywhere" xml:space="preserve">
+    <value>En todas partes</value>
+  </data>
+  <data name="LocationLabel" xml:space="preserve">
+    <value>Ubicación</value>
+  </data>
+  <data name="HintTypeToSearch" xml:space="preserve">
+    <value>Escribe para buscar…</value>
+  </data>
+  <data name="IncludeLabel" xml:space="preserve">
+    <value>Incluir</value>
+  </data>
+  <data name="Assets" xml:space="preserve">
+    <value>Bienes</value>
+  </data>
+  <data name="IndustryJobsProducts" xml:space="preserve">
+    <value>Trabajos de industria (productos)</value>
+  </data>
+  <data name="MarketBuyOrders" xml:space="preserve">
+    <value>Pedidos de compra del mercado</value>
+  </data>
+  <data name="ContractsBuying" xml:space="preserve">
+    <value>Contratos de compra</value>
+  </data>
+  <data name="OnlyCountPackagedItems" xml:space="preserve">
+    <value>Contar solo objetos empaquetados (omitir cascos ensamblados o equipados)</value>
+  </data>
+  <data name="TipBlueprintsAreNeverFiltered" xml:space="preserve">
+    <value>Esto nunca filtra los planos: una copia no es apilable, pero no está ensamblada.</value>
+  </data>
+  <data name="MultiplierLabel" xml:space="preserve">
+    <value>Multiplicador</value>
+  </data>
+  <data name="TargetQuantitiesForAllItems" xml:space="preserve">
+    <value>× cantidades objetivo de todos los objetos</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Ok" xml:space="preserve">
+    <value>Vale</value>
+  </data>
+  <data name="Scope" xml:space="preserve">
+    <value>Alcance</value>
+  </data>
+  <data name="TheFiltersBelowSearchNote" xml:space="preserve">
+    <value>Los filtros de abajo buscan dentro de este alcance.</value>
+  </data>
+  <data name="Apply" xml:space="preserve">
+    <value>Aplicar</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>Borrar</value>
+  </data>
+  <data name="Filter" xml:space="preserve">
+    <value>+ Filtro</value>
+  </data>
+  <data name="TabDetailedView" xml:space="preserve">
+    <value>Vista detallada</value>
+  </data>
+  <data name="TabByLocation" xml:space="preserve">
+    <value>Por ubicación</value>
+  </data>
+  <data name="TabBySystem" xml:space="preserve">
+    <value>Por sistema</value>
+  </data>
+  <data name="TabByRegion" xml:space="preserve">
+    <value>Por región</value>
+  </data>
+  <data name="LoadMore" xml:space="preserve">
+    <value>Cargar más</value>
+  </data>
+  <data name="TitleAssetBrowser" xml:space="preserve">
+    <value>Explorador de bienes</value>
+  </data>
+  <data name="AddGroup" xml:space="preserve">
+    <value>+ Añadir grupo</value>
+  </data>
+  <data name="Collection" xml:space="preserve">
+    <value>+ Colección</value>
+  </data>
+  <data name="ImportCollection" xml:space="preserve">
+    <value>Importar colección</value>
+  </data>
+  <data name="TipReadACollectionFrom" xml:space="preserve">
+    <value>Leer una colección de un archivo. Siempre entra como una colección nueva, nunca se fusiona con una existente.</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Actualizar</value>
+  </data>
+  <data name="MenuOpenInItemBrowser" xml:space="preserve">
+    <value>Abrir en el Explorador de objetos</value>
+  </data>
+  <data name="MenuAddItemsFromFit" xml:space="preserve">
+    <value>Añadir objetos desde un equipamiento</value>
+  </data>
+  <data name="MenuAddItemsFromMarketGroup" xml:space="preserve">
+    <value>Añadir objetos desde un grupo de mercado</value>
+  </data>
+  <data name="MenuAddItemsFromBlueprint" xml:space="preserve">
+    <value>Añadir objetos desde un plano</value>
+  </data>
+  <data name="MenuDeleteItem" xml:space="preserve">
+    <value>Eliminar objeto</value>
+  </data>
+  <data name="ColGroupItem" xml:space="preserve">
+    <value>Grupo / objeto</value>
+  </data>
+  <data name="TipExpandAllGroups" xml:space="preserve">
+    <value>Expandir todos los grupos</value>
+  </data>
+  <data name="TipCollapseAllGroups" xml:space="preserve">
+    <value>Contraer todos los grupos</value>
+  </data>
+  <data name="Rename" xml:space="preserve">
+    <value>Renombrar</value>
+  </data>
+  <data name="Export" xml:space="preserve">
+    <value>Exportar</value>
+  </data>
+  <data name="TipSaveThisCollectionsGroups" xml:space="preserve">
+    <value>Guardar en un archivo los grupos, los alcances y los objetivos por objeto de esta colección.</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="Item" xml:space="preserve">
+    <value>+ Objeto</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Editar</value>
+  </data>
+  <data name="TipOpenThisLocation" xml:space="preserve">
+    <value>Abrir esta ubicación</value>
+  </data>
+  <data name="TipOpenInTheItemBrowser" xml:space="preserve">
+    <value>Abrir en el Explorador de objetos</value>
+  </data>
+  <data name="ColTarget" xml:space="preserve">
+    <value>Objetivo</value>
+  </data>
+  <data name="ColTgtTotal" xml:space="preserve">
+    <value>Total obj.</value>
+  </data>
+  <data name="ColAvail" xml:space="preserve">
+    <value>Disp.</value>
+  </data>
+  <data name="ColDiff" xml:space="preserve">
+    <value>Dif.</value>
+  </data>
+  <data name="ColAssets" xml:space="preserve">
+    <value>Bienes</value>
+  </data>
+  <data name="ColIndJobs" xml:space="preserve">
+    <value>Trab. ind.</value>
+  </data>
+  <data name="ColBuyOrders" xml:space="preserve">
+    <value>Ped. compra</value>
+  </data>
+  <data name="ColContracts" xml:space="preserve">
+    <value>Contratos</value>
+  </data>
+  <data name="ColMktPrice" xml:space="preserve">
+    <value>Precio merc.</value>
+  </data>
+  <data name="ColBuildPrice" xml:space="preserve">
+    <value>Precio fabr.</value>
+  </data>
+  <data name="ColVolumeM" xml:space="preserve">
+    <value>Volumen (m³)</value>
+  </data>
+  <data name="TitleInventoryLevels" xml:space="preserve">
+    <value>Niveles de inventario</value>
+  </data>
+  <data name="TipGoBack" xml:space="preserve">
+    <value>Atrás</value>
+  </data>
+  <data name="TipGoForward" xml:space="preserve">
+    <value>Adelante</value>
+  </data>
+  <data name="HintSearchItems" xml:space="preserve">
+    <value>Buscar objetos…</value>
+  </data>
+  <data name="LoadingCategories" xml:space="preserve">
+    <value>Cargando categorías…</value>
+  </data>
+  <data name="SelectAnItemFromNote" xml:space="preserve">
+    <value>Selecciona un objeto en el árbol o búscalo para ver sus detalles.</value>
+  </data>
+  <data name="VolumeLabel" xml:space="preserve">
+    <value>Volumen:</value>
+  </data>
+  <data name="BuildCostLabel" xml:space="preserve">
+    <value>Coste de fabricación:</value>
+  </data>
+  <data name="ReprocValueLabel" xml:space="preserve">
+    <value>Valor reprocesado:</value>
+  </data>
+  <data name="TabDescription" xml:space="preserve">
+    <value>Descripción</value>
+  </data>
+  <data name="TabAttributes" xml:space="preserve">
+    <value>Atributos</value>
+  </data>
+  <data name="TabRequirements" xml:space="preserve">
+    <value>Requisitos</value>
+  </data>
+  <data name="NoSkillRequirements" xml:space="preserve">
+    <value>Sin requisitos de habilidad.</value>
+  </data>
+  <data name="TabRequiredFor" xml:space="preserve">
+    <value>Necesaria para</value>
+  </data>
+  <data name="NothingRequiresThisSkillNote" xml:space="preserve">
+    <value>Nada requiere esta habilidad a este nivel.</value>
+  </data>
+  <data name="TabIndustry" xml:space="preserve">
+    <value>Industria</value>
+  </data>
+  <data name="OutcomeLabel" xml:space="preserve">
+    <value>Resultado</value>
+  </data>
+  <data name="RequiredSkillsLabel" xml:space="preserve">
+    <value>Habilidades necesarias</value>
+  </data>
+  <data name="InputMaterialsLabel" xml:space="preserve">
+    <value>Materiales de entrada</value>
+  </data>
+  <data name="NoBlueprintDataAvailableNote" xml:space="preserve">
+    <value>No hay datos de planos disponibles para este objeto.</value>
+  </data>
+  <data name="ProducedByLabel" xml:space="preserve">
+    <value>Producido por</value>
+  </data>
+  <data name="RequiredMaterialsLabel" xml:space="preserve">
+    <value>Materiales necesarios:</value>
+  </data>
+  <data name="ProducedByReprocessingLabel" xml:space="preserve">
+    <value>Producido por reprocesamiento</value>
+  </data>
+  <data name="ReprocessOneBatchOfNote" xml:space="preserve">
+    <value>Reprocesa un lote de estos y este objeto estará entre lo que se obtiene. Cada fila se valora frente a su propio techo (90,6 % para la mena, el hielo y la mena lunar; 55 % para todo lo demás), así que las cantidades son el mejor caso, no las cifras al 100 % del SDE.</value>
+  </data>
+  <data name="ShowLabel" xml:space="preserve">
+    <value>Mostrar:</value>
+  </data>
+  <data name="TipOreIncludesIceAnd" xml:space="preserve">
+    <value>«Mena» incluye el hielo y la mena lunar: todo lo de la categoría Asteroide. «No mena» es el resto: módulos, naves, materiales recuperados y similares.</value>
+  </data>
+  <data name="NoneOfThatKindNote" xml:space="preserve">
+    <value>Nada de ese tipo produce este objeto.</value>
+  </data>
+  <data name="ReprocessesToLabel" xml:space="preserve">
+    <value>Se reprocesa en</value>
+  </data>
+  <data name="UsedInManufacturingLabel" xml:space="preserve">
+    <value>Se usa en fabricación</value>
+  </data>
+  <data name="TabAssets" xml:space="preserve">
+    <value>Bienes</value>
+  </data>
+  <data name="GroupByLabel" xml:space="preserve">
+    <value>Agrupar por:</value>
+  </data>
+  <data name="ScopeLabel2" xml:space="preserve">
+    <value>Alcance:</value>
+  </data>
+  <data name="ColLocation" xml:space="preserve">
+    <value>Ubicación</value>
+  </data>
+  <data name="ColOwner" xml:space="preserve">
+    <value>Propietario</value>
+  </data>
+  <data name="TipOpenInTheEntityBrowser" xml:space="preserve">
+    <value>Abrir en el explorador de entidades</value>
+  </data>
+  <data name="ColQty" xml:space="preserve">
+    <value>Cant.</value>
+  </data>
+  <data name="ColContainer" xml:space="preserve">
+    <value>Contenedor</value>
+  </data>
+  <data name="ColFlag" xml:space="preserve">
+    <value>Posición</value>
+  </data>
+  <data name="ColValue" xml:space="preserve">
+    <value>Valor</value>
+  </data>
+  <data name="ColSystem" xml:space="preserve">
+    <value>Sistema</value>
+  </data>
+  <data name="TipOpenThisSystem" xml:space="preserve">
+    <value>Abrir este sistema</value>
+  </data>
+  <data name="ColSec" xml:space="preserve">
+    <value>Seg.</value>
+  </data>
+  <data name="ColRegion" xml:space="preserve">
+    <value>Región</value>
+  </data>
+  <data name="TabLpStore" xml:space="preserve">
+    <value>Tienda de PL</value>
+  </data>
+  <data name="OfferedByTheLoyaltyNote" xml:space="preserve">
+    <value>Lo ofrecen las tiendas de puntos de lealtad de abajo. Varias corporaciones pueden vender un objeto a precios distintos: la que te conviene es aquella con la que tienes PL. Tu saldo es el más alto que tenga cualquiera de tus personajes.</value>
+  </data>
+  <data name="ColCorporation" xml:space="preserve">
+    <value>Corporación</value>
+  </data>
+  <data name="TipOpenThisCorporationInNpc" xml:space="preserve">
+    <value>Abrir esta corporación en Entidades PNJ</value>
+  </data>
+  <data name="ColLpCost" xml:space="preserve">
+    <value>Coste en PL</value>
+  </data>
+  <data name="ColIskCost" xml:space="preserve">
+    <value>Coste en ISK</value>
+  </data>
+  <data name="ColYourLp" xml:space="preserve">
+    <value>Tus PL</value>
+  </data>
+  <data name="ColLpEstValue" xml:space="preserve">
+    <value>Valor est. del PL</value>
+  </data>
+  <data name="TipItemValueLessIsk" xml:space="preserve">
+    <value>Valor del objeto menos los ISK y los objetos necesarios, por PL, ambos reducidos a una sola unidad.</value>
+  </data>
+  <data name="ColRequiredItems" xml:space="preserve">
+    <value>Necesarios</value>
+  </data>
+  <data name="TabMarketOrders" xml:space="preserve">
+    <value>Pedidos del mercado</value>
+  </data>
+  <data name="SourceLabel" xml:space="preserve">
+    <value>Fuente:</value>
+  </data>
+  <data name="NoEsiMarketSourcesNote" xml:space="preserve">
+    <value>No hay fuentes de mercado de ESI configuradas. Añade una fuente de región o de estructura de ESI en Ajustes → Mercado.</value>
+  </data>
+  <data name="SellOrdersLabel" xml:space="preserve">
+    <value>Pedidos de venta</value>
+  </data>
+  <data name="ColPriceIsk" xml:space="preserve">
+    <value>Precio (ISK)</value>
+  </data>
+  <data name="TipOpenThisStationOrStructure" xml:space="preserve">
+    <value>Abrir esta estación o estructura</value>
+  </data>
+  <data name="ColExpires" xml:space="preserve">
+    <value>Caduca</value>
+  </data>
+  <data name="BuyOrdersLabel" xml:space="preserve">
+    <value>Pedidos de compra</value>
+  </data>
+  <data name="ColRange" xml:space="preserve">
+    <value>Alcance</value>
+  </data>
+  <data name="ColMinQty" xml:space="preserve">
+    <value>Cant. mín.</value>
+  </data>
+  <data name="TabPriceHistory" xml:space="preserve">
+    <value>Historial de precios</value>
+  </data>
+  <data name="RegionLabel" xml:space="preserve">
+    <value>Región:</value>
+  </data>
+  <data name="PeriodLabel" xml:space="preserve">
+    <value>Periodo:</value>
+  </data>
+  <data name="NoPriceHistoryAvailableNote" xml:space="preserve">
+    <value>No hay historial de precios disponible para este objeto en la región seleccionada.</value>
+  </data>
+  <data name="TabChart" xml:space="preserve">
+    <value>Gráfico</value>
+  </data>
+  <data name="TabGrid" xml:space="preserve">
+    <value>Tabla</value>
+  </data>
+  <data name="ColDate" xml:space="preserve">
+    <value>Fecha</value>
+  </data>
+  <data name="ColVolume" xml:space="preserve">
+    <value>Volumen</value>
+  </data>
+  <data name="ColAvgPrice" xml:space="preserve">
+    <value>Precio medio</value>
+  </data>
+  <data name="ColHigh" xml:space="preserve">
+    <value>Máximo</value>
+  </data>
+  <data name="ColLow" xml:space="preserve">
+    <value>Mínimo</value>
+  </data>
+  <data name="ColOrders" xml:space="preserve">
+    <value>Pedidos</value>
+  </data>
+  <data name="TabDerivedHistory" xml:space="preserve">
+    <value>Historial derivado</value>
+  </data>
+  <data name="NoDerivedPriceHistoryNote" xml:space="preserve">
+    <value>Aún no hay historial de precios derivado registrado para este objeto. Cada día se guarda automáticamente una instantánea del valor de mercado, de fabricación, de contrato y reprocesado a medida que se actualizan los precios.</value>
+  </data>
+  <data name="FmtWhatOneBatchReturns" xml:space="preserve">
+    <value>Lo que devuelve un lote al {0}, lo máximo con lo que se puede refinar este objeto: una Tatara con complementos en seguridad nula, con las habilidades y los implantes adecuados. La mena, el hielo y la mena lunar llegan como máximo al 90,6 %; todo lo demás es chatarra, cuyo techo es el 55 % por buena que sea la estructura. Tu propio refinado devolverá menos.</value>
+  </data>
+  <data name="TitleItemBrowser" xml:space="preserve">
+    <value>Explorador de objetos</value>
+  </data>
+  <data name="StationLabel" xml:space="preserve">
+    <value>Estación:</value>
+  </data>
+  <data name="HintTypeAStationOrStructure" xml:space="preserve">
+    <value>escribe el nombre de una estación o estructura…</value>
+  </data>
+  <data name="TipAnyStationOrStructure" xml:space="preserve">
+    <value>Cualquier estación o estructura con pedidos en los registros de la aplicación, sea cual sea la fuente de mercado que los obtuvo. Las ventas se leen en la estación; las compras, en la estación, en su sistema o en toda la región.</value>
+  </data>
+  <data name="PricesLabel" xml:space="preserve">
+    <value>Precios:</value>
+  </data>
+  <data name="TipSellTheLowestSell" xml:space="preserve">
+    <value>Venta: el pedido de venta más bajo. Compra: el pedido de compra más alto. Intermedio: el punto medio entre ambos.</value>
+  </data>
+  <data name="ValueLabel" xml:space="preserve">
+    <value>Valor:</value>
+  </data>
+  <data name="TipTheItemsAsPasted" xml:space="preserve">
+    <value>Los objetos tal como se han pegado, o en lo que se convierten al reprocesarlos: los materiales, lote a lote con los rendimientos de la aplicación, y lo que no se ha podido reprocesar.</value>
+  </data>
+  <data name="PriceLabel" xml:space="preserve">
+    <value>Precio %:</value>
+  </data>
+  <data name="TipTheShareOfThe" xml:space="preserve">
+    <value>La proporción del precio a la que valorar: 100 es el propio precio; 90, una recompra que paga nueve décimas partes.</value>
+  </data>
+  <data name="Appraise" xml:space="preserve">
+    <value>Tasar</value>
+  </data>
+  <data name="TipValueTheListA" xml:space="preserve">
+    <value>Tasar la lista. Pegar en el cuadro, o pulsar Enter en él, hace lo mismo.</value>
+  </data>
+  <data name="Copy" xml:space="preserve">
+    <value>Copiar</value>
+  </data>
+  <data name="TipCopyBothTablesAnd" xml:space="preserve">
+    <value>Copiar ambas tablas y los totales como texto separado por tabulaciones, para una hoja de cálculo o un chat.</value>
+  </data>
+  <data name="HideList" xml:space="preserve">
+    <value>Ocultar lista</value>
+  </data>
+  <data name="HintPasteAListOf" xml:space="preserve">
+    <value>Pega una lista de objetos: un hangar o una
+bodega copiados del cliente, un contrato, un
+equipamiento, una compra simultánea o líneas como
+Tritanium 22222
+Pyerite x 3000
+Warrior II 5
+
+Al pegarla, la lista se valora sola; también
+con Enter. Una vez valorada, la lista se pliega:
+«Editar lista» la vuelve a mostrar.</value>
+  </data>
+  <data name="TabValues" xml:space="preserve">
+    <value>Valores</value>
+  </data>
+  <data name="Volume" xml:space="preserve">
+    <value>volumen</value>
+  </data>
+  <data name="ItemsUnits" xml:space="preserve">
+    <value>objetos / unidades</value>
+  </data>
+  <data name="HintFilterByItemName" xml:space="preserve">
+    <value>filtrar por nombre de objeto…</value>
+  </data>
+  <data name="TipShowOnlyTheItems" xml:space="preserve">
+    <value>Mostrar solo los objetos cuyo nombre contiene este texto, en ambas pestañas.</value>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>Objeto</value>
+  </data>
+  <data name="TipOpenInItemBrowser" xml:space="preserve">
+    <value>Abrir en el Explorador de objetos</value>
+  </data>
+  <data name="TipNoOrdersAtThis" xml:space="preserve">
+    <value>No hay pedidos en esta estación: precio tomado de contratos.</value>
+  </data>
+  <data name="ColUnit" xml:space="preserve">
+    <value>Unidad</value>
+  </data>
+  <data name="ColTotal" xml:space="preserve">
+    <value>Total</value>
+  </data>
+  <data name="ColVsBest" xml:space="preserve">
+    <value>vs. mejor</value>
+  </data>
+  <data name="TabMarketCompare" xml:space="preserve">
+    <value>Comparar mercados</value>
+  </data>
+  <data name="CompareWithLabel" xml:space="preserve">
+    <value>Comparar con:</value>
+  </data>
+  <data name="HintTypeAStationOr" xml:space="preserve">
+    <value>escribe el nombre de una estación o estructura y pulsa Añadir…</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Añadir</value>
+  </data>
+  <data name="ScopeEverything" xml:space="preserve">
+    <value>Todo</value>
+  </data>
+  <data name="ScopePersonal" xml:space="preserve">
+    <value>Personajes y corporaciones personales</value>
+  </data>
+  <data name="MenuCopyWithHeaders" xml:space="preserve">
+    <value>Copiar con encabezados</value>
+  </data>
+  <data name="HintColumn" xml:space="preserve">
+    <value>columna…</value>
+  </data>
+  <data name="HintValue" xml:space="preserve">
+    <value>valor…</value>
+  </data>
+  <data name="LpHeldNone" xml:space="preserve">
+    <value>ninguno</value>
+  </data>
+  <data name="BatchPerPortion" xml:space="preserve">
+    <value>por {0:N0}</value>
+  </data>
+  <data name="BatchPerUnit" xml:space="preserve">
+    <value>por unidad</value>
+  </data>
+  <data name="OrderExpired" xml:space="preserve">
+    <value>Caducado</value>
+  </data>
+  <data name="ExpiresDaysHours" xml:space="preserve">
+    <value>{0} d {1} h</value>
+  </data>
+  <data name="ExpiresHoursMinutes" xml:space="preserve">
+    <value>{0} h {1} min</value>
+  </data>
+  <data name="RangeStation" xml:space="preserve">
+    <value>Estación</value>
+  </data>
+  <data name="RangeSolarSystem" xml:space="preserve">
+    <value>Sistema solar</value>
+  </data>
+  <data name="RangeRegion" xml:space="preserve">
+    <value>Región</value>
+  </data>
+  <data name="MarketValueLabel" xml:space="preserve">
+    <value>Valor de mercado:</value>
+  </data>
+  <data name="FallbackCorpName" xml:space="preserve">
+    <value>Corporación {0}</value>
+  </data>
+  <data name="ErrLpStore" xml:space="preserve">
+    <value>Tienda de PL: {0}</value>
+  </data>
+  <data name="AssetScopeAllOwners" xml:space="preserve">
+    <value>Todos los propietarios</value>
+  </data>
+  <data name="AssetsNoneHeldPersonal" xml:space="preserve">
+    <value>Ni tus personajes ni tus corporaciones personales tienen ninguno. «Todos los propietarios» incluye todas las corporaciones que puede ver la aplicación.</value>
+  </data>
+  <data name="AssetsNoneHeldAnywhere" xml:space="preserve">
+    <value>Nadie lo tiene en ningún sitio que pueda ver la aplicación.</value>
+  </data>
+  <data name="StatusLoadingItems" xml:space="preserve">
+    <value>Cargando objetos…</value>
+  </data>
+  <data name="PeriodAllTime" xml:space="preserve">
+    <value>Todo el historial</value>
+  </data>
+  <data name="PeriodLast30Days" xml:space="preserve">
+    <value>Últimos 30 días</value>
+  </data>
+  <data name="PeriodLast90Days" xml:space="preserve">
+    <value>Últimos 90 días</value>
+  </data>
+  <data name="PeriodLast365Days" xml:space="preserve">
+    <value>Últimos 365 días</value>
+  </data>
+  <data name="FallbackGroupName" xml:space="preserve">
+    <value>Grupo n.º {0}</value>
+  </data>
+  <data name="ErrLoadingTree" xml:space="preserve">
+    <value>Error al cargar el árbol: {0}</value>
+  </data>
+  <data name="SeriesAvg" xml:space="preserve">
+    <value>Media</value>
+  </data>
+  <data name="TipChartAvg" xml:space="preserve">
+    <value>Media: {0:N2}</value>
+  </data>
+  <data name="TipChartHigh" xml:space="preserve">
+    <value>Máximo: {0:N2}</value>
+  </data>
+  <data name="TipChartLow" xml:space="preserve">
+    <value>Mínimo: {0:N2}</value>
+  </data>
+  <data name="SeriesVolume" xml:space="preserve">
+    <value>Volumen</value>
+  </data>
+  <data name="TipChartVolume" xml:space="preserve">
+    <value>Vol.: {0:N0}</value>
+  </data>
+  <data name="TipChartSeriesIsk" xml:space="preserve">
+    <value>{0}: {1:N2} ISK</value>
+  </data>
+  <data name="SeriesMarket" xml:space="preserve">
+    <value>Mercado</value>
+  </data>
+  <data name="SeriesBuild" xml:space="preserve">
+    <value>Fabricación</value>
+  </data>
+  <data name="SeriesContract" xml:space="preserve">
+    <value>Contrato</value>
+  </data>
+  <data name="SeriesReprocessed" xml:space="preserve">
+    <value>Reprocesado</value>
+  </data>
+  <data name="MarketValueWithPriceType" xml:space="preserve">
+    <value>Valor de mercado ({0}):</value>
+  </data>
+  <data name="LocPrivateStructure" xml:space="preserve">
+    <value>Estructura privada</value>
+  </data>
+  <data name="LocUnanchoredStructure" xml:space="preserve">
+    <value>Estructura desanclada</value>
+  </data>
+  <data name="LocPlayerStructure" xml:space="preserve">
+    <value>Estructura de jugador</value>
+  </data>
+  <data name="FallbackStationName" xml:space="preserve">
+    <value>Estación {0}</value>
+  </data>
+  <data name="ErrOrders" xml:space="preserve">
+    <value>Error de pedidos: {0}</value>
+  </data>
+  <data name="StatVolume" xml:space="preserve">
+    <value>Volumen</value>
+  </data>
+  <data name="StatMass" xml:space="preserve">
+    <value>Masa</value>
+  </data>
+  <data name="StatCapacity" xml:space="preserve">
+    <value>Capacidad</value>
+  </data>
+  <data name="StatPortionSize" xml:space="preserve">
+    <value>Tamaño de lote</value>
+  </data>
+  <data name="StatBasePrice" xml:space="preserve">
+    <value>Precio base</value>
+  </data>
+  <data name="FallbackBlueprintName" xml:space="preserve">
+    <value>Plano n.º {0}</value>
+  </data>
+  <data name="ActivityManufacturing" xml:space="preserve">
+    <value>Fabricación</value>
+  </data>
+  <data name="ActivityReaction" xml:space="preserve">
+    <value>Reacción</value>
+  </data>
+  <data name="ActivityInvention" xml:space="preserve">
+    <value>Invención</value>
+  </data>
+  <data name="ActivityCopying" xml:space="preserve">
+    <value>Copia</value>
+  </data>
+  <data name="ActivityMeResearch" xml:space="preserve">
+    <value>Investigación de ME</value>
+  </data>
+  <data name="ActivityTeResearch" xml:space="preserve">
+    <value>Investigación de TE</value>
+  </data>
+  <data name="FallbackSkillName" xml:space="preserve">
+    <value>Habilidad n.º {0}</value>
+  </data>
+  <data name="ActivityMaterialResearch" xml:space="preserve">
+    <value>Investigación de materiales</value>
+  </data>
+  <data name="ActivityTimeResearch" xml:space="preserve">
+    <value>Investigación temporal</value>
+  </data>
+  <data name="ActivityReactions" xml:space="preserve">
+    <value>Reacciones</value>
+  </data>
+  <data name="ActivityIndustryFallback" xml:space="preserve">
+    <value>Industria</value>
+  </data>
+  <data name="NoPrice" xml:space="preserve">
+    <value>sin precio</value>
+  </data>
+  <data name="Best" xml:space="preserve">
+    <value>mejor</value>
+  </data>
+  <data name="NoteContract" xml:space="preserve">
+    <value>contrato</value>
+  </data>
+  <data name="TargetTheItems" xml:space="preserve">
+    <value>Los objetos</value>
+  </data>
+  <data name="TargetReprocessedOutput" xml:space="preserve">
+    <value>Resultado del reprocesamiento</value>
+  </data>
+  <data name="StatusPasteList" xml:space="preserve">
+    <value>Pega una lista de objetos y pulsa Tasar.</value>
+  </data>
+  <data name="StatusNoOrdersHeld" xml:space="preserve">
+    <value>Aún no hay pedidos. Añade una fuente de mercado en Ajustes → {0} y deja que obtenga datos primero.</value>
+  </data>
+  <data name="ErrLoadStations" xml:space="preserve">
+    <value>No se han podido cargar las estaciones: {0}</value>
+  </data>
+  <data name="StatusPickStation" xml:space="preserve">
+    <value>Elige primero una estación.</value>
+  </data>
+  <data name="StatusNothingToAppraise" xml:space="preserve">
+    <value>Nada que tasar: pega primero una lista de objetos.</value>
+  </data>
+  <data name="StatusAppraising" xml:space="preserve">
+    <value>Tasando…</value>
+  </data>
+  <data name="ErrAppraisalFailed" xml:space="preserve">
+    <value>No se ha podido tasar: {0}</value>
+  </data>
+  <data name="StatusCopied" xml:space="preserve">
+    <value>Copiado al portapapeles.</value>
+  </data>
+  <data name="AgeNoOrdersHeld" xml:space="preserve">
+    <value>sin pedidos registrados</value>
+  </data>
+  <data name="NoPrices" xml:space="preserve">
+    <value>sin precios</value>
+  </data>
+  <data name="CoveragePriced" xml:space="preserve">
+    <value>{0:N0} de {1:N0} con precio</value>
+  </data>
+  <data name="NotRead" xml:space="preserve">
+    <value>No leídas: {0}</value>
+  </data>
+  <data name="NothingToValue" xml:space="preserve">
+    <value>nada que valorar de esta forma</value>
+  </data>
+  <data name="AgeJustNow" xml:space="preserve">
+    <value>obtenidos ahora mismo</value>
+  </data>
+  <data name="AgeMinutes" xml:space="preserve">
+    <value>obtenidos hace {0:0} min</value>
+  </data>
+  <data name="AgeHours" xml:space="preserve">
+    <value>obtenidos hace {0:0} h</value>
+  </data>
+  <data name="GroupMarketValue" xml:space="preserve">
+    <value>Valor de mercado</value>
+  </data>
+  <data name="GroupBuildValue" xml:space="preserve">
+    <value>Valor de fabricación</value>
+  </data>
+  <data name="GroupReprocessedValue" xml:space="preserve">
+    <value>Valor reprocesado</value>
+  </data>
+  <data name="StatusClipboardNoItem" xml:space="preserve">
+    <value>El portapapeles no nombra ningún objeto, así que la lista se ha dejado como estaba. «Editar lista» admite cualquier texto.</value>
+  </data>
+  <data name="TipRemoveCompareStation" xml:space="preserve">
+    <value>Quitar esta estación de la comparación</value>
+  </data>
+  <data name="EditList" xml:space="preserve">
+    <value>Editar lista</value>
+  </data>
+  <data name="TipEditList" xml:space="preserve">
+    <value>Volver a mostrar la lista para cambiarla. Mientras está plegada, pegar en cualquier parte de la herramienta tasa una lista nueva.</value>
+  </data>
+  <data name="TipHideList" xml:space="preserve">
+    <value>Plegar la lista para dar a las tablas todo el ancho. Se pliega sola una vez tasada.</value>
+  </data>
+  <data name="IncludeIjShort" xml:space="preserve">
+    <value>TI</value>
+  </data>
+  <data name="IncludeOrdersShort" xml:space="preserve">
+    <value>Pedidos</value>
+  </data>
+  <data name="IncludeContractsShort" xml:space="preserve">
+    <value>Contratos</value>
+  </data>
+  <data name="IncludePackagedOnly" xml:space="preserve">
+    <value>solo empaquetados</value>
+  </data>
+  <data name="IncludeNone" xml:space="preserve">
+    <value>Nada</value>
+  </data>
+  <data name="ErrImportFailed" xml:space="preserve">
+    <value>Error al importar: {0}</value>
+  </data>
+  <data name="DefaultCollection" xml:space="preserve">
+    <value>Predeterminada</value>
+  </data>
+  <data name="StatusLoadingAvailability" xml:space="preserve">
+    <value>Cargando datos de disponibilidad…</value>
+  </data>
+  <data name="StatusLoadingItemsIn" xml:space="preserve">
+    <value>Cargando los objetos de «{0}»…</value>
+  </data>
+  <data name="StatusNoPublishedItems" xml:space="preserve">
+    <value>No se han encontrado objetos publicados en «{0}».</value>
+  </data>
+  <data name="StatusCancelled" xml:space="preserve">
+    <value>Cancelado.</value>
+  </data>
+  <data name="StatusNoGroupSelected" xml:space="preserve">
+    <value>No hay ningún grupo seleccionado.</value>
+  </data>
+  <data name="StatusCalculatingMaterials" xml:space="preserve">
+    <value>Calculando materiales…</value>
+  </data>
+  <data name="ErrCalculation" xml:space="preserve">
+    <value>Error de cálculo: {0}</value>
+  </data>
+  <data name="StatusNoMaterials" xml:space="preserve">
+    <value>No se han encontrado materiales para ese plano.</value>
+  </data>
+  <data name="StatusAllItemsAlreadyIn" xml:space="preserve">
+    <value>Todos los objetos de «{0}» ya están en el grupo.</value>
+  </data>
+  <data name="FallbackTypeName" xml:space="preserve">
+    <value>Tipo {0}</value>
+  </data>
+  <data name="AttrSizeSmall" xml:space="preserve">
+    <value>Pequeño</value>
+  </data>
+  <data name="AttrSizeMedium" xml:space="preserve">
+    <value>Mediano</value>
+  </data>
+  <data name="AttrSizeLarge" xml:space="preserve">
+    <value>Grande</value>
+  </data>
+  <data name="AttrSizeExtraLarge" xml:space="preserve">
+    <value>Extragrande</value>
+  </data>
+  <data name="AttrSexMale" xml:space="preserve">
+    <value>Hombre</value>
+  </data>
+  <data name="AttrSexUnisex" xml:space="preserve">
+    <value>Unisex</value>
+  </data>
+  <data name="AttrSexFemale" xml:space="preserve">
+    <value>Mujer</value>
+  </data>
+  <data name="AttrHours" xml:space="preserve">
+    <value>{0} h</value>
+  </data>
+  <data name="DefaultCollectionOption" xml:space="preserve">
+    <value>— Predeterminada —</value>
+  </data>
+  <data name="StatusGroupAdded" xml:space="preserve">
+    <value>Grupo «{0}» añadido.</value>
+  </data>
+  <data name="StatusGroupDeleted" xml:space="preserve">
+    <value>Grupo «{0}» eliminado.</value>
+  </data>
+  <data name="StatusAlreadyInGroup" xml:space="preserve">
+    <value>{0} ya está en el grupo.</value>
+  </data>
+  <data name="StatusCollectionDeleted" xml:space="preserve">
+    <value>Colección «{0}» eliminada.</value>
+  </data>
+  <data name="StatusCollectionAdded" xml:space="preserve">
+    <value>Colección «{0}» añadida.</value>
+  </data>
+  <data name="TitleAddCollection" xml:space="preserve">
+    <value>Añadir colección</value>
+  </data>
+  <data name="CollectionNameLabel" xml:space="preserve">
+    <value>Nombre de la colección</value>
+  </data>
+  <data name="TitleRenameCollection" xml:space="preserve">
+    <value>Renombrar colección</value>
+  </data>
+  <data name="TitleExportCollection" xml:space="preserve">
+    <value>Exportar colección</value>
+  </data>
+  <data name="TitleAddGroup" xml:space="preserve">
+    <value>Añadir grupo</value>
+  </data>
+  <data name="TitleEditGroup" xml:space="preserve">
+    <value>Editar grupo</value>
+  </data>
+  <data name="LocationLabelStation" xml:space="preserve">
+    <value>Estación</value>
+  </data>
+  <data name="LocationLabelSolarSystem" xml:space="preserve">
+    <value>Sistema solar</value>
+  </data>
+  <data name="LocationLabelRegion" xml:space="preserve">
+    <value>Región</value>
+  </data>
+  <data name="ErrGroupNameRequired" xml:space="preserve">
+    <value>El nombre del grupo es obligatorio.</value>
+  </data>
+  <data name="AssetColItemId" xml:space="preserve">
+    <value>ID del objeto</value>
+  </data>
+  <data name="AssetColTypeId" xml:space="preserve">
+    <value>ID de tipo</value>
+  </data>
+  <data name="AssetColTypeName" xml:space="preserve">
+    <value>Nombre del tipo</value>
+  </data>
+  <data name="AssetColGroup" xml:space="preserve">
+    <value>Grupo</value>
+  </data>
+  <data name="AssetColCategory" xml:space="preserve">
+    <value>Categoría</value>
+  </data>
+  <data name="AssetColQuantity" xml:space="preserve">
+    <value>Cantidad</value>
+  </data>
+  <data name="AssetColOwnerType" xml:space="preserve">
+    <value>Tipo de propietario</value>
+  </data>
+  <data name="AssetColOwnerName" xml:space="preserve">
+    <value>Nombre del propietario</value>
+  </data>
+  <data name="AssetColOwnerId" xml:space="preserve">
+    <value>ID del propietario</value>
+  </data>
+  <data name="AssetColLocationId" xml:space="preserve">
+    <value>ID de ubicación</value>
+  </data>
+  <data name="AssetColLocationName" xml:space="preserve">
+    <value>Nombre de la ubicación</value>
+  </data>
+  <data name="AssetColLocationType" xml:space="preserve">
+    <value>Tipo de ubicación</value>
+  </data>
+  <data name="AssetColRootLocationId" xml:space="preserve">
+    <value>ID de ubicación raíz</value>
+  </data>
+  <data name="AssetColSolarSystem" xml:space="preserve">
+    <value>Sistema solar</value>
+  </data>
+  <data name="AssetColSolarSystemId" xml:space="preserve">
+    <value>ID del sistema solar</value>
+  </data>
+  <data name="AssetColRegionName" xml:space="preserve">
+    <value>Nombre de la región</value>
+  </data>
+  <data name="AssetColRegionId" xml:space="preserve">
+    <value>ID de la región</value>
+  </data>
+  <data name="AssetColSecurity" xml:space="preserve">
+    <value>Seguridad</value>
+  </data>
+  <data name="AssetColIsStation" xml:space="preserve">
+    <value>Es estación</value>
+  </data>
+  <data name="AssetColVolume" xml:space="preserve">
+    <value>Volumen</value>
+  </data>
+  <data name="AssetColTotalVolume" xml:space="preserve">
+    <value>Volumen total</value>
+  </data>
+  <data name="AssetColValuePerUnit" xml:space="preserve">
+    <value>Valor por unidad</value>
+  </data>
+  <data name="AssetColTotalValue" xml:space="preserve">
+    <value>Valor total</value>
+  </data>
+  <data name="AssetColIskPerM3" xml:space="preserve">
+    <value>ISK/m³</value>
+  </data>
+  <data name="AssetColBuildCost" xml:space="preserve">
+    <value>Coste de fabricación</value>
+  </data>
+  <data name="AssetColItemCount" xml:space="preserve">
+    <value>N.º de unidades</value>
+  </data>
+  <data name="AssetColIsSingleton" xml:space="preserve">
+    <value>Ensamblado</value>
+  </data>
+  <data name="AssetColIsBlueprintCopy" xml:space="preserve">
+    <value>Es copia de plano</value>
+  </data>
+  <data name="StatusNoAssets" xml:space="preserve">
+    <value>No hay bienes.</value>
+  </data>
+  <data name="StatusShowingAssetsOne" xml:space="preserve">
+    <value>Mostrando {1:N0} de {0:N0} bien</value>
+  </data>
+  <data name="StatusShowingAssetsOther" xml:space="preserve">
+    <value>Mostrando {1:N0} de {0:N0} bienes</value>
+  </data>
+  <data name="StatusAssetsTotalOne" xml:space="preserve">
+    <value>{0:N0} bien en total</value>
+  </data>
+  <data name="StatusAssetsTotalOther" xml:space="preserve">
+    <value>{0:N0} bienes en total</value>
+  </data>
+  <data name="RangeJumpsOne" xml:space="preserve">
+    <value>{0} salto</value>
+  </data>
+  <data name="RangeJumpsOther" xml:space="preserve">
+    <value>{0} saltos</value>
+  </data>
+  <data name="ReprocessFilterAll" xml:space="preserve">
+    <value>Todo</value>
+  </data>
+  <data name="ReprocessFilterOre" xml:space="preserve">
+    <value>Mena</value>
+  </data>
+  <data name="ReprocessFilterNonOre" xml:space="preserve">
+    <value>No mena</value>
+  </data>
+  <data name="AssetGroupNone" xml:space="preserve">
+    <value>Ninguno</value>
+  </data>
+  <data name="AssetsSummaryUnitsStacksPlaces" xml:space="preserve">
+    <value>{0} en {1} y {2}</value>
+  </data>
+  <data name="AssetsUnitsOne" xml:space="preserve">
+    <value>{0:N0} unidad</value>
+  </data>
+  <data name="AssetsUnitsOther" xml:space="preserve">
+    <value>{0:N0} unidades</value>
+  </data>
+  <data name="AssetsStacksOne" xml:space="preserve">
+    <value>{0:N0} pila</value>
+  </data>
+  <data name="AssetsStacksOther" xml:space="preserve">
+    <value>{0:N0} pilas</value>
+  </data>
+  <data name="AssetsLocationsOne" xml:space="preserve">
+    <value>{0:N0} ubicación</value>
+  </data>
+  <data name="AssetsLocationsOther" xml:space="preserve">
+    <value>{0:N0} ubicaciones</value>
+  </data>
+  <data name="AssetsSummaryWorth" xml:space="preserve">
+    <value>valor: {0}</value>
+  </data>
+  <data name="AssetsSummaryInJobs" xml:space="preserve">
+    <value>{0:N0} aún en trabajos de industria</value>
+  </data>
+  <data name="AllSources" xml:space="preserve">
+    <value>Todas las fuentes</value>
+  </data>
+  <data name="StatusItemsAcrossCategories" xml:space="preserve">
+    <value>{0} en {1}</value>
+  </data>
+  <data name="TreeItemsOne" xml:space="preserve">
+    <value>{0:N0} objeto</value>
+  </data>
+  <data name="TreeItemsOther" xml:space="preserve">
+    <value>{0:N0} objetos</value>
+  </data>
+  <data name="TreeCategoriesOne" xml:space="preserve">
+    <value>{0:N0} categoría</value>
+  </data>
+  <data name="TreeCategoriesOther" xml:space="preserve">
+    <value>{0:N0} categorías</value>
+  </data>
+  <data name="CopyBasisSell" xml:space="preserve">
+    <value>base de venta</value>
+  </data>
+  <data name="CopyBasisBuy" xml:space="preserve">
+    <value>base de compra</value>
+  </data>
+  <data name="CopyBasisSplit" xml:space="preserve">
+    <value>base intermedia</value>
+  </data>
+  <data name="CopyValuedAt" xml:space="preserve">
+    <value>Valorado en {0}, {1}, {2:0.#} % del mercado</value>
+  </data>
+  <data name="CopyValuedAtReprocessed" xml:space="preserve">
+    <value>Valorado en {0}, {1}, {2:0.#} % del mercado, reprocesado</value>
+  </data>
+  <data name="CopyColVolumeM3" xml:space="preserve">
+    <value>Volumen m3</value>
+  </data>
+  <data name="CopyColMarketUnit" xml:space="preserve">
+    <value>Mercado unidad</value>
+  </data>
+  <data name="CopyColMarketTotal" xml:space="preserve">
+    <value>Mercado total</value>
+  </data>
+  <data name="CopyColMarketPct" xml:space="preserve">
+    <value>Mercado %</value>
+  </data>
+  <data name="CopyColBuildUnit" xml:space="preserve">
+    <value>Fabricación unidad</value>
+  </data>
+  <data name="CopyColBuildTotal" xml:space="preserve">
+    <value>Fabricación total</value>
+  </data>
+  <data name="CopyColBuildPct" xml:space="preserve">
+    <value>Fabricación %</value>
+  </data>
+  <data name="CopyColReprocessUnit" xml:space="preserve">
+    <value>Reprocesado unidad</value>
+  </data>
+  <data name="CopyColReprocessTotal" xml:space="preserve">
+    <value>Reprocesado total</value>
+  </data>
+  <data name="CopyColReprocessPct" xml:space="preserve">
+    <value>Reprocesado %</value>
+  </data>
+  <data name="CopyColNote" xml:space="preserve">
+    <value>Nota</value>
+  </data>
+  <data name="CopyTotalMarket" xml:space="preserve">
+    <value>Total mercado</value>
+  </data>
+  <data name="CopyTotalBuild" xml:space="preserve">
+    <value>Total fabricación</value>
+  </data>
+  <data name="CopyTotalReprocessed" xml:space="preserve">
+    <value>Total reprocesado</value>
+  </data>
+  <data name="CopyTotalVolumeM3" xml:space="preserve">
+    <value>Volumen total m3</value>
+  </data>
+  <data name="CopyColStationUnit" xml:space="preserve">
+    <value>{0} unidad</value>
+  </data>
+  <data name="CopyColStationTotal" xml:space="preserve">
+    <value>{0} total</value>
+  </data>
+  <data name="CopyColStationPct" xml:space="preserve">
+    <value>{0} %</value>
+  </data>
+  <data name="StatusPricesSell" xml:space="preserve">
+    <value>precios de venta</value>
+  </data>
+  <data name="StatusPricesBuy" xml:space="preserve">
+    <value>precios de compra</value>
+  </data>
+  <data name="StatusPricesSplit" xml:space="preserve">
+    <value>precios intermedios</value>
+  </data>
+  <data name="StatusValuedItemsOne" xml:space="preserve">
+    <value>{0:N0} objeto en {1}, {2} {3}</value>
+  </data>
+  <data name="StatusValuedItemsOther" xml:space="preserve">
+    <value>{0:N0} objetos en {1}, {2} {3}</value>
+  </data>
+  <data name="StatusValuedRowsOne" xml:space="preserve">
+    <value>{0:N0} fila tras reprocesar en {1}, {2} {3}</value>
+  </data>
+  <data name="StatusValuedRowsOther" xml:space="preserve">
+    <value>{0:N0} filas tras reprocesar en {1}, {2} {3}</value>
+  </data>
+  <data name="StatusValued" xml:space="preserve">
+    <value>{0}.</value>
+  </data>
+  <data name="StatusValuedUnpriced" xml:space="preserve">
+    <value>{0}; {1} no se han podido valorar.</value>
+  </data>
+  <data name="AgeDaysOne" xml:space="preserve">
+    <value>obtenidos hace {0} día</value>
+  </data>
+  <data name="AgeDaysOther" xml:space="preserve">
+    <value>obtenidos hace {0} días</value>
+  </data>
+  <data name="InvGroupsOne" xml:space="preserve">
+    <value>{0} grupo</value>
+  </data>
+  <data name="InvGroupsOther" xml:space="preserve">
+    <value>{0} grupos</value>
+  </data>
+  <data name="InvItemsOne" xml:space="preserve">
+    <value>{0} objeto</value>
+  </data>
+  <data name="InvItemsOther" xml:space="preserve">
+    <value>{0} objetos</value>
+  </data>
+  <data name="StatusImported" xml:space="preserve">
+    <value>Se ha importado «{0}»: {1}, {2}.</value>
+  </data>
+  <data name="StatusImportedSkipped" xml:space="preserve">
+    <value>Se ha importado «{0}»: {1}, {2}. {3}</value>
+  </data>
+  <data name="ImportSkippedItemsOne" xml:space="preserve">
+    <value>{0} objeto omitido: el SDE de esta instalación no lo tiene.</value>
+  </data>
+  <data name="ImportSkippedItemsOther" xml:space="preserve">
+    <value>{0} objetos omitidos: el SDE de esta instalación no los tiene.</value>
+  </data>
+  <data name="StatusGroupsLoadedOne" xml:space="preserve">
+    <value>{0} grupo cargado. Pulsa Actualizar para cargar la disponibilidad.</value>
+  </data>
+  <data name="StatusGroupsLoadedOther" xml:space="preserve">
+    <value>{0} grupos cargados. Pulsa Actualizar para cargar la disponibilidad.</value>
+  </data>
+  <data name="StatusItemsUpdatedOne" xml:space="preserve">
+    <value>{0} objeto actualizado a las {1:HH:mm:ss}.</value>
+  </data>
+  <data name="StatusItemsUpdatedOther" xml:space="preserve">
+    <value>{0} objetos actualizados a las {1:HH:mm:ss}.</value>
+  </data>
+  <data name="StatusItemsAddedOne" xml:space="preserve">
+    <value>Se ha añadido {0} objeto de «{1}».</value>
+  </data>
+  <data name="StatusItemsAddedOther" xml:space="preserve">
+    <value>Se han añadido {0} objetos de «{1}».</value>
+  </data>
+  <data name="StatusItemsAddedSkippedOne" xml:space="preserve">
+    <value>Se ha añadido {0} objeto de «{1}»; se han omitido los que ya estaban ({2}).</value>
+  </data>
+  <data name="StatusItemsAddedSkippedOther" xml:space="preserve">
+    <value>Se han añadido {0} objetos de «{1}»; se han omitido los que ya estaban ({2}).</value>
+  </data>
+  <data name="ConfirmDeleteGroup" xml:space="preserve">
+    <value>¿Eliminar el grupo «{0}»? Esto no se puede deshacer.</value>
+  </data>
+  <data name="ConfirmDeleteGroupItemsOne" xml:space="preserve">
+    <value>¿Eliminar el grupo «{1}» y su {0:N0} objeto? Esto no se puede deshacer.</value>
+  </data>
+  <data name="ConfirmDeleteGroupItemsOther" xml:space="preserve">
+    <value>¿Eliminar el grupo «{1}» y sus {0:N0} objetos? Esto no se puede deshacer.</value>
+  </data>
+  <data name="ConfirmDeleteCollection" xml:space="preserve">
+    <value>¿Eliminar la colección «{0}»?</value>
+  </data>
+  <data name="ConfirmDeleteCollectionGroupsOne" xml:space="preserve">
+    <value>¿Eliminar la colección «{1}»? Su {0:N0} grupo pasa a {2} y no se elimina.</value>
+  </data>
+  <data name="ConfirmDeleteCollectionGroupsOther" xml:space="preserve">
+    <value>¿Eliminar la colección «{1}»? Sus {0:N0} grupos pasan a {2} y no se eliminan.</value>
+  </data>
+  <data name="ConfirmAddLargeGroupOne" xml:space="preserve">
+    <value>El grupo seleccionado contiene {0} objeto. ¿Seguro que quieres añadirlo?</value>
+  </data>
+  <data name="ConfirmAddLargeGroupOther" xml:space="preserve">
+    <value>El grupo seleccionado contiene {0} objetos. ¿Seguro que quieres añadirlos todos?</value>
+  </data>
+  <data name="ErrSelectStation" xml:space="preserve">
+    <value>Selecciona una estación o elige «{0}».</value>
+  </data>
+  <data name="ErrSelectSystem" xml:space="preserve">
+    <value>Selecciona un sistema o elige «{0}».</value>
+  </data>
+  <data name="ErrSelectRegion" xml:space="preserve">
+    <value>Selecciona una región o elige «{0}».</value>
+  </data>
+  <data name="FallbackStructureName" xml:space="preserve">
+    <value>Estructura {0}</value>
+  </data>
+  <data name="ProblemNotAnItem" xml:space="preserve">
+    <value>no es un nombre de objeto</value>
+  </data>
+  <data name="SectionLeftOver" xml:space="preserve">
+    <value>Sobrante</value>
+  </data>
+  <data name="ProblemCannotReprocess" xml:space="preserve">
+    <value>no se puede reprocesar</value>
+  </data>
+  <data name="ProblemShortOfBatch" xml:space="preserve">
+    <value>{0:N0} sobrantes, menos de un lote de {1:N0}</value>
+  </data>
+  <data name="SectionOutput" xml:space="preserve">
+    <value>Resultado</value>
+  </data>
+  <data name="ImportedCollectionName" xml:space="preserve">
+    <value>Colección importada</value>
+  </data>
+  <data name="LocUnknownStation" xml:space="preserve">
+    <value>&lt;Estación desconocida&gt;</value>
+  </data>
+  <data name="LocUnknownSystem" xml:space="preserve">
+    <value>&lt;Sistema desconocido&gt;</value>
+  </data>
+  <data name="LocUnknownStructure" xml:space="preserve">
+    <value>&lt;Estructura desconocida&gt;</value>
+  </data>
+  <data name="LocUnresolved" xml:space="preserve">
+    <value>&lt;Sin resolver - Actualiza&gt;</value>
+  </data>
+  <data name="DivisionNumbered" xml:space="preserve">
+    <value>División {0}</value>
+  </data>
+  <data name="FlagIndustryJob" xml:space="preserve">
+    <value>Trabajo de industria</value>
+  </data>
+  <data name="ColItemVolume" xml:space="preserve">
+    <value>Volumen</value>
+  </data>
+</root>

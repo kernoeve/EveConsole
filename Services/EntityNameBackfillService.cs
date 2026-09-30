@@ -4,6 +4,7 @@ using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -44,7 +45,7 @@ public sealed class EntityNameBackfillService(
     private CancellationTokenSource? _cts;
     private Task?                    _runTask;
 
-    private string _statusText = "Name cache: not started";
+    private string _statusText = DataText.NameCacheNotStarted;
     public string StatusText
     {
         get => _statusText;
@@ -86,7 +87,7 @@ public sealed class EntityNameBackfillService(
             catch (OperationCanceledException) when (ct.IsCancellationRequested) { break; }
             catch (Exception ex)
             {
-                StatusText = $"Name cache: error — {Truncate(ex.Message)}";
+                StatusText = string.Format(DataText.NameCacheError, Truncate(ex.Message));
                 errorLogger.Log(nameof(EntityNameBackfillService), nameof(RunAsync), ex);
             }
 
@@ -103,7 +104,7 @@ public sealed class EntityNameBackfillService(
         var missing = await GetMissingIdsAsync(db, ct);
         if (missing.Count == 0)
         {
-            StatusText = "○ Idle — all known entities resolved";
+            StatusText = DataText.NameCacheIdleResolved;
             return;
         }
 
@@ -126,14 +127,14 @@ public sealed class EntityNameBackfillService(
             // MaxIdsPerSweep bites — reporting it as a bare total made a capped run look
             // like the whole outstanding set was 50,000.
             StatusText = capped
-                ? $"● Running — {resolved:N0} of {missing.Count:N0} this pass (more outstanding)"
-                : $"● Running — {resolved:N0} of {missing.Count:N0} remaining names";
+                ? string.Format(DataText.NameCacheRunningCapped, resolved, missing.Count)
+                : string.Format(DataText.NameCacheRunning, resolved, missing.Count);
             await Task.Delay(InterBatchDelayMs, ct);
         }
 
         StatusText = capped
-            ? $"○ Idle — added {resolved:N0} name(s) this pass, more outstanding"
-            : $"○ Idle — added {resolved:N0} name(s), all known entities resolved";
+            ? string.Format(DataText.NameCacheIdleAddedCapped, resolved)
+            : string.Format(DataText.NameCacheIdleAdded, resolved);
     }
 
     /// <summary>

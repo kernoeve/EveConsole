@@ -1,5 +1,6 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Interactivity;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -27,7 +28,7 @@ public partial class ConfirmDialog : Window
         if (_required is null) return;
 
         ConfirmPanel.IsVisible = true;
-        ConfirmPrompt.Text     = $"Type {_required} to confirm:";
+        ConfirmPrompt.Text     = string.Format(CommonText.TypeToConfirm, _required);
         YesButton.IsEnabled    = false;
         ConfirmBox.TextChanged += (_, _) =>
             YesButton.IsEnabled =

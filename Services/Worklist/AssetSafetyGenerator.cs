@@ -1,6 +1,7 @@
 using System.Globalization;
 using EveConsole.Data;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.Services.Worklist;
 
@@ -30,7 +31,7 @@ public class AssetSafetyGenerator(
     WorklistSettings settings) : IWorklistGenerator
 {
     public string Id          => "asset_safety";
-    public string DisplayName => "Asset Safety";
+    public string DisplayName => WorklistText.SourceAssetSafety;
 
     /// <summary>The Asset Safety Wrap container itself, not anything worth acting on alone.</summary>
     public const int WrapTypeId = 60;
@@ -103,15 +104,18 @@ public class AssetSafetyGenerator(
                 // Widened before summing, not after: asset quantities are int, and a wrap holding
                 // several billion units of a mineral overflows the accumulator on the way in.
                 .Select(g => new WorklistLine(
-                    g.Key, typeNames.GetValueOrDefault(g.Key, $"Type {g.Key}"), g.Sum(c => (long)c.Quantity)))
+                    g.Key,
+                    typeNames.GetValueOrDefault(g.Key, string.Format(WorklistText.TypeWithId, g.Key)),
+                    g.Sum(c => (long)c.Quantity)))
                 .OrderByDescending(l => l.Quantity)
                 .ToList();
 
             var place   = places.GetValueOrDefault(locationId, Unnamed(locationId));
-            var owner   = owners.GetValueOrDefault(ownerId, (isCorp ? "Corp " : "Character ") + ownerId);
+            var owner   = owners.GetValueOrDefault(ownerId, string.Format(
+                              isCorp ? WorklistText.CorpWithId : WorklistText.CharacterWithId, ownerId));
             var wrapped = group.Count();
 
-            var (what, detail) = Describe(timer, now, wrapped, lines.Count, places);
+            var (what, detail) = Describe(timer, now, owner, wrapped, lines.Count, places);
 
             items.Add(new WorklistItem
             {
@@ -121,7 +125,7 @@ public class AssetSafetyGenerator(
                 Source        = Id,
                 Kind          = WorklistKind.AssetSafety,
                 Title         = $"{place} — {what}",
-                Detail        = $"{owner}. {detail}",
+                Detail        = detail,
                 Readiness     = WorklistReadiness.Ready,
                 CharacterId   = isCorp ? 0 : ownerId,
                 CharacterName = isCorp ? "" : owner,
@@ -138,19 +142,22 @@ public class AssetSafetyGenerator(
     /// <param name="wrapped">Wraps in the group. Worth saying, because choosing for ten of them at
     /// one station is a different afternoon from choosing for one.</param>
     private static (string What, string Detail) Describe(
-        SafetyTimer timer, DateTimeOffset now, int wrapped, int distinctTypes,
+        SafetyTimer timer, DateTimeOffset now, string owner, int wrapped, int distinctTypes,
         IReadOnlyDictionary<long, string> places)
     {
         var count = wrapped == 1
-            ? $"{distinctTypes:N0} item type{(distinctTypes == 1 ? "" : "s")} in 1 wrap"
-            : $"{distinctTypes:N0} item types across {wrapped:N0} wraps";
+            ? Plurals.Format(WorklistText.ResourceManager, nameof(WorklistText.SafetyTypesInOneWrapOther),
+                             distinctTypes)
+            : string.Format(WorklistText.SafetyTypesAcrossWraps, distinctTypes, wrapped);
 
         var left = timer.Full - now;
-        var dest = places.GetValueOrDefault(timer.Destination, $"station {timer.Destination}");
+        var dest = places.GetValueOrDefault(timer.Destination,
+                                            string.Format(WorklistText.StationWithIdLower, timer.Destination));
 
-        return ($"choose a destination for {wrapped:N0} asset safety wrap{(wrapped == 1 ? "" : "s")}",
-                $"{count}. Delivers itself to {dest} in {(int)left.TotalDays}d {left.Hours}h " +
-                $"({timer.Full.ToLocalTime():d MMM HH:mm}) at the higher fee if left.");
+        return (Plurals.Format(WorklistText.ResourceManager, nameof(WorklistText.SafetyChooseDestinationOther),
+                               wrapped),
+                string.Format(WorklistText.SafetyDetail, owner, count, dest,
+                              (int)left.TotalDays, left.Hours, timer.Full.ToLocalTime()));
     }
 
     /// <summary>
@@ -162,7 +169,7 @@ public class AssetSafetyGenerator(
     /// to wonder whether the tool is broken.</para>
     /// </summary>
     private static string Unnamed(long id) =>
-        id >= 100_000_000_000L ? $"Unnamed structure {id}" : $"Location {id}";
+        string.Format(id >= 100_000_000_000L ? WorklistText.UnnamedStructureWithId : WorklistText.LocationWithId, id);
 
     private sealed record SafetyTimer(DateTimeOffset Minimum, DateTimeOffset Full, long Destination);
 
@@ -258,12 +265,14 @@ public class AssetSafetyGenerator(
             ? new DateTimeOffset(DateTime.FromFileTimeUtc(ticks.Value))
             : null;
 
+    /// <summary>Places as the screen names them: the map only ever becomes a task's title, detail
+    /// and location cell. The task is keyed on the ids.</summary>
     private static async Task<Dictionary<long, string>> PlaceNamesAsync(
         AppDbContext db, CancellationToken ct)
     {
         var map = (await db.SdeStations.AsNoTracking()
                 .Select(s => new { Id = (long)s.StationId, s.Name }).ToListAsync(ct))
-            .ToDictionary(s => s.Id, s => s.Name);
+            .ToDictionary(s => s.Id, s => SdeNames.Station(s.Id, s.Name));
 
         foreach (var s in await db.EsiStructureNames.AsNoTracking()
                      .Where(s => s.Name != "")

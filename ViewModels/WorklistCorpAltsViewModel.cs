@@ -6,6 +6,7 @@ using EveConsole.Models;
 using EveConsole.Services.Worklist;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -173,14 +174,15 @@ public class WorklistCorpAltsViewModel : ReactiveObject
 
             Corps.Clear();
             foreach (var w in withProjects.OrderBy(w => corpNames.GetValueOrDefault(w.CorpId, "")))
-                Corps.Add(new CorpOption(w.CorpId, corpNames.GetValueOrDefault(w.CorpId, $"Corp {w.CorpId}")));
+                Corps.Add(new CorpOption(w.CorpId, corpNames.GetValueOrDefault(
+                    w.CorpId, string.Format(WorklistText.CorpWithId, w.CorpId))));
 
+            // A sentence for each case, rather than the unassigned count tacked onto the one.
             Status = withProjects.Count == 0
-                ? "No standing projects defined yet — set them up in Corp Activity first."
-                : $"{totalDefs:N0} standing project(s) across {withProjects.Count} corporation(s)"
-                  + (unassigned > 0
-                       ? $" · {unassigned} corporation(s) unassigned, so their items show as blocked"
-                       : "");
+                ? WorklistText.CorpProjectsNone
+                : unassigned > 0
+                    ? string.Format(WorklistText.CorpProjectsUnassigned, totalDefs, withProjects.Count, unassigned)
+                    : string.Format(WorklistText.CorpProjectsCount, totalDefs, withProjects.Count);
         });
     }
 
@@ -210,19 +212,19 @@ public class WorklistCorpAltsViewModel : ReactiveObject
                     .SetProperty(x => x.CharacterName, row.Alt.CharacterName)
                     .SetProperty(x => x.Note,          row.Alt.Note));
 
-            Status = "Saved.";
+            Status = WorklistText.StatusSaved;
             if (CorpAltsChanged is not null) await CorpAltsChanged();
         }
         catch (Exception ex)
         {
-            Status = $"Could not save that change: {ex.Message}";
+            Status = string.Format(WorklistText.StatusSaveFailed, ex.Message);
         }
     }
 
     private async Task AddAsync()
     {
-        if (SelectedCorp is null)      { Status = "Pick a corporation."; return; }
-        if (SelectedCharacter is null) { Status = "Pick the character who maintains its projects."; return; }
+        if (SelectedCorp is null)      { Status = WorklistText.PickCorporation; return; }
+        if (SelectedCharacter is null) { Status = WorklistText.PickProjectCharacter; return; }
 
         await _corpAlts.SaveAsync(new WorklistCorpAlt
         {

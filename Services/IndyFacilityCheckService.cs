@@ -1,5 +1,6 @@
 using EveConsole.Data;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -155,8 +156,8 @@ public class IndyFacilityCheckService(IDbContextFactory<AppDbContext> dbFactory)
                 ? new FacilityRigResult(j.JobId, FacilityRigVerdict.Rigged, "")
                 : new FacilityRigResult(j.JobId, FacilityRigVerdict.NotRigged,
                     fitted.Count == 0
-                        ? $"{park.DisplayName} has no industry rigs fitted"
-                        : $"{park.DisplayName} is not rigged for {Pretty(itemCat)}");
+                        ? string.Format(IndustryText.RigNoteNoRigs, park.DisplayName)
+                        : string.Format(IndustryText.RigNoteNotRiggedFor, park.DisplayName, Pretty(itemCat)));
         }
 
         return results;
@@ -181,23 +182,23 @@ public class IndyFacilityCheckService(IDbContextFactory<AppDbContext> dbFactory)
     /// <summary>Category keys are internal identifiers; jobs are read by people.</summary>
     private static string Pretty(string categoryKey) => categoryKey switch
     {
-        "small_ships"           => "small ships",
-        "medium_ships"          => "medium ships",
-        "large_ships"           => "large ships",
-        "adv_small_ships"       => "advanced small ships",
-        "adv_medium_ships"      => "advanced medium ships",
-        "adv_large_ships"       => "advanced large ships",
-        "capital_ships"         => "capital ships",
-        "drones_fighters"       => "drones and fighters",
-        "modules_equipment"     => "equipment",
-        "ammo_charges"          => "ammunition",
-        "capital_components"    => "capital components",
-        "adv_components"        => "advanced components",
-        "structure_ammo"        => "structures and fuel",
-        "react_bio_gas"         => "gas reactions",
-        "react_biochemical"     => "moon reactions",
-        "react_composite"       => "composite reactions",
-        "biochemical_reactions" => "reactions",
+        "small_ships"           => IndustryText.RigCatSmallShips,
+        "medium_ships"          => IndustryText.RigCatMediumShips,
+        "large_ships"           => IndustryText.RigCatLargeShips,
+        "adv_small_ships"       => IndustryText.RigCatAdvSmallShips,
+        "adv_medium_ships"      => IndustryText.RigCatAdvMediumShips,
+        "adv_large_ships"       => IndustryText.RigCatAdvLargeShips,
+        "capital_ships"         => IndustryText.RigCatCapitalShips,
+        "drones_fighters"       => IndustryText.RigCatDronesFighters,
+        "modules_equipment"     => IndustryText.RigCatEquipment,
+        "ammo_charges"          => IndustryText.RigCatAmmunition,
+        "capital_components"    => IndustryText.RigCatCapitalComponents,
+        "adv_components"        => IndustryText.RigCatAdvComponents,
+        "structure_ammo"        => IndustryText.RigCatStructuresFuel,
+        "react_bio_gas"         => IndustryText.RigCatGasReactions,
+        "react_biochemical"     => IndustryText.RigCatMoonReactions,
+        "react_composite"       => IndustryText.RigCatCompositeReactions,
+        "biochemical_reactions" => IndustryText.RigCatReactions,
         _                       => categoryKey.Replace('_', ' '),
     };
 }

@@ -1,7 +1,8 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:EveConsole.Localization"
         x:Class="EveConsole.Views.DatabaseRecoveryDialog"
-        Title="EVE Console — database problem"
+        Title="{x:Static loc:ShellText.TitleEveConsoleDatabaseProblem}"
         Width="620" SizeToContent="Height"
         WindowStartupLocation="CenterOwner"
         CanResize="False"
@@ -10,7 +11,7 @@
   <Border Padding="20" >
     <StackPanel Spacing="14">
 
-      <TextBlock Text="The database could not be opened"
+      <TextBlock Text="{x:Static loc:ShellText.TheDatabaseCouldNotBe}"
                  FontSize="17" FontWeight="SemiBold" Foreground="{DynamicResource WarnBrush}" />
 
       <TextBlock x:Name="ExplainText" TextWrapping="Wrap"
@@ -18,7 +19,7 @@
 
       <Border Background="{DynamicResource SurfacePanelBrush}" CornerRadius="3" Padding="10">
         <StackPanel Spacing="4">
-          <TextBlock Text="REPORTED" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}" />
+          <TextBlock Text="{x:Static loc:ShellText.ReportedLabel}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextFaintBrush}" />
           <TextBlock x:Name="ErrorText" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"
                      FontFamily="Consolas, Menlo, DejaVu Sans Mono, Liberation Mono, monospace" />
         </StackPanel>
@@ -26,25 +27,25 @@
 
       <!-- Backups, when there are any. -->
       <StackPanel x:Name="BackupPanel" Spacing="6">
-        <TextBlock Text="Restore from a backup" FontSize="13" FontWeight="SemiBold"
+        <TextBlock Text="{x:Static loc:ShellText.RestoreFromABackup}" FontSize="13" FontWeight="SemiBold"
                    Foreground="{DynamicResource AccentBrush}" />
-        <TextBlock Text="The most recent is selected. Anything recorded since it was taken will need to be polled again."
+        <TextBlock Text="{x:Static loc:ShellText.TheMostRecentIsNote}"
                    FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap" />
         <ComboBox x:Name="BackupList" MinWidth="360" FontSize="12" HorizontalAlignment="Stretch" />
       </StackPanel>
 
       <TextBlock x:Name="NoBackupText" IsVisible="False" TextWrapping="Wrap"
                  FontSize="12" Foreground="{DynamicResource BadBrush}"
-                 Text="No backups were found beside the database, so there is nothing to restore from. Starting fresh will build an empty database and leave the damaged one in place." />
+                 Text="{x:Static loc:ShellText.NoBackupsWereFoundNote}" />
 
       <Border Background="{DynamicResource SurfacePanelBrush}" CornerRadius="3" Padding="10">
         <TextBlock x:Name="QuarantineText" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
       </Border>
 
       <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
-        <Button x:Name="QuitButton"    Content="Quit"           Click="OnQuit"    Padding="14 6" />
-        <Button x:Name="FreshButton"   Content="Start fresh"    Click="OnFresh"   Padding="14 6" />
-        <Button x:Name="RestoreButton" Content="Restore backup" Click="OnRestore" Padding="14 6"
+        <Button x:Name="QuitButton"    Content="{x:Static loc:ShellText.Quit}"           Click="OnQuit"    Padding="14 6" />
+        <Button x:Name="FreshButton"   Content="{x:Static loc:ShellText.StartFresh}"    Click="OnFresh"   Padding="14 6" />
+        <Button x:Name="RestoreButton" Content="{x:Static loc:ShellText.RestoreBackup}" Click="OnRestore" Padding="14 6"
                 Background="{DynamicResource GoodSurfaceBrush}" Foreground="{DynamicResource TextBrightBrush}" />
       </StackPanel>
 

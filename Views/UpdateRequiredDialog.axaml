@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:EveConsole.Localization"
         x:Class="EveConsole.Views.UpdateRequiredDialog"
         Title="EVE Console"
         Width="480"
@@ -15,7 +16,7 @@
   <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto">
 
     <TextBlock Grid.Row="0"
-               Text="This build is older than the database"
+               Text="{x:Static loc:ShellText.ThisBuildIsOlderNote}"
                TextWrapping="Wrap"
                Foreground="{DynamicResource WarnBrush}"
                FontSize="14"
@@ -31,7 +32,7 @@
 
     <TextBlock Grid.Row="2"
                x:Name="StatusText"
-               Text="Checking for an update…"
+               Text="{x:Static loc:ShellText.CheckingForAnUpdate}"
                TextWrapping="Wrap"
                Foreground="{DynamicResource TextSecondaryBrush}"
                FontSize="13"
@@ -49,13 +50,13 @@
       <Grid ColumnDefinitions="*,Auto,Auto">
         <HyperlinkButton Grid.Column="0"
                          x:Name="ReleasesLink"
-                         Content="Releases page"
+                         Content="{x:Static loc:ShellText.ReleasesPage}"
                          Click="OnReleases"
                          VerticalAlignment="Center"
                          Padding="4 5" />
         <Button Grid.Column="1"
                 x:Name="UpdateButton"
-                Content="Update and restart"
+                Content="{x:Static loc:ShellText.UpdateAndRestart}"
                 Click="OnUpdate"
                 IsVisible="False"
                 IsDefault="True"
@@ -63,7 +64,7 @@
                 Margin="0 0 8 0" />
         <Button Grid.Column="2"
                 x:Name="CloseButton"
-                Content="Close"
+                Content="{x:Static loc:ShellText.Close}"
                 Click="OnClose"
                 Padding="20 5" />
       </Grid>

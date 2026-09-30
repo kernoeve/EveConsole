@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Runtime.Versioning;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -86,14 +87,14 @@ public static class SystemdServiceControl
         IsInstalled() && AppLauncher.SameFile(InstalledExePath(), AppLauncher.RelaunchPath);
 
     /// <summary>
-    /// Writes the unit, reloads systemd, enables it and starts it. Returns what went wrong, or null.
+    /// Writes the unit, reloads systemd, enables it and starts it. Says what went wrong, if anything.
     /// </summary>
     [SupportedOSPlatform("linux")]
-    public static string? Install()
+    public static ServiceResult Install()
     {
         try
         {
-            if (AppLauncher.RelaunchPath is not { } exe) return "Could not determine this application's path.";
+            if (AppLauncher.RelaunchPath is not { } exe) return ServiceResult.Failed(SettingsText.SvcNoAppPath);
 
             Directory.CreateDirectory(UnitDirectory);
             File.WriteAllText(UnitPath, UnitFile(exe));
@@ -101,16 +102,18 @@ public static class SystemdServiceControl
             // ⚠️ daemon-reload first. systemd caches units, so enabling one it has not read yet
             // fails with "unit not found" about a file plainly sitting there.
             var reload = Systemctl("daemon-reload");
-            if (reload.ExitCode != 0) return $"systemctl daemon-reload failed: {reload.Output}";
+            if (reload.ExitCode != 0) return ServiceResult.Failed(string.Format(SettingsText.SvcDaemonReloadFailed, reload.Output));
 
             var enable = Systemctl("enable", "--now", UnitName);
-            return enable.ExitCode == 0 ? null : $"systemctl enable failed: {enable.Output}";
+            return enable.ExitCode == 0
+                ? ServiceResult.Done
+                : ServiceResult.Failed(string.Format(SettingsText.SvcEnableFailed, enable.Output));
         }
-        catch (Exception ex) { return ex.Message.Split('\n')[0]; }
+        catch (Exception ex) { return ServiceResult.Failed(ex.Message.Split('\n')[0]); }
     }
 
     [SupportedOSPlatform("linux")]
-    public static string? Uninstall()
+    public static ServiceResult Uninstall()
     {
         try
         {
@@ -121,9 +124,9 @@ public static class SystemdServiceControl
             // After deleting, so systemd forgets a unit whose file has gone rather than keeping it
             // listed as not-found for the rest of the session.
             Systemctl("daemon-reload");
-            return null;
+            return ServiceResult.Done;
         }
-        catch (Exception ex) { return ex.Message.Split('\n')[0]; }
+        catch (Exception ex) { return ServiceResult.Failed(ex.Message.Split('\n')[0]); }
     }
 
     /// <summary>
@@ -137,12 +140,12 @@ public static class SystemdServiceControl
     /// client with a mismatch nobody can account for.</para>
     /// </summary>
     [SupportedOSPlatform("linux")]
-    public static string? Repoint()
+    public static ServiceResult Repoint()
     {
         try
         {
-            if (AppLauncher.RelaunchPath is not { } exe) return "Could not determine this application's path.";
-            if (!IsInstalled()) return "Not installed.";
+            if (AppLauncher.RelaunchPath is not { } exe) return ServiceResult.Failed(SettingsText.SvcNoAppPath);
+            if (!IsInstalled()) return ServiceResult.Failed(SettingsText.SvcRepointNotInstalled);
 
             var wasRunning = IsRunning();
             var wasEnabled = StartsAtLogin();
@@ -150,7 +153,7 @@ public static class SystemdServiceControl
             File.WriteAllText(UnitPath, UnitFile(exe));
 
             var reload = Systemctl("daemon-reload");
-            if (reload.ExitCode != 0) return $"systemctl daemon-reload failed: {reload.Output}";
+            if (reload.ExitCode != 0) return ServiceResult.Failed(string.Format(SettingsText.SvcDaemonReloadFailed, reload.Output));
 
             if (wasEnabled) Systemctl("enable", UnitName);
 
@@ -159,26 +162,26 @@ public static class SystemdServiceControl
             if (wasRunning)
             {
                 var restart = Systemctl("restart", UnitName);
-                if (restart.ExitCode != 0) return restart.Output;
+                if (restart.ExitCode != 0) return ServiceResult.Failed(restart.Output);
             }
 
-            return null;
+            return ServiceResult.Done;
         }
-        catch (Exception ex) { return ex.Message.Split('\n')[0]; }
+        catch (Exception ex) { return ServiceResult.Failed(ex.Message.Split('\n')[0]); }
     }
 
     [SupportedOSPlatform("linux")]
-    public static string? Start()
+    public static ServiceResult Start()
     {
         var r = Systemctl("start", UnitName);
-        return r.ExitCode == 0 ? null : r.Output;
+        return r.ExitCode == 0 ? ServiceResult.Done : ServiceResult.Failed(r.Output);
     }
 
     [SupportedOSPlatform("linux")]
-    public static string? Stop()
+    public static ServiceResult Stop()
     {
         var r = Systemctl("stop", UnitName);
-        return r.ExitCode == 0 ? null : r.Output;
+        return r.ExitCode == 0 ? ServiceResult.Done : ServiceResult.Failed(r.Output);
     }
 
     /// <summary>
@@ -189,24 +192,24 @@ public static class SystemdServiceControl
     /// is still correct and will be wanted again the moment the client goes back to PostgreSQL.</para>
     /// </summary>
     [SupportedOSPlatform("linux")]
-    public static string? StopAndDisable()
+    public static ServiceResult StopAndDisable()
     {
-        if (!IsInstalled()) return null;
+        if (!IsInstalled()) return ServiceResult.Done;
 
         // Both attempted, and the stop's failure reported in preference: a unit left running is the
         // one that locks the file, whereas one left enabled only does so at the next login.
         var stopped  = Stop();
         var disabled = SetStartsAtLogin(false);
 
-        return stopped ?? disabled;
+        return stopped.Succeeded ? disabled : stopped;
     }
 
     /// <summary>Turns "start at login" on or off without stopping or starting it now.</summary>
     [SupportedOSPlatform("linux")]
-    public static string? SetStartsAtLogin(bool enabled)
+    public static ServiceResult SetStartsAtLogin(bool enabled)
     {
         var r = Systemctl(enabled ? "enable" : "disable", UnitName);
-        return r.ExitCode == 0 ? null : r.Output;
+        return r.ExitCode == 0 ? ServiceResult.Done : ServiceResult.Failed(r.Output);
     }
 
     /// <summary>The last few journal lines, for a settings page to show when something is wrong.</summary>
@@ -291,7 +294,7 @@ public static class SystemdServiceControl
             foreach (var a in args) psi.ArgumentList.Add(a);
 
             using var p = Process.Start(psi);
-            if (p is null) return (1, $"could not run {file}");
+            if (p is null) return (1, string.Format(SettingsText.SvcCouldNotRun, file));
 
             var stdout = p.StandardOutput.ReadToEnd();
             var stderr = p.StandardError.ReadToEnd();

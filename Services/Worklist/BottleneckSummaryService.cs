@@ -1,3 +1,5 @@
+using EveConsole.Localization;
+
 namespace EveConsole.Services.Worklist;
 
 /// <summary>
@@ -106,7 +108,6 @@ public class BottleneckSummaryService
         foreach (var s in slots.Where(s => s.Waiting >= QueueFloor)
                                .OrderByDescending(s => s.Waiting))
         {
-            var pool       = Pool(s.Pool);
             var downstream = Downstream(items, index, s.Pool);
 
             // ⚠️ Only remedies worth taking. A remedy worth nothing used to be spelled out so
@@ -114,7 +115,7 @@ public class BottleneckSummaryService
             List<ObservationPoint> points = s.Remedies
                 .Where(r => r.Slots > 0)
                 .Select(r => new ObservationPoint(0,
-                    $"{r.Action} — +{r.Slots:N0} slots ({r.PercentGain:N0}%)"))
+                    string.Format(WorklistText.SummarySlotRemedy, r.Action, r.Slots, r.PercentGain)))
                 .ToList();
 
             if (points.Count == 0) continue;
@@ -122,10 +123,10 @@ public class BottleneckSummaryService
             yield return new Observation(
                 "slots",
                 s.Waiting + downstream,
-                $"Add {pool} slots",
-                $"{s.Waiting:N0} job(s) waiting on one"
-              + (downstream > 0 ? $", {downstream:N0} more stopped behind them" : "")
-              + ".",
+                AddSlots(s.Pool),
+                downstream > 0
+                    ? string.Format(WorklistText.SummarySlotsWaitingBehind, s.Waiting, downstream)
+                    : string.Format(WorklistText.SummarySlotsWaiting, s.Waiting),
                 points);
         }
     }
@@ -168,19 +169,19 @@ public class BottleneckSummaryService
             .ToList();
         if (blocking.Count == 0) yield break;
 
-        var thing = reactions ? "formula" : "blueprint";
-
         yield return new Observation(
             reactions ? "formulas" : "prints",
             DistinctStopped(blocking.Select(p => p.Tasks)) + blocking.Sum(p => p.BlockedNow),
-            $"Buy {blocking.Count:N0} {thing}(s)",
+            string.Format(reactions ? WorklistText.SummaryBuyFormulas : WorklistText.SummaryBuyBlueprints,
+                          blocking.Count),
             More(blocking.Count),
             // ⚠️ The gain, not the evidence. How often every copy was busy is what identified the
             // row and belongs on the tab that shows it; what a reader needs here is how much
             // throughput one purchase buys.
             [.. blocking.Take(MaxNamed).Select(p => new ObservationPoint(p.ProductTypeId,
-                $"{p.ProductName} — buy 1 of {p.Prints:N0} owned "
-              + $"(+{(p.Prints > 0 ? 100.0 / p.Prints : 100):N0}% output)"))]);
+                string.Format(WorklistText.SummaryBuyPrint,
+                              SdeNames.Type(p.ProductTypeId, p.ProductName),
+                              p.Prints, p.Prints > 0 ? 100.0 / p.Prints : 100)))]);
     }
 
     // ── Buying ────────────────────────────────────────────────────────────────
@@ -215,11 +216,12 @@ public class BottleneckSummaryService
         yield return new Observation(
             "buying",
             DistinctStopped(buys.Select(x => (IEnumerable<ShortageTask>)x.Stalled)),
-            $"Place {buys.Count:N0} buy order(s)",
+            string.Format(WorklistText.SummaryPlaceBuyOrders, buys.Count),
             More(buys.Count),
             [.. buys.Take(MaxNamed).Select(x => new ObservationPoint(x.Item.TypeId,
-                x.Item.Title
-              + (x.Stalled.Count > 0 ? $" — unblocks {x.Stalled.Count:N0} task(s)" : "")))]);
+                x.Stalled.Count > 0
+                    ? string.Format(WorklistText.SummaryBuyUnblocks, x.Item.Title, x.Stalled.Count)
+                    : x.Item.Title))]);
     }
 
     // ── Buffers ───────────────────────────────────────────────────────────────
@@ -244,16 +246,18 @@ public class BottleneckSummaryService
         var points = new List<ObservationPoint>();
 
         foreach (var s in unset.Take(MaxNamed / 2))
-            points.Add(new ObservationPoint(s.TypeId, $"{s.Name} — set level to {Suggest(s)}"));
+            points.Add(new ObservationPoint(s.TypeId,
+                string.Format(WorklistText.SummarySetLevel, SdeNames.Type(s.TypeId, s.Name), Suggest(s))));
 
         foreach (var s in thin.Take(MaxNamed))
-            points.Add(new ObservationPoint(s.TypeId, $"{s.Name} — raise level {s.Level:N0} to {Suggest(s)}"));
+            points.Add(new ObservationPoint(s.TypeId,
+                string.Format(WorklistText.SummaryRaiseLevel, SdeNames.Type(s.TypeId, s.Name), s.Level, Suggest(s))));
 
         yield return new Observation(
             "levels",
             DistinctStopped(unset.Concat(thin).Select(s => s.Tasks ?? [])),
-            $"Change {unset.Count + thin.Count:N0} inventory level(s)",
-            $"Sized for {TargetCoverDays} days at the current draw."
+            string.Format(WorklistText.SummaryChangeLevels, unset.Count + thin.Count),
+            string.Format(WorklistText.SummaryLevelsSized, TargetCoverDays)
           + More(unset.Count + thin.Count),
             points);
     }
@@ -279,29 +283,34 @@ public class BottleneckSummaryService
 
         List<ObservationPoint> points = shared.Count > 0
             ? [.. shared.Take(MaxNamed).Select(h => new ObservationPoint(h.TypeId,
-                  $"{h.TypeName} to {h.StationName} — {h.Units:N0} ({h.Volume:N0} m3), "
-                + (h.Unblocks > 0 ? $"restarts {h.Unblocks:N0} jobs"
-                                  : $"wanted by {h.Jobs:N0} jobs, none restarted by it alone")))]
+                  h.Unblocks > 0
+                      ? string.Format(WorklistText.SummaryTripRestarts,
+                                      SdeNames.Type(h.TypeId, h.TypeName), h.StationName, h.Units, h.Volume, h.Unblocks)
+                      : string.Format(WorklistText.SummaryTripWanted,
+                                      SdeNames.Type(h.TypeId, h.TypeName), h.StationName, h.Units, h.Volume, h.Jobs)))]
             : [.. idle.OrderByDescending(h => h.StalledTasks).Take(MaxNamed)
                    .Select(h => new ObservationPoint(h.TypeId,
-                       $"{h.Title} at {h.StationName} — {h.Volume:N0} m3"))];
+                       string.Format(WorklistText.SummaryHaulAt, h.Title, h.StationName, h.Volume)))];
 
         yield return new Observation(
             "hauling",
             idle.Count + DistinctStopped(idle.Select(h => h.Tasks)),
-            $"Raise {(shared.Count > 0 ? shared.Count : idle.Count):N0} haul(s)",
-            $"{idle.Count:N0} job(s) waiting on material already owned, with nothing moving.",
+            string.Format(WorklistText.SummaryRaiseHauls, shared.Count > 0 ? shared.Count : idle.Count),
+            string.Format(WorklistText.SummaryHaulsIdle, idle.Count),
             points);
     }
 
-    /// <summary>Says only that a list was cut, and where the rest is.</summary>
+    /// <summary>Says only that a list was cut, and where the rest is. Opens with a space when not
+    /// empty, since it follows a sentence — or stands alone as the whole of a finding's body.</summary>
     private static string More(int total) =>
-        total > MaxNamed ? $" Worst {MaxNamed} shown; the rest are on the tab." : "";
+        total > MaxNamed ? " " + string.Format(WorklistText.SummaryWorstShown, MaxNamed) : "";
 
-    private static string Pool(IndustryPool p) => p switch
+    /// <summary>A slots finding's heading. A sentence per pool rather than the pool's name dropped
+    /// into one: other languages may need the name in another form, or another place.</summary>
+    private static string AddSlots(IndustryPool p) => p switch
     {
-        IndustryPool.Manufacturing => "manufacturing",
-        IndustryPool.Reaction      => "reaction",
-        _                          => "science",
+        IndustryPool.Manufacturing => WorklistText.SummaryAddManufacturingSlots,
+        IndustryPool.Reaction      => WorklistText.SummaryAddReactionSlots,
+        _                          => WorklistText.SummaryAddScienceSlots,
     };
 }

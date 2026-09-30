@@ -190,6 +190,14 @@ public class AppDbContext : DbContext
     public DbSet<SdeSkinType>           SdeSkinTypes           => Set<SdeSkinType>();
     public DbSet<SdeSkinLicense>        SdeSkinLicenses        => Set<SdeSkinLicense>();
 
+    // The SDE's names in the client's other languages, for display. ⚠️ A new table: hand-written
+    // CREATEs in both schema paths (SdeImportService.EnsureSdeSchema, PostgresSchema).
+    public DbSet<SdeName>               SdeNames               => Set<SdeName>();
+
+    // And its descriptions, which are too large to load the way the names are — read a row at a
+    // time. The same two hand-written CREATEs.
+    public DbSet<SdeText>               SdeTexts               => Set<SdeText>();
+
     // ── Which client is doing the background work ────────────────────────────
     public DbSet<BackgroundWorkerStatus> BackgroundWorkerStatuses => Set<BackgroundWorkerStatus>();
     public DbSet<WorkerActivity>         WorkerActivities         => Set<WorkerActivity>();
@@ -584,6 +592,18 @@ public class AppDbContext : DbContext
         mb.Entity<SdeSkinLicense>(e => {
             e.HasKey(x => x.LicenseTypeId);
             e.Property(x => x.LicenseTypeId).ValueGeneratedNever(); });
+
+        mb.Entity<SdeName>(e => {
+            e.HasKey(x => new { x.Kind, x.Id, x.Lang });
+            e.Property(x => x.Kind).ValueGeneratedNever();
+            e.Property(x => x.Id).ValueGeneratedNever();
+            e.ToTable("SdeNames"); });
+
+        mb.Entity<SdeText>(e => {
+            e.HasKey(x => new { x.Kind, x.Id, x.Lang });
+            e.Property(x => x.Kind).ValueGeneratedNever();
+            e.Property(x => x.Id).ValueGeneratedNever();
+            e.ToTable("SdeTexts"); });
 
         // ── Market Levels ────────────────────────────────────────────────
         mb.Entity<MarketLevelGroup>(e => { e.HasKey(x => x.Id); });

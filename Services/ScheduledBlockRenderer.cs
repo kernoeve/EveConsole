@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 // models because that is where it was first needed; a scheduled post quoting different figures
 // from the same numbers would be worse than the tidier namespace.
 using EveConsole.ViewModels;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -139,11 +140,12 @@ public static class ProjectFilters
 
     public const string All = "all";
 
+    /// <summary>The filter's name, in the interface language: the key above is what is stored.</summary>
     public static string Label(string key) => key switch
     {
-        Missing       => "Missing projects",
-        MissingAndLow => "Missing and low projects",
-        _             => "All projects",
+        Missing       => AlarmsText.FilterMissingProjects,
+        MissingAndLow => AlarmsText.FilterMissingAndLowProjects,
+        _             => AlarmsText.FilterAllProjects,
     };
 }
 
@@ -290,7 +292,7 @@ public class ScheduledBlockRenderer(
         var first = new DateTime(nowUtc.Year, nowUtc.Month, 1, 0, 0, 0, DateTimeKind.Utc)
                         .AddMonths(-Math.Max(0, monthsBack));
 
-        return (first.Year, first.Month, first.ToString("MMMM yyyy"));
+        return (first.Year, first.Month, first.ToString(CommonText.DateMonthYear));
     }
 
     /// <summary>That same month as a half-open range, for the ranked lists.</summary>
@@ -397,7 +399,7 @@ public class ScheduledBlockRenderer(
         foreach (var l in lists)
             foreach (var c in l.Cells)
                 for (var i = 0; i < c.Length; i++)
-                    widths[i] = Math.Max(widths[i], c[i].Length);
+                    widths[i] = Math.Max(widths[i], MonoColumns.Width(c[i]));
 
         var sb = new StringBuilder();
 
@@ -414,9 +416,9 @@ public class ScheduledBlockRenderer(
                 {
                     // Numbers read right-aligned, the name reads left. The last cell is not padded,
                     // so there is no trailing whitespace inside the fence.
-                    if (i == c.Length - 1)      line.Append(c[i].PadLeft(widths[i]));
-                    else if (i == 1)            line.Append(c[i].PadRight(widths[i] + 2));
-                    else                        line.Append(c[i].PadLeft(widths[i])).Append("  ");
+                    if (i == c.Length - 1)      line.Append(MonoColumns.PadLeft(c[i], widths[i]));
+                    else if (i == 1)            line.Append(MonoColumns.PadRight(c[i], widths[i] + 2));
+                    else                        line.Append(MonoColumns.PadLeft(c[i], widths[i])).Append("  ");
                 }
                 sb.AppendLine(line.ToString());
             }
@@ -442,9 +444,11 @@ public class ScheduledBlockRenderer(
         var summary = await corp.GetMonthSummaryAsync(b.CorpId, year, month, ct);
         var lines   = MonthlySummaryReport.Build(summary, titles);
 
+        // The month in the interface language, as the screen's own export names it: the header
+        // around it is the interface's, and an English month read "월간 요약 — 2026년 September".
         var header = MonthlySummaryReport.Header(
             await CorpNameAsync(b.CorpId, ct),
-            System.Globalization.CultureInfo.InvariantCulture.DateTimeFormat.GetMonthName(month),
+            new DateTime(year, month, 1).ToString("MMMM", System.Globalization.CultureInfo.CurrentCulture),
             year,
             titles.HeaderPrefix);
 

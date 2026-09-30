@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using EveConsole.ViewModels;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -77,19 +78,19 @@ public partial class MarketLevelView : UserControl
         vm.ShowConfirmLargeGroup = async (groupName, count) =>
         {
             var dlg = new ConfirmDialog(
-                $"The selected group contains {count} items. Are you sure you want to add them all?");
+                string.Format(MarketText.ConfirmAddLargeGroup, count));
             return await dlg.ShowDialog<bool>(GetWindow());
         };
 
         vm.ShowAddCollectionDialog = async () =>
         {
-            var dlg = new NameDialog("Add Collection", "COLLECTION NAME");
+            var dlg = new NameDialog(MarketText.TitleAddCollection, MarketText.CollectionNameLabel);
             return await dlg.ShowDialog<string?>(GetWindow());
         };
 
         vm.ShowRenameCollectionDialog = async currentName =>
         {
-            var dlg = new NameDialog("Rename Collection", "COLLECTION NAME", currentName);
+            var dlg = new NameDialog(MarketText.TitleRenameCollection, MarketText.CollectionNameLabel, currentName);
             return await dlg.ShowDialog<string?>(GetWindow());
         };
     }

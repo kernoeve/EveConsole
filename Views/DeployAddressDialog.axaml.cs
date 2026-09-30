@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using EveConsole.Services.WebStore;
 using EveConsole.ViewModels;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -57,7 +58,7 @@ public partial class DeployAddressDialog : Window
             var sub = CloudflareDeployService.Slug(SubBox.Text ?? "", 63, "");
             if (!CloudflareDeployService.IsValidWorkerName(sub))
             {
-                Problem.Text      = "The workers.dev name needs lower-case letters, digits and hyphens, up to 63 of them.";
+                Problem.Text      = SalesText.WorkersNameInvalid;
                 Problem.IsVisible = true;
                 return;
             }
@@ -68,7 +69,7 @@ public partial class DeployAddressDialog : Window
         var host = CloudflareDeployService.CleanHostname(HostBox.Text ?? "");
         if (host is null)
         {
-            Problem.Text      = "That is not a hostname: something like store.example.com, letters, digits, hyphens and dots only.";
+            Problem.Text      = SalesText.HostnameInvalid;
             Problem.IsVisible = true;
             return;
         }

@@ -6,6 +6,7 @@ using EveConsole.Monitoring;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -100,7 +101,7 @@ public class ChatLogViewerViewModel : ReactiveObject
     {
         if (_isLoadingChannels) return;
         _isLoadingChannels = true;
-        ChannelStatus = "Loading…";
+        ChannelStatus = CommonText.Loading;
 
         try
         {
@@ -127,7 +128,7 @@ public class ChatLogViewerViewModel : ReactiveObject
             // that the date range is wrong — so say which, rather than leaving the user
             // adjusting dates against a table that was never going to have rows.
             ChannelStatus = grouped.Count > 0
-                ? $"{grouped.Count:N0} channel(s)"
+                ? string.Format(DataText.ChatChannelCount, grouped.Count)
                 : EmptyReason();
 
             // Keep the current selection if it still has activity in the new window.
@@ -151,13 +152,12 @@ public class ChatLogViewerViewModel : ReactiveObject
     private string EmptyReason()
     {
         if (!_settings.ChatEnabled)
-            return "Chat log import is turned off — enable it in Settings → Chat Logs.";
+            return DataText.ChatImportOff;
 
         if (_settings.ChatChannels.Count == 0)
-            return "No channels selected — pick channels in Settings → Chat Logs.";
+            return DataText.ChatNoChannels;
 
-        return "Nothing imported yet for the selected channels. New messages are picked "
-             + "up as they happen; use Import Past Chat in Settings for older ones.";
+        return DataText.ChatNothingImported;
     }
 
     private async Task LoadMessagesAsync()
@@ -167,12 +167,12 @@ public class ChatLogViewerViewModel : ReactiveObject
         if (_selectedChannel is null)
         {
             Rows.Clear();
-            StatusText = Channels.Count == 0 ? EmptyReason() : "Select a channel.";
+            StatusText = Channels.Count == 0 ? EmptyReason() : DataText.ChatSelectChannel;
             return;
         }
 
         _isLoadingMessages = true;
-        StatusText = "Loading…";
+        StatusText = CommonText.Loading;
 
         try
         {
@@ -200,10 +200,10 @@ public class ChatLogViewerViewModel : ReactiveObject
             foreach (var m in list) Rows.Add(new ChatMessageRowVm(m));
 
             StatusText = list.Count == 0
-                ? "No messages in range."
+                ? DataText.ChatNoMessages
                 : list.Count >= RowLimit
-                    ? $"{list.Count:N0} messages (capped — narrow the range)"
-                    : $"{list.Count:N0} message(s)";
+                    ? string.Format(DataText.ChatMessagesCapped, list.Count)
+                    : string.Format(DataText.ChatMessageCount, list.Count);
         }
         catch (Exception ex)
         {

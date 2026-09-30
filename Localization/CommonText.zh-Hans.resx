@@ -1,0 +1,346 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TitleAddItem" xml:space="preserve">
+    <value>添加物品</value>
+  </data>
+  <data name="TypeNumbered" xml:space="preserve">
+    <value>类型 {0}</value>
+  </data>
+  <data name="SearchForItemLabel" xml:space="preserve">
+    <value>搜索物品</value>
+  </data>
+  <data name="HintStartTypingItemName" xml:space="preserve">
+    <value>输入物品名称…</value>
+  </data>
+  <data name="Change" xml:space="preserve">
+    <value>更改</value>
+  </data>
+  <data name="TargetQuantityLabel" xml:space="preserve">
+    <value>目标数量</value>
+  </data>
+  <data name="SelectAnItemFromNote" xml:space="preserve">
+    <value>请从上方列表中选择一个物品。</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>添加</value>
+  </data>
+  <data name="TitleAddItemsFromBlueprint" xml:space="preserve">
+    <value>从蓝图添加物品</value>
+  </data>
+  <data name="BlueprintSearchByProductName" xml:space="preserve">
+    <value>蓝图（按产品名称搜索）</value>
+  </data>
+  <data name="HintTypeToSearch" xml:space="preserve">
+    <value>输入以搜索…</value>
+  </data>
+  <data name="MeLevelLabel" xml:space="preserve">
+    <value>ME 等级</value>
+  </data>
+  <data name="RunsLabel" xml:space="preserve">
+    <value>流程数</value>
+  </data>
+  <data name="MaterialsFromLabel" xml:space="preserve">
+    <value>材料来源</value>
+  </data>
+  <data name="ThisBlueprint" xml:space="preserve">
+    <value>仅此蓝图</value>
+  </data>
+  <data name="WholeChain" xml:space="preserve">
+    <value>整条生产链</value>
+  </data>
+  <data name="IndyParkWholeChain" xml:space="preserve">
+    <value>工业园区（整条生产链）</value>
+  </data>
+  <data name="AddItems" xml:space="preserve">
+    <value>添加物品</value>
+  </data>
+  <data name="Cancel2" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="TitleCustomColour" xml:space="preserve">
+    <value>自定义颜色</value>
+  </data>
+  <data name="EveMailIsDrawnNote" xml:space="preserve">
+    <value>EVE 邮件的背景接近黑色，因此很深的颜色在其中几乎看不见。下方的色样显示在该背景上，而不是本对话框的背景上。</value>
+  </data>
+  <data name="Archon10002" xml:space="preserve">
+    <value>Archon  (10,0,0) - 2.12B</value>
+  </data>
+  <data name="UseThisColour" xml:space="preserve">
+    <value>使用此颜色</value>
+  </data>
+  <data name="TitleConfirm" xml:space="preserve">
+    <value>确认</value>
+  </data>
+  <data name="No" xml:space="preserve">
+    <value>否</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>是</value>
+  </data>
+  <data name="TitleOpenInBrowser" xml:space="preserve">
+    <value>在浏览器中打开？</value>
+  </data>
+  <data name="ThisLinkOpensANote" xml:space="preserve">
+    <value>此链接会在浏览器中打开一个网站。</value>
+  </data>
+  <data name="DontAskMeAgain" xml:space="preserve">
+    <value>不再询问</value>
+  </data>
+  <data name="Open" xml:space="preserve">
+    <value>打开</value>
+  </data>
+  <data name="TitleAddItemsFromFit" xml:space="preserve">
+    <value>从装配添加物品</value>
+  </data>
+  <data name="AddToGroupLabel" xml:space="preserve">
+    <value>添加到分组：</value>
+  </data>
+  <data name="FitsLabel" xml:space="preserve">
+    <value>装配</value>
+  </data>
+  <data name="FitContentsLabel" xml:space="preserve">
+    <value>装配内容</value>
+  </data>
+  <data name="AddItems2" xml:space="preserve">
+    <value>添加物品</value>
+  </data>
+  <data name="TitleAddItemsFromMarketGroup" xml:space="preserve">
+    <value>从市场分组添加物品</value>
+  </data>
+  <data name="TargetQtyPerItemLabel" xml:space="preserve">
+    <value>每种物品的目标数量</value>
+  </data>
+  <data name="Ok" xml:space="preserve">
+    <value>确定</value>
+  </data>
+  <data name="HintRrggbb" xml:space="preserve">
+    <value>#rrggbb</value>
+  </data>
+  <data name="TipPickAColour" xml:space="preserve">
+    <value>选择颜色</value>
+  </data>
+  <data name="EveMailColoursLabel" xml:space="preserve">
+    <value>EVE 邮件颜色</value>
+  </data>
+  <data name="Custom" xml:space="preserve">
+    <value>自定义…</value>
+  </data>
+  <data name="NoColour" xml:space="preserve">
+    <value>无颜色</value>
+  </data>
+  <data name="TipShowEveryLabelAlreadyIn" xml:space="preserve">
+    <value>显示所有已在使用的标签</value>
+  </data>
+  <data name="NoMatchesPressEnterNote" xml:space="preserve">
+    <value>没有匹配项——按 Enter 键创建。</value>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>正在加载…</value>
+  </data>
+  <data name="Checking" xml:space="preserve">
+    <value>正在检查…</value>
+  </data>
+  <data name="ErrorWithMessage" xml:space="preserve">
+    <value>错误：{0}</value>
+  </data>
+  <data name="PriceTypeBuy" xml:space="preserve">
+    <value>买价</value>
+  </data>
+  <data name="PriceTypeSell" xml:space="preserve">
+    <value>卖价</value>
+  </data>
+  <data name="PriceTypeSplit" xml:space="preserve">
+    <value>中间价</value>
+  </data>
+  <data name="JobReady" xml:space="preserve">
+    <value>可交付</value>
+  </data>
+  <data name="DurationDaysHoursMinutes" xml:space="preserve">
+    <value>{0} 天 {1} 小时 {2} 分</value>
+  </data>
+  <data name="DurationHoursMinutes" xml:space="preserve">
+    <value>{0} 小时 {1} 分</value>
+  </data>
+  <data name="DurationMinutesSeconds" xml:space="preserve">
+    <value>{0} 分 {1} 秒</value>
+  </data>
+  <data name="DurationSeconds" xml:space="preserve">
+    <value>{0} 秒</value>
+  </data>
+  <data name="AlarmActionSound" xml:space="preserve">
+    <value>声音</value>
+  </data>
+  <data name="AlarmActionTtsDirect" xml:space="preserve">
+    <value>TTS 直接朗读（绕过 AI 助手）</value>
+  </data>
+  <data name="AlarmActionAgentNotify" xml:space="preserve">
+    <value>通知 AI 助手</value>
+  </data>
+  <data name="AlarmActionAlert" xml:space="preserve">
+    <value>提醒</value>
+  </data>
+  <data name="AlarmActionDialog" xml:space="preserve">
+    <value>对话框</value>
+  </data>
+  <data name="PagerNoResults" xml:space="preserve">
+    <value>没有结果</value>
+  </data>
+  <data name="PagerPageOf" xml:space="preserve">
+    <value>第 {0:N0} / {1:N0} 页  ·  {2:N0} 行</value>
+  </data>
+  <data name="NoPark" xml:space="preserve">
+    <value>— 无园区 —</value>
+  </data>
+  <data name="SelectBlueprintFirst" xml:space="preserve">
+    <value>请先选择一张蓝图。</value>
+  </data>
+  <data name="TypeToConfirm" xml:space="preserve">
+    <value>输入 {0} 以确认：</value>
+  </data>
+  <data name="NameRequired" xml:space="preserve">
+    <value>名称为必填项。</value>
+  </data>
+  <data name="LoadingMarketGroups" xml:space="preserve">
+    <value>正在加载市场分组…</value>
+  </data>
+  <data name="SelectMarketGroup" xml:space="preserve">
+    <value>选择一个市场分组以添加其中的物品。</value>
+  </data>
+  <data name="FitBadgePersonal" xml:space="preserve">
+    <value>个</value>
+  </data>
+  <data name="FitBadgeCorp" xml:space="preserve">
+    <value>团</value>
+  </data>
+  <data name="FetchingFits" xml:space="preserve">
+    <value>正在从 ESI 获取装配…</value>
+  </data>
+  <data name="BuildingFitTree" xml:space="preserve">
+    <value>正在生成列表…</value>
+  </data>
+  <data name="NoFitsFound" xml:space="preserve">
+    <value>未找到装配。请确认角色拥有 esi-fittings.read_fittings.v1 权限范围。</value>
+  </data>
+  <data name="TypeIdWithId" xml:space="preserve">
+    <value>类型 ID {0}</value>
+  </data>
+  <data name="FitsSummary" xml:space="preserve">
+    <value>{1} 种舰船类型，共 {0} 个装配</value>
+  </data>
+  <data name="FitSectionHigh" xml:space="preserve">
+    <value>高槽</value>
+  </data>
+  <data name="FitSectionMed" xml:space="preserve">
+    <value>中槽</value>
+  </data>
+  <data name="FitSectionLow" xml:space="preserve">
+    <value>低槽</value>
+  </data>
+  <data name="FitSectionRigs" xml:space="preserve">
+    <value>改装件</value>
+  </data>
+  <data name="FitSectionSubsystems" xml:space="preserve">
+    <value>子系统</value>
+  </data>
+  <data name="FitSectionDrones" xml:space="preserve">
+    <value>无人机</value>
+  </data>
+  <data name="FitSectionFighters" xml:space="preserve">
+    <value>铁骑舰载机</value>
+  </data>
+  <data name="FitSectionCargo" xml:space="preserve">
+    <value>货舱</value>
+  </data>
+  <data name="FitSectionFleetHangar" xml:space="preserve">
+    <value>舰队机库</value>
+  </data>
+  <data name="FitSectionOther" xml:space="preserve">
+    <value>其他</value>
+  </data>
+  <data name="FitSectionHull" xml:space="preserve">
+    <value>船体</value>
+  </data>
+  <data name="ListSeparator" xml:space="preserve">
+    <value>、</value>
+  </data>
+  <data name="ClauseSeparator" xml:space="preserve">
+    <value>，</value>
+  </data>
+  <data name="LanguageEnglish" xml:space="preserve">
+    <value>英语</value>
+  </data>
+  <data name="LanguageChineseSimplified" xml:space="preserve">
+    <value>简体中文</value>
+  </data>
+  <data name="LanguageGerman" xml:space="preserve">
+    <value>德语</value>
+  </data>
+  <data name="LanguageSpanish" xml:space="preserve">
+    <value>西班牙语</value>
+  </data>
+  <data name="LanguageFrench" xml:space="preserve">
+    <value>法语</value>
+  </data>
+  <data name="LanguageJapanese" xml:space="preserve">
+    <value>日语</value>
+  </data>
+  <data name="LanguageKorean" xml:space="preserve">
+    <value>韩语</value>
+  </data>
+  <data name="LanguageRussian" xml:space="preserve">
+    <value>俄语</value>
+  </data>
+  <data name="LanguageLocalAndNative" xml:space="preserve">
+    <value>{0}（{1}）</value>
+  </data>
+  <data name="DateMonthDay" xml:space="preserve">
+    <value>M月d日</value>
+  </data>
+  <data name="DateMonthDayTime" xml:space="preserve">
+    <value>M月d日 HH:mm</value>
+  </data>
+  <data name="DateMonthDayTime12" xml:space="preserve">
+    <value>M月d日 HH:mm</value>
+  </data>
+  <data name="DateMonthDayYear" xml:space="preserve">
+    <value>yyyy年M月d日</value>
+  </data>
+  <data name="DateMonthDayYearTime" xml:space="preserve">
+    <value>yyyy年M月d日 HH:mm</value>
+  </data>
+  <data name="DateMonthYear" xml:space="preserve">
+    <value>yyyy年M月</value>
+  </data>
+  <data name="DateMonthYearShort" xml:space="preserve">
+    <value>yy年M月</value>
+  </data>
+  <data name="DateDayTime" xml:space="preserve">
+    <value>M月d日 HH:mm</value>
+  </data>
+  <data name="DateDayTimeSeconds" xml:space="preserve">
+    <value>M月d日 HH:mm:ss</value>
+  </data>
+  <data name="DateFull" xml:space="preserve">
+    <value>yyyy年M月d日</value>
+  </data>
+  <data name="DateTimeFull" xml:space="preserve">
+    <value>yyyy年M月d日 HH:mm</value>
+  </data>
+  <data name="DateTimeLong" xml:space="preserve">
+    <value>yyyy年M月d日 HH:mm</value>
+  </data>
+  <data name="DateWeekdayTime" xml:space="preserve">
+    <value>yyyy年M月d日 dddd HH:mm</value>
+  </data>
+  <data name="DateFullBinding" xml:space="preserve">
+    <value>{0:yyyy年M月d日}</value>
+  </data>
+</root>

@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              xmlns:conv="clr-namespace:EveConsole.Views"
              x:Class="EveConsole.Views.MarketLevelView"
@@ -41,14 +42,14 @@
 
         <Button Grid.Column="0"
                 Command="{Binding AddGroupCommand}"
-                Content="+ Add Group"
+                Content="{x:Static loc:MarketText.AddGroup}"
                 Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource AccentBrush}"
                 BorderBrush="{DynamicResource AccentSurfaceBrush}" BorderThickness="1"
                 Padding="12 4" FontSize="11" />
 
         <Button Grid.Column="1"
                 Command="{Binding AddCollectionCommand}"
-                Content="+ Collection"
+                Content="{x:Static loc:MarketText.Collection}"
                 Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
                 BorderBrush="{DynamicResource SurfaceSelectedBrush}" BorderThickness="1"
                 Padding="12 4" FontSize="11" Margin="8 0 0 0" />
@@ -90,19 +91,19 @@
 
       <DataGrid.ContextMenu>
         <ContextMenu>
-          <MenuItem Header="Open in Item Browser"
+          <MenuItem Header="{x:Static loc:MarketText.MenuOpenInItemBrowser}"
                     Command="{Binding OpenInItemBrowserCommand}"
                     IsEnabled="{Binding IsItemRowSelected}" />
           <Separator />
-          <MenuItem Header="Add Items From Fit"
+          <MenuItem Header="{x:Static loc:MarketText.MenuAddItemsFromFit}"
                     Command="{Binding AddFromFitCommand}"
                     IsEnabled="{Binding HasAnyGroup}" />
-          <MenuItem Header="Add Items From Market Group"
+          <MenuItem Header="{x:Static loc:MarketText.MenuAddItemsFromMarketGroup}"
                     Command="{Binding AddFromMarketGroupCommand}" />
-          <MenuItem Header="Add Items From Blueprint"
+          <MenuItem Header="{x:Static loc:MarketText.MenuAddItemsFromBlueprint}"
                     Command="{Binding AddFromBlueprintCommand}" />
           <Separator />
-          <MenuItem Header="Delete Item"
+          <MenuItem Header="{x:Static loc:MarketText.MenuDeleteItem}"
                     Command="{Binding DeleteSelectedItemCommand}"
                     IsEnabled="{Binding IsItemRowSelected}" />
         </ContextMenu>
@@ -134,7 +135,7 @@
       <DataGrid.Columns>
 
         <!-- GROUP / ITEM -->
-        <DataGridTemplateColumn Header="GROUP / ITEM" Width="*" MinWidth="400"
+        <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColGroupItem}" Width="*" MinWidth="400"
                                 Tag="TypeName" IsReadOnly="True" ClipboardContentBinding="{Binding CollectionName}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
@@ -153,24 +154,24 @@
                              Foreground="{DynamicResource InfoBrush}" VerticalAlignment="Center" />
                   <Button Command="{Binding ExpandAllCommand}"
                           Content="+"
-                          ToolTip.Tip="Expand all groups"
+                          ToolTip.Tip="{x:Static loc:MarketText.TipExpandAllGroups}"
                           Background="{DynamicResource SurfaceBaseBrush}" Foreground="{DynamicResource InfoBrush}"
                           BorderBrush="{DynamicResource SurfaceSelectedBrush}" BorderThickness="1"
                           Padding="6 2" FontSize="11" VerticalAlignment="Center" Cursor="Hand" Margin="6 0 0 0" />
                   <Button Command="{Binding CollapseAllCommand}"
                           Content="−"
-                          ToolTip.Tip="Collapse all groups"
+                          ToolTip.Tip="{x:Static loc:MarketText.TipCollapseAllGroups}"
                           Background="{DynamicResource SurfaceBaseBrush}" Foreground="{DynamicResource InfoBrush}"
                           BorderBrush="{DynamicResource SurfaceSelectedBrush}" BorderThickness="1"
                           Padding="6 2" FontSize="11" VerticalAlignment="Center" Cursor="Hand" />
                   <Button Command="{Binding RenameCommand}"
-                          Content="Rename"
+                          Content="{x:Static loc:MarketText.Rename}"
                           IsVisible="{Binding !IsSynthetic}"
                           Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
                           BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                           Padding="8 2" FontSize="10" VerticalAlignment="Center" Cursor="Hand" />
                   <Button Command="{Binding DeleteCommand}"
-                          Content="Delete"
+                          Content="{x:Static loc:MarketText.Delete}"
                           IsVisible="{Binding !IsSynthetic}"
                           Background="{DynamicResource BadSurfaceBrush}" Foreground="{DynamicResource BadBrush}"
                           BorderBrush="{DynamicResource BadSurfaceBrush}" BorderThickness="1"
@@ -200,17 +201,17 @@
                                  VerticalAlignment="Center"
                                  Foreground="{DynamicResource TextSecondaryBrush}" />
                   <Button Command="{Binding AddItemCommand}"
-                          Content="+ Item"
+                          Content="{x:Static loc:MarketText.Item}"
                           Background="{DynamicResource SurfaceBaseBrush}" Foreground="{DynamicResource GoodBrush}"
                           BorderBrush="{DynamicResource GoodSurfaceBrush}" BorderThickness="1"
                           Padding="8 2" FontSize="10" VerticalAlignment="Center" Cursor="Hand" Margin="4 0 0 0" />
                   <Button Command="{Binding EditCommand}"
-                          Content="Edit"
+                          Content="{x:Static loc:MarketText.Edit}"
                           Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
                           BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                           Padding="8 2" FontSize="10" VerticalAlignment="Center" Cursor="Hand" />
                   <Button Command="{Binding DeleteCommand}"
-                          Content="Delete"
+                          Content="{x:Static loc:MarketText.Delete}"
                           Background="{DynamicResource BadSurfaceBrush}" Foreground="{DynamicResource BadBrush}"
                           BorderBrush="{DynamicResource BadSurfaceBrush}" BorderThickness="1"
                           Padding="8 2" FontSize="10" VerticalAlignment="Center" Cursor="Hand" />
@@ -220,7 +221,7 @@
                      placement and only one of them is ever visible. -->
                 <Button IsVisible="{Binding ShowItemLink}" Classes="link"
                         Click="OnOpenItem" Canvas.Left="32" Canvas.Top="5"
-                        ToolTip.Tip="Open in the Item Browser">
+                        ToolTip.Tip="{x:Static loc:MarketText.TipOpenInTheItemBrowser}">
                   <TextBlock Text="{Binding TypeName}" Classes="linktext"
                              FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
                 </Button>
@@ -234,7 +235,7 @@
         </DataGridTemplateColumn>
 
         <!-- TARGET -->
-        <DataGridTemplateColumn Header="TARGET" Width="90" MinWidth="90" Tag="TargetQty" IsReadOnly="False" ClipboardContentBinding="{Binding TargetQty, Converter={StaticResource IntConv}}">
+        <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColTarget}" Width="90" MinWidth="90" Tag="TargetQty" IsReadOnly="False" ClipboardContentBinding="{Binding TargetQty, Converter={StaticResource IntConv}}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <NumericUpDown x:CompileBindings="False"
@@ -251,7 +252,7 @@
         </DataGridTemplateColumn>
 
         <!-- TGT TOTAL (read-only: target × multiplier) -->
-        <DataGridTemplateColumn Header="TGT TOTAL" Width="90" MinWidth="90" Tag="TargetTotal" IsReadOnly="True" ClipboardContentBinding="{Binding TargetTotalText}">
+        <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColTgtTotal}" Width="90" MinWidth="90" Tag="TargetTotal" IsReadOnly="True" ClipboardContentBinding="{Binding TargetTotalText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False"
@@ -265,7 +266,7 @@
         </DataGridTemplateColumn>
 
         <!-- AVAIL -->
-        <DataGridTemplateColumn Header="AVAIL" Width="80" MinWidth="80" Tag="Available" IsReadOnly="True" ClipboardContentBinding="{Binding AvailableText}">
+        <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColAvail}" Width="80" MinWidth="80" Tag="Available" IsReadOnly="True" ClipboardContentBinding="{Binding AvailableText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False"
@@ -279,7 +280,7 @@
         </DataGridTemplateColumn>
 
         <!-- DIFF (vs target) -->
-        <DataGridTemplateColumn Header="DIFF" Width="75" MinWidth="75" Tag="Diff" IsReadOnly="True" ClipboardContentBinding="{Binding DiffText}">
+        <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColDiff}" Width="75" MinWidth="75" Tag="Diff" IsReadOnly="True" ClipboardContentBinding="{Binding DiffText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False"
@@ -308,7 +309,7 @@
         </DataGridTemplateColumn>
 
         <!-- MKT PRICE -->
-        <DataGridTemplateColumn Header="MKT PRICE" Width="90" MinWidth="90" Tag="MarketPrice" IsReadOnly="True" ClipboardContentBinding="{Binding MktPriceText}">
+        <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColMktPrice}" Width="90" MinWidth="90" Tag="MarketPrice" IsReadOnly="True" ClipboardContentBinding="{Binding MktPriceText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False"
@@ -322,7 +323,7 @@
         </DataGridTemplateColumn>
 
         <!-- ST MIN -->
-        <DataGridTemplateColumn Header="ST MIN" Width="85" MinWidth="85" Tag="StationMin" IsReadOnly="True" ClipboardContentBinding="{Binding StMinText}">
+        <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColStMin}" Width="85" MinWidth="85" Tag="StationMin" IsReadOnly="True" ClipboardContentBinding="{Binding StMinText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False"
@@ -336,7 +337,7 @@
         </DataGridTemplateColumn>
 
         <!-- DIFF (min vs mkt) -->
-        <DataGridTemplateColumn Header="DIFF" Width="82" MinWidth="82" Tag="MinDelta" IsReadOnly="True" ClipboardContentBinding="{Binding MinDeltaText}">
+        <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColDiff}" Width="82" MinWidth="82" Tag="MinDelta" IsReadOnly="True" ClipboardContentBinding="{Binding MinDeltaText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False"
@@ -364,7 +365,7 @@
         </DataGridTemplateColumn>
 
         <!-- ST AVG -->
-        <DataGridTemplateColumn Header="ST AVG" Width="85" MinWidth="85" Tag="StationAvg" IsReadOnly="True" ClipboardContentBinding="{Binding StAvgText}">
+        <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColStAvg}" Width="85" MinWidth="85" Tag="StationAvg" IsReadOnly="True" ClipboardContentBinding="{Binding StAvgText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False"
@@ -378,7 +379,7 @@
         </DataGridTemplateColumn>
 
         <!-- DIFF (avg vs mkt) -->
-        <DataGridTemplateColumn Header="DIFF" Width="82" MinWidth="82" Tag="AvgDelta" IsReadOnly="True" ClipboardContentBinding="{Binding AvgDeltaText}">
+        <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColDiff}" Width="82" MinWidth="82" Tag="AvgDelta" IsReadOnly="True" ClipboardContentBinding="{Binding AvgDeltaText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False"
@@ -406,7 +407,7 @@
         </DataGridTemplateColumn>
 
         <!-- ST MAX -->
-        <DataGridTemplateColumn Header="ST MAX" Width="85" MinWidth="85" Tag="StationMax" IsReadOnly="True" ClipboardContentBinding="{Binding StMaxText}">
+        <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColStMax}" Width="85" MinWidth="85" Tag="StationMax" IsReadOnly="True" ClipboardContentBinding="{Binding StMaxText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False"
@@ -420,7 +421,7 @@
         </DataGridTemplateColumn>
 
         <!-- DIFF (max vs mkt) -->
-        <DataGridTemplateColumn Header="DIFF" Width="82" MinWidth="82" Tag="MaxDelta" IsReadOnly="True" ClipboardContentBinding="{Binding MaxDeltaText}">
+        <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColDiff}" Width="82" MinWidth="82" Tag="MaxDelta" IsReadOnly="True" ClipboardContentBinding="{Binding MaxDeltaText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False"
@@ -448,7 +449,7 @@
         </DataGridTemplateColumn>
 
         <!-- BUILD PRICE (material cost per unit from BuildCosts cache) -->
-        <DataGridTemplateColumn Header="BUILD PRICE" Width="100" MinWidth="100" Tag="BuildPrice" IsReadOnly="True" ClipboardContentBinding="{Binding BuildPriceText}">
+        <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColBuildPrice}" Width="100" MinWidth="100" Tag="BuildPrice" IsReadOnly="True" ClipboardContentBinding="{Binding BuildPriceText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False"
@@ -462,7 +463,7 @@
         </DataGridTemplateColumn>
 
         <!-- VOLUME -->
-        <DataGridTemplateColumn Header="VOLUME (m³)" Width="90" MinWidth="90" Tag="Volume" IsReadOnly="True" ClipboardContentBinding="{Binding VolumeText}">
+        <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColVolumeM}" Width="90" MinWidth="90" Tag="Volume" IsReadOnly="True" ClipboardContentBinding="{Binding VolumeText}">
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
               <TextBlock x:CompileBindings="False"

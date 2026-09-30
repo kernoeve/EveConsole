@@ -10,6 +10,7 @@ using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 using Avalonia.Media;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -27,7 +28,7 @@ public sealed class CharacterSummaryRowVm(EveConsole.Services.CharacterSummaryRo
     public string Alliance    => r.AllianceName;
 
     public bool   Online      => r.Online;
-    public string OnlineText  => r.Online ? "Online" : "Offline";
+    public string OnlineText  => r.Online ? CharactersText.StatusOnline : CharactersText.StatusOffline;
     public IBrush OnlineColor => r.Online ? Palette.Good : Palette.TextDim;
 
     public string Location    => r.Location;
@@ -51,10 +52,10 @@ public sealed class CharacterSummaryRowVm(EveConsole.Services.CharacterSummaryRo
     public DateTimeOffset QueueEndsRaw => r.QueueEnds ?? DateTimeOffset.MinValue;
     public int    QueueLength => r.QueueLength;
     public string QueueText   => r.QueueLength == 0
-        ? "empty"
+        ? CharactersText.QueueEmptyShort
         : r.QueueEnds is { } end
             ? $"{r.QueueLength} · {Span(end - DateTimeOffset.UtcNow)}"
-            : $"{r.QueueLength} · paused";
+            : string.Format(CharactersText.QueuePausedShort, r.QueueLength);
 
     /// <summary>Amber once the queue is inside a day, red when it has run dry.</summary>
     public IBrush QueueColor => r.QueueLength == 0 ? Palette.Bad
@@ -102,10 +103,10 @@ public sealed class CharacterSummaryRowVm(EveConsole.Services.CharacterSummaryRo
         _                    => v.ToString("N0"),
     };
 
-    private static string Span(TimeSpan t) => t.TotalSeconds <= 0 ? "done"
-        : t.TotalDays >= 1 ? $"{t.TotalDays:F0}d"
-        : t.TotalHours >= 1 ? $"{t.TotalHours:F0}h"
-        : $"{t.TotalMinutes:F0}m";
+    private static string Span(TimeSpan t) => t.TotalSeconds <= 0 ? CharactersText.SpanDone
+        : t.TotalDays >= 1 ? string.Format(CharactersText.SpanDays, t.TotalDays)
+        : t.TotalHours >= 1 ? string.Format(CharactersText.SpanHours, t.TotalHours)
+        : string.Format(CharactersText.SpanMinutes, t.TotalMinutes);
 }
 
 public record SkillGroupVm(int GroupId, string Name, long TotalSp)
@@ -124,9 +125,9 @@ public class SkillGroupHeader
     public SkillGroupHeader(string name, long sp)
     {
         Name   = name;
-        SpText = sp >= 1_000_000 ? $"{sp / 1_000_000.0:F2}M SP"
-               : sp >= 1_000     ? $"{sp / 1_000.0:F0}k SP"
-               : $"{sp} SP";
+        SpText = sp >= 1_000_000 ? string.Format(CharactersText.SpMillions, sp / 1_000_000.0)
+               : sp >= 1_000     ? string.Format(CharactersText.SpThousands, sp / 1_000.0)
+               : string.Format(CharactersText.SpPlain, sp);
     }
 }
 
@@ -182,7 +183,7 @@ public class QueueItemVm
 
         EtaText = finishDate.HasValue
             ? FormatRemaining(finishDate.Value - DateTimeOffset.UtcNow)
-            : "Paused";
+            : CharactersText.QueuePaused;
 
         // Remaining time to train just this one skill level — not cumulative with the rest of
         // the queue. For a skill that hasn't started yet this equals its full duration; for one
@@ -198,7 +199,7 @@ public class QueueItemVm
 
     // "4 days, 2 hours, 3 minutes" style — used for both per-item and whole-queue ETAs.
     public static string FormatRemaining(TimeSpan remaining)
-        => remaining <= TimeSpan.Zero ? "Complete" : FormatDuration(remaining);
+        => remaining <= TimeSpan.Zero ? CharactersText.QueueComplete : FormatDuration(remaining);
 
     public static string FormatDuration(TimeSpan span)
     {
@@ -209,11 +210,14 @@ public class QueueItemVm
         int minutes = span.Minutes;
 
         var parts = new List<string>();
-        if (days    > 0) parts.Add($"{days} day{(days == 1 ? "" : "s")}");
-        if (hours   > 0 || days > 0) parts.Add($"{hours} hour{(hours == 1 ? "" : "s")}");
-        if (minutes > 0 || parts.Count == 0) parts.Add($"{minutes} minute{(minutes == 1 ? "" : "s")}");
-        return string.Join(", ", parts);
+        if (days    > 0) parts.Add(Unit(nameof(CharactersText.DurationDaysOther), days));
+        if (hours   > 0 || days > 0) parts.Add(Unit(nameof(CharactersText.DurationHoursOther), hours));
+        if (minutes > 0 || parts.Count == 0) parts.Add(Unit(nameof(CharactersText.DurationMinutesOther), minutes));
+        return string.Join(CharactersText.DurationSeparator, parts);
     }
+
+    // One part of a duration, in the form its number needs: "1 day", "3 hours".
+    private static string Unit(string family, int n) => Plurals.Format(CharactersText.ResourceManager, family, n);
 }
 
 public record ActiveImplantVm(string Name);
@@ -225,9 +229,9 @@ public record StandingVm(string EntityName, string EntityType, float Standing)
     public string StandingText => Standing >= 0 ? $"+{Standing:F1}" : $"{Standing:F1}";
     public string TypeLabel => EntityType switch
     {
-        "faction"  => "Faction",
-        "npc_corp" => "Corp",
-        "agent"    => "Agent",
+        "faction"  => CharactersText.StandingTypeFaction,
+        "npc_corp" => CharactersText.StandingTypeCorp,
+        "agent"    => CharactersText.StandingTypeAgent,
         _          => EntityType
     };
 }
@@ -313,13 +317,12 @@ public class CharacterViewerViewModel : ReactiveObject
             {
                 SummaryRows.Clear();
                 foreach (var r in rows) SummaryRows.Add(new CharacterSummaryRowVm(r));
-                SummaryStatus = $"{rows.Count} character(s). Figures come from polled data — "
-                              + "the detail tab's Refresh updates one character, polling updates all.";
+                SummaryStatus = Plurals.Format(CharactersText.ResourceManager, nameof(CharactersText.SummaryStatusOther), rows.Count);
             });
         }
         catch (Exception ex)
         {
-            SummaryStatus = $"Could not load the summary: {ex.Message}";
+            SummaryStatus = string.Format(CharactersText.SummaryLoadFailed, ex.Message);
         }
         finally { SummaryLoading = false; }
     }
@@ -415,8 +418,8 @@ public class CharacterViewerViewModel : ReactiveObject
         }
     }
     public bool   NoMedals      => _medals.Count == 0;
-    public string MedalCountText => _medals.Count == 0 ? "No medals on record for this character."
-                                  : $"{_medals.Count} medal(s)";
+    public string MedalCountText => _medals.Count == 0 ? CharactersText.NoMedalsOnRecord
+                                  : Plurals.Format(CharactersText.ResourceManager, nameof(CharactersText.MedalCountOther), _medals.Count);
 
     // ── Titles tab ────────────────────────────────────────────────────────────
     private IReadOnlyList<TitleVm> _titles = [];
@@ -445,7 +448,7 @@ public class CharacterViewerViewModel : ReactiveObject
     public bool NoStandings => _standings.Count == 0;
 
     // ── Status ────────────────────────────────────────────────────────────────
-    private string _statusText = "Select a character to view their data.";
+    private string _statusText = CharactersText.StatusSelectCharacterToView;
     public string StatusText { get => _statusText; private set => this.RaiseAndSetIfChanged(ref _statusText, value); }
 
     private bool _isBusy;
@@ -504,13 +507,17 @@ public class CharacterViewerViewModel : ReactiveObject
         var ct = _cts.Token;
 
         IsBusy     = true;
-        StatusText = $"Loading {character.Name}…";
+        StatusText = string.Format(CharactersText.StatusLoadingCharacter, character.Name);
         ClearData();
 
         try
         {
             // Start portrait download concurrently while DB loads
             var portraitTask = LoadPortraitAsync(character, ct);
+
+            // The game's names in the interface language before any tab is built: at once in
+            // English, and otherwise a wait for the one background load, the first time.
+            await SdeNames.EnsureLoadedAsync(ct);
 
             await LoadCorpNameAsync(character, ct);
             await LoadSkillsAsync(character, ct);
@@ -522,12 +529,12 @@ public class CharacterViewerViewModel : ReactiveObject
 
             await portraitTask;
 
-            StatusText = $"{character.Name} — {character.TotalSp:N0} SP";
+            StatusText = string.Format(CharactersText.StatusCharacterSp, character.Name, character.TotalSp);
         }
         catch (OperationCanceledException) { }
         catch (Exception ex)
         {
-            StatusText = $"Error loading {character.Name}: {ex.Message}";
+            StatusText = string.Format(CharactersText.StatusLoadError, character.Name, ex.Message);
         }
         finally
         {
@@ -561,7 +568,8 @@ public class CharacterViewerViewModel : ReactiveObject
         var npc = await _db.SdeNpcCorporations
             .Where(n => n.CorporationId == character.CorporationId)
             .FirstOrDefaultAsync(ct);
-        CorpName = npc is not null ? npc.Name : $"Corp #{character.CorporationId}";
+        CorpName = npc is not null ? SdeNames.NpcCorporation(npc.CorporationId, npc.Name)
+                                   : string.Format(CharactersText.CorpNumbered, character.CorporationId);
     }
 
     private async Task LoadSkillsAsync(Character character, CancellationToken ct)
@@ -587,27 +595,29 @@ public class CharacterViewerViewModel : ReactiveObject
 
         ct.ThrowIfCancellationRequested();
 
+        // Skills and their groups are named in the interface language, and listed in the order of
+        // the names shown. The group a skill falls in is decided by id, never by the name.
         var grouped = skills
             .GroupBy(s => typeMap.TryGetValue(s.SkillId, out var t) ? t.GroupId : 0)
             .Select(g =>
             {
                 var gId   = g.Key;
-                var gName = gId > 0 && groupMap.TryGetValue(gId, out var n) ? n : "Unknown";
+                var gName = gId > 0 && groupMap.TryGetValue(gId, out var n) ? SdeNames.Group(gId, n) : CharactersText.SkillGroupUnknown;
                 var items = g.Select(s =>
                     {
-                        var name = typeMap.TryGetValue(s.SkillId, out var t2) ? t2.Name : $"Skill #{s.SkillId}";
+                        var name = typeMap.TryGetValue(s.SkillId, out var t2) ? SdeNames.Type(s.SkillId, t2.Name) : string.Format(CharactersText.SkillNumbered, s.SkillId);
                         return new SkillItem(s.SkillId, name, s.TrainedSkillLevel, s.ActiveSkillLevel, s.SkillpointsInSkill);
                     })
-                    .OrderBy(s => s.Name)
+                    .OrderBy(s => s.Name, StringComparer.CurrentCulture)
                     .ToList();
                 return new SkillGroupData(gId, gName, g.Sum(s => s.SkillpointsInSkill), items);
             })
-            .OrderBy(g => g.GroupName)
+            .OrderBy(g => g.GroupName, StringComparer.CurrentCulture)
             .ToList();
 
         var totalSp  = grouped.Sum(g => g.TotalSp);
         var groupVms = grouped.Select(g => new SkillGroupVm(g.GroupId, g.GroupName, g.TotalSp)).ToList();
-        var allSkills = new SkillGroupVm(0, "All Skills", totalSp);
+        var allSkills = new SkillGroupVm(0, CharactersText.AllSkills, totalSp);
 
         // Drop entries that already finished per stale local data (poll hasn't caught up with
         // real-world completion yet) — an already-complete skill has no business looking like
@@ -618,19 +628,20 @@ public class CharacterViewerViewModel : ReactiveObject
 
         var queueVms = activeQueue.Select((q, idx) =>
         {
-            var skillName = typeMap.TryGetValue(q.SkillId, out var t3) ? t3.Name : $"Skill #{q.SkillId}";
+            var skillName = typeMap.TryGetValue(q.SkillId, out var t3) ? SdeNames.Type(q.SkillId, t3.Name) : string.Format(CharactersText.SkillNumbered, q.SkillId);
             return new QueueItemVm(q.SkillId, idx, skillName, q.FinishedLevel, q.StartDate, q.FinishDate);
         }).ToList();
 
         var queueFinish = activeQueue.LastOrDefault(q => q.FinishDate.HasValue)?.FinishDate;
-        var queueText   = activeQueue.Count == 0 ? "Queue empty"
+        var queueText   = activeQueue.Count == 0 ? CharactersText.QueueEmpty
             : queueFinish.HasValue
-                ? $"{activeQueue.Count} skills — finishes {queueFinish.Value.UtcDateTime:dd MMM yyyy}"
-                : $"{activeQueue.Count} skills (paused)";
+                ? Plurals.Format(CharactersText.ResourceManager, nameof(CharactersText.QueueSkillsFinishOther),
+                                 activeQueue.Count, queueFinish.Value.UtcDateTime)
+                : Plurals.Format(CharactersText.ResourceManager, nameof(CharactersText.QueueSkillsPausedOther), activeQueue.Count);
         var queueEtaText = activeQueue.Count == 0 ? ""
             : queueFinish.HasValue
                 ? QueueItemVm.FormatRemaining(queueFinish.Value - DateTimeOffset.UtcNow)
-                : "Paused";
+                : CharactersText.QueuePaused;
 
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
@@ -673,15 +684,15 @@ public class CharacterViewerViewModel : ReactiveObject
 
         string remapInfo;
         if (attrs is null)
-            remapInfo = "No attribute data available";
+            remapInfo = CharactersText.RemapNoData;
         else if (attrs.BonusRemaps > 0)
-            remapInfo = $"{attrs.BonusRemaps} bonus remap(s) available";
+            remapInfo = Plurals.Format(CharactersText.ResourceManager, nameof(CharactersText.RemapBonusOther), attrs.BonusRemaps);
         else if (attrs.AccruingRemapCooldownDate.HasValue && attrs.AccruingRemapCooldownDate > DateTimeOffset.UtcNow)
-            remapInfo = $"Remap available: {attrs.AccruingRemapCooldownDate.Value.UtcDateTime:dd MMM yyyy}";
+            remapInfo = string.Format(CharactersText.RemapAvailableOn, attrs.AccruingRemapCooldownDate.Value.UtcDateTime);
         else
             remapInfo = attrs.LastRemapDate.HasValue
-                ? $"Last remap: {attrs.LastRemapDate.Value.UtcDateTime:dd MMM yyyy} — Remap available now"
-                : "Remap available";
+                ? string.Format(CharactersText.RemapLastAvailableNow, attrs.LastRemapDate.Value.UtcDateTime)
+                : CharactersText.RemapAvailable;
 
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
@@ -706,9 +717,12 @@ public class CharacterViewerViewModel : ReactiveObject
             .Where(t => implantTypeIds.Contains(t.TypeId))
             .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct);
 
+        // Implants are named in the interface language, and listed in the order of the names shown.
         var activeImplants = implantTypeIds
-            .Select(id => new ActiveImplantVm(implantNameMap.GetValueOrDefault(id, $"Implant #{id}")))
-            .OrderBy(i => i.Name)
+            .Select(id => new ActiveImplantVm(implantNameMap.TryGetValue(id, out var n)
+                ? SdeNames.Type(id, n)
+                : string.Format(CharactersText.ImplantNumbered, id)))
+            .OrderBy(i => i.Name, StringComparer.CurrentCulture)
             .ToList();
 
         var jClones = await _db.EsiJumpClones
@@ -725,14 +739,34 @@ public class CharacterViewerViewModel : ReactiveObject
             .Where(t => jTypeIds.Contains(t.TypeId))
             .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct);
 
+        // Where each clone is: a station by the SDE's name, a structure as its owner named it.
+        var clonePlaceIds   = jClones.Select(j => j.LocationId).Distinct().ToList();
+        var cloneStationIds = clonePlaceIds.Where(id => id is > 60_000_000 and < 70_000_000).Select(id => (int)id).ToList();
+        var clonePlaces = await _db.SdeStations
+            .Where(s => cloneStationIds.Contains(s.StationId))
+            .ToDictionaryAsync(s => (long)s.StationId, s => s.Name, ct);
+        foreach (var s in await _db.EsiStructureNames.Where(s => clonePlaceIds.Contains(s.StructureId)).ToListAsync(ct))
+            clonePlaces[s.StructureId] = s.Name;
+
         var jumpClones = jClones.Select(jc =>
         {
             var implants = jImplants
                 .Where(i => i.JumpCloneId == jc.JumpCloneId)
-                .Select(i => jNameMap.GetValueOrDefault(i.TypeId, $"Implant #{i.TypeId}"))
-                .OrderBy(n => n)
+                .Select(i => jNameMap.TryGetValue(i.TypeId, out var n)
+                    ? SdeNames.Type(i.TypeId, n)
+                    : string.Format(CharactersText.ImplantNumbered, i.TypeId))
+                .OrderBy(n => n, StringComparer.CurrentCulture)
                 .ToList();
-            var location = $"Location {jc.LocationId} ({jc.LocationType})";
+            // A station in the interface language. Unnamed, the place's kind picks the pattern:
+            // ESI's "station" or "structure" is a key, not a word to show.
+            var location = clonePlaces.TryGetValue(jc.LocationId, out var place)
+                ? SdeNames.Location(jc.LocationId, place)
+                : jc.LocationType switch
+                {
+                    "station"   => string.Format(AssetsText.FallbackStationName, jc.LocationId),
+                    "structure" => string.Format(AssetsText.FallbackStructureName, jc.LocationId),
+                    _           => string.Format(CharactersText.CloneLocation, jc.LocationId, jc.LocationType),
+                };
             return new JumpCloneVm(location, jc.Name, implants);
         }).ToList();
 
@@ -766,7 +800,7 @@ public class CharacterViewerViewModel : ReactiveObject
         var medals = charMedals.Select(m =>
         {
             var title = corpMedalTitles.TryGetValue(((long)m.CorporationId, m.MedalId), out var t)
-                ? t : $"Medal #{m.MedalId}";
+                ? t : string.Format(CharactersText.MedalNumbered, m.MedalId);
             return new MedalDisplayVm(title, m.Date, m.Status, m.Reason);
         }).ToList();
 
@@ -829,15 +863,26 @@ public class CharacterViewerViewModel : ReactiveObject
         {
             var sdeMap = s.FromType == "faction" ? factionMap : npcCorpMap;
             var name = (sdeMap.TryGetValue(s.FromId, out var sn) && sn.Length > 0) ? sn
-                     : esiNameMap.GetValueOrDefault(s.FromId)
-                    ?? s.FromType switch
-                     {
-                         "faction"  => $"Faction #{s.FromId}",
-                         "npc_corp" => $"Corp #{s.FromId}",
-                         "agent"    => $"Agent #{s.FromId}",
-                         _          => $"Entity #{s.FromId}"
-                     };
-            return new StandingVm(name, s.FromType, s.Standing);
+                     : esiNameMap.GetValueOrDefault(s.FromId);
+
+            // Every one of these is the game's own — a faction, an NPC corporation, an agent — so
+            // each is shown in the interface language, whichever source gave the English.
+            var shown = name is null
+                ? s.FromType switch
+                  {
+                      "faction"  => string.Format(CharactersText.FactionNumbered, s.FromId),
+                      "npc_corp" => string.Format(CharactersText.CorpNumbered, s.FromId),
+                      "agent"    => string.Format(CharactersText.AgentNumbered, s.FromId),
+                      _          => string.Format(CharactersText.EntityNumbered, s.FromId)
+                  }
+                : s.FromType switch
+                  {
+                      "faction"  => SdeNames.Faction(s.FromId, name),
+                      "npc_corp" => SdeNames.NpcCorporation(s.FromId, name),
+                      "agent"    => SdeNames.Agent(s.FromId, name),
+                      _          => name
+                  };
+            return new StandingVm(shown, s.FromType, s.Standing);
         })
         .OrderByDescending(s => s.Standing)
         .ToList();
@@ -895,6 +940,6 @@ public class CharacterViewerViewModel : ReactiveObject
     private void ClearAll()
     {
         ClearData();
-        StatusText = "Select a character.";
+        StatusText = CharactersText.StatusSelectCharacter;
     }
 }

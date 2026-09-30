@@ -11,6 +11,7 @@ using EveConsole.Api;
 using EveConsole.Models;
 using EveConsole.Monitoring;
 using EveConsole.Services;
+using EveConsole.Localization;
 using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,7 +33,17 @@ public class App : Application
 
     public override void Initialize()
     {
-        LiveCharts.Configure(config => config.AddSkiaSharp().AddDefaultMappers());
+        LiveCharts.Configure(config =>
+        {
+            config.AddSkiaSharp().AddDefaultMappers();
+
+            // Charts draw their text with Skia, outside Avalonia's font fallback. LiveCharts finds
+            // a face for a character its own lacks, but by the character alone — and Chinese,
+            // Japanese and Korean share characters with different shapes, so a Chinese label
+            // could come out in a Japanese face. The language's own face, when it has one.
+            if (EveConsole.Localization.Languages.ChartTypeface() is { } face)
+                config.HasTextSettings(new TextSettings { DefaultTypeface = face });
+        });
         AvaloniaXamlLoader.Load(this);
 
         // ⚠️ After the XAML is loaded and before any window exists. The palette lives in the
@@ -139,9 +150,7 @@ public class App : Application
 
             while (await Task.WhenAny(work, Task.Delay(1000)) != work)
                 if (lastPct is > 5 and < 85)
-                    p.Report((lastPct,
-                        $"Shrinking database — {Elapsed(startedAt)} elapsed. " +
-                        "Please leave the application open."));
+                    p.Report((lastPct, string.Format(ShellText.SplashShrinking, Elapsed(startedAt))));
 
             await work;
         }
@@ -163,7 +172,7 @@ public class App : Application
         // a 958 MB leftover could not be deleted while the app was running.
         if (DbEngine.IsSqlite && !DatabaseIntegrityService.IsUsable(AppConfig.GetDbPath(), out var dbError))
         {
-            var recovery = new DatabaseRecoveryDialog(AppConfig.GetDbPath(), dbError ?? "unknown");
+            var recovery = new DatabaseRecoveryDialog(AppConfig.GetDbPath(), dbError ?? ShellText.RecoveryReasonUnknown);
 
             // ⚠️ The splash stays up and owns the dialog. Hiding it first is what broke this on
             // its first real run: a modal dialog must have a *visible* owner, so hiding the splash
@@ -173,7 +182,7 @@ public class App : Application
             // window that is never shown fails the identical check.
             if (splash is not null)
             {
-                splash.ReportProgress(0, "Waiting — the database could not be opened");
+                splash.ReportProgress(0, ShellText.SplashWaitingDatabase);
                 await recovery.ShowDialog(splash);
             }
             else
@@ -252,8 +261,7 @@ public class App : Application
             {
                 var why = e.Exception.Message;
                 splash?.ReportProgress(100,
-                    "Startup failed — " + (why.Length > 160 ? why[..160] + "…" : why) +
-                    "  (full details in the error log)");
+                    string.Format(ShellText.SplashStartupFailed, why.Length > 160 ? why[..160] + "…" : why));
             }
             e.Handled = true;
         };
@@ -404,6 +412,19 @@ public class App : Application
             AppConfig.WriteRefused = reason =>
             {
                 try { Services.GetRequiredService<AppErrorLogger>().Log("AppConfig", "settings not saved", reason); }
+                catch { }
+            };
+
+            // Names in the interface language that could not be read, said out loud for the same
+            // reason: the screens quietly staying in English is otherwise all anybody would see.
+            SdeNames.LoadFailed = reason =>
+            {
+                try { Services.GetRequiredService<AppErrorLogger>().Log("SdeNames", "names not loaded", reason); }
+                catch { }
+            };
+            SdeTexts.LoadFailed = reason =>
+            {
+                try { Services.GetRequiredService<AppErrorLogger>().Log("SdeTexts", "description not read", reason); }
                 catch { }
             };
 
@@ -682,16 +703,23 @@ public class App : Application
 
                 if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime stopping)
                 {
-                    splash?.ReportProgress(0, "Stopping — version mismatch");
+                    splash?.ReportProgress(0, ShellText.SplashStoppingMismatch);
 
                     // ⚠️ A database AHEAD of this build is the one mismatch this client can fix by
                     // itself, and it is the one every client meets when another upgrades a shared
                     // database first. The updater lives in the main window, which a stopped client
                     // never reaches, so this looks for the release there and then and offers it.
                     // The other direction is another client's to fix: a plain stop, as before.
+                    //
+                    // ⚠️ The dialog says `message` again, in the interface's language; the console
+                    // line below keeps the English, as every log line does. A change to one is a
+                    // change to the other.
                     Avalonia.Controls.Window dialog = dbV > appV
-                        ? new UpdateRequiredDialog(message, dbV!, errorLogger)
-                        : new FatalDialog("This build does not match the database", message);
+                        ? new UpdateRequiredDialog(
+                            string.Format(ShellText.VersionMismatchDatabaseAhead, dbVersion, AppVersion.Number),
+                            dbV!, errorLogger)
+                        : new FatalDialog(ShellText.VersionMismatchHeading,
+                            string.Format(ShellText.VersionMismatchWorkerBehind, dbVersion, AppVersion.Number));
 
                     // A tray start has no splash to own it, and used to end here without a word.
                     await ShowAndWaitAsync(dialog, splash);
@@ -725,7 +753,7 @@ public class App : Application
         // ── Heavy startup on a thread-pool thread ──────────────────────────────
         await Task.Run(() =>
         {
-        p.Report((5, "Initializing database…"));
+        p.Report((5, ShellText.SplashInitializingDatabase));
         // Ensure the database is created / migrated
         //
         // ⚠️ Only the client holding the worker lease reaches here with skipSchema false, and that
@@ -965,6 +993,7 @@ public class App : Application
                         "CharacterId"   INTEGER NOT NULL DEFAULT 0,
                         "CharacterName" TEXT    NOT NULL DEFAULT '',
                         "PostingId"     INTEGER NOT NULL DEFAULT 0,
+                        "Language"      TEXT    NOT NULL DEFAULT '',
                         -- ⚠️ Both default to the closed position. A shop that served everyone the
                         -- moment it was created would start answering strangers before its owner had
                         -- decided that was wanted, and a mail cannot be unsent.
@@ -1061,6 +1090,8 @@ public class App : Application
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebCustomHostname" TEXT NOT NULL DEFAULT ''"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebEveClientId" TEXT NOT NULL DEFAULT ''"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "WebEveClientSecret" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                // The language the shop speaks to buyers; empty for the app's own.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "Language" TEXT NOT NULL DEFAULT ''"""); } catch { }
 
 
                 db.Database.ExecuteSqlRaw("""
@@ -1363,7 +1394,7 @@ public class App : Application
                     )
                     """);
 
-                p.Report((20, "Building character tables…"));
+                p.Report((20, ShellText.SplashCharacterTables));
                 // ── Polled-data tables — drop old names, create Esi* names ──────────
 
                 db.Database.ExecuteSqlRaw("""
@@ -1996,7 +2027,7 @@ public class App : Application
                     )
                     """);
 
-                p.Report((45, "Building corporation tables…"));
+                p.Report((45, ShellText.SplashCorporationTables));
                 // ── Corp tables ───────────────────────────────────────────────────────
 
                 db.Database.ExecuteSqlRaw("""
@@ -2323,7 +2354,7 @@ public class App : Application
                     )
                     """);
 
-                p.Report((65, "Building market tables…"));
+                p.Report((65, ShellText.SplashMarketTables));
                 // ── Market pricing ────────────────────────────────────────────────────
 
                 db.Database.ExecuteSqlRaw("""
@@ -2413,7 +2444,7 @@ public class App : Application
                     WHERE NOT EXISTS (SELECT 1 FROM "MarketPricingConfigs")
                     """);
 
-                p.Report((78, "Building industry tables…"));
+                p.Report((78, ShellText.SplashIndustryTables));
                 // ── Indy Parks ───────────────────────────────────────────────────────
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "IndyParks" (
@@ -2534,7 +2565,7 @@ public class App : Application
                     WHERE NOT EXISTS (SELECT 1 FROM "MarketDefaultSettings")
                     """);
 
-                p.Report((90, "Finalizing schema…"));
+                p.Report((90, ShellText.SplashFinalizingSchema));
                 // ── Application error log ─────────────────────────────────────────────
 
                 db.Database.ExecuteSqlRaw("""
@@ -3529,7 +3560,7 @@ public class App : Application
         }
         }); // end Task.Run — schema migration complete
 
-        p.Report((80, "Loading settings…"));
+        p.Report((80, ShellText.SplashLoadingSettings));
         var timerSettings = Services.GetRequiredService<TimerSettingsService>();
         await timerSettings.LoadAsync();
         try
@@ -3613,19 +3644,19 @@ public class App : Application
             return;
         }
 
-        p.Report((84, "Preparing tools…"));
+        p.Report((84, ShellText.SplashPreparingTools));
         var mainVm = Services.GetRequiredService<MainWindowViewModel>();
 
-        p.Report((88, "Starting background services…"));
+        p.Report((88, ShellText.SplashStartingServices));
         StartBackgroundServices();
 
         // Bounded: the Overview reads a lot, and on a large database or a slow disk it must not be
         // able to hold the window shut indefinitely. Past the cap it keeps loading behind a window
         // that is already usable — the old behaviour, but as a fallback rather than the norm.
-        p.Report((94, "Loading overview…"));
+        p.Report((94, ShellText.SplashLoadingOverview));
         await Task.WhenAny(mainVm.OverviewVm.EnsureLoadedAsync(), Task.Delay(TimeSpan.FromSeconds(20)));
 
-        p.Report((99, "Opening…"));
+        p.Report((99, ShellText.SplashOpening));
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopFinal)
         {
             mainWindow             = new MainWindow();
@@ -3633,7 +3664,7 @@ public class App : Application
             desktopFinal.MainWindow   = mainWindow;
             desktopFinal.ShutdownMode = Avalonia.Controls.ShutdownMode.OnMainWindowClose;
 
-            p.Report((100, "Ready."));
+            p.Report((100, ShellText.SplashReady));
             mainWindow.Show();
 
             await Task.Delay(250); // brief pause so the 100 % state is visible
@@ -3681,12 +3712,14 @@ public class App : Application
                 var alarms   = Services.GetRequiredService<AlarmActionRunner>();
                 var activity = Services.GetRequiredService<WorkerActivityService>();
 
-                // ⚠️ Activity first, and it says whether the payload was its own. Both kinds arrive
+                // ⚠️ Activity first, and it says whether the payload was its own. Every kind arrives
                 // on one channel, and each handler ignores what is not addressed to it — so the
-                // alarm path is only reached by something that really is an alarm.
+                // alarm path is only reached by something that really is an alarm. An SDE import
+                // on any client means new names for every client, each in its own language.
                 signals.Received += payload =>
                 {
                     if (activity.TryApplySignal(payload)) return;
+                    if (SdeNames.TryApplySignal(payload)) return;
                     _ = alarms.HandleSignalAsync(payload);
                 };
                 signals.Start();
@@ -4024,6 +4057,19 @@ public class App : Application
         {
             client.DefaultRequestHeaders.Add("User-Agent", "EveConsole/1.0 (https://github.com/kernoeve/EveConsole)");
             client.Timeout = TimeSpan.FromSeconds(30);
+        }).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+        {
+            AutomaticDecompression = System.Net.DecompressionMethods.All,
+        });
+
+        // ⚠️ The entity viewer's pages, on a client of their own for the timeout. A page
+        // zKillboard has not served lately is built on request: measured on a large alliance,
+        // page 1 answered in 0.14s and page 10 in 36.7s — past the 30s above, which cut it off
+        // and read as the list simply ending.
+        services.AddHttpClient("zkillboard-pages", client =>
+        {
+            client.DefaultRequestHeaders.Add("User-Agent", "EveConsole/1.0 (https://github.com/kernoeve/EveConsole)");
+            client.Timeout = TimeSpan.FromMinutes(2);
         }).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
         {
             AutomaticDecompression = System.Net.DecompressionMethods.All,

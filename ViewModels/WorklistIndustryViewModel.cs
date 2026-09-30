@@ -7,11 +7,23 @@ using EveConsole.Services;
 using EveConsole.Services.Worklist;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
-/// <summary>A station added to the asset scope on top of its region or system.</summary>
+/// <summary>A station added to the asset scope on top of its region or system. LocationName is
+/// the chip's text, as the screen names the station; it is removed by Id.</summary>
 public sealed record ScopeStationRow(int Id, string LocationName);
+
+/// <summary>
+/// A region or system in the scope picker: the id and the English name that are saved, and the
+/// name the list shows. ⚠️ The box writes ToString back into its text when one is picked, which
+/// is why that is the shown name — nothing reads the text back as a choice.
+/// </summary>
+public sealed record ScopePlaceOption(long Id, string Name, string Shown)
+{
+    public override string ToString() => Shown;
+}
 
 /// <summary>One enabled character, with their slot picture alongside the switches.</summary>
 /// <summary>
@@ -77,10 +89,10 @@ public sealed class IndyCharRow : ReactiveObject
         get
         {
             var parts = new List<string>(3);
-            if (_manufacturing) parts.Add("Manufacturing");
-            if (_reactions)     parts.Add("Reactions");
-            if (_science)       parts.Add("Science");
-            return parts.Count == 0 ? "— none —" : string.Join(", ", parts);
+            if (_manufacturing) parts.Add(WorklistText.ActivityManufacturing);
+            if (_reactions)     parts.Add(WorklistText.ActivityReactions);
+            if (_science)       parts.Add(WorklistText.ActivityScience);
+            return parts.Count == 0 ? WorklistText.ActivitiesNone : string.Join(CommonText.ListSeparator, parts);
         }
     }
 
@@ -161,7 +173,7 @@ public class WorklistIndustryViewModel : ReactiveObject
     /// Indy Parks moves the planning with it. Pinning the id at the moment of choosing would make
     /// the two silently disagree the first time the default changed.</para>
     /// </summary>
-    public const string DefaultParkLabel = "<Default>";
+    public static readonly string DefaultParkLabel = WorklistText.ParkDefault;
 
     private ParkOption? _selectedPark;
     public ParkOption? SelectedPark
@@ -252,9 +264,12 @@ public class WorklistIndustryViewModel : ReactiveObject
 
     // ── Where industry buys ───────────────────────────────────────────────────
 
+    /// <summary>Stations for the buy-location and extra-station boxes, listed in the order of the
+    /// names shown, which the boxes show; each result keeps the English that is saved.</summary>
     public Func<string?, CancellationToken, Task<IEnumerable<object>>> LocationPopulator =>
         async (text, ct) =>
-            (await _corpActivity.SearchSdeStationsAsync(text ?? "", ct)).Cast<object>().ToList();
+            (await _corpActivity.SearchSdeStationsAsync(text ?? "", ct))
+                .OrderBy(h => h.DisplayName, StringComparer.CurrentCulture).Cast<object>().ToList();
 
     private object? _selectedBuyLocation;
     public object? SelectedBuyLocation
@@ -303,15 +318,25 @@ public class WorklistIndustryViewModel : ReactiveObject
         }
     }
 
-    public string[] Scopes { get; } = ["Everywhere", "Region", "System"];
+    /// <summary>How far to look for materials. The value is what the setting saves and the
+    /// planner reads; the label is what the combo shows.</summary>
+    public IReadOnlyList<Choice<string>> Scopes { get; } =
+    [
+        new("Everywhere", WorklistText.ScopeEverywhere),
+        new("Region",     WorklistText.ScopeRegion),
+        new("System",     WorklistText.ScopeSystem),
+    ];
 
     private string _selectedScope = "Everywhere";
-    public string SelectedScope
+    public Choice<string> SelectedScope
     {
-        get => _selectedScope;
+        get => Scopes.FirstOrDefault(s => s.Value == _selectedScope) ?? Scopes[0];
         set
         {
-            this.RaiseAndSetIfChanged(ref _selectedScope, value);
+            // A detaching ComboBox sets null; that is not a choice.
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            _selectedScope = value.Value;
+            this.RaisePropertyChanged();
             this.RaisePropertyChanged(nameof(NeedsScopePlace));
             if (_loading) return;
 
@@ -319,7 +344,7 @@ public class WorklistIndustryViewModel : ReactiveObject
             // half-specified until one is picked, and saving a region scope with no region would
             // silently mean "nowhere" — every material would read as unowned and every job would
             // raise a purchase.
-            if (value == "Everywhere")
+            if (value.Value == "Everywhere")
                 _ = Fire(async () =>
                 {
                     await _settings.SetIndustryScopeAsync("Everywhere", null, "");
@@ -329,12 +354,18 @@ public class WorklistIndustryViewModel : ReactiveObject
         }
     }
 
-    public bool NeedsScopePlace => SelectedScope != "Everywhere";
+    public bool NeedsScopePlace => _selectedScope != "Everywhere";
 
+    /// <summary>Regions or systems for the scope box, named in the interface language and listed in
+    /// that name's order. The English travels with each, since that is what is saved.</summary>
     public Func<string?, CancellationToken, Task<IEnumerable<object>>> ScopePlacePopulator =>
-        async (text, ct) => SelectedScope == "System"
-            ? (await _corpActivity.SearchSdeSystemsAsync(text ?? "", ct)).Cast<object>().ToList()
-            : (await _corpActivity.SearchSdeRegionsAsync(text ?? "", ct)).Cast<object>().ToList();
+        async (text, ct) => (_selectedScope == "System"
+                ? (await _corpActivity.SearchSdeSystemsAsync(text ?? "", ct))
+                    .Select(s => new ScopePlaceOption(s.SystemId, s.Name, SdeNames.SolarSystem(s.SystemId, s.Name)))
+                : (await _corpActivity.SearchSdeRegionsAsync(text ?? "", ct))
+                    .Select(r => new ScopePlaceOption(r.RegionId, r.Name, SdeNames.Region(r.RegionId, r.Name))))
+            .OrderBy(o => o.Shown, StringComparer.CurrentCulture)
+            .Cast<object>().ToList();
 
     private object? _selectedScopePlace;
     public object? SelectedScopePlace
@@ -345,17 +376,13 @@ public class WorklistIndustryViewModel : ReactiveObject
             this.RaiseAndSetIfChanged(ref _selectedScopePlace, value);
             if (_loading) return;
 
-            (long Id, string Name)? place = value switch
-            {
-                SdeSystemResult s => (s.SystemId, s.Name),
-                SdeRegionResult r => (r.RegionId, r.Name),
-                _                 => null,
-            };
+            // ⚠️ The English name is saved, never the shown one: the worklist reads it back.
+            (long Id, string Name)? place = value is ScopePlaceOption o ? (o.Id, o.Name) : null;
             if (place is not { } p) return;
 
             _ = Fire(async () =>
             {
-                await _settings.SetIndustryScopeAsync(SelectedScope, p.Id, p.Name);
+                await _settings.SetIndustryScopeAsync(_selectedScope, p.Id, p.Name);
                 await LoadAsync();
                 if (IndustryChanged is not null) await IndustryChanged();
             }, "SetScope");
@@ -379,7 +406,7 @@ public class WorklistIndustryViewModel : ReactiveObject
     {
         if (SelectedExtraStation is not SdeStationResult s)
         {
-            Status = "Pick a station to add to the scope.";
+            Status = WorklistText.PickScopeStation;
             return;
         }
 
@@ -511,23 +538,32 @@ public class WorklistIndustryViewModel : ReactiveObject
                 ? (await _marketAlts.GetByLocationAsync()).GetValueOrDefault(buyLocId)
                 : null;
 
-            var scopeStations = (await db.WorklistIndyScopeStations.AsNoTracking()
-                    .OrderBy(s => s.LocationName)
-                    .ToListAsync())
-                .Select(s => new ScopeStationRow(s.Id, s.LocationName))
-                .ToList();
+            var extraStations = await db.WorklistIndyScopeStations.AsNoTracking().ToListAsync();
 
             // Slot figures come from the assignment service so the tab and the generator can
             // never disagree about how many slots a character has free.
             var candidates = await _assignment.LoadCandidatesAsync();
 
+            // The scope box names its region or system in the interface language, as the buy box
+            // and the extra stations name theirs, and this runs at start: wait for the names once
+            // rather than fill them in English.
+            await SdeNames.EnsureLoadedAsync();
+
+            // Named and ordered as the screen names them. What is saved keeps the English, and a
+            // chip is removed by its id.
+            var scopeStations = extraStations
+                .Select(s => new ScopeStationRow(s.Id, SdeNames.Location(s.LocationId, s.LocationName)))
+                .OrderBy(s => s.LocationName, StringComparer.CurrentCulture)
+                .ToList();
+
             var rows = candidates
                 .OrderBy(c => c.Config.CharacterName)
                 .Select(c => new IndyCharRow(
                     c.Config,
-                    $"M {c.FreeSlots[IndustryPool.Manufacturing]}/{c.Capacity[IndustryPool.Manufacturing]}  ·  "
-                    + $"R {c.FreeSlots[IndustryPool.Reaction]}/{c.Capacity[IndustryPool.Reaction]}  ·  "
-                    + $"S {c.FreeSlots[IndustryPool.Science]}/{c.Capacity[IndustryPool.Science]}",
+                    string.Format(WorklistText.SlotsFreeOfTotal,
+                        c.FreeSlots[IndustryPool.Manufacturing], c.Capacity[IndustryPool.Manufacturing],
+                        c.FreeSlots[IndustryPool.Reaction],      c.Capacity[IndustryPool.Reaction],
+                        c.FreeSlots[IndustryPool.Science],       c.Capacity[IndustryPool.Science]),
                     SaveCharAsync))
                 .ToList();
 
@@ -553,14 +589,18 @@ public class WorklistIndustryViewModel : ReactiveObject
                 this.RaisePropertyChanged(nameof(MaxJobDaysRxn));
                 this.RaisePropertyChanged(nameof(MaxJobDaysSci));
 
-                _buyLocationText = _settings.IndustryBuyLocationName;
+                // Shown in the interface language; the setting keeps the English. Nothing reads
+                // the box's text back — a pick saves the result's English.
+                _buyLocationText = SdeNames.Location(buyLocId, _settings.IndustryBuyLocationName);
                 this.RaisePropertyChanged(nameof(BuyLocationText));
 
                 _includeNonPersonalCorps = _settings.IncludeNonPersonalCorps;
                 this.RaisePropertyChanged(nameof(IncludeNonPersonalCorps));
 
                 _selectedScope  = _settings.IndustryScope;
-                _scopePlaceText = _settings.IndustryScopeName;
+                // Shown in the interface language; the setting keeps the English.
+                _scopePlaceText = InvLevelService.ScopePlaceName(
+                    _settings.IndustryScope, _settings.IndustryScopeId, _settings.IndustryScopeName);
                 this.RaisePropertyChanged(nameof(SelectedScope));
                 this.RaisePropertyChanged(nameof(NeedsScopePlace));
                 this.RaisePropertyChanged(nameof(ScopePlaceText));
@@ -569,22 +609,18 @@ public class WorklistIndustryViewModel : ReactiveObject
                 foreach (var s in scopeStations) ScopeStations.Add(s);
 
                 BuyWarning = buyLocId <= 0
-                    ? "No buy location set. Shortfalls will still be reported on the jobs they block, but the purchases have nowhere to be raised."
+                    ? WorklistText.BuyNoLocation
                     : buyAlt is null
-                        ? $"No market alt is assigned to {_settings.IndustryBuyLocationName} on the Market Alts tab, so buy tasks there will have no character."
+                        ? string.Format(WorklistText.BuyNoAlt, SdeNames.Location(buyLocId, _settings.IndustryBuyLocationName))
                         : "";
                 this.RaisePropertyChanged(nameof(HasBuyWarning));
 
                 ParkWarning = parkId <= 0
-                    ? $"{DefaultParkLabel} is selected and no park is marked default in Indy Parks. "
-                      + "Industry jobs stay silent until a park is starred there or picked here, because the park decides facilities and rigs."
+                    ? string.Format(WorklistText.ParkNoDefault, DefaultParkLabel)
                     : unlinked.Count > 0
-                        ? $"{unlinked.Count} structure(s) in this park are not linked to a real location "
-                          + $"({string.Join(", ", unlinked.Take(3))}"
-                          + (unlinked.Count > 3 ? ", …" : "") + "). "
-                          + "Materials there cannot be counted, so jobs may read as blocked when the inputs are actually present."
+                        ? string.Format(WorklistText.ParkUnlinked, unlinked.Count, UnlinkedNames(unlinked))
                         : linkedCount == 0
-                            ? "This park has no structures. Nothing can be checked for materials."
+                            ? WorklistText.ParkNoStructures
                             : "";
                 this.RaisePropertyChanged(nameof(HasParkWarning));
 
@@ -599,13 +635,17 @@ public class WorklistIndustryViewModel : ReactiveObject
             // throws part-way leaves the whole tab blank — park, job lengths, asset scope and the
             // character grid all at once, with no clue why. That happened. Say so instead.
             _errorLogger.Log(nameof(WorklistIndustryViewModel), nameof(LoadAsync), ex);
-            Status = $"Could not load the industry settings: {ex.Message}";
+            Status = string.Format(WorklistText.IndustryLoadFailed, ex.Message);
         }
         finally { _loading = false; }
     }
 
     private static string Text(double days) =>
         days > 0 ? days.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture) : "";
+
+    /// <summary>The first few unlinked structures, for the park warning's parentheses.</summary>
+    private static string UnlinkedNames(List<string> unlinked) =>
+        string.Join(CommonText.ListSeparator, unlinked.Take(3)) + (unlinked.Count > 3 ? CommonText.ListSeparator + "…" : "");
 
     /// <summary>
     /// Writes one character's activity switches back.

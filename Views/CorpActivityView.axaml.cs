@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using EveConsole.Models;
 using EveConsole.ViewModels;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -73,7 +74,7 @@ public partial class CorpActivityView : UserControl
 
         vm.ConfirmDelete = async () =>
         {
-            var dlg = new ConfirmDialog("Are you sure you want to delete this standing project?");
+            var dlg = new ConfirmDialog(CorpText.ConfirmDeleteStandingProject);
             return await dlg.ShowDialog<bool>(GetWindow());
         };
     }

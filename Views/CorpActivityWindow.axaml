@@ -1,10 +1,11 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:EveConsole.Localization"
         xmlns:views="clr-namespace:EveConsole.Views"
         xmlns:vm="clr-namespace:EveConsole.ViewModels"
         x:Class="EveConsole.Views.CorpActivityWindow"
         x:DataType="vm:CorpActivityViewModel"
-        Title="Corp Activity"
+        Title="{x:Static loc:CorpText.TitleCorpActivity}"
         Width="1400" Height="900"
         MinWidth="1000" MinHeight="600"
         Background="{DynamicResource SurfaceBaseBrush}">

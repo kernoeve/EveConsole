@@ -5,6 +5,7 @@ using EveConsole.Data;
 using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -137,25 +138,36 @@ public class MarketPricingService
         }
     }
 
-    public async Task RefreshConfigAsync(int configId, CancellationToken ct = default)
+    /// <summary>Refreshes one source. True when it refreshed; its LastStatus says how it went.</summary>
+    public async Task<bool> RefreshConfigAsync(int configId, CancellationToken ct = default)
     {
         using var scope  = _scopeFactory.CreateScope();
         var db     = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var config = await db.MarketPricingConfigs.FindAsync([configId], ct);
-        if (config is null) return;
-        await RefreshOneAsync(config, db, ct);
+        if (config is null) return false;
+        var refreshed = await RefreshOneAsync(config, db, ct);
 
         if (AfterRefresh is not null)
         {
             try { await AfterRefresh(ct); }
             catch (Exception ex) { _errorLogger.Log("MarketPricingService", "AfterRefresh", ex); }
         }
+
+        return refreshed;
     }
 
     // ── Dispatch ──────────────────────────────────────────────────────────────
 
-    private async Task RefreshOneAsync(MarketPricingConfig config, AppDbContext db, CancellationToken ct)
+    /// <summary>
+    /// Refreshes one source and records how it went in its LastStatus. True when it refreshed.
+    ///
+    /// <para>⚠️ The outcome is returned, not read back from LastStatus. The settings tab used to
+    /// tell success by the status starting with "OK" — words that are translated now, and the
+    /// status is stored in whichever language the app was in when the refresh ran.</para>
+    /// </summary>
+    private async Task<bool> RefreshOneAsync(MarketPricingConfig config, AppDbContext db, CancellationToken ct)
     {
+        var refreshed = false;
         using var handle = _log.StartCall(config.LocationName, "market.refresh");
         try
         {
@@ -164,15 +176,15 @@ public class MarketPricingService
             {
                 case MarketMethod.Fuzzwork:
                     await RefreshFuzzworkAsync(config, db, ct);
-                    status = "OK";
+                    status = SettingsText.MarketStatusOk;
                     break;
                 case MarketMethod.EsiRegion:
                     int regionCount = await RefreshEsiRegionAsync(config, db, ct);
-                    status = $"OK ({regionCount:N0} orders fetched)";
+                    status = string.Format(SettingsText.MarketStatusOkOrders, regionCount);
                     break;
                 case MarketMethod.PlayerStructure:
                     int structCount = await RefreshEsiStructureAsync(config, db, ct);
-                    status = $"OK ({structCount:N0} orders fetched)";
+                    status = string.Format(SettingsText.MarketStatusOkOrders, structCount);
                     break;
                 default:
                     throw new InvalidOperationException($"Unknown method: {config.Method}");
@@ -183,6 +195,7 @@ public class MarketPricingService
             config.LastRefreshed = DateTimeOffset.UtcNow;
             config.LastStatus    = status;
             handle.Complete(true, 200);
+            refreshed = true;
         }
         catch (OperationCanceledException) { throw; }
         catch (Exception ex)
@@ -195,6 +208,7 @@ public class MarketPricingService
 
         db.MarketPricingConfigs.Update(config);
         await db.SaveChangesAsync(ct);
+        return refreshed;
     }
 
     // ── Fuzzwork ──────────────────────────────────────────────────────────────
@@ -209,7 +223,7 @@ public class MarketPricingService
             .ToListAsync(ct);
 
         if (typeIds.Count == 0)
-            throw new InvalidOperationException("No SDE types loaded — run an SDE import first.");
+            throw new InvalidOperationException(SettingsText.MarketNoSdeTypes);
 
         var http      = _httpFactory.CreateClient("fuzzwork");
         var fetched   = DateTimeOffset.UtcNow;
@@ -265,7 +279,7 @@ public class MarketPricingService
             $"markets/{config.LocationId}/orders/", ct);
 
         if (!result.IsSuccess)
-            throw new InvalidOperationException($"ESI error {result.StatusCode}: {result.Error}");
+            throw new InvalidOperationException(string.Format(SettingsText.MarketEsiError, result.StatusCode, result.Error));
 
         var fetched = DateTimeOffset.UtcNow;
         var orders  = result.Data ?? [];
@@ -308,7 +322,7 @@ public class MarketPricingService
         MarketPricingConfig config, AppDbContext db, CancellationToken ct)
     {
         if (!config.AuthCharId.HasValue)
-            throw new InvalidOperationException("No auth character set for Player Structure source.");
+            throw new InvalidOperationException(SettingsText.MarketNoAuthChar);
 
         var result = await _esiClient.ExecuteAllPagesAsync<EsiMarketOrder>(
             config.AuthCharId.Value,
@@ -316,7 +330,7 @@ public class MarketPricingService
             ct);
 
         if (!result.IsSuccess)
-            throw new InvalidOperationException($"ESI error {result.StatusCode}: {result.Error}");
+            throw new InvalidOperationException(string.Format(SettingsText.MarketEsiError, result.StatusCode, result.Error));
 
         var fetched = DateTimeOffset.UtcNow;
         var orders  = result.Data ?? [];

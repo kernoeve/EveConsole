@@ -10,6 +10,7 @@ using Avalonia.Platform.Storage;
 using Avalonia.ReactiveUI;
 using EveConsole.ViewModels;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -131,7 +132,7 @@ public partial class EsiExplorerView : ReactiveUserControl<EsiExplorerViewModel>
             Width            = 155,
             FontSize         = 11,
             ItemsSource      = ViewModel?.Columns,
-            PlaceholderText  = "column…",
+            PlaceholderText  = DataText.HintColumn,
             MaxDropDownHeight = 300,
         };
 
@@ -146,7 +147,7 @@ public partial class EsiExplorerView : ReactiveUserControl<EsiExplorerViewModel>
 
         var valBox = new TextBox
         {
-            Watermark = "value…",
+            Watermark = DataText.HintValue,
             Width     = 200,
             FontSize  = 11,
         };
@@ -255,7 +256,7 @@ public partial class EsiExplorerView : ReactiveUserControl<EsiExplorerViewModel>
             foreach (var c in Path.GetInvalidFileNameChars()) name = name.Replace(c, '_');
             var file = await top.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
             {
-                Title             = "Export CSV",
+                Title             = DataText.ExportCsv,
                 SuggestedFileName = $"{name}.csv",
                 DefaultExtension  = "csv",
                 FileTypeChoices   = [new FilePickerFileType("CSV") { Patterns = ["*.csv"] }],
@@ -275,7 +276,7 @@ public partial class EsiExplorerView : ReactiveUserControl<EsiExplorerViewModel>
         }
         catch (Exception ex)
         {
-            ViewModel?.ShowStatus($"Export failed: {ex.Message}");
+            ViewModel?.ShowStatus(string.Format(DataText.ExportFailed, ex.Message));
         }
     }
 

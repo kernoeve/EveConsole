@@ -3,6 +3,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.ReactiveUI;
 using EveConsole.ViewModels;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -55,8 +56,8 @@ public partial class SalesTrackerView : ReactiveUserControl<SalesTrackerViewMode
         RemoveLabelMenu.IsEnabled = rows.Count > 0;
         if (rows.Count == 0) return;
 
-        AddLabelMenu.Header    = rows.Count > 1 ? $"Add label to {rows.Count} sales" : "Add label";
-        RemoveLabelMenu.Header = rows.Count > 1 ? $"Remove label from {rows.Count} sales" : "Remove label";
+        AddLabelMenu.Header    = rows.Count > 1 ? string.Format(SalesText.AddLabelToSales, rows.Count) : SalesText.AddLabel;
+        RemoveLabelMenu.Header = rows.Count > 1 ? string.Format(SalesText.RemoveLabelFromSales, rows.Count) : SalesText.RemoveLabel;
 
         foreach (var label in await vm.KnownLabelsAsync())
         {
@@ -68,7 +69,7 @@ public partial class SalesTrackerView : ReactiveUserControl<SalesTrackerViewMode
         // Typing a new one is how labels are created — the same list the Order Tracker offers,
         // so a tag made here is a tag orders can use and the other way round.
         if (AddLabelMenu.Items.Count > 0) AddLabelMenu.Items.Add(new Separator());
-        var newItem = new MenuItem { Header = "New label…" };
+        var newItem = new MenuItem { Header = SalesText.NewLabelMenu };
         newItem.Click += async (_, _) => await PromptForLabelAsync(vm);
         AddLabelMenu.Items.Add(newItem);
 
@@ -91,7 +92,7 @@ public partial class SalesTrackerView : ReactiveUserControl<SalesTrackerViewMode
 
         var rows  = SelectedRows();
         var typed = await new TextPromptDialog(
-            "New label", "Label", "e.g. Capital Program").ShowDialog<string?>(owner);
+            SalesText.NewLabelTitle, SalesText.LabelPrompt, SalesText.NewLabelHint).ShowDialog<string?>(owner);
 
         if (!string.IsNullOrWhiteSpace(typed)) await vm.AddLabelToAsync(rows, typed);
     }

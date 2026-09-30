@@ -86,6 +86,15 @@ jobs:
       - name: Row detail check
         run: dotnet run --project tools/RowDetailCheck/RowDetailCheck.csproj -c Release
 
+      # ⚠️ Is every translation safe to show? A translation that drops a placeholder — "{0} jobs"
+      # as a sentence without {0} — throws the moment its label is drawn, in that language only,
+      # so testing in English never meets it. The build cannot see it either: a translation is
+      # data, not code. This fails on lost or extra placeholders, broken braces, keys the English
+      # does not have, empty entries and files named for a culture .NET does not know. It also
+      # reports how much of each language is done, and how much text is still in the XAML.
+      - name: Translations check
+        run: dotnet run --project tools/LocCheck/LocCheck.csproj -c Release
+
   # ⚠️ Does the Linux target still compile?
   #
   # The job above answers that for Windows only — it is a windows-latest runner with no

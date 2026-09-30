@@ -4,10 +4,12 @@ using System.Text;
 using Avalonia.Media;
 using Avalonia.Threading;
 using EveConsole.Data;
+using EveConsole.Models;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using Avalonia.Media.Imaging;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -25,9 +27,9 @@ public sealed class ValueCellVm(double? unit, long quantity, double factor)
 
     public string UnitText   => Has ? IskText.Compact(Unit!.Value)  : "—";
     public string TotalText  => Has ? IskText.Compact(Total!.Value) : "—";
-    public string UnitExact  => Has ? IskText.Exact(Unit!.Value)    : "no price";
-    public string TotalExact => Has ? IskText.Exact(Total!.Value)   : "no price";
-    public string PctText    => !Has ? "—" : IsBest ? "best" : IskText.Pct(Pct);
+    public string UnitExact  => Has ? IskText.Exact(Unit!.Value)    : AssetsText.NoPrice;
+    public string TotalExact => Has ? IskText.Exact(Total!.Value)   : AssetsText.NoPrice;
+    public string PctText    => !Has ? "—" : IsBest ? AssetsText.Best : IskText.Pct(Pct);
     /// <summary>The standing's colour: green for the best, red a long way behind.</summary>
     public IBrush Color      => IskText.Colour(Has, IsBest, Pct);
     /// <summary>The figures' colour: plain, faint with no price. The standing beside them wears
@@ -41,6 +43,7 @@ public sealed class ValueRowVm : ReactiveObject
     public ValueRowVm(ItemValues v, double factor)
     {
         Name     = v.Item.Name;
+        DisplayName = ItemValuationViewModel.Shown(v.Item);
         TypeId   = v.Item.TypeId;
         Quantity = v.Item.Quantity;
         Section  = v.Item.Section;
@@ -64,7 +67,10 @@ public sealed class ValueRowVm : ReactiveObject
         }
     }
 
+    /// <summary>English, or the line as pasted when the SDE does not know it: what the Copy
+    /// button writes. <see cref="DisplayName"/> is what the grid shows.</summary>
     public string Name     { get; }
+    public string DisplayName { get; }
     public int    TypeId   { get; }
     public long   Quantity { get; }
     public string Section  { get; }
@@ -86,7 +92,7 @@ public sealed class ValueRowVm : ReactiveObject
     public bool   HasType      => TypeId > 0;
     public bool   IsProblem    => Problem.Length > 0;
     public bool   HasSection   => Section.Length > 0;
-    public string Note         => MarketFromContract ? "contract" : "";
+    public string Note         => MarketFromContract ? AssetsText.NoteContract : "";
     public bool   HasNote      => MarketFromContract;
     public IBrush NameColor    => IsProblem ? Palette.Warn : Palette.TextPrimary;
 
@@ -115,9 +121,9 @@ public sealed class CompareCellVm(double? unit, long quantity, double factor)
 
     public string UnitText   => Has ? IskText.Compact(Unit!.Value)  : "—";
     public string TotalText  => Has ? IskText.Compact(Total!.Value) : "—";
-    public string UnitExact  => Has ? IskText.Exact(Unit!.Value)    : "no price";
-    public string TotalExact => Has ? IskText.Exact(Total!.Value)   : "no price";
-    public string PctText    => !Has ? "—" : IsBest ? "best" : IskText.Pct(Pct);
+    public string UnitExact  => Has ? IskText.Exact(Unit!.Value)    : AssetsText.NoPrice;
+    public string TotalExact => Has ? IskText.Exact(Total!.Value)   : AssetsText.NoPrice;
+    public string PctText    => !Has ? "—" : IsBest ? AssetsText.Best : IskText.Pct(Pct);
     public IBrush Color      => IskText.Colour(Has, IsBest, Pct);
     public IBrush FigureColor => IskText.FigureColour(Has);
 }
@@ -128,6 +134,7 @@ public sealed class CompareRowVm : ReactiveObject
     public CompareRowVm(ValuedItem item, IReadOnlyList<StationPrices> stations, double factor)
     {
         Name     = item.Name;
+        DisplayName = ItemValuationViewModel.Shown(item);
         TypeId   = item.TypeId;
         Quantity = item.Quantity;
         Blueprint = item.Blueprint;
@@ -145,7 +152,9 @@ public sealed class CompareRowVm : ReactiveObject
         }
     }
 
+    /// <summary>English, as on <see cref="ValueRowVm.Name"/>; the grid shows <see cref="DisplayName"/>.</summary>
     public string Name     { get; }
+    public string DisplayName { get; }
     public int    TypeId   { get; }
     public long   Quantity { get; }
     public double TotalVolume { get; }
@@ -272,10 +281,20 @@ public sealed class ItemValuationViewModel : ReactiveObject
 
     public IReadOnlyList<PriceBasisChoice> Bases { get; } =
     [
-        new(PriceBasis.Sell,  "Sell"),
-        new(PriceBasis.Buy,   "Buy"),
-        new(PriceBasis.Split, "Split"),
+        new(PriceBasis.Sell,  CommonText.PriceTypeSell),
+        new(PriceBasis.Buy,   CommonText.PriceTypeBuy),
+        new(PriceBasis.Split, CommonText.PriceTypeSplit),
     ];
+
+    /// <summary>The basis inside a sentence — "sell prices", "sell basis" — one phrase per basis,
+    /// since a language may not make it from the picker's word. Sell when nothing is picked, as the
+    /// appraisal itself does.</summary>
+    private static string BasisPhrase(PriceBasis? basis, string sell, string buy, string split) => basis switch
+    {
+        PriceBasis.Buy   => buy,
+        PriceBasis.Split => split,
+        _                => sell,
+    };
 
     private PriceBasisChoice? _selectedBasis;
     public PriceBasisChoice? SelectedBasis
@@ -290,8 +309,8 @@ public sealed class ItemValuationViewModel : ReactiveObject
 
     public IReadOnlyList<ValueTargetChoice> Targets { get; } =
     [
-        new(false, "The items"),
-        new(true,  "Reprocessed output"),
+        new(false, AssetsText.TargetTheItems),
+        new(true,  AssetsText.TargetReprocessedOutput),
     ];
 
     private ValueTargetChoice? _selectedTarget;
@@ -377,12 +396,18 @@ public sealed class ItemValuationViewModel : ReactiveObject
         set { this.RaiseAndSetIfChanged(ref _filter, value ?? ""); ApplyFilter(); }
     }
 
+    /// <summary>Finds the name shown and the English — the list may well have been pasted in English.</summary>
     private void ApplyFilter()
     {
         var f = _filter.Trim();
-        ValueRows   = f.Length == 0 ? _allValueRows   : _allValueRows.Where(r => r.Name.Contains(f, StringComparison.OrdinalIgnoreCase)).ToList();
-        CompareRows = f.Length == 0 ? _allCompareRows : _allCompareRows.Where(r => r.Name.Contains(f, StringComparison.OrdinalIgnoreCase)).ToList();
+        ValueRows   = f.Length == 0 ? _allValueRows   : _allValueRows.Where(r => SdeNames.Matches(SdeNameKind.Type, r.TypeId, r.Name, f)).ToList();
+        CompareRows = f.Length == 0 ? _allCompareRows : _allCompareRows.Where(r => SdeNames.Matches(SdeNameKind.Type, r.TypeId, r.Name, f)).ToList();
     }
+
+    /// <summary>An item's name as the grids show it: in the interface language when the SDE knows
+    /// the item, and as pasted when it does not.</summary>
+    internal static string Shown(ValuedItem item) =>
+        item.TypeId > 0 ? SdeNames.Type(item.TypeId, item.Name) : item.Name;
 
     /// <summary>The stations the compare grid has columns for, primary first, as of the last result.</summary>
     public IReadOnlyList<MarketStation> CompareColumns { get; private set; } = [];
@@ -396,7 +421,7 @@ public sealed class ItemValuationViewModel : ReactiveObject
     private bool _isBusy;
     public bool IsBusy { get => _isBusy; private set => this.RaiseAndSetIfChanged(ref _isBusy, value); }
 
-    private string _status = "Paste a list of items and press Appraise.";
+    private string _status = AssetsText.StatusPasteList;
     public string Status { get => _status; private set => this.RaiseAndSetIfChanged(ref _status, value); }
 
     private string _volumeText = "—", _itemsText = "—";
@@ -427,22 +452,26 @@ public sealed class ItemValuationViewModel : ReactiveObject
             var savedCompare = (UiState.Get(CompareKey) ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries)
                 .Select(s => long.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out var id) ? id : 0).Where(id => id > 0).ToList();
 
+            // The box names the station as its list does (ValueMemberBinding), so the names shown
+            // are waited for first: text that differs from the pick's makes the box drop the pick.
+            await SdeNames.EnsureLoadedAsync();
+
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 SelectedStation = stations.FirstOrDefault(s => s.LocationId == savedId) ?? stations.FirstOrDefault();
-                StationText     = SelectedStation?.Name ?? "";
+                StationText     = SelectedStation?.DisplayName ?? "";
                 SelectedBasis   = Bases.First(x => x.Basis == savedBasis);
                 SelectedTarget  = Targets.First(x => x.Reprocess == savedTarget);
                 foreach (var id in savedCompare)
                     if (stations.FirstOrDefault(s => s.LocationId == id) is { } st && st.LocationId != SelectedStation?.LocationId) CompareStations.Add(st);
-                if (stations.Count == 0) Status = "No orders are held yet. Add a market source under Settings > Market and let it fetch first.";
+                if (stations.Count == 0) Status = string.Format(AssetsText.StatusNoOrdersHeld, SettingsText.TabMarket);
                 _loaded = true;
                 CompareColumnsChanged?.Invoke();
             });
         }
         catch (Exception ex)
         {
-            await Dispatcher.UIThread.InvokeAsync(() => Status = $"Could not load the stations: {ex.Message}");
+            await Dispatcher.UIThread.InvokeAsync(() => Status = string.Format(AssetsText.ErrLoadStations, ex.Message));
         }
     }
 
@@ -453,11 +482,11 @@ public sealed class ItemValuationViewModel : ReactiveObject
     public async Task AppraiseAsync()
     {
         if (IsBusy) { _appraiseAgain = true; return; }
-        if (SelectedStation is null) { Status = "Pick a station first."; return; }
-        if (string.IsNullOrWhiteSpace(InputText)) { Status = "Nothing to appraise: paste a list of items first."; return; }
+        if (SelectedStation is null) { Status = AssetsText.StatusPickStation; return; }
+        if (string.IsNullOrWhiteSpace(InputText)) { Status = AssetsText.StatusNothingToAppraise; return; }
 
         IsBusy = true;
-        Status = "Appraising…";
+        Status = AssetsText.StatusAppraising;
         try
         {
             var text      = InputText;
@@ -466,11 +495,12 @@ public sealed class ItemValuationViewModel : ReactiveObject
             var basis     = SelectedBasis?.Basis ?? PriceBasis.Sell;
             var reprocess = SelectedTarget?.Reprocess ?? false;
             var valuation = await Task.Run(() => _service.ValueAsync(text, station, compare, basis, reprocess));
+            await SdeNames.EnsureLoadedAsync();   // the rows keep the names they are built with
             await Dispatcher.UIThread.InvokeAsync(() => Present(valuation));
         }
         catch (Exception ex)
         {
-            await Dispatcher.UIThread.InvokeAsync(() => Status = $"Appraisal failed: {ex.Message}");
+            await Dispatcher.UIThread.InvokeAsync(() => Status = string.Format(AssetsText.ErrAppraisalFailed, ex.Message));
         }
         finally
         {
@@ -494,7 +524,7 @@ public sealed class ItemValuationViewModel : ReactiveObject
         ValueTotals = [];
         UnparsedText = "";
         this.RaisePropertyChanged(nameof(HasUnparsed));
-        Status = "Paste a list of items and press Appraise.";
+        Status = AssetsText.StatusPasteList;
     }
 
     public void OpenItem(int typeId)
@@ -543,17 +573,31 @@ public sealed class ItemValuationViewModel : ReactiveObject
         if (_valuation is null) return "";
         var v  = _valuation;
         var sb = new StringBuilder();
-        sb.AppendLine($"Valued at {v.Stations[0].Station.Name}, {SelectedBasis?.Name.ToLowerInvariant()} basis, {PricePercent:0.#}% of market{(v.Reprocessed ? ", as reprocessed" : "")}");
-        sb.AppendLine("Item\tQuantity\tVolume m3\tMarket unit\tMarket total\tMarket %\tBuild unit\tBuild total\tBuild %\tReprocess unit\tReprocess total\tReprocess %\tNote");
+        var basis = BasisPhrase(SelectedBasis?.Basis, AssetsText.CopyBasisSell, AssetsText.CopyBasisBuy, AssetsText.CopyBasisSplit);
+        // The stations by their English names here, like the items below: Name, not DisplayName.
+        sb.AppendLine(string.Format(v.Reprocessed ? AssetsText.CopyValuedAtReprocessed : AssetsText.CopyValuedAt,
+            v.Stations[0].Station.Name, basis, PricePercent));
+        sb.AppendLine(string.Join("\t",
+            AssetsText.ColItem, AssetsText.AssetColQuantity, AssetsText.CopyColVolumeM3,
+            AssetsText.CopyColMarketUnit, AssetsText.CopyColMarketTotal, AssetsText.CopyColMarketPct,
+            AssetsText.CopyColBuildUnit, AssetsText.CopyColBuildTotal, AssetsText.CopyColBuildPct,
+            AssetsText.CopyColReprocessUnit, AssetsText.CopyColReprocessTotal, AssetsText.CopyColReprocessPct,
+            AssetsText.CopyColNote));
+        // English item names in both tables, as always: a list copied from here is pasted into
+        // appraisal sites and back into this tool, which read English.
         foreach (var r in ValueRows)
             sb.AppendLine($"{r.Name}\t{r.Quantity}\t{r.TotalVolume:0.##}\t{Num(r.Market.Unit)}\t{Num(r.Market.Total)}\t{r.Market.PctText}\t{Num(r.Build.Unit)}\t{Num(r.Build.Total)}\t{r.Build.PctText}\t{Num(r.Reprocess.Unit)}\t{Num(r.Reprocess.Total)}\t{r.Reprocess.PctText}\t{string.Join(" ", new[] { r.Section, r.Problem, r.Note }.Where(s => s.Length > 0))}");
         sb.AppendLine();
-        foreach (var t in ValueTotals) sb.AppendLine($"Total {t.Name}\t{t.Exact}\t{t.PctText}\t{t.CoverageText}");
-        sb.AppendLine($"Total volume m3\t{v.TotalVolume:0.##}");
+        foreach (var t in ValueTotals) sb.AppendLine($"{TotalLabel(t.Name)}\t{t.Exact}\t{t.PctText}\t{t.CoverageText}");
+        sb.AppendLine($"{AssetsText.CopyTotalVolumeM3}\t{v.TotalVolume:0.##}");
         if (CompareColumns.Count > 1)
         {
             sb.AppendLine();
-            sb.AppendLine("Item\tQuantity\tVolume m3\t" + string.Join("\t", CompareColumns.Select(s => $"{s.Name} unit\t{s.Name} total\t{s.Name} %")));
+            sb.AppendLine(string.Join("\t", AssetsText.ColItem, AssetsText.AssetColQuantity, AssetsText.CopyColVolumeM3) + "\t"
+                + string.Join("\t", CompareColumns.Select(s => string.Join("\t",
+                    string.Format(AssetsText.CopyColStationUnit,  s.Name),
+                    string.Format(AssetsText.CopyColStationTotal, s.Name),
+                    string.Format(AssetsText.CopyColStationPct,   s.Name)))));
             foreach (var r in CompareRows)
                 sb.AppendLine($"{r.Name}\t{r.Quantity}\t{r.TotalVolume:0.##}\t" + string.Join("\t", r.Cells.Select(c => $"{Num(c.Unit)}\t{Num(c.Total)}\t{c.PctText}")));
             sb.AppendLine();
@@ -562,6 +606,14 @@ public sealed class ItemValuationViewModel : ReactiveObject
         return sb.ToString();
 
         static string Num(double? d) => d is { } x ? x.ToString("0.##", CultureInfo.InvariantCulture) : "";
+
+        // A Values band line by its key (see Present), as the copy names it.
+        static string TotalLabel(string name) => name switch
+        {
+            "market" => AssetsText.CopyTotalMarket,
+            "build"  => AssetsText.CopyTotalBuild,
+            _        => AssetsText.CopyTotalReprocessed,
+        };
     }
 
     public async Task CopyAsync()
@@ -569,7 +621,7 @@ public sealed class ItemValuationViewModel : ReactiveObject
         var text = ResultAsText();
         if (text.Length == 0 || CopyToClipboard is null) return;
         await CopyToClipboard(text);
-        Status = "Copied to the clipboard.";
+        Status = AssetsText.StatusCopied;
     }
 
     // ── Presentation ───────────────────────────────────────────────────────
@@ -587,7 +639,7 @@ public sealed class ItemValuationViewModel : ReactiveObject
         int marketPriced = v.Values.Count(x => x.MarketUnit > 0), buildPriced = v.Values.Count(x => x.BuildUnit > 0), reprocessPriced = v.Values.Count(x => x.ReprocessUnit > 0);
         var bestValue  = new[] { (market, marketPriced), (build, buildPriced), (reprocess, reprocessPriced) }.Where(t => t.Item2 > 0).Select(t => t.Item1).DefaultIfEmpty(0).Max();
         var stationAge = v.Stations[0].AsOf is { } at0 ? DateTimeOffset.UtcNow - at0 : (TimeSpan?)null;
-        var ageText    = stationAge is { } sa ? Age(sa) : "no orders held";
+        var ageText    = stationAge is { } sa ? Age(sa) : AssetsText.AgeNoOrdersHeld;
         var stale      = stationAge is null || stationAge.Value.TotalHours >= 2;
         ValueTotals =
         [
@@ -614,21 +666,28 @@ public sealed class ItemValuationViewModel : ReactiveObject
             var priced = v.Values.Count(x => x.Item.TypeId > 0 && s.UnitByType.TryGetValue(x.Item.TypeId, out var u) && u > 0);
             var age    = s.AsOf is { } at ? DateTimeOffset.UtcNow - at : (TimeSpan?)null;
             return new CompareTotalVm(s.Station, t > 0 ? IskText.Compact(t) : "—",
-                t <= 0 ? "no prices" : isBest ? "best" : IskText.Pct(pct),
+                t <= 0 ? AssetsText.NoPrices : isBest ? AssetsText.Best : IskText.Pct(pct),
                 IskText.Colour(t > 0, isBest, pct),
-                $"{priced:N0} of {v.Values.Count:N0} priced",
-                age is { } a ? Age(a) : "no orders held",
+                string.Format(AssetsText.CoveragePriced, priced, v.Values.Count),
+                age is { } a ? Age(a) : AssetsText.AgeNoOrdersHeld,
                 Stale:     age is null || age.Value.TotalHours >= 2,
                 IsPrimary: i == 0);
         }).ToList();
         if (columnsChanged) CompareColumnsChanged?.Invoke();
 
-        UnparsedText = v.Unparsed.Count == 0 ? "" : "Not read: " + string.Join("  |  ", v.Unparsed);
+        UnparsedText = v.Unparsed.Count == 0 ? "" : string.Format(AssetsText.NotRead, string.Join("  |  ", v.Unparsed));
         this.RaisePropertyChanged(nameof(HasUnparsed));
         HasResult = v.Values.Count > 0;
 
-        var problems = v.Unpriced > 0 ? $"; {v.Unpriced} could not be valued" : "";
-        Status = $"{v.Values.Count:N0} {(v.Reprocessed ? "rows after reprocessing" : "items")} at {v.Stations[0].Station.Name}, {SelectedBasis?.Name.ToLowerInvariant()} prices {ageText}{problems}.";
+        // "12 items at <station>, sell prices fetched 5 min ago", counted in the form the number
+        // needs, with the unpriced count after it when there is one.
+        var prices = BasisPhrase(SelectedBasis?.Basis, AssetsText.StatusPricesSell, AssetsText.StatusPricesBuy, AssetsText.StatusPricesSplit);
+        var valued = Plurals.Format(AssetsText.ResourceManager,
+            v.Reprocessed ? nameof(AssetsText.StatusValuedRowsOther) : nameof(AssetsText.StatusValuedItemsOther),
+            v.Values.Count, v.Stations[0].Station.DisplayName, prices, ageText);
+        Status = v.Unpriced > 0
+            ? string.Format(AssetsText.StatusValuedUnpriced, valued, v.Unpriced)
+            : string.Format(AssetsText.StatusValued, valued);
     }
 
     /// <summary>One value's line for the Values band. A value that priced nothing has no total
@@ -640,16 +699,17 @@ public sealed class ItemValuationViewModel : ReactiveObject
         var pct    = has && best > 0 ? (total - best) / best * 100 : 0;
         return new ValueTotalVm(name,
             has ? IskText.Compact(total) : "—",
-            has ? IskText.Exact(total)   : "nothing to value this way",
-            !has ? "" : isBest ? "best" : IskText.Pct(pct),
+            has ? IskText.Exact(total)   : AssetsText.NothingToValue,
+            !has ? "" : isBest ? AssetsText.Best : IskText.Pct(pct),
             IskText.Colour(has, isBest, pct),
-            $"{priced:N0} of {of:N0} priced",
+            string.Format(AssetsText.CoveragePriced, priced, of),
             ageText, stale);
     }
 
     private static string Age(TimeSpan span) =>
-        span.TotalMinutes < 1  ? "fetched just now" :
-        span.TotalMinutes < 90 ? $"fetched {span.TotalMinutes:0} min ago" :
-        span.TotalHours   < 36 ? $"fetched {span.TotalHours:0} h ago" :
-                                 $"fetched {span.TotalDays:0} days ago";
+        span.TotalMinutes < 1  ? AssetsText.AgeJustNow :
+        span.TotalMinutes < 90 ? string.Format(AssetsText.AgeMinutes, span.TotalMinutes) :
+        span.TotalHours   < 36 ? string.Format(AssetsText.AgeHours, span.TotalHours) :
+                                 Plurals.Format(AssetsText.ResourceManager, nameof(AssetsText.AgeDaysOther),
+                                     (long)Math.Round(span.TotalDays, MidpointRounding.AwayFromZero));
 }

@@ -1,4 +1,5 @@
 using Microsoft.Data.Sqlite;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -67,13 +68,13 @@ public static class DatabaseShrinkService
         try
         {
             if (!File.Exists(dbPath))
-                return new ShrinkResult(true, false, 0, 0, "Database file not found.");
+                return new ShrinkResult(true, false, 0, 0, SettingsText.DbShrinkFileNotFound);
 
             // ── 1. Fold the write-ahead log back into the file ──────────────────
             // The restart is an Environment.Exit, which kills the process without closing SQLite's
             // connections — so a -wal with committed frames is normally still sitting there. Back
             // up without folding it in first and those transactions are missing from the copy.
-            progress?.Invoke(3, "Preparing database…");
+            progress?.Invoke(3, SettingsText.DbPreparingDatabase);
             SqliteMaintenance.Checkpoint(dbPath);
 
             var before = new FileInfo(dbPath).Length;
@@ -81,14 +82,14 @@ public static class DatabaseShrinkService
             // ── 2. Safety copy ─────────────────────────────────────────────────
             // After the checkpoint and before any modification: the only moment the file is both
             // complete and untouched by anyone else.
-            progress?.Invoke(5, "Backing up database…");
+            progress?.Invoke(5, SettingsText.DbShrinkBackingUp);
             Clean(backup);
             File.Copy(dbPath, backup);
 
             // ── 3. Rebuild, in place ───────────────────────────────────────────
             // SQLite does this transactionally: on any failure the original is left intact, which
             // is why there is no restore step below.
-            progress?.Invoke(8, "Shrinking database — this may take a while…");
+            progress?.Invoke(8, SettingsText.DbShrinkShrinking);
             using (var conn = new SqliteConnection(SqliteMaintenance.ConnectionString(dbPath)))
             {
                 conn.Open();
@@ -100,32 +101,30 @@ public static class DatabaseShrinkService
             SqliteConnection.ClearAllPools();
 
             // ── 4. Check before declaring success ──────────────────────────────
-            progress?.Invoke(90, "Verifying…");
+            progress?.Invoke(90, SettingsText.DbVerifying);
             if (!Verify(dbPath, out var problem))
                 return new ShrinkResult(true, false, before, before,
-                    $"Shrink finished but the database failed verification: {problem}. " +
-                    $"A copy taken beforehand is at {backup}.");
+                    string.Format(SettingsText.DbShrinkVerifyFailed, problem, backup));
 
             var after = new FileInfo(dbPath).Length;
 
             // ── 5. Only now is the backup redundant ────────────────────────────
             Clean(backup);
-            progress?.Invoke(100, "Database shrunk.");
+            progress?.Invoke(100, SettingsText.DbShrinkDone);
 
             // Belt and braces on top of Pooling=False: nothing this process opened survives into
             // the app's own connections.
             SqliteConnection.ClearAllPools();
 
             return new ShrinkResult(true, true, before, after,
-                $"Database shrunk from {Format(before)} to {Format(after)} — {Format(before - after)} freed.");
+                string.Format(SettingsText.DbShrinkResult, Format(before), Format(after), Format(before - after)));
         }
         catch (Exception ex)
         {
             SqliteConnection.ClearAllPools();
             var before = SafeLength(dbPath);
             return new ShrinkResult(true, false, before, before,
-                $"Shrink failed — the database was left unchanged. A copy taken beforehand is at " +
-                $"{backup}. ({ex.Message})");
+                string.Format(SettingsText.DbShrinkFailed, backup, ex.Message));
         }
     }
 
@@ -149,7 +148,7 @@ public static class DatabaseShrinkService
                 var result = check.ExecuteScalar()?.ToString();
                 if (!string.Equals(result, "ok", StringComparison.OrdinalIgnoreCase))
                 {
-                    problem = result ?? "no result";
+                    problem = result ?? SettingsText.DbVerifyNoResult;
                     return false;
                 }
             }
@@ -159,7 +158,7 @@ public static class DatabaseShrinkService
             tables.CommandText = "SELECT COUNT(*) FROM sqlite_master WHERE type='table'";
             if (Convert.ToInt64(tables.ExecuteScalar() ?? 0L) == 0)
             {
-                problem = "the rebuilt file contains no tables";
+                problem = SettingsText.DbShrinkVerifyNoTables;
                 return false;
             }
 

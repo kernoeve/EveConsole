@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using EveConsole.ViewModels;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -80,7 +81,7 @@ public partial class StoresView : UserControl
         if (top is null) return;
         var files = await top.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title          = "Choose a banner picture",
+            Title          = SalesText.ChooseBannerTitle,
             AllowMultiple  = false,
             FileTypeFilter = [FilePickerFileTypes.ImageAll],
         });

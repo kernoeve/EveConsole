@@ -6,12 +6,14 @@ using System.Reactive;
 using System.Threading.Tasks;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
+using EveConsole.Models;
 using EveConsole.Services;
 using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
 using SkiaSharp;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -38,16 +40,21 @@ public abstract class IconRowVm : ReactiveObject
 
 public class SovStructureVm(SystemViewService.SovStructureRow r) : IconRowVm
 {
-    public string TypeName { get; } = r.TypeName;
+    public string TypeName { get; } = SdeNames.Type(r.TypeId, r.TypeName);
     public string Owner    { get; } = r.Owner;
     public string Adm      { get; } = r.Adm is { } a ? $"{a:F1}" : "—";
-    public string State    { get; } = r.State;
+    public string State    { get; } = r.State switch
+    {
+        SystemViewService.SovStructureState.Vulnerable   => MapText.SovStateVulnerable,
+        SystemViewService.SovStructureState.Invulnerable => MapText.SovStateInvulnerable,
+        _                                                => MapText.SovStateUnknown,
+    };
     public string Window   { get; } = r.Window;
     public string StateColor { get; } = r.State switch
     {
-        "Vulnerable"   => "#e06a4a",
-        "Invulnerable" => "#5fbf7a",
-        _              => "#8a8a9a",
+        SystemViewService.SovStructureState.Vulnerable   => "#e06a4a",
+        SystemViewService.SovStructureState.Invulnerable => "#5fbf7a",
+        _                                                => "#8a8a9a",
     };
 
     protected override string? IconUrl => $"https://images.evetech.net/types/{r.TypeId}/icon?size=32";
@@ -64,8 +71,8 @@ public class SovStructureVm(SystemViewService.SovStructureRow r) : IconRowVm
 
 public class CelestialVm(SystemViewService.CelestialRow r) : IconRowVm
 {
-    public string Name     { get; } = r.Name;
-    public string TypeName { get; } = r.TypeName;
+    public string Name     { get; } = r.Name;   // English: celestial names are not translated yet
+    public string TypeName { get; } = SdeNames.Type(r.TypeId, r.TypeName);
     public bool   IsPlanet { get; } = r.Kind == 0;
 
     protected override string? IconUrl => $"https://images.evetech.net/types/{r.TypeId}/icon?size=32";
@@ -98,13 +105,17 @@ public class SysStructureVm : IconRowVm
         Id          = r.StructureId;
         IsNpc       = r.IsNpc;
         TypeId      = r.TypeId;
-        Name        = r.Name;
-        TypeName    = r.TypeName;
-        Corporation = r.Corporation;
+        // An NPC station in the interface language; a player structure is its owner's name. The
+        // service's row keeps the English, which it places stations by.
+        Name        = r.IsNpc ? SdeNames.Station(r.StructureId, r.Name) : r.Name;
+        TypeName    = SdeNames.Type(r.TypeId, r.TypeName);
+        // An NPC station's owner is an NPC corporation; a player corporation simply has no
+        // other name, and comes back as it is.
+        Corporation = SdeNames.NpcCorporation(r.CorporationId, r.Corporation);
         Alliance    = r.Alliance;
         Location    = r.Location;
         Owner       = r.Owner;
-        Kind        = r.IsNpc ? "NPC" : "Player";
+        Kind        = r.IsNpc ? MapText.StructureKindNpc : MapText.StructureKindPlayer;
         KindColor   = r.IsNpc ? "#6a7f99" : "#c8a84b";
 
         // An id without a name is a link to a blank page, and a name without an id is a link that
@@ -143,11 +154,14 @@ public class SysStructureVm : IconRowVm
 /// <summary>One line of the celestial tree, indented by depth.</summary>
 public class CelestialNodeVm(SystemViewService.CelestialNode n) : IconRowVm
 {
-    public string    Name      { get; } = n.Name;
-    public string    TypeName  { get; } = n.TypeName;
+    // An NPC station docked at a celestial in the interface language — the service's node keeps the
+    // English, which it places stations by. Planets, moons, belts and gates are not translated yet,
+    // and structures are player-named. Their types are.
+    public string    Name      { get; } = n.IsNpc ? SdeNames.Station(n.LocationId, n.Name) : n.Name;
+    public string    TypeName  { get; } = SdeNames.Type(n.TypeId, n.TypeName);
     public string    Kind      { get; } = n.Kind;
     public string    Owner     { get; } = n.Owner;
-    public string    Corporation { get; } = n.Corporation;
+    public string    Corporation { get; } = SdeNames.NpcCorporation(n.CorporationId, n.Corporation);
     public string    Alliance    { get; } = n.Alliance;
 
     // Only the docked rows carry an owner or a viewer of their own; a planet is a place.
@@ -177,9 +191,14 @@ public class CelestialNodeVm(SystemViewService.CelestialNode n) : IconRowVm
     public string    Power     { get; } = n.Power > 0 ? n.Power.ToString("N0") : "";
     public string    Workforce { get; } = n.Workforce > 0 ? n.Workforce.ToString("N0") : "";
     /// <summary>Reagent yield per hour, named by planet type — Lava gives Magmatic Gas, Ice
-    /// gives Sublimated Ice. Blank on every other planet, which carries none.</summary>
-    public string    Reagent   { get; } = n.ReagentPerHour > 0 ? $"{n.ReagentPerHour:N0}/h {n.Reagent}" : "";
-    public string    ReagentColor { get; } = n.Reagent == "Sublimated Ice" ? "#7fc8e8" : "#e08a4a";
+    /// gives Superionic Ice. Blank on every other planet, which carries none.</summary>
+    public string    Reagent   { get; } = n.ReagentPerHour <= 0 ? "" : n.Reagent switch
+    {
+        SystemViewService.PlanetReagent.MagmaticGas   => string.Format(MapText.ReagentMagmaticGasPerHour, n.ReagentPerHour),
+        SystemViewService.PlanetReagent.SuperionicIce => string.Format(MapText.ReagentSuperionicIcePerHour, n.ReagentPerHour),
+        _                                             => "",
+    };
+    public string    ReagentColor { get; } = n.Reagent == SystemViewService.PlanetReagent.SuperionicIce ? "#7fc8e8" : "#e08a4a";
     public Avalonia.Thickness Indent { get; } = new(n.Depth * 22, 0, 0, 0);
     public bool      IsHeading { get; } = n.Kind is "Star" or "Planet" or "Stargate";
 
@@ -212,13 +231,13 @@ public class AgentVm
 
     public AgentVm(SystemViewService.AgentRow a)
     {
-        Location    = a.Location;
-        Name        = a.Name;
-        Corporation = a.Corporation;
-        Division    = a.Division;
+        Location    = SdeNames.Station(a.StationId, a.Location);
+        Name        = SdeNames.Agent(a.AgentId, a.Name);
+        Corporation = SdeNames.NpcCorporation(a.CorporationId, a.Corporation);
+        Division    = SdeNames.Get(SdeNameKind.NpcCorporationDivision, a.DivisionId, a.Division);
         AgentType   = a.AgentType;
         Level       = a.Level.ToString();
-        Locator     = a.IsLocator ? "Locator" : "";
+        Locator     = a.IsLocator ? MapText.AgentLocator : "";
 
         HasCorporation = a.CorporationId > 0 && a.Corporation.Length > 0;
         HasStation     = a.StationId     > 0 && a.Location.Length    > 0;
@@ -240,15 +259,18 @@ public class AgentVm
 public class SystemEventVm(SystemViewService.SystemEvent e) : IconRowVm
 {
     public string When    { get; } = e.When.UtcDateTime.ToString("yyyy-MM-dd HH:mm");
-    public string Kind    { get; } = e.Kind;
+    public string Kind    { get; } = e.Kind switch
+    {
+        SystemViewService.SystemEventKind.SovereigntyGained => MapText.SovEventGained,
+        SystemViewService.SystemEventKind.SovereigntyLost   => MapText.SovEventLost,
+        _                                                   => e.Kind.ToString(),
+    };
     public string Summary { get; } = e.Summary;
     public string KindColor { get; } = e.Kind switch
     {
-        "Sovereignty gained" => "#5fbf7a",
-        "Sovereignty lost"   => "#e0574a",
-        "ADM increased"      => "#7fb8d8",
-        "ADM decreased"      => "#e0913c",
-        _                    => "#8a8a9a",
+        SystemViewService.SystemEventKind.SovereigntyGained => "#5fbf7a",
+        SystemViewService.SystemEventKind.SovereigntyLost   => "#e0574a",
+        _                                                   => "#8a8a9a",
     };
 
     protected override string? IconUrl =>
@@ -284,13 +306,15 @@ public class IntelFaceVm : ReactiveObject
         _charId = charId; _corpId = corpId; _allianceId = allianceId;
         ShipTypeId = shipTypeId;
         Name    = name;
-        Ship    = ship ?? "";
+        // The hull as the interface names it, once the parser has recognised it; the raw line is
+        // still on the row's tooltip.
+        Ship    = ship is null ? "" : shipTypeId > 0 ? SdeNames.Type(shipTypeId, ship) : ship;
         HasShip = !string.IsNullOrEmpty(ship);
 
         // Fall back to the id when the name cache has not caught up: "Corporation 98000000" is
         // still something you can look up, where a blank tooltip is not.
-        CorporationName = corpName.Length > 0 ? corpName : corpId     > 0 ? $"Corporation {corpId}"     : "";
-        AllianceName    = allianceName.Length > 0 ? allianceName : allianceId > 0 ? $"Alliance {allianceId}" : "";
+        CorporationName = corpName.Length > 0 ? corpName : corpId     > 0 ? string.Format(MapText.CorporationNumbered, corpId)     : "";
+        AllianceName    = allianceName.Length > 0 ? allianceName : allianceId > 0 ? string.Format(MapText.AllianceNumbered, allianceId) : "";
 
         HasCorporation = corpId     > 0;
         HasAlliance    = allianceId > 0;
@@ -359,10 +383,10 @@ public class IntelRowVm(SystemViewService.IntelRow r)
     public string Message  { get; } = r.Message;
 
     /// <summary>"No visual": someone is there but the reporter could not see them.</summary>
-    public string NoVisual   { get; } = r.NoVisual ? "NV" : "";
+    public string NoVisual   { get; } = r.NoVisual ? MapText.IntelNoVisual : "";
 
     public bool   IsStanding { get; } = !r.Obsolete;
-    public string Status     { get; } = r.Obsolete ? "superseded" : "standing";
+    public string Status     { get; } = r.Obsolete ? MapText.IntelSuperseded : MapText.IntelStanding;
 
     /// <summary>
     /// Whether standing-versus-superseded is worth drawing attention to.
@@ -389,8 +413,8 @@ public class IntelRowVm(SystemViewService.IntelRow r)
 public class GateVm(SystemViewService.GateRow r)
 {
     public int    SystemId    { get; } = r.SystemId;
-    public string Name        { get; } = r.Name;
-    public string RegionName  { get; } = r.RegionName;
+    public string Name        { get; } = SdeNames.SolarSystem(r.SystemId, r.Name);
+    public string RegionName  { get; } = SdeNames.Region(r.RegionId, r.RegionName);
     public bool   OutOfRegion { get; } = r.OutOfRegion;
     /// <summary>The rounded band — the number that decides high / low / null.</summary>
     public string Security      { get; } = EveConsole.Services.SecurityColors.Text(r.Security);
@@ -503,8 +527,9 @@ public class SystemPageViewModel : ReactiveObject
     public bool HasPirateLink        => _pirateFactionId > 0 && LocalPirates.Length  > 0;
 
     public void OpenRegion() => EntityNavigator.Instance.Region(_regionId);
-    /// <summary>⚠️ By name — the map graph is keyed on constellation name, not id.</summary>
-    public void OpenConstellation() => EntityNavigator.Instance.Constellation(Constellation);
+    /// <summary>⚠️ By name — the map graph is keyed on constellation name, not id — and by the
+    /// English one: <see cref="Constellation"/> is what the page shows.</summary>
+    public void OpenConstellation() => EntityNavigator.Instance.Constellation(_header?.Constellation ?? "");
     public void OpenPirates() => EntityNavigator.Instance.Entity(EntityKind.Faction, _pirateFactionId);
 
     private string _holder = "";
@@ -678,10 +703,7 @@ public class SystemPageViewModel : ReactiveObject
     private bool _hasIntel;
     public bool HasIntel { get => _hasIntel; private set => this.RaiseAndSetIfChanged(ref _hasIntel, value); }
 
-    public string IntelNote =>
-        "No intel recorded for this system. Reports are parsed from the channels ticked as " +
-        "Intel under Settings → Chat Logs; use \"Parse Stored History\" there to read the " +
-        "messages already on disk.";
+    public string IntelNote => MapText.NoIntelNote;
 
     private string _killsNote = "";
     public string KillsNote { get => _killsNote; private set => this.RaiseAndSetIfChanged(ref _killsNote, value); }
@@ -710,6 +732,9 @@ public class SystemPageViewModel : ReactiveObject
     {
         var generation = ++_loadGeneration;
 
+        // The rows below take their names once, as they are built.
+        await SdeNames.EnsureLoadedAsync();
+
         var header    = await _svc.GetHeaderAsync(systemId);
         if (header is null) return;
 
@@ -727,21 +752,25 @@ public class SystemPageViewModel : ReactiveObject
         var intel      = await _svc.GetIntelAsync(systemId);
 
         // The kill list is the same query and the same row type the Kills tool uses, so the
-        // formatting and icons match the rest of the app rather than being reinvented here.
-        var killPage = await _kills.GetListAsync(0, 50, systemFilter: header.Name);
+        // formatting and icons match the rest of the app rather than being reinvented here. By
+        // the system's id: the tool's text filter would also bring in every system and region
+        // whose name contains this one.
+        var killPage = await _kills.GetListAsync(0, 50, solarSystemId: header.SystemId);
 
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
+            // The header keeps the English (the constellation link finds its constellation by
+            // it); these are what the page shows.
             _header = header;
-            Name          = header.Name;
-            Region        = header.Region;
-            Constellation = header.Constellation;
+            Name          = SdeNames.SolarSystem(header.SystemId, header.Name);
+            Region        = SdeNames.Region(header.RegionId, header.Region);
+            Constellation = SdeNames.Constellation(header.ConstellationId, header.Constellation);
             Security      = EveConsole.Services.SecurityColors.Text(header.Security);
             SecurityTrue  = EveConsole.Services.SecurityColors.TrueText(header.Security);
             SecurityColor = EveConsole.Services.SecurityColors.Hex(header.Security);
             SecurityTip   = EveConsole.Services.SecurityColors.Tip(header.Security);
             SecurityClass = header.SecurityClass;
-            LocalPirates  = header.LocalPirates;
+            LocalPirates  = SdeNames.Faction(header.LocalPirateFactionId, header.LocalPirates);
 
             _regionId        = header.RegionId;
             _constellationId = header.ConstellationId;
@@ -768,14 +797,14 @@ public class SystemPageViewModel : ReactiveObject
                 header.Industry.Select(i => $"{i.ShortName} {i.Index * 100:F2}%"));
 
             var bits = new List<string>();
-            if (header.Power > 0)                bits.Add($"{header.Power:N0} power");
-            if (header.Workforce > 0)            bits.Add($"{header.Workforce:N0} workforce");
-            if (header.MagmaticGasPerHour > 0)   bits.Add($"{header.MagmaticGasPerHour:N0}/h magmatic gas");
-            if (header.SublimatedIcePerHour > 0) bits.Add($"{header.SublimatedIcePerHour:N0}/h sublimated ice");
+            if (header.Power > 0)                bits.Add(string.Format(MapText.ProductionPower, header.Power));
+            if (header.Workforce > 0)            bits.Add(string.Format(MapText.ProductionWorkforce, header.Workforce));
+            if (header.MagmaticGasPerHour > 0)   bits.Add(string.Format(MapText.ProductionMagmaticGas, header.MagmaticGasPerHour));
+            if (header.SuperionicIcePerHour > 0) bits.Add(string.Format(MapText.ProductionSuperionicIce, header.SuperionicIcePerHour));
             Production    = string.Join("  ·  ", bits);
             HasProduction = bits.Count > 0;
             Holder = string.IsNullOrEmpty(header.AllianceName)
-                ? (string.IsNullOrEmpty(header.CorporationName) ? "Unclaimed" : header.CorporationName)
+                ? (string.IsNullOrEmpty(header.CorporationName) ? MapText.SovUnclaimed : header.CorporationName)
                 : string.IsNullOrEmpty(header.CorporationName)
                     ? header.AllianceName
                     : $"{header.AllianceName}  ·  {header.CorporationName}";
@@ -798,7 +827,8 @@ public class SystemPageViewModel : ReactiveObject
 
             Fill(SovStructures, sovStructs.Select(s => new SovStructureVm(s)));
             Fill(Events,     events.Select(e => new SystemEventVm(e)));
-            Fill(SovChanges, events.Where(e => e.Kind.StartsWith("Sovereignty"))
+            Fill(SovChanges, events.Where(e => e.Kind is SystemViewService.SystemEventKind.SovereigntyGained
+                                                     or SystemViewService.SystemEventKind.SovereigntyLost)
                                    .Select(e => new SystemEventVm(e)));
             Fill(Celestials, tree.Select(n => new CelestialNodeVm(n)));
             BuildGraphs(history);
@@ -807,32 +837,38 @@ public class SystemPageViewModel : ReactiveObject
             BuildIndexGraph(indexHist);
             Fill(Structures, structures.Select(s => new SysStructureVm(s)));
             Fill(PlayerStructures, structures.Where(s => !s.IsNpc).Select(s => new SysStructureVm(s)));
-            Fill(NpcStations,      structures.Where(s =>  s.IsNpc).Select(s => new SysStructureVm(s)));
+            // In the order of the names shown; the service sorts by the English.
+            Fill(NpcStations,      structures.Where(s =>  s.IsNpc).Select(s => new SysStructureVm(s))
+                                             .OrderBy(s => s.Name, StringComparer.CurrentCulture));
             this.RaisePropertyChanged(nameof(HasPlayerStructures));
             this.RaisePropertyChanged(nameof(HasNpcStations));
             Fill(Kills, killPage.Rows.Select(r => new KillmailListRowVm(r)));
-            Fill(Gates, gates.Select(g => new GateVm(g)));
-            Fill(Agents, agents.Select(a => new AgentVm(a)));
+            // In the order of the names shown; the service sorts by the English.
+            Fill(Gates, gates.Select(g => new GateVm(g)).OrderBy(g => g.Name, StringComparer.CurrentCulture));
+            Fill(Agents, agents
+                .OrderBy(a => SdeNames.Station(a.StationId, a.Location), StringComparer.CurrentCulture)
+                .ThenBy(a => a.Level)
+                .ThenBy(a => SdeNames.Agent(a.AgentId, a.Name), StringComparer.CurrentCulture)
+                .Select(a => new AgentVm(a)));
             Fill(Intel, intel.Select(i => new IntelRowVm(i)));
             HasIntel = intel.Count > 0;
             IntelSummary = intel.Count == 0
                 ? ""
-                : $"{intel.Count:N0} report(s), {intel.Count(i => !i.Obsolete):N0} still standing. " +
-                  "Superseded reports are shown dimmed.";
+                : string.Format(MapText.IntelSummary, intel.Count, intel.Count(i => !i.Obsolete));
             AgentNote = agents.Count == 0
-                ? "No agents in this system."
-                : $"{agents.Count} agents across {agents.Select(a => a.Location).Distinct().Count()} stations.";
+                ? MapText.AgentsNone
+                : string.Format(MapText.AgentsSummary, agents.Count, agents.Select(a => a.Location).Distinct().Count());
 
             // Stated plainly: the history only reaches back as far as the snapshots, and
             // without saying so an empty list reads as "nothing ever happened here".
             HistoryNote = since is null
-                ? "No sovereignty history stored yet."
-                : $"Derived from stored snapshots since {since:yyyy-MM-dd}. Earlier changes were " +
-                  "before this app began recording and cannot be recovered.";
+                ? MapText.SovHistoryNone
+                : string.Format(MapText.SovHistoryNote, since);
 
             KillsNote = killPage.Rows.Count == 0
-                ? "No killmails stored for this system."
-                : $"{killPage.Rows.Count} most recent" + (killPage.HasMore ? " (more exist)" : "");
+                ? MapText.KillsNone
+                : string.Format(killPage.HasMore ? MapText.KillsMostRecentMore : MapText.KillsMostRecent,
+                                killPage.Rows.Count);
         });
 
         // Deliberately not awaited. The caller reveals the page as soon as this method returns,
@@ -917,13 +953,12 @@ public class SystemPageViewModel : ReactiveObject
         if (hourly.Count == 0)
         {
             HourJumpSeries = HourNpcSeries = HourShipSeries = HourPodSeries = [];
-            HourNote = "No hourly history stored yet.";
+            HourNote = MapText.HourlyNone;
             return;
         }
 
         var span = (hourly[^1].Hour - hourly[0].Hour).TotalHours + 1;
-        HourNote = $"Last {span:F0} hours, hour by hour. " +
-                   "Raise \"keep hourly detail\" in Settings for a longer span.";
+        HourNote = string.Format(MapText.HourlyNote, span);
 
         static ISeries[] Spark(IEnumerable<int> values, string hex) =>
         [
@@ -973,12 +1008,11 @@ public class SystemPageViewModel : ReactiveObject
         if (history.Count == 0)
         {
             JumpSeries = ShipKillSeries = PodKillSeries = NpcKillSeries = [];
-            GraphNote  = "No activity history stored for this system yet.";
+            GraphNote  = MapText.GraphNone;
             return;
         }
 
-        GraphNote = $"Daily totals, {history[0].Day:yyyy-MM-dd} to {history[^1].Day:yyyy-MM-dd}. " +
-                    "Each point is a full UTC day; the last may be partial.";
+        GraphNote = string.Format(MapText.GraphNote, history[0].Day, history[^1].Day);
 
         static ISeries[] Line(string name, IEnumerable<int> values, string hex) =>
         [
@@ -993,10 +1027,10 @@ public class SystemPageViewModel : ReactiveObject
             },
         ];
 
-        JumpSeries     = Line("Jumps",      history.Select(h => h.Jumps),     "#6FC8F0");
-        ShipKillSeries = Line("Ship kills", history.Select(h => h.ShipKills), "#FF6A3D");
-        PodKillSeries  = Line("Pod kills",  history.Select(h => h.PodKills),  "#F0D040");
-        NpcKillSeries  = Line("NPC kills",  history.Select(h => h.NpcKills),  "#7FD070");
+        JumpSeries     = Line(MapText.SeriesJumps, history.Select(h => h.Jumps),     "#6FC8F0");
+        ShipKillSeries = Line(MapText.ShipKills,   history.Select(h => h.ShipKills), "#FF6A3D");
+        PodKillSeries  = Line(MapText.PodKills,    history.Select(h => h.PodKills),  "#F0D040");
+        NpcKillSeries  = Line(MapText.NpcKills,    history.Select(h => h.NpcKills),  "#7FD070");
 
         var labels = history.Select(h => h.Day.ToString("MM-dd")).ToArray();
         HistoryXAxes =
@@ -1034,17 +1068,17 @@ public class SystemPageViewModel : ReactiveObject
         if (!HasAdmGraph)
         {
             AdmSeries = [];
-            AdmNote   = "No ADM history: this system holds no sovereignty structure.";
+            AdmNote   = MapText.AdmNone;
             return;
         }
 
-        AdmNote = $"Daily peak ADM, {points[0].Day:yyyy-MM-dd} to {points[^1].Day:yyyy-MM-dd}.";
+        AdmNote = string.Format(MapText.AdmNote, points[0].Day, points[^1].Day);
 
         AdmSeries =
         [
             new LineSeries<double>
             {
-                Name           = "ADM",
+                Name           = MapText.SeriesAdm,
                 Values         = points.Select(p => p.Adm).ToArray(),
                 GeometrySize   = 0,
                 LineSmoothness = 0.3,
@@ -1080,10 +1114,16 @@ public class SystemPageViewModel : ReactiveObject
         ["reaction"]                = "#E06A9A",
     };
 
+    /// <summary>An activity as the chart legend names it; ESI's own word, capitalised, for one not
+    /// listed.</summary>
     private static string PrettyActivity(string a) => a switch
     {
-        "researching_time_efficiency"     => "Time efficiency",
-        "researching_material_efficiency" => "Material efficiency",
+        "manufacturing"                   => MapText.ActivityManufacturing,
+        "researching_time_efficiency"     => MapText.ActivityTimeEfficiency,
+        "researching_material_efficiency" => MapText.ActivityMaterialEfficiency,
+        "copying"                         => MapText.ActivityCopying,
+        "invention"                       => MapText.ActivityInvention,
+        "reaction"                        => MapText.ActivityReaction,
         _ => char.ToUpperInvariant(a[0]) + a[1..].Replace('_', ' '),
     };
 
@@ -1098,7 +1138,7 @@ public class SystemPageViewModel : ReactiveObject
         if (!HasIndexGraph)
         {
             IndexSeries = [];
-            IndexNote   = "No industry cost index history stored for this system yet.";
+            IndexNote   = MapText.IndexNone;
             return;
         }
 
@@ -1107,8 +1147,7 @@ public class SystemPageViewModel : ReactiveObject
         // shifted left against the others.
         var days = series.SelectMany(s => s.Points.Select(p => p.Day)).Distinct().OrderBy(d => d).ToList();
 
-        IndexNote = $"Daily cost index, {days[0]:yyyy-MM-dd} to {days[^1]:yyyy-MM-dd}. " +
-                    "Shown as a percentage, as the industry window does.";
+        IndexNote = string.Format(MapText.IndexNote, days[0], days[^1]);
 
         IndexSeries = series.Select(s =>
         {

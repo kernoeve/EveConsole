@@ -4,14 +4,24 @@ using EveConsole.Services;
 using Microsoft.Data.Sqlite;
 using ReactiveUI;
 using EveConsole.Data;
+using EveConsole.Localization;
+using EveConsole.Models;
 
 namespace EveConsole.ViewModels;
 
-public record StationOption(long LocationId, string Name);
+/// <summary>A place with market orders. <see cref="Name"/> is English: the sale-posting dialogs
+/// store it.</summary>
+public record StationOption(long LocationId, string Name)
+{
+    /// <summary>What a picker shows: an NPC station in the interface language, a structure as named.</summary>
+    public string DisplayName => SdeNames.Location(LocationId, Name);
+}
 
 public enum TradeMode { SellToBuyOrder, UndercutSellOrder }
 public record TradeModeOption(string Label, TradeMode Kind);
 
+/// <summary>A market group left out of the search. <paramref name="Name"/> is the name shown, in the
+/// interface language; the list is saved and matched by id.</summary>
 public record ExcludedMarketGroupVm(int MarketGroupId, string Name);
 
 public class TradeRow
@@ -60,8 +70,8 @@ public class TradeOpportunitiesViewModel : ReactiveObject
     // ── Mode ──────────────────────────────────────────────────────────────────
 
     public List<TradeModeOption> ModeOptions { get; } = [
-        new("Buy Sell → Sell to Buy Order",   TradeMode.SellToBuyOrder),
-        new("Buy Sell → Undercut Sell Order",  TradeMode.UndercutSellOrder),
+        new(MarketText.ModeSellToBuyOrder,    TradeMode.SellToBuyOrder),
+        new(MarketText.ModeUndercutSellOrder, TradeMode.UndercutSellOrder),
     ];
 
     private TradeModeOption _selectedMode;
@@ -74,6 +84,11 @@ public class TradeOpportunitiesViewModel : ReactiveObject
     // ── Station dropdowns ─────────────────────────────────────────────────────
 
     public ObservableCollection<StationOption> Stations { get; } = [];
+
+    /// <summary>What the two station boxes find as they are typed in: a station by the name they
+    /// show, or by its English — which is what gets pasted from other sites.</summary>
+    public Avalonia.Controls.AutoCompleteFilterPredicate<object?> StationFilter { get; } = (text, item) =>
+        item is StationOption s && SdeNames.Matches(SdeNameKind.Station, s.LocationId, s.Name, text ?? "");
 
     private StationOption? _sourceStation;
     public StationOption? SourceStation
@@ -137,7 +152,8 @@ public class TradeOpportunitiesViewModel : ReactiveObject
         if (pick is null) return;
         if (ExcludedMarketGroups.Any(g => g.MarketGroupId == pick.MarketGroupId)) return;
 
-        ExcludedMarketGroups.Add(new ExcludedMarketGroupVm(pick.MarketGroupId, pick.GroupName));
+        ExcludedMarketGroups.Add(new ExcludedMarketGroupVm(pick.MarketGroupId,
+            SdeNames.MarketGroup(pick.MarketGroupId, pick.GroupName)));
         await SaveExcludedGroupsAsync();
     }
 
@@ -149,6 +165,9 @@ public class TradeOpportunitiesViewModel : ReactiveObject
 
     private async Task LoadExcludedGroupsAsync()
     {
+        // The names are shown once and kept, so they wait for the interface language's first.
+        await SdeNames.EnsureLoadedAsync();
+
         using var conn = AppDb.Connect();
         await conn.OpenAsync();
         using var cmd = conn.Command("""SELECT "ExcludedMarketGroupIds" FROM "TradeOpportunitiesSettings" WHERE "Id" = 1""");
@@ -170,7 +189,7 @@ public class TradeOpportunitiesViewModel : ReactiveObject
         ExcludedMarketGroups.Clear();
         foreach (var id in ids)
             if (names.TryGetValue(id, out var name))
-                ExcludedMarketGroups.Add(new ExcludedMarketGroupVm(id, name));
+                ExcludedMarketGroups.Add(new ExcludedMarketGroupVm(id, SdeNames.MarketGroup(id, name)));
     }
 
     private async Task SaveExcludedGroupsAsync()
@@ -202,7 +221,8 @@ public class TradeOpportunitiesViewModel : ReactiveObject
 
     public ObservableCollection<TradeRow> Results { get; } = [];
 
-    private string _statusText = "Select source and destination stations, then click Calculate.";
+    // The button is named through its own entry, so the hint cannot drift from its label.
+    private string _statusText = string.Format(MarketText.StatusSelectStations, MarketText.Calculate);
     public string StatusText
     {
         get => _statusText;
@@ -250,19 +270,26 @@ public class TradeOpportunitiesViewModel : ReactiveObject
 
     private async Task LoadStationsAsync()
     {
+        // Sorted by the names shown, so they are waited for first (at once in English).
+        await SdeNames.EnsureLoadedAsync();
+
         using var conn = AppDb.Connect();
         await conn.OpenAsync();
 
         using var cmd = conn.Command(StationsSql);
 
-        Stations.Clear();
+        // A location with no name is named here, not in the SQL, so the words can be translated;
+        // and sorted here, so it sorts by the words shown.
+        var found = new List<StationOption>();
         using var reader = await cmd.ExecuteReaderAsync();
         while (await reader.ReadAsync())
         {
-            Stations.Add(new StationOption(
-                reader.GetInt64(0),
-                reader.GetString(1)));
+            var id = reader.GetInt64(0);
+            found.Add(new StationOption(id,
+                reader.IsDBNull(1) ? string.Format(MarketText.StationUnknown, id) : reader.GetString(1)));
         }
+        Stations.Clear();
+        foreach (var s in found.OrderBy(s => s.DisplayName, StringComparer.CurrentCultureIgnoreCase)) Stations.Add(s);
     }
 
     // ── Calculate ─────────────────────────────────────────────────────────────
@@ -271,17 +298,17 @@ public class TradeOpportunitiesViewModel : ReactiveObject
     {
         if (SourceStation is null || DestinationStation is null)
         {
-            StatusText = "Please select both a source and destination station.";
+            StatusText = MarketText.ErrSelectBothStations;
             return;
         }
         if (SourceStation.LocationId == DestinationStation.LocationId)
         {
-            StatusText = "Source and destination must be different stations.";
+            StatusText = MarketText.ErrSameStation;
             return;
         }
         if (!double.TryParse(CargoM3, out var cargoM3) || cargoM3 <= 0)
         {
-            StatusText = "Please enter a valid cargo size in m³.";
+            StatusText = MarketText.ErrInvalidCargo;
             return;
         }
 
@@ -290,7 +317,7 @@ public class TradeOpportunitiesViewModel : ReactiveObject
         {
             if (!double.TryParse(IskCap, out var cap) || cap <= 0)
             {
-                StatusText = "Please enter a valid ISK cap (or leave blank for no limit).";
+                StatusText = MarketText.ErrInvalidIskCap;
                 return;
             }
             iskCap = cap;
@@ -301,7 +328,7 @@ public class TradeOpportunitiesViewModel : ReactiveObject
         {
             if (!double.TryParse(MinIskVolume, out var mv) || mv < 0)
             {
-                StatusText = "Please enter a valid minimum ISK volume (or leave blank for no filter).";
+                StatusText = MarketText.ErrInvalidMinIskVolume;
                 return;
             }
             minIskVol = mv;
@@ -312,7 +339,7 @@ public class TradeOpportunitiesViewModel : ReactiveObject
         {
             if (!double.TryParse(MinUnitVolume, out var uv) || uv < 0)
             {
-                StatusText = "Please enter a valid minimum unit volume (or leave blank for no filter).";
+                StatusText = MarketText.ErrInvalidMinUnitVolume;
                 return;
             }
             minUnitVol = uv;
@@ -321,7 +348,7 @@ public class TradeOpportunitiesViewModel : ReactiveObject
         Results.Clear();
         HasSummary = false;
         SummaryVolume = SummaryCost = SummaryProfit = "";
-        StatusText = "Calculating…";
+        StatusText = MarketText.StatusCalculating;
         IsCalculating = true;
 
         try
@@ -336,11 +363,11 @@ public class TradeOpportunitiesViewModel : ReactiveObject
 
             if (needsVolume && !destRegionId.HasValue)
             {
-                StatusText = "Could not resolve the destination station's region — " +
-                             "ensure market data has been loaded for that location so the volume filter can work.";
+                StatusText = MarketText.ErrNoDestinationRegion;
                 return;
             }
 
+            await SdeNames.EnsureLoadedAsync();   // the rows carry the names shown
             var list = await BuildShoppingListAsync(candidates, cargoM3, iskCap, destRegionId, minIskVol, minUnitVol);
             // Default display order — highest total profit first. Column headers allow re-sorting.
             foreach (var r in list.OrderByDescending(r => r.TotalProfit)) Results.Add(r);
@@ -355,16 +382,17 @@ public class TradeOpportunitiesViewModel : ReactiveObject
                 SummaryCost    = FormatIsk(totalCost);
                 SummaryProfit  = FormatIsk(totalProfit);
                 HasSummary     = true;
-                StatusText     = $"{list.Count} item type{(list.Count == 1 ? "" : "s")}  ·  {totalVol:N1} m³ loaded";
+                StatusText     = Plurals.Format(MarketText.ResourceManager,
+                                     nameof(MarketText.StatusItemTypesLoadedOther), list.Count, totalVol);
             }
             else
             {
-                StatusText = "No profitable opportunities found for this route.";
+                StatusText = MarketText.StatusNoOpportunities;
             }
         }
         catch (Exception ex)
         {
-            StatusText = $"Error: {ex.Message}";
+            StatusText = string.Format(CommonText.ErrorWithMessage, ex.Message);
         }
         finally
         {
@@ -453,7 +481,7 @@ public class TradeOpportunitiesViewModel : ReactiveObject
             result.Add(new TradeRow
             {
                 TypeId        = c.TypeId,
-                TypeName      = c.TypeName,
+                TypeName      = SdeNames.Type(c.TypeId, c.TypeName),   // shown only; the row goes by TypeId
                 BestSell      = c.BestSell,
                 DestPrice     = c.DestPrice,
                 ProfitPerUnit = c.ProfitPerUnit,
@@ -545,13 +573,12 @@ public class TradeOpportunitiesViewModel : ReactiveObject
 
     private const string StationsSql = """
         SELECT o."LocationId",
-               COALESCE(s."Name", sn."Name", 'Unknown (' || o."LocationId" || ')') AS "StationName"
+               COALESCE(s."Name", sn."Name") AS "StationName"
         FROM (
             SELECT DISTINCT "LocationId" FROM "MarketRawOrders"
         ) o
         LEFT JOIN "SdeStations"       s  ON s."StationId"   = CAST(o."LocationId" AS BIGINT)
         LEFT JOIN "EsiStructureNames" sn ON sn."StructureId" = o."LocationId"
-        ORDER BY "StationName"
         """;
 
     // ⚠️ A property, not a const: it interpolates the engine-correct scalar-min function.

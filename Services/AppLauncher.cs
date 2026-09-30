@@ -94,6 +94,43 @@ public static class AppLauncher
     }
 
     /// <summary>
+    /// Replaces this client with a fresh copy of itself, started the way this one was, and ends
+    /// this one. Returns what went wrong, having carried on running, or does not return at all.
+    ///
+    /// <para>⚠️ With this run's own arguments, <c>--profile</c> above all. A restart that passed only
+    /// <c>--restarting</c> brought a profile's client back on the ordinary data folder — the one a
+    /// profile exists to leave alone — which is what "Save and Restart" did until it came here.</para>
+    /// </summary>
+    public static string? Restart()
+    {
+        if (RelaunchPath is null) return "Could not determine this application's path.";
+
+        // ⚠️ Hand the single-instance lock over BEFORE spawning the replacement. This process is
+        // still alive for a moment after Process.Start, so without the release the new instance
+        // sees the lock held, focuses this window and exits — and then this one exits too, leaving
+        // nothing running. The argument makes the newcomer wait for the handover rather than treat
+        // it as a rival.
+        SingleInstance.Release();
+
+        var args = Environment.GetCommandLineArgs().Skip(1)
+            .Where(a => !string.Equals(a, SingleInstance.RestartingArgument, StringComparison.OrdinalIgnoreCase))
+            .Prepend(SingleInstance.RestartingArgument)
+            .ToArray();
+
+        if (Start(args) is { } error)
+        {
+            // Nothing was started, so this client goes on — and takes its lock back.
+            SingleInstance.TryAcquire(Environment.GetCommandLineArgs());
+            return error;
+        }
+
+        // ⚠️ Not Environment.Exit: on Linux that ran libc's atexit handlers from the UI thread and
+        // did not come back, leaving a client that ignored SIGTERM too. See ExitNow.
+        ExitNow();
+        return null;
+    }
+
+    /// <summary>
     /// Where <c>setsid</c> lives, or null if this system has not got it.
     ///
     /// <para>Probed by path rather than by running <c>which</c>: it is part of util-linux and sits

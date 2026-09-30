@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -28,7 +30,7 @@ public static class StandingProjectReport
     /// which is which. A report is all one type and says so in its title, so it uses Describe.</para>
     /// </summary>
     public static string Summary(StandingProjectGridRow row) =>
-        row.TypeDisplay + ": " + Describe(row);
+        string.Format(CorpText.StandingProjectSummary, row.TypeDisplay, Describe(row));
 
     /// <summary>
     /// The row without the type prefix.
@@ -51,12 +53,12 @@ public static class StandingProjectReport
     /// </summary>
     public static string Status(StandingProjectGridRow row) => row.MatchStatus switch
     {
-        "matched"     => "Active",
-        "all_healthy" => "All Healthy",
-        "not_active"  => "No Project",
-        "no_systems"  => "No Systems In Scope",
-        "no_office"   => "No Office",
-        "no_adm"      => "ADM Unavailable",
+        "matched"     => CorpText.ReportStatusActive,
+        "all_healthy" => CorpText.ReportStatusAllHealthy,
+        "not_active"  => CorpText.ReportStatusNoProject,
+        "no_systems"  => CorpText.ReportStatusNoSystems,
+        "no_office"   => CorpText.ReportStatusNoOffice,
+        "no_adm"      => CorpText.ReportStatusAdmUnavailable,
         _             => row.MatchStatus,
     };
 
@@ -101,10 +103,10 @@ public static class StandingProjectReport
 
         if (byPlace)
         {
-            cols.Add(("Region", r => r.RegionName, false));
+            cols.Add((CorpText.ColRegion, r => r.RegionName, false));
             // A named system that never expanded still has a name on the row; fall back to it
             // rather than printing a blank where the place should be.
-            cols.Add(("System", r => r.SystemName.Length > 0 ? r.SystemName : Describe(r), false));
+            cols.Add((CorpText.ColSystem, r => r.SystemName.Length > 0 ? r.SystemName : Describe(r), false));
             // WARN One decimal. ADM moves in tenths and never carries a second: 268,305
             // stored readings hold nothing but clean tenths from 1.0 to 6.0, and the game
             // and dotlan both show it that way. F2 was printing a digit that is always zero.
@@ -113,19 +115,19 @@ public static class StandingProjectReport
         else
         {
             // No "Deliver Item:" prefix — the whole table is one type and the title says which.
-            cols.Add(("Project", Describe, false));
+            cols.Add((CorpText.ReportColProject, Describe, false));
         }
 
-        cols.Add(("Status",    Status, false));
+        cols.Add((CorpText.ReportColStatus,    Status, false));
 
         // Remaining is the count still to do; ISK Left is what that count is worth at the
         // project's reward per contribution. One answers "how much work", the other "how much is
         // in it", and neither implies the other.
-        cols.Add(("Remaining", r => r.RemainingText, true));
-        if (showIskLeft) cols.Add(("ISK Left", r => r.RemainingPayoutText, true));
+        cols.Add((CorpText.ReportColRemaining, r => r.RemainingText, true));
+        if (showIskLeft) cols.Add((CorpText.ReportColIskLeft, r => r.RemainingPayoutText, true));
 
         cols.Add(("%", r => r.RemainingPercentText, true));
-        if (showLastCompleted) cols.Add(("Last Completed", LastDone, false));
+        if (showLastCompleted) cols.Add((CorpText.ReportColLastCompleted, LastDone, false));
 
         var headers = cols.Select(c => c.Header).ToArray();
         var aligns  = cols.Select(c => c.Right).ToArray();
@@ -138,11 +140,11 @@ public static class StandingProjectReport
         // regardless, a hidden "Remaining" header would pad a column of three-digit numbers to
         // nine characters and the block would look wrong for a heading nobody asked for.
         if (showHeaders)
-            for (var i = 0; i < columns; i++) widths[i] = headers[i].Length;
+            for (var i = 0; i < columns; i++) widths[i] = MonoColumns.Width(headers[i]);
 
         foreach (var c in cells)
             for (var i = 0; i < columns; i++)
-                widths[i] = Math.Max(widths[i], c[i].Length);
+                widths[i] = Math.Max(widths[i], MonoColumns.Width(c[i]));
 
         var sb = new StringBuilder();
 
@@ -204,8 +206,8 @@ public static class StandingProjectReport
         var line = new StringBuilder();
         for (var i = 0; i <= last; i++)
         {
-            var cell = right[i] ? cells[i].PadLeft(widths[i]) : cells[i];
-            line.Append(i == last ? cell : cell.PadRight(widths[i] + 2));
+            var cell = right[i] ? MonoColumns.PadLeft(cells[i], widths[i]) : cells[i];
+            line.Append(i == last ? cell : MonoColumns.PadRight(cell, widths[i] + 2));
         }
 
         return line.ToString();
@@ -239,34 +241,91 @@ public static class StandingProjectReport
 
     /// <summary>How a definition reads in the picker: one line per definition, unexpanded.</summary>
     public static string Describe(Models.CorpStandingProject p) =>
+        DescribeWith(p, p.ItemTypeName, p.SolarSystemName, p.ScopeEntityName, p.StationName);
+
+    /// <summary>
+    /// <see cref="Describe(Models.CorpStandingProject)"/> as a screen shows it: the item, the
+    /// system, a rule's region or constellation, and a delivery's NPC station in the interface
+    /// language. A player structure and an alliance belong to players and have no other name.
+    /// ⚠️ For showing only — a picker keeps the definition by its id.
+    /// </summary>
+    public static string DescribeShown(Models.CorpStandingProject p) =>
+        DescribeWith(p,
+            p.ItemTypeId    is int item   ? SdeNames.Type(item, p.ItemTypeName)             : p.ItemTypeName,
+            p.SolarSystemId is int system ? SdeNames.SolarSystem(system, p.SolarSystemName) : p.SolarSystemName,
+            p.ScopeEntityId is int scope
+                ? p.ScopeType switch
+                  {
+                      "region_adm"        => SdeNames.Region(scope, p.ScopeEntityName),
+                      "constellation_adm" => SdeNames.Constellation(scope, p.ScopeEntityName),
+                      _                   => p.ScopeEntityName,
+                  }
+                : p.ScopeEntityName,
+            p.StationId is long station && p.StationName.Length > 0
+                ? SdeNames.Location(station, p.StationName)
+                : p.StationName);
+
+    /// <summary>The one line, with the names it is given.</summary>
+    private static string DescribeWith(Models.CorpStandingProject p, string item, string system, string scope,
+                                       string station) =>
         p.ProjectType == DeliverItem
-            ? $"{p.ItemTypeName}{(p.StationName.Length > 0 ? " → " + p.StationName : "")}"
+            ? $"{item}{(station.Length > 0 ? " → " + station : "")}"
             : p.ScopeType switch
             {
                 // ⚠️ Named by its RULE, not by the systems it currently picks. That set changes
                 // with sovereignty, and a picker that renamed itself every time ADM moved would
                 // be unrecognisable from one week to the next.
-                "region_adm"        => $"{p.ScopeEntityName} — region, ADM below {p.MinAdm ?? 0:0.##}",
-                "constellation_adm" => $"{p.ScopeEntityName} — constellation, ADM below {p.MinAdm ?? 0:0.##}",
-                "alliance_sov"      => $"{p.ScopeEntityName} — sov, ADM below {p.MinAdm ?? 0:0.##}",
-                _                   => p.SolarSystemName,
+                "region_adm"        => string.Format(CorpText.PickerScopeRegionAdm, scope, p.MinAdm ?? 0),
+                "constellation_adm" => string.Format(CorpText.PickerScopeConstellationAdm, scope, p.MinAdm ?? 0),
+                "alliance_sov"      => string.Format(CorpText.PickerScopeAllianceSov, scope, p.MinAdm ?? 0),
+                _                   => system,
             };
 
-    public static string TypeLabel(string projectType) =>
-        projectType == DeliverItem ? "Deliver item" : "Destroy NPC";
-
     /// <summary>
-    /// The heading a section writes for itself when nobody has retitled it.
+    /// The heading a section writes for itself when nobody has retitled it, in this run's
+    /// interface language.
     ///
     /// <para>Shared with the editor, which shows it as the placeholder in the title box — so
     /// what the box promises and what the post prints cannot drift.</para>
+    ///
+    /// <para>One whole title per type and filter. It used to be put together from a type label,
+    /// " projects" and the filter's name in lower case, and no other language orders or cases
+    /// those pieces the way English does.</para>
     /// </summary>
-    public static string DefaultTitle(string projectType, string filter)
-    {
-        var title = TypeLabel(projectType) + " projects";
+    public static string DefaultTitle(string projectType, string filter) =>
+        DefaultTitle(projectType, filter, null);
 
-        return filter == ProjectFilters.All
-            ? title
-            : title + " — " + ProjectFilters.Label(filter).ToLowerInvariant();
+    /// <summary>
+    /// Whether <paramref name="title"/> is the default heading for this type and filter in ANY
+    /// of the interface languages.
+    ///
+    /// <para>⚠️ Not only this run's. The editor fills the default into the title box and the
+    /// section saves it as it stands, so a section written in English and reopened in Chinese
+    /// holds the English default — and it has to go on following its type and filter rather
+    /// than being taken for a title somebody typed.</para>
+    /// </summary>
+    public static bool IsDefaultTitle(string title, string projectType, string filter) =>
+        title == DefaultTitle(projectType, filter)
+        || Languages.All.Any(l => title == DefaultTitle(projectType, filter, l.Culture));
+
+    /// <summary>The default heading in <paramref name="language"/>; null is this run's.</summary>
+    private static string DefaultTitle(string projectType, string filter, CultureInfo? language)
+    {
+        var deliver = projectType == DeliverItem;
+
+        // Anything that is not one of the two narrowing filters is titled as All. The editor, the
+        // only caller, never passes anything else: it maps a filter it does not know to All.
+        var key = filter switch
+        {
+            ProjectFilters.Missing =>
+                deliver ? nameof(CorpText.ProjectsTitleDeliverMissing) : nameof(CorpText.ProjectsTitleDestroyMissing),
+            ProjectFilters.MissingAndLow =>
+                deliver ? nameof(CorpText.ProjectsTitleDeliverMissingLow) : nameof(CorpText.ProjectsTitleDestroyMissingLow),
+            _ =>
+                deliver ? nameof(CorpText.ProjectsTitleDeliverAll) : nameof(CorpText.ProjectsTitleDestroyAll),
+        };
+
+        // Looked up by name so any language can be asked for, not only this run's.
+        return CorpText.ResourceManager.GetString(key, language) ?? key;
     }
 }

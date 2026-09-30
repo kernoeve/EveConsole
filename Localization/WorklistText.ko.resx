@@ -1,0 +1,2164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TabWorklist" xml:space="preserve">
+    <value>작업 목록</value>
+  </data>
+  <data name="Worklist" xml:space="preserve">
+    <value>작업 목록</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>새로고침</value>
+  </data>
+  <data name="ReadyNow" xml:space="preserve">
+    <value>지금 시작 가능</value>
+  </data>
+  <data name="TipIncludeWorkThatCannot" xml:space="preserve">
+    <value>아직 시작할 수 없는 작업도 이유와 함께 포함합니다.</value>
+  </data>
+  <data name="TipIncludeItemsHiddenBy" xml:space="preserve">
+    <value>일시 숨김 버튼으로 숨겨 둔 항목도 숨김 기간이 끝나기 전에 표시합니다.</value>
+  </data>
+  <data name="HintState" xml:space="preserve">
+    <value>상태</value>
+  </data>
+  <data name="TipReadyBlockedOrWaiting" xml:space="preserve">
+    <value>준비됨, 막힘 또는 대기 중</value>
+  </data>
+  <data name="HintType" xml:space="preserve">
+    <value>유형</value>
+  </data>
+  <data name="TipBuyHaulJobAndThe" xml:space="preserve">
+    <value>구매, 운반, 산업 작업 등</value>
+  </data>
+  <data name="HintSearchTask" xml:space="preserve">
+    <value>작업 항목 검색…</value>
+  </data>
+  <data name="HintCharacter" xml:space="preserve">
+    <value>캐릭터</value>
+  </data>
+  <data name="HintSource" xml:space="preserve">
+    <value>위치</value>
+  </data>
+  <data name="HintDestination" xml:space="preserve">
+    <value>목적지</value>
+  </data>
+  <data name="HintSearchNote" xml:space="preserve">
+    <value>세부 내용 검색…</value>
+  </data>
+  <data name="TipSearchesTheDetailThe" xml:space="preserve">
+    <value>세부 내용, 막힌 이유, 일시 숨김 줄을 함께 검색합니다 — 행의 정보 표시 뒤에 있는 모든 내용입니다.</value>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>지우기</value>
+  </data>
+  <data name="TipShowWhatThisTask" xml:space="preserve">
+    <value>이 작업 항목이 운반하는 것과 이를 기다리는 것 표시</value>
+  </data>
+  <data name="WaitingOnThisLabel" xml:space="preserve">
+    <value>이 항목을 기다리는 작업</value>
+  </data>
+  <data name="TipOpenInTheItemBrowser" xml:space="preserve">
+    <value>아이템 브라우저에서 열기</value>
+  </data>
+  <data name="ManifestLabel" xml:space="preserve">
+    <value>적재 목록</value>
+  </data>
+  <data name="ColTask" xml:space="preserve">
+    <value>작업 항목</value>
+  </data>
+  <data name="TipOpenThisItem" xml:space="preserve">
+    <value>이 아이템 열기</value>
+  </data>
+  <data name="TipMaterialAndTimeEfficiency" xml:space="preserve">
+    <value>이 작업에 사용할 블루프린트의 자원효율성과 시간효율성</value>
+  </data>
+  <data name="TipOpenThisStationOrStructure" xml:space="preserve">
+    <value>이 정거장 또는 구조물 열기</value>
+  </data>
+  <data name="TipOpenInTheEntityBrowser" xml:space="preserve">
+    <value>개체 브라우저에서 열기</value>
+  </data>
+  <data name="ColPrio" xml:space="preserve">
+    <value>우선</value>
+  </data>
+  <data name="ColFin" xml:space="preserve">
+    <value>최종</value>
+  </data>
+  <data name="ColBlkd" xml:space="preserve">
+    <value>막힘</value>
+  </data>
+  <data name="ColCover" xml:space="preserve">
+    <value>보유</value>
+  </data>
+  <data name="ColSeq" xml:space="preserve">
+    <value>순서</value>
+  </data>
+  <data name="ColFrees" xml:space="preserve">
+    <value>해소</value>
+  </data>
+  <data name="Value" xml:space="preserve">
+    <value>가치</value>
+  </data>
+  <data name="Volume" xml:space="preserve">
+    <value>부피</value>
+  </data>
+  <data name="Snooze" xml:space="preserve">
+    <value>일시 숨김</value>
+  </data>
+  <data name="TipHideThisItemFor8" xml:space="preserve">
+    <value>이 항목을 8시간 동안 숨기기</value>
+  </data>
+  <data name="TabStationNeeds" xml:space="preserve">
+    <value>정거장 필요량</value>
+  </data>
+  <data name="StationNeeds" xml:space="preserve">
+    <value>정거장 필요량</value>
+  </data>
+  <data name="ColWhy" xml:space="preserve">
+    <value>이유</value>
+  </data>
+  <data name="TipWhatIsAskingForThis" xml:space="preserve">
+    <value>이것을 요청하는 곳</value>
+  </data>
+  <data name="AskedForByLabel" xml:space="preserve">
+    <value>요청처</value>
+  </data>
+  <data name="TipNothingItemisedThisNeed" xml:space="preserve">
+    <value>이 필요량을 세분한 항목이 없습니다</value>
+  </data>
+  <data name="ColStation" xml:space="preserve">
+    <value>정거장</value>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>아이템</value>
+  </data>
+  <data name="ColTotal" xml:space="preserve">
+    <value>합계</value>
+  </data>
+  <data name="ColOnHand" xml:space="preserve">
+    <value>보유</value>
+  </data>
+  <data name="ColShort" xml:space="preserve">
+    <value>부족</value>
+  </data>
+  <data name="ColShortValue" xml:space="preserve">
+    <value>부족분 가치</value>
+  </data>
+  <data name="ColShortVolume" xml:space="preserve">
+    <value>부족분 부피</value>
+  </data>
+  <data name="ColOrderJobs" xml:space="preserve">
+    <value>주문 작업</value>
+  </data>
+  <data name="ColJobs" xml:space="preserve">
+    <value>작업</value>
+  </data>
+  <data name="ColInventoryLevels" xml:space="preserve">
+    <value>재고 수준</value>
+  </data>
+  <data name="ColStationLevels" xml:space="preserve">
+    <value>정거장 재고 수준</value>
+  </data>
+  <data name="TabItemNeeds" xml:space="preserve">
+    <value>아이템 필요량</value>
+  </data>
+  <data name="ItemNeeds" xml:space="preserve">
+    <value>아이템 필요량</value>
+  </data>
+  <data name="ColInBuild" xml:space="preserve">
+    <value>제조 중</value>
+  </data>
+  <data name="TabBottlenecks" xml:space="preserve">
+    <value>병목</value>
+  </data>
+  <data name="Bottlenecks" xml:space="preserve">
+    <value>병목</value>
+  </data>
+  <data name="TabSummary" xml:space="preserve">
+    <value>요약</value>
+  </data>
+  <data name="WhatToDoInNote" xml:space="preserve">
+    <value>할 일을 해 볼 만한 순서대로 보여 줍니다. 모든 탭을 통틀어 각 항목이 막고 있는 작업량에 따라 순위를 매깁니다. 근거가 되는 수치는 각 탭에 있습니다.</value>
+  </data>
+  <data name="TipOpenThisItemIn" xml:space="preserve">
+    <value>이 아이템을 아이템 브라우저에서 열기</value>
+  </data>
+  <data name="NothingIsHoldingTheNote" xml:space="preserve">
+    <value>생산 흐름을 막는 것이 없습니다: 대기열다운 대기열이 있는 슬롯 풀도, 작업이 기다리는 블루프린트도, 재료가 부족한 것도, 배송을 기다리는 것도 없습니다.</value>
+  </data>
+  <data name="TabSlots" xml:space="preserve">
+    <value>슬롯</value>
+  </data>
+  <data name="SlotsLabel" xml:space="preserve">
+    <value>슬롯</value>
+  </data>
+  <data name="SlotsAreBandwidthNotNote" xml:space="preserve">
+    <value>슬롯은 처리 용량이지 구매 목록이 아닙니다. 대기열은 처리량이 수요에 못 미치는 동안 쌓인 작업이므로, 각 해결책은 밀린 작업을 따라잡는 데 필요한 시간을 얼마나 줄이는지로 평가합니다. 속도는 최근 90일간의 작업 기록에서 구하므로, 사용 중인 구조물과 스킬이 이미 반영되어 있습니다.</value>
+  </data>
+  <data name="Capacity" xml:space="preserve">
+    <value>용량</value>
+  </data>
+  <data name="InUse" xml:space="preserve">
+    <value>사용 중</value>
+  </data>
+  <data name="Free" xml:space="preserve">
+    <value>여유</value>
+  </data>
+  <data name="WaitingOnASlot" xml:space="preserve">
+    <value>슬롯 대기</value>
+  </data>
+  <data name="Blocked" xml:space="preserve">
+    <value>막힘</value>
+  </data>
+  <data name="DaysToCatchUp" xml:space="preserve">
+    <value>따라잡는 데 걸리는 일수</value>
+  </data>
+  <data name="TabItemContention" xml:space="preserve">
+    <value>아이템 경합</value>
+  </data>
+  <data name="MaterialsLabel" xml:space="preserve">
+    <value>재료</value>
+  </data>
+  <data name="MaterialsThePipelineRunsNote" xml:space="preserve">
+    <value>생산 흐름에서 바닥나는 재료입니다 — 아무도 보유하지 않은 재료이며, 엉뚱한 정거장에 있는 재료는 운반 문제이므로 다른 곳에서 다룹니다. 각 재료가 막고 있는 작업량에 따라 순위를 매깁니다. 열 머리글에 마우스를 올리면 뜻을 볼 수 있습니다. ⚠ 여기의 모든 속도는 하한값입니다: 만들 수 없던 것은 소비되지도 않았으므로, 작업을 막아 온 아이템은 원했던 속도가 아니라 막힌 상태가 허용한 속도로 사용된 것입니다.</value>
+  </data>
+  <data name="TipShowTheTasksBehindThese" xml:space="preserve">
+    <value>이 수치에 해당하는 작업 항목 표시</value>
+  </data>
+  <data name="Material" xml:space="preserve">
+    <value>재료</value>
+  </data>
+  <data name="TipTheItemThatRan" xml:space="preserve">
+    <value>부족해진 아이템입니다. 클릭하면 아이템 브라우저가 열립니다.</value>
+  </data>
+  <data name="Used" xml:space="preserve">
+    <value>사용</value>
+  </data>
+  <data name="TipConsumedPerDayOver" xml:space="preserve">
+    <value>최근 90일 동안의 하루 소비량으로, 이 아이템을 쓰는 모든 블루프린트를 합산한 값입니다. 네 가지 상위 제품이 쓰는 아이템은 네 배로 부족해집니다.</value>
+  </data>
+  <data name="Made" xml:space="preserve">
+    <value>생산</value>
+  </data>
+  <data name="TipProducedPerDayOver" xml:space="preserve">
+    <value>같은 기간 동안의 하루 생산량입니다. 대시(-)는 이곳에서 전혀 만들지 않는다는 뜻이므로, 다시 채우는 유일한 방법은 구매입니다.</value>
+  </data>
+  <data name="Balance" xml:space="preserve">
+    <value>수급 비율</value>
+  </data>
+  <data name="TipMadePerUnitConsumed" xml:space="preserve">
+    <value>소비량 1단위당 생산량입니다. 1.00 미만이면 아무리 가득 차 보여도 재고가 줄어들고 있으며, 어떤 크기의 비축분도 이를 버티지 못합니다. 수요가 급증하는 동안에는 빨간색이 아니라 주황색으로 표시됩니다. 바로 그런 급증을 흡수하는 것이 비축분의 역할이기 때문입니다.</value>
+  </data>
+  <data name="Level" xml:space="preserve">
+    <value>수준</value>
+  </data>
+  <data name="TipWhatTheInventoryLevels" xml:space="preserve">
+    <value>재고 수준에서 보관하도록 요구하는 양입니다. 비어 있으면 이 아이템에 설정된 수준이 전혀 없다는 뜻이며, 그 자체로 하나의 발견입니다.</value>
+  </data>
+  <data name="OnHand" xml:space="preserve">
+    <value>보유</value>
+  </data>
+  <data name="TipUnitsTheIndustryScope" xml:space="preserve">
+    <value>산업 범위에서 실제로 쓸 수 있는 수량입니다. 범위 밖의 재고는 계획에서 쓸 수 없으므로 세지 않습니다.</value>
+  </data>
+  <data name="Need" xml:space="preserve">
+    <value>필요량</value>
+  </data>
+  <data name="TipWhatTheWorkOn" xml:space="preserve">
+    <value>목록의 작업이 원하는 양입니다: 여기 있는 양에 부족분을 더한 값. 존재하는 양을 넘으면 빨간색으로 표시되며, 재고 수준을 완전히 채운 상태에서도 그럴 수 있습니다.</value>
+  </data>
+  <data name="Cover" xml:space="preserve">
+    <value>보유 일수</value>
+  </data>
+  <data name="TipTheLevelMeasuredIn" xml:space="preserve">
+    <value>현재 소비 속도 기준으로 재고 수준을 일수로 나타낸 것입니다. 비축분은 수량이 아니라 시간의 길이입니다: 하루에 2개씩 쓰는 것 200개는 100일분이고, 하루에 200개씩 쓰는 것 200개는 1일분입니다.</value>
+  </data>
+  <data name="Surge" xml:space="preserve">
+    <value>급증</value>
+  </data>
+  <data name="TipHowMuchHarderThis" xml:space="preserve">
+    <value>지금 이 아이템이 전체 기간보다 얼마나 더 많이 소비되고 있는지입니다. 1.2배 미만이면 비어 있습니다. 일시적인 제조 물결과 지속적인 부족을 구분하는 기준입니다.</value>
+  </data>
+  <data name="Blocking" xml:space="preserve">
+    <value>막는 항목</value>
+  </data>
+  <data name="TipTasksThisShortageIs" xml:space="preserve">
+    <value>이 부족이 막고 있는 작업 항목: 이것이 직접 부족한 항목, 그 항목들이 만들었을 것이 없어 멈춘 항목, 그리고 이렇게 체인 위쪽으로 이어지는 항목들입니다. 아이템 종류가 아니라 작업 항목 수입니다.</value>
+  </data>
+  <data name="Running" xml:space="preserve">
+    <value>진행 중</value>
+  </data>
+  <data name="TipJobsMakingThisItem" xml:space="preserve">
+    <value>지금 게임에서 설치되어 진행 중인, 이 아이템을 만드는 작업입니다. 작업 항목이 아니므로 목록에서 이를 요청하는 것은 없습니다.</value>
+  </data>
+  <data name="Ready" xml:space="preserve">
+    <value>준비됨</value>
+  </data>
+  <data name="TipTasksToMakeThis" xml:space="preserve">
+    <value>오늘 시작할 수 있는, 이 아이템을 만드는 작업 항목입니다.</value>
+  </data>
+  <data name="Waiting" xml:space="preserve">
+    <value>대기 중</value>
+  </data>
+  <data name="TipTasksToMakeThis2" xml:space="preserve">
+    <value>사용 중인 슬롯만이 걸림돌인, 이 아이템을 만드는 작업 항목입니다.</value>
+  </data>
+  <data name="Stuck" xml:space="preserve">
+    <value>정체</value>
+  </data>
+  <data name="TipTasksToMakeThis3" xml:space="preserve">
+    <value>그 자체로 막혀 있는, 이 아이템을 만드는 작업 항목입니다. 진행 중이거나 준비된 것도 없으면 빨간색으로 표시되며, 이는 저절로 풀리지 않는 상황입니다.</value>
+  </data>
+  <data name="Verdict" xml:space="preserve">
+    <value>판정</value>
+  </data>
+  <data name="TipWhatTheRowAmounts" xml:space="preserve">
+    <value>이 행이 뜻하는 바를 몇 마디로 요약합니다.</value>
+  </data>
+  <data name="Suggestion" xml:space="preserve">
+    <value>제안</value>
+  </data>
+  <data name="TipWhatIsHappeningAnd" xml:space="preserve">
+    <value>어디를 볼지 알려 주는 대신, 이 행의 수치를 사용해 무슨 일이 일어나고 있으며 무엇이 이를 바꿀 수 있는지 설명합니다.</value>
+  </data>
+  <data name="TabBpoFormula" xml:space="preserve">
+    <value>BPO / 반응식</value>
+  </data>
+  <data name="BlueprintsLabel" xml:space="preserve">
+    <value>블루프린트</value>
+  </data>
+  <data name="ABlueprintBottleneckIsNote" xml:space="preserve">
+    <value>블루프린트 병목이란 원본이 비기를 '기다려야' 하는 것이지, 원본 하나를 많이 돌리는 것이 아닙니다. 사용률로 순위를 매기면 문제보다 해결책이 위에 옵니다: 원본 8개로 쉬지 않고 돌리는 반응식은 아무것도 막은 적이 없으며, 여덟 번째를 산 것이 바로 문제를 해결한 것입니다. '전부 사용 중' 비율이 5% 이상인 것부터 표시하며, BPO가 하나뿐인 아이템은 이 척도가 단순한 사용률이 되어 버리므로 15% 이상부터 표시합니다. 열 머리글에 마우스를 올리면 뜻을 볼 수 있습니다.</value>
+  </data>
+  <data name="Product" xml:space="preserve">
+    <value>생산품</value>
+  </data>
+  <data name="TipWhatThisBlueprintOr" xml:space="preserve">
+    <value>이 블루프린트나 반응식이 만드는 것입니다. 클릭하면 아이템 브라우저가 열립니다.</value>
+  </data>
+  <data name="Cycle" xml:space="preserve">
+    <value>주기</value>
+  </data>
+  <data name="TipHowLongOneRun" xml:space="preserve">
+    <value>1회 실행에 걸리는 시간으로, 블루프린트 수치가 아니라 실제로 실행한 작업의 평균입니다.</value>
+  </data>
+  <data name="TipOriginalsOwnedCopiesAre" xml:space="preserve">
+    <value>'보유한' 원본 수. 복제본은 일부러 세지 않습니다: 경합은 내 원본 중 하나가 비어 있었는지의 문제이기 때문입니다.</value>
+  </data>
+  <data name="Installed" xml:space="preserve">
+    <value>작업 중</value>
+  </data>
+  <data name="TipHowManyOfThose" xml:space="preserve">
+    <value>그 원본 중 지금 작업에 들어가 있는 수입니다.</value>
+  </data>
+  <data name="Ceiling" xml:space="preserve">
+    <value>상한</value>
+  </data>
+  <data name="TipUnitsADayThe" xml:space="preserve">
+    <value>보유한 원본들이 쉬지 않고 돌아갈 때 하루에 만들 수 있는 수량입니다.</value>
+  </data>
+  <data name="TipUnitsADayActually" xml:space="preserve">
+    <value>최근 90일 동안 실제로 하루에 생산한 수량입니다. 상한을 넘을 수 없으므로 수요를 측정하는 데 쓸 수 없습니다.</value>
+  </data>
+  <data name="TipShareOfEachOriginals" xml:space="preserve">
+    <value>각 원본이 작업에 들어가 있던 시간의 비율입니다. 참고용일 뿐입니다: 병목을 식별하지 못하며, 이 값으로 순위를 매기면 실제 제약보다 많이 쓴 것이 위에 옵니다.</value>
+  </data>
+  <data name="AllBusy" xml:space="preserve">
+    <value>전부 사용 중</value>
+  </data>
+  <data name="TipShareOfTheLast" xml:space="preserve">
+    <value>최근 90일 중 '모든' 원본이 동시에 사용 중이던 시간의 비율로, 제조뿐 아니라 연구와 복제도 셉니다. 작업을 하나 더 하려면 기다려야 했는지를 알려 주는 수치입니다.</value>
+  </data>
+  <data name="Rank" xml:space="preserve">
+    <value>순위</value>
+  </data>
+  <data name="TipWhereThisSitsAmong" xml:space="preserve">
+    <value>내 모든 블루프린트 중 이것의 위치입니다. 여기서는 고정된 기준값을 쓰지 않으므로, 표시는 내 블루프린트들의 분포를 기준으로 합니다.</value>
+  </data>
+  <data name="TipTheSameAllBusy" xml:space="preserve">
+    <value>같은 '전부 사용 중' 수치를 최근 30일 기준으로 계산한 것으로, 한가한 분기 속에 바쁜 한 달이 묻히지 않게 합니다.</value>
+  </data>
+  <data name="Trend" xml:space="preserve">
+    <value>추세</value>
+  </data>
+  <data name="TipWhetherTheRecentSqueeze" xml:space="preserve">
+    <value>최근의 압박이 전체 기간에 비해 커지는지, 완화되는지, 그대로인지입니다.</value>
+  </data>
+  <data name="N1Print" xml:space="preserve">
+    <value>원본 +1</value>
+  </data>
+  <data name="TipWhatTheCeilingBecomes" xml:space="preserve">
+    <value>원본이 하나 더 있을 때의 상한입니다. 하나 더 살 가치가 있는지에 대한 답입니다.</value>
+  </data>
+  <data name="Queued" xml:space="preserve">
+    <value>대기열</value>
+  </data>
+  <data name="TipJobsForThisProduct" xml:space="preserve">
+    <value>지금 작업 목록에 있는 이 생산품의 작업입니다. 기록으로는 알 수 없는 현재 수요입니다.</value>
+  </data>
+  <data name="BlockedNow" xml:space="preserve">
+    <value>현재 막힘</value>
+  </data>
+  <data name="TipJobsHeldUpBy" xml:space="preserve">
+    <value>'오직' 블루프린트 때문에 막힌 작업입니다. 생산품의 재료도 부족하다면 원본을 늘려도 달라지는 것이 없으므로 0으로 셉니다.</value>
+  </data>
+  <data name="TipTasksWaitingOnWhat" xml:space="preserve">
+    <value>이것이 만드는 것을 기다리는 작업 항목: 직접 기다리는 것과, 그 뒤에서 체인 위쪽으로 기다리는 것. 블루프린트에 경합이 전혀 없어도 그 생산물 뒤로 대기열이 쌓여 있을 수 있습니다.</value>
+  </data>
+  <data name="TipWhatTheRowAmounts2" xml:space="preserve">
+    <value>이 행이 뜻하는 바를 한마디로 요약합니다.</value>
+  </data>
+  <data name="TipWhatIsHappeningAnd2" xml:space="preserve">
+    <value>무슨 일이 일어나고 있으며 무엇이 이를 바꿀 수 있는지.</value>
+  </data>
+  <data name="TabHauling" xml:space="preserve">
+    <value>운반</value>
+  </data>
+  <data name="TripsLabel" xml:space="preserve">
+    <value>운반</value>
+  </data>
+  <data name="JobsStoppedForWantNote" xml:space="preserve">
+    <value>이미 보유했지만 다른 곳에 있는 재료가 없어 멈춘 작업입니다 — 아이템 경합의 나머지 절반으로, 해결책은 구매가 아니라 운반입니다. 각 행은 재료가 도착하는 즉시 실행할 수 있는 작업입니다. 열 머리글에 마우스를 올리면 뜻을 볼 수 있습니다.</value>
+  </data>
+  <data name="OneTripSeveralJobsLabel" xml:space="preserve">
+    <value>한 번의 운반, 여러 작업</value>
+  </data>
+  <data name="Job" xml:space="preserve">
+    <value>작업</value>
+  </data>
+  <data name="TipTheStoppedJobIt" xml:space="preserve">
+    <value>멈춘 작업입니다. 이미 보유한 재료 외에는 부족한 것이 없으므로, 그 재료가 도착하는 즉시 실행됩니다.</value>
+  </data>
+  <data name="TipOpenWhatThisJobMakes" xml:space="preserve">
+    <value>이 작업이 만드는 것 열기</value>
+  </data>
+  <data name="WaitingAt" xml:space="preserve">
+    <value>대기 위치</value>
+  </data>
+  <data name="TipWhereTheJobWould" xml:space="preserve">
+    <value>작업이 실행될 곳, 즉 재료가 도착해야 하는 곳입니다.</value>
+  </data>
+  <data name="TipOpenThisStation" xml:space="preserve">
+    <value>이 정거장 열기</value>
+  </data>
+  <data name="TipJobsStoppedBehindThis" xml:space="preserve">
+    <value>이 작업 뒤에서 멈춘 작업: 이 작업이 만들었을 것이 부족한 작업과, 그 뒤에서 체인 위쪽으로 멈춘 작업. 이 작업이 실행되면 다시 움직이기 시작하는 것들입니다.</value>
+  </data>
+  <data name="Items" xml:space="preserve">
+    <value>아이템</value>
+  </data>
+  <data name="TipDistinctItemTypesThis" xml:space="preserve">
+    <value>이 작업이 기다리는 아이템 종류 수입니다.</value>
+  </data>
+  <data name="TipCubicMetresThisJob" xml:space="preserve">
+    <value>이 작업에 부족한 부피(m³)로, 운반을 계획하기 전에 규모를 가늠할 수 있습니다.</value>
+  </data>
+  <data name="Stops" xml:space="preserve">
+    <value>경유지</value>
+  </data>
+  <data name="TipStopsAHaulerWould" xml:space="preserve">
+    <value>부족분을 채우기 위해 운반선이 들러야 하는 곳의 수로, 가장 큰 공급처부터 셉니다. 그 아이템이 있는 격납고의 수가 '아닙니다': 트리타늄은 13곳에 있지만 한 곳만으로 작업을 충당할 수 있습니다.</value>
+  </data>
+  <data name="Hauls" xml:space="preserve">
+    <value>운반</value>
+  </data>
+  <data name="TipHaulsAlreadyOnThe" xml:space="preserve">
+    <value>이 작업에 부족한 재료를 가져오는, 이미 작업 목록에 있는 운반입니다. 비어 있다면 그것이 발견입니다: 재료는 있고, 작업은 멈췄는데, 아무것도 그것을 옮기고 있지 않습니다.</value>
+  </data>
+  <data name="TabFinalProducts" xml:space="preserve">
+    <value>최종 생산품</value>
+  </data>
+  <data name="Completed" xml:space="preserve">
+    <value>완료일</value>
+  </data>
+  <data name="HintFromYyyyMmDd" xml:space="preserve">
+    <value>시작 yyyy-MM-dd</value>
+  </data>
+  <data name="HintThruYyyyMmDd" xml:space="preserve">
+    <value>종료 yyyy-MM-dd</value>
+  </data>
+  <data name="ValueAt" xml:space="preserve">
+    <value>가치 기준</value>
+  </data>
+  <data name="ChartBy" xml:space="preserve">
+    <value>차트 기준</value>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>상태</value>
+  </data>
+  <data name="ColUnits" xml:space="preserve">
+    <value>수량</value>
+  </data>
+  <data name="ColStarted" xml:space="preserve">
+    <value>시작</value>
+  </data>
+  <data name="ColCompleted" xml:space="preserve">
+    <value>완료</value>
+  </data>
+  <data name="ColBuildCost" xml:space="preserve">
+    <value>제조 비용</value>
+  </data>
+  <data name="ColMarketValue" xml:space="preserve">
+    <value>거래소 가치</value>
+  </data>
+  <data name="ColPotentialProfit" xml:space="preserve">
+    <value>예상 이익</value>
+  </data>
+  <data name="ColPotential" xml:space="preserve">
+    <value>예상 이익 %</value>
+  </data>
+  <data name="MarketValue" xml:space="preserve">
+    <value>거래소 가치</value>
+  </data>
+  <data name="PotentialProfit" xml:space="preserve">
+    <value>예상 이익</value>
+  </data>
+  <data name="TabConfig" xml:space="preserve">
+    <value>설정</value>
+  </data>
+  <data name="TabSources" xml:space="preserve">
+    <value>출처</value>
+  </data>
+  <data name="Sources" xml:space="preserve">
+    <value>출처</value>
+  </data>
+  <data name="ASourceThatIsNote" xml:space="preserve">
+    <value>꺼진 출처는 완전히 건너뜁니다 — 실행한 뒤 결과를 버리는 것이 아니라 쿼리 자체를 하지 않습니다.</value>
+  </data>
+  <data name="StandingBuyOrdersWhatTo" xml:space="preserve">
+    <value>상시 구매 주문 — 작업 항목으로 만들 조건</value>
+  </data>
+  <data name="WhichConditionsBecomeTasksNote" xml:space="preserve">
+    <value>어떤 조건을 작업 항목으로 만들지 정합니다. 각각 다른 일이므로 따로 켜고 끕니다.</value>
+  </data>
+  <data name="TabMarket" xml:space="preserve">
+    <value>거래소</value>
+  </data>
+  <data name="WhereShortfallsAreBoughtNote" xml:space="preserve">
+    <value>부족분을 어디서 구매할지, 그리고 각 정거장에서 어느 캐릭터가 주문을 관리할지 정합니다. 아이템은 이를 거쳐 배정되므로, 부캐릭터가 지정되지 않은 정거장에서는 담당자 없는 막힌 항목이 생깁니다.</value>
+  </data>
+  <data name="BuyShortfallsAt" xml:space="preserve">
+    <value>부족분 구매 위치</value>
+  </data>
+  <data name="HintTradeHub" xml:space="preserve">
+    <value>무역허브…</value>
+  </data>
+  <data name="TipWherePurchasesAreRaised" xml:space="preserve">
+    <value>구매 항목이 만들어지는 곳과, 이를 맡을 거래소 부캐릭터입니다. 블루프린트는 배정하지 않습니다 — 블루프린트 원본이나 복제본은 거래소 주문이 아니라 계약으로 구합니다.</value>
+  </data>
+  <data name="StationOrStructure" xml:space="preserve">
+    <value>정거장 또는 구조물</value>
+  </data>
+  <data name="Character" xml:space="preserve">
+    <value>캐릭터</value>
+  </data>
+  <data name="Note" xml:space="preserve">
+    <value>메모</value>
+  </data>
+  <data name="HintStationOrStructure" xml:space="preserve">
+    <value>정거장 또는 구조물…</value>
+  </data>
+  <data name="HintCharacter2" xml:space="preserve">
+    <value>캐릭터…</value>
+  </data>
+  <data name="HintOptional" xml:space="preserve">
+    <value>선택 사항</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>추가</value>
+  </data>
+  <data name="ColLocation" xml:space="preserve">
+    <value>위치</value>
+  </data>
+  <data name="ColCharacter" xml:space="preserve">
+    <value>캐릭터</value>
+  </data>
+  <data name="ColNote" xml:space="preserve">
+    <value>메모</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>제거</value>
+  </data>
+  <data name="TabInventoryRules" xml:space="preserve">
+    <value>재고 규칙</value>
+  </data>
+  <data name="WhenAGroupDropsNote" xml:space="preserve">
+    <value>그룹이 기준값 아래로 떨어지면 그 정거장에 구매 주문이 있어야 합니다. 여러 규칙이 한 그룹을 가리킬 수 있으며(100% 미만이면 현지에서 주문하고, 75% 미만이면 허브에서도 주문), 규칙은 서로 대체하지 않고 누적됩니다. 주문을 올리는 캐릭터는 그 정거장의 거래소 부캐릭터입니다.</value>
+  </data>
+  <data name="InventoryGroup" xml:space="preserve">
+    <value>재고 그룹</value>
+  </data>
+  <data name="Site" xml:space="preserve">
+    <value>장소</value>
+  </data>
+  <data name="Action" xml:space="preserve">
+    <value>동작</value>
+  </data>
+  <data name="TriggerBelow" xml:space="preserve">
+    <value>발동 기준 (%)</value>
+  </data>
+  <data name="FillUpTo" xml:space="preserve">
+    <value>채울 수준 (%)</value>
+  </data>
+  <data name="HintPickAGroup" xml:space="preserve">
+    <value>그룹 선택…</value>
+  </data>
+  <data name="HintTypeTwoCharacters" xml:space="preserve">
+    <value>두 글자 이상 입력…</value>
+  </data>
+  <data name="DecidedByTheIndyNote" xml:space="preserve">
+    <value>기타 탭의 산업 단지가 결정</value>
+  </data>
+  <data name="TipBuyPlacesAMarket" xml:space="preserve">
+    <value>구매는 부족분에 대해 거래소 주문을 올리고, 제조는 작업을 시작합니다</value>
+  </data>
+  <data name="TipRaiseATaskWhen" xml:space="preserve">
+    <value>재고가 그룹 목표의 이 비율 아래로 떨어지면 작업 항목을 만듭니다</value>
+  </data>
+  <data name="TipFillBackUpTo" xml:space="preserve">
+    <value>그룹 목표의 이 비율까지 다시 채웁니다</value>
+  </data>
+  <data name="AddRule" xml:space="preserve">
+    <value>규칙 추가</value>
+  </data>
+  <data name="ColGroup" xml:space="preserve">
+    <value>그룹</value>
+  </data>
+  <data name="ColAction" xml:space="preserve">
+    <value>동작</value>
+  </data>
+  <data name="ColTriggerBelow" xml:space="preserve">
+    <value>발동 기준 (%)</value>
+  </data>
+  <data name="ColFillTo" xml:space="preserve">
+    <value>채울 수준 (%)</value>
+  </data>
+  <data name="ColFinal" xml:space="preserve">
+    <value>최종</value>
+  </data>
+  <data name="TipThisGroupIsSold" xml:space="preserve">
+    <value>이 그룹은 투입 재료가 아니라 판매하거나 직접 운용하는 것입니다. 이를 풀어 주는 작업은 비축분만 다시 채우는 작업보다 우선합니다.</value>
+  </data>
+  <data name="TipDoubleClickToChangeThe" xml:space="preserve">
+    <value>두 번 클릭하여 정거장 변경</value>
+  </data>
+  <data name="TabStationLevels" xml:space="preserve">
+    <value>정거장 재고 수준</value>
+  </data>
+  <data name="WhereEachGroupsStockNote" xml:space="preserve">
+    <value>각 그룹의 재고가 있어야 할 곳입니다. 이는 재료를 더 요구하는 것이 아니라 분배하는 것이므로(수량은 이미 재고 규칙이 정합니다) 운반만 만들고 구매나 제조는 절대 만들지 않습니다. 다른 곳에서 필요로 하지 않는 여분 재고가 모일 정거장에는 '잉여 수용'을 선택하십시오.</value>
+  </data>
+  <data name="HintGroup" xml:space="preserve">
+    <value>그룹…</value>
+  </data>
+  <data name="HintNeedNotBeInThe" xml:space="preserve">
+    <value>산업 단지 밖이어도 됩니다…</value>
+  </data>
+  <data name="AcceptsSurplus" xml:space="preserve">
+    <value>잉여 수용</value>
+  </data>
+  <data name="TipSpareStockOfThis" xml:space="preserve">
+    <value>어느 정거장도 필요로 하지 않을 때 이 그룹의 여분 재고가 여기에 모입니다.</value>
+  </data>
+  <data name="RestockWhenBelowLevelBy" xml:space="preserve">
+    <value>수준 대비 부족 시 보충 (%)</value>
+  </data>
+  <data name="TipAStationIsLeft" xml:space="preserve">
+    <value>정거장이 수준보다 이만큼 낮아질 때까지는 그대로 두고, 그 뒤에 끝까지 다시 채웁니다. 0이면 조금이라도 부족하면 보충합니다.</value>
+  </data>
+  <data name="SweepSurplusWhenAboveLevel" xml:space="preserve">
+    <value>수준 대비 초과 시 잉여 회수 (%)</value>
+  </data>
+  <data name="TipExcessIsLeftWhere" xml:space="preserve">
+    <value>정거장이 수준보다 이만큼 많아질 때까지는 초과분을 그대로 두고, 그 뒤에 수준까지 덜어 냅니다. 0이면 초과분을 모두 회수합니다.</value>
+  </data>
+  <data name="ColInventoryGroup" xml:space="preserve">
+    <value>재고 그룹</value>
+  </data>
+  <data name="ColAcceptsSurplus" xml:space="preserve">
+    <value>잉여 수용</value>
+  </data>
+  <data name="TabOther" xml:space="preserve">
+    <value>기타</value>
+  </data>
+  <data name="WhereIndustryWorkIsNote" xml:space="preserve">
+    <value>산업 작업을 어디서 계획하고, 재료를 어디서 세고, 부족한 것을 어디서 구매할지 정합니다.</value>
+  </data>
+  <data name="Industry" xml:space="preserve">
+    <value>산업</value>
+  </data>
+  <data name="PlanAgainstPark" xml:space="preserve">
+    <value>계획 기준 산업 단지</value>
+  </data>
+  <data name="MaxJobLengthManufacturing" xml:space="preserve">
+    <value>최대 작업 기간 — 제조</value>
+  </data>
+  <data name="Reactions" xml:space="preserve">
+    <value>합성</value>
+  </data>
+  <data name="Science" xml:space="preserve">
+    <value>연구</value>
+  </data>
+  <data name="TipDefaultFollowsWhicheverPark" xml:space="preserve">
+    <value>&lt;기본값&gt;은 산업 단지에서 별표가 붙은 단지를 따르며, 작업을 계획할 때마다 다시 확인합니다 — 따라서 별표를 옮기면 계획도 함께 옮겨 갑니다.</value>
+  </data>
+  <data name="TipDaysAShortfallNeeding" xml:space="preserve">
+    <value>일 단위입니다. 이보다 오래 걸리는 부족분은 여러 작업으로 나뉘어 서로 다른 슬롯과 캐릭터에서 실행될 수 있습니다. 비워 두면 제한이 없으며, 이때는 블루프린트 자체의 실행 횟수 상한만 적용됩니다.</value>
+  </data>
+  <data name="TipDaysReactionsAreSet" xml:space="preserve">
+    <value>일 단위입니다. 합성은 보통 더 짧게, 연속으로 돌리므로 제조와 따로 설정합니다.</value>
+  </data>
+  <data name="TipDaysCoveringCopyingAnd" xml:space="preserve">
+    <value>일 단위이며, 복제와 인벤션에 적용됩니다. 여러 회차의 인벤션 묶음 하나를 언제 둘로 나눌지를 이 값이 정합니다: 묶음은 끝날 때까지 아무것도 내놓지 않으며, 캐피탈 블루프린트는 한 번 시도만 해도 이미 약 8일이 걸리므로, 제조용 크기의 제한을 쓰면 작업마다 한 번씩만 시도하게 되어 시도마다 연구 슬롯을 하나씩 쓰게 됩니다.</value>
+  </data>
+  <data name="Days" xml:space="preserve">
+    <value>일</value>
+  </data>
+  <data name="AssetScope" xml:space="preserve">
+    <value>자산 범위</value>
+  </data>
+  <data name="CountMaterial" xml:space="preserve">
+    <value>재료 집계 범위</value>
+  </data>
+  <data name="RegionSystem" xml:space="preserve">
+    <value>지역 / 항성계</value>
+  </data>
+  <data name="TipHowFarToLook" xml:space="preserve">
+    <value>작업에 무언가 부족한지 판단할 때 살펴볼 범위입니다. 이 범위 밖의 재고는 보유하지 않은 것으로 보므로, 운반 대신 구매 항목이 만들어집니다.</value>
+  </data>
+  <data name="IncludeNonPersonalCorpAssets" xml:space="preserve">
+    <value>개인 코퍼레이션이 아닌 코퍼레이션 자산 포함</value>
+  </data>
+  <data name="TipOffByDefaultOnly" xml:space="preserve">
+    <value>기본값은 꺼짐입니다. 코퍼레이션 탭에서 개인으로 표시한 코퍼레이션만 재료로 셉니다 — 그렇지 않으면 대형 얼라이언스 코퍼레이션의 캐릭터를 인증하는 것만으로 그 코퍼레이션의 격납고 전체가 이 도구에 넘어오는데, 그중 어느 것도 내 것이 아닙니다.</value>
+  </data>
+  <data name="AlsoCountTheseStations" xml:space="preserve">
+    <value>이 정거장도 집계</value>
+  </data>
+  <data name="HintJitaAmarr" xml:space="preserve">
+    <value>Jita, Amarr…</value>
+  </data>
+  <data name="TipTradeHubsYouImport" xml:space="preserve">
+    <value>물건을 들여오는 무역허브입니다. 이런 곳에서 기다리는 재고는 이미 가진 재고이므로, 두 번째 구매 항목을 만들지 않아야 합니다.</value>
+  </data>
+  <data name="TipClickToRemoveFromThe" xml:space="preserve">
+    <value>클릭하여 범위에서 제거</value>
+  </data>
+  <data name="CorpProjects" xml:space="preserve">
+    <value>코퍼레이션 프로젝트</value>
+  </data>
+  <data name="StandingProjectsAreDefinedNote" xml:space="preserve">
+    <value>상시 프로젝트는 코퍼레이션 활동에서 정의하며, 작업 목록에 필요한 것은 누가 이를 관리하는지뿐입니다. 프로젝트는 코퍼레이션에 속하므로 정거장이 아니라 코퍼레이션별로 배정합니다. 실제로 상시 프로젝트가 있는 코퍼레이션만 표시됩니다.</value>
+  </data>
+  <data name="Corporation" xml:space="preserve">
+    <value>코퍼레이션</value>
+  </data>
+  <data name="MaintainedBy" xml:space="preserve">
+    <value>관리 캐릭터</value>
+  </data>
+  <data name="HintPickACorporation" xml:space="preserve">
+    <value>코퍼레이션 선택…</value>
+  </data>
+  <data name="ColCorporation" xml:space="preserve">
+    <value>코퍼레이션</value>
+  </data>
+  <data name="ColRecent30d" xml:space="preserve">
+    <value>30일</value>
+  </data>
+  <data name="KindBuy" xml:space="preserve">
+    <value>구매</value>
+  </data>
+  <data name="KindHaul" xml:space="preserve">
+    <value>운반</value>
+  </data>
+  <data name="KindRefine" xml:space="preserve">
+    <value>정제</value>
+  </data>
+  <data name="KindDecompress" xml:space="preserve">
+    <value>압축해제</value>
+  </data>
+  <data name="KindJob" xml:space="preserve">
+    <value>산업 작업</value>
+  </data>
+  <data name="KindAssetSafety" xml:space="preserve">
+    <value>자산 보호</value>
+  </data>
+  <data name="KindSkillQueue" xml:space="preserve">
+    <value>스킬 대기열</value>
+  </data>
+  <data name="KindCorpProject" xml:space="preserve">
+    <value>코퍼레이션 프로젝트</value>
+  </data>
+  <data name="KindTipRefine" xml:space="preserve">
+    <value>광물 정제</value>
+  </data>
+  <data name="KindTipDecompress" xml:space="preserve">
+    <value>가스 압축해제</value>
+  </data>
+  <data name="KindTipManufacturing" xml:space="preserve">
+    <value>제조 작업</value>
+  </data>
+  <data name="KindTipReaction" xml:space="preserve">
+    <value>합성 작업</value>
+  </data>
+  <data name="KindTipScience" xml:space="preserve">
+    <value>연구 작업 — 복제 또는 인벤션</value>
+  </data>
+  <data name="KindTipIndustry" xml:space="preserve">
+    <value>산업 작업</value>
+  </data>
+  <data name="KindTipCorpProject" xml:space="preserve">
+    <value>코퍼레이션 프로젝트</value>
+  </data>
+  <data name="KindTipAssetSafety" xml:space="preserve">
+    <value>자산 보호</value>
+  </data>
+  <data name="KindTipSkillQueue" xml:space="preserve">
+    <value>스킬 대기열</value>
+  </data>
+  <data name="BlueprintMeTe" xml:space="preserve">
+    <value>ME{0} TE{1}</value>
+  </data>
+  <data name="StateReady" xml:space="preserve">
+    <value>준비됨</value>
+  </data>
+  <data name="StateBlocked" xml:space="preserve">
+    <value>막힘</value>
+  </data>
+  <data name="StateWaiting" xml:space="preserve">
+    <value>대기 중</value>
+  </data>
+  <data name="DataAge" xml:space="preserve">
+    <value>데이터 {0}</value>
+  </data>
+  <data name="SnoozedUntil" xml:space="preserve">
+    <value>{0:M월 d일 HH:mm}까지 일시 숨김</value>
+  </data>
+  <data name="AgoJustNow" xml:space="preserve">
+    <value>방금</value>
+  </data>
+  <data name="AgoMinutes" xml:space="preserve">
+    <value>{0}분 전</value>
+  </data>
+  <data name="AgoHours" xml:space="preserve">
+    <value>{0}시간 전</value>
+  </data>
+  <data name="AgoDays" xml:space="preserve">
+    <value>{0}일 전</value>
+  </data>
+  <data name="PoolManufacturing" xml:space="preserve">
+    <value>제조</value>
+  </data>
+  <data name="PoolReaction" xml:space="preserve">
+    <value>합성</value>
+  </data>
+  <data name="PoolScience" xml:space="preserve">
+    <value>연구</value>
+  </data>
+  <data name="SlotsQueued" xml:space="preserve">
+    <value>작업 {0:N0}개 대기 중 — 슬롯 {2:N0}개로 처리하는 데 {1:N0}일이 걸립니다. 이 슬롯들은 하루에 작업 {3:N1}개를 끝내 왔습니다.</value>
+  </data>
+  <data name="SlotsNothingQueued" xml:space="preserve">
+    <value>이 슬롯 풀 뒤에 대기 중인 작업이 없습니다. {1:N0}개 중 {0:N0}개 여유.</value>
+  </data>
+  <data name="SlotsNoCharacterManufacturing" xml:space="preserve">
+    <value>제조 작업을 실행하도록 설정된 캐릭터가 없습니다.</value>
+  </data>
+  <data name="SlotsNoCharacterReaction" xml:space="preserve">
+    <value>합성 작업을 실행하도록 설정된 캐릭터가 없습니다.</value>
+  </data>
+  <data name="SlotsNoCharacterScience" xml:space="preserve">
+    <value>연구 작업을 실행하도록 설정된 캐릭터가 없습니다.</value>
+  </data>
+  <data name="DaysN0" xml:space="preserve">
+    <value>{0:N0}일</value>
+  </data>
+  <data name="PerDayN1" xml:space="preserve">
+    <value>{0:N1}/일</value>
+  </data>
+  <data name="DaysN1" xml:space="preserve">
+    <value>{0:N1}일</value>
+  </data>
+  <data name="HoursN1" xml:space="preserve">
+    <value>{0:N1}시간</value>
+  </data>
+  <data name="StateRunning" xml:space="preserve">
+    <value>진행 중</value>
+  </data>
+  <data name="RoleTrip" xml:space="preserve">
+    <value>운반</value>
+  </data>
+  <data name="RoleNeeds" xml:space="preserve">
+    <value>필요로 함</value>
+  </data>
+  <data name="RoleUsesIt" xml:space="preserve">
+    <value>사용</value>
+  </data>
+  <data name="RoleMakesIt" xml:space="preserve">
+    <value>생산</value>
+  </data>
+  <data name="RoleNeedsIt" xml:space="preserve">
+    <value>직접 부족</value>
+  </data>
+  <data name="RoleBehind" xml:space="preserve">
+    <value>후속 ({0}단계)</value>
+  </data>
+  <data name="ContentionVerdictBuyNow" xml:space="preserve">
+    <value>지금 구매</value>
+  </data>
+  <data name="ContentionVerdictOnOrder" xml:space="preserve">
+    <value>주문 중</value>
+  </data>
+  <data name="ContentionVerdictBufferSpent" xml:space="preserve">
+    <value>비축분 소진</value>
+  </data>
+  <data name="ContentionVerdictBlocked" xml:space="preserve">
+    <value>막힘</value>
+  </data>
+  <data name="ContentionVerdictLevelTooLow" xml:space="preserve">
+    <value>수준 너무 낮음</value>
+  </data>
+  <data name="ContentionVerdictNoBuffer" xml:space="preserve">
+    <value>비축분 없음</value>
+  </data>
+  <data name="ContentionVerdictNotTheShelf" xml:space="preserve">
+    <value>재고 문제 아님</value>
+  </data>
+  <data name="ContentionVerdictMakingTooFew" xml:space="preserve">
+    <value>생산량 부족</value>
+  </data>
+  <data name="ContentionVerdictBuy" xml:space="preserve">
+    <value>구매</value>
+  </data>
+  <data name="ContentionVerdictBufferThin" xml:space="preserve">
+    <value>비축분 부족</value>
+  </data>
+  <data name="ContentionVerdictNoLevelSet" xml:space="preserve">
+    <value>수준 미설정</value>
+  </data>
+  <data name="ContentionVerdictWave" xml:space="preserve">
+    <value>수요 급증</value>
+  </data>
+  <data name="ContentionVerdictHolding" xml:space="preserve">
+    <value>안정</value>
+  </data>
+  <data name="FindingStartHere" xml:space="preserve">
+    <value>여기서 시작</value>
+  </data>
+  <data name="FindingSlots" xml:space="preserve">
+    <value>슬롯</value>
+  </data>
+  <data name="FindingBlueprints" xml:space="preserve">
+    <value>블루프린트</value>
+  </data>
+  <data name="FindingFormulas" xml:space="preserve">
+    <value>반응식</value>
+  </data>
+  <data name="FindingBuying" xml:space="preserve">
+    <value>구매</value>
+  </data>
+  <data name="FindingBuffers" xml:space="preserve">
+    <value>비축분</value>
+  </data>
+  <data name="FindingHauling" xml:space="preserve">
+    <value>운반</value>
+  </data>
+  <data name="LocationWithId" xml:space="preserve">
+    <value>위치 {0}</value>
+  </data>
+  <data name="HaulingVerdictNothingMoving" xml:space="preserve">
+    <value>운반 없음</value>
+  </data>
+  <data name="HaulingVerdictSeveralStops" xml:space="preserve">
+    <value>여러 경유지</value>
+  </data>
+  <data name="HaulingVerdictHaulRaised" xml:space="preserve">
+    <value>운반 등록됨</value>
+  </data>
+  <data name="PerDayN2" xml:space="preserve">
+    <value>{0:N2}/일</value>
+  </data>
+  <data name="RankTopPercent" xml:space="preserve">
+    <value>상위 {0:N0}%</value>
+  </data>
+  <data name="BlueprintVerdictBlocking" xml:space="preserve">
+    <value>막는 중</value>
+  </data>
+  <data name="BlueprintVerdictSteady" xml:space="preserve">
+    <value>지속 부족</value>
+  </data>
+  <data name="BlueprintVerdictContended" xml:space="preserve">
+    <value>경합</value>
+  </data>
+  <data name="BlueprintVerdictBlocked" xml:space="preserve">
+    <value>막힘</value>
+  </data>
+  <data name="BlueprintVerdictSurge" xml:space="preserve">
+    <value>급증</value>
+  </data>
+  <data name="BlueprintVerdictBuilding" xml:space="preserve">
+    <value>작업 대기</value>
+  </data>
+  <data name="BlueprintVerdictMinor" xml:space="preserve">
+    <value>경미</value>
+  </data>
+  <data name="BlueprintTrendRising" xml:space="preserve">
+    <value>상승</value>
+  </data>
+  <data name="BlueprintTrendEasing" xml:space="preserve">
+    <value>완화</value>
+  </data>
+  <data name="BlueprintTrendSteady" xml:space="preserve">
+    <value>유지</value>
+  </data>
+  <data name="StatusNotLoadedYet" xml:space="preserve">
+    <value>아직 불러오지 않았습니다.</value>
+  </data>
+  <data name="BottlenecksWorklistEmpty" xml:space="preserve">
+    <value>작업 목록이 비어 있습니다 — 먼저 작업 목록을 생성하면 여기에 읽을 내용이 생깁니다.</value>
+  </data>
+  <data name="BottlenecksNone" xml:space="preserve">
+    <value>병목이 없습니다: 슬롯을 기다리는 작업이 있는 슬롯 풀이 없고, 모든 원본이 자주 사용 중이어서 무언가를 기다리게 한 블루프린트도 없습니다. {0}</value>
+  </data>
+  <data name="BottlenecksSummaryCrossed" xml:space="preserve">
+    <value>슬롯을 기다리는 작업이 있는 슬롯 풀 {0}개, 살펴볼 만한 블루프린트 {1}개, 생산보다 빨리 소비되는 재료 {2}개. ⚠ 블루프린트 {4}개의 원본이 모두 사용 중인데 슬롯 {3:N0}개가 비어 있습니다 — 여기서 제약은 슬롯이 아니라 원본입니다. {5}</value>
+  </data>
+  <data name="BottlenecksSummary" xml:space="preserve">
+    <value>슬롯을 기다리는 작업이 있는 슬롯 풀 {0}개, 살펴볼 만한 블루프린트 {1}개, 생산보다 빨리 소비되는 재료 {2}개. {3}</value>
+  </data>
+  <data name="NeedsNotLoaded" xml:space="preserve">
+    <value>이 탭을 열면 모든 정거장이 원하는 것을 계산합니다.</value>
+  </data>
+  <data name="NeedsNoLogistics" xml:space="preserve">
+    <value>물류 출처를 사용할 수 없습니다.</value>
+  </data>
+  <data name="NeedsNothingWanted" xml:space="preserve">
+    <value>어디에서도 원하는 것이 없습니다 — 재료를 요청하는 제조 규칙, 주문, 정거장 재고 수준이 없습니다.</value>
+  </data>
+  <data name="NeedsSummary" xml:space="preserve">
+    <value>정거장 {1}곳에 필요량 {0:N0}건, 그중 {2:N0}건 부족. 가장 부족한 것부터 표시합니다. 이는 작업 항목이 아니라 요구 사항입니다 — 작은 부족분은 정거장 재고 수준의 허용 범위 안에 있어 운반을 만들지 않을 수 있습니다.</value>
+  </data>
+  <data name="NeedsError" xml:space="preserve">
+    <value>정거장 필요량을 계산할 수 없습니다: {0}</value>
+  </data>
+  <data name="BottlenecksError" xml:space="preserve">
+    <value>병목을 읽을 수 없습니다: {0}</value>
+  </data>
+  <data name="SourceIncludeTip" xml:space="preserve">
+    <value>이 출처를 작업 목록에 포함합니다.</value>
+  </data>
+  <data name="SourceCustomerOrders" xml:space="preserve">
+    <value>고객 주문</value>
+  </data>
+  <data name="SourceCustomerOrdersTip" xml:space="preserve">
+    <value>주문 추적의 대기 중인 주문을, 이미 제조했거나 생산 중인 것과 상계하여 계획합니다. 기타 탭에서 설정한 산업 단지와 거래소 탭에서 설정한 구매 위치를 사용합니다.</value>
+  </data>
+  <data name="ConditionMissing" xml:space="preserve">
+    <value>누락된 주문</value>
+  </data>
+  <data name="ConditionMissingTip" xml:space="preserve">
+    <value>정거장에 실제 구매 주문이 없는 상시 주문.</value>
+  </data>
+  <data name="ConditionOutbid" xml:space="preserve">
+    <value>가격 밀림</value>
+  </data>
+  <data name="ConditionOutbidTip" xml:space="preserve">
+    <value>다른 사람이 더 높은 가격을 제시하고 있어 주문이 아무것도 사지 못하고 있습니다.</value>
+  </data>
+  <data name="ConditionRunningLow" xml:space="preserve">
+    <value>잔량 부족</value>
+  </data>
+  <data name="ConditionRunningLowTip" xml:space="preserve">
+    <value>남은 수량이 보충 기준 아래로 떨어졌습니다.</value>
+  </data>
+  <data name="ConditionExpiring" xml:space="preserve">
+    <value>곧 만료</value>
+  </data>
+  <data name="ConditionExpiringTip" xml:space="preserve">
+    <value>주문 기간이 거의 끝나 갑니다.</value>
+  </data>
+  <data name="ShowNotReady" xml:space="preserve">
+    <value>막힘 / 대기 중 표시</value>
+  </data>
+  <data name="ShowSnoozed" xml:space="preserve">
+    <value>일시 숨김 표시</value>
+  </data>
+  <data name="FilterAny" xml:space="preserve">
+    <value>(전체)</value>
+  </data>
+  <data name="EmptyListHelp" xml:space="preserve">
+    <value>항목은 새로고침할 때마다 실시간 데이터로 다시 만들어지며, 작업이 끝나면 사라집니다. 감지는 폴링된 ESI 데이터로 하므로, 각 행에 근거 데이터가 얼마나 오래되었는지 표시됩니다. 위의 요약은 필터가 아니라 전체 실행 결과로 집계합니다.</value>
+  </data>
+  <data name="ChipBuy" xml:space="preserve">
+    <value>구매</value>
+  </data>
+  <data name="ChipHaul" xml:space="preserve">
+    <value>운반</value>
+  </data>
+  <data name="ChipManufacturing" xml:space="preserve">
+    <value>제조</value>
+  </data>
+  <data name="ChipReactions" xml:space="preserve">
+    <value>합성</value>
+  </data>
+  <data name="ChipScience" xml:space="preserve">
+    <value>연구</value>
+  </data>
+  <data name="StatusShown" xml:space="preserve">
+    <value>{0:N0}개 표시</value>
+  </data>
+  <data name="StatusNothingReady" xml:space="preserve">
+    <value>준비된 항목 없음{0}.</value>
+  </data>
+  <data name="StatusReady" xml:space="preserve">
+    <value>{0:N0}개 준비됨{1}</value>
+  </data>
+  <data name="RefreshedAt" xml:space="preserve">
+    <value>{0:HH:mm}에 새로고침</value>
+  </data>
+  <data name="ShowNotReadyCount" xml:space="preserve">
+    <value>막힘 / 대기 중 표시 ({0:N0})</value>
+  </data>
+  <data name="ShowSnoozedCount" xml:space="preserve">
+    <value>일시 숨김 표시 ({0:N0})</value>
+  </data>
+  <data name="HiddenBlocked" xml:space="preserve">
+    <value>막힘 {0}</value>
+  </data>
+  <data name="HiddenWaiting" xml:space="preserve">
+    <value>대기 중 {0}</value>
+  </data>
+  <data name="HiddenSnoozed" xml:space="preserve">
+    <value>일시 숨김 {0}</value>
+  </data>
+  <data name="HiddenList" xml:space="preserve">
+    <value>({0} 숨김)</value>
+  </data>
+  <data name="GroupWithId" xml:space="preserve">
+    <value>그룹 {0}</value>
+  </data>
+  <data name="FromPark" xml:space="preserve">
+    <value>— 산업 단지 기준 —</value>
+  </data>
+  <data name="BySkill" xml:space="preserve">
+    <value>— 스킬 기준 —</value>
+  </data>
+  <data name="RuleActionBuy" xml:space="preserve">
+    <value>구매</value>
+  </data>
+  <data name="RuleActionBuild" xml:space="preserve">
+    <value>제조</value>
+  </data>
+  <data name="GroupWithIdLower" xml:space="preserve">
+    <value>그룹 {0}</value>
+  </data>
+  <data name="NoStationSet" xml:space="preserve">
+    <value>정거장 미설정</value>
+  </data>
+  <data name="AltWarningMore" xml:space="preserve">
+    <value>구매 규칙 {0}개가 거래소 부캐릭터가 없는 정거장을 가리키고 있어, 구매를 올릴 캐릭터가 없으므로 막힘으로 표시됩니다: {1} 외 {2}개. 거래소 탭에서 부캐릭터를 지정하거나 규칙의 정거장을 다시 선택하십시오.</value>
+  </data>
+  <data name="AltWarning" xml:space="preserve">
+    <value>구매 규칙 {0}개가 거래소 부캐릭터가 없는 정거장을 가리키고 있어, 구매를 올릴 캐릭터가 없으므로 막힘으로 표시됩니다: {1}. 거래소 탭에서 부캐릭터를 지정하거나 규칙의 정거장을 다시 선택하십시오.</value>
+  </data>
+  <data name="Unassigned" xml:space="preserve">
+    <value>— 미지정 —</value>
+  </data>
+  <data name="RulesNoGroups" xml:space="preserve">
+    <value>재고 수준 그룹이 아직 없습니다 — 먼저 재고 수준에서 그룹을 만드십시오.</value>
+  </data>
+  <data name="RulesNone" xml:space="preserve">
+    <value>아직 규칙이 없습니다.</value>
+  </data>
+  <data name="RulesCount" xml:space="preserve">
+    <value>규칙 {0:N0}개</value>
+  </data>
+  <data name="StatusSaved" xml:space="preserve">
+    <value>저장했습니다.</value>
+  </data>
+  <data name="StatusSaveFailed" xml:space="preserve">
+    <value>변경 사항을 저장할 수 없습니다: {0}</value>
+  </data>
+  <data name="PickInventoryLevelGroup" xml:space="preserve">
+    <value>재고 수준 그룹을 선택하십시오.</value>
+  </data>
+  <data name="PickStationForBuyOrder" xml:space="preserve">
+    <value>구매 주문을 올릴 정거장이나 구조물을 선택하십시오.</value>
+  </data>
+  <data name="ThresholdNotPositive" xml:space="preserve">
+    <value>기준값은 0보다 큰 숫자여야 합니다.</value>
+  </data>
+  <data name="FillNotPositive" xml:space="preserve">
+    <value>채울 목표는 0보다 큰 숫자여야 합니다.</value>
+  </data>
+  <data name="ActivityManufacturing" xml:space="preserve">
+    <value>제조</value>
+  </data>
+  <data name="ActivityReactions" xml:space="preserve">
+    <value>합성</value>
+  </data>
+  <data name="ActivityScience" xml:space="preserve">
+    <value>연구</value>
+  </data>
+  <data name="ActivitiesNone" xml:space="preserve">
+    <value>— 없음 —</value>
+  </data>
+  <data name="ParkDefault" xml:space="preserve">
+    <value>&lt;기본값&gt;</value>
+  </data>
+  <data name="ScopeEverywhere" xml:space="preserve">
+    <value>모든 곳</value>
+  </data>
+  <data name="ScopeRegion" xml:space="preserve">
+    <value>지역</value>
+  </data>
+  <data name="ScopeSystem" xml:space="preserve">
+    <value>항성계</value>
+  </data>
+  <data name="PickScopeStation" xml:space="preserve">
+    <value>범위에 추가할 정거장을 선택하십시오.</value>
+  </data>
+  <data name="SlotsFreeOfTotal" xml:space="preserve">
+    <value>제조 {0}/{1}  ·  합성 {2}/{3}  ·  연구 {4}/{5}</value>
+  </data>
+  <data name="BuyNoLocation" xml:space="preserve">
+    <value>구매 위치가 설정되지 않았습니다. 부족분은 그것이 막는 작업에 계속 보고되지만, 구매 항목을 만들 곳이 없습니다.</value>
+  </data>
+  <data name="BuyNoAlt" xml:space="preserve">
+    <value>거래소 탭에서 {0}에 거래소 부캐릭터가 지정되지 않아, 그곳의 구매 작업 항목에 캐릭터가 없습니다.</value>
+  </data>
+  <data name="ParkNoDefault" xml:space="preserve">
+    <value>{0}이(가) 선택되어 있지만 산업 단지에서 기본으로 지정된 단지가 없습니다. 시설과 리그는 산업 단지가 결정하므로, 그곳에서 단지에 별표를 붙이거나 여기서 단지를 고를 때까지 산업 작업이 표시되지 않습니다.</value>
+  </data>
+  <data name="ParkUnlinked" xml:space="preserve">
+    <value>이 산업 단지의 구조물 {0}개가 실제 위치에 연결되어 있지 않습니다 ({1}). 그곳의 재료는 셀 수 없으므로, 재료가 실제로 있어도 작업이 막힌 것으로 보일 수 있습니다.</value>
+  </data>
+  <data name="ParkNoStructures" xml:space="preserve">
+    <value>이 산업 단지에는 구조물이 없습니다. 재료를 확인할 수 있는 곳이 없습니다.</value>
+  </data>
+  <data name="IndustryLoadFailed" xml:space="preserve">
+    <value>산업 설정을 불러올 수 없습니다: {0}</value>
+  </data>
+  <data name="GrainDaily" xml:space="preserve">
+    <value>일별</value>
+  </data>
+  <data name="GrainWeekly" xml:space="preserve">
+    <value>주별</value>
+  </data>
+  <data name="GrainMonthly" xml:space="preserve">
+    <value>월별</value>
+  </data>
+  <data name="ValuationMarket" xml:space="preserve">
+    <value>거래소 가치</value>
+  </data>
+  <data name="ValuationOverBuild" xml:space="preserve">
+    <value>제조 비용 + %</value>
+  </data>
+  <data name="FinalLoadFailed" xml:space="preserve">
+    <value>불러올 수 없습니다: {0}</value>
+  </data>
+  <data name="TypeWithId" xml:space="preserve">
+    <value>종류 {0}</value>
+  </data>
+  <data name="SourceFinalAndOrdered" xml:space="preserve">
+    <value>최종 · 주문됨</value>
+  </data>
+  <data name="SourceFinalProduct" xml:space="preserve">
+    <value>최종 생산품</value>
+  </data>
+  <data name="SourceOrdered" xml:space="preserve">
+    <value>주문됨</value>
+  </data>
+  <data name="FinalNoJobs" xml:space="preserve">
+    <value>이 기간에는 작업이 없습니다.</value>
+  </data>
+  <data name="FinalSummary" xml:space="preserve">
+    <value>작업 {0:N0}개 · 가치 {1} · 예상 이익 {2}</value>
+  </data>
+  <data name="LevelClash" xml:space="preserve">
+    <value>{0}은(는) 이미 {1}에 재고 수준이 있습니다 — 변경 사항을 저장하지 않았습니다.</value>
+  </data>
+  <data name="PickInventoryGroup" xml:space="preserve">
+    <value>재고 그룹을 선택하십시오.</value>
+  </data>
+  <data name="PickStationOrStructure" xml:space="preserve">
+    <value>정거장이나 구조물을 선택하십시오.</value>
+  </data>
+  <data name="LevelsNone" xml:space="preserve">
+    <value>아직 정거장 재고 수준이 없습니다. 없으면 재료는 작업이 기다리는 곳으로만 옮겨집니다.</value>
+  </data>
+  <data name="LevelsCount" xml:space="preserve">
+    <value>재고 수준 {0:N0}개</value>
+  </data>
+  <data name="CorpWithId" xml:space="preserve">
+    <value>코퍼레이션 {0}</value>
+  </data>
+  <data name="CorpProjectsNone" xml:space="preserve">
+    <value>아직 정의된 상시 프로젝트가 없습니다 — 먼저 코퍼레이션 활동에서 설정하십시오.</value>
+  </data>
+  <data name="CorpProjectsUnassigned" xml:space="preserve">
+    <value>코퍼레이션 {1}개에 상시 프로젝트 {0:N0}개 · 코퍼레이션 {2}개는 담당자가 없어 항목이 막힘으로 표시됩니다</value>
+  </data>
+  <data name="CorpProjectsCount" xml:space="preserve">
+    <value>코퍼레이션 {1}개에 상시 프로젝트 {0:N0}개</value>
+  </data>
+  <data name="PickCorporation" xml:space="preserve">
+    <value>코퍼레이션을 선택하십시오.</value>
+  </data>
+  <data name="PickProjectCharacter" xml:space="preserve">
+    <value>프로젝트를 관리할 캐릭터를 선택하십시오.</value>
+  </data>
+  <data name="MarketAltsNone" xml:space="preserve">
+    <value>아직 거래소 부캐릭터가 없습니다. 정거장에 부캐릭터가 지정될 때까지는 어느 캐릭터가 일을 해야 하는지 알 수 없으므로 그곳의 항목이 막힘으로 표시됩니다.</value>
+  </data>
+  <data name="MarketAltsCount" xml:space="preserve">
+    <value>거래소 부캐릭터 {0:N0}명</value>
+  </data>
+  <data name="PickStationFromList" xml:space="preserve">
+    <value>목록에서 정거장이나 구조물을 선택하십시오.</value>
+  </data>
+  <data name="PickMarketAltCharacter" xml:space="preserve">
+    <value>그곳에서 일할 캐릭터를 선택하십시오.</value>
+  </data>
+  <data name="TasksOther" xml:space="preserve">
+    <value>작업 항목 {0:N0}개</value>
+  </data>
+  <data name="SourceSkillQueues" xml:space="preserve">
+    <value>스킬 대기열</value>
+  </data>
+  <data name="SkillQueueEmpty" xml:space="preserve">
+    <value>스킬 대기열이 비어 있음</value>
+  </data>
+  <data name="SkillQueueEmptyDetail" xml:space="preserve">
+    <value>훈련 중인 스킬이 없습니다. 1분 1분이 얻지 못한 스킬 포인트입니다.</value>
+  </data>
+  <data name="SkillQueuePaused" xml:space="preserve">
+    <value>스킬 대기열이 일시정지됨</value>
+  </data>
+  <data name="SkillQueuePausedDetail" xml:space="preserve">
+    <value>대기열에 스킬이 있지만 훈련 중인 스킬이 없습니다.</value>
+  </data>
+  <data name="DurationDaysHours" xml:space="preserve">
+    <value>{0}일 {1}시간</value>
+  </data>
+  <data name="SkillQueueEndsIn" xml:space="preserve">
+    <value>스킬 대기열이 {0} 후 종료</value>
+  </data>
+  <data name="SkillQueueEndsDetail" xml:space="preserve">
+    <value>{0:M월 d일 HH:mm}에 비게 되며, {1}일 경고 기간 안에 있습니다.</value>
+  </data>
+  <data name="SourceStandingProjects" xml:space="preserve">
+    <value>상시 프로젝트</value>
+  </data>
+  <data name="BlockedNoCharacterForCorp" xml:space="preserve">
+    <value>이 코퍼레이션에 지정된 캐릭터가 없음</value>
+  </data>
+  <data name="ProjectNotActive" xml:space="preserve">
+    <value>이 정의와 일치하는 활성 프로젝트가 없습니다.</value>
+  </data>
+  <data name="ProjectCheckAdm" xml:space="preserve">
+    <value>ADM 데이터 확인 — {0}: {1}</value>
+  </data>
+  <data name="ProjectCheckAdmDetail" xml:space="preserve">
+    <value>소버린티 데이터를 읽을 수 없어 어떤 항성계도 기준값과 비교할 수 없습니다. 범위가 비어 있는 것이 아니라 데이터 가져오기가 실패한 것입니다.</value>
+  </data>
+  <data name="ProjectCheckScope" xml:space="preserve">
+    <value>범위 확인 — {0}: {1}</value>
+  </data>
+  <data name="ProjectCheckScopeDetail" xml:space="preserve">
+    <value>범위를 펼쳐도 항성계가 하나도 없으므로, 이에 대해 만들 수 있는 것이 없습니다.</value>
+  </data>
+  <data name="ProjectNothingToRaise" xml:space="preserve">
+    <value>{0} — {1}에서 만들 항목 없음</value>
+  </data>
+  <data name="ProjectNothingToRaiseDetail" xml:space="preserve">
+    <value>범위 안의 모든 항성계가 기준값 이상이므로 오늘은 규칙이 아무것도 선택하지 않습니다. ADM이 떨어지면 저절로 다시 나타납니다.</value>
+  </data>
+  <data name="ProjectDeliverTo" xml:space="preserve">
+    <value>{0} — {1} → {2}</value>
+  </data>
+  <data name="ProjectDeliverToAnyOffice" xml:space="preserve">
+    <value>{0} — {1} → 아무 코퍼레이션 사무실</value>
+  </data>
+  <data name="ProjectNotActiveByRule" xml:space="preserve">
+    <value>이 정의와 일치하는 활성 프로젝트가 없습니다. 이 항성계는 ADM 규칙에 따라 대상이 되었으므로, ADM이 회복되면 저절로 목록에서 빠집니다.</value>
+  </data>
+  <data name="ProjectNotActiveNamed" xml:space="preserve">
+    <value>이 정의와 일치하는 활성 프로젝트가 없습니다. 이 항성계는 정의에서 직접 지정한 곳입니다.</value>
+  </data>
+  <data name="SourceStandingBuyOrders" xml:space="preserve">
+    <value>상시 구매 주문</value>
+  </data>
+  <data name="BlockedNoCharacterAtLocation" xml:space="preserve">
+    <value>이 위치에 지정된 캐릭터가 없음</value>
+  </data>
+  <data name="TitleRaiseBid" xml:space="preserve">
+    <value>{0} — 입찰가 인상</value>
+  </data>
+  <data name="TitlePlaceOrder" xml:space="preserve">
+    <value>{0} — 주문 등록</value>
+  </data>
+  <data name="TitleTopUpOrder" xml:space="preserve">
+    <value>{0} — 주문 보충</value>
+  </data>
+  <data name="TitleReplaceOrder" xml:space="preserve">
+    <value>{0} — 주문 재등록</value>
+  </data>
+  <data name="StandingOutbidBy" xml:space="preserve">
+    <value>{0:N2} ISK 차이로 가격 밀림 — 최고 경쟁 입찰가 {1}. 내 가격: {2}.</value>
+  </data>
+  <data name="StandingOutbid" xml:space="preserve">
+    <value>가격 밀림 — 최고 경쟁 입찰가 {0}. 내 가격: {1}.</value>
+  </data>
+  <data name="StandingNoOrderAt" xml:space="preserve">
+    <value>{0}에서 주문을 찾을 수 없습니다.</value>
+  </data>
+  <data name="CompetingBidsUnknown" xml:space="preserve">
+    <value>경쟁 입찰가를 알 수 없습니다 — 이 위치는 설정된 거래소 출처가 아닙니다.</value>
+  </data>
+  <data name="StandingRunningLow" xml:space="preserve">
+    <value>{0} 남음 (원래 수량의 {1}).</value>
+  </data>
+  <data name="StandingExpires" xml:space="preserve">
+    <value>{0} 만료.</value>
+  </data>
+  <data name="OutbidDetail" xml:space="preserve">
+    <value>{0}: 내 입찰가 {1:N2} ISK가 {2:N2}에 밀림 — {3:N2} ({4:N1}%) 뒤처짐. 필요로 하는 곳이 있는데도 주문에 남은 {5:N0}개가 아무것도 사지 못하고 있습니다.</value>
+  </data>
+  <data name="WhyShort" xml:space="preserve">
+    <value>{2} {1:N0}개 중 {0:N0}개 부족</value>
+  </data>
+  <data name="WhyShortOwnedElsewhere" xml:space="preserve">
+    <value>{2} {1:N0}개 중 {0:N0}개 부족 (보유 중이지만 작업 위치에 없음)</value>
+  </data>
+  <data name="SharedTripRestarts" xml:space="preserve">
+    <value>{0} → {1}: {2:N0}개({3:N0} m3)를 한 번 배송하면 작업 {4:N0}개가 다시 시작됩니다</value>
+  </data>
+  <data name="SharedTripRestartsBehind" xml:space="preserve">
+    <value>{0} → {1}: {2:N0}개({3:N0} m3)를 한 번 배송하면 작업 {4:N0}개와 그 뒤의 작업 항목 {5:N0}개가 다시 시작됩니다</value>
+  </data>
+  <data name="SharedTripWanted" xml:space="preserve">
+    <value>{0} → {1}: {2:N0}개({3:N0} m3)의 한 번 배송을 작업 {4:N0}개가 원하지만, 이것만으로 다시 시작되는 작업은 없습니다</value>
+  </data>
+  <data name="SharedTripOthersShort" xml:space="preserve">
+    <value>이것을 원하는 작업 {0:N0}개가 더 있지만 다른 것도 부족합니다</value>
+  </data>
+  <data name="SharedTripRaised" xml:space="preserve">
+    <value>이미 등록됨.</value>
+  </data>
+  <data name="SharedTripNothingMoving" xml:space="preserve">
+    <value>운반 없음.</value>
+  </data>
+  <data name="WaitStartsOnArrival" xml:space="preserve">
+    <value>도착 시 시작</value>
+  </data>
+  <data name="WaitWants" xml:space="preserve">
+    <value>{0:N0}개 필요</value>
+  </data>
+  <data name="WaitQueuedBehind" xml:space="preserve">
+    <value>다른 작업 뒤에 대기</value>
+  </data>
+  <data name="WaitAlsoShortOther" xml:space="preserve">
+    <value>다른 아이템 {0:N0}개도 부족</value>
+  </data>
+  <data name="WaitTipPlanned" xml:space="preserve">
+    <value>이 배송의 대상인 제조입니다. 계획기가 이 운반을 만든 이유이며, 아직 별도의 작업 항목으로 나뉘지 않았습니다.</value>
+  </data>
+  <data name="WaitTipStarts" xml:space="preserve">
+    <value>이 운반이 작업에 부족한 모든 것을 싣고 있으므로, 화물이 도착하면 작업이 시작됩니다.</value>
+  </data>
+  <data name="WaitTipQueued" xml:space="preserve">
+    <value>작업이 이 적재 목록의 무언가를 원하지만, 앞선 작업이 이미 그 재고를 가져갔습니다 — 이번 적재분은 이 작업에 닿지 않습니다.</value>
+  </data>
+  <data name="WaitTipStillShort" xml:space="preserve">
+    <value>여전히 부족: {0}.</value>
+  </data>
+  <data name="WaitTipStillShortMore" xml:space="preserve">
+    <value>여전히 부족: {0} 외 {1:N0}개.</value>
+  </data>
+  <data name="WaitTipAlsoBehind" xml:space="preserve">
+    <value>이 적재 목록의 무언가를 두고 다른 작업 뒤에서도 대기하고 있습니다.</value>
+  </data>
+  <data name="MergedDetail" xml:space="preserve">
+    <value>총 {0:N0}개. {1}</value>
+  </data>
+  <data name="HaulRestartsJobs" xml:space="preserve">
+    <value>도착하면 멈춘 작업 {0:N0}개가 다시 시작됩니다: {1}.</value>
+  </data>
+  <data name="HaulRestartsJobsMore" xml:space="preserve">
+    <value>도착하면 멈춘 작업 {0:N0}개가 다시 시작됩니다: {1} 외 {2:N0}개.</value>
+  </data>
+  <data name="HaulOthersWantPart" xml:space="preserve">
+    <value>작업 {0:N0}개가 더 이 화물의 일부를 원하지만 이번 적재분으로는 시작되지 않습니다.</value>
+  </data>
+  <data name="HaulPlannedWantIt" xml:space="preserve">
+    <value>여기 있는 아이템 {0:N0}개는 멈춘 작업이 따로 없는 계획된 작업이 원하는 것입니다.</value>
+  </data>
+  <data name="BuyReleasesJobs" xml:space="preserve">
+    <value>멈춘 작업 {0:N0}개를 풀어 줍니다: {1}.</value>
+  </data>
+  <data name="BuyReleasesJobsMore" xml:space="preserve">
+    <value>멈춘 작업 {0:N0}개를 풀어 줍니다: {1} 외 {2:N0}개.</value>
+  </data>
+  <data name="BuyOthersWaitingOther" xml:space="preserve">
+    <value>이 항목을 기다리는 작업 {0:N0}개는 다른 것도 함께 기다리고 있습니다.</value>
+  </data>
+  <data name="BuyOthersWaitingMoreOther" xml:space="preserve">
+    <value>이 항목을 기다리는 작업이 {0:N0}개 더 있지만, 다른 것도 함께 기다리고 있습니다.</value>
+  </data>
+  <data name="MergedDetailSumPooled" xml:space="preserve">
+    <value>총 {0:N0}개: 모두 합쳐 {1} = {2:N0}개가 필요하고, 여기서 이미 보유 중이거나 주문 중이거나 회수할 수 있는 {3:N0}개를 뺐습니다. 이어지는 사유는 각각 같은 {3:N0}개를 자기 몫에서 뺀 것이므로, 사유별 부족분을 더해도 총량과 맞지 않습니다. {4}</value>
+  </data>
+  <data name="MergedDetailSum" xml:space="preserve">
+    <value>총 {0:N0}개: 모두 합쳐 {1} = {2:N0}개가 필요합니다. {3}</value>
+  </data>
+  <data name="TitleTagBpoBpc" xml:space="preserve">
+    <value>BPO/BPC</value>
+  </data>
+  <data name="StockOfTarget" xml:space="preserve">
+    <value>재고 {1:N0}개 중 {0:N0}개 ({2:0.#}%)</value>
+  </data>
+  <data name="FillingTo" xml:space="preserve">
+    <value>{0:0.#}%({1:N0}개)까지 채웁니다.</value>
+  </data>
+  <data name="SourceInventoryLevels" xml:space="preserve">
+    <value>재고 수준</value>
+  </data>
+  <data name="SourceMaterialPurchases" xml:space="preserve">
+    <value>재료 구매</value>
+  </data>
+  <data name="BlockedNoMarketAltAt" xml:space="preserve">
+    <value>{0}에 지정된 거래소 부캐릭터가 없음</value>
+  </data>
+  <data name="BlockedNoBuyLocation" xml:space="preserve">
+    <value>거래소 탭에 구매 위치가 설정되지 않음</value>
+  </data>
+  <data name="WantedByPlannedBuilds" xml:space="preserve">
+    <value>계획된 제조</value>
+  </data>
+  <data name="NameRuns" xml:space="preserve">
+    <value>{0} ({1:N0}회)</value>
+  </data>
+  <data name="BlueprintWithId" xml:space="preserve">
+    <value>블루프린트 {0}</value>
+  </data>
+  <data name="PrintRunsToStock" xml:space="preserve">
+    <value>재고용 {0:N0}회</value>
+  </data>
+  <data name="PrintTitle" xml:space="preserve">
+    <value>{0} — BPO/BPC × {1:N0}회</value>
+  </data>
+  <data name="OnOrderHere" xml:space="preserve">
+    <value>이곳에서 {0:N0}개 주문 중</value>
+  </data>
+  <data name="OnOrderElsewhere" xml:space="preserve">
+    <value>다른 곳에서 {0:N0}개 주문 중</value>
+  </data>
+  <data name="OnOrder" xml:space="preserve">
+    <value>{0:N0}개 주문 중</value>
+  </data>
+  <data name="InProduction" xml:space="preserve">
+    <value>{0:N0}개 생산 중</value>
+  </data>
+  <data name="HeldAndOnOrder" xml:space="preserve">
+    <value>{1} {0:N0}개 보유 및 {2:N0}개 주문 중</value>
+  </data>
+  <data name="RecoverableFrom" xml:space="preserve">
+    <value>{1}에서 {0:N0}개 회수 가능</value>
+  </data>
+  <data name="RecoverableFromMore" xml:space="preserve">
+    <value>{1} 외 {2}개에서 {0:N0}개 회수 가능</value>
+  </data>
+  <data name="ShortBy" xml:space="preserve">
+    <value>{0:N0}개 부족.</value>
+  </data>
+  <data name="ShortByTail" xml:space="preserve">
+    <value>{0:N0}개 부족.</value>
+  </data>
+  <data name="BelowThreshold" xml:space="preserve">
+    <value>{0:0.#}% 미만</value>
+  </data>
+  <data name="PurchaseNeedOnHand" xml:space="preserve">
+    <value>{0}: {1:N0}개 필요, {2:N0}개 보유</value>
+  </data>
+  <data name="PurchaseNeedOnHandIn" xml:space="preserve">
+    <value>{0}: {1:N0}개 필요, {3}에 {2:N0}개 보유</value>
+  </data>
+  <data name="PurchaseNeedOnHandTaken" xml:space="preserve">
+    <value>{0}: {1:N0}개 필요, {2:N0}개 보유 (그중 {3:N0}개는 자산 폴링에 아직 반영되지 않은 작업에 이미 들어감)</value>
+  </data>
+  <data name="PurchaseNeedOnHandInTaken" xml:space="preserve">
+    <value>{0}: {1:N0}개 필요, {3}에 {2:N0}개 보유 (그중 {4:N0}개는 자산 폴링에 아직 반영되지 않은 작업에 이미 들어감)</value>
+  </data>
+  <data name="WantedForOne" xml:space="preserve">
+    <value>{0}용</value>
+  </data>
+  <data name="WantedForTwo" xml:space="preserve">
+    <value>{0} 및 {1}용</value>
+  </data>
+  <data name="WantedForTwoMore" xml:space="preserve">
+    <value>{0}, {1} 외 {2}건용</value>
+  </data>
+  <data name="PrintContractPrice" xml:space="preserve">
+    <value>계약에서 복제본이 1회당 {0:N0} ISK부터 올라온 적이 있습니다.</value>
+  </data>
+  <data name="PrintRunsFor" xml:space="preserve">
+    <value>{1}용 {0:N0}회</value>
+  </data>
+  <data name="PrintRunsForQueued" xml:space="preserve">
+    <value>대기 중인 제조용 {0:N0}회</value>
+  </data>
+  <data name="PrintOriginalOwned" xml:space="preserve">
+    <value>원본 보유</value>
+  </data>
+  <data name="PrintCopiesOwned" xml:space="preserve">
+    <value>{0:N0}회 보유</value>
+  </data>
+  <data name="PrintNoneOwned" xml:space="preserve">
+    <value>보유 없음</value>
+  </data>
+  <data name="PrintShortRuns" xml:space="preserve">
+    <value>{0:N0}회 부족.</value>
+  </data>
+  <data name="SourceIndustryJobs" xml:space="preserve">
+    <value>산업 작업</value>
+  </data>
+  <data name="JobDetailBuild" xml:space="preserve">
+    <value>{0} {1:N0}개 제조.</value>
+  </data>
+  <data name="BlockedNoSkilledCharacter" xml:space="preserve">
+    <value>이 작업에 필요한 스킬을 가진 활성 캐릭터가 없음</value>
+  </data>
+  <data name="BlockedNoCharacterRunsActivity" xml:space="preserve">
+    <value>이 활동을 실행하는 활성 캐릭터가 없음</value>
+  </data>
+  <data name="BlockedSiteNotLinked" xml:space="preserve">
+    <value>{0}이(가) 실제 구조물에 연결되어 있지 않아 재료를 확인할 수 없음</value>
+  </data>
+  <data name="BlockedNoLinkedStructure" xml:space="preserve">
+    <value>이 작업에 연결된 구조물이 없어 재료를 확인할 수 없음</value>
+  </data>
+  <data name="WaitingAllSlotsBusy" xml:space="preserve">
+    <value>이 작업을 실행할 수 있는 모든 캐릭터의 슬롯이 모두 사용 중</value>
+  </data>
+  <data name="JobTitleRunsMaking" xml:space="preserve">
+    <value>{0} — {1:N0}회 → {2:N0}개</value>
+  </data>
+  <data name="JobTitleRuns" xml:space="preserve">
+    <value>{0} — {1:N0}회</value>
+  </data>
+  <data name="BlockedNoBlueprintOwned" xml:space="preserve">
+    <value>보유한 블루프린트 없음 — 구해야 함</value>
+  </data>
+  <data name="BlockedBlueprintBusy" xml:space="preserve">
+    <value>블루프린트가 진행 중인 작업에서 사용 중 ({0})</value>
+  </data>
+  <data name="BlockedNoBlueprintFreeAt" xml:space="preserve">
+    <value>{0}에 사용 가능한 블루프린트 없음 ({1})</value>
+  </data>
+  <data name="JobDetailShort" xml:space="preserve">
+    <value>{0} {1:N0}개 부족.</value>
+  </data>
+  <data name="BlockedPlannerSilent" xml:space="preserve">
+    <value>계획기가 이에 대한 작업 항목을 만들지 않았고 이유도 알려 주지 않았습니다 — 보고해 주십시오</value>
+  </data>
+  <data name="BlockedNothingMakesIt" xml:space="preserve">
+    <value>SDE에 이것을 만드는 것이 없으므로 구매만 가능</value>
+  </data>
+  <data name="JobTitleNeeded" xml:space="preserve">
+    <value>{0} — {1:N0}개 필요</value>
+  </data>
+  <data name="JobDetailShortOf" xml:space="preserve">
+    <value>{0} {1:N0}개 부족 (작업 {3}개 중 {2}번째).</value>
+  </data>
+  <data name="PrintAt" xml:space="preserve">
+    <value>{1}의 {0}.</value>
+  </data>
+  <data name="JobCutToMaterials" xml:space="preserve">
+    <value>보유한 재료로 충당할 수 있는 만큼으로 줄였습니다 — 나머지 {0:N0}회는 별도 행에 있습니다.</value>
+  </data>
+  <data name="JobRestWaiting" xml:space="preserve">
+    <value>이 작업의 나머지 부분으로, 재료를 기다리고 있습니다.</value>
+  </data>
+  <data name="JobRunsNoFreePrint" xml:space="preserve">
+    <value>추가 {0:N0}회는 사용 가능한 원본이 없어 따로 표시됩니다.</value>
+  </data>
+  <data name="JobCapGameLimit" xml:space="preserve">
+    <value>EVE의 작업당 30일 제한에 걸렸습니다.</value>
+  </data>
+  <data name="JobCapCopyRuns" xml:space="preserve">
+    <value>복제본에 남은 실행 횟수에 걸렸습니다.</value>
+  </data>
+  <data name="JobCapJobLength" xml:space="preserve">
+    <value>{0:0.#}일 작업 기간 제한에 걸렸습니다.</value>
+  </data>
+  <data name="JobSizedFullyResearched" xml:space="preserve">
+    <value>완전히 연구된 원본(TE{0}) 기준으로 산정했습니다 — 보유한 것이 없습니다.</value>
+  </data>
+  <data name="JobSizedAgainst" xml:space="preserve">
+    <value>{0} 기준으로 산정했습니다.</value>
+  </data>
+  <data name="JobNeedsBlueprintAt" xml:space="preserve">
+    <value>{0}에 블루프린트가 필요합니다.</value>
+  </data>
+  <data name="BlockedMaterialsNotAt" xml:space="preserve">
+    <value>{0}에 없는 재료: {1}</value>
+  </data>
+  <data name="BlockedNotOwned" xml:space="preserve">
+    <value>미보유: {0}</value>
+  </data>
+  <data name="BlockedNotOwnedIn" xml:space="preserve">
+    <value>{0}에 미보유: {1}</value>
+  </data>
+  <data name="BlockedNotOwnedElsewhere" xml:space="preserve">
+    <value>미보유: {0}; 다른 곳에 있음: {1}</value>
+  </data>
+  <data name="BlockedNotOwnedInElsewhere" xml:space="preserve">
+    <value>{0}에 미보유: {1}; 다른 곳에 있음: {2}</value>
+  </data>
+  <data name="NamesAndMore" xml:space="preserve">
+    <value>{0} 외 {1}개</value>
+  </data>
+  <data name="ReasonPendingOrders" xml:space="preserve">
+    <value>대기 중인 주문 {0}건, {1:N0}개.</value>
+  </data>
+  <data name="ReasonForParent" xml:space="preserve">
+    <value>{1}용 {0:N0}개.</value>
+  </data>
+  <data name="ReasonsAndMore" xml:space="preserve">
+    <value>외 {0}건.</value>
+  </data>
+  <data name="ReasonKeepingConsuming" xml:space="preserve">
+    <value>{0:N0}개 유지, {1:N0}개 소비 예정, 보유 {2:N0}개.</value>
+  </data>
+  <data name="PrintDescribeBpo" xml:space="preserve">
+    <value>BPO ME{0}/TE{1}</value>
+  </data>
+  <data name="PrintDescribeBpc" xml:space="preserve">
+    <value>BPC ME{0}/TE{1}, {2:N0}회 남음</value>
+  </data>
+  <data name="JobLengthMinutes" xml:space="preserve">
+    <value>{0:0}분</value>
+  </data>
+  <data name="JobLengthHours" xml:space="preserve">
+    <value>{0:0.#}시간</value>
+  </data>
+  <data name="JobLengthDays" xml:space="preserve">
+    <value>{0:0.#}일</value>
+  </data>
+  <data name="HeadDownstream" xml:space="preserve">
+    <value>[후속 아이템 {0:N0}개가 이것을 기다림]</value>
+  </data>
+  <data name="SourceInvention" xml:space="preserve">
+    <value>인벤션 및 복제</value>
+  </data>
+  <data name="InventionHead" xml:space="preserve">
+    <value>{0}: T2 생산 {1:N0}회분 부족.</value>
+  </data>
+  <data name="WaitingScienceSlotsBusy" xml:space="preserve">
+    <value>연구 작업을 하는 모든 캐릭터의 슬롯이 모두 사용 중</value>
+  </data>
+  <data name="BlockedNotAt" xml:space="preserve">
+    <value>{0}에 없음: {1}</value>
+  </data>
+  <data name="InventionTitle" xml:space="preserve">
+    <value>{0} — 인벤션 {1:N0}회</value>
+  </data>
+  <data name="InventionNoCopyDetail" xml:space="preserve">
+    <value>{0} 1회당 성공률 {1:P1} → {3}회짜리 BPC {2:N0}개.</value>
+  </data>
+  <data name="BlockedNoCopyToInvent" xml:space="preserve">
+    <value>{1}에 인벤션에 쓸 {0} 복제본 없음</value>
+  </data>
+  <data name="CopyTitleNoOriginal" xml:space="preserve">
+    <value>{0} — 복제할 원본 없음</value>
+  </data>
+  <data name="CopyNeedsRunsDetail" xml:space="preserve">
+    <value>{0} 인벤션에 복제본 {1:N0}회가 필요하며 {2:N0}회를 보유 중입니다.</value>
+  </data>
+  <data name="BlockedNoBpoToCopy" xml:space="preserve">
+    <value>어느 캐릭터에도 BPO가 없음 — 원본을 구하거나 복제본을 직접 구매해야 함</value>
+  </data>
+  <data name="CopyTitle" xml:space="preserve">
+    <value>{0} — 복제 {1:N0} × {2:N0}회</value>
+  </data>
+  <data name="BlockedOriginalNotAt" xml:space="preserve">
+    <value>원본이 {0}에 없음 — 먼저 그곳으로 옮겨야 함</value>
+  </data>
+  <data name="NoDecryptor" xml:space="preserve">
+    <value>해독기 없음</value>
+  </data>
+  <data name="NameHaveOfWant" xml:space="preserve">
+    <value>{0} ({2:N0}개 중 {1:N0}개)</value>
+  </data>
+  <data name="InventionCutToDatacores" xml:space="preserve">
+    <value>보유한 데이터코어로 충당할 수 있는 만큼으로 줄였습니다 — 나머지 {0:N0}회 시도는 별도 행에 있습니다.</value>
+  </data>
+  <data name="InventionRestWaiting" xml:space="preserve">
+    <value>이 묶음의 나머지 부분으로, 데이터코어를 기다리고 있습니다.</value>
+  </data>
+  <data name="JobIndexOf" xml:space="preserve">
+    <value>(작업 {1}개 중 {0}번째)</value>
+  </data>
+  <data name="JobCapSourceCopyRuns" xml:space="preserve">
+    <value>인벤션에 쓰는 복제본에 남은 실행 횟수에 걸렸습니다.</value>
+  </data>
+  <data name="InventionAttemptsNoCopy" xml:space="preserve">
+    <value>추가 {0:N0}회 시도에는 인벤션에 쓸 복제본이 필요하지만 사용 가능한 것이 없습니다.</value>
+  </data>
+  <data name="InventionOdds" xml:space="preserve">
+    <value>1회당 성공률 {0:P1} (기본 {1:P0}, {2}) → 시도 {7:N0}회로 ME{5}/TE{6}, {4}회짜리 BPC {3:N0}개.</value>
+  </data>
+  <data name="CopyFeedsDetail" xml:space="preserve">
+    <value>{0} 인벤션 시도 {1:N0}회에 쓰이며, 복제본 {2:N0}회를 이미 보유 중입니다.</value>
+  </data>
+  <data name="SourceRefining" xml:space="preserve">
+    <value>정제</value>
+  </data>
+  <data name="RefineTitleOne" xml:space="preserve">
+    <value>{0} 정제 — {1:N0}개</value>
+  </data>
+  <data name="RefineTitleMany" xml:space="preserve">
+    <value>광물 {0}종 정제 — {1:N0}개</value>
+  </data>
+  <data name="DecompressTitleOne" xml:space="preserve">
+    <value>{0} 압축해제 — {1:N0}개</value>
+  </data>
+  <data name="DecompressTitleMany" xml:space="preserve">
+    <value>압축 가스 {0}종 압축해제 — {1:N0}개</value>
+  </data>
+  <data name="RefineDetail" xml:space="preserve">
+    <value>{0}: 온전한 묶음 단위로 정제할 수 있는 {1:N0}개 — {2}. 한 묶음에 못 미치는 양은 그대로 둡니다.</value>
+  </data>
+  <data name="RefineDetailMore" xml:space="preserve">
+    <value>{0}: 온전한 묶음 단위로 정제할 수 있는 {1:N0}개 — {2} 외 {3}종. 한 묶음에 못 미치는 양은 그대로 둡니다.</value>
+  </data>
+  <data name="DecompressDetail" xml:space="preserve">
+    <value>{0}: 압축해제할 {1:N0}개 — {2}.</value>
+  </data>
+  <data name="DecompressDetailMore" xml:space="preserve">
+    <value>{0}: 압축해제할 {1:N0}개 — {2} 외 {3}종.</value>
+  </data>
+  <data name="SourceAssetSafety" xml:space="preserve">
+    <value>자산 보호</value>
+  </data>
+  <data name="StationWithIdLower" xml:space="preserve">
+    <value>정거장 {0}</value>
+  </data>
+  <data name="UnnamedStructureWithId" xml:space="preserve">
+    <value>이름 없는 구조물 {0}</value>
+  </data>
+  <data name="CharacterWithId" xml:space="preserve">
+    <value>캐릭터 {0}</value>
+  </data>
+  <data name="SafetyChooseDestinationOther" xml:space="preserve">
+    <value>자산 보호 포장 {0:N0}개의 목적지 선택</value>
+  </data>
+  <data name="SafetyTypesInOneWrapOther" xml:space="preserve">
+    <value>포장 1개에 아이템 {0:N0}종</value>
+  </data>
+  <data name="SafetyTypesAcrossWraps" xml:space="preserve">
+    <value>포장 {1:N0}개에 아이템 {0:N0}종</value>
+  </data>
+  <data name="SafetyDetail" xml:space="preserve">
+    <value>{0}. {1}. 그대로 두면 {3}일 {4}시간 후({5:M월 d일 HH:mm}) 더 높은 수수료로 {2}에 자동 배송됩니다.</value>
+  </data>
+  <data name="SourceLogistics" xml:space="preserve">
+    <value>물류</value>
+  </data>
+  <data name="HaulTitleItems" xml:space="preserve">
+    <value>아이템 {0}종</value>
+  </data>
+  <data name="HaulWhyUnblocking" xml:space="preserve">
+    <value>작업들이 이것을 기다리고 있습니다.</value>
+  </data>
+  <data name="HaulWhyRestock" xml:space="preserve">
+    <value>정거장을 재고 수준까지 채웁니다.</value>
+  </data>
+  <data name="HaulWhyRefine" xml:space="preserve">
+    <value>정제 또는 압축해제용입니다.</value>
+  </data>
+  <data name="HaulWhySurplus" xml:space="preserve">
+    <value>여분 재고를 그룹이 모이는 곳으로 옮깁니다.</value>
+  </data>
+  <data name="PlaceInSpace" xml:space="preserve">
+    <value>{0} (우주 공간)</value>
+  </data>
+  <data name="DriverBuild" xml:space="preserve">
+    <value>제조</value>
+  </data>
+  <data name="DriverBlueprintFor" xml:space="preserve">
+    <value>제조용 블루프린트</value>
+  </data>
+  <data name="DriverInvention" xml:space="preserve">
+    <value>인벤션</value>
+  </data>
+  <data name="DriverCopiesForInvention" xml:space="preserve">
+    <value>인벤션용 복제본</value>
+  </data>
+  <data name="DriverStationLevel" xml:space="preserve">
+    <value>정거장 재고 수준</value>
+  </data>
+  <data name="HaulAdviceIdleNowhere" xml:space="preserve">
+    <value>이미 보유한 아이템 {0:N0}종이 없어 멈췄습니다. 옮겨야 할 {1:N0} m3 중 범위 안에서 가져올 수 있는 것은 없습니다. 목록의 어떤 운반도 이를 이곳으로 가져오지 않으므로, 저절로 달라지는 것은 없습니다.</value>
+  </data>
+  <data name="HaulAdviceIdleOnePlace" xml:space="preserve">
+    <value>이미 보유한 아이템 {0:N0}종이 없어 멈췄습니다. 옮겨야 할 {1:N0} m3는 모두 한 곳에 있습니다. 목록의 어떤 운반도 이를 이곳으로 가져오지 않으므로, 저절로 달라지는 것은 없습니다.</value>
+  </data>
+  <data name="HaulAdviceIdlePlaces" xml:space="preserve">
+    <value>이미 보유한 아이템 {0:N0}종이 없어 멈췄습니다. 옮겨야 할 {1:N0} m3는 {2:N0}곳에 흩어져 있습니다. 목록의 어떤 운반도 이를 이곳으로 가져오지 않으므로, 저절로 달라지는 것은 없습니다.</value>
+  </data>
+  <data name="HaulAdviceSeveralStops" xml:space="preserve">
+    <value>아이템 {0:N0}종(총 {1:N0} m3, {2:N0}곳)이 없어 멈췄으며, 이미 운반 {3:N0}건이 등록되어 있습니다. 가져올 곳이 여러 곳이므로 마지막 운반이 도착할 때까지 멈춰 있습니다.</value>
+  </data>
+  <data name="HaulAdviceRaised" xml:space="preserve">
+    <value>멈춰 있으며, {1:N0} m3를 이곳으로 가져올 운반 {0:N0}건이 이미 등록되어 있습니다. 결정할 것이 없습니다 — 재료가 도착하면 시작됩니다.</value>
+  </data>
+  <data name="HaulAdviceBehind" xml:space="preserve">
+    <value>그 뒤에 작업 항목 {0:N0}개가 더 멈춰 있습니다.</value>
+  </data>
+  <data name="HaulNeedNowhere" xml:space="preserve">
+    <value>{1:N0}개 중 {0:N0}개 부족, {2:N0} m3 — 범위 안에 가져올 곳 없음</value>
+  </data>
+  <data name="HaulNeedFrom" xml:space="preserve">
+    <value>{1:N0}개 중 {0:N0}개 부족, {2:N0} m3 — {3}에서</value>
+  </data>
+  <data name="HaulNeedFromMore" xml:space="preserve">
+    <value>{1:N0}개 중 {0:N0}개 부족, {2:N0} m3 — {3} 외 {4:N0}곳에서</value>
+  </data>
+  <data name="StopsOther" xml:space="preserve">
+    <value>경유지 {0:N0}곳</value>
+  </data>
+  <data name="WhyOnListFrom" xml:space="preserve">
+    <value>이미 목록에 있음, {0}에서</value>
+  </data>
+  <data name="WhyOnList" xml:space="preserve">
+    <value>이미 목록에 있음</value>
+  </data>
+  <data name="WhyReadyToInstall" xml:space="preserve">
+    <value>바로 설치 가능</value>
+  </data>
+  <data name="RunsInstalled" xml:space="preserve">
+    <value>{0:N0}회 설치됨</value>
+  </data>
+  <data name="JobLands" xml:space="preserve">
+    <value>{0:M월 d일 HH:mm} 완료</value>
+  </data>
+  <data name="AdviceStopped" xml:space="preserve">
+    <value>작업 항목 {0:N0}개 멈춤</value>
+  </data>
+  <data name="AdviceStoppedChain" xml:space="preserve">
+    <value>작업 항목 {0:N0}개 멈춤 (그중 {1:N0}개는 직접 부족)</value>
+  </data>
+  <data name="AdviceNothingMade" xml:space="preserve">
+    <value>최근 {0}일 동안 하나도 만들지 않았으며, 그래서 바닥났습니다.</value>
+  </data>
+  <data name="AdviceMakingRunning" xml:space="preserve">
+    <value>이것을 만드는 작업 {0:N0}개가 지금 진행 중입니다.</value>
+  </data>
+  <data name="AdviceMakingReady" xml:space="preserve">
+    <value>이것을 만드는 작업 항목 {0:N0}개를 바로 시작할 수 있습니다 — 시작하는 것이 해결책입니다.</value>
+  </data>
+  <data name="AdviceMakingWaiting" xml:space="preserve">
+    <value>이것을 만드는 작업 항목 {0:N0}개가 빈 슬롯을 기다리고 있습니다.</value>
+  </data>
+  <data name="AdviceMakingBlocked" xml:space="preserve">
+    <value>다시 채우는 것이 없습니다: 이것을 만드는 작업 항목 {0:N0}개도 모두 막혀 있습니다.</value>
+  </data>
+  <data name="AdviceMakingNone" xml:space="preserve">
+    <value>목록에서 이것을 만드는 것이 전혀 없습니다.</value>
+  </data>
+  <data name="AdviceOnOrder" xml:space="preserve">
+    <value>{0}, 이곳에서 만드는 것 없음 — 하지만 부족분 {2:N0}개에 대해 거래소에 이미 {1:N0}개를 구매 주문해 두었습니다. 더 만들 항목은 없으며, 구매 주문이 체결되면 작업이 시작됩니다.</value>
+  </data>
+  <data name="AdviceBuyNow" xml:space="preserve">
+    <value>{0}, 이곳에서 만드는 것 없음.</value>
+  </data>
+  <data name="AdviceBuyNowOnOrder" xml:space="preserve">
+    <value>부족분 {1:N0}개에 대해 {0:N0}개가 주문 중이므로, 주문을 새로 올리기보다 입찰가를 올려야 합니다.</value>
+  </data>
+  <data name="AdviceBuyNowLevel" xml:space="preserve">
+    <value>재고 수준 {1:N0}개에 대해 하루 {0:N1}개씩 소비됩니다. 구매만이 이 작업들을 시작하게 할 수 있습니다.</value>
+  </data>
+  <data name="AdviceBuyNowNoLevel" xml:space="preserve">
+    <value>하루 {0:N1}개씩 소비되지만 보관하도록 설정된 재고 수준이 없습니다. 구매만이 이 작업들을 시작하게 할 수 있습니다.</value>
+  </data>
+  <data name="AdviceBufferSpent" xml:space="preserve">
+    <value>{0}, {1:N0}개 남음. 수요가 {3}일 평균의 {2:N1}배로 늘었으며, 재고 수준 {4:N0}개는 평소 소비량으로 {5:N0}일분이었지만 이번에는 버티지 못했습니다. 재고 수준을 높이면 다음 급증을 흡수할 수 있습니다. 이런 급증이 일상적이라면, 다시 채울 수 없는 속도를 버티는 재고 수준은 없으므로 근본적인 해결책은 더 많이 만드는 것입니다.</value>
+  </data>
+  <data name="AdviceLevelTooLow" xml:space="preserve">
+    <value>{0}. 목록의 작업에 {1:N0}개가 필요하고 {2:N0}개를 보유 중입니다 — 재고 수준 {3:N0}개는 채워져 있으므로, 비축분이 바닥난 것이 아니라 평소 소비량 {4:N0}일분으로 잡은 비축분인데 앞에 놓인 작업이 존재하는 양보다 {5:N0}개를 더 원하는 것입니다. 재고 수준을 높이거나 더 많이 만들어야 그 차이가 메워집니다.</value>
+  </data>
+  <data name="AdviceLevelTooLowWave" xml:space="preserve">
+    <value>{0}. 목록의 작업에 {1:N0}개가 필요하고 {2:N0}개를 보유 중입니다 — 재고 수준 {3:N0}개는 채워져 있으므로, 비축분이 바닥난 것이 아니라 평소 소비량 {4:N0}일분으로 잡은 비축분인데 앞에 놓인 작업이 존재하는 양보다 {5:N0}개를 더 원하는 것이며, 수요는 {7}일 평균의 {6:N1}배입니다. 재고 수준을 높이거나 더 많이 만들어야 그 차이가 메워집니다.</value>
+  </data>
+  <data name="AdviceNoBuffer" xml:space="preserve">
+    <value>{0}, 하루 {1:N1}개씩 소비되는데도 이 아이템에 설정된 재고 수준이 전혀 없습니다. 구조상 완충이 없으므로, 모든 수량을 필요한 바로 그때 만들거나 사야 합니다. 목록에 필요한 양보다 {2:N0}개 부족합니다.</value>
+  </data>
+  <data name="AdviceNotTheShelf" xml:space="preserve">
+    <value>{0}, 하지만 {1:N0}개를 보유 중이고 작업에는 {2:N0}개가 필요합니다 — 이 재료 때문에 멈춘 것이 아닙니다. 그 작업들에 다른 것이 부족하거나, 슬롯, 블루프린트, 또는 다른 정거장에 있는 재고를 기다리고 있습니다.</value>
+  </data>
+  <data name="AdviceBlocked" xml:space="preserve">
+    <value>{0}, 재고 수준 {2:N0}개 중 {1:N0}개 남음 — 하루 {4:N1}개 기준 약 {3:N0}일분이었는데 바닥났습니다. 소비 속도에 비해 재고 수준이 너무 낮거나, 제때 다시 채워지지 않고 있습니다.</value>
+  </data>
+  <data name="AdviceBuy" xml:space="preserve">
+    <value>보유한 것이 없고 이곳에서 만드는 것도 없으며, 하루 {0:N1}개씩 소비됩니다. 아직 멈춘 작업은 없습니다.</value>
+  </data>
+  <data name="AdviceMakingTooFew" xml:space="preserve">
+    <value>하루 {1:N1}개 생산에 {0:N1}개 소비, 수요는 일정합니다. 비축분을 늘리기보다 생산을 늘려야 합니다.</value>
+  </data>
+  <data name="AdviceMakingTooFewEmpty" xml:space="preserve">
+    <value>하루 {1:N1}개 생산에 {0:N1}개 소비, 수요는 일정합니다. 이 속도면 약 {2:N0}일 후 바닥납니다. 비축분을 늘리기보다 생산을 늘려야 합니다.</value>
+  </data>
+  <data name="AdviceWave" xml:space="preserve">
+    <value>평소보다 {0:N1}배 많이 소비되고 있습니다 — 제조 물결이 지나가는 중입니다. {1:N0}개 남았으며, 현재 소비 속도로 약 {2:N0}일분입니다. 아직 멈춘 작업은 없으므로 조치보다는 지켜볼 만합니다.</value>
+  </data>
+  <data name="AdviceNoLevelSet" xml:space="preserve">
+    <value>하루 {0:N1}개씩 소비되지만 재고로 보관하도록 요구하는 것이 없어, 수요가 늘면 완충이 전혀 없습니다.</value>
+  </data>
+  <data name="AdviceBufferThin" xml:space="preserve">
+    <value>재고 수준 {0:N0}개는 하루 {2:N1}개 기준 {1:N0}일분입니다. 보충에 그보다 오래 걸리면 도착하기 전에 막힙니다.</value>
+  </data>
+  <data name="AdviceHolding" xml:space="preserve">
+    <value>하루 {1:N1}개 소비 기준 {0:N0}일분, 하루 {2:N1}개씩 보충.</value>
+  </data>
+  <data name="RemedyEffect" xml:space="preserve">
+    <value>밀린 작업이 {1:N0}일 대신 {0:N0}일 만에 해소됨</value>
+  </data>
+  <data name="RemedyTrain" xml:space="preserve">
+    <value>이미 이 작업을 하는 캐릭터를 훈련</value>
+  </data>
+  <data name="RemedyTrainNone" xml:space="preserve">
+    <value>이 슬롯 풀을 운용하는 모든 캐릭터가 이미 스킬 상한에 도달했습니다.</value>
+  </data>
+  <data name="RemedyTrainDetail" xml:space="preserve">
+    <value>슬롯 {1}개 상한에 못 미치는 캐릭터 {0}명: {2}</value>
+  </data>
+  <data name="RemedyEnable" xml:space="preserve">
+    <value>이 슬롯 풀에 대해 꺼져 있는 캐릭터 켜기</value>
+  </data>
+  <data name="RemedyEnableNone" xml:space="preserve">
+    <value>설정된 모든 캐릭터가 이미 이 슬롯 풀을 운용하고 있습니다.</value>
+  </data>
+  <data name="RemedyEnableDetail" xml:space="preserve">
+    <value>꺼져 있는 캐릭터 {0}명, 현재 슬롯 {1:N0}개 보유 — 대개 이유가 있어 꺼 둔 것이므로 계획이 아니라 규모로 보십시오. {2}</value>
+  </data>
+  <data name="RemedyAccount" xml:space="preserve">
+    <value>캐릭터 {0}명 추가 (계정 1개), 상한까지 훈련</value>
+  </data>
+  <data name="RemedyAccountDetail" xml:space="preserve">
+    <value>현재 가동 중인 {2:N0}개 대비 {0} × {1}개 슬롯. 훈련은 즉시 되지 않습니다 — 이것은 이 방법으로 얻을 수 있는 상한입니다.</value>
+  </data>
+  <data name="ContentionScale" xml:space="preserve">
+    <value>{1}일 동안 블루프린트 {0:N0}개를 측정했습니다: {2:N0}개는 모든 원본이 동시에 사용 중인 적이 없었고, 중앙값은 {3:N0}%, 가장 바쁜 상위 10%는 {4:N0}%부터 시작합니다 — 이것이 표시에 쓰는 기준선입니다.</value>
+  </data>
+  <data name="PrintAdviceBlockingBpo" xml:space="preserve">
+    <value>최근 {1}일 중 {0:N0}% 동안 모든 BPO가 사용 중이었고, 지금 시작할 수 없는 작업이 {2:N0}개 있습니다. BPO를 하나 더 두면 상한이 하루 {3:N2}개에서 {4:N2}개로 오릅니다.</value>
+  </data>
+  <data name="PrintAdviceBlockingFormula" xml:space="preserve">
+    <value>최근 {1}일 중 {0:N0}% 동안 모든 반응식이 사용 중이었고, 지금 시작할 수 없는 작업이 {2:N0}개 있습니다. 반응식을 하나 더 두면 상한이 하루 {3:N2}개에서 {4:N2}개로 오릅니다.</value>
+  </data>
+  <data name="PrintAdviceSteadyBpo" xml:space="preserve">
+    <value>최근 {1}일 중 {0:N0}% 동안 모든 BPO가 사용 중이었고 작업 {2:N0}개가 대기 중입니다 — 하나를 더 쓰려면 비기를 기다려야 합니다. BPO를 하나 더 두면 상한이 하루 {3:N2}개가 됩니다.</value>
+  </data>
+  <data name="PrintAdviceSteadyFormula" xml:space="preserve">
+    <value>최근 {1}일 중 {0:N0}% 동안 모든 반응식이 사용 중이었고 작업 {2:N0}개가 대기 중입니다 — 하나를 더 쓰려면 비기를 기다려야 합니다. 반응식을 하나 더 두면 상한이 하루 {3:N2}개가 됩니다.</value>
+  </data>
+  <data name="PrintAdviceContendedBpo" xml:space="preserve">
+    <value>최근 {1}일 중 {0:N0}% 동안 모든 BPO가 사용 중이었지만, 오늘은 대기 중인 작업이 없습니다. 구매하기보다는 지켜볼 만합니다.</value>
+  </data>
+  <data name="PrintAdviceContendedFormula" xml:space="preserve">
+    <value>최근 {1}일 중 {0:N0}% 동안 모든 반응식이 사용 중이었지만, 오늘은 대기 중인 작업이 없습니다. 구매하기보다는 지켜볼 만합니다.</value>
+  </data>
+  <data name="PrintAdviceBlockedBpo" xml:space="preserve">
+    <value>작업 {0:N0}개를 시작할 수 없지만, 보유한 BPO가 모두 동시에 사용 중이었던 적은 드뭅니다 ({1:N0}%). BPO를 더 사기 전에 실제로 무엇이 부족한지 확인하십시오 — 블루프린트가 아닌 다른 문제로 보입니다.</value>
+  </data>
+  <data name="PrintAdviceBlockedFormula" xml:space="preserve">
+    <value>작업 {0:N0}개를 시작할 수 없지만, 보유한 반응식이 모두 동시에 사용 중이었던 적은 드뭅니다 ({1:N0}%). 반응식을 더 사기 전에 실제로 무엇이 부족한지 확인하십시오 — 반응식이 아닌 다른 문제로 보입니다.</value>
+  </data>
+  <data name="PrintAdviceSurgeBpo" xml:space="preserve">
+    <value>지금 작업 {0:N0}개가 이것을 원하지만, 최근 {1}일 대부분 동안 모든 BPO가 비어 있었습니다. 지속적인 필요가 아니라 일회성이므로 원본보다 BPC가 나을 수 있습니다.</value>
+  </data>
+  <data name="PrintAdviceSurgeFormula" xml:space="preserve">
+    <value>지금 작업 {0:N0}개가 이것을 원하지만, 최근 {1}일 대부분 동안 모든 반응식이 비어 있었습니다. 지속적인 필요가 아니라 일회성이므로 반응식을 더 사기보다 실행을 대기열에 두십시오.</value>
+  </data>
+  <data name="PrintAdviceMinorBpo" xml:space="preserve">
+    <value>최근 {1}일 중 {0:N0}% 동안 모든 BPO가 사용 중이었습니다 — 실제 문제이긴 하지만 이곳의 가장 바쁜 상위 10%에는 들지 않으며, 대기 중인 작업도 없습니다. BPO를 하나 더 두면 상한이 하루 {2:N2}개가 됩니다.</value>
+  </data>
+  <data name="PrintAdviceMinorFormula" xml:space="preserve">
+    <value>최근 {1}일 중 {0:N0}% 동안 모든 반응식이 사용 중이었습니다 — 실제 문제이긴 하지만 이곳의 가장 바쁜 상위 10%에는 들지 않으며, 대기 중인 작업도 없습니다. 반응식을 하나 더 두면 상한이 하루 {2:N2}개가 됩니다.</value>
+  </data>
+  <data name="PrintAdviceBuildingBpo" xml:space="preserve">
+    <value>작업 {0:N0}개 대기 중, 기간 중 {1:N0}% 동안 모든 BPO가 사용 중. BPO를 하나 더 두면 상한이 하루 {2:N2}개가 됩니다.</value>
+  </data>
+  <data name="PrintAdviceBuildingFormula" xml:space="preserve">
+    <value>작업 {0:N0}개 대기 중, 기간 중 {1:N0}% 동안 모든 반응식이 사용 중. 반응식을 하나 더 두면 상한이 하루 {2:N2}개가 됩니다.</value>
+  </data>
+  <data name="SummarySlotRemedy" xml:space="preserve">
+    <value>{0} — 슬롯 +{1:N0}개 ({2:N0}%)</value>
+  </data>
+  <data name="SummaryBuyPrint" xml:space="preserve">
+    <value>{0} — 보유 {1:N0}개에 1개 추가 구매 (생산량 +{2:N0}%)</value>
+  </data>
+  <data name="SummaryPlaceBuyOrders" xml:space="preserve">
+    <value>구매 주문 {0:N0}건 등록</value>
+  </data>
+  <data name="SummarySetLevel" xml:space="preserve">
+    <value>{0} — 재고 수준을 {1}(으)로 설정</value>
+  </data>
+  <data name="SummaryRaiseLevel" xml:space="preserve">
+    <value>{0} — 재고 수준을 {1:N0}에서 {2}(으)로 상향</value>
+  </data>
+  <data name="SummaryChangeLevels" xml:space="preserve">
+    <value>재고 수준 {0:N0}개 변경</value>
+  </data>
+  <data name="SummaryLevelsSized" xml:space="preserve">
+    <value>현재 소비 속도 기준 {0}일분으로 산정했습니다.</value>
+  </data>
+  <data name="SummaryHaulAt" xml:space="preserve">
+    <value>{1}의 {0} — {2:N0} m3</value>
+  </data>
+  <data name="SummaryRaiseHauls" xml:space="preserve">
+    <value>운반 {0:N0}건 등록</value>
+  </data>
+  <data name="SummaryHaulsIdle" xml:space="preserve">
+    <value>작업 {0:N0}개가 이미 보유한 재료를 기다리고 있지만 운반 중인 것이 없습니다.</value>
+  </data>
+  <data name="SummaryAddManufacturingSlots" xml:space="preserve">
+    <value>제조 슬롯 추가</value>
+  </data>
+  <data name="SummaryAddReactionSlots" xml:space="preserve">
+    <value>합성 슬롯 추가</value>
+  </data>
+  <data name="SummaryAddScienceSlots" xml:space="preserve">
+    <value>연구 슬롯 추가</value>
+  </data>
+  <data name="SummarySlotsWaiting" xml:space="preserve">
+    <value>작업 {0:N0}개가 슬롯을 기다리고 있습니다.</value>
+  </data>
+  <data name="SummarySlotsWaitingBehind" xml:space="preserve">
+    <value>작업 {0:N0}개가 슬롯을 기다리고 있으며, 그 뒤에 {1:N0}개가 더 멈춰 있습니다.</value>
+  </data>
+  <data name="SummaryBuyBlueprints" xml:space="preserve">
+    <value>블루프린트 {0:N0}개 구매</value>
+  </data>
+  <data name="SummaryBuyFormulas" xml:space="preserve">
+    <value>반응식 {0:N0}개 구매</value>
+  </data>
+  <data name="SummaryBuyUnblocks" xml:space="preserve">
+    <value>{0} — 작업 항목 {1:N0}개 해소</value>
+  </data>
+  <data name="SummaryTripRestarts" xml:space="preserve">
+    <value>{0} → {1} — {2:N0}개 ({3:N0} m3), 작업 {4:N0}개 재시작</value>
+  </data>
+  <data name="SummaryTripWanted" xml:space="preserve">
+    <value>{0} → {1} — {2:N0}개 ({3:N0} m3), 작업 {4:N0}개가 원하지만 이것만으로 재시작되는 작업 없음</value>
+  </data>
+  <data name="SummaryWorstShown" xml:space="preserve">
+    <value>가장 심각한 {0}개만 표시합니다. 나머지는 해당 탭에 있습니다.</value>
+  </data>
+</root>

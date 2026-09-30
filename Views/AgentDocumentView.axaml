@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              x:Class="EveConsole.Views.AgentDocumentView"
              x:DataType="vm:AgentDocumentViewModel"
@@ -146,8 +147,8 @@
         </StackPanel>
 
         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
-          <Button Classes="bar" Content="Copy Markdown" Command="{Binding CopyCommand}" />
-          <Button Classes="bar" Content="Save"          Click="OnSaveClick"
+          <Button Classes="bar" Content="{x:Static loc:AgentText.CopyMarkdown}" Command="{Binding CopyCommand}" />
+          <Button Classes="bar" Content="{x:Static loc:AgentText.Save}"          Click="OnSaveClick"
                   Foreground="{DynamicResource InfoBrush}" BorderBrush="{DynamicResource InfoSurfaceBrush}" />
         </StackPanel>
       </Grid>

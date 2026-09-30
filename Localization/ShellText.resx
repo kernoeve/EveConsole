@@ -1,0 +1,798 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="NavGroupGeneral" xml:space="preserve">
+    <value>General</value>
+    <comment>Navigation group.</comment>
+  </data>
+  <data name="NavGroupAssets" xml:space="preserve">
+    <value>Assets</value>
+    <comment>Navigation group.</comment>
+  </data>
+  <data name="NavGroupStructures" xml:space="preserve">
+    <value>Structures / Navigation</value>
+    <comment>Navigation group.</comment>
+  </data>
+  <data name="NavGroupShips" xml:space="preserve">
+    <value>Ships</value>
+    <comment>Navigation menu: the heading of the group holding the fitting tool. Short: a menu heading.</comment>
+  </data>
+  <data name="NavGroupIndustry" xml:space="preserve">
+    <value>Industry</value>
+    <comment>Navigation group.</comment>
+  </data>
+  <data name="NavGroupMarket" xml:space="preserve">
+    <value>Market / Trade</value>
+    <comment>Navigation group.</comment>
+  </data>
+  <data name="NavGroupFinance" xml:space="preserve">
+    <value>Finance</value>
+    <comment>Navigation group.</comment>
+  </data>
+  <data name="NavGroupCorp" xml:space="preserve">
+    <value>Corp / Interactions</value>
+    <comment>Navigation group.</comment>
+  </data>
+  <data name="NavGroupCommunication" xml:space="preserve">
+    <value>Communication</value>
+    <comment>Navigation group.</comment>
+  </data>
+  <data name="NavGroupData" xml:space="preserve">
+    <value>Data / Logs</value>
+    <comment>Navigation group.</comment>
+  </data>
+  <data name="NavOverview" xml:space="preserve">
+    <value>Overview</value>
+    <comment>The app's home dashboard — not EVE's in-space overview.</comment>
+  </data>
+  <data name="NavWorklist" xml:space="preserve">
+    <value>Worklist</value>
+    <comment>The list of industry jobs, hauls and purchases the app suggests next.</comment>
+  </data>
+  <data name="NavCharacters" xml:space="preserve">
+    <value>Characters</value>
+  </data>
+  <data name="NavAssets" xml:space="preserve">
+    <value>Assets</value>
+  </data>
+  <data name="NavItemBrowser" xml:space="preserve">
+    <value>Item Browser</value>
+  </data>
+  <data name="NavInventoryLevels" xml:space="preserve">
+    <value>Inventory Levels</value>
+    <comment>Target stock levels the user keeps, and how far off they are.</comment>
+  </data>
+  <data name="NavStructureBrowser" xml:space="preserve">
+    <value>Structure Browser</value>
+    <comment>Player-owned (Upwell) structures.</comment>
+  </data>
+  <data name="NavUniverseMap" xml:space="preserve">
+    <value>Universe Map</value>
+  </data>
+  <data name="NavJumpPlanner" xml:space="preserve">
+    <value>Jump Planner</value>
+    <comment>Capital-ship jump routes.</comment>
+  </data>
+  <data name="NavIndustryJobs" xml:space="preserve">
+    <value>Industry Jobs</value>
+  </data>
+  <data name="NavIndyParks" xml:space="preserve">
+    <value>Indy Parks</value>
+    <comment>The user's industry sites: the structures and stations where jobs run.</comment>
+  </data>
+  <data name="NavProductionCalc" xml:space="preserve">
+    <value>Production Calc</value>
+  </data>
+  <data name="NavFitting" xml:space="preserve">
+    <value>Fitting</value>
+    <comment>Navigation menu, under Ships: the fitting tool, where a ship is fitted with modules and its figures worked out. Also its tab's title. Short: a menu entry.</comment>
+  </data>
+  <data name="NavPriceOverrides" xml:space="preserve">
+    <value>Price Overrides</value>
+  </data>
+  <data name="NavIndustryOpportunities" xml:space="preserve">
+    <value>Industry Opportunities</value>
+  </data>
+  <data name="NavMarketOverview" xml:space="preserve">
+    <value>Market Overview</value>
+  </data>
+  <data name="NavItemValuation" xml:space="preserve">
+    <value>Item Valuation</value>
+  </data>
+  <data name="NavLpMarketValues" xml:space="preserve">
+    <value>LP Market Values</value>
+    <comment>LP = loyalty points.</comment>
+  </data>
+  <data name="NavMarketLevels" xml:space="preserve">
+    <value>Market Levels</value>
+    <comment>Sell-order stock the user keeps on a market.</comment>
+  </data>
+  <data name="NavContracts" xml:space="preserve">
+    <value>Contracts</value>
+  </data>
+  <data name="NavTradeOpportunities" xml:space="preserve">
+    <value>Trade Opportunities</value>
+  </data>
+  <data name="NavStandingBuyOrders" xml:space="preserve">
+    <value>Standing Buy Orders</value>
+  </data>
+  <data name="NavOrderTracker" xml:space="preserve">
+    <value>Order Tracker</value>
+    <comment>Orders customers placed with the user.</comment>
+  </data>
+  <data name="NavSalesTracker" xml:space="preserve">
+    <value>Sales Tracker</value>
+  </data>
+  <data name="NavSalePosting" xml:space="preserve">
+    <value>Sale Posting</value>
+  </data>
+  <data name="NavStores" xml:space="preserve">
+    <value>Stores</value>
+    <comment>The user's own shops, run over EVE mail and the web.</comment>
+  </data>
+  <data name="NavNetWorth" xml:space="preserve">
+    <value>Net Worth</value>
+  </data>
+  <data name="NavIncomeExpense" xml:space="preserve">
+    <value>Income &amp; Expense</value>
+    <comment>Navigation item and tab title; also the name of its Overview section in the Customize Overview dialog.</comment>
+  </data>
+  <data name="NavWallet" xml:space="preserve">
+    <value>Wallet</value>
+  </data>
+  <data name="NavCorpActivity" xml:space="preserve">
+    <value>Corp Activity</value>
+  </data>
+  <data name="NavKillmails" xml:space="preserve">
+    <value>Killmails</value>
+  </data>
+  <data name="NavPlayerEntities" xml:space="preserve">
+    <value>Player Entities</value>
+    <comment>Characters, corporations and alliances.</comment>
+  </data>
+  <data name="NavNpcEntities" xml:space="preserve">
+    <value>NPC Entities</value>
+  </data>
+  <data name="NavEveMail" xml:space="preserve">
+    <value>Eve Mail</value>
+  </data>
+  <data name="NavNotifications" xml:space="preserve">
+    <value>Notifications</value>
+  </data>
+  <data name="NavBackgroundProcesses" xml:space="preserve">
+    <value>Background Processes</value>
+  </data>
+  <data name="NavEsiExplorer" xml:space="preserve">
+    <value>ESI Explorer</value>
+  </data>
+  <data name="NavErrorLog" xml:space="preserve">
+    <value>Error Log</value>
+  </data>
+  <data name="NavAiUsage" xml:space="preserve">
+    <value>AI Usage</value>
+  </data>
+  <data name="NavGameLog" xml:space="preserve">
+    <value>Game Log</value>
+  </data>
+  <data name="NavChatLog" xml:space="preserve">
+    <value>Chat Log</value>
+  </data>
+  <data name="TabUniverse" xml:space="preserve">
+    <value>Universe</value>
+    <comment>Tab title for the Universe Map.</comment>
+  </data>
+  <data name="TabAlarms" xml:space="preserve">
+    <value>Alarms</value>
+    <comment>User-defined alarms (undocks, notifications, and so on).</comment>
+  </data>
+  <data name="TabScheduler" xml:space="preserve">
+    <value>Scheduler</value>
+  </data>
+  <data name="TabTrade" xml:space="preserve">
+    <value>Trade</value>
+    <comment>Tab title for Trade Opportunities.</comment>
+  </data>
+  <data name="TabIndustryOpps" xml:space="preserve">
+    <value>Industry Opps</value>
+    <comment>Tab title for Industry Opportunities; keep short.</comment>
+  </data>
+  <data name="TabInvLevels" xml:space="preserve">
+    <value>Inv. Levels</value>
+    <comment>Tab title for Inventory Levels; keep short.</comment>
+  </data>
+  <data name="TabSaleListingBuild" xml:space="preserve">
+    <value>Sale Listing (Build)</value>
+    <comment>Tab title; also the name of its Overview section in the Customize Overview dialog.</comment>
+  </data>
+  <data name="TabSaleListingMarket" xml:space="preserve">
+    <value>Sale Listing (Market)</value>
+    <comment>Tab title; also the name of its Overview section in the Customize Overview dialog.</comment>
+  </data>
+  <data name="TipScheduler" xml:space="preserve">
+    <value>Scheduler</value>
+  </data>
+  <data name="TipSettings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="TipAbout" xml:space="preserve">
+    <value>About EVE Console</value>
+    <comment>EVE Console is the product name; do not translate it.</comment>
+  </data>
+  <data name="TipVersion" xml:space="preserve">
+    <value>The version you are running.</value>
+  </data>
+  <data name="TipReleasePage" xml:space="preserve">
+    <value>Open the release page on GitHub</value>
+  </data>
+  <data name="TitleAboutEveConsole" xml:space="preserve">
+    <value>About EVE Console</value>
+    <comment>Window title in AboutWindow.</comment>
+  </data>
+  <data name="AnEveOnlineIndustrialNote" xml:space="preserve">
+    <value>An EVE Online industrial companion for production planning, asset tracking, market pricing, and character management.</value>
+    <comment>Note in AboutWindow.</comment>
+  </data>
+  <data name="Website" xml:space="preserve">
+    <value>Website</value>
+    <comment>Text in AboutWindow.</comment>
+  </data>
+  <data name="Documentation" xml:space="preserve">
+    <value>Documentation</value>
+    <comment>Text in AboutWindow.</comment>
+  </data>
+  <data name="TipCommunityChatAndSupport" xml:space="preserve">
+    <value>Community chat and support</value>
+    <comment>Tooltip in AboutWindow.</comment>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Close</value>
+    <comment>Button or option in AboutWindow.</comment>
+  </data>
+  <data name="TitleEveConsoleDatabaseProblem" xml:space="preserve">
+    <value>EVE Console — database problem</value>
+    <comment>Window title in DatabaseRecoveryDialog.</comment>
+  </data>
+  <data name="TheDatabaseCouldNotBe" xml:space="preserve">
+    <value>The database could not be opened</value>
+    <comment>Text in DatabaseRecoveryDialog.</comment>
+  </data>
+  <data name="ReportedLabel" xml:space="preserve">
+    <value>REPORTED</value>
+    <comment>Label in DatabaseRecoveryDialog.</comment>
+  </data>
+  <data name="RestoreFromABackup" xml:space="preserve">
+    <value>Restore from a backup</value>
+    <comment>Text in DatabaseRecoveryDialog.</comment>
+  </data>
+  <data name="TheMostRecentIsNote" xml:space="preserve">
+    <value>The most recent is selected. Anything recorded since it was taken will need to be polled again.</value>
+    <comment>Note in DatabaseRecoveryDialog.</comment>
+  </data>
+  <data name="NoBackupsWereFoundNote" xml:space="preserve">
+    <value>No backups were found beside the database, so there is nothing to restore from. Starting fresh will build an empty database and leave the damaged one in place.</value>
+    <comment>Note in DatabaseRecoveryDialog.</comment>
+  </data>
+  <data name="Quit" xml:space="preserve">
+    <value>Quit</value>
+    <comment>Button or option in DatabaseRecoveryDialog.</comment>
+  </data>
+  <data name="StartFresh" xml:space="preserve">
+    <value>Start fresh</value>
+    <comment>Button or option in DatabaseRecoveryDialog.</comment>
+  </data>
+  <data name="RestoreBackup" xml:space="preserve">
+    <value>Restore backup</value>
+    <comment>Button or option in DatabaseRecoveryDialog.</comment>
+  </data>
+  <data name="UpToDate" xml:space="preserve">
+    <value>up to date</value>
+    <comment>Title bar: the game data (SDE) loaded, or the version of the app running, is the newest there is. Keep short.</comment>
+  </data>
+  <data name="UpdateAvailable" xml:space="preserve">
+    <value>update available</value>
+    <comment>Button or option in MainWindow.</comment>
+  </data>
+  <data name="BackgroundLabel" xml:space="preserve">
+    <value>Background:</value>
+    <comment>Label in MainWindow.</comment>
+  </data>
+  <data name="NoneOfYourCharactersAre" xml:space="preserve">
+    <value>None of your characters are online.</value>
+    <comment>Text in MainWindow.</comment>
+  </data>
+  <data name="FmtStaticDataExport" xml:space="preserve">
+    <value>Static Data Export: {0}</value>
+    <comment>Formatted text ({0} is filled in) in MainWindow.</comment>
+  </data>
+  <data name="FmtNewestFromCcpIs" xml:space="preserve">
+    <value>Newest from CCP is {0}</value>
+    <comment>Formatted text ({0} is filled in) in MainWindow.</comment>
+  </data>
+  <data name="FmtNewestIsOpenTheSde" xml:space="preserve">
+    <value>Newest is {0} — open the SDE settings</value>
+    <comment>Formatted text ({0} is filled in) in MainWindow.</comment>
+  </data>
+  <data name="FmtToggleAiCompanion" xml:space="preserve">
+    <value>Toggle {0} AI companion</value>
+    <comment>Formatted text ({0} is filled in) in MainWindow.</comment>
+  </data>
+  <data name="Initializing" xml:space="preserve">
+    <value>Initializing…</value>
+    <comment>Text in SplashWindow.</comment>
+  </data>
+  <data name="TitleUpdateAvailable" xml:space="preserve">
+    <value>Update Available</value>
+    <comment>Window title in UpdateDialog.</comment>
+  </data>
+  <data name="ANewVersionOfNote" xml:space="preserve">
+    <value>A new version of EVE Console is available.</value>
+    <comment>Note in UpdateDialog.</comment>
+  </data>
+  <data name="CurrentLabel" xml:space="preserve">
+    <value>Current:</value>
+    <comment>Label in UpdateDialog.</comment>
+  </data>
+  <data name="LatestLabel" xml:space="preserve">
+    <value>Latest:</value>
+    <comment>Label in UpdateDialog.</comment>
+  </data>
+  <data name="TheAppWillDownloadNote" xml:space="preserve">
+    <value>The app will download the update and restart to apply it.</value>
+    <comment>Note in UpdateDialog.</comment>
+  </data>
+  <data name="UpdateNow" xml:space="preserve">
+    <value>Update Now</value>
+    <comment>Button or option in UpdateDialog.</comment>
+  </data>
+  <data name="NotNow" xml:space="preserve">
+    <value>Not Now</value>
+    <comment>Button or option in UpdateDialog.</comment>
+  </data>
+  <data name="UpdatingEveConsole" xml:space="preserve">
+    <value>Updating EVE Console…</value>
+    <comment>Text in UpdateDialog.</comment>
+  </data>
+  <data name="ThisBuildIsOlderNote" xml:space="preserve">
+    <value>This build is older than the database</value>
+    <comment>Note in UpdateRequiredDialog.</comment>
+  </data>
+  <data name="CheckingForAnUpdate" xml:space="preserve">
+    <value>Checking for an update…</value>
+    <comment>Text in UpdateRequiredDialog.</comment>
+  </data>
+  <data name="ReleasesPage" xml:space="preserve">
+    <value>Releases page</value>
+    <comment>Button or option in UpdateRequiredDialog.</comment>
+  </data>
+  <data name="UpdateAndRestart" xml:space="preserve">
+    <value>Update and restart</value>
+    <comment>Button or option in UpdateRequiredDialog.</comment>
+  </data>
+  <data name="TitleWelcomeToEveConsole" xml:space="preserve">
+    <value>Welcome to EVE Console</value>
+    <comment>Window title in WelcomeWindow.</comment>
+  </data>
+  <data name="EveConsoleIsDownloadingNote" xml:space="preserve">
+    <value>EVE Console is downloading the EVE game data it needs (the Static Data Export and Hoboleaks data) in the background. This can take a few minutes — item lookups, market pricing, and industry tools will fill in as it completes. You can watch progress on the SDE tab in Settings.</value>
+    <comment>Note in WelcomeWindow.</comment>
+  </data>
+  <data name="OnceThatFinishesRestartNote" xml:space="preserve">
+    <value>Once that finishes, restart EVE Console. Some tools load their reference data when they first open, so a restart makes sure everything sees the freshly imported data.</value>
+    <comment>Note in WelcomeWindow.</comment>
+  </data>
+  <data name="ToPullInYourNote" xml:space="preserve">
+    <value>To pull in your own characters and corporation data, add your ESI character tokens. The Settings window will open on the ESI Tokens tab next — click Add under Characters there to log in through EVE's SSO.</value>
+    <comment>Note in WelcomeWindow.</comment>
+  </data>
+  <data name="GetStarted" xml:space="preserve">
+    <value>Get Started</value>
+    <comment>Button or option in WelcomeWindow.</comment>
+  </data>
+  <data name="DbSizeUnknown" xml:space="preserve">
+    <value>unknown</value>
+    <comment>Title bar, database tooltip: the database's size could not be read.</comment>
+  </data>
+  <data name="DbFileNotFound" xml:space="preserve">
+    <value>file not found</value>
+    <comment>Title bar, database tooltip, in place of the size: the SQLite file does not exist.</comment>
+  </data>
+  <data name="TipDbUnreadable" xml:space="preserve">
+    <value>{0} — could not read details: {1}</value>
+    <comment>Title bar, database tooltip when its details cannot be read. {0} is the database engine (PostgreSQL or SQLite), {1} the error.</comment>
+  </data>
+  <data name="TipWorkerChecking" xml:space="preserve">
+    <value>Checking which client is doing the background work…</value>
+    <comment>Title bar, tooltip on "Background:" before it is known which client does the background work.</comment>
+  </data>
+  <data name="WorkerThisClient" xml:space="preserve">
+    <value>this client</value>
+    <comment>Title bar, after "Background:": this copy of the app does the background work. Keep short.</comment>
+  </data>
+  <data name="WorkerHeadlineMine" xml:space="preserve">
+    <value>Background processes run in this client.</value>
+    <comment>First line of the tooltip on "Background:".</comment>
+  </data>
+  <data name="WorkerNone" xml:space="preserve">
+    <value>none</value>
+    <comment>Title bar, after "Background:": no copy of the app is doing the background work. Keep short.</comment>
+  </data>
+  <data name="WorkerHeadlineStale" xml:space="preserve">
+    <value>Nothing is doing the background work — this is the last client that did.</value>
+    <comment>First line of the tooltip on "Background:" when the client that held the work has stopped.</comment>
+  </data>
+  <data name="WorkerHeadlineOther" xml:space="preserve">
+    <value>Background processes run in another client.</value>
+    <comment>First line of the tooltip on "Background:" when another copy of the app (another machine) does the background work.</comment>
+  </data>
+  <data name="AgoSeconds" xml:space="preserve">
+    <value>{0}s ago</value>
+    <comment>In the "Background:" tooltip: when the worker last reported. {0} is a number of seconds. Keep short.</comment>
+  </data>
+  <data name="AgoMinutes" xml:space="preserve">
+    <value>{0} min ago</value>
+    <comment>In the "Background:" tooltip: when the worker last reported. {0} is a number of minutes. Keep short.</comment>
+  </data>
+  <data name="AgoHours" xml:space="preserve">
+    <value>{0} h ago</value>
+    <comment>In the "Background:" tooltip: when the worker last reported. {0} is a number of hours. Keep short.</comment>
+  </data>
+  <data name="AlarmsNoneArmed" xml:space="preserve">
+    <value>Alarms — none armed</value>
+    <comment>Tooltip on the alarm light in the title bar: no alarm is armed.</comment>
+  </data>
+  <data name="OnlineOfTotal" xml:space="preserve">
+    <value>{0} of {1} Online</value>
+    <comment>Title bar, beside the EVE clock: how many of the user's characters are logged in. {0} is how many are online, {1} how many characters there are.</comment>
+  </data>
+  <data name="NoCharactersOnline" xml:space="preserve">
+    <value>No Characters Online</value>
+    <comment>Main window header, instead of OnlineOfTotal ("3 of 24 Online") when none of your characters is logged in. Title case in English, as OnlineOfTotal is.</comment>
+  </data>
+  <data name="LocationUnknown" xml:space="preserve">
+    <value>location unknown</value>
+    <comment>Title bar, online characters tooltip: where a character is, when it is not known.</comment>
+  </data>
+  <data name="StructureInSystem" xml:space="preserve">
+    <value>a structure in {0}</value>
+    <comment>Title bar, online characters tooltip: docked in a structure whose name is not known. {0} is the solar system.</comment>
+  </data>
+  <data name="ShipUnknown" xml:space="preserve">
+    <value>ship unknown</value>
+    <comment>Title bar, online characters tooltip: what ship a character is in, when it is not known.</comment>
+  </data>
+  <data name="TipEveTimeLink" xml:space="preserve">
+    <value>EVE time (UTC) — click to open {0}</value>
+    <comment>Tooltip on the EVE clock. {0} is the web address it opens.</comment>
+  </data>
+  <data name="ThemeFallback" xml:space="preserve">
+    <value>Theme</value>
+    <comment>Title bar: the theme menu's label when the theme has no name.</comment>
+  </data>
+  <data name="TipTheme" xml:space="preserve">
+    <value>Theme: {0} — click to change</value>
+    <comment>Tooltip on the theme menu in the title bar. {0} is the theme's name.</comment>
+  </data>
+  <data name="TipUiScale" xml:space="preserve">
+    <value>UI scale: {0} — click to change</value>
+    <comment>Tooltip on the UI scale menu in the title bar. {0} is the scale, like "100%".</comment>
+  </data>
+  <data name="ServerOnline" xml:space="preserve">
+    <value>Online</value>
+    <comment>Title bar, beside the EVE clock: the game server (Tranquility) is up. Also shown before it is first checked. Keep short.</comment>
+  </data>
+  <data name="TipServerStatus" xml:space="preserve">
+    <value>Tranquility server status</value>
+    <comment>Tooltip on the game server's state before it is first checked. Tranquility is the EVE server's name.</comment>
+  </data>
+  <data name="TipTranquilityOffline" xml:space="preserve">
+    <value>Tranquility is offline — ESI polling is paused until it returns</value>
+    <comment>Tooltip on the game server's state. Tranquility is the EVE server's name.</comment>
+  </data>
+  <data name="BuildCostsNotYet" xml:space="preserve">
+    <value>Build costs: not yet calculated</value>
+    <comment>Status bar: build costs have not been worked out yet.</comment>
+  </data>
+  <data name="TipDbPostgres" xml:space="preserve">
+    <value>PostgreSQL on {0}
+Database: {1}
+Size: {2}</value>
+    <comment>Title bar, tooltip on the database. {0} is the server's host name, {1} the database's name, {2} its size (like "1.2 GB").</comment>
+  </data>
+  <data name="TipDbSqlite" xml:space="preserve">
+    <value>SQLite
+{0}
+Size: {1}</value>
+    <comment>Title bar, tooltip on the database. {0} is the database file's path, {1} its size (like "512 MB").</comment>
+  </data>
+  <data name="TipWorkerSqlite" xml:space="preserve">
+    <value>{0}
+
+Host: {1}
+PID: {2}
+Version: {3}
+
+SQLite allows one client at a time, so there is nothing to hand over to.</value>
+    <comment>Title bar, tooltip on "Background:" with a SQLite database. {0} is WorkerHeadlineMine, {1} this machine's name, {2} the process id, {3} the app's version.</comment>
+  </data>
+  <data name="TipWorkerUnclaimed" xml:space="preserve">
+    <value>No client has claimed the background work.
+
+ESI polling, build costs and backups are not running.</value>
+    <comment>Title bar, tooltip on "Background:" when no copy of the app is doing the background work.</comment>
+  </data>
+  <data name="TipWorkerDetails" xml:space="preserve">
+    <value>{0}
+
+Host: {1}
+PID: {2}
+Version: {3}
+Since: {4:yyyy-MM-dd HH:mm}
+Last heartbeat: {5}</value>
+    <comment>Title bar, tooltip on "Background:". {0} is one of the WorkerHeadline… lines, {1} the machine doing the work, {2} its process id, {3} its app version, {4} when it took the work on, {5} how long ago it last reported (like "12s ago").</comment>
+  </data>
+  <data name="WorkerHostHeadless" xml:space="preserve">
+    <value>{0}  (headless)</value>
+    <comment>In the "Background:" tooltip, after "Host:", when the worker runs with no window (as a service). {0} is the machine's name.</comment>
+  </data>
+  <data name="AlarmsArmedOne" xml:space="preserve">
+    <value>Alarms — {0} armed</value>
+    <comment>Tooltip on the alarm light in the title bar, one alarm armed. {0} is the number.</comment>
+  </data>
+  <data name="AlarmsArmedOther" xml:space="preserve">
+    <value>Alarms — {0} armed</value>
+    <comment>Tooltip on the alarm light in the title bar, several alarms armed. {0} is the number.</comment>
+  </data>
+  <data name="AlarmsMutedNote" xml:space="preserve">
+    <value>Muted on this client: no sound, dialog or agent notification will be raised here. Alerts are still recorded.
+
+Right-click to unmute.</value>
+    <comment>Tooltip on the alarm light, below the number armed, while alarms are muted on this machine.</comment>
+  </data>
+  <data name="AlarmsMuteHint" xml:space="preserve">
+    <value>Right-click to mute this client.</value>
+    <comment>Tooltip on the alarm light, below the number armed.</comment>
+  </data>
+  <data name="TipTranquilityOnline" xml:space="preserve">
+    <value>Tranquility is online</value>
+    <comment>Tooltip on the game server's state. Tranquility is the EVE server's name.</comment>
+  </data>
+  <data name="TipTranquilityOnlinePlayersOne" xml:space="preserve">
+    <value>Tranquility is online — {0:N0} player</value>
+    <comment>Tooltip on the game server's state, one player online. Tranquility is the EVE server's name. {0} is the number of players.</comment>
+  </data>
+  <data name="TipTranquilityOnlinePlayersOther" xml:space="preserve">
+    <value>Tranquility is online — {0:N0} players</value>
+    <comment>Tooltip on the game server's state, several players online. Tranquility is the EVE server's name. {0} is the number of players.</comment>
+  </data>
+  <data name="UpdateVersionUnknown" xml:space="preserve">
+    <value>unknown</value>
+    <comment>The version of the running app, when it cannot be read (Settings and the update dialog).</comment>
+  </data>
+  <data name="UpdateBadgeDevBuild" xml:space="preserve">
+    <value>dev build</value>
+    <comment>Title bar, beside the version: this copy was built from source, not installed from a release. Keep short.</comment>
+  </data>
+  <data name="UpdateLatestNotInstalled" xml:space="preserve">
+    <value>n/a — not an installed build</value>
+    <comment>Settings and the update dialog, "Latest:": not known, because this copy was not installed by the installer.</comment>
+  </data>
+  <data name="UpdateStatusChecking" xml:space="preserve">
+    <value>Checking for updates…</value>
+    <comment>Status of the app update check.</comment>
+  </data>
+  <data name="UpdateStatusUpToDate" xml:space="preserve">
+    <value>Up to date.</value>
+    <comment>Status of the app update check: no newer version.</comment>
+  </data>
+  <data name="UpdateStatusAvailable" xml:space="preserve">
+    <value>An update is available.</value>
+    <comment>Status of the app update check.</comment>
+  </data>
+  <data name="UpdateStatusDownloading" xml:space="preserve">
+    <value>Downloading update…</value>
+    <comment>Status while the app update downloads.</comment>
+  </data>
+  <data name="UpdateStatusRestarting" xml:space="preserve">
+    <value>Restarting to apply…</value>
+    <comment>Status once the app update has downloaded, as the app restarts to install it.</comment>
+  </data>
+  <data name="UpdateBadgeAvailable" xml:space="preserve">
+    <value>{0} available</value>
+    <comment>Title bar, beside the version: a newer version of the app is out. {0} is that version, like "v0.9.16". Keep short.</comment>
+  </data>
+  <data name="UpdateDownloadingVersion" xml:space="preserve">
+    <value>Downloading {0}…</value>
+    <comment>Status in the dialog shown when the database is newer than this copy of the app. {0} is the version being downloaded.</comment>
+  </data>
+  <data name="UpdateDownloadingVersionPercent" xml:space="preserve">
+    <value>Downloading {0}… {1}%</value>
+    <comment>Status while the update downloads. {0} is the version, {1} how much has downloaded, as a percentage.</comment>
+  </data>
+  <data name="UpdateInstallingVersion" xml:space="preserve">
+    <value>Installing {0} and restarting…</value>
+    <comment>Status once the update has downloaded. {0} is the version.</comment>
+  </data>
+  <data name="UpdateFailedGetRelease" xml:space="preserve">
+    <value>The update failed: {0}. Get {1} from the releases page.</value>
+    <comment>Status when the update failed. {0} is the error, {1} the version to install by hand.</comment>
+  </data>
+  <data name="RecoveryCouldNotRead" xml:space="preserve">
+    <value>EVE Console could not read its database at {0}. Nothing has been changed or deleted yet.</value>
+    <comment>Database recovery dialog, first paragraph. {0} is the database file's path.</comment>
+  </data>
+  <data name="RecoveryDamagedFileNote" xml:space="preserve">
+    <value>Whichever you choose, the damaged file is renamed rather than deleted — it keeps its folder, with ".damaged-" and the date added to the name — so it can be inspected or recovered later.</value>
+    <comment>Database recovery dialog. ".damaged-" is part of a file name: keep it as it is.</comment>
+  </data>
+  <data name="RecoveryQuarantineFailed" xml:space="preserve">
+    <value>Could not move the damaged file aside: {0}</value>
+    <comment>Database recovery dialog, error. {0} is the error.</comment>
+  </data>
+  <data name="RecoveryRestoreFailed" xml:space="preserve">
+    <value>Restore failed: {0}</value>
+    <comment>Database recovery dialog, error. {0} is the error.</comment>
+  </data>
+  <data name="ServerOffline" xml:space="preserve">
+    <value>Offline</value>
+    <comment>Title bar, beside the EVE clock: the game server (Tranquility) is down. Keep short.</comment>
+  </data>
+  <data name="ServerPlayersOnline" xml:space="preserve">
+    <value>{0:N0} online</value>
+    <comment>Title bar, beside the game server's state: how many players are logged in to EVE. {0} is the number. Keep short.</comment>
+  </data>
+  <data name="ThemeDark" xml:space="preserve">
+    <value>Dark</value>
+    <comment>A colour theme, in Settings and the title bar's theme menu.</comment>
+  </data>
+  <data name="ThemeLight" xml:space="preserve">
+    <value>Light</value>
+    <comment>A colour theme, in Settings and the title bar's theme menu.</comment>
+  </data>
+  <data name="ThemeBlueDark" xml:space="preserve">
+    <value>Blue (dark)</value>
+    <comment>A colour theme, in Settings and the title bar's theme menu: blue tint on the dark theme.</comment>
+  </data>
+  <data name="ThemeBlueLight" xml:space="preserve">
+    <value>Blue (light)</value>
+    <comment>A colour theme, in Settings and the title bar's theme menu: blue tint on the light theme.</comment>
+  </data>
+  <data name="ThemePinkDark" xml:space="preserve">
+    <value>Pink (dark)</value>
+    <comment>A colour theme, in Settings and the title bar's theme menu: pink tint on the dark theme.</comment>
+  </data>
+  <data name="ThemePinkLight" xml:space="preserve">
+    <value>Pink (light)</value>
+    <comment>A colour theme, in Settings and the title bar's theme menu: pink tint on the light theme.</comment>
+  </data>
+  <data name="ThemeBeigeDark" xml:space="preserve">
+    <value>Beige (dark)</value>
+    <comment>A colour theme, in Settings and the title bar's theme menu: beige tint on the dark theme.</comment>
+  </data>
+  <data name="ThemeBeigeLight" xml:space="preserve">
+    <value>Beige (light)</value>
+    <comment>A colour theme, in Settings and the title bar's theme menu: beige tint on the light theme.</comment>
+  </data>
+  <data name="UpdateAheadNotInstalled" xml:space="preserve">
+    <value>This copy was not set up by the installer, so it cannot update itself. Install {0} or later from the releases page.</value>
+    <comment>Status in the dialog shown when the database is newer than this copy of the app. {0} is the database's version. "The releases page" is the web page the dialog's "Releases page" button opens.</comment>
+  </data>
+  <data name="UpdateAheadCheckFailed" xml:space="preserve">
+    <value>Could not check for an update: {0}. Get {1} or later from the releases page.</value>
+    <comment>Status in the dialog shown when the database is newer than this copy of the app, when the update check failed. {0} is the error (in English, without its closing full stop), {1} the database's version. "The releases page" is the web page the dialog's "Releases page" button opens.</comment>
+  </data>
+  <data name="UpdateAheadCheckFailedNoReason" xml:space="preserve">
+    <value>Could not check for an update: no reason given. Get {0} or later from the releases page.</value>
+    <comment>Status in the dialog shown when the database is newer than this copy of the app, when the update check failed without saying why. {0} is the database's version. "The releases page" is the web page the dialog's "Releases page" button opens.</comment>
+  </data>
+  <data name="UpdateAheadNoRelease" xml:space="preserve">
+    <value>No newer release is out yet. {0} has not been released: the database was opened by a development build, or the release is still being published.</value>
+    <comment>Status in the dialog shown when the database is newer than this copy of the app, when no newer release exists. {0} is the database's version.</comment>
+  </data>
+  <data name="UpdateAheadReleaseTooOld" xml:space="preserve">
+    <value>The newest release, {0}, is still older than this database ({1}), which was opened by a build that has not been released.</value>
+    <comment>Status in the dialog shown when the database is newer than this copy of the app. {0} is the newest release's version, {1} the database's version.</comment>
+  </data>
+  <data name="UpdateAheadAvailable" xml:space="preserve">
+    <value>Version {0} is available. Updating installs it and restarts EVE Console on this database.</value>
+    <comment>Status in the dialog shown when the database is newer than this copy of the app, when a release that can open it exists. {0} is that release's version. EVE Console is the product name.</comment>
+  </data>
+  <data name="RecoveryReasonUnknown" xml:space="preserve">
+    <value>unknown</value>
+    <comment>Database recovery dialog, under "REPORTED": shown in place of the reason the database could not be opened, when none was given.</comment>
+  </data>
+  <data name="VersionMismatchDatabaseAhead" xml:space="preserve">
+    <value>This database is at version {0}, and this client is {1}.
+
+A newer build has already changed this database in ways this one knows nothing about, and schema changes only ever move forward.
+
+Update this client to {0} or later.</value>
+    <comment>Shown at startup, and the app then stops, when the database was upgraded by a newer copy of the app. {0} is the database's version, {1} this copy's version. A "client" is one running copy of the app; a "build" is a version of it.</comment>
+  </data>
+  <data name="VersionMismatchWorkerBehind" xml:space="preserve">
+    <value>This database is at version {0}, and this client is {1}.
+
+Another client is running the background processes on {0}, and only that client may change the schema. The changes this build expects have not been made, so much of it would not work.
+
+Update the client running the background processes to {1}, or close it and start this one first so that it takes over and applies them.</value>
+    <comment>Shown at startup, and the app then stops, when another copy of the app runs the background processes on an older version. {0} is the database's (and that copy's) version, {1} this copy's version. A "client" is one running copy of the app; a "build" is a version of it.</comment>
+  </data>
+  <data name="VersionMismatchHeading" xml:space="preserve">
+    <value>This build does not match the database</value>
+    <comment>Heading of the dialog shown with VersionMismatchWorkerBehind, before the app stops.</comment>
+  </data>
+  <data name="SplashShrinking" xml:space="preserve">
+    <value>Shrinking database — {0} elapsed. Please leave the application open.</value>
+    <comment>Splash screen while the database is compacted at startup. {0} is the time taken so far, as minutes:seconds.</comment>
+  </data>
+  <data name="SplashWaitingDatabase" xml:space="preserve">
+    <value>Waiting — the database could not be opened</value>
+    <comment>Splash screen when the database cannot be reached yet.</comment>
+  </data>
+  <data name="SplashStartupFailed" xml:space="preserve">
+    <value>Startup failed — {0}  (full details in the error log)</value>
+    <comment>Splash screen when startup fails. {0} is the reason, cut short; keep the two spaces before the bracket.</comment>
+  </data>
+  <data name="SplashStoppingMismatch" xml:space="preserve">
+    <value>Stopping — version mismatch</value>
+    <comment>Splash screen when this version cannot run against the database's version.</comment>
+  </data>
+  <data name="SplashInitializingDatabase" xml:space="preserve">
+    <value>Initializing database…</value>
+    <comment>Splash screen, a startup step.</comment>
+  </data>
+  <data name="SplashCharacterTables" xml:space="preserve">
+    <value>Building character tables…</value>
+    <comment>Splash screen, a startup step: creating or updating database tables.</comment>
+  </data>
+  <data name="SplashCorporationTables" xml:space="preserve">
+    <value>Building corporation tables…</value>
+    <comment>Splash screen, a startup step: creating or updating database tables.</comment>
+  </data>
+  <data name="SplashMarketTables" xml:space="preserve">
+    <value>Building market tables…</value>
+    <comment>Splash screen, a startup step: creating or updating database tables.</comment>
+  </data>
+  <data name="SplashIndustryTables" xml:space="preserve">
+    <value>Building industry tables…</value>
+    <comment>Splash screen, a startup step: creating or updating database tables.</comment>
+  </data>
+  <data name="SplashFinalizingSchema" xml:space="preserve">
+    <value>Finalizing schema…</value>
+    <comment>Splash screen, a startup step: the last database changes.</comment>
+  </data>
+  <data name="SplashLoadingSettings" xml:space="preserve">
+    <value>Loading settings…</value>
+    <comment>Splash screen, a startup step.</comment>
+  </data>
+  <data name="SplashPreparingTools" xml:space="preserve">
+    <value>Preparing tools…</value>
+    <comment>Splash screen, a startup step.</comment>
+  </data>
+  <data name="SplashStartingServices" xml:space="preserve">
+    <value>Starting background services…</value>
+    <comment>Splash screen, a startup step.</comment>
+  </data>
+  <data name="SplashLoadingOverview" xml:space="preserve">
+    <value>Loading overview…</value>
+    <comment>Splash screen, a startup step.</comment>
+  </data>
+  <data name="SplashOpening" xml:space="preserve">
+    <value>Opening…</value>
+    <comment>Splash screen, the last startup step before the window opens.</comment>
+  </data>
+  <data name="SplashReady" xml:space="preserve">
+    <value>Ready.</value>
+    <comment>Splash screen, startup finished.</comment>
+  </data>
+  <data name="TrayOpenApp" xml:space="preserve">
+    <value>Open EVE Console</value>
+    <comment>Tray icon menu item: brings the window back.</comment>
+  </data>
+  <data name="TrayExit" xml:space="preserve">
+    <value>Exit</value>
+    <comment>Tray icon menu item: closes the app. Settings quotes this word.</comment>
+  </data>
+</root>

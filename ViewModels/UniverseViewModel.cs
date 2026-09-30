@@ -11,6 +11,7 @@ using Avalonia.Threading;
 using EveConsole.Controls;
 using EveConsole.Services;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -32,11 +33,21 @@ public class CrumbVm : ReactiveObject
     }
 }
 
-public class OverlayModeVm(string name, string key)
+/// <summary>
+/// One map overlay. <see cref="Key"/> is what is saved and switched on; <see cref="Label"/> is
+/// what the pick list shows, in the interface's language.
+///
+/// <para>⚠️ <see cref="Name"/> stays English. It is what the AI agent asks for an overlay by
+/// (set_map_overlay, matched in MainWindowViewModel) and what the reply to the model names, and
+/// the model works in English whatever the interface language — matched against the label, the
+/// agent would find no overlay at all once the interface is translated.</para>
+/// </summary>
+public class OverlayModeVm(string label, string key, string name)
 {
-    public string Name { get; } = name;
-    public string Key  { get; } = key;
-    public override string ToString() => Name;
+    public string Label { get; } = label;
+    public string Key   { get; } = key;
+    public string Name  { get; } = name;
+    public override string ToString() => Label;
 }
 
 /// <summary>
@@ -86,47 +97,49 @@ public class UniverseViewModel : ReactiveObject
         _stats     = stats;
         SystemPage = systemPage;
 
+        // The label shown, the key saved and switched on, and the English name the AI agent asks
+        // for it by (see OverlayModeVm).
         OverlayModes =
         [
-            new("Security",      "security"),
-            new("Constellation", "constellation"),   // regions, at universe level
-            new("Sovereignty",   "sovereignty"),
-            new("Sovereignty ADM", "adm"),
-            new("Industry — manufacturing", "industry:manufacturing"),
-            new("Industry — reactions",     "industry:reaction"),
-            new("Industry — ME research",   "industry:researching_material_efficiency"),
-            new("Industry — TE research",   "industry:researching_time_efficiency"),
-            new("Industry — copying",       "industry:copying"),
-            new("Industry — invention",     "industry:invention"),
+            new(MapText.OverlaySecurity,              "security",       "Security"),
+            new(MapText.OverlayConstellation,         "constellation",  "Constellation"),   // regions, at universe level
+            new(MapText.OverlaySovereignty,           "sovereignty",    "Sovereignty"),
+            new(MapText.OverlaySovereigntyAdm,        "adm",            "Sovereignty ADM"),
+            new(MapText.OverlayIndustryManufacturing, "industry:manufacturing",                   "Industry — manufacturing"),
+            new(MapText.OverlayIndustryReactions,     "industry:reaction",                        "Industry — reactions"),
+            new(MapText.OverlayIndustryMeResearch,    "industry:researching_material_efficiency", "Industry — ME research"),
+            new(MapText.OverlayIndustryTeResearch,    "industry:researching_time_efficiency",     "Industry — TE research"),
+            new(MapText.OverlayIndustryCopying,       "industry:copying",                         "Industry — copying"),
+            new(MapText.OverlayIndustryInvention,     "industry:invention",                       "Industry — invention"),
             // Ship and pod kills are counted from stored killmails, not from CCP's system_kills
             // tally. That endpoint re-reports the same kills in consecutive hourly snapshots, so
             // every window summed from it comes out roughly double — see GetKillCountsAsync.
             // Jumps and NPC kills stay on CCP's figures: NPC kills generate no killmails at all,
             // and there is no second source for jumps.
-            new("Ship kills (24h)",  "km:ship:1"),
-            new("Ship kills (7d)",   "km:ship:7"),
-            new("Ship kills (30d)",  "km:ship:30"),
-            new("Pod kills (24h)",   "km:pod:1"),
-            new("Pod kills (7d)",    "km:pod:7"),
-            new("Pod kills (30d)",   "km:pod:30"),
+            new(MapText.OverlayShipKills24h,          "km:ship:1",      "Ship kills (24h)"),
+            new(MapText.OverlayShipKills7d,           "km:ship:7",      "Ship kills (7d)"),
+            new(MapText.OverlayShipKills30d,          "km:ship:30",     "Ship kills (30d)"),
+            new(MapText.OverlayPodKills24h,           "km:pod:1",       "Pod kills (24h)"),
+            new(MapText.OverlayPodKills7d,            "km:pod:7",       "Pod kills (7d)"),
+            new(MapText.OverlayPodKills30d,           "km:pod:30",      "Pod kills (30d)"),
             // Intel: the live one shows who is believed to be somewhere right now, so it drops
             // sightings a later one has superseded. The paths keep those, which is what turns a
             // gang's trail through several systems into something you can see.
-            new("Intel (15m)",         "intel:15"),
-            new("Intel paths (15m)",   "intelpath:15"),
-            new("Intel paths (1h)",    "intelpath:60"),
-            new("Intel paths (24h)",   "intelpath:1440"),
-            new("Ship jumps (24h)",  "act:jumps:1"),
-            new("Ship jumps (7d)",   "act:jumps:7"),
-            new("NPC kills (24h)",   "act:npc:1"),
-            new("Faction warfare",   "fw"),
-            new("Incursions",        "incursions"),
-            new("Planetary power",     "prod:power"),
-            new("Planetary workforce", "prod:workforce"),
-            new("Stations (NPC/player)", "stations"),
-            new("Planets",       "cel:0"),
-            new("Moons",         "cel:1"),
-            new("Asteroid belts", "cel:3"),
+            new(MapText.OverlayIntel15m,              "intel:15",       "Intel (15m)"),
+            new(MapText.OverlayIntelPaths15m,         "intelpath:15",   "Intel paths (15m)"),
+            new(MapText.OverlayIntelPaths1h,          "intelpath:60",   "Intel paths (1h)"),
+            new(MapText.OverlayIntelPaths24h,         "intelpath:1440", "Intel paths (24h)"),
+            new(MapText.OverlayShipJumps24h,          "act:jumps:1",    "Ship jumps (24h)"),
+            new(MapText.OverlayShipJumps7d,           "act:jumps:7",    "Ship jumps (7d)"),
+            new(MapText.OverlayNpcKills24h,           "act:npc:1",      "NPC kills (24h)"),
+            new(MapText.OverlayFactionWarfare,        "fw",             "Faction warfare"),
+            new(MapText.OverlayIncursions,            "incursions",     "Incursions"),
+            new(MapText.OverlayPlanetaryPower,        "prod:power",     "Planetary power"),
+            new(MapText.OverlayPlanetaryWorkforce,    "prod:workforce", "Planetary workforce"),
+            new(MapText.OverlayStations,              "stations",       "Stations (NPC/player)"),
+            new(MapText.OverlayPlanets,               "cel:0",          "Planets"),
+            new(MapText.OverlayMoons,                 "cel:1",          "Moons"),
+            new(MapText.OverlayAsteroidBelts,         "cel:3",          "Asteroid belts"),
         ];
         // An overlay that has since been renamed or removed falls back to the first one rather
         // than leaving the selection empty.
@@ -135,15 +148,15 @@ public class UniverseViewModel : ReactiveObject
 
         DrillDownCommand  = ReactiveCommand.CreateFromTask<int>(DrillDownAsync);
         OpenSystemCommand = ReactiveCommand.CreateFromTask<int>(ShowSystemAsync);
-        OpenSystemCommand.ThrownExceptions.Subscribe(ex => Status = $"Error: {ex.Message}");
+        OpenSystemCommand.ThrownExceptions.Subscribe(ex => Status = string.Format(CommonText.ErrorWithMessage, ex.Message));
         GoUniverseCommand = ReactiveCommand.CreateFromTask(ShowUniverseAsync);
         RefreshCommand    = ReactiveCommand.CreateFromTask(RefreshAsync);
 
         // Without these, a command that throws breaks its pipeline and RxApp's default handler
         // rethrows on the UI thread, taking the app down over what should be a status message.
-        DrillDownCommand .ThrownExceptions.Subscribe(ex => Status = $"Error: {ex.Message}");
-        GoUniverseCommand.ThrownExceptions.Subscribe(ex => Status = $"Error: {ex.Message}");
-        RefreshCommand   .ThrownExceptions.Subscribe(ex => Status = $"Error: {ex.Message}");
+        DrillDownCommand .ThrownExceptions.Subscribe(ex => Status = string.Format(CommonText.ErrorWithMessage, ex.Message));
+        GoUniverseCommand.ThrownExceptions.Subscribe(ex => Status = string.Format(CommonText.ErrorWithMessage, ex.Message));
+        RefreshCommand   .ThrownExceptions.Subscribe(ex => Status = string.Format(CommonText.ErrorWithMessage, ex.Message));
 
         // Re-paint on overlay change without refetching geometry, and remember the choice.
         this.WhenAnyValue(x => x.SelectedOverlay)
@@ -194,7 +207,7 @@ public class UniverseViewModel : ReactiveObject
         }
         catch (Exception ex)
         {
-            await OnUiAsync(() => Status = $"Error: {ex.Message}");
+            await OnUiAsync(() => Status = string.Format(CommonText.ErrorWithMessage, ex.Message));
         }
         return Unit.Default;
     });
@@ -291,7 +304,12 @@ public class UniverseViewModel : ReactiveObject
     public OverlayModeVm SelectedOverlay
     {
         get => _selectedOverlay;
-        set => this.RaiseAndSetIfChanged(ref _selectedOverlay, value);
+        set
+        {
+            // A detaching ComboBox sets null; that is not a choice (and .Key would throw).
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            this.RaiseAndSetIfChanged(ref _selectedOverlay, value);
+        }
     }
 
     /// <summary>Suggestions for the jump box — regions and systems together.</summary>
@@ -306,7 +324,8 @@ public class UniverseViewModel : ReactiveObject
 
     private async Task RefreshSuggestionsAsync(string text)
     {
-        var matches = await _map.SearchPlacesAsync(text);
+        // Finds what the map shows as well as the English that gets pasted in from elsewhere.
+        var matches = await _map.SearchPlacesAsync(text, shownNames: true);
         await OnUiAsync(() => Replace(Places, matches));
     }
 
@@ -356,7 +375,12 @@ public class UniverseViewModel : ReactiveObject
 
     public async Task ShowUniverseAsync()
     {
-        await OnUiAsync(() => Status = "Loading universe…");
+        await OnUiAsync(() => Status = MapText.StatusLoadingUniverse);
+
+        // First run at startup, usually before the SDE names are in: waited for once, so the
+        // overlay captions and the crumbs do not stay English. The canvas redraws its own labels
+        // whenever names arrive.
+        await SdeNames.EnsureLoadedAsync();
 
         if (_regions.Count == 0) _regions = await _map.GetRegionsAsync();
 
@@ -379,8 +403,7 @@ public class UniverseViewModel : ReactiveObject
 
             var regions = graph.Nodes.Count(n => n.Tier == 0);
             var systems = graph.Nodes.Count - regions;
-            Status = $"{regions} regions · {systems:N0} systems · " +
-                     "zoom in to open the regions · double-click a system for detail";
+            Status = string.Format(MapText.StatusUniverse, regions, systems);
         });
     }
 
@@ -391,7 +414,10 @@ public class UniverseViewModel : ReactiveObject
         var name = _regions.FirstOrDefault(r => r.RegionId == regionId)?.Name
                    ?? regionId.ToString();
 
-        await OnUiAsync(() => Status = $"Loading {name}…");
+        // The English is the crumb's key (FocusRegionAsync finds the region by it); people read this.
+        var shown = SdeNames.Region(regionId, name);
+
+        await OnUiAsync(() => Status = string.Format(MapText.StatusLoadingPlace, shown));
 
         var graph = await _map.GetRegionGraphAsync(regionId);
         var (styles, legend) = await BuildOverlayAsync(graph, byRegion: false);
@@ -413,8 +439,9 @@ public class UniverseViewModel : ReactiveObject
 
             var inside  = graph.Nodes.Count(n => !n.IsOutsideRegion);
             var outside = graph.Nodes.Count - inside;
-            Status = $"{name}: {inside} systems" +
-                     (outside > 0 ? $" · {outside} adjacent systems in neighbouring regions" : "");
+            Status = outside > 0
+                ? string.Format(MapText.StatusRegionSystemsAdjacent, shown, inside, outside)
+                : string.Format(MapText.StatusRegionSystems, shown, inside);
         });
     }
 
@@ -440,6 +467,8 @@ public class UniverseViewModel : ReactiveObject
     /// it. Bounds come from where that region's systems actually are, so the framing matches the
     /// territory instead of a fixed zoom around a centre point.
     /// </summary>
+    /// <param name="regionName">⚠️ The English name, which the graph's systems carry — never the
+    /// one shown.</param>
     public async Task FocusRegionAsync(string regionName)
     {
         if (Level != MapLevel.Universe || Graph is not { IsContinuous: true })
@@ -464,7 +493,7 @@ public class UniverseViewModel : ReactiveObject
             // resets the property when it consumes it, but this side would otherwise not change.
             FocusBounds = null;
             FocusBounds = new Rect(minX, minY, w, h);
-            Status      = $"{regionName} — {members.Count} systems";
+            Status      = string.Format(MapText.StatusPlaceSystems, members[0].RegionLabel, members.Count);
         });
     }
 
@@ -491,6 +520,7 @@ public class UniverseViewModel : ReactiveObject
     /// magnitude tighter. Reusing the region floor would zoom out to most of the region and make
     /// the two links indistinguishable.</para>
     /// </summary>
+    /// <param name="constellationName">⚠️ The English name, as for <see cref="FocusRegionAsync(string)"/>.</param>
     public async Task FocusConstellationAsync(string constellationName)
     {
         if (constellationName.Length == 0) return;
@@ -515,7 +545,7 @@ public class UniverseViewModel : ReactiveObject
             // property, so asking twice for the same target must still register as a change.
             FocusBounds = null;
             FocusBounds = new Rect(minX, minY, w, h);
-            Status      = $"{constellationName} — {members.Count} systems";
+            Status      = string.Format(MapText.StatusPlaceSystems, members[0].ConstellationLabel, members.Count);
         });
     }
 
@@ -559,18 +589,18 @@ public class UniverseViewModel : ReactiveObject
     /// </summary>
     public async Task ShowSystemAsync(int systemId)
     {
-        await OnUiAsync(() => Status = "Loading system…");
+        await OnUiAsync(() => Status = MapText.StatusLoadingSystem);
 
         if (SystemPage is null)
         {
-            await OnUiAsync(() => Status = "System view unavailable");
+            await OnUiAsync(() => Status = MapText.StatusSystemViewUnavailable);
             return;
         }
 
         var name = await _map.GetSystemDetailAsync(systemId);
         if (name is null)
         {
-            await OnUiAsync(() => Status = "System not found");
+            await OnUiAsync(() => Status = MapText.StatusSystemNotFound);
             return;
         }
 
@@ -587,7 +617,7 @@ public class UniverseViewModel : ReactiveObject
             _regionName = name.Region;
             Level       = MapLevel.System;
             BuildCrumbs();
-            Status = $"{name.Name} · {name.Region}";
+            Status = $"{SdeNames.SolarSystem(systemId, name.Name)} · {SdeNames.Region(name.RegionId, name.Region)}";
         });
     }
 
@@ -611,23 +641,25 @@ public class UniverseViewModel : ReactiveObject
     private void BuildCrumbs()
     {
         Crumbs.Clear();
-        Crumbs.Add(new CrumbVm("Universe", Level == MapLevel.Universe, ShowUniverseAsync));
+        Crumbs.Add(new CrumbVm(MapText.CrumbUniverse, Level == MapLevel.Universe, ShowUniverseAsync));
 
         if (Level == MapLevel.Universe) return;
 
         // The region map is no longer a step on the way down, and the crumb no longer opens one.
         // It returns to the single universe map, zoomed to that region — going back should undo
         // the zoom that got you here, not swap you onto a different map of the same place.
+        // Shown in the interface language; the English is what finds the region again.
         if (_regionName.Length > 0)
         {
             var name = _regionName;
-            Crumbs.Add(new CrumbVm(name, Level == MapLevel.Region, () => FocusRegionAsync(name)));
+            Crumbs.Add(new CrumbVm(SdeNames.Region(_regionId, name), Level == MapLevel.Region,
+                                   () => FocusRegionAsync(name)));
         }
 
         if (Level != MapLevel.System) return;
 
         var systemId = _systemId;
-        Crumbs.Add(new CrumbVm(_systemName, true, () => ShowSystemAsync(systemId)));
+        Crumbs.Add(new CrumbVm(SdeNames.SolarSystem(systemId, _systemName), true, () => ShowSystemAsync(systemId)));
     }
 
     private static void Replace<T>(ObservableCollection<T> target, IEnumerable<T> items)
@@ -654,27 +686,27 @@ public class UniverseViewModel : ReactiveObject
         {
             var d = await _map.GetRegionDetailAsync(id);
             if (d is null) return;
-            title = d.Name;
-            rows.Add(new("Systems",         d.Systems.ToString("N0")));
-            rows.Add(new("Constellations",  d.Constellations.ToString("N0")));
-            rows.Add(new("NPC stations",    d.Stations.ToString("N0")));
-            rows.Add(new("Avg security",    d.AvgSecurity.ToString("F2")));
-            rows.Add(new("Region gateways", d.Gateways.ToString("N0")));
+            title = SdeNames.Region(d.RegionId, d.Name);
+            rows.Add(new(MapText.DetailSystems,        d.Systems.ToString("N0")));
+            rows.Add(new(MapText.DetailConstellations, d.Constellations.ToString("N0")));
+            rows.Add(new(MapText.DetailNpcStations,    d.Stations.ToString("N0")));
+            rows.Add(new(MapText.DetailAvgSecurity,    d.AvgSecurity.ToString("F2")));
+            rows.Add(new(MapText.DetailRegionGateways, d.Gateways.ToString("N0")));
         }
         else
         {
             var d = await _map.GetSystemDetailAsync(id);
             if (d is null) return;
-            title = d.Name;
-            rows.Add(new("Security", d.Security.ToString("F2")));
+            title = SdeNames.SolarSystem(d.SystemId, d.Name);
+            rows.Add(new(MapText.DetailSecurity, d.Security.ToString("F2")));
             if (!string.IsNullOrEmpty(d.SecurityClass))
-                rows.Add(new("Security class", d.SecurityClass));
-            rows.Add(new("Constellation", d.Constellation));
-            rows.Add(new("Region",        d.Region));
-            rows.Add(new("Stargates",     d.Gates.ToString("N0")));
-            rows.Add(new("NPC stations",  d.Stations.ToString("N0")));
-            rows.Add(new("Planets",       d.Planets.ToString("N0")));
-            rows.Add(new("Moons",         d.Moons.ToString("N0")));
+                rows.Add(new(MapText.DetailSecurityClass, d.SecurityClass));
+            rows.Add(new(MapText.Constellation,     SdeNames.Constellation(d.ConstellationId, d.Constellation)));
+            rows.Add(new(MapText.Region,            SdeNames.Region(d.RegionId, d.Region)));
+            rows.Add(new(MapText.DetailStargates,   d.Gates.ToString("N0")));
+            rows.Add(new(MapText.DetailNpcStations, d.Stations.ToString("N0")));
+            rows.Add(new(MapText.Planets,           d.Planets.ToString("N0")));
+            rows.Add(new(MapText.Moons,             d.Moons.ToString("N0")));
         }
 
         await OnUiAsync(() =>
@@ -779,14 +811,14 @@ public class UniverseViewModel : ReactiveObject
             case { } k when k.StartsWith("cel:"):
             {
                 var kind = int.Parse(k[4..]);
-                var (singular, plural) = kind switch
+                var family = kind switch
                 {
-                    0 => ("planet", "planets"),
-                    1 => ("moon",   "moons"),
-                    _ => ("asteroid belt", "asteroid belts"),
+                    0 => nameof(MapText.CountPlanetsOther),
+                    1 => nameof(MapText.CountMoonsOther),
+                    _ => nameof(MapText.CountBeltsOther),
                 };
                 var counts = await _map.GetCelestialCountsAsync(kind, byRegion);
-                BuildCountOverlay(g, styles, legend, counts, singular, plural);
+                BuildCountOverlay(g, styles, legend, counts, Counted(family));
                 break;
             }
 
@@ -795,8 +827,9 @@ public class UniverseViewModel : ReactiveObject
                 var paths   = k.StartsWith("intelpath:");
                 var minutes = int.Parse(k[(k.IndexOf(':') + 1)..]);
                 var counts  = await _map.GetIntelCountsAsync(minutes, paths, byRegion);
-                BuildCountOverlay(g, styles, legend, counts,
-                    paths ? "player reported" : "player", paths ? "players reported" : "players");
+                BuildCountOverlay(g, styles, legend, counts, Counted(paths
+                    ? nameof(MapText.CountPlayersReportedOther)
+                    : nameof(MapText.CountPlayersOther)));
                 break;
             }
 
@@ -804,8 +837,9 @@ public class UniverseViewModel : ReactiveObject
             {
                 var workforce = k == "prod:workforce";
                 var totals    = await _map.GetProductionTotalsAsync(workforce, byRegion);
+                // Amounts, not things counted: the same words whatever the number.
                 BuildCountOverlay(g, styles, legend, totals,
-                    workforce ? "workforce" : "power", workforce ? "workforce" : "power");
+                    n => string.Format(workforce ? MapText.CountWorkforce : MapText.CountPower, n));
                 break;
             }
 
@@ -816,9 +850,9 @@ public class UniverseViewModel : ReactiveObject
                 var kind  = pods ? UniverseMapService.KillKind.Pods
                                  : UniverseMapService.KillKind.Ships;
                 var counts = await _map.GetKillCountsAsync(int.Parse(parts[2]), byRegion, kind);
-                BuildCountOverlay(g, styles, legend, counts,
-                    pods ? "pod kill"  : "ship kill",
-                    pods ? "pod kills" : "ship kills");
+                BuildCountOverlay(g, styles, legend, counts, Counted(pods
+                    ? nameof(MapText.CountPodKillsOther)
+                    : nameof(MapText.CountShipKillsOther)));
                 break;
             }
 
@@ -845,15 +879,16 @@ public class UniverseViewModel : ReactiveObject
                 // Two decimals: null-sec systems all sit just below zero, and one decimal
                 // collapses most of them onto an indistinguishable "-0.0".
                 Caption: n.Security.ToString("F2"),
-                Detail: $"Security {n.Security:F2}" + (byRegion ? " (region average)" : ""));
+                Detail: string.Format(byRegion ? MapText.NodeSecurityRegionAverage : MapText.NodeSecurity,
+                                      n.Security));
 
         // Every stop in the ramp, grouped by the band it belongs to, so the legend shows the
         // colours actually on the map — greens included — instead of one sample per band.
-        legend.Add(new LegendEntryVm("High sec  1.0 – 0.5",
+        legend.Add(new LegendEntryVm(MapText.LegendHighSec,
             SecurityRamp.Where(r => r.Sec >= 0.5).Select(r => r.Color)));
-        legend.Add(new LegendEntryVm("Low sec  0.4 – 0.1",
+        legend.Add(new LegendEntryVm(MapText.LegendLowSec,
             SecurityRamp.Where(r => r.Sec is < 0.5 and > 0.0).Select(r => r.Color)));
-        legend.Add(new LegendEntryVm("Null sec  0.0 and below",
+        legend.Add(new LegendEntryVm(MapText.LegendNullSec,
             [SecurityRamp[^1].Color]));
     }
 
@@ -883,10 +918,10 @@ public class UniverseViewModel : ReactiveObject
                 color,
                 // Naming the constellation makes the grouping readable without having to trace
                 // which blobs of colour belong together.
-                Caption: byRegion ? null : n.ConstellationName,
+                Caption: byRegion ? null : n.ConstellationLabel,
                 Detail: byRegion
-                    ? $"Security {n.Security:F2} (region average)"
-                    : $"{n.ConstellationName} · security {n.Security:F2}");
+                    ? string.Format(MapText.NodeSecurityRegionAverage, n.Security)
+                    : string.Format(MapText.NodeConstellationSecurity, n.ConstellationLabel, n.Security));
         }
     }
 
@@ -932,16 +967,21 @@ public class UniverseViewModel : ReactiveObject
             // only means anything system by system.
             if (byRegion)
             {
-                styles[n.Id] = new MapNodeStyle(unclaimed, Detail: "Open a region to see sovereignty");
+                styles[n.Id] = new MapNodeStyle(unclaimed, Detail: MapText.TipOpenRegionForSovereignty);
                 continue;
             }
 
             if (!sov.TryGetValue(n.Id, out var s) || s.AllianceId is null)
             {
+                // A faction holding the space names it; nobody holding it reads as unclaimed —
+                // the service leaves the holder empty then, rather than writing a word to match.
+                var holder = s is not null && s.Holder.Length > 0
+                    ? s.FactionId is { } faction ? SdeNames.Faction(faction, s.Holder) : s.Holder
+                    : null;
                 styles[n.Id] = new MapNodeStyle(
                     unclaimed,
-                    Caption: sov.TryGetValue(n.Id, out var f) && f.Holder != "Unclaimed" ? f.Holder : null,
-                    Detail: sov.GetValueOrDefault(n.Id)?.Holder ?? "Unclaimed");
+                    Caption: holder,
+                    Detail: holder ?? MapText.SovUnclaimed);
                 continue;
             }
 
@@ -949,7 +989,7 @@ public class UniverseViewModel : ReactiveObject
             styles[n.Id] = new MapNodeStyle(
                 color,
                 Caption: ShortHolder(s.Holder),
-                Detail: s.Adm is { } a ? $"{s.Holder} · ADM {a:F1}" : s.Holder);
+                Detail: s.Adm is { } a ? string.Format(MapText.NodeHolderAdm, s.Holder, a) : s.Holder);
         }
 
         // The biggest holders, since a legend of 79 alliances would be useless.
@@ -961,8 +1001,8 @@ public class UniverseViewModel : ReactiveObject
                 FromHsv(ranked.GetValueOrDefault(top.Key), 0.55, 0.85)));
 
         var held = sov.Values.Count(s => s.AllianceId is not null);
-        legend.Add(new LegendEntryVm($"…{ranked.Count:N0} alliances, {held:N0} systems", unclaimed));
-        legend.Add(new LegendEntryVm("Unclaimed / NPC", unclaimed));
+        legend.Add(new LegendEntryVm(string.Format(MapText.LegendSovSummary, ranked.Count, held), unclaimed));
+        legend.Add(new LegendEntryVm(MapText.LegendUnclaimedNpc, unclaimed));
     }
 
     /// <summary>
@@ -984,7 +1024,7 @@ public class UniverseViewModel : ReactiveObject
         {
             if (!values.TryGetValue(n.Id, out var v))
             {
-                styles[n.Id] = new MapNodeStyle(HeatNone, Detail: "No sovereignty structure");
+                styles[n.Id] = new MapNodeStyle(HeatNone, Detail: MapText.NodeNoSovStructure);
                 continue;
             }
 
@@ -994,11 +1034,24 @@ public class UniverseViewModel : ReactiveObject
             styles[n.Id] = new MapNodeStyle(
                 Heat((v - 1.0) / 5.0),
                 Caption: v.ToString("F1"),
-                Detail: $"ADM {v:F1}" + (byRegion ? " (region average)" : ""));
+                Detail: string.Format(byRegion ? MapText.NodeAdmRegionAverage : MapText.NodeAdm, v));
         }
 
         AddHeatLegend(legend, "1.0", "6.0");
     }
+
+    /// <summary>An industry activity as the cost-index tooltip names it; ESI's own word, spaced
+    /// out, for one not listed.</summary>
+    private static string IndexActivityName(string activity) => activity switch
+    {
+        "manufacturing"                   => MapText.IndexActivityManufacturing,
+        "reaction"                        => MapText.IndexActivityReaction,
+        "researching_material_efficiency" => MapText.IndexActivityMeResearch,
+        "researching_time_efficiency"     => MapText.IndexActivityTeResearch,
+        "copying"                         => MapText.IndexActivityCopying,
+        "invention"                       => MapText.IndexActivityInvention,
+        _                                 => activity.Replace('_', ' '),
+    };
 
     /// <summary>
     /// Colours by industry cost index for one activity. The index is a small fraction — a busy
@@ -1033,13 +1086,16 @@ public class UniverseViewModel : ReactiveObject
                 v > 0 ? Heat(t) : HeatNone,
                 Caption: v > 0 ? $"{v * 100:F2}%" : "—",
                 Detail: v > 0
-                    ? $"{activity.Replace('_', ' ')} index {v * 100:F2}%" +
-                      (byRegion ? " (region average)" : "")
-                    : "No index recorded");
+                    ? string.Format(byRegion ? MapText.NodeIndexRegionAverage : MapText.NodeIndex,
+                                    IndexActivityName(activity), v * 100)
+                    : MapText.NodeNoIndex);
         }
 
-        AddHeatLegend(legend, "lowest",
-            max > 0 ? $"{max * 100:F2}% — highest {(byRegion ? "region" : "system")} shown" : "no data");
+        AddHeatLegend(legend, MapText.LegendLowest,
+            max > 0
+                ? string.Format(byRegion ? MapText.LegendHighestRegionShown : MapText.LegendHighestSystemShown,
+                                max * 100)
+                : MapText.LegendNoData);
     }
 
     /// <summary>
@@ -1074,9 +1130,9 @@ public class UniverseViewModel : ReactiveObject
             ? await _map.GetRegionSumsAsync(bySystem)
             : bySystem;
 
-        BuildCountOverlay(g, styles, legend, counts,
-            jumps ? "jump"  : "NPC kill",
-            jumps ? "jumps" : "NPC kills");
+        BuildCountOverlay(g, styles, legend, counts, Counted(jumps
+            ? nameof(MapText.CountJumpsOther)
+            : nameof(MapText.CountNpcKillsOther)));
     }
 
     /// <summary>
@@ -1088,7 +1144,9 @@ public class UniverseViewModel : ReactiveObject
         if (_stats is null) return;
 
         var fw       = await _stats.GetLatestFactionWarfareAsync();
-        var factions = await _stats.GetFactionNamesAsync();
+        // As shown — only ever the tooltip and legend text, looked up by id.
+        var factions = (await _stats.GetFactionNamesAsync())
+            .ToDictionary(kv => kv.Key, kv => SdeNames.Faction(kv.Key, kv.Value));
         var neutral  = Color.Parse("#2e2e3a");
 
         // Only four militias hold faction-warfare space, so fixed hues read better than
@@ -1102,8 +1160,8 @@ public class UniverseViewModel : ReactiveObject
             if (byRegion || !fw.TryGetValue(n.Id, out var f))
             {
                 styles[n.Id] = new MapNodeStyle(neutral, Detail: byRegion
-                    ? "Open a region to see faction warfare"
-                    : "Not faction-warfare space");
+                    ? MapText.TipOpenRegionForFw
+                    : MapText.NodeNotFwSpace);
                 continue;
             }
 
@@ -1119,19 +1177,41 @@ public class UniverseViewModel : ReactiveObject
 
             styles[n.Id] = new MapNodeStyle(
                 color,
-                Caption: contested > 0 ? $"{contested:F0}%" : f.ContestedState,
-                Detail: $"{factions.GetValueOrDefault(f.OccupierFactionId, "Unknown")} · " +
-                        $"{f.ContestedState}" +
+                Caption: contested > 0 ? $"{contested:F0}%" : ContestedLabel(f.ContestedState),
+                Detail: $"{factions.GetValueOrDefault(f.OccupierFactionId, MapText.FactionUnknown)} · " +
+                        $"{ContestedLabel(f.ContestedState)}" +
                         (f.VictoryPointsThreshold > 0
-                            ? $" · {f.VictoryPoints:N0}/{f.VictoryPointsThreshold:N0} VP"
+                            ? " · " + string.Format(MapText.NodeVictoryPoints,
+                                                    f.VictoryPoints, f.VictoryPointsThreshold)
                             : ""));
         }
 
         foreach (var (id, h) in hues)
-            legend.Add(new LegendEntryVm(factions.GetValueOrDefault(id, $"Faction {id}"),
+            legend.Add(new LegendEntryVm(factions.GetValueOrDefault(id, string.Format(MapText.FactionNumbered, id)),
                 FromHsv(h, 0.75, 0.95)));
-        legend.Add(new LegendEntryVm("Not FW space", neutral));
+        legend.Add(new LegendEntryVm(MapText.LegendNotFwSpace, neutral));
     }
+
+    /// <summary>A faction-warfare system's state as shown; ESI's own word for one not listed.
+    /// The overlay compares ESI's word, never this.</summary>
+    private static string ContestedLabel(string state) => state switch
+    {
+        "captured"    => MapText.FwCaptured,
+        "contested"   => MapText.FwContested,
+        "uncontested" => MapText.FwUncontested,
+        "vulnerable"  => MapText.FwVulnerable,
+        _             => state,
+    };
+
+    /// <summary>An incursion's state as shown; ESI's own word for one not listed. The colours are
+    /// keyed on ESI's word, never on this.</summary>
+    private static string IncursionStateLabel(string state) => state switch
+    {
+        "established" => MapText.IncursionEstablished,
+        "mobilizing"  => MapText.IncursionMobilizing,
+        "withdrawing" => MapText.IncursionWithdrawing,
+        _             => state,
+    };
 
     /// <summary>
     /// Incursions are scoped to a constellation, not a system, so every system in an affected
@@ -1158,24 +1238,24 @@ public class UniverseViewModel : ReactiveObject
             if (byRegion || n.ConstellationId == 0 || !inc.TryGetValue(n.ConstellationId, out var i))
             {
                 styles[n.Id] = new MapNodeStyle(quiet, Detail: byRegion
-                    ? "Open a region to see incursions"
-                    : "No incursion");
+                    ? MapText.TipOpenRegionForIncursions
+                    : MapText.NodeNoIncursion);
                 continue;
             }
 
             var isStaging = n.Id == i.StagingSystemId;
             styles[n.Id] = new MapNodeStyle(
                 isStaging ? staging : stateColor.GetValueOrDefault(i.State, quiet),
-                Caption: isStaging ? "staging" : $"{i.Influence * 100:F0}%",
-                Detail: $"{i.State}" +
-                        (isStaging ? " · staging system" : "") +
-                        $" · influence {i.Influence * 100:F0}%" +
-                        (i.HasBoss ? " · boss up" : ""));
+                Caption: isStaging ? MapText.NodeStaging : $"{i.Influence * 100:F0}%",
+                Detail: IncursionStateLabel(i.State) +
+                        (isStaging ? " · " + MapText.NodeStagingSystem : "") +
+                        " · " + string.Format(MapText.NodeInfluence, i.Influence * 100) +
+                        (i.HasBoss ? " · " + MapText.NodeBossUp : ""));
         }
 
-        legend.Add(new LegendEntryVm("Staging system", staging));
-        foreach (var (state, c) in stateColor) legend.Add(new LegendEntryVm(state, c));
-        legend.Add(new LegendEntryVm($"{inc.Count} active", quiet));
+        legend.Add(new LegendEntryVm(MapText.LegendStagingSystem, staging));
+        foreach (var (state, c) in stateColor) legend.Add(new LegendEntryVm(IncursionStateLabel(state), c));
+        legend.Add(new LegendEntryVm(string.Format(MapText.LegendIncursionsActive, inc.Count), quiet));
     }
 
     // ── Shared heat scale ────────────────────────────────────────────────────
@@ -1203,7 +1283,7 @@ public class UniverseViewModel : ReactiveObject
         legend.Add(new LegendEntryVm(low,  HeatLow));
         legend.Add(new LegendEntryVm("",   HeatMid));
         legend.Add(new LegendEntryVm(high, HeatHigh));
-        legend.Add(new LegendEntryVm("none", HeatNone));
+        legend.Add(new LegendEntryVm(MapText.LegendNone, HeatNone));
     }
 
     /// <summary>
@@ -1267,18 +1347,23 @@ public class UniverseViewModel : ReactiveObject
                 t > 0 ? Heat(heat) : HeatNone,
                 Caption: t > 0 ? $"{s}/{p}" : "—",
                 Detail: t > 0
-                    ? $"{s:N0} NPC {(s == 1 ? "station" : "stations")} · " +
-                      $"{p:N0} known player {(p == 1 ? "structure" : "structures")}"
-                    : "No stations or known structures");
+                    ? Plurals.Format(MapText.ResourceManager, nameof(MapText.CountNpcStationsOther), s) + " · " +
+                      Plurals.Format(MapText.ResourceManager, nameof(MapText.CountKnownStructuresOther), p)
+                    : MapText.NodeNoStations);
         }
 
-        AddHeatLegend(legend, "NPC/player",
-            max > 0 ? $"{max:N0} — most shown" : "no data");
+        AddHeatLegend(legend, MapText.LegendNpcPlayer,
+            max > 0 ? string.Format(MapText.LegendMostShown, max) : MapText.LegendNoData);
     }
 
+    /// <summary>A counted phrase from one of MapText's plural families, named by its Other entry.</summary>
+    private static Func<int, string> Counted(string otherKey) =>
+        n => Plurals.Format(MapText.ResourceManager, otherKey, n);
+
+    /// <param name="describe">The tooltip's line for a count, e.g. "3 moons".</param>
     private static void BuildCountOverlay(
         MapGraph g, Dictionary<int, MapNodeStyle> styles, List<LegendEntryVm> legend,
-        Dictionary<int, int> counts, string singular, string plural)
+        Dictionary<int, int> counts, Func<int, string> describe)
     {
         var max = VisibleMax(g, counts);
 
@@ -1291,10 +1376,11 @@ public class UniverseViewModel : ReactiveObject
             styles[n.Id] = new MapNodeStyle(
                 c > 0 ? Heat(t) : HeatNone,
                 Caption: c > 0 ? c.ToString("N0") : "—",
-                Detail: $"{c:N0} {(c == 1 ? singular : plural)}");
+                Detail: describe(c));
         }
 
-        AddHeatLegend(legend, "lowest", max > 0 ? $"{max:N0} — highest shown" : "no data");
+        AddHeatLegend(legend, MapText.LegendLowest,
+            max > 0 ? string.Format(MapText.LegendHighestShown, max) : MapText.LegendNoData);
     }
 
     private static Color Lerp(Color a, Color b, double t)

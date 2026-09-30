@@ -1,0 +1,1447 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="OwnerType" xml:space="preserve">
+    <value>Owner Type</value>
+    <comment>Text in IndustryBrowserView.</comment>
+  </data>
+  <data name="Owner" xml:space="preserve">
+    <value>Owner</value>
+    <comment>Text in IndustryBrowserView.</comment>
+  </data>
+  <data name="Installer" xml:space="preserve">
+    <value>Installer</value>
+    <comment>Text in IndustryBrowserView.</comment>
+  </data>
+  <data name="StartDate" xml:space="preserve">
+    <value>Start Date</value>
+    <comment>Text in IndustryBrowserView.</comment>
+  </data>
+  <data name="EndDate" xml:space="preserve">
+    <value>End Date</value>
+    <comment>Text in IndustryBrowserView.</comment>
+  </data>
+  <data name="CompletedBy" xml:space="preserve">
+    <value>Completed By</value>
+    <comment>Text in IndustryBrowserView.</comment>
+  </data>
+  <data name="Activity" xml:space="preserve">
+    <value>Activity</value>
+    <comment>Text in IndustryBrowserView.</comment>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Status</value>
+    <comment>Text in IndustryBrowserView.</comment>
+  </data>
+  <data name="Runs" xml:space="preserve">
+    <value>Runs</value>
+    <comment>Text in IndustryBrowserView.</comment>
+  </data>
+  <data name="Items" xml:space="preserve">
+    <value>Items</value>
+    <comment>Text in IndustryBrowserView.</comment>
+  </data>
+  <data name="SuccessChance" xml:space="preserve">
+    <value>Success Chance</value>
+    <comment>Text in IndustryBrowserView.</comment>
+  </data>
+  <data name="TimeLeft" xml:space="preserve">
+    <value>Time Left</value>
+    <comment>Text in IndustryBrowserView.</comment>
+  </data>
+  <data name="Cost" xml:space="preserve">
+    <value>Cost</value>
+    <comment>Text in IndustryBrowserView.</comment>
+  </data>
+  <data name="OwnerLabel" xml:space="preserve">
+    <value>Owner:</value>
+    <comment>Label in IndustryBrowserView.</comment>
+  </data>
+  <data name="ActivityLabel" xml:space="preserve">
+    <value>Activity:</value>
+    <comment>Label in IndustryBrowserView.</comment>
+  </data>
+  <data name="StatusLabel" xml:space="preserve">
+    <value>Status:</value>
+    <comment>Label in IndustryBrowserView.</comment>
+  </data>
+  <data name="StartedLabel" xml:space="preserve">
+    <value>Started:</value>
+    <comment>Label in IndustryBrowserView.</comment>
+  </data>
+  <data name="HintFrom" xml:space="preserve">
+    <value>From…</value>
+    <comment>Hint in an empty box in IndustryBrowserView.</comment>
+  </data>
+  <data name="HintThru" xml:space="preserve">
+    <value>Thru…</value>
+    <comment>Hint in an empty box in IndustryBrowserView.</comment>
+  </data>
+  <data name="SearchLabel" xml:space="preserve">
+    <value>Search:</value>
+    <comment>Label in IndustryBrowserView.</comment>
+  </data>
+  <data name="HintBlueprintOrProduct" xml:space="preserve">
+    <value>blueprint or product…</value>
+    <comment>Hint in an empty box in IndustryBrowserView.</comment>
+  </data>
+  <data name="Apply" xml:space="preserve">
+    <value>Apply</value>
+    <comment>Button or option in IndustryBrowserView.</comment>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>Clear</value>
+    <comment>Button or option in IndustryBrowserView.</comment>
+  </data>
+  <data name="TitleIndustryJobs" xml:space="preserve">
+    <value>Industry Jobs</value>
+    <comment>Window title in IndustryBrowserWindow.</comment>
+  </data>
+  <data name="Calculate" xml:space="preserve">
+    <value>Calculate</value>
+    <comment>Button or option in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="PriceAt" xml:space="preserve">
+    <value>Price at</value>
+    <comment>Text in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="Min30dIskVol" xml:space="preserve">
+    <value>Min 30d ISK Vol</value>
+    <comment>Text in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="HintNoFilter" xml:space="preserve">
+    <value>No filter</value>
+    <comment>Hint in an empty box in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="Min30dUnitVol" xml:space="preserve">
+    <value>Min 30d Unit Vol</value>
+    <comment>Text in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="SkipFaction" xml:space="preserve">
+    <value>Skip faction</value>
+    <comment>Button or option in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="SkipNonBpoTraceableItems" xml:space="preserve">
+    <value>Skip Non BPO traceable Items</value>
+    <comment>Button or option in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="TipOnlyItemsWhoseBlueprint" xml:space="preserve">
+    <value>Only items whose blueprint is a buyable BPO, or is invented from one (e.g. T2 from a T1 BPO). Excludes faction/limited-run BPC items with no obtainable BPO, storyline, officer and deadspace items, and 'Limited Time' event items whose BPO can no longer be bought in game.</value>
+    <comment>Tooltip in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="ExcludeGroups" xml:space="preserve">
+    <value>Exclude Groups</value>
+    <comment>Text in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="TipRemoveThisExclusion" xml:space="preserve">
+    <value>Remove this exclusion</value>
+    <comment>Tooltip in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="AddGroup" xml:space="preserve">
+    <value>+ Add Group</value>
+    <comment>Button or option in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>Item</value>
+    <comment>Column header in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="TipOpenInTheItemBrowser" xml:space="preserve">
+    <value>Open in the Item Browser</value>
+    <comment>Tooltip in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="ColBuildCost" xml:space="preserve">
+    <value>Build Cost</value>
+    <comment>Column header in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="ColSellPrice" xml:space="preserve">
+    <value>Sell Price</value>
+    <comment>Column header in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="ColProfitUnit" xml:space="preserve">
+    <value>Profit / Unit</value>
+    <comment>Column header in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="ColMargin" xml:space="preserve">
+    <value>Margin</value>
+    <comment>Column header in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="ColBuildTime" xml:space="preserve">
+    <value>Build Time</value>
+    <comment>Column header in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="ColSlotDays" xml:space="preserve">
+    <value>Slot Days</value>
+    <comment>Column header in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="ColProfitSlotDay" xml:space="preserve">
+    <value>Profit / Slot Day</value>
+    <comment>Column header in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="ColUnitsSold30d" xml:space="preserve">
+    <value>Units Sold 30d</value>
+    <comment>Column header in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="ColIskSold30d" xml:space="preserve">
+    <value>ISK Sold 30d</value>
+    <comment>Column header in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="ScanningForIndustryOpportunities" xml:space="preserve">
+    <value>Scanning for industry opportunities…</value>
+    <comment>Text in IndustryOpportunitiesView.</comment>
+  </data>
+  <data name="TitleIndustryOpportunities" xml:space="preserve">
+    <value>Industry Opportunities</value>
+    <comment>Window title in IndustryOpportunitiesWindow.</comment>
+  </data>
+  <data name="IndyParksLabel" xml:space="preserve">
+    <value>INDY PARKS</value>
+    <comment>Label in IndyParksView.</comment>
+  </data>
+  <data name="NewPark" xml:space="preserve">
+    <value>+ New Park</value>
+    <comment>Button or option in IndyParksView.</comment>
+  </data>
+  <data name="Import" xml:space="preserve">
+    <value>Import</value>
+    <comment>Button or option in IndyParksView.</comment>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Delete</value>
+    <comment>Button or option in IndyParksView.</comment>
+  </data>
+  <data name="CreateOrSelectAnNote" xml:space="preserve">
+    <value>Create or select an Indy Park from the list.</value>
+    <comment>Note in IndyParksView.</comment>
+  </data>
+  <data name="ParkNameLabel" xml:space="preserve">
+    <value>PARK NAME</value>
+    <comment>Label in IndyParksView.</comment>
+  </data>
+  <data name="SetDefault" xml:space="preserve">
+    <value>★ Set Default</value>
+    <comment>Button or option in IndyParksView.</comment>
+  </data>
+  <data name="ExportPark" xml:space="preserve">
+    <value>Export Park</value>
+    <comment>Button or option in IndyParksView.</comment>
+  </data>
+  <data name="StructuresLabel" xml:space="preserve">
+    <value>STRUCTURES</value>
+    <comment>Label in IndyParksView.</comment>
+  </data>
+  <data name="HintSystem" xml:space="preserve">
+    <value>System…</value>
+    <comment>Hint in an empty box in IndyParksView.</comment>
+  </data>
+  <data name="SkipMoonRefineries" xml:space="preserve">
+    <value>Skip moon refineries</value>
+    <comment>Button or option in IndyParksView.</comment>
+  </data>
+  <data name="TipAthanorsAndTatarasAnchored" xml:space="preserve">
+    <value>Athanors and Tataras anchored to a moon are usually moon mining, not industry</value>
+    <comment>Tooltip in IndyParksView.</comment>
+  </data>
+  <data name="AddMissingInSystem" xml:space="preserve">
+    <value>+ Add Missing In System</value>
+    <comment>Button or option in IndyParksView.</comment>
+  </data>
+  <data name="TipAddsTheIndustrialStructures" xml:space="preserve">
+    <value>Adds the industrial structures in that system this park does not already have. Structures already linked here are counted and left alone, so pressing it again after adding one by hand creates no duplicates.</value>
+    <comment>Tooltip in IndyParksView.</comment>
+  </data>
+  <data name="AddStructure" xml:space="preserve">
+    <value>+ Add Structure</value>
+    <comment>Button or option in IndyParksView.</comment>
+  </data>
+  <data name="HintStructureName" xml:space="preserve">
+    <value>Structure name…</value>
+    <comment>Hint in an empty box in IndyParksView.</comment>
+  </data>
+  <data name="Default" xml:space="preserve">
+    <value>Default</value>
+    <comment>Button or option in IndyParksView.</comment>
+  </data>
+  <data name="TipCatchAllFacilityItems" xml:space="preserve">
+    <value>Catch-all facility. Items no category assignment covers are planned here with no rig bonus, so the calculation completes instead of failing. Only one facility per park.</value>
+    <comment>Tooltip in IndyParksView.</comment>
+  </data>
+  <data name="HintSolarSystem" xml:space="preserve">
+    <value>Solar system…</value>
+    <comment>Hint in an empty box in IndyParksView.</comment>
+  </data>
+  <data name="TaxPercentageLabel" xml:space="preserve">
+    <value>Tax Percentage:</value>
+    <comment>Label in IndyParksView.</comment>
+  </data>
+  <data name="ActualFacilityLabel" xml:space="preserve">
+    <value>ACTUAL FACILITY</value>
+    <comment>Label in IndyParksView.</comment>
+  </data>
+  <data name="TipOpenThisStationOrStructure" xml:space="preserve">
+    <value>Open this station or structure</value>
+    <comment>Tooltip in IndyParksView.</comment>
+  </data>
+  <data name="Unlink" xml:space="preserve">
+    <value>Unlink</value>
+    <comment>Button or option in IndyParksView.</comment>
+  </data>
+  <data name="HintSearchStationOrStructureTo" xml:space="preserve">
+    <value>Search station or structure to link…</value>
+    <comment>Hint in an empty box in IndyParksView.</comment>
+  </data>
+  <data name="Search" xml:space="preserve">
+    <value>Search</value>
+    <comment>Button or option in IndyParksView.</comment>
+  </data>
+  <data name="RigsLabel" xml:space="preserve">
+    <value>RIGS</value>
+    <comment>Label in IndyParksView.</comment>
+  </data>
+  <data name="HintEmpty" xml:space="preserve">
+    <value>— empty —</value>
+    <comment>Hint in an empty box in IndyParksView.</comment>
+  </data>
+  <data name="ServiceModulesLabel" xml:space="preserve">
+    <value>SERVICE MODULES</value>
+    <comment>Label in IndyParksView.</comment>
+  </data>
+  <data name="HintAddAServiceModule" xml:space="preserve">
+    <value>— add a service module —</value>
+    <comment>Hint in an empty box in IndyParksView.</comment>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Add</value>
+    <comment>Button or option in IndyParksView.</comment>
+  </data>
+  <data name="ProductionAssignmentsLabel" xml:space="preserve">
+    <value>PRODUCTION ASSIGNMENTS</value>
+    <comment>Label in IndyParksView.</comment>
+  </data>
+  <data name="AutoAssignFromRigs" xml:space="preserve">
+    <value>Auto-assign from rigs</value>
+    <comment>Button or option in IndyParksView.</comment>
+  </data>
+  <data name="TipFillsEmptyCategoriesFrom" xml:space="preserve">
+    <value>Fills empty categories from each structure's rigs. Existing choices are left alone.</value>
+    <comment>Tooltip in IndyParksView.</comment>
+  </data>
+  <data name="AssignWhichStructureHandlesNote" xml:space="preserve">
+    <value>Assign which structure handles each production category.</value>
+    <comment>Note in IndyParksView.</comment>
+  </data>
+  <data name="HintNotAssigned" xml:space="preserve">
+    <value>— not assigned —</value>
+    <comment>Hint in an empty box in IndyParksView.</comment>
+  </data>
+  <data name="ItemExceptionsLabel" xml:space="preserve">
+    <value>ITEM EXCEPTIONS</value>
+    <comment>Label in IndyParksView.</comment>
+  </data>
+  <data name="OverrideTheCategoryAssignmentNote" xml:space="preserve">
+    <value>Override the category assignment for a specific item.</value>
+    <comment>Note in IndyParksView.</comment>
+  </data>
+  <data name="HintSearchForAnItem" xml:space="preserve">
+    <value>Search for an item to add exception…</value>
+    <comment>Hint in an empty box in IndyParksView.</comment>
+  </data>
+  <data name="FmtSlot" xml:space="preserve">
+    <value>Slot {0}:</value>
+    <comment>Formatted text ({0} is filled in) in IndyParksView.</comment>
+  </data>
+  <data name="TitleIndyParks" xml:space="preserve">
+    <value>Indy Parks</value>
+    <comment>Window title in IndyParksWindow.</comment>
+  </data>
+  <data name="AddType" xml:space="preserve">
+    <value>+ Add Type</value>
+    <comment>Button or option in PriceOverrideView.</comment>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>Remove</value>
+    <comment>Button or option in PriceOverrideView.</comment>
+  </data>
+  <data name="SaveRecalculate" xml:space="preserve">
+    <value>Save &amp; Recalculate</value>
+    <comment>Button or option in PriceOverrideView.</comment>
+  </data>
+  <data name="LeaveACellBlankNote" xml:space="preserve">
+    <value>Leave a cell blank to leave that value computed. A set value REPLACES the computed value everywhere it is used. Contract Value on a blueprint is the PER-RUN BPC price. Values are in ISK.</value>
+    <comment>Note in PriceOverrideView.</comment>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>Type</value>
+    <comment>Column header in PriceOverrideView.</comment>
+  </data>
+  <data name="ColTypeId" xml:space="preserve">
+    <value>Type ID</value>
+    <comment>Column header in PriceOverrideView.</comment>
+  </data>
+  <data name="ColMarketValue" xml:space="preserve">
+    <value>Market Value</value>
+    <comment>Column header in PriceOverrideView.</comment>
+  </data>
+  <data name="ColContractValuePerRunFor" xml:space="preserve">
+    <value>Contract Value (per-run for BPCs)</value>
+    <comment>Column header in PriceOverrideView.</comment>
+  </data>
+  <data name="ProductionQueue" xml:space="preserve">
+    <value>Production Queue</value>
+    <comment>Text in ProductionCalculatorView.</comment>
+  </data>
+  <data name="IndyPark" xml:space="preserve">
+    <value>Indy Park</value>
+    <comment>Text in ProductionCalculatorView.</comment>
+  </data>
+  <data name="AddItem" xml:space="preserve">
+    <value>Add Item</value>
+    <comment>Text in ProductionCalculatorView.</comment>
+  </data>
+  <data name="HintTypeToSearchItems" xml:space="preserve">
+    <value>Type to search items...</value>
+    <comment>Hint in an empty box in ProductionCalculatorView.</comment>
+  </data>
+  <data name="Quantity" xml:space="preserve">
+    <value>Quantity</value>
+    <comment>Text in ProductionCalculatorView.</comment>
+  </data>
+  <data name="MeLevel" xml:space="preserve">
+    <value>ME Level</value>
+    <comment>Text in ProductionCalculatorView.</comment>
+  </data>
+  <data name="AddToQueue" xml:space="preserve">
+    <value>Add to Queue</value>
+    <comment>Button or option in ProductionCalculatorView.</comment>
+  </data>
+  <data name="IncludeFinalBpcCost" xml:space="preserve">
+    <value>Include final BPC cost</value>
+    <comment>Button or option in ProductionCalculatorView.</comment>
+  </data>
+  <data name="TipAddTheFinalProducts" xml:space="preserve">
+    <value>Add the final product's blueprint copy (contract price) as an input. Always included for faction / BPC-only items; optional for standard BPO items.</value>
+    <comment>Tooltip in ProductionCalculatorView.</comment>
+  </data>
+  <data name="TipOpenInItemBrowser" xml:space="preserve">
+    <value>Open in Item Browser</value>
+    <comment>Tooltip in ProductionCalculatorView.</comment>
+  </data>
+  <data name="AddItemsToTheNote" xml:space="preserve">
+    <value>Add items to the queue and click Calculate to see results.</value>
+    <comment>Note in ProductionCalculatorView.</comment>
+  </data>
+  <data name="TabSummary" xml:space="preserve">
+    <value>Summary</value>
+    <comment>Tab in ProductionCalculatorView.</comment>
+  </data>
+  <data name="PlannedInTheParksNote" xml:space="preserve">
+    <value>Planned in the park's default facility with no rig bonus, so these costs may be overstated.</value>
+    <comment>Note in ProductionCalculatorView.</comment>
+  </data>
+  <data name="BlueprintCopiesTradeOnlyNote" xml:space="preserve">
+    <value>Blueprint copies trade only by contract, so a quiet month leaves no current price. The most recent one on record is used; where there is none the blueprint counts as 0 ISK and the build cost is understated by that much.</value>
+    <comment>Note in ProductionCalculatorView.</comment>
+  </data>
+  <data name="CostSummary" xml:space="preserve">
+    <value>Cost Summary</value>
+    <comment>Text in ProductionCalculatorView.</comment>
+  </data>
+  <data name="RawMaterialsLabel" xml:space="preserve">
+    <value>Raw Materials:</value>
+    <comment>Label in ProductionCalculatorView.</comment>
+  </data>
+  <data name="JobCostsLabel" xml:space="preserve">
+    <value>Job Costs:</value>
+    <comment>Label in ProductionCalculatorView.</comment>
+  </data>
+  <data name="LeftoverValueLabel" xml:space="preserve">
+    <value>Leftover Value:</value>
+    <comment>Label in ProductionCalculatorView.</comment>
+  </data>
+  <data name="NetCostLabel" xml:space="preserve">
+    <value>Net Cost:</value>
+    <comment>Label in ProductionCalculatorView.</comment>
+  </data>
+  <data name="RawMaterialVolumeLabel" xml:space="preserve">
+    <value>Raw Material Volume:</value>
+    <comment>Label in ProductionCalculatorView.</comment>
+  </data>
+  <data name="TipPackedVolumeOfThe" xml:space="preserve">
+    <value>Packed volume of the shopping list. Intermediates are excluded — they are built on site rather than hauled in.</value>
+    <comment>Tooltip in ProductionCalculatorView.</comment>
+  </data>
+  <data name="FinalProducts" xml:space="preserve">
+    <value>Final Products</value>
+    <comment>Text in ProductionCalculatorView.</comment>
+  </data>
+  <data name="BuildMarket" xml:space="preserve">
+    <value>build / market</value>
+    <comment>Text in ProductionCalculatorView.</comment>
+  </data>
+  <data name="TabRawMaterials" xml:space="preserve">
+    <value>Raw Materials</value>
+    <comment>Tab in ProductionCalculatorView.</comment>
+  </data>
+  <data name="MissingVsLabel" xml:space="preserve">
+    <value>Missing vs:</value>
+    <comment>Label in ProductionCalculatorView.</comment>
+  </data>
+  <data name="Station" xml:space="preserve">
+    <value>Station</value>
+    <comment>Button or option in ProductionCalculatorView.</comment>
+  </data>
+  <data name="TipCompareAgainstStockAt" xml:space="preserve">
+    <value>Compare against stock at each job's linked facility, summing the demand of every job sharing that structure</value>
+    <comment>Tooltip in ProductionCalculatorView.</comment>
+  </data>
+  <data name="AllAssets" xml:space="preserve">
+    <value>All assets</value>
+    <comment>Button or option in ProductionCalculatorView.</comment>
+  </data>
+  <data name="TipCompareAgainstEverythingYou" xml:space="preserve">
+    <value>Compare against everything you own, wherever it sits</value>
+    <comment>Tooltip in ProductionCalculatorView.</comment>
+  </data>
+  <data name="ShoppingList" xml:space="preserve">
+    <value>Shopping List</value>
+    <comment>Button or option in ProductionCalculatorView.</comment>
+  </data>
+  <data name="TipCopyItemNameAnd" xml:space="preserve">
+    <value>Copy item name and quantity (tab-separated) to clipboard</value>
+    <comment>Tooltip in ProductionCalculatorView.</comment>
+  </data>
+  <data name="ShoppingListMissing" xml:space="preserve">
+    <value>Shopping List (Missing)</value>
+    <comment>Button or option in ProductionCalculatorView.</comment>
+  </data>
+  <data name="TipCopyOnlyTheItems" xml:space="preserve">
+    <value>Copy only the items short of the plan's needs, at the quantity short</value>
+    <comment>Tooltip in ProductionCalculatorView.</comment>
+  </data>
+  <data name="Export" xml:space="preserve">
+    <value>Export</value>
+    <comment>Button or option in ProductionCalculatorView.</comment>
+  </data>
+  <data name="TipExportAllColumnsTo" xml:space="preserve">
+    <value>Export all columns to clipboard or file</value>
+    <comment>Tooltip in ProductionCalculatorView.</comment>
+  </data>
+  <data name="MenuCopyToClipboard" xml:space="preserve">
+    <value>Copy to Clipboard</value>
+    <comment>Menu item in ProductionCalculatorView.</comment>
+  </data>
+  <data name="MenuExportAsCsv" xml:space="preserve">
+    <value>Export as CSV</value>
+    <comment>Menu item in ProductionCalculatorView.</comment>
+  </data>
+  <data name="MenuTabDelimited" xml:space="preserve">
+    <value>Tab-delimited</value>
+    <comment>Menu item in ProductionCalculatorView.</comment>
+  </data>
+  <data name="ColMaterial" xml:space="preserve">
+    <value>Material</value>
+    <comment>Column header in ProductionCalculatorView.</comment>
+  </data>
+  <data name="ColQuantity" xml:space="preserve">
+    <value>Quantity</value>
+    <comment>Column header in ProductionCalculatorView.</comment>
+  </data>
+  <data name="ColMissing" xml:space="preserve">
+    <value>Missing</value>
+    <comment>Column header in ProductionCalculatorView.</comment>
+  </data>
+  <data name="ColUnitPrice" xml:space="preserve">
+    <value>Unit Price</value>
+    <comment>Column header in ProductionCalculatorView.</comment>
+  </data>
+  <data name="ColTotalCost" xml:space="preserve">
+    <value>Total Cost</value>
+    <comment>Column header in ProductionCalculatorView.</comment>
+  </data>
+  <data name="TabIntermediates" xml:space="preserve">
+    <value>Intermediates</value>
+    <comment>Tab in ProductionCalculatorView.</comment>
+  </data>
+  <data name="DoubleClickRowToNote" xml:space="preserve">
+    <value>Double-click row to open in Item Browser</value>
+    <comment>Note in ProductionCalculatorView.</comment>
+  </data>
+  <data name="ColNeeded" xml:space="preserve">
+    <value>Needed</value>
+    <comment>Column header in ProductionCalculatorView.</comment>
+  </data>
+  <data name="ColProduced" xml:space="preserve">
+    <value>Produced</value>
+    <comment>Column header in ProductionCalculatorView.</comment>
+  </data>
+  <data name="ColLeftover" xml:space="preserve">
+    <value>Leftover</value>
+    <comment>Column header in ProductionCalculatorView.</comment>
+  </data>
+  <data name="ColBuildValue" xml:space="preserve">
+    <value>Build Value</value>
+    <comment>Column header in ProductionCalculatorView.</comment>
+  </data>
+  <data name="ColLeftoverValue" xml:space="preserve">
+    <value>Leftover Value</value>
+    <comment>Column header in ProductionCalculatorView.</comment>
+  </data>
+  <data name="TabLeftovers" xml:space="preserve">
+    <value>Leftovers</value>
+    <comment>Tab in ProductionCalculatorView.</comment>
+  </data>
+  <data name="ColSource" xml:space="preserve">
+    <value>Source</value>
+    <comment>Column header in ProductionCalculatorView.</comment>
+  </data>
+  <data name="ColTotalValue" xml:space="preserve">
+    <value>Total Value</value>
+    <comment>Column header in ProductionCalculatorView.</comment>
+  </data>
+  <data name="TabFinalProducts" xml:space="preserve">
+    <value>Final Products</value>
+    <comment>Tab in ProductionCalculatorView.</comment>
+  </data>
+  <data name="ColReq" xml:space="preserve">
+    <value>Req</value>
+    <comment>Column header in ProductionCalculatorView.</comment>
+  </data>
+  <data name="ColMatCost" xml:space="preserve">
+    <value>Mat Cost</value>
+    <comment>Column header in ProductionCalculatorView.</comment>
+  </data>
+  <data name="ColJobCost" xml:space="preserve">
+    <value>Job Cost</value>
+    <comment>Column header in ProductionCalculatorView.</comment>
+  </data>
+  <data name="ColUnitCost" xml:space="preserve">
+    <value>Unit Cost</value>
+    <comment>Column header in ProductionCalculatorView.</comment>
+  </data>
+  <data name="ColMarketUnit" xml:space="preserve">
+    <value>Market/Unit</value>
+    <comment>Column header in ProductionCalculatorView.</comment>
+  </data>
+  <data name="ColProfit" xml:space="preserve">
+    <value>Profit</value>
+    <comment>Column header in ProductionCalculatorView.</comment>
+  </data>
+  <data name="TabJobs" xml:space="preserve">
+    <value>Jobs</value>
+    <comment>Tab in ProductionCalculatorView.</comment>
+  </data>
+  <data name="TipPackedVolumeThisJob" xml:space="preserve">
+    <value>Packed volume this job consumes — what has to reach the facility.</value>
+    <comment>Tooltip in ProductionCalculatorView.</comment>
+  </data>
+  <data name="TipPackedVolumeThisJob2" xml:space="preserve">
+    <value>Packed volume this job produces — what leaves it.</value>
+    <comment>Tooltip in ProductionCalculatorView.</comment>
+  </data>
+  <data name="TipOpenInTheStructureBrowser" xml:space="preserve">
+    <value>Open in the Structure Browser</value>
+    <comment>Tooltip in ProductionCalculatorView.</comment>
+  </data>
+  <data name="TipOpenOnTheMap" xml:space="preserve">
+    <value>Open on the map</value>
+    <comment>Tooltip in ProductionCalculatorView.</comment>
+  </data>
+  <data name="Materials" xml:space="preserve">
+    <value>Materials</value>
+    <comment>Button or option in ProductionCalculatorView.</comment>
+  </data>
+  <data name="TipCopyEveryBoughtMaterial" xml:space="preserve">
+    <value>Copy every bought material for this job (name and quantity, tab-separated)</value>
+    <comment>Tooltip in ProductionCalculatorView.</comment>
+  </data>
+  <data name="TipCopyOnlyTheBought" xml:space="preserve">
+    <value>Copy only the bought materials short at this job's linked facility</value>
+    <comment>Tooltip in ProductionCalculatorView.</comment>
+  </data>
+  <data name="Material" xml:space="preserve">
+    <value>Material</value>
+    <comment>Text in ProductionCalculatorView.</comment>
+  </data>
+  <data name="BaseRun" xml:space="preserve">
+    <value>Base/Run</value>
+    <comment>Text in ProductionCalculatorView.</comment>
+  </data>
+  <data name="EffRun" xml:space="preserve">
+    <value>Eff/Run</value>
+    <comment>Text in ProductionCalculatorView.</comment>
+  </data>
+  <data name="Total" xml:space="preserve">
+    <value>Total</value>
+    <comment>Text in ProductionCalculatorView.</comment>
+  </data>
+  <data name="Missing" xml:space="preserve">
+    <value>Missing</value>
+    <comment>Text in ProductionCalculatorView.</comment>
+  </data>
+  <data name="TipShortfallAgainstStockAt" xml:space="preserve">
+    <value>Shortfall against stock at this job's linked facility. Em dash means the park structure has no facility linked.</value>
+    <comment>Tooltip in ProductionCalculatorView.</comment>
+  </data>
+  <data name="Source" xml:space="preserve">
+    <value>Source</value>
+    <comment>Text in ProductionCalculatorView.</comment>
+  </data>
+  <data name="FormulaSdeBaseResult" xml:space="preserve">
+    <value>Formula (SDE base → result)</value>
+    <comment>Text in ProductionCalculatorView.</comment>
+  </data>
+  <data name="FmtRequested" xml:space="preserve">
+    <value>Requested: {0:N0}</value>
+    <comment>Formatted text ({0} is filled in) in ProductionCalculatorView.</comment>
+  </data>
+  <data name="FmtProduced" xml:space="preserve">
+    <value>Produced: {0:N0}</value>
+    <comment>Formatted text ({0} is filled in) in ProductionCalculatorView.</comment>
+  </data>
+  <data name="FmtMatIsk" xml:space="preserve">
+    <value>Mat: {0:N0} ISK</value>
+    <comment>Formatted text ({0} is filled in) in ProductionCalculatorView.</comment>
+  </data>
+  <data name="FmtJobsIsk" xml:space="preserve">
+    <value>Jobs: {0:N0} ISK</value>
+    <comment>Formatted text ({0} is filled in) in ProductionCalculatorView.</comment>
+  </data>
+  <data name="FmtUnitCostIsk" xml:space="preserve">
+    <value>Unit cost: {0:N2} ISK</value>
+    <comment>Formatted text ({0} is filled in) in ProductionCalculatorView.</comment>
+  </data>
+  <data name="FmtMarketUnit" xml:space="preserve">
+    <value>Market: {0:N2}/unit</value>
+    <comment>Formatted text ({0} is filled in) in ProductionCalculatorView.</comment>
+  </data>
+  <data name="FmtProfitIsk" xml:space="preserve">
+    <value>Profit: {0:N0} ISK</value>
+    <comment>Formatted text ({0} is filled in) in ProductionCalculatorView.</comment>
+  </data>
+  <data name="FmtMargin" xml:space="preserve">
+    <value>Margin: {0:F1}%</value>
+    <comment>Formatted text ({0} is filled in) in ProductionCalculatorView.</comment>
+  </data>
+  <data name="FmtItemsToPurchaseDouble" xml:space="preserve">
+    <value>{0} items to purchase — double-click row to open in Item Browser</value>
+    <comment>Formatted text ({0} is filled in) in ProductionCalculatorView.</comment>
+  </data>
+  <data name="FmtLeftoverItemsValuedAt" xml:space="preserve">
+    <value>{0} leftover items valued at build cost — double-click to open in Item Browser</value>
+    <comment>Formatted text ({0} is filled in) in ProductionCalculatorView.</comment>
+  </data>
+  <data name="FmtRuns" xml:space="preserve">
+    <value>Runs: {0}</value>
+    <comment>Formatted text ({0} is filled in) in ProductionCalculatorView.</comment>
+  </data>
+  <data name="FmtOut" xml:space="preserve">
+    <value>Out: {0:N0}</value>
+    <comment>Formatted text ({0} is filled in) in ProductionCalculatorView.</comment>
+  </data>
+  <data name="FmtLeftover" xml:space="preserve">
+    <value>Leftover: {0:N0}</value>
+    <comment>Formatted text ({0} is filled in) in ProductionCalculatorView.</comment>
+  </data>
+  <data name="FmtInM" xml:space="preserve">
+    <value>In: {0:N0} m³</value>
+    <comment>Formatted text ({0} is filled in) in ProductionCalculatorView.</comment>
+  </data>
+  <data name="FmtOutM" xml:space="preserve">
+    <value>Out: {0:N0} m³</value>
+    <comment>Formatted text ({0} is filled in) in ProductionCalculatorView.</comment>
+  </data>
+  <data name="FmtJobIsk" xml:space="preserve">
+    <value>Job: {0:N0} ISK</value>
+    <comment>Formatted text ({0} is filled in) in ProductionCalculatorView.</comment>
+  </data>
+  <data name="TitleProductionCalculator" xml:space="preserve">
+    <value>Production Calculator</value>
+    <comment>Window title in ProductionCalculatorWindow.</comment>
+  </data>
+  <data name="OverrideStatusNone" xml:space="preserve">
+    <value>No overrides. Add a type to pin its build, market, or contract value.</value>
+    <comment>Price Overrides status line when there are no overrides yet.</comment>
+  </data>
+  <data name="OverrideStatusCount" xml:space="preserve">
+    <value>{0} override(s).</value>
+    <comment>Price Overrides status line. {0} is the number of overrides.</comment>
+  </data>
+  <data name="OverrideStatusAdded" xml:space="preserve">
+    <value>Added {0}. Enter a value and press {1}.</value>
+    <comment>Price overrides status line. {0} is the item added, {1} the name of the button that saves (Save &amp; Recalculate).</comment>
+  </data>
+  <data name="OverrideStatusRemoved" xml:space="preserve">
+    <value>Removed {0}. Save/recalculate to refresh costs.</value>
+    <comment>Price Overrides status line after a type is removed. {0} is the item name.</comment>
+  </data>
+  <data name="OverrideStatusSaving" xml:space="preserve">
+    <value>Saved — recalculating build costs…</value>
+    <comment>Price Overrides status line while saving and recalculating.</comment>
+  </data>
+  <data name="OverrideStatusSaved" xml:space="preserve">
+    <value>Saved {0} override(s) and recalculated build costs at {1:t}.</value>
+    <comment>Price Overrides status line after saving. {0} is the number of overrides, {1} the time.</comment>
+  </data>
+  <data name="OverrideStatusSaveFailed" xml:space="preserve">
+    <value>Save failed: {0}</value>
+    <comment>Price Overrides status line when saving fails. {0} is the error.</comment>
+  </data>
+  <data name="ModeBuildSellOrder" xml:space="preserve">
+    <value>Build &amp; Sell Order</value>
+    <comment>Industry Opportunities mode: build the item and sell it through a sell order.</comment>
+  </data>
+  <data name="ModeBuildSellToBuyOrder" xml:space="preserve">
+    <value>Build &amp; Sell to Buy Order</value>
+    <comment>Industry Opportunities mode: build the item and sell it into an existing buy order.</comment>
+  </data>
+  <data name="OppsStatusStart" xml:space="preserve">
+    <value>Select a market config, then click Calculate.</value>
+    <comment>Industry Opportunities status line before the first calculation. "Calculate" is the button.</comment>
+  </data>
+  <data name="OppsErrNoConfig" xml:space="preserve">
+    <value>Please select a market config for pricing.</value>
+    <comment>Industry Opportunities status line: no market config (price source) is chosen.</comment>
+  </data>
+  <data name="OppsErrMinIskVolume" xml:space="preserve">
+    <value>Please enter a valid minimum ISK volume (or leave blank for no filter).</value>
+    <comment>Industry Opportunities status line: the minimum 30-day ISK volume box holds something that is not a number.</comment>
+  </data>
+  <data name="OppsErrMinUnitVolume" xml:space="preserve">
+    <value>Please enter a valid minimum unit volume (or leave blank for no filter).</value>
+    <comment>Industry Opportunities status line: the minimum 30-day unit volume box holds something that is not a number.</comment>
+  </data>
+  <data name="OppsStatusCalculating" xml:space="preserve">
+    <value>Calculating…</value>
+    <comment>Industry Opportunities status line while calculating.</comment>
+  </data>
+  <data name="OppsRegionUnresolved" xml:space="preserve">
+    <value>unresolved</value>
+    <comment>Shown in place of a region name when the market config's region could not be found (lower case: it follows "30d volume region:").</comment>
+  </data>
+  <data name="OppsErrNoRegion" xml:space="preserve">
+    <value>Could not resolve this market config's region — the 30-day volume filters need a region to look up market history.</value>
+    <comment>Industry Opportunities status line: the volume filters are set but the market config's region is unknown.</comment>
+  </data>
+  <data name="OppsStatusNone" xml:space="preserve">
+    <value>No profitable build opportunities found for this market config.</value>
+    <comment>Industry Opportunities status line when nothing profitable was found.</comment>
+  </data>
+  <data name="OppsRegionNumbered" xml:space="preserve">
+    <value>Region {0}</value>
+    <comment>A region whose name is unknown. {0} is its id.</comment>
+  </data>
+  <data name="CalcMissingByStation" xml:space="preserve">
+    <value>Missing counts stock at each job's linked facility</value>
+    <comment>Production Calculator, Raw Materials tab: what the Missing column counts when "Station" is chosen.</comment>
+  </data>
+  <data name="CalcMissingByAssets" xml:space="preserve">
+    <value>Missing counts every asset you own, anywhere</value>
+    <comment>Production Calculator, Raw Materials tab: what the Missing column counts when "All assets" is chosen.</comment>
+  </data>
+  <data name="CalcWarnNoAssignment" xml:space="preserve">
+    <value>{0} item(s) had no structure assignment in this park</value>
+    <comment>Production Calculator warning header. {0} is how many items no structure in the chosen Indy Park is assigned to build.</comment>
+  </data>
+  <data name="CalcWarnBlueprintPrices" xml:space="preserve">
+    <value>{0} blueprint price(s) are out of date or missing</value>
+    <comment>Production Calculator warning header. {0} is how many blueprint copy prices are old or unknown.</comment>
+  </data>
+  <data name="CalcStatusCalculating" xml:space="preserve">
+    <value>Calculating...</value>
+    <comment>Production Calculator status line while a plan is calculated.</comment>
+  </data>
+  <data name="CalcStatusDone" xml:space="preserve">
+    <value>Done — {0} jobs, {1} raw materials</value>
+    <comment>Production Calculator status line after a plan is calculated. {0} is the number of jobs, {1} the number of raw materials.</comment>
+  </data>
+  <data name="FileTypeText" xml:space="preserve">
+    <value>Text</value>
+    <comment>File type name in the save dialog, for a plain .txt file.</comment>
+  </data>
+  <data name="TitleExportRawMaterials" xml:space="preserve">
+    <value>Export Raw Materials</value>
+    <comment>Title of the save dialog when the raw materials list is exported.</comment>
+  </data>
+  <data name="TitleRemovalConfirmation" xml:space="preserve">
+    <value>Removal Confirmation</value>
+    <comment>Title of the dialog that asks before a park or a structure is deleted.</comment>
+  </data>
+  <data name="TitleImportPark" xml:space="preserve">
+    <value>Import Park</value>
+    <comment>Title of the file dialog that picks a park file to import.</comment>
+  </data>
+  <data name="TipNpcFixedTax" xml:space="preserve">
+    <value>NPC stations charge a fixed {0}% facility tax.</value>
+    <comment>Tooltip on the locked tax box of an NPC station in Indy Parks. {0} is the tax in percent (e.g. 0.25).</comment>
+  </data>
+  <data name="TipNameFromLink" xml:space="preserve">
+    <value>Named by the linked facility. Unlink it to rename.</value>
+    <comment>Tooltip on the locked structure name in Indy Parks: the name comes from the in-game facility it is linked to.</comment>
+  </data>
+  <data name="TipTypeFromLink" xml:space="preserve">
+    <value>Set by the linked facility's hull.</value>
+    <comment>Tooltip on the locked structure type in Indy Parks: the type comes from the linked facility's hull.</comment>
+  </data>
+  <data name="TipSystemFromLink" xml:space="preserve">
+    <value>Set by the linked facility. Unlink it to choose another system.</value>
+    <comment>Tooltip on the locked solar system box in Indy Parks.</comment>
+  </data>
+  <data name="TipSecurityFromLinkedSystem" xml:space="preserve">
+    <value>Set from the linked facility's system.</value>
+    <comment>Tooltip on the locked security class in Indy Parks, for a structure linked to a facility.</comment>
+  </data>
+  <data name="TipSecurityFromSystem" xml:space="preserve">
+    <value>Set from the system's own security. Clear or change the system to choose it by hand.</value>
+    <comment>Tooltip on the locked security class in Indy Parks, when the typed system decides it.</comment>
+  </data>
+  <data name="FittingNpcUnlinked" xml:space="preserve">
+    <value>NPC station — it takes no rigs. Link the station to list the services it offers.</value>
+    <comment>Indy Parks, under a structure's rigs: an NPC station not yet linked to a real station.</comment>
+  </data>
+  <data name="FittingNpcLinked" xml:space="preserve">
+    <value>NPC station — it takes no rigs, and its service modules stand for the station's own services.</value>
+    <comment>Indy Parks, under a structure's rigs: an NPC station linked to a real station.</comment>
+  </data>
+  <data name="FittingFromAssets" xml:space="preserve">
+    <value>From assets — the game reports this structure's fitting, so it cannot be edited here.</value>
+    <comment>Indy Parks, under a structure's rigs: the fitting is read from the game (the user's assets) and is read-only.</comment>
+  </data>
+  <data name="FittingByHand" xml:space="preserve">
+    <value>Entered by hand — this fitting is also written to the linked structure.</value>
+    <comment>Indy Parks, under a structure's rigs: the fitting was typed in and is copied to the linked structure.</comment>
+  </data>
+  <data name="FacilityNotLinked" xml:space="preserve">
+    <value>Not linked — jobs here won't be rig-checked</value>
+    <comment>Indy Parks: a structure not linked to a real in-game facility. "Rig-checked": its jobs are not checked for a missing rig bonus.</comment>
+  </data>
+  <data name="CategoryLargeShips" xml:space="preserve">
+    <value>Large Ships</value>
+    <comment>Indy Parks production category (manufacturing).</comment>
+  </data>
+  <data name="CategoryMediumShips" xml:space="preserve">
+    <value>Medium Ships</value>
+    <comment>Indy Parks production category (manufacturing).</comment>
+  </data>
+  <data name="CategorySmallShips" xml:space="preserve">
+    <value>Small Ships</value>
+    <comment>Indy Parks production category (manufacturing).</comment>
+  </data>
+  <data name="CategoryCapitalShips" xml:space="preserve">
+    <value>Capital Ships</value>
+    <comment>Indy Parks production category (manufacturing).</comment>
+  </data>
+  <data name="CategoryAdvLargeShips" xml:space="preserve">
+    <value>Advanced Large Ships</value>
+    <comment>Indy Parks production category (manufacturing): Tech II large ships.</comment>
+  </data>
+  <data name="CategoryAdvMediumShips" xml:space="preserve">
+    <value>Advanced Medium Ships</value>
+    <comment>Indy Parks production category (manufacturing): Tech II medium ships.</comment>
+  </data>
+  <data name="CategoryAdvSmallShips" xml:space="preserve">
+    <value>Advanced Small Ships</value>
+    <comment>Indy Parks production category (manufacturing): Tech II small ships.</comment>
+  </data>
+  <data name="CategoryCapitalComponents" xml:space="preserve">
+    <value>Capital Components</value>
+    <comment>Indy Parks production category (manufacturing).</comment>
+  </data>
+  <data name="CategoryAdvComponents" xml:space="preserve">
+    <value>Advanced Components</value>
+    <comment>Indy Parks production category (manufacturing): Tech II components.</comment>
+  </data>
+  <data name="CategoryCapAdvComponents" xml:space="preserve">
+    <value>Capital Advanced Components</value>
+    <comment>Indy Parks production category (manufacturing): advanced capital components.</comment>
+  </data>
+  <data name="CategoryDronesFighters" xml:space="preserve">
+    <value>Drones and Fighters</value>
+    <comment>Indy Parks production category (manufacturing).</comment>
+  </data>
+  <data name="CategoryAmmoCharges" xml:space="preserve">
+    <value>Ammo and Charges</value>
+    <comment>Indy Parks production category (manufacturing).</comment>
+  </data>
+  <data name="CategoryModulesEquipment" xml:space="preserve">
+    <value>Modules and Equipment</value>
+    <comment>Indy Parks production category (manufacturing).</comment>
+  </data>
+  <data name="CategoryStructuresFuel" xml:space="preserve">
+    <value>Structures, Components and Fuel Blocks</value>
+    <comment>Indy Parks production category (manufacturing): structures, their components, deployables and fuel blocks.</comment>
+  </data>
+  <data name="CategoryCompositeReactions" xml:space="preserve">
+    <value>Composite Reactions</value>
+    <comment>Indy Parks production category (reactions).</comment>
+  </data>
+  <data name="CategoryMoonReactions" xml:space="preserve">
+    <value>Moon Reactions</value>
+    <comment>Indy Parks production category: simple moon reactions (intermediate materials).</comment>
+  </data>
+  <data name="CategoryBioGasReactions" xml:space="preserve">
+    <value>Bio and Gas Phase Reactions</value>
+    <comment>Indy Parks production category (reactions): biochemical and gas phase reactions.</comment>
+  </data>
+  <data name="CategoryBpResearch" xml:space="preserve">
+    <value>Blueprint Research</value>
+    <comment>Indy Parks production category (science): ME and TE research.</comment>
+  </data>
+  <data name="CategoryBpCopying" xml:space="preserve">
+    <value>Blueprint Copying</value>
+    <comment>Indy Parks production category (science).</comment>
+  </data>
+  <data name="CategoryBpInvention" xml:space="preserve">
+    <value>Blueprint Invention</value>
+    <comment>Indy Parks production category (science).</comment>
+  </data>
+  <data name="CategoryRefineOre" xml:space="preserve">
+    <value>Refine Standard Ore</value>
+    <comment>Indy Parks production category (reprocessing): ordinary asteroid ore.</comment>
+  </data>
+  <data name="CategoryRefineMoonOre" xml:space="preserve">
+    <value>Refine Moon Ore</value>
+    <comment>Indy Parks production category (reprocessing).</comment>
+  </data>
+  <data name="CategoryRefineIce" xml:space="preserve">
+    <value>Refine Ice</value>
+    <comment>Indy Parks production category (reprocessing).</comment>
+  </data>
+  <data name="CategoryDecompressGas" xml:space="preserve">
+    <value>Decompress Gas</value>
+    <comment>Indy Parks production category (reprocessing): compressed gas.</comment>
+  </data>
+  <data name="DefaultParkName" xml:space="preserve">
+    <value>New Park</value>
+    <comment>The name a new Indy Park is given; the user renames it. It is saved as the park's name.</comment>
+  </data>
+  <data name="ServiceTypeNumbered" xml:space="preserve">
+    <value>Type {0}</value>
+    <comment>A service module whose name is unknown. {0} is its type id.</comment>
+  </data>
+  <data name="StatusPickParkFirst" xml:space="preserve">
+    <value>Pick a park first.</value>
+    <comment>Indy Parks status line: a button was used with no park selected.</comment>
+  </data>
+  <data name="BulkUnavailable" xml:space="preserve">
+    <value>Bulk add is unavailable.</value>
+    <comment>Indy Parks status line: adding every structure in a system cannot be done right now.</comment>
+  </data>
+  <data name="BulkPickSystem" xml:space="preserve">
+    <value>Pick a system from the list.</value>
+    <comment>Indy Parks status line: the system box beside "Add Missing In System" has no system picked.</comment>
+  </data>
+  <data name="BulkNoneKnown" xml:space="preserve">
+    <value>No industrial structures known in {0}. Only structures the app has already resolved a name for can be added.</value>
+    <comment>Indy Parks status line after "Add Missing In System". {0} is the system name.</comment>
+  </data>
+  <data name="DefaultStructureName" xml:space="preserve">
+    <value>New Structure</value>
+    <comment>The name a new structure in an Indy Park is given; the user renames it. It is saved as the structure's name.</comment>
+  </data>
+  <data name="OppsNoteHistoryPriced" xml:space="preserve">
+    <value>* {0} priced from 30-day avg (no sell orders)</value>
+    <comment>Industry Opportunities status line: how many items have no sell orders and are priced from their 30-day average instead. {0} is the number; the * matches the mark beside those prices.</comment>
+  </data>
+  <data name="OppsNoteVolumeRegion" xml:space="preserve">
+    <value>30d volume region: {0}</value>
+    <comment>Industry Opportunities status line: the region whose 30-day trade volume the filters use. {0} is the region name.</comment>
+  </data>
+  <data name="OppsStatusProfitableOne" xml:space="preserve">
+    <value>{0} profitable item · priced at {1}</value>
+    <comment>Industry Opportunities status line after a calculation. {0} is the number of profitable items, {1} the market config the prices came from.</comment>
+  </data>
+  <data name="OppsStatusProfitableOther" xml:space="preserve">
+    <value>{0} profitable items · priced at {1}</value>
+    <comment>Industry Opportunities status line after a calculation. {0} is the number of profitable items, {1} the market config the prices came from.</comment>
+  </data>
+  <data name="StructureTypeNpcStation" xml:space="preserve">
+    <value>NPC Station</value>
+    <comment>Indy Parks structure type: an NPC station. The other types are Upwell structures listed by their game names.</comment>
+  </data>
+  <data name="SecurityHighSec" xml:space="preserve">
+    <value>High Sec</value>
+    <comment>Indy Parks security class of a structure's system, which sets its rig bonus: high-security space.</comment>
+  </data>
+  <data name="SecurityLowSec" xml:space="preserve">
+    <value>Low Sec</value>
+    <comment>Indy Parks security class of a structure's system, which sets its rig bonus: low-security space.</comment>
+  </data>
+  <data name="SecurityNullSec" xml:space="preserve">
+    <value>Null Sec</value>
+    <comment>Indy Parks security class of a structure's system, which sets its rig bonus: null-security space.</comment>
+  </data>
+  <data name="SecurityWormhole" xml:space="preserve">
+    <value>Wormhole</value>
+    <comment>Indy Parks security class of a structure's system, which sets its rig bonus: wormhole space.</comment>
+  </data>
+  <data name="ConfirmDeletePark" xml:space="preserve">
+    <value>Delete the park "{0}"?</value>
+    <comment>First paragraph of the question before an Indy Park is deleted. {0} is the park's name.</comment>
+  </data>
+  <data name="ConfirmDeleteParkStructuresOne" xml:space="preserve">
+    <value>Its {0} structure, with their rigs and service modules, its category assignments and its item exceptions are deleted with it. This cannot be undone.</value>
+    <comment>Second paragraph of the question before an Indy Park is deleted. {0} is how many structures the park has.</comment>
+  </data>
+  <data name="ConfirmDeleteParkStructuresOther" xml:space="preserve">
+    <value>Its {0} structures, with their rigs and service modules, its category assignments and its item exceptions are deleted with it. This cannot be undone.</value>
+    <comment>Second paragraph of the question before an Indy Park is deleted. {0} is how many structures the park has.</comment>
+  </data>
+  <data name="ConfirmDeleteParkNoStructures" xml:space="preserve">
+    <value>Its category assignments and its item exceptions are deleted with it. This cannot be undone.</value>
+    <comment>Second paragraph of the question before an Indy Park that has no structures is deleted.</comment>
+  </data>
+  <data name="ConfirmDeleteParkNewDefault" xml:space="preserve">
+    <value>It is the default park, so "{0}" becomes the default.</value>
+    <comment>Last paragraph of the question before the default Indy Park is deleted. {0} is the park that becomes the default instead.</comment>
+  </data>
+  <data name="AutoAssignNothing" xml:space="preserve">
+    <value>Nothing to assign</value>
+    <comment>Part of the Indy Parks status line after "Auto-assign from rigs": no category was filled in. The parts are joined by " · ".</comment>
+  </data>
+  <data name="AutoAssignAssigned" xml:space="preserve">
+    <value>Assigned {0} category(ies)</value>
+    <comment>Part of the status line after "Auto-assign from rigs". {0} is how many production categories were given a structure.</comment>
+  </data>
+  <data name="AutoAssignAlreadySet" xml:space="preserve">
+    <value>{0} already set</value>
+    <comment>Part of the status line after "Auto-assign from rigs". {0} is how many categories already had a structure.</comment>
+  </data>
+  <data name="AutoAssignAmbiguous" xml:space="preserve">
+    <value>{0} with more than one rigged structure, left for you ({1})</value>
+    <comment>Part of the status line after "Auto-assign from rigs". {0} is how many categories more than one structure is rigged for, {1} the first three of them by name.</comment>
+  </data>
+  <data name="AutoAssignNoMatch" xml:space="preserve">
+    <value>{0} with no rigged structure</value>
+    <comment>Part of the status line after "Auto-assign from rigs". {0} is how many categories no structure is rigged for.</comment>
+  </data>
+  <data name="AutoAssignSummary" xml:space="preserve">
+    <value>{0}.</value>
+    <comment>The whole status line after "Auto-assign from rigs": {0} is its parts joined by " · ", and this ends it with a full stop.</comment>
+  </data>
+  <data name="BulkNothingNew" xml:space="preserve">
+    <value>Nothing new to add in {0} — {1} already in this park.</value>
+    <comment>Indy Parks status line after "Add Missing In System". {0} is the system name, {1} how many of its structures the park already has.</comment>
+  </data>
+  <data name="BulkNothingNewSkipped" xml:space="preserve">
+    <value>Nothing new to add in {0} — {1} already in this park, {2} moon refinery(ies) skipped.</value>
+    <comment>Indy Parks status line after "Add Missing In System". {0} is the system name, {1} how many of its structures the park already has, {2} how many refineries on a moon were left out.</comment>
+  </data>
+  <data name="BulkAdded" xml:space="preserve">
+    <value>Added {0} structure(s) from {1}.</value>
+    <comment>Indy Parks status line after "Add Missing In System". {0} is how many structures were added, {1} the system name.</comment>
+  </data>
+  <data name="BulkAddedAlready" xml:space="preserve">
+    <value>Added {0} structure(s) from {1}, {2} already present.</value>
+    <comment>Indy Parks status line after "Add Missing In System". {0} is how many structures were added, {1} the system name, {2} how many were in the park already.</comment>
+  </data>
+  <data name="BulkAddedSkipped" xml:space="preserve">
+    <value>Added {0} structure(s) from {1}, {2} moon refinery(ies) skipped.</value>
+    <comment>Indy Parks status line after "Add Missing In System". {0} is how many structures were added, {1} the system name, {2} how many refineries on a moon were left out.</comment>
+  </data>
+  <data name="BulkAddedAlreadySkipped" xml:space="preserve">
+    <value>Added {0} structure(s) from {1}, {2} already present, {3} moon refinery(ies) skipped.</value>
+    <comment>Indy Parks status line after "Add Missing In System". {0} is how many structures were added, {1} the system name, {2} how many were in the park already, {3} how many refineries on a moon were left out.</comment>
+  </data>
+  <data name="ConfirmRemoveStructure" xml:space="preserve">
+    <value>Remove "{0}" from this park?</value>
+    <comment>First paragraph of the question before a structure is removed from an Indy Park. {0} is the structure's name.</comment>
+  </data>
+  <data name="ConfirmRemoveStructureDetail" xml:space="preserve">
+    <value>Its rigs and service modules here are deleted, and any category or item exception that sends work to it is left unassigned. The structure in game is not affected.</value>
+    <comment>Second paragraph of the question before a structure is removed from an Indy Park.</comment>
+  </data>
+  <data name="OwnerAll" xml:space="preserve">
+    <value>All Owners</value>
+    <comment>Industry Jobs owner filter: the jobs of every character and corporation.</comment>
+  </data>
+  <data name="ColTimeRemaining" xml:space="preserve">
+    <value>Time Remaining</value>
+    <comment>Column header in Industry Jobs: the time until the job finishes.</comment>
+  </data>
+  <data name="ColProduct" xml:space="preserve">
+    <value>Product</value>
+    <comment>Column header in Industry Jobs: what the job makes.</comment>
+  </data>
+  <data name="ColSuccessfulRuns" xml:space="preserve">
+    <value>Successful Runs</value>
+    <comment>Column header in Industry Jobs: the runs that succeeded (invention can fail).</comment>
+  </data>
+  <data name="ColItemsProduced" xml:space="preserve">
+    <value>Items Produced</value>
+    <comment>Column header in Industry Jobs: how many items the job makes.</comment>
+  </data>
+  <data name="ColFacility" xml:space="preserve">
+    <value>Facility</value>
+    <comment>Column header in Industry Jobs: the station or structure the job runs in.</comment>
+  </data>
+  <data name="ColNote" xml:space="preserve">
+    <value>Note</value>
+    <comment>Column header in Industry Jobs: a warning about the job, such as a facility with no rig bonus for it.</comment>
+  </data>
+  <data name="ColCreated" xml:space="preserve">
+    <value>Created</value>
+    <comment>Column header in Industry Jobs: when the job was started.</comment>
+  </data>
+  <data name="ColCompleted" xml:space="preserve">
+    <value>Completed</value>
+    <comment>Column header in Industry Jobs: when the job finished, or is due to finish.</comment>
+  </data>
+  <data name="ActivityAll" xml:space="preserve">
+    <value>All Activities</value>
+    <comment>Industry Jobs activity filter: jobs of every activity.</comment>
+  </data>
+  <data name="ActivityManufacturing" xml:space="preserve">
+    <value>Manufacturing</value>
+    <comment>Industry activity, in the Industry Jobs activity filter and Activity column.</comment>
+  </data>
+  <data name="ActivityTeResearch" xml:space="preserve">
+    <value>TE Research</value>
+    <comment>Industry activity: time efficiency research. TE stays as it is.</comment>
+  </data>
+  <data name="ActivityMeResearch" xml:space="preserve">
+    <value>ME Research</value>
+    <comment>Industry activity: material efficiency research. ME stays as it is.</comment>
+  </data>
+  <data name="ActivityCopying" xml:space="preserve">
+    <value>Copying</value>
+    <comment>Industry activity: blueprint copying.</comment>
+  </data>
+  <data name="ActivityInvention" xml:space="preserve">
+    <value>Invention</value>
+    <comment>Industry activity, in the Industry Jobs activity filter and Activity column.</comment>
+  </data>
+  <data name="ActivityReverseEngineering" xml:space="preserve">
+    <value>Reverse Eng.</value>
+    <comment>Industry activity: reverse engineering, shortened to fit the column.</comment>
+  </data>
+  <data name="ActivityReactions" xml:space="preserve">
+    <value>Reactions</value>
+    <comment>Industry activity, in the Industry Jobs activity filter and Activity column.</comment>
+  </data>
+  <data name="StatusFilterAll" xml:space="preserve">
+    <value>All Statuses</value>
+    <comment>Industry Jobs status filter: jobs in every status.</comment>
+  </data>
+  <data name="StatusFilterActive" xml:space="preserve">
+    <value>active</value>
+    <comment>Industry Jobs status filter entry: running jobs. Lower case, as the filter lists them.</comment>
+  </data>
+  <data name="StatusFilterPaused" xml:space="preserve">
+    <value>paused</value>
+    <comment>Industry Jobs status filter entry: paused jobs. Lower case, as the filter lists them.</comment>
+  </data>
+  <data name="StatusFilterReady" xml:space="preserve">
+    <value>ready</value>
+    <comment>Industry Jobs status filter entry: finished jobs waiting to be delivered. Lower case, as the filter lists them.</comment>
+  </data>
+  <data name="StatusFilterDelivered" xml:space="preserve">
+    <value>delivered</value>
+    <comment>Industry Jobs status filter entry: delivered jobs. Lower case, as the filter lists them.</comment>
+  </data>
+  <data name="StatusFilterCancelled" xml:space="preserve">
+    <value>cancelled</value>
+    <comment>Industry Jobs status filter entry: cancelled jobs. Lower case, as the filter lists them.</comment>
+  </data>
+  <data name="StatusFilterReverted" xml:space="preserve">
+    <value>reverted</value>
+    <comment>Industry Jobs status filter entry: reverted jobs. Lower case, as the filter lists them.</comment>
+  </data>
+  <data name="JobStatusActive" xml:space="preserve">
+    <value>Active</value>
+    <comment>A job's status in the Industry Jobs grid and detail panel: running.</comment>
+  </data>
+  <data name="JobStatusPaused" xml:space="preserve">
+    <value>Paused</value>
+    <comment>A job's status in the Industry Jobs grid and detail panel.</comment>
+  </data>
+  <data name="JobStatusReady" xml:space="preserve">
+    <value>Ready</value>
+    <comment>A job that has finished and waits to be delivered: its status in the Industry Jobs grid, and what its Time Remaining shows.</comment>
+  </data>
+  <data name="JobStatusDelivered" xml:space="preserve">
+    <value>Delivered</value>
+    <comment>A job's status in the Industry Jobs grid and detail panel.</comment>
+  </data>
+  <data name="JobStatusCancelled" xml:space="preserve">
+    <value>Cancelled</value>
+    <comment>A job's status in the Industry Jobs grid and detail panel.</comment>
+  </data>
+  <data name="JobStatusReverted" xml:space="preserve">
+    <value>Reverted</value>
+    <comment>A job's status in the Industry Jobs grid and detail panel.</comment>
+  </data>
+  <data name="JobsCountOne" xml:space="preserve">
+    <value>{0:N0} job</value>
+    <comment>Industry Jobs status line: how many jobs are listed. {0} is the number.</comment>
+  </data>
+  <data name="JobsCountOther" xml:space="preserve">
+    <value>{0:N0} jobs</value>
+    <comment>Industry Jobs status line: how many jobs are listed. {0} is the number.</comment>
+  </data>
+  <data name="JobsActiveCount" xml:space="preserve">
+    <value>{0} active</value>
+    <comment>Industry Jobs status line, after the job count: how many of the jobs are active, paused or ready. {0} is the number.</comment>
+  </data>
+  <data name="MenuCopy" xml:space="preserve">
+    <value>Copy</value>
+    <comment>Industry Jobs grid context menu: copy the selected cells.</comment>
+  </data>
+  <data name="MenuCopyWithHeaders" xml:space="preserve">
+    <value>Copy w/Headers</value>
+    <comment>Industry Jobs grid context menu: copy the selected cells with their column headers ("w/" is short for "with").</comment>
+  </data>
+  <data name="OwnerTypePlayer" xml:space="preserve">
+    <value>Player</value>
+    <comment>Industry Jobs detail panel, Owner Type: the job belongs to a character.</comment>
+  </data>
+  <data name="OwnerTypeCorp" xml:space="preserve">
+    <value>Corp</value>
+    <comment>Industry Jobs detail panel, Owner Type: the job belongs to a corporation (short form).</comment>
+  </data>
+  <data name="RigNoteNoRigs" xml:space="preserve">
+    <value>{0} has no industry rigs fitted</value>
+    <comment>Industry Jobs, Note column: the job's facility has no rigs fitted, so the job gets no rig bonus. {0} is the Indy Parks structure's name.</comment>
+  </data>
+  <data name="RigNoteNotRiggedFor" xml:space="preserve">
+    <value>{0} is not rigged for {1}</value>
+    <comment>Industry Jobs, Note column: none of the facility's rigs bonuses this job. {0} is the Indy Parks structure's name, {1} the kind of job from the list of entries below, in lower case ("small ships").</comment>
+  </data>
+  <data name="RigCatSmallShips" xml:space="preserve">
+    <value>small ships</value>
+    <comment>Industry Jobs, Note column, the {1} in "{0} is not rigged for {1}": a production category, in lower case.</comment>
+  </data>
+  <data name="RigCatMediumShips" xml:space="preserve">
+    <value>medium ships</value>
+    <comment>Industry Jobs, Note column, the {1} in "{0} is not rigged for {1}": a production category, in lower case.</comment>
+  </data>
+  <data name="RigCatLargeShips" xml:space="preserve">
+    <value>large ships</value>
+    <comment>Industry Jobs, Note column, the {1} in "{0} is not rigged for {1}": a production category, in lower case.</comment>
+  </data>
+  <data name="RigCatAdvSmallShips" xml:space="preserve">
+    <value>advanced small ships</value>
+    <comment>Industry Jobs, Note column, the {1} in "{0} is not rigged for {1}": a production category (Tech II small ships), in lower case.</comment>
+  </data>
+  <data name="RigCatAdvMediumShips" xml:space="preserve">
+    <value>advanced medium ships</value>
+    <comment>Industry Jobs, Note column, the {1} in "{0} is not rigged for {1}": a production category (Tech II medium ships), in lower case.</comment>
+  </data>
+  <data name="RigCatAdvLargeShips" xml:space="preserve">
+    <value>advanced large ships</value>
+    <comment>Industry Jobs, Note column, the {1} in "{0} is not rigged for {1}": a production category (Tech II large ships), in lower case.</comment>
+  </data>
+  <data name="RigCatCapitalShips" xml:space="preserve">
+    <value>capital ships</value>
+    <comment>Industry Jobs, Note column, the {1} in "{0} is not rigged for {1}": a production category, in lower case.</comment>
+  </data>
+  <data name="RigCatDronesFighters" xml:space="preserve">
+    <value>drones and fighters</value>
+    <comment>Industry Jobs, Note column, the {1} in "{0} is not rigged for {1}": a production category, in lower case.</comment>
+  </data>
+  <data name="RigCatEquipment" xml:space="preserve">
+    <value>equipment</value>
+    <comment>Industry Jobs, Note column, the {1} in "{0} is not rigged for {1}": a production category (modules and other equipment), in lower case.</comment>
+  </data>
+  <data name="RigCatAmmunition" xml:space="preserve">
+    <value>ammunition</value>
+    <comment>Industry Jobs, Note column, the {1} in "{0} is not rigged for {1}": a production category (ammunition and charges), in lower case.</comment>
+  </data>
+  <data name="RigCatCapitalComponents" xml:space="preserve">
+    <value>capital components</value>
+    <comment>Industry Jobs, Note column, the {1} in "{0} is not rigged for {1}": a production category, in lower case.</comment>
+  </data>
+  <data name="RigCatAdvComponents" xml:space="preserve">
+    <value>advanced components</value>
+    <comment>Industry Jobs, Note column, the {1} in "{0} is not rigged for {1}": a production category (Tech II components), in lower case.</comment>
+  </data>
+  <data name="RigCatStructuresFuel" xml:space="preserve">
+    <value>structures and fuel</value>
+    <comment>Industry Jobs, Note column, the {1} in "{0} is not rigged for {1}": a production category (structures, their components and fuel blocks), in lower case.</comment>
+  </data>
+  <data name="RigCatGasReactions" xml:space="preserve">
+    <value>gas reactions</value>
+    <comment>Industry Jobs, Note column, the {1} in "{0} is not rigged for {1}": a reaction category (gas phase reactions), in lower case.</comment>
+  </data>
+  <data name="RigCatMoonReactions" xml:space="preserve">
+    <value>moon reactions</value>
+    <comment>Industry Jobs, Note column, the {1} in "{0} is not rigged for {1}": a reaction category (reactions of moon materials), in lower case.</comment>
+  </data>
+  <data name="RigCatCompositeReactions" xml:space="preserve">
+    <value>composite reactions</value>
+    <comment>Industry Jobs, Note column, the {1} in "{0} is not rigged for {1}": a reaction category, in lower case.</comment>
+  </data>
+  <data name="RigCatReactions" xml:space="preserve">
+    <value>reactions</value>
+    <comment>Industry Jobs, Note column, the {1} in "{0} is not rigged for {1}": reactions of any kind, in lower case.</comment>
+  </data>
+  <data name="TypeIdNumbered" xml:space="preserve">
+    <value>TypeId {0}</value>
+    <comment>Production Calculator warning: an item whose name is unknown. {0} is its type id.</comment>
+  </data>
+  <data name="FormulaRecalc" xml:space="preserve">
+    <value>ceil({0:N0} × {1:F4} × {2:N0} runs) → {3:N0}</value>
+    <comment>Production Calculator, Jobs tab, formula column: how a material's quantity was worked out after the job gained runs. {0} is the quantity per run, {1} the efficiency factor, {2} the runs, {3} the result. Keep "ceil" (round up) as it is.</comment>
+  </data>
+  <data name="BpcPriceNeverSeen" xml:space="preserve">
+    <value>{0} — never seen on contract; counted as 0 ISK</value>
+    <comment>Production Calculator, blueprint price warning. {0} is the blueprint copy's name; it has never been seen on a contract, so it is counted as costing nothing.</comment>
+  </data>
+  <data name="FormulaBpc" xml:space="preserve">
+    <value>1 BPC per run @ ME{0} contract price</value>
+    <comment>Production Calculator, Jobs tab, formula column of a blueprint copy line: one copy is bought per run, at its contract price. {0} is the blueprint's material efficiency level (ME).</comment>
+  </data>
+  <data name="SourceIntermediate" xml:space="preserve">
+    <value>Intermediate</value>
+    <comment>Production Calculator, Leftovers tab, Source column: left over from an intermediate, a part the plan builds for a later job.</comment>
+  </data>
+  <data name="SourceFinalProduct" xml:space="preserve">
+    <value>Final Product</value>
+    <comment>Production Calculator, Leftovers tab, Source column: left over from a final product, made beyond the quantity asked for.</comment>
+  </data>
+  <data name="SourceBuy" xml:space="preserve">
+    <value>Buy</value>
+    <comment>Production Calculator, Jobs tab, Source column of a job's material: the plan buys it (a verb, as against "Build").</comment>
+  </data>
+  <data name="SourceBuild" xml:space="preserve">
+    <value>Build</value>
+    <comment>Production Calculator, Jobs tab, Source column of a job's material: the plan builds it in a job of its own (a verb, as against "Buy").</comment>
+  </data>
+  <data name="JobModifiers" xml:space="preserve">
+    <value>ME -{0:F0}%  Rig -{1:F2}%  Structure -{2:F1}%  → ×{3:F4}</value>
+    <comment>Production Calculator, Jobs tab: what reduces a job's materials. {0} is the blueprint's material efficiency (ME) in percent, {1} the rig bonus, {2} the structure's own bonus, {3} the factor the three make together.</comment>
+  </data>
+  <data name="FormulaMaterial" xml:space="preserve">
+    <value>ceil({0:N0} × {1:F4} × {2:N0} runs) = ceil({3:N2} × {2:N0}) → {4:N0}</value>
+    <comment>Production Calculator, Jobs tab, formula column: how a material's quantity was worked out. {0} is the quantity per run from the blueprint, {1} the efficiency factor, {2} the runs (twice), {3} the quantity per run after the factor, {4} the result. Keep "ceil" (round up) as it is.</comment>
+  </data>
+  <data name="BpcTypeName" xml:space="preserve">
+    <value>{0} (BPC)</value>
+    <comment>Production Calculator, Jobs tab: a job's blueprint copy, bought as a material. {0} is the item's name; BPC means blueprint copy.</comment>
+  </data>
+  <data name="BpcPriceStale" xml:space="preserve">
+    <value>{0} — {1:N0} ISK per run, from a contract that ended {2:yyyy-MM-dd}; none listed since</value>
+    <comment>Production Calculator, blueprint price warning. {0} is the blueprint copy's name, {1} the price used, {2} the day the last contract offering one ended.</comment>
+  </data>
+  <data name="BpcPriceStaleUndated" xml:space="preserve">
+    <value>{0} — {1:N0} ISK per run, from a contract that ended some time ago; none listed since</value>
+    <comment>Production Calculator, blueprint price warning. {0} is the blueprint copy's name, {1} the price used; when the last contract offering one ended is not known.</comment>
+  </data>
+  <data name="WarnUnrecognizedPlannedIn" xml:space="preserve">
+    <value>{0} (unrecognized type — update ItemCategoryKey; planned in {1} with no rig bonus)</value>
+    <comment>Production Calculator warning: the app does not know which production category an item belongs to. {0} is the item, {1} the park's catch-all structure it was planned in. ItemCategoryKey is a name in the program's code; keep it as it is.</comment>
+  </data>
+  <data name="WarnUnrecognizedUnplanned" xml:space="preserve">
+    <value>{0} (unrecognized type — update ItemCategoryKey; planned with no structure and no bonuses — set a catch-all facility on this park)</value>
+    <comment>Production Calculator warning: the app does not know which production category an item belongs to, and the park has no catch-all structure. {0} is the item. ItemCategoryKey is a name in the program's code; keep it as it is.</comment>
+  </data>
+  <data name="WarnUnassignedPlannedIn" xml:space="preserve">
+    <value>{0} (category '{1}' not assigned in this park; planned in {2} with no rig bonus)</value>
+    <comment>Production Calculator warning: no structure in the Indy Park is assigned the item's production category. {0} is the item, {1} the category's internal key (such as small_ships), {2} the park's catch-all structure it was planned in.</comment>
+  </data>
+  <data name="WarnUnassignedUnplanned" xml:space="preserve">
+    <value>{0} (category '{1}' not assigned in this park; planned with no structure and no bonuses — set a catch-all facility on this park)</value>
+    <comment>Production Calculator warning: no structure in the Indy Park is assigned the item's production category, and the park has no catch-all structure. {0} is the item, {1} the category's internal key (such as small_ships).</comment>
+  </data>
+</root>

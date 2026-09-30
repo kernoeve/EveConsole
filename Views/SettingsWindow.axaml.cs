@@ -5,6 +5,7 @@ using System.Reactive.Disposables;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using EveConsole.ViewModels;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -17,7 +18,8 @@ public partial class SettingsWindow : Window
         InitializeComponent();
     }
 
-    // Select a tab by its header text (e.g. "Alerts").
+    // Select a tab by its header text — pass the same resource the header is built from
+    // (SettingsText.TabAlerts), never the English words, or it finds nothing in any other language.
     public void SelectTab(string header)
     {
         var tab = Tabs.Items.OfType<TabItem>().FirstOrDefault(t => (t.Header as string) == header);
@@ -44,7 +46,7 @@ public partial class SettingsWindow : Window
 
         var confirmHandler = vm.CharacterVm.ConfirmReplaceInteraction.RegisterHandler(async ctx =>
         {
-            var dialog = new ConfirmDialog(ctx.Input) { Title = "Confirm Update" };
+            var dialog = new ConfirmDialog(ctx.Input) { Title = SettingsText.ConfirmUpdateTitle };
             var result = await dialog.ShowDialog<bool>(this);
             ctx.SetOutput(result);
         });
@@ -123,8 +125,10 @@ public partial class SettingsWindow : Window
 
     private void OnPurgeErrorLogClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         => _ = Retention?.ErrorLog.PurgeNowAsync();
-    private void OnPurgeKillmailsClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-        => _ = Retention?.Killmails.PurgeNowAsync();
+    private void OnPurgeOurKillmailsClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => _ = Retention?.OurKillmails.PurgeNowAsync();
+    private void OnPurgeOtherKillmailsClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => _ = Retention?.OtherKillmails.PurgeNowAsync();
     private void OnPurgePriceHistoryClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         => _ = Retention?.PriceHistory.PurgeNowAsync();
     private void OnPurgeGameLogClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
@@ -162,7 +166,7 @@ public partial class SettingsWindow : Window
                 SuggestedStartLocation = await CurrentDbFolder(),
                 FileTypeChoices        =
                 [
-                    new FilePickerFileType("SQLite Database") { Patterns = ["*.db"] }
+                    new FilePickerFileType(SettingsText.FileTypeSqliteDatabase) { Patterns = ["*.db"] }
                 ]
             });
             return file?.TryGetLocalPath();
@@ -178,7 +182,7 @@ public partial class SettingsWindow : Window
                 SuggestedStartLocation = await CurrentDbFolder(),
                 FileTypeFilter =
                 [
-                    new FilePickerFileType("SQLite Database") { Patterns = ["*.db"] }
+                    new FilePickerFileType(SettingsText.FileTypeSqliteDatabase) { Patterns = ["*.db"] }
                 ]
             });
             return files.Count > 0 ? files[0].TryGetLocalPath() : null;
@@ -198,22 +202,17 @@ public partial class SettingsWindow : Window
 
         dbVm.RequestRestart = () =>
         {
-            // ⚠️ Hand the single-instance lock over BEFORE spawning the replacement. This process
-            // is still alive for a moment after Process.Start, so without the release the new
-            // instance sees the lock held, focuses this window and exits — and then this one exits
-            // too, leaving nothing running. The argument makes the newcomer wait for the handover
-            // rather than treat it as a rival.
-            SingleInstance.Release();
-
             // ⚠️ Through AppLauncher rather than MainModule.FileName, which under an AppImage names
             // the binary inside a temporary mount: starting that directly skips the AppImage's own
             // runtime, and the replacement comes up without the environment its bundled libraries
-            // are found through.
-            AppLauncher.Start(SingleInstance.RestartingArgument);
-
-            // ⚠️ Not Environment.Exit: on Linux that ran libc's atexit handlers from the UI thread
-            // and did not come back, leaving a client that ignored SIGTERM too. See AppLauncher.
-            AppLauncher.ExitNow();
+            // are found through. It hands the single-instance lock over and keeps --profile; see
+            // AppLauncher.Restart.
+            //
+            // It used to exit whether or not the replacement started, which left nothing running;
+            // now a failed start stays up and says so. The work is recorded either way and runs at
+            // the next start.
+            if (AppLauncher.Restart() is { } error)
+                dbVm.StatusText = string.Format(SettingsText.DbRestartFailed, error);
         };
     }
 }

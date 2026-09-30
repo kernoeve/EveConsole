@@ -1,0 +1,355 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="HowToOrder" xml:space="preserve">
+    <value>{0} — comment commander</value>
+  </data>
+  <data name="SubjectAbout" xml:space="preserve">
+    <value>{0} — à propos</value>
+  </data>
+  <data name="SubjectPriceList" xml:space="preserve">
+    <value>{0} — liste de prix</value>
+  </data>
+  <data name="SubjectOrderNotUnderstood" xml:space="preserve">
+    <value>{0} — commande non comprise</value>
+  </data>
+  <data name="SubjectOrderOverLimit" xml:space="preserve">
+    <value>{0} — limite d'achat dépassée</value>
+  </data>
+  <data name="SubjectOrder" xml:space="preserve">
+    <value>{0} — commande {1}</value>
+  </data>
+  <data name="SubjectNoOpenOrders" xml:space="preserve">
+    <value>{0} — aucune commande en cours</value>
+  </data>
+  <data name="SubjectOrderStatus" xml:space="preserve">
+    <value>{0} — statut de commande</value>
+  </data>
+  <data name="SubjectOrderNotFound" xml:space="preserve">
+    <value>{0} — commande introuvable</value>
+  </data>
+  <data name="SubjectOrderCancelled" xml:space="preserve">
+    <value>{0} — commande {1} annulée</value>
+  </data>
+  <data name="SubjectOrdersCancelled" xml:space="preserve">
+    <value>{0} — commandes {1} annulées</value>
+  </data>
+  <data name="SubjectPart" xml:space="preserve">
+    <value>{0} ({1}/{2})</value>
+  </data>
+  <data name="UsageSubjectWord" xml:space="preserve">
+    <value>Indiquez l'un de ces mots dans le &lt;b&gt;sujet&lt;/b&gt; du courrier.</value>
+  </data>
+  <data name="UsagePrices" xml:space="preserve">
+    <value>la liste de prix actuelle.</value>
+  </data>
+  <data name="UsageOrder" xml:space="preserve">
+    <value>passer une commande, un objet par ligne dans le corps du courrier.</value>
+  </data>
+  <data name="UsageDragIn" xml:space="preserve">
+    <value>Le plus simple est de &lt;b&gt;faire glisser l'objet dans le courrier&lt;/b&gt; — depuis la liste de prix, le marché ou votre hangar — puis d'indiquer la quantité à côté si vous en voulez plus d'un.</value>
+  </data>
+  <data name="UsageTyping" xml:space="preserve">
+    <value>Vous pouvez aussi taper le nom. La quantité se met toujours APRÈS l'objet :</value>
+  </data>
+  <data name="UsageSomeoneElse" xml:space="preserve">
+    <value>&lt;b&gt;C'est pour quelqu'un d'autre ?&lt;/b&gt; Faites glisser ce personnage ou cette corporation n'importe où dans le corps du courrier, et le contrat sera établi à son nom plutôt qu'au vôtre.</value>
+  </data>
+  <data name="UsageStatus" xml:space="preserve">
+    <value>où en sont vos commandes.</value>
+  </data>
+  <data name="UsageStatusNoReference" xml:space="preserve">
+    <value>Aucune référence n'est nécessaire — vous recevrez toutes vos commandes en cours.</value>
+  </data>
+  <data name="UsageStatusOneOrder" xml:space="preserve">
+    <value>Pour une commande précise, indiquez sa référence dans le sujet ou le corps du courrier :</value>
+  </data>
+  <data name="UsageCancel" xml:space="preserve">
+    <value>annuler une commande.</value>
+  </data>
+  <data name="UsageCancelReference" xml:space="preserve">
+    <value>Celui-ci exige toujours la référence de la commande, indiquée dans le courrier de confirmation. Dans le sujet ou le corps, au choix :</value>
+  </data>
+  <data name="UsageInfo" xml:space="preserve">
+    <value>à propos de cette boutique.</value>
+  </data>
+  <data name="UsageHelp" xml:space="preserve">
+    <value>ce message.</value>
+  </data>
+  <data name="UsagePricesNote" xml:space="preserve">
+    <value>Les prix sont ceux de la liste au moment où votre commande est lue. — {0}</value>
+  </data>
+  <data name="NotRecognised" xml:space="preserve">
+    <value>Je n'ai pas reconnu de commande dans votre courrier.</value>
+  </data>
+  <data name="NothingMatched" xml:space="preserve">
+    <value>Rien dans cette commande ne correspond à la liste de prix.</value>
+  </data>
+  <data name="NotFound" xml:space="preserve">
+    <value>Sans correspondance : {0}</value>
+  </data>
+  <data name="OverLimitNotTaken" xml:space="preserve">
+    <value>Cette commande dépasse la limite d'achat de la boutique ; elle n'a donc pas été prise en compte.</value>
+  </data>
+  <data name="OrderReceived" xml:space="preserve">
+    <value>Commande {0} reçue</value>
+  </data>
+  <data name="PriceEach" xml:space="preserve">
+    <value>({0} l'unité)</value>
+  </data>
+  <data name="IskAmount" xml:space="preserve">
+    <value>{0:N0} ISK</value>
+  </data>
+  <data name="OrderTotalLine" xml:space="preserve">
+    <value>Total : {0}</value>
+  </data>
+  <data name="ContractMadeOutTo" xml:space="preserve">
+    <value>Le contrat sera établi pour &lt;b&gt;{0}&lt;/b&gt;.</value>
+  </data>
+  <data name="NotOrdered" xml:space="preserve">
+    <value>Ce qui n'est pas sur la liste n'a PAS été commandé : {0}</value>
+  </data>
+  <data name="OrderTrimmed" xml:space="preserve">
+    <value>Cette commande dépassait ce qu'un seul courrier permet de commander — {0} objets au maximum, {1:N0} de chacun — et a été réduite en conséquence. Vérifiez les lignes ci-dessus, et écrivez-nous directement pour toute commande plus importante.</value>
+  </data>
+  <data name="ReplyWithStatus" xml:space="preserve">
+    <value>Envoyez STATUS pour suivre l'avancement, ou CANCEL avec cette référence pour l'annuler.</value>
+  </data>
+  <data name="NoOpenOrders" xml:space="preserve">
+    <value>Vous n'avez aucune commande en cours chez nous.</value>
+  </data>
+  <data name="OrderHeading" xml:space="preserve">
+    <value>Commande {0}</value>
+  </data>
+  <data name="YourOpenOrders" xml:space="preserve">
+    <value>Vos commandes en cours</value>
+  </data>
+  <data name="ContractTo" xml:space="preserve">
+    <value>Contrat au nom de : {0}</value>
+  </data>
+  <data name="OrderTotal" xml:space="preserve">
+    <value>Total de la commande : {0}</value>
+  </data>
+  <data name="NoOrderMatches" xml:space="preserve">
+    <value>Aucune de vos commandes en cours ne correspond à &lt;b&gt;{0}&lt;/b&gt;.</value>
+  </data>
+  <data name="NoReferenceFound" xml:space="preserve">
+    <value>Je n'ai trouvé aucune référence de commande dans ce courrier.</value>
+  </data>
+  <data name="ReferencesLookLike" xml:space="preserve">
+    <value>Les références ressemblent à K7P2QX et figurent dans le courrier de confirmation. Envoyez STATUS seul pour obtenir la liste de vos commandes en cours.</value>
+  </data>
+  <data name="OrderCancelled" xml:space="preserve">
+    <value>Commande {0} annulée</value>
+  </data>
+  <data name="OrdersCancelled" xml:space="preserve">
+    <value>Commandes {0} annulées</value>
+  </data>
+  <data name="NothingOpenToCancelSingle" xml:space="preserve">
+    <value>Rien dans cette commande ne pouvait encore être annulé.</value>
+  </data>
+  <data name="NothingOpenToCancelSeveral" xml:space="preserve">
+    <value>Rien dans ces commandes ne pouvait encore être annulé.</value>
+  </data>
+  <data name="LinesLeftAsTheyAreOther" xml:space="preserve">
+    <value>{0} lignes étaient déjà livrées ou annulées et ont été laissées telles quelles.</value>
+  </data>
+  <data name="LinesLeftAsTheyAreOne" xml:space="preserve">
+    <value>{0} ligne était déjà livrée ou annulée et a été laissée telle quelle.</value>
+  </data>
+  <data name="UpdateHeading" xml:space="preserve">
+    <value>Commande &lt;b&gt;{0}&lt;/b&gt; — mise à jour</value>
+  </data>
+  <data name="TypeFallback" xml:space="preserve">
+    <value>Type n° {0}</value>
+  </data>
+  <data name="UnknownLink" xml:space="preserve">
+    <value>type n° {0}</value>
+  </data>
+  <data name="PageOf" xml:space="preserve">
+    <value>Page {0} sur {1}</value>
+  </data>
+  <data name="HeadingPart" xml:space="preserve">
+    <value>{0} ({1} sur {2})</value>
+  </data>
+  <data name="PagesDidNotFitOther" xml:space="preserve">
+    <value>{0} pages supplémentaires n'ont pas pu être envoyées.</value>
+  </data>
+  <data name="PagesDidNotFitOne" xml:space="preserve">
+    <value>{0} page supplémentaire n'a pas pu être envoyée.</value>
+  </data>
+  <data name="StatusOneOrderHint" xml:space="preserve">
+    <value>Envoyez STATUS avec une référence de commande pour vous renseigner sur une seule commande.</value>
+  </data>
+  <data name="MessageCut" xml:space="preserve">
+    <value>… ce message était trop long pour un courrier EVE et a été coupé ici.</value>
+  </data>
+  <data name="ExpectContractWaiting" xml:space="preserve">
+    <value>Un contrat attend déjà votre acceptation.</value>
+  </data>
+  <data name="ExpectInStock" xml:space="preserve">
+    <value>En stock et réservé pour vous — nous vous préviendrons dès que le contrat aura été créé.</value>
+  </data>
+  <data name="ExpectInStockDue" xml:space="preserve">
+    <value>En stock et réservé pour vous — contrat prévu le {0}.</value>
+  </data>
+  <data name="ExpectInBuild" xml:space="preserve">
+    <value>Déjà en production.</value>
+  </data>
+  <data name="ExpectInBuildDue" xml:space="preserve">
+    <value>Déjà en production, date prévue : {0}.</value>
+  </data>
+  <data name="ExpectOutOfStock" xml:space="preserve">
+    <value>En rupture de stock — votre réservation est enregistrée, et nous vous indiquerons la date d'achèvement dès le lancement de la production.</value>
+  </data>
+  <data name="ExpectOutOfStockDue" xml:space="preserve">
+    <value>En rupture de stock — votre réservation est enregistrée, date prévue : {0}.</value>
+  </data>
+  <data name="StateDelivered" xml:space="preserve">
+    <value>livré</value>
+  </data>
+  <data name="StateDeliveredRestCancelledOther" xml:space="preserve">
+    <value>{0:N0} sur {1:N0} livrés, et le reste annulé</value>
+  </data>
+  <data name="StateDeliveredRestCancelledOne" xml:space="preserve">
+    <value>{0:N0} sur {1:N0} livré, et le reste annulé</value>
+  </data>
+  <data name="StateContractDeclined" xml:space="preserve">
+    <value>le contrat a été refusé, cette commande est donc clôturée</value>
+  </data>
+  <data name="StateCancelled" xml:space="preserve">
+    <value>annulé</value>
+  </data>
+  <data name="StateContractWaiting" xml:space="preserve">
+    <value>contrat créé — en attente de votre acceptation</value>
+  </data>
+  <data name="StateReadyContractDue" xml:space="preserve">
+    <value>disponible immédiatement — contrat prévu le {0}</value>
+  </data>
+  <data name="StateReady" xml:space="preserve">
+    <value>disponible immédiatement — nous vous préviendrons dès que le contrat aura été créé</value>
+  </data>
+  <data name="StateInProductionDue" xml:space="preserve">
+    <value>en production, date prévue : {0}</value>
+  </data>
+  <data name="StateInProduction" xml:space="preserve">
+    <value>en production</value>
+  </data>
+  <data name="StateExpected" xml:space="preserve">
+    <value>date prévue : {0}</value>
+  </data>
+  <data name="StateWaitingOnMaterials" xml:space="preserve">
+    <value>en attente de matériaux</value>
+  </data>
+  <data name="PartDeliveredOther" xml:space="preserve">
+    <value>{0:N0} sur {1:N0} livrés</value>
+  </data>
+  <data name="PartDeliveredOne" xml:space="preserve">
+    <value>{0:N0} sur {1:N0} livré</value>
+  </data>
+  <data name="PartOnContractOther" xml:space="preserve">
+    <value>{0:N0} sous contrat, en attente de votre acceptation</value>
+  </data>
+  <data name="PartReadyOther" xml:space="preserve">
+    <value>{0:N0} disponibles immédiatement</value>
+  </data>
+  <data name="PartReadyOne" xml:space="preserve">
+    <value>{0:N0} disponible immédiatement</value>
+  </data>
+  <data name="PartReadyContractDueOther" xml:space="preserve">
+    <value>{0:N0} disponibles immédiatement, contrat prévu le {1}</value>
+  </data>
+  <data name="PartReadyContractDueOne" xml:space="preserve">
+    <value>{0:N0} disponible immédiatement, contrat prévu le {1}</value>
+  </data>
+  <data name="PartInProductionOther" xml:space="preserve">
+    <value>{0:N0} en production</value>
+  </data>
+  <data name="PartInProductionDueOther" xml:space="preserve">
+    <value>{0:N0} en production, date prévue : {1}</value>
+  </data>
+  <data name="PartWaitingOnMaterialsOther" xml:space="preserve">
+    <value>{0:N0} en attente de matériaux</value>
+  </data>
+  <data name="PartExpectedOther" xml:space="preserve">
+    <value>{0:N0} prévus le {1}</value>
+  </data>
+  <data name="PartExpectedOne" xml:space="preserve">
+    <value>{0:N0} prévu le {1}</value>
+  </data>
+  <data name="PartsSeparator" xml:space="preserve">
+    <value> ; </value>
+  </data>
+  <data name="LimitScopeItem" xml:space="preserve">
+    <value>de chaque objet</value>
+  </data>
+  <data name="LimitScopeGroup" xml:space="preserve">
+    <value>de chaque groupe d'objets</value>
+  </data>
+  <data name="LimitScopeStore" xml:space="preserve">
+    <value>dans toute la boutique</value>
+  </data>
+  <data name="LimitPerDay" xml:space="preserve">
+    <value>par jour</value>
+  </data>
+  <data name="LimitPerDaysOther" xml:space="preserve">
+    <value>sur {0} jours</value>
+  </data>
+  <data name="LimitPerMonth" xml:space="preserve">
+    <value>par mois</value>
+  </data>
+  <data name="LimitPerMonthsOther" xml:space="preserve">
+    <value>sur {0} mois</value>
+  </data>
+  <data name="LimitPerYear" xml:space="preserve">
+    <value>par an</value>
+  </data>
+  <data name="LimitPerYearsOther" xml:space="preserve">
+    <value>sur {0} ans</value>
+  </data>
+  <data name="LimitEver" xml:space="preserve">
+    <value>sans limite de durée</value>
+  </data>
+  <data name="LimitRuleOne" xml:space="preserve">
+    <value>Chaque acheteur peut commander {0:N0} unité {1} {2}.</value>
+  </data>
+  <data name="LimitRuleOther" xml:space="preserve">
+    <value>Chaque acheteur peut commander {0:N0} unités {1} {2}.</value>
+  </data>
+  <data name="LimitOver" xml:space="preserve">
+    <value>Limite d'achat dépassée ({0:N0} {1} {2}) : {3:N0} × {4} en plus de {5:N0} déjà commandé(s).</value>
+  </data>
+  <data name="PriceListLimitReached" xml:space="preserve">
+    <value>limite atteinte</value>
+  </data>
+  <data name="WebNoBuyer" xml:space="preserve">
+    <value>La commande n'indique aucun acheteur.</value>
+  </data>
+  <data name="WebNoLines" xml:space="preserve">
+    <value>La commande ne comporte aucune ligne.</value>
+  </data>
+  <data name="WebTooManyLinesOther" xml:space="preserve">
+    <value>{0} lignes, c'est plus qu'une commande ne peut en comporter ({1}).</value>
+  </data>
+  <data name="WebNotOnPriceList" xml:space="preserve">
+    <value>Le type n° {0} ne figure pas sur la liste de prix.</value>
+  </data>
+  <data name="WebUnitsAskedOther" xml:space="preserve">
+    <value>Une ligne demande {0} unités.</value>
+  </data>
+  <data name="WebUnitsAskedOne" xml:space="preserve">
+    <value>Une ligne demande {0} unité.</value>
+  </data>
+  <data name="WebTooManyUnitsOther" xml:space="preserve">
+    <value>{0:N0} unités, c'est plus qu'une ligne de commande ne peut en comporter ({1:N0}).</value>
+  </data>
+  <data name="WebWithdrawn" xml:space="preserve">
+    <value>Annulée par l'acheteur avant d'avoir été confirmée.</value>
+  </data>
+  <data name="WebDeclined" xml:space="preserve">
+    <value>Refusée par la boutique.</value>
+  </data>
+</root>

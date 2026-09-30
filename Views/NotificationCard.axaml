@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              x:Class="EveConsole.Views.NotificationCard"
              x:DataType="vm:NotificationBoxVm">
@@ -31,7 +32,7 @@
   </UserControl.Styles>
 
   <Border Classes="card" BorderThickness="1" CornerRadius="3" Padding="8 6" Margin="0 0 0 6"
-          Cursor="Hand" Tapped="OnTapped" ToolTip.Tip="Open in Notifications">
+          Cursor="Hand" Tapped="OnTapped" ToolTip.Tip="{x:Static loc:OverviewText.TipOpenInNotifications}">
     <Grid ColumnDefinitions="Auto,*">
       <!-- Icon: the structure, the character it is about, or the sender; a glyph failing those -->
       <Panel Width="32" Height="32" Margin="0 0 8 0" VerticalAlignment="Top">

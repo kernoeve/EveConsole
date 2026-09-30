@@ -1,0 +1,439 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="HowToOrder" xml:space="preserve">
+    <value>{0} — how to order</value>
+    <comment>A store's mail to a buyer: the subject of the mail that explains how to order, and the heading at its top. {0} is the store's name.</comment>
+  </data>
+  <data name="SubjectAbout" xml:space="preserve">
+    <value>{0} — about</value>
+    <comment>A store's mail to a buyer: the subject of its answer to INFO, which carries what the store has written about itself. {0} is the store's name.</comment>
+  </data>
+  <data name="SubjectPriceList" xml:space="preserve">
+    <value>{0} — price list</value>
+    <comment>A store's mail to a buyer: the subject of the price list it sends in answer to PRICES. {0} is the store's name.</comment>
+  </data>
+  <data name="SubjectOrderNotUnderstood" xml:space="preserve">
+    <value>{0} — order not understood</value>
+    <comment>A store's mail to a buyer: the subject of the answer to an order in which nothing matched the price list. {0} is the store's name.</comment>
+  </data>
+  <data name="SubjectOrderOverLimit" xml:space="preserve">
+    <value>{0} — order over the limit</value>
+    <comment>A store's mail to a buyer: the subject of the answer to an order that would take the buyer past the store's purchase limit. {0} is the store's name.</comment>
+  </data>
+  <data name="SubjectOrder" xml:space="preserve">
+    <value>{0} — order {1}</value>
+    <comment>A store's mail to a buyer: the subject of an order's confirmation, and of the mail that tells the buyer their order has moved on. {0} is the store's name, {1} the order's reference (six letters and digits).</comment>
+  </data>
+  <data name="SubjectNoOpenOrders" xml:space="preserve">
+    <value>{0} — no open orders</value>
+    <comment>A store's mail to a buyer: the subject of the answer to STATUS when the buyer has no open orders. {0} is the store's name.</comment>
+  </data>
+  <data name="SubjectOrderStatus" xml:space="preserve">
+    <value>{0} — order status</value>
+    <comment>A store's mail to a buyer: the subject of the answer to STATUS, which lists the buyer's orders. {0} is the store's name.</comment>
+  </data>
+  <data name="SubjectOrderNotFound" xml:space="preserve">
+    <value>{0} — order not found</value>
+    <comment>A store's mail to a buyer: the subject of the answer to CANCEL when no order of theirs matches. {0} is the store's name.</comment>
+  </data>
+  <data name="SubjectOrderCancelled" xml:space="preserve">
+    <value>{0} — order {1} cancelled</value>
+    <comment>A store's mail to a buyer: the subject of the answer to CANCEL for one order. {0} is the store's name, {1} the order's reference.</comment>
+  </data>
+  <data name="SubjectOrdersCancelled" xml:space="preserve">
+    <value>{0} — orders {1} cancelled</value>
+    <comment>A store's mail to a buyer: the subject of the answer to CANCEL for more than one order. {0} is the store's name, {1} the orders' references, separated by commas.</comment>
+  </data>
+  <data name="SubjectPart" xml:space="preserve">
+    <value>{0} ({1}/{2})</value>
+    <comment>A store's mail to a buyer: the subject of one mail of an answer too long for one, sent as several. {0} is the answer's subject, {1} this mail's number, {2} how many mails there are.</comment>
+  </data>
+  <data name="UsageSubjectWord" xml:space="preserve">
+    <value>Put one of these words in the mail &lt;b&gt;subject&lt;/b&gt;.</value>
+    <comment>A store's how-to-order mail to a buyer: its first line, above the list of command words — PRICES, ORDER, STATUS, CANCEL, INFO and HELP — which stay in English, because the store reads the subject for exactly those words. Keep &lt;b&gt;…&lt;/b&gt; around the word for subject.</comment>
+  </data>
+  <data name="UsagePrices" xml:space="preserve">
+    <value>the current price list.</value>
+    <comment>A store's how-to-order mail to a buyer: what the command word PRICES does, after "PRICES — ". PRICES itself stays in English.</comment>
+  </data>
+  <data name="UsageOrder" xml:space="preserve">
+    <value>place an order, one item per line in the body.</value>
+    <comment>A store's how-to-order mail to a buyer: what the command word ORDER does, after "ORDER — ". ORDER itself stays in English.</comment>
+  </data>
+  <data name="UsageDragIn" xml:space="preserve">
+    <value>The easiest way is to &lt;b&gt;drag the item in&lt;/b&gt; — from the price list, from the market, from your hangar — then put the quantity beside it if you want more than one.</value>
+    <comment>A store's how-to-order mail to a buyer, under ORDER: how to put an item in an order. Followed by two example items as links. Keep &lt;b&gt;…&lt;/b&gt; around the words for dragging the item in.</comment>
+  </data>
+  <data name="UsageTyping" xml:space="preserve">
+    <value>Typing the name works too. The quantity always goes AFTER the item:</value>
+    <comment>A store's how-to-order mail to a buyer, under ORDER. Followed by examples such as "Archon x2     Archon 2     Archon": the store reads the count after the item only, never before it.</comment>
+  </data>
+  <data name="UsageSomeoneElse" xml:space="preserve">
+    <value>&lt;b&gt;Sending it to someone else?&lt;/b&gt; Drag that character or corporation anywhere into the body and the contract will be made out to them instead of you.</value>
+    <comment>A store's how-to-order mail to a buyer, under ORDER: how to have the contract made out to another character or corporation. Keep &lt;b&gt;…&lt;/b&gt; around the question.</comment>
+  </data>
+  <data name="UsageStatus" xml:space="preserve">
+    <value>where your orders have got to.</value>
+    <comment>A store's how-to-order mail to a buyer: what the command word STATUS does, after "STATUS — ". STATUS itself stays in English.</comment>
+  </data>
+  <data name="UsageStatusNoReference" xml:space="preserve">
+    <value>No reference needed — you will get all of your open ones.</value>
+    <comment>A store's how-to-order mail to a buyer, under STATUS: an order's reference is not needed; without one the buyer is sent all their open orders.</comment>
+  </data>
+  <data name="UsageStatusOneOrder" xml:space="preserve">
+    <value>To ask about one order, put its reference in the subject or the body:</value>
+    <comment>A store's how-to-order mail to a buyer, under STATUS. Followed by the example "STATUS 3FVPA9".</comment>
+  </data>
+  <data name="UsageCancel" xml:space="preserve">
+    <value>withdraw an order.</value>
+    <comment>A store's how-to-order mail to a buyer: what the command word CANCEL does, after "CANCEL — ". CANCEL itself stays in English.</comment>
+  </data>
+  <data name="UsageCancelReference" xml:space="preserve">
+    <value>This one always needs its reference, from the confirmation mail. Subject or body, either works:</value>
+    <comment>A store's how-to-order mail to a buyer, under CANCEL: cancelling needs the order's reference, in the subject or the body. Followed by the example "CANCEL 3FVPA9".</comment>
+  </data>
+  <data name="UsageInfo" xml:space="preserve">
+    <value>about this store.</value>
+    <comment>A store's how-to-order mail to a buyer: what the command word INFO does, after "INFO — ". INFO itself stays in English.</comment>
+  </data>
+  <data name="UsageHelp" xml:space="preserve">
+    <value>this message.</value>
+    <comment>A store's how-to-order mail to a buyer: what the command word HELP does, after "HELP — " — it sends this mail. HELP itself stays in English.</comment>
+  </data>
+  <data name="UsagePricesNote" xml:space="preserve">
+    <value>Prices are those on the list at the moment your order is read. — {0}</value>
+    <comment>A store's how-to-order mail to a buyer: its last line. {0} is the store's name, signing the mail.</comment>
+  </data>
+  <data name="NotRecognised" xml:space="preserve">
+    <value>I did not recognise that as an order.</value>
+    <comment>A store's mail to a buyer: the first line of the how-to-order mail sent when their mail had none of the command words in its subject.</comment>
+  </data>
+  <data name="NothingMatched" xml:space="preserve">
+    <value>Nothing on this order matched the price list.</value>
+    <comment>A store's mail to a buyer: the first line of the answer to an order in which nothing matched the store's price list.</comment>
+  </data>
+  <data name="NotFound" xml:space="preserve">
+    <value>Not found: {0}</value>
+    <comment>A store's mail to a buyer, answering an order that matched nothing: what they asked for that is not on the price list. {0} is what the buyer wrote, separated by commas.</comment>
+  </data>
+  <data name="OverLimitNotTaken" xml:space="preserve">
+    <value>This order is over the store's purchase limit, so it was not taken.</value>
+    <comment>A store's mail to a buyer: the first line of the answer to an order that would take them past the store's purchase limit. Followed by the sum that says why (LimitOver) and the rule (LimitRule).</comment>
+  </data>
+  <data name="OrderReceived" xml:space="preserve">
+    <value>Order {0} received</value>
+    <comment>A store's mail to a buyer: the heading of an order's confirmation. {0} is the order's reference (six letters and digits).</comment>
+  </data>
+  <data name="PriceEach" xml:space="preserve">
+    <value>({0} each)</value>
+    <comment>A store's mail to a buyer, in an order's confirmation and status: after a line's total, when there is more than one, the price of one. {0} is the price with its unit, such as "1,200,000 ISK".</comment>
+  </data>
+  <data name="IskAmount" xml:space="preserve">
+    <value>{0:N0} ISK</value>
+    <comment>A store's mail to a buyer: every amount of ISK in an order's confirmation, status and cancellation. {0:N0} is the amount, already grouped the language's way. Keep ISK; put it where the language's EVE client does, with the space the language uses before a unit (French: a no-break space).</comment>
+  </data>
+  <data name="OrderTotalLine" xml:space="preserve">
+    <value>Total {0}</value>
+    <comment>A store's mail to a buyer: the line under an order's confirmation that adds it up. {0} is the sum with its unit, such as "2,400,000 ISK".</comment>
+  </data>
+  <data name="ContractMadeOutTo" xml:space="preserve">
+    <value>Contract will be made out to &lt;b&gt;{0}&lt;/b&gt;.</value>
+    <comment>A store's mail to a buyer, in an order's confirmation: who the contract will go to. {0} is a character's or corporation's name. Keep &lt;b&gt;…&lt;/b&gt; around it.</comment>
+  </data>
+  <data name="NotOrdered" xml:space="preserve">
+    <value>Not on the list, so NOT ordered: {0}</value>
+    <comment>A store's mail to a buyer, in an order's confirmation, in red: what they asked for that is not on the price list and was left out of the order. {0} is what the buyer wrote, separated by commas.</comment>
+  </data>
+  <data name="OrderTrimmed" xml:space="preserve">
+    <value>This order was larger than one mail may place — at most {0} items, {1:N0} of each — and has been reduced to fit. Check the lines above, and mail us directly for anything bigger.</value>
+    <comment>A store's mail to a buyer, in an order's confirmation, in red: the order was cut down to what one mail may place. {0} is the most items one mail may order (40), {1} the most of each one (10,000).</comment>
+  </data>
+  <data name="ReplyWithStatus" xml:space="preserve">
+    <value>Send STATUS for progress, or CANCEL and this reference to withdraw it.</value>
+    <comment>A store's mail to a buyer: the last line of an order's confirmation. Keep STATUS and CANCEL in English: they are the words the buyer must write in the subject. "Send", not "reply": a reply's subject starts "Re:", and the store leaves those for a person.</comment>
+  </data>
+  <data name="NoOpenOrders" xml:space="preserve">
+    <value>You have no open orders with us.</value>
+    <comment>A store's mail to a buyer: the answer to STATUS when they have no open orders, above how to order.</comment>
+  </data>
+  <data name="OrderHeading" xml:space="preserve">
+    <value>Order {0}</value>
+    <comment>A store's mail to a buyer: the heading of the answer to STATUS about the orders they named. {0} is the order's reference, or several separated by commas.</comment>
+  </data>
+  <data name="YourOpenOrders" xml:space="preserve">
+    <value>Your open orders</value>
+    <comment>A store's mail to a buyer: the heading of the answer to STATUS when they named no order, which lists every open one.</comment>
+  </data>
+  <data name="ContractTo" xml:space="preserve">
+    <value>Contract to: {0}</value>
+    <comment>A store's mail to a buyer, in the answer to STATUS, under an order: who its contract goes to. {0} is a character's or corporation's name.</comment>
+  </data>
+  <data name="OrderTotal" xml:space="preserve">
+    <value>Order total: {0}</value>
+    <comment>A store's mail to a buyer, in the answer to STATUS, under an order of several items: what it comes to. {0} is the sum with its unit, such as "2,400,000 ISK".</comment>
+  </data>
+  <data name="NoOrderMatches" xml:space="preserve">
+    <value>No open order of yours matches &lt;b&gt;{0}&lt;/b&gt;.</value>
+    <comment>A store's mail to a buyer, answering CANCEL: no order of theirs has the reference they gave. {0} is what they wrote that looked like a reference. Keep &lt;b&gt;…&lt;/b&gt; around it.</comment>
+  </data>
+  <data name="NoReferenceFound" xml:space="preserve">
+    <value>I could not find an order reference in that mail.</value>
+    <comment>A store's mail to a buyer, answering CANCEL: their mail held nothing that looked like an order's reference.</comment>
+  </data>
+  <data name="ReferencesLookLike" xml:space="preserve">
+    <value>References look like K7P2QX and are in the confirmation mail. Send STATUS on its own to list your open orders.</value>
+    <comment>A store's mail to a buyer, answering CANCEL when no order matched. Keep the example reference K7P2QX as it is, and STATUS in English: it is the word the buyer must write in the subject. "Send", not "reply": a reply's subject starts "Re:", and the store leaves those for a person.</comment>
+  </data>
+  <data name="OrderCancelled" xml:space="preserve">
+    <value>Order {0} cancelled</value>
+    <comment>A store's mail to a buyer: the heading of the answer to CANCEL for one order. {0} is the order's reference.</comment>
+  </data>
+  <data name="OrdersCancelled" xml:space="preserve">
+    <value>Orders {0} cancelled</value>
+    <comment>A store's mail to a buyer: the heading of the answer to CANCEL for more than one order. {0} is the orders' references, separated by commas.</comment>
+  </data>
+  <data name="NothingOpenToCancelSingle" xml:space="preserve">
+    <value>Nothing on this order was still open to cancel.</value>
+    <comment>A store's mail to a buyer, answering CANCEL for one order: everything on it was already delivered or cancelled.</comment>
+  </data>
+  <data name="NothingOpenToCancelSeveral" xml:space="preserve">
+    <value>Nothing on these orders was still open to cancel.</value>
+    <comment>A store's mail to a buyer, answering CANCEL for more than one order: everything on them was already delivered or cancelled.</comment>
+  </data>
+  <data name="LinesLeftAsTheyAreOther" xml:space="preserve">
+    <value>{0} line(s) were already delivered or cancelled and have been left as they are.</value>
+    <comment>A store's mail to a buyer, answering CANCEL: the lines of the orders that could not be cancelled any more. {0} is how many. English keeps one form for every count; a language that needs forms by count adds them (…One, …Few, …Many).</comment>
+  </data>
+  <data name="UpdateHeading" xml:space="preserve">
+    <value>Order &lt;b&gt;{0}&lt;/b&gt; — update</value>
+    <comment>A store's mail to a buyer, sent unasked when an order moves on — a job started, a contract made out: its heading. {0} is the order's reference. Keep &lt;b&gt;…&lt;/b&gt; around it.</comment>
+  </data>
+  <data name="TypeFallback" xml:space="preserve">
+    <value>Type {0}</value>
+    <comment>A store's mail to a buyer: an item the app has no name for, in place of its name. {0} is the item's type id, a number.</comment>
+  </data>
+  <data name="UnknownLink" xml:space="preserve">
+    <value>type {0}</value>
+    <comment>A store's mail to a buyer, among what their order asked for that is not on the price list: an item link with no name on it. {0} is the item's type id, a number.</comment>
+  </data>
+  <data name="PageOf" xml:space="preserve">
+    <value>Page {0} of {1}</value>
+    <comment>A store's mail to a buyer: the heading of one mail of a price list too long for one. {0} is this mail's number, {1} how many there are.</comment>
+  </data>
+  <data name="HeadingPart" xml:space="preserve">
+    <value>{0} ({1} of {2})</value>
+    <comment>A store's mail to a buyer: the heading of one mail of an answer too long for one. {0} is the answer's heading, {1} this mail's number, {2} how many there are.</comment>
+  </data>
+  <data name="PagesDidNotFitOther" xml:space="preserve">
+    <value>{0} further page(s) did not fit.</value>
+    <comment>A store's mail to a buyer: the end of the last mail of an answer longer than the store will send at once (a price list, or a buyer's orders). {0} is how many more mails it would have taken; they are not sent, and asking again sends the same first ones. English keeps one form for every count; a language that needs forms by count adds them (…One, …Few, …Many).</comment>
+  </data>
+  <data name="StatusOneOrderHint" xml:space="preserve">
+    <value>Send STATUS with an order reference to ask about one order.</value>
+    <comment>A store's mail to a buyer: the line under PagesDidNotFit when the answer cut short was a list of the buyer's orders. Keep STATUS in English: it is the word the buyer must write in the subject.</comment>
+  </data>
+  <data name="MessageCut" xml:space="preserve">
+    <value>… this message was too long for EVE mail and has been cut here.</value>
+    <comment>A store's mail to a buyer: the end of a mail that had to be cut short to fit EVE mail's length limit.</comment>
+  </data>
+  <data name="ExpectContractWaiting" xml:space="preserve">
+    <value>A contract is already waiting for you to accept.</value>
+    <comment>A store's mail to a buyer, in an order's confirmation, under an item: what happens next — a contract for it is already made out to them.</comment>
+  </data>
+  <data name="ExpectInStock" xml:space="preserve">
+    <value>In stock and reserved for you — you will be notified when the contract has been created.</value>
+    <comment>A store's mail to a buyer, in an order's confirmation, under an item: what happens next — it is on the shelf, with no date yet for the contract.</comment>
+  </data>
+  <data name="ExpectInStockDue" xml:space="preserve">
+    <value>In stock and reserved for you — contract expected {0}.</value>
+    <comment>A store's mail to a buyer, in an order's confirmation, under an item: what happens next — it is on the shelf. {0} is the date the contract is expected, as 2026-09-28.</comment>
+  </data>
+  <data name="ExpectInBuild" xml:space="preserve">
+    <value>Already in build.</value>
+    <comment>A store's mail to a buyer, in an order's confirmation, under an item: what happens next — it is being built, with no date yet.</comment>
+  </data>
+  <data name="ExpectInBuildDue" xml:space="preserve">
+    <value>Already in build, expected {0}.</value>
+    <comment>A store's mail to a buyer, in an order's confirmation, under an item: what happens next — it is being built. {0} is the date it is expected, as 2026-09-28.</comment>
+  </data>
+  <data name="ExpectOutOfStock" xml:space="preserve">
+    <value>Out of stock — your reservation is placed, and you will be told the completion date once the build starts.</value>
+    <comment>A store's mail to a buyer, in an order's confirmation, under an item: what happens next — none on the shelf and none being built yet.</comment>
+  </data>
+  <data name="ExpectOutOfStockDue" xml:space="preserve">
+    <value>Out of stock — your reservation is placed, expected {0}.</value>
+    <comment>A store's mail to a buyer, in an order's confirmation, under an item: what happens next — none on the shelf. {0} is the date it is expected, as 2026-09-28.</comment>
+  </data>
+  <data name="StateDelivered" xml:space="preserve">
+    <value>delivered</value>
+    <comment>A store's mail to a buyer, in the answer to STATUS and in an order's update, after an item: where it has got to — delivered.</comment>
+  </data>
+  <data name="StateDeliveredRestCancelledOther" xml:space="preserve">
+    <value>{0:N0} of {1:N0} delivered, and the rest cancelled</value>
+    <comment>A store's mail to a buyer, in the answer to STATUS and in an order's update, after an item: where it has got to — part delivered, the rest cancelled. {0} is how many were delivered, {1} how many were ordered. English keeps one form for every count; a language that needs forms by {0} adds them (…One, …Few, …Many).</comment>
+  </data>
+  <data name="StateContractDeclined" xml:space="preserve">
+    <value>the contract was declined, so this order is closed</value>
+    <comment>A store's mail to a buyer, in the answer to STATUS and in an order's update, after an item: where it has got to — they declined its contract, which closed the order.</comment>
+  </data>
+  <data name="StateCancelled" xml:space="preserve">
+    <value>cancelled</value>
+    <comment>A store's mail to a buyer, in the answer to STATUS and in an order's update, after an item: where it has got to — cancelled.</comment>
+  </data>
+  <data name="StateContractWaiting" xml:space="preserve">
+    <value>contract created — waiting for you to accept it</value>
+    <comment>A store's mail to a buyer, in the answer to STATUS and in an order's update, after an item: where it has got to — a contract is made out to them.</comment>
+  </data>
+  <data name="StateReadyContractDue" xml:space="preserve">
+    <value>ready now — contract expected {0}</value>
+    <comment>A store's mail to a buyer, in the answer to STATUS and in an order's update, after an item: where it has got to — on the shelf. {0} is the date the contract is expected, as 2026-09-28.</comment>
+  </data>
+  <data name="StateReady" xml:space="preserve">
+    <value>ready now — you will be notified when the contract has been created</value>
+    <comment>A store's mail to a buyer, in the answer to STATUS and in an order's update, after an item: where it has got to — on the shelf, with no date yet for the contract.</comment>
+  </data>
+  <data name="StateInProductionDue" xml:space="preserve">
+    <value>in production, expected {0}</value>
+    <comment>A store's mail to a buyer, in the answer to STATUS and in an order's update, after an item: where it has got to — being built. {0} is the date it is expected, as 2026-09-28.</comment>
+  </data>
+  <data name="StateInProduction" xml:space="preserve">
+    <value>in production</value>
+    <comment>A store's mail to a buyer, in the answer to STATUS and in an order's update, after an item: where it has got to — being built, with no date yet.</comment>
+  </data>
+  <data name="StateExpected" xml:space="preserve">
+    <value>expected {0}</value>
+    <comment>A store's mail to a buyer, in the answer to STATUS and in an order's update, after an item: where it has got to — not started, but with a date. {0} is the date it is expected, as 2026-09-28.</comment>
+  </data>
+  <data name="StateWaitingOnMaterials" xml:space="preserve">
+    <value>waiting on materials</value>
+    <comment>A store's mail to a buyer, in the answer to STATUS and in an order's update, after an item: where it has got to — nothing on the shelf and nothing being built yet.</comment>
+  </data>
+  <data name="PartDeliveredOther" xml:space="preserve">
+    <value>{0:N0} of {1:N0} delivered</value>
+    <comment>A store's mail to a buyer, in the answer to STATUS and in an order's update: one part of an item that is part way there, as in "1 of 2 delivered; 1 in production". {0} is how many were delivered, {1} how many were ordered. English keeps one form for every count; a language that needs forms by {0} adds them (…One, …Few, …Many).</comment>
+  </data>
+  <data name="PartOnContractOther" xml:space="preserve">
+    <value>{0:N0} on a contract waiting for you to accept it</value>
+    <comment>A store's mail to a buyer, in the answer to STATUS and in an order's update: one part of an item that is part way there. {0} is how many are on a contract made out to them. English keeps one form for every count; a language that needs forms by count adds them (…One, …Few, …Many).</comment>
+  </data>
+  <data name="PartReadyOther" xml:space="preserve">
+    <value>{0:N0} ready now</value>
+    <comment>A store's mail to a buyer, in the answer to STATUS and in an order's update: one part of an item that is part way there. {0} is how many are on the shelf. English keeps one form for every count; a language that needs forms by count adds them (…One, …Few, …Many).</comment>
+  </data>
+  <data name="PartReadyContractDueOther" xml:space="preserve">
+    <value>{0:N0} ready now, contract expected {1}</value>
+    <comment>A store's mail to a buyer, in the answer to STATUS and in an order's update: one part of an item that is part way there. {0} is how many are on the shelf, {1} the date the contract is expected, as 2026-09-28. English keeps one form for every count; a language that needs forms by {0} adds them (…One, …Few, …Many).</comment>
+  </data>
+  <data name="PartInProductionOther" xml:space="preserve">
+    <value>{0:N0} in production</value>
+    <comment>A store's mail to a buyer, in the answer to STATUS and in an order's update: one part of an item that is part way there. {0} is how many are being built. English keeps one form for every count; a language that needs forms by count adds them (…One, …Few, …Many).</comment>
+  </data>
+  <data name="PartInProductionDueOther" xml:space="preserve">
+    <value>{0:N0} in production, expected {1}</value>
+    <comment>A store's mail to a buyer, in the answer to STATUS and in an order's update: one part of an item that is part way there. {0} is how many are being built, {1} the date they are expected, as 2026-09-28. English keeps one form for every count; a language that needs forms by {0} adds them (…One, …Few, …Many).</comment>
+  </data>
+  <data name="PartWaitingOnMaterialsOther" xml:space="preserve">
+    <value>{0:N0} waiting on materials</value>
+    <comment>A store's mail to a buyer, in the answer to STATUS and in an order's update: one part of an item that is part way there. {0} is how many are neither on the shelf nor being built. English keeps one form for every count; a language that needs forms by count adds them (…One, …Few, …Many).</comment>
+  </data>
+  <data name="PartExpectedOther" xml:space="preserve">
+    <value>{0:N0} expected {1}</value>
+    <comment>A store's mail to a buyer, in the answer to STATUS and in an order's update: one part of an item that is part way there. {0} is how many are not started, {1} the date they are expected, as 2026-09-28. English keeps one form for every count; a language that needs forms by {0} adds them (…One, …Few, …Many).</comment>
+  </data>
+  <data name="PartsSeparator" xml:space="preserve">
+    <value>; </value>
+    <comment>A store's mail to a buyer: what goes between the parts of an item that is part way there, as in "1 of 2 delivered; 1 in production". Your language's own separator, with the space after it where it takes one.</comment>
+  </data>
+  <data name="LimitScopeItem" xml:space="preserve">
+    <value>of each item</value>
+    <comment>A store's purchase limit, read by its buyers in mail and by its owner on the Stores screen: what the limit counts over, placed in LimitRule and LimitOver as {1} — so many units of each item.</comment>
+  </data>
+  <data name="LimitScopeGroup" xml:space="preserve">
+    <value>of each item group</value>
+    <comment>A store's purchase limit, read by its buyers in mail and by its owner on the Stores screen: what the limit counts over, placed in LimitRule and LimitOver as {1} — so many units of each item group (all frigates, all battleships…).</comment>
+  </data>
+  <data name="LimitScopeStore" xml:space="preserve">
+    <value>from the store</value>
+    <comment>A store's purchase limit, read by its buyers in mail and by its owner on the Stores screen: what the limit counts over, placed in LimitRule and LimitOver as {1} — so many units of anything in the store, all together.</comment>
+  </data>
+  <data name="LimitPerDay" xml:space="preserve">
+    <value>per day</value>
+    <comment>A store's purchase limit, read by its buyers in mail and by its owner on the Stores screen: the period it counts over, placed in LimitRule and LimitOver as {2}.</comment>
+  </data>
+  <data name="LimitPerDaysOther" xml:space="preserve">
+    <value>per {0} days</value>
+    <comment>A store's purchase limit, read by its buyers in mail and by its owner on the Stores screen: the period it counts over, placed in LimitRule and LimitOver as {2}. {0} is the number of days, two or more (one is LimitPerDay).</comment>
+  </data>
+  <data name="LimitPerMonth" xml:space="preserve">
+    <value>per month</value>
+    <comment>A store's purchase limit, read by its buyers in mail and by its owner on the Stores screen: the period it counts over, placed in LimitRule and LimitOver as {2}.</comment>
+  </data>
+  <data name="LimitPerMonthsOther" xml:space="preserve">
+    <value>per {0} months</value>
+    <comment>A store's purchase limit, read by its buyers in mail and by its owner on the Stores screen: the period it counts over, placed in LimitRule and LimitOver as {2}. {0} is the number of months, two or more (one is LimitPerMonth).</comment>
+  </data>
+  <data name="LimitPerYear" xml:space="preserve">
+    <value>per year</value>
+    <comment>A store's purchase limit, read by its buyers in mail and by its owner on the Stores screen: the period it counts over, placed in LimitRule and LimitOver as {2}.</comment>
+  </data>
+  <data name="LimitPerYearsOther" xml:space="preserve">
+    <value>per {0} years</value>
+    <comment>A store's purchase limit, read by its buyers in mail and by its owner on the Stores screen: the period it counts over, placed in LimitRule and LimitOver as {2}. {0} is the number of years, two or more (one is LimitPerYear).</comment>
+  </data>
+  <data name="LimitEver" xml:space="preserve">
+    <value>ever</value>
+    <comment>A store's purchase limit, read by its buyers in mail and by its owner on the Stores screen: the period it counts over — all time — placed in LimitRule and LimitOver as {2}.</comment>
+  </data>
+  <data name="LimitRuleOne" xml:space="preserve">
+    <value>Each buyer may order {0:N0} unit {1} {2}.</value>
+    <comment>A store's purchase limit in a sentence, read by its buyers in mail and by its owner on the Stores screen. {0} is the number of units (one), {1} what it counts over (LimitScopeItem…), {2} the period (LimitPerDay…, LimitEver).</comment>
+  </data>
+  <data name="LimitRuleOther" xml:space="preserve">
+    <value>Each buyer may order {0:N0} units {1} {2}.</value>
+    <comment>A store's purchase limit in a sentence, read by its buyers in mail and by its owner on the Stores screen. {0} is the number of units, {1} what it counts over (LimitScopeItem…), {2} the period (LimitPerDay…, LimitEver).</comment>
+  </data>
+  <data name="LimitOver" xml:space="preserve">
+    <value>Over the store's limit of {0:N0} {1} {2}: {3:N0} × {4} on top of {5:N0} already ordered.</value>
+    <comment>Why an order would take a buyer past a store's purchase limit: in the store's mail to the buyer, and in its log and web orders held for the owner. {0} is the limit in units, {1} what it counts over (LimitScopeItem…), {2} the period (LimitPerDay…, LimitEver), {3} how many the order asks for, {4} the item's name, {5} how many the buyer has already ordered.</comment>
+  </data>
+  <data name="PriceListLimitReached" xml:space="preserve">
+    <value>limit reached</value>
+    <comment>A store's price list mailed to one buyer: after an item they may not order any more under the store's purchase limit, whose line is dimmed. Follows " - " at the end of the line.</comment>
+  </data>
+  <data name="WebNoBuyer" xml:space="preserve">
+    <value>No buyer on the order.</value>
+    <comment>A store's web site, shown to the buyer: why their order was turned down — it came without a buyer.</comment>
+  </data>
+  <data name="WebNoLines" xml:space="preserve">
+    <value>No lines on the order.</value>
+    <comment>A store's web site, shown to the buyer: why their order was turned down — it had no items.</comment>
+  </data>
+  <data name="WebTooManyLinesOther" xml:space="preserve">
+    <value>{0} lines is more than one order may carry ({1}).</value>
+    <comment>A store's web site, shown to the buyer: why their order was turned down — too many items. {0} is how many it had, {1} the most one order may have (40). English keeps one form for every count; a language that needs forms by {0} adds them (…One, …Few, …Many).</comment>
+  </data>
+  <data name="WebNotOnPriceList" xml:space="preserve">
+    <value>Type {0} is not on the price list.</value>
+    <comment>A store's web site, shown to the buyer: why their order was turned down — it asked for an item the store does not sell. {0} is the item's type id, a number.</comment>
+  </data>
+  <data name="WebUnitsAskedOther" xml:space="preserve">
+    <value>A line asks for {0} units.</value>
+    <comment>A store's web site, shown to the buyer: why their order was turned down — a line asked for none, or fewer than none. {0} is the count asked for (zero or less). English keeps one form for every count; a language that needs forms by count adds them (…One, …Few, …Many).</comment>
+  </data>
+  <data name="WebTooManyUnitsOther" xml:space="preserve">
+    <value>{0:N0} units is more than one order line may carry ({1:N0}).</value>
+    <comment>A store's web site, shown to the buyer: why their order was turned down — too many of one item. {0} is how many it asked for, {1} the most one line may have (10,000). English keeps one form for every count; a language that needs forms by {0} adds them (…One, …Few, …Many).</comment>
+  </data>
+  <data name="WebWithdrawn" xml:space="preserve">
+    <value>Withdrawn by the buyer before it was booked.</value>
+    <comment>A store's web site, shown to the buyer: what became of an order they cancelled while it was waiting for the store's owner.</comment>
+  </data>
+  <data name="WebDeclined" xml:space="preserve">
+    <value>Declined by the store.</value>
+    <comment>A store's web site, shown to the buyer: why their order was turned down, when the store's owner declined it on the Stores screen without giving a reason of their own.</comment>
+  </data>
+</root>

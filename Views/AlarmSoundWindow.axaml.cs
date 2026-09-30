@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -20,11 +21,11 @@ public partial class AlarmSoundWindow : Window
     public AlarmSoundWindow(string alarmName, string summary, Func<Task> onAcknowledge)
     {
         InitializeComponent();
-        Title            = $"Alarm sounding — {alarmName}";
+        Title            = string.Format(AlarmsText.SoundWindowTitle, alarmName);
         TitleText.Text   = alarmName;
         MessageText.Text = string.IsNullOrWhiteSpace(summary)
-            ? "The sound repeats until you acknowledge it."
-            : summary + "\n\nThe sound repeats until you acknowledge it.";
+            ? AlarmsText.SoundRepeatsUntilAck
+            : summary + "\n\n" + AlarmsText.SoundRepeatsUntilAck;
         _onAcknowledge   = onAcknowledge;
     }
 

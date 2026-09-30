@@ -1,0 +1,620 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="NavGroupGeneral" xml:space="preserve">
+    <value>全般</value>
+  </data>
+  <data name="NavGroupAssets" xml:space="preserve">
+    <value>資産</value>
+  </data>
+  <data name="NavGroupStructures" xml:space="preserve">
+    <value>ストラクチャ・ナビゲーション</value>
+  </data>
+  <data name="NavGroupIndustry" xml:space="preserve">
+    <value>インダストリー</value>
+  </data>
+  <data name="NavGroupMarket" xml:space="preserve">
+    <value>マーケット・トレード</value>
+  </data>
+  <data name="NavGroupFinance" xml:space="preserve">
+    <value>財務</value>
+  </data>
+  <data name="NavGroupCorp" xml:space="preserve">
+    <value>コーポ・交流</value>
+  </data>
+  <data name="NavGroupCommunication" xml:space="preserve">
+    <value>コミュニケーション</value>
+  </data>
+  <data name="NavGroupData" xml:space="preserve">
+    <value>データ・ログ</value>
+  </data>
+  <data name="NavOverview" xml:space="preserve">
+    <value>概要</value>
+  </data>
+  <data name="NavWorklist" xml:space="preserve">
+    <value>ワークリスト</value>
+  </data>
+  <data name="NavCharacters" xml:space="preserve">
+    <value>キャラクター</value>
+  </data>
+  <data name="NavAssets" xml:space="preserve">
+    <value>資産</value>
+  </data>
+  <data name="NavItemBrowser" xml:space="preserve">
+    <value>アイテムブラウザ</value>
+  </data>
+  <data name="NavInventoryLevels" xml:space="preserve">
+    <value>在庫レベル</value>
+  </data>
+  <data name="NavStructureBrowser" xml:space="preserve">
+    <value>ストラクチャブラウザ</value>
+  </data>
+  <data name="NavUniverseMap" xml:space="preserve">
+    <value>宇宙マップ</value>
+  </data>
+  <data name="NavJumpPlanner" xml:space="preserve">
+    <value>ジャンププランナー</value>
+  </data>
+  <data name="NavIndustryJobs" xml:space="preserve">
+    <value>生産ジョブ</value>
+  </data>
+  <data name="NavIndyParks" xml:space="preserve">
+    <value>インディパーク</value>
+  </data>
+  <data name="NavProductionCalc" xml:space="preserve">
+    <value>生産計算</value>
+  </data>
+  <data name="NavPriceOverrides" xml:space="preserve">
+    <value>価格の上書き</value>
+  </data>
+  <data name="NavIndustryOpportunities" xml:space="preserve">
+    <value>生産チャンス</value>
+  </data>
+  <data name="NavMarketOverview" xml:space="preserve">
+    <value>マーケット概要</value>
+  </data>
+  <data name="NavItemValuation" xml:space="preserve">
+    <value>アイテム査定</value>
+  </data>
+  <data name="NavLpMarketValues" xml:space="preserve">
+    <value>LPのマーケット価値</value>
+  </data>
+  <data name="NavMarketLevels" xml:space="preserve">
+    <value>出品レベル</value>
+  </data>
+  <data name="NavContracts" xml:space="preserve">
+    <value>契約</value>
+  </data>
+  <data name="NavTradeOpportunities" xml:space="preserve">
+    <value>トレードチャンス</value>
+  </data>
+  <data name="NavStandingBuyOrders" xml:space="preserve">
+    <value>常設の買い注文</value>
+  </data>
+  <data name="NavOrderTracker" xml:space="preserve">
+    <value>注文管理</value>
+  </data>
+  <data name="NavSalesTracker" xml:space="preserve">
+    <value>販売管理</value>
+  </data>
+  <data name="NavSalePosting" xml:space="preserve">
+    <value>販売の投稿</value>
+  </data>
+  <data name="NavStores" xml:space="preserve">
+    <value>ストア</value>
+  </data>
+  <data name="NavNetWorth" xml:space="preserve">
+    <value>純資産</value>
+  </data>
+  <data name="NavIncomeExpense" xml:space="preserve">
+    <value>収支</value>
+  </data>
+  <data name="NavWallet" xml:space="preserve">
+    <value>ウォレット</value>
+  </data>
+  <data name="NavCorpActivity" xml:space="preserve">
+    <value>コーポの活動</value>
+  </data>
+  <data name="NavKillmails" xml:space="preserve">
+    <value>キルレポート</value>
+  </data>
+  <data name="NavPlayerEntities" xml:space="preserve">
+    <value>プレイヤーエンティティ</value>
+  </data>
+  <data name="NavNpcEntities" xml:space="preserve">
+    <value>NPCエンティティ</value>
+  </data>
+  <data name="NavEveMail" xml:space="preserve">
+    <value>EVEメール</value>
+  </data>
+  <data name="NavNotifications" xml:space="preserve">
+    <value>通知</value>
+  </data>
+  <data name="NavBackgroundProcesses" xml:space="preserve">
+    <value>バックグラウンド処理</value>
+  </data>
+  <data name="NavEsiExplorer" xml:space="preserve">
+    <value>ESIエクスプローラー</value>
+  </data>
+  <data name="NavErrorLog" xml:space="preserve">
+    <value>エラーログ</value>
+  </data>
+  <data name="NavAiUsage" xml:space="preserve">
+    <value>AI使用量</value>
+  </data>
+  <data name="NavGameLog" xml:space="preserve">
+    <value>ゲームログ</value>
+  </data>
+  <data name="NavChatLog" xml:space="preserve">
+    <value>チャットログ</value>
+  </data>
+  <data name="TabUniverse" xml:space="preserve">
+    <value>宇宙</value>
+  </data>
+  <data name="TabAlarms" xml:space="preserve">
+    <value>アラーム</value>
+  </data>
+  <data name="TabScheduler" xml:space="preserve">
+    <value>スケジューラー</value>
+  </data>
+  <data name="TabTrade" xml:space="preserve">
+    <value>トレード</value>
+  </data>
+  <data name="TabIndustryOpps" xml:space="preserve">
+    <value>生産チャンス</value>
+  </data>
+  <data name="TabInvLevels" xml:space="preserve">
+    <value>在庫レベル</value>
+  </data>
+  <data name="TabSaleListingBuild" xml:space="preserve">
+    <value>販売リスト（製造）</value>
+  </data>
+  <data name="TabSaleListingMarket" xml:space="preserve">
+    <value>販売リスト（マーケット）</value>
+  </data>
+  <data name="TipScheduler" xml:space="preserve">
+    <value>スケジューラー</value>
+  </data>
+  <data name="TipSettings" xml:space="preserve">
+    <value>設定</value>
+  </data>
+  <data name="TipAbout" xml:space="preserve">
+    <value>EVE Consoleについて</value>
+  </data>
+  <data name="TipVersion" xml:space="preserve">
+    <value>実行中のバージョンです。</value>
+  </data>
+  <data name="TipReleasePage" xml:space="preserve">
+    <value>GitHubのリリースページを開きます</value>
+  </data>
+  <data name="TitleAboutEveConsole" xml:space="preserve">
+    <value>EVE Consoleについて</value>
+  </data>
+  <data name="AnEveOnlineIndustrialNote" xml:space="preserve">
+    <value>生産計画、資産の追跡、マーケット価格、キャラクター管理のためのEVE Online向けインダストリー支援ツールです。</value>
+  </data>
+  <data name="Website" xml:space="preserve">
+    <value>ウェブサイト</value>
+  </data>
+  <data name="Documentation" xml:space="preserve">
+    <value>ドキュメント</value>
+  </data>
+  <data name="TipCommunityChatAndSupport" xml:space="preserve">
+    <value>コミュニティのチャットとサポート</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>閉じる</value>
+  </data>
+  <data name="TitleEveConsoleDatabaseProblem" xml:space="preserve">
+    <value>EVE Console — データベースの問題</value>
+  </data>
+  <data name="TheDatabaseCouldNotBe" xml:space="preserve">
+    <value>データベースを開けませんでした</value>
+  </data>
+  <data name="ReportedLabel" xml:space="preserve">
+    <value>報告内容</value>
+  </data>
+  <data name="RestoreFromABackup" xml:space="preserve">
+    <value>バックアップから復元</value>
+  </data>
+  <data name="TheMostRecentIsNote" xml:space="preserve">
+    <value>最新のバックアップが選択されています。バックアップの作成後に記録されたデータは、もう一度ポーリングする必要があります。</value>
+  </data>
+  <data name="NoBackupsWereFoundNote" xml:space="preserve">
+    <value>データベースと同じ場所にバックアップが見つからないため、復元できるものがありません。新規に開始すると空のデータベースが作成され、破損したデータベースはそのまま残ります。</value>
+  </data>
+  <data name="Quit" xml:space="preserve">
+    <value>終了</value>
+  </data>
+  <data name="StartFresh" xml:space="preserve">
+    <value>新規に開始</value>
+  </data>
+  <data name="RestoreBackup" xml:space="preserve">
+    <value>バックアップを復元</value>
+  </data>
+  <data name="UpToDate" xml:space="preserve">
+    <value>最新</value>
+  </data>
+  <data name="UpdateAvailable" xml:space="preserve">
+    <value>アップデートあり</value>
+  </data>
+  <data name="BackgroundLabel" xml:space="preserve">
+    <value>バックグラウンド：</value>
+  </data>
+  <data name="NoneOfYourCharactersAre" xml:space="preserve">
+    <value>オンラインのキャラクターはいません。</value>
+  </data>
+  <data name="FmtStaticDataExport" xml:space="preserve">
+    <value>Static Data Export：{0}</value>
+  </data>
+  <data name="FmtNewestFromCcpIs" xml:space="preserve">
+    <value>CCPの最新版は{0}です</value>
+  </data>
+  <data name="FmtNewestIsOpenTheSde" xml:space="preserve">
+    <value>最新版は{0}です — クリックでSDEの設定を開きます</value>
+  </data>
+  <data name="FmtToggleAiCompanion" xml:space="preserve">
+    <value>AIアシスタント「{0}」の表示を切り替えます</value>
+  </data>
+  <data name="Initializing" xml:space="preserve">
+    <value>初期化中…</value>
+  </data>
+  <data name="TitleUpdateAvailable" xml:space="preserve">
+    <value>アップデートがあります</value>
+  </data>
+  <data name="ANewVersionOfNote" xml:space="preserve">
+    <value>EVE Consoleの新しいバージョンが利用可能です。</value>
+  </data>
+  <data name="CurrentLabel" xml:space="preserve">
+    <value>現在：</value>
+  </data>
+  <data name="LatestLabel" xml:space="preserve">
+    <value>最新：</value>
+  </data>
+  <data name="TheAppWillDownloadNote" xml:space="preserve">
+    <value>アップデートをダウンロードし、再起動して適用します。</value>
+  </data>
+  <data name="UpdateNow" xml:space="preserve">
+    <value>今すぐアップデート</value>
+  </data>
+  <data name="NotNow" xml:space="preserve">
+    <value>後で</value>
+  </data>
+  <data name="UpdatingEveConsole" xml:space="preserve">
+    <value>EVE Consoleをアップデート中…</value>
+  </data>
+  <data name="ThisBuildIsOlderNote" xml:space="preserve">
+    <value>このビルドはデータベースより古いバージョンです</value>
+  </data>
+  <data name="CheckingForAnUpdate" xml:space="preserve">
+    <value>アップデートを確認中…</value>
+  </data>
+  <data name="ReleasesPage" xml:space="preserve">
+    <value>リリースページ</value>
+  </data>
+  <data name="UpdateAndRestart" xml:space="preserve">
+    <value>アップデートして再起動</value>
+  </data>
+  <data name="TitleWelcomeToEveConsole" xml:space="preserve">
+    <value>EVE Consoleへようこそ</value>
+  </data>
+  <data name="EveConsoleIsDownloadingNote" xml:space="preserve">
+    <value>EVE Consoleは、必要なEVEのゲームデータ（Static Data ExportとHoboleaksのデータ）をバックグラウンドでダウンロードしています。数分かかることがあります。完了するにつれて、アイテムの検索、マーケット価格、インダストリーツールにデータが表示されます。進行状況は設定の「SDE」タブで確認できます。</value>
+  </data>
+  <data name="OnceThatFinishesRestartNote" xml:space="preserve">
+    <value>完了したら、EVE Consoleを再起動してください。一部のツールは最初に開いたときに参照データを読み込むため、再起動すると、すべてのツールがインポートしたばかりのデータを使えるようになります。</value>
+  </data>
+  <data name="ToPullInYourNote" xml:space="preserve">
+    <value>自分のキャラクターとコーポレーションのデータを取り込むには、ESIキャラクタートークンを追加してください。次に設定ウィンドウが「ESIトークン」タブで開きます。そこで「キャラクター」の下の「追加」をクリックし、EVEのSSOでログインしてください。</value>
+  </data>
+  <data name="GetStarted" xml:space="preserve">
+    <value>はじめる</value>
+  </data>
+  <data name="DbSizeUnknown" xml:space="preserve">
+    <value>不明</value>
+  </data>
+  <data name="DbFileNotFound" xml:space="preserve">
+    <value>ファイルが見つかりません</value>
+  </data>
+  <data name="TipDbUnreadable" xml:space="preserve">
+    <value>{0} — 詳細を読み取れませんでした：{1}</value>
+  </data>
+  <data name="TipWorkerChecking" xml:space="preserve">
+    <value>どのクライアントがバックグラウンド処理を行っているか確認中…</value>
+  </data>
+  <data name="WorkerThisClient" xml:space="preserve">
+    <value>このクライアント</value>
+  </data>
+  <data name="WorkerHeadlineMine" xml:space="preserve">
+    <value>バックグラウンド処理はこのクライアントで実行されています。</value>
+  </data>
+  <data name="WorkerNone" xml:space="preserve">
+    <value>なし</value>
+  </data>
+  <data name="WorkerHeadlineStale" xml:space="preserve">
+    <value>バックグラウンド処理を行っているクライアントはありません — 以下は最後に処理を行っていたクライアントです。</value>
+  </data>
+  <data name="WorkerHeadlineOther" xml:space="preserve">
+    <value>バックグラウンド処理は別のクライアントで実行されています。</value>
+  </data>
+  <data name="AgoSeconds" xml:space="preserve">
+    <value>{0}秒前</value>
+  </data>
+  <data name="AgoMinutes" xml:space="preserve">
+    <value>{0}分前</value>
+  </data>
+  <data name="AgoHours" xml:space="preserve">
+    <value>{0}時間前</value>
+  </data>
+  <data name="AlarmsNoneArmed" xml:space="preserve">
+    <value>アラーム — 有効なアラームはありません</value>
+  </data>
+  <data name="OnlineOfTotal" xml:space="preserve">
+    <value>{1}人中{0}人オンライン</value>
+  </data>
+  <data name="NoCharactersOnline" xml:space="preserve">
+    <value>オンラインのキャラクターなし</value>
+  </data>
+  <data name="LocationUnknown" xml:space="preserve">
+    <value>位置不明</value>
+  </data>
+  <data name="StructureInSystem" xml:space="preserve">
+    <value>{0}のストラクチャ</value>
+  </data>
+  <data name="ShipUnknown" xml:space="preserve">
+    <value>艦船不明</value>
+  </data>
+  <data name="TipEveTimeLink" xml:space="preserve">
+    <value>EVE時間（UTC） — クリックで{0}を開きます</value>
+  </data>
+  <data name="ThemeFallback" xml:space="preserve">
+    <value>テーマ</value>
+  </data>
+  <data name="TipTheme" xml:space="preserve">
+    <value>テーマ：{0} — クリックで変更します</value>
+  </data>
+  <data name="TipUiScale" xml:space="preserve">
+    <value>UIの拡大率：{0} — クリックで変更します</value>
+  </data>
+  <data name="ServerOnline" xml:space="preserve">
+    <value>オンライン</value>
+  </data>
+  <data name="TipServerStatus" xml:space="preserve">
+    <value>Tranquilityサーバーの状態</value>
+  </data>
+  <data name="TipTranquilityOffline" xml:space="preserve">
+    <value>Tranquilityはオフラインです — 復旧するまでESIのポーリングを一時停止しています</value>
+  </data>
+  <data name="BuildCostsNotYet" xml:space="preserve">
+    <value>製造コスト：未計算</value>
+  </data>
+  <data name="TipDbPostgres" xml:space="preserve">
+    <value>PostgreSQL（{0}）
+データベース：{1}
+サイズ：{2}</value>
+  </data>
+  <data name="TipDbSqlite" xml:space="preserve">
+    <value>SQLite
+{0}
+サイズ：{1}</value>
+  </data>
+  <data name="TipWorkerSqlite" xml:space="preserve">
+    <value>{0}
+
+ホスト：{1}
+PID：{2}
+バージョン：{3}
+
+SQLiteは一度に1つのクライアントしか使えないため、処理を引き継ぐ先はありません。</value>
+  </data>
+  <data name="TipWorkerUnclaimed" xml:space="preserve">
+    <value>バックグラウンド処理を引き受けているクライアントはありません。
+
+ESIのポーリング、製造コストの計算、バックアップは実行されていません。</value>
+  </data>
+  <data name="TipWorkerDetails" xml:space="preserve">
+    <value>{0}
+
+ホスト：{1}
+PID：{2}
+バージョン：{3}
+開始：{4:yyyy-MM-dd HH:mm}
+最終ハートビート：{5}</value>
+  </data>
+  <data name="WorkerHostHeadless" xml:space="preserve">
+    <value>{0}（ヘッドレス）</value>
+  </data>
+  <data name="AlarmsArmedOther" xml:space="preserve">
+    <value>アラーム — {0}件が有効</value>
+  </data>
+  <data name="AlarmsMutedNote" xml:space="preserve">
+    <value>このクライアントではミュート中です：ここではサウンド、ダイアログ、AIアシスタントへの通知は発生しません。アラートは引き続き記録されます。
+
+右クリックでミュートを解除します。</value>
+  </data>
+  <data name="AlarmsMuteHint" xml:space="preserve">
+    <value>右クリックでこのクライアントをミュートします。</value>
+  </data>
+  <data name="TipTranquilityOnline" xml:space="preserve">
+    <value>Tranquilityはオンラインです</value>
+  </data>
+  <data name="TipTranquilityOnlinePlayersOther" xml:space="preserve">
+    <value>Tranquilityはオンラインです — プレイヤー{0:N0}人</value>
+  </data>
+  <data name="UpdateVersionUnknown" xml:space="preserve">
+    <value>不明</value>
+  </data>
+  <data name="UpdateBadgeDevBuild" xml:space="preserve">
+    <value>開発ビルド</value>
+  </data>
+  <data name="UpdateLatestNotInstalled" xml:space="preserve">
+    <value>該当なし — インストール版ではありません</value>
+  </data>
+  <data name="UpdateStatusChecking" xml:space="preserve">
+    <value>アップデートを確認中…</value>
+  </data>
+  <data name="UpdateStatusUpToDate" xml:space="preserve">
+    <value>最新です。</value>
+  </data>
+  <data name="UpdateStatusAvailable" xml:space="preserve">
+    <value>アップデートがあります。</value>
+  </data>
+  <data name="UpdateStatusDownloading" xml:space="preserve">
+    <value>アップデートをダウンロード中…</value>
+  </data>
+  <data name="UpdateStatusRestarting" xml:space="preserve">
+    <value>適用のため再起動中…</value>
+  </data>
+  <data name="UpdateBadgeAvailable" xml:space="preserve">
+    <value>{0}が利用可能</value>
+  </data>
+  <data name="UpdateDownloadingVersion" xml:space="preserve">
+    <value>{0}をダウンロード中…</value>
+  </data>
+  <data name="UpdateDownloadingVersionPercent" xml:space="preserve">
+    <value>{0}をダウンロード中… {1}%</value>
+  </data>
+  <data name="UpdateInstallingVersion" xml:space="preserve">
+    <value>{0}をインストールして再起動中…</value>
+  </data>
+  <data name="UpdateFailedGetRelease" xml:space="preserve">
+    <value>アップデートに失敗しました：{0}。リリースページから{1}を入手してください。</value>
+  </data>
+  <data name="RecoveryCouldNotRead" xml:space="preserve">
+    <value>EVE Consoleは{0}にあるデータベースを読み取れませんでした。まだ何も変更・削除されていません。</value>
+  </data>
+  <data name="RecoveryDamagedFileNote" xml:space="preserve">
+    <value>どちらを選んでも、破損したファイルは削除されずに名前が変更されます（同じフォルダーのまま、名前に「.damaged-」と日付が付きます）。後で調べたり復旧したりできます。</value>
+  </data>
+  <data name="RecoveryQuarantineFailed" xml:space="preserve">
+    <value>破損したファイルを退避できませんでした：{0}</value>
+  </data>
+  <data name="RecoveryRestoreFailed" xml:space="preserve">
+    <value>復元に失敗しました：{0}</value>
+  </data>
+  <data name="ServerOffline" xml:space="preserve">
+    <value>オフライン</value>
+  </data>
+  <data name="ServerPlayersOnline" xml:space="preserve">
+    <value>{0:N0}人オンライン</value>
+  </data>
+  <data name="ThemeDark" xml:space="preserve">
+    <value>ダーク</value>
+  </data>
+  <data name="ThemeLight" xml:space="preserve">
+    <value>ライト</value>
+  </data>
+  <data name="ThemeBlueDark" xml:space="preserve">
+    <value>ブルー（ダーク）</value>
+  </data>
+  <data name="ThemeBlueLight" xml:space="preserve">
+    <value>ブルー（ライト）</value>
+  </data>
+  <data name="ThemePinkDark" xml:space="preserve">
+    <value>ピンク（ダーク）</value>
+  </data>
+  <data name="ThemePinkLight" xml:space="preserve">
+    <value>ピンク（ライト）</value>
+  </data>
+  <data name="ThemeBeigeDark" xml:space="preserve">
+    <value>ベージュ（ダーク）</value>
+  </data>
+  <data name="ThemeBeigeLight" xml:space="preserve">
+    <value>ベージュ（ライト）</value>
+  </data>
+  <data name="UpdateAheadNotInstalled" xml:space="preserve">
+    <value>このコピーはインストーラーで導入されていないため、自動でアップデートできません。リリースページから{0}以降をインストールしてください。</value>
+  </data>
+  <data name="UpdateAheadCheckFailed" xml:space="preserve">
+    <value>アップデートを確認できませんでした：{0}。リリースページから{1}以降を入手してください。</value>
+  </data>
+  <data name="UpdateAheadCheckFailedNoReason" xml:space="preserve">
+    <value>アップデートを確認できませんでした（理由は不明です）。リリースページから{0}以降を入手してください。</value>
+  </data>
+  <data name="UpdateAheadNoRelease" xml:space="preserve">
+    <value>新しいリリースはまだ公開されていません。{0}は未リリースです。データベースが開発ビルドで開かれたか、リリースの公開がまだ完了していません。</value>
+  </data>
+  <data name="UpdateAheadReleaseTooOld" xml:space="preserve">
+    <value>最新のリリース{0}も、このデータベース（{1}）より古いバージョンです。このデータベースは未リリースのビルドで開かれています。</value>
+  </data>
+  <data name="UpdateAheadAvailable" xml:space="preserve">
+    <value>バージョン{0}が利用可能です。アップデートするとインストールされ、このデータベースでEVE Consoleが再起動します。</value>
+  </data>
+  <data name="RecoveryReasonUnknown" xml:space="preserve">
+    <value>不明</value>
+  </data>
+  <data name="VersionMismatchDatabaseAhead" xml:space="preserve">
+    <value>このデータベースのバージョンは{0}、このクライアントは{1}です。
+
+新しいビルドがすでに、このビルドの知らない形でデータベースを変更しています。スキーマの変更は元に戻せません。
+
+このクライアントを{0}以降にアップデートしてください。</value>
+  </data>
+  <data name="VersionMismatchWorkerBehind" xml:space="preserve">
+    <value>このデータベースのバージョンは{0}、このクライアントは{1}です。
+
+別のクライアントが{0}でバックグラウンド処理を実行しており、スキーマを変更できるのはそのクライアントだけです。このビルドが前提とする変更がまだ行われていないため、多くの機能が動作しません。
+
+バックグラウンド処理を実行しているクライアントを{1}にアップデートするか、そのクライアントを閉じてこのクライアントを先に起動し、処理を引き継いで変更を適用させてください。</value>
+  </data>
+  <data name="VersionMismatchHeading" xml:space="preserve">
+    <value>このビルドはデータベースと一致しません</value>
+  </data>
+  <data name="SplashShrinking" xml:space="preserve">
+    <value>データベースを縮小中 — 経過時間{0}。アプリケーションを閉じないでください。</value>
+  </data>
+  <data name="SplashWaitingDatabase" xml:space="preserve">
+    <value>待機中 — データベースを開けませんでした</value>
+  </data>
+  <data name="SplashStartupFailed" xml:space="preserve">
+    <value>起動に失敗しました — {0}  （詳細はエラーログを参照）</value>
+  </data>
+  <data name="SplashStoppingMismatch" xml:space="preserve">
+    <value>停止中 — バージョンの不一致</value>
+  </data>
+  <data name="SplashInitializingDatabase" xml:space="preserve">
+    <value>データベースを初期化中…</value>
+  </data>
+  <data name="SplashCharacterTables" xml:space="preserve">
+    <value>キャラクターのテーブルを作成中…</value>
+  </data>
+  <data name="SplashCorporationTables" xml:space="preserve">
+    <value>コーポレーションのテーブルを作成中…</value>
+  </data>
+  <data name="SplashMarketTables" xml:space="preserve">
+    <value>マーケットのテーブルを作成中…</value>
+  </data>
+  <data name="SplashIndustryTables" xml:space="preserve">
+    <value>インダストリーのテーブルを作成中…</value>
+  </data>
+  <data name="SplashFinalizingSchema" xml:space="preserve">
+    <value>スキーマの最終処理中…</value>
+  </data>
+  <data name="SplashLoadingSettings" xml:space="preserve">
+    <value>設定を読み込み中…</value>
+  </data>
+  <data name="SplashPreparingTools" xml:space="preserve">
+    <value>ツールを準備中…</value>
+  </data>
+  <data name="SplashStartingServices" xml:space="preserve">
+    <value>バックグラウンドサービスを開始中…</value>
+  </data>
+  <data name="SplashLoadingOverview" xml:space="preserve">
+    <value>概要を読み込み中…</value>
+  </data>
+  <data name="SplashOpening" xml:space="preserve">
+    <value>開いています…</value>
+  </data>
+  <data name="SplashReady" xml:space="preserve">
+    <value>準備完了。</value>
+  </data>
+  <data name="TrayOpenApp" xml:space="preserve">
+    <value>EVE Consoleを開く</value>
+  </data>
+  <data name="TrayExit" xml:space="preserve">
+    <value>終了</value>
+  </data>
+</root>

@@ -1,7 +1,8 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:EveConsole.Localization"
         x:Class="EveConsole.Views.AddItemDialog"
-        Title="Add Item"
+        Title="{x:Static loc:CommonText.TitleAddItem}"
         Width="400" Height="400"
         CanResize="False"
         WindowStartupLocation="CenterOwner"
@@ -11,11 +12,11 @@
 
     <StackPanel Grid.Row="0" Spacing="14">
 
-      <TextBlock Text="SEARCH FOR ITEM" FontSize="10" FontWeight="SemiBold"
+      <TextBlock Text="{x:Static loc:CommonText.SearchForItemLabel}" FontSize="10" FontWeight="SemiBold"
                  Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" />
 
       <TextBox x:Name="SearchBox"
-               Watermark="Start typing item name…"
+               Watermark="{x:Static loc:CommonText.HintStartTypingItemName}"
                Background="{DynamicResource SurfaceRaisedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                CornerRadius="3" Foreground="{DynamicResource TextBrightBrush}" CaretBrush="{DynamicResource AccentBrush}"
                FontSize="12" Padding="8 5"
@@ -29,7 +30,7 @@
         <Grid ColumnDefinitions="*,Auto">
           <TextBlock Grid.Column="0" x:Name="SelectedText" FontSize="12" Foreground="{DynamicResource AccentBrush}"
                      VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-          <Button Grid.Column="1" Content="Change" Click="OnChangeClick"
+          <Button Grid.Column="1" Content="{x:Static loc:CommonText.Change}" Click="OnChangeClick"
                   Background="Transparent" Foreground="{DynamicResource TextMutedBrush}"
                   BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" Padding="8 3" FontSize="11"/>
         </Grid>
@@ -59,7 +60,7 @@
       </Border>
 
       <StackPanel x:Name="QtyPanel" Spacing="5">
-        <TextBlock Text="TARGET QUANTITY" FontSize="10" FontWeight="SemiBold"
+        <TextBlock Text="{x:Static loc:CommonText.TargetQuantityLabel}" FontSize="10" FontWeight="SemiBold"
                    Foreground="{DynamicResource TextFaintBrush}" LetterSpacing="1" />
         <!-- Six digits was too small to say what these groups actually hold: the reaction
              targets here run to twenty million, and anything larger silently clamped. The cap is
@@ -77,16 +78,16 @@
 
     <Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto" Margin="0 12 0 0">
       <TextBlock Grid.Column="0" x:Name="HintText"
-                 Text="Select an item from the list above."
+                 Text="{x:Static loc:CommonText.SelectAnItemFromNote}"
                  Foreground="{DynamicResource BorderStrongBrush}" FontSize="11"
                  VerticalAlignment="Center" />
-      <Button Grid.Column="1" Content="Cancel"
+      <Button Grid.Column="1" Content="{x:Static loc:CommonText.Cancel}"
               Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
               BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
               Padding="14 6" Margin="0 0 8 0"
               Click="OnCancelClick" />
       <Button Grid.Column="2" x:Name="OkButton"
-              Content="Add"
+              Content="{x:Static loc:CommonText.Add}"
               Background="{DynamicResource SurfaceSelectedBrush}" Foreground="{DynamicResource AccentBrush}"
               BorderBrush="{DynamicResource AccentSurfaceBrush}" BorderThickness="1"
               Padding="14 6" IsEnabled="False"

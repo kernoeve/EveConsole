@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Reactive.Linq;
 using Avalonia.Threading;
 using EveConsole.Data;
+using EveConsole.Localization;
 using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
@@ -45,11 +46,14 @@ public class PriceHistorySettingsViewModel : ReactiveObject
 
     private async Task LoadAsync()
     {
-        var all = await _db.SdeRegions.AsNoTracking()
-            .Where(r => !r.IsWormhole)
-            .OrderBy(r => r.Name)
-            .Select(r => new SdeRegionOption(r.RegionId, r.Name))
-            .ToListAsync();
+        // Both lists by the name shown, so they wait for the interface language's names first.
+        await SdeNames.EnsureLoadedAsync();
+        var all = (await _db.SdeRegions.AsNoTracking()
+                .Where(r => !r.IsWormhole)
+                .Select(r => new SdeRegionOption(r.RegionId, r.Name))
+                .ToListAsync())
+            .OrderBy(r => r.DisplayName, StringComparer.CurrentCulture)
+            .ToList();
 
         // Fallback seed (startup normally does this): The Forge and Domain.
         if (!await _db.PriceHistoryRegions.AnyAsync())
@@ -59,14 +63,13 @@ public class PriceHistorySettingsViewModel : ReactiveObject
             await _db.SaveChangesAsync();
         }
 
-        var configured = await _db.PriceHistoryRegions
-            .OrderBy(r => r.RegionName).ToListAsync();
+        var configured = await _db.PriceHistoryRegions.ToListAsync();
 
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
             AllRegions = all;
             ConfiguredRegions.Clear();
-            foreach (var r in configured) ConfiguredRegions.Add(r);
+            foreach (var r in configured.OrderBy(r => r.DisplayName, StringComparer.CurrentCulture)) ConfiguredRegions.Add(r);
         });
     }
 

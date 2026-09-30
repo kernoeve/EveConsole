@@ -1,6 +1,7 @@
 using System.Windows.Input;
 using EveConsole.Agent;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -31,20 +32,24 @@ public sealed class ServiceListChoice : ReactiveObject
     private readonly Func<Source>      _source;
     private readonly Func<int, string> _found;
     private readonly Func<string>      _none;
-    private readonly string            _noun;
+    private readonly Holds             _holds;
     private readonly string            _typeInstead;
     private readonly Action<IReadOnlyList<ModelListing>>? _listed;
+
+    /// <summary>What a list holds, which picks the wording of its status lines — whole sentences,
+    /// not a noun put into one.</summary>
+    public enum Holds { Models, Voices }
 
     /// <param name="value">The value as the owner holds it.</param>
     /// <param name="choose">Sets it.</param>
     /// <param name="source">What to ask, as things stand now.</param>
     /// <param name="found">What a list of that many says: "3 models your key can use, newest first."</param>
     /// <param name="none">What an empty list says.</param>
-    /// <param name="noun">What the list holds, for the status lines: "models", "voices".</param>
+    /// <param name="holds">What the list holds, for the status lines: models or voices.</param>
     /// <param name="typeInstead">What to do without a list: "Type the model's name instead."</param>
     /// <param name="listed">Told what the service listed, each time it answers: for the rate rows.</param>
     public ServiceListChoice(Func<string> value, Action<string> choose, Func<Source> source,
-                             Func<int, string> found, Func<string> none, string noun, string typeInstead,
+                             Func<int, string> found, Func<string> none, Holds holds, string typeInstead,
                              Action<IReadOnlyList<ModelListing>>? listed = null)
     {
         _listed      = listed;
@@ -53,7 +58,7 @@ public sealed class ServiceListChoice : ReactiveObject
         _source      = source;
         _found       = found;
         _none        = none;
-        _noun        = noun;
+        _holds       = holds;
         _typeInstead = typeInstead;
         RefreshCommand = ReactiveCommand.CreateFromTask(() => LoadAsync(force: true));
     }
@@ -120,7 +125,8 @@ public sealed class ServiceListChoice : ReactiveObject
             return;
         }
 
-        Status = $"Asking for the list of {_noun}…";
+        Status = _holds == Holds.Voices ? SettingsText.ListAskingVoices
+                                        : SettingsText.ListAskingModels;
         try
         {
             var found = await source.Fetch(cts.Token);
@@ -139,8 +145,10 @@ public sealed class ServiceListChoice : ReactiveObject
         {
             _asked   = "";                          // asked again next time
             Listings = [];
-            var why  = ex is OperationCanceledException ? "no answer within 15 seconds." : ex.GetBaseException().Message;
-            Status   = $"Could not get the list of {_noun} — {why} {_typeInstead}";
+            var why  = ex is OperationCanceledException ? SettingsText.ListNoAnswer : ex.GetBaseException().Message;
+            Status   = _holds == Holds.Voices
+                ? string.Format(SettingsText.ListFailedVoices, why, _typeInstead)
+                : string.Format(SettingsText.ListFailedModels, why, _typeInstead);
         }
         catch (OperationCanceledException) { /* superseded by a newer request */ }
     }

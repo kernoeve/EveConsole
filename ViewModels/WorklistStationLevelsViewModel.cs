@@ -7,6 +7,7 @@ using EveConsole.Services;
 using EveConsole.Services.Worklist;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
@@ -56,14 +57,20 @@ public sealed class StationLevelRow : ReactiveObject
     }
 
     /// <summary>Sorted on, so the grid keeps working when the cell shows a combo.</summary>
-    public string GroupName => _group?.Name ?? $"Group {Level.GroupId}";
+    public string GroupName => _group?.Name ?? string.Format(WorklistText.GroupWithId, Level.GroupId);
 
+    /// <summary>What the level saves: the station's English. ⚠️ The cell shows
+    /// <see cref="LocationShown"/>.</summary>
     private string _locationName;
     public string LocationName
     {
         get => _locationName;
         private set => this.RaiseAndSetIfChanged(ref _locationName, value);
     }
+
+    /// <summary>The station as the screen names it, which the cell shows, sorts and copies; a
+    /// structure as its owner named it.</summary>
+    public string LocationShown => SdeNames.Location(Level.LocationId, _locationName);
 
     /// <summary>
     /// Set from the picker rather than by typing: the id is what the rest of the tool matches on,
@@ -77,6 +84,7 @@ public sealed class StationLevelRow : ReactiveObject
             if (value is null) return;
             Level.LocationId = value.StationId;
             LocationName     = value.Name;
+            this.RaisePropertyChanged(nameof(LocationShown));
             Persist();
         }
     }
@@ -146,9 +154,12 @@ public class WorklistStationLevelsViewModel : ReactiveObject
 
     public Func<Task>? LevelsChanged { get; set; }
 
+    /// <summary>Stations for both pickers, listed in the order of the names shown, which the boxes
+    /// show; each result keeps the English that is saved.</summary>
     public Func<string?, CancellationToken, Task<IEnumerable<object>>> LocationPopulator =>
         async (text, ct) =>
-            (await _stations.SearchSdeStationsAsync(text ?? "", ct)).Cast<object>().ToList();
+            (await _stations.SearchSdeStationsAsync(text ?? "", ct))
+                .OrderBy(h => h.DisplayName, StringComparer.CurrentCulture).Cast<object>().ToList();
 
     private InvGroupOption? _selectedGroup;
     public InvGroupOption? SelectedGroup { get => _selectedGroup; set => this.RaiseAndSetIfChanged(ref _selectedGroup, value); }
@@ -195,7 +206,7 @@ public class WorklistStationLevelsViewModel : ReactiveObject
                 await _settings.SetBandAsync(key, percent);
                 if (LevelsChanged is not null) await LevelsChanged();
             }
-            catch (Exception ex) { Status = $"Could not save that change: {ex.Message}"; }
+            catch (Exception ex) { Status = string.Format(WorklistText.StatusSaveFailed, ex.Message); }
         });
     }
 
@@ -232,7 +243,7 @@ public class WorklistStationLevelsViewModel : ReactiveObject
                 x.Id != row.Id && x.GroupId == row.Level.GroupId && x.LocationId == row.Level.LocationId);
             if (clash)
             {
-                Status = $"{row.GroupName} already has a level at {row.LocationName} — that change was not saved.";
+                Status = string.Format(WorklistText.LevelClash, row.GroupName, row.LocationShown);
                 return;
             }
 
@@ -244,21 +255,21 @@ public class WorklistStationLevelsViewModel : ReactiveObject
                     .SetProperty(x => x.LocationName,   row.Level.LocationName)
                     .SetProperty(x => x.AcceptsSurplus, row.Level.AcceptsSurplus));
 
-            Status = "Saved.";
+            Status = WorklistText.StatusSaved;
             if (LevelsChanged is not null) await LevelsChanged();
         }
         catch (Exception ex)
         {
-            Status = $"Could not save that change: {ex.Message}";
+            Status = string.Format(WorklistText.StatusSaveFailed, ex.Message);
         }
     }
 
     private async Task AddAsync()
     {
-        if (SelectedGroup is null) { Status = "Pick an inventory group."; return; }
+        if (SelectedGroup is null) { Status = WorklistText.PickInventoryGroup; return; }
         if (SelectedLocation is not SdeStationResult loc)
         {
-            Status = "Pick a station or structure.";
+            Status = WorklistText.PickStationOrStructure;
             return;
         }
 
@@ -303,13 +314,19 @@ public class WorklistStationLevelsViewModel : ReactiveObject
             .ToListAsync();
         var options = groups.Select(g => new InvGroupOption(g.Id, g.Name)).ToList();
 
-        var rows = (await db.WorklistStationLevels.AsNoTracking().ToListAsync())
+        var levels = await db.WorklistStationLevels.AsNoTracking().ToListAsync();
+
+        // The rows name their stations as the screen does, and sort by that; this first runs at
+        // start, so wait for the names once rather than show and order the English.
+        await SdeNames.EnsureLoadedAsync();
+
+        var rows = levels
             .Select(l => new StationLevelRow(
                 l,
                 options.FirstOrDefault(o => o.Id == l.GroupId),
                 Groups,
                 SaveAsync))
-            .OrderBy(r => r.GroupName).ThenBy(r => r.LocationName)
+            .OrderBy(r => r.GroupName).ThenBy(r => r.LocationShown, StringComparer.CurrentCulture)
             .ToList();
 
         await Dispatcher.UIThread.InvokeAsync(() =>
@@ -323,8 +340,8 @@ public class WorklistStationLevelsViewModel : ReactiveObject
             foreach (var r in rows) Levels.Add(r);
 
             Status = rows.Count == 0
-                ? "No station levels yet. Without one, material is only moved to where a job is waiting for it."
-                : $"{rows.Count:N0} level(s)";
+                ? WorklistText.LevelsNone
+                : string.Format(WorklistText.LevelsCount, rows.Count);
         });
     }
 }

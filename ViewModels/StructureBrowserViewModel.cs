@@ -9,15 +9,17 @@ using EveConsole.Models;
 using EveConsole.Services;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
+using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
 /// <summary>
-/// One choice in the system or type picker. <see cref="Label"/> is both what is shown and what
-/// the box matches typing against; <see cref="Id"/> is what gets saved, so picking "Jita — The
-/// Forge" stores 30000142 rather than a string the next reader would have to resolve again.
+/// One choice in the system or type picker. <see cref="Label"/> is what is shown, in the interface
+/// language, and what the box matches typing against along with <see cref="English"/>;
+/// <see cref="Id"/> is what gets saved, so picking "Jita — The Forge" stores 30000142 rather than
+/// a string the next reader would have to resolve again.
 /// </summary>
-public sealed record PickOption(int Id, string Label)
+public sealed record PickOption(int Id, string Label, string English = "")
 {
     public override string ToString() => Label;
 }
@@ -44,6 +46,16 @@ public class StructureRow
     public long ConstellationId { get; init; }
     public long RegionId        { get; init; }
     public long TypeId          { get; init; }
+
+    // ── Shown ─────────────────────────────────────────────────────────────────
+    //
+    // The SDE names in the interface language, for the grid and the filter suggestions. The
+    // English above is what the filters match as well, and what the constellation link finds its
+    // constellation by. Structure names are the players' own, and stay as they are.
+    public string TypeLabel          => SdeNames.Type(TypeId, TypeName);
+    public string SystemLabel        => SdeNames.SolarSystem(SystemId, SystemName);
+    public string ConstellationLabel => SdeNames.Constellation(ConstellationId, Constellation);
+    public string RegionLabel        => SdeNames.Region(RegionId, Region);
 
     // ── Links ─────────────────────────────────────────────────────────────────
     //
@@ -78,7 +90,7 @@ public class FittingRow : ReactiveObject
     /// user can tell what the app knows from what they have asserted.</summary>
     public bool FromAssets { get; init; }
 
-    public string Source => FromAssets ? "assets" : "manual";
+    public string Source => FromAssets ? MapText.FittingSourceAssets : MapText.FittingSourceManual;
 
     public bool HasItemLink => TypeId > 0 && TypeName.Length > 0;
     public void OpenItem() => EntityNavigator.Instance.Item(TypeId);
@@ -87,7 +99,10 @@ public class FittingRow : ReactiveObject
 /// <summary>An asset sitting in the selected structure, at any depth.</summary>
 public class StructureAssetRow
 {
+    /// <summary>English: what a row copied out of the grid carries — item lists get pasted into
+    /// appraisal tools. <see cref="TypeLabel"/> is what the grid shows.</summary>
     public string TypeName  { get; init; } = "";
+    public string TypeLabel => SdeNames.Type(TypeId, TypeName);
     public string Location  { get; init; } = "";
     /// <summary>The container it is inside, empty when it sits directly in the structure. Without
     /// this a hangar full of cans reads as one flat list and there is no telling what is where.</summary>
@@ -125,7 +140,10 @@ public class StructureJobRow
     public void OpenProduct() => EntityNavigator.Instance.Item(ProductTypeId);
 
     public int      Runs     { get; init; }
-    public string   Status   { get; init; } = "";
+    /// <summary>The status as shown. The filter compares <see cref="StatusKey"/>, ESI's own word,
+    /// which is the same in every language.</summary>
+    public string   Status    { get; init; } = "";
+    public string   StatusKey { get; init; } = "";
     public string   EndDate  { get; init; } = "";
 
     /// <summary>The end date as a value, for filtering. EndDate above is already formatted for
@@ -219,7 +237,7 @@ public class StructureBrowserViewModel : ReactiveObject
     public string EditLockReason => _selected is null
         ? ""
         : _selected.IsKnown
-            ? "Name, system and type come from ESI and cannot be edited — the next resolve would overwrite them."
+            ? MapText.EditLockReason
             : "";
 
     // Editable copies. Held apart from the row so cancelling is just a reload and a half-typed
@@ -266,10 +284,13 @@ public class StructureBrowserViewModel : ReactiveObject
         if (needle.Length == 0)
             return Task.FromResult<IEnumerable<object>>([]);
 
+        // The name shown and the English both: either may be typed, or pasted from elsewhere.
         var matches = SystemOptions
-            .Where(o => o.Label.Contains(needle, StringComparison.OrdinalIgnoreCase))
-            .OrderBy(o => o.Label.StartsWith(needle, StringComparison.OrdinalIgnoreCase) ? 0 : 1)
-            .ThenBy(o => o.Label, StringComparer.OrdinalIgnoreCase)
+            .Where(o => o.Label.Contains(needle, StringComparison.OrdinalIgnoreCase)
+                     || o.English.Contains(needle, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(o => o.Label.StartsWith(needle, StringComparison.OrdinalIgnoreCase)
+                       || o.English.StartsWith(needle, StringComparison.OrdinalIgnoreCase) ? 0 : 1)
+            .ThenBy(o => o.Label, StringComparer.CurrentCulture)
             .Take(SystemMatchLimit)
             .Cast<object>()
             .ToList();
@@ -363,14 +384,36 @@ public class StructureBrowserViewModel : ReactiveObject
         set { this.RaiseAndSetIfChanged(ref _jobThru, value); ApplyJobFilters(); }
     }
 
-    public ObservableCollection<string> JobStatuses { get; } = ["All"];
+    /// <summary>The status filter. The value is ESI's status, or empty for every status; only the
+    /// statuses present are offered, so the list is rebuilt for each structure.</summary>
+    public ObservableCollection<Choice<string>> JobStatuses { get; } = [new("", MapText.JobStatusAll)];
 
-    private string _jobStatus = "All";
-    public string JobStatus
+    private string _jobStatus = "";
+    public Choice<string>? JobStatus
     {
-        get => _jobStatus;
-        set { this.RaiseAndSetIfChanged(ref _jobStatus, value); ApplyJobFilters(); }
+        // Null only for the moment the list is being refilled.
+        get => JobStatuses.FirstOrDefault(o => o.Value == _jobStatus) ?? JobStatuses.FirstOrDefault();
+        set
+        {
+            // A detaching ComboBox, or one whose list is refilled, sets null; that is not a choice.
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            _jobStatus = value.Value;
+            this.RaisePropertyChanged();
+            ApplyJobFilters();
+        }
     }
+
+    /// <summary>An industry job's status as shown; ESI's own word for one not listed.</summary>
+    private static string JobStatusLabel(string status) => status switch
+    {
+        "active"    => MapText.JobStatusActive,
+        "cancelled" => MapText.JobStatusCancelled,
+        "delivered" => MapText.JobStatusDelivered,
+        "paused"    => MapText.JobStatusPaused,
+        "ready"     => MapText.JobStatusReady,
+        "reverted"  => MapText.JobStatusReverted,
+        _           => status,
+    };
 
     private string _jobCountText = "";
     public string JobCountText { get => _jobCountText; private set => this.RaiseAndSetIfChanged(ref _jobCountText, value); }
@@ -390,15 +433,15 @@ public class StructureBrowserViewModel : ReactiveObject
         {
             if (from is { } lo && j.EndsAt < lo) continue;
             if (thru is { } hi && j.EndsAt >= hi) continue;
-            if (JobStatus != "All" && !string.Equals(j.Status, JobStatus, StringComparison.OrdinalIgnoreCase))
+            if (_jobStatus.Length > 0 && !string.Equals(j.StatusKey, _jobStatus, StringComparison.OrdinalIgnoreCase))
                 continue;
 
             Jobs.Add(j);
         }
 
         JobCountText = Jobs.Count == _allJobs.Count
-            ? $"{Jobs.Count:N0} job(s)"
-            : $"{Jobs.Count:N0} of {_allJobs.Count:N0} job(s)";
+            ? string.Format(MapText.JobCount, Jobs.Count)
+            : string.Format(MapText.JobCountFiltered, Jobs.Count, _allJobs.Count);
     }
 
     /// <summary>
@@ -442,8 +485,8 @@ public class StructureBrowserViewModel : ReactiveObject
     }
 
     public string FittingSourceText => FittingReadOnly
-        ? "Fitting comes from assets — read only"
-        : "No fitting in assets — click a slot to record one";
+        ? MapText.FittingReadOnlyNote
+        : MapText.FittingEditableNote;
 
     // ── Module picker ────────────────────────────────────────────────────────
 
@@ -464,7 +507,15 @@ public class StructureBrowserViewModel : ReactiveObject
     }
 
     public string PickerTitle => PickingSlot is { } s
-        ? $"{s.Band} slot {s.Index + 1}"
+        ? string.Format(s.Band switch
+          {
+              EveConsole.Controls.FittingBand.High    => MapText.PickerTitleHigh,
+              EveConsole.Controls.FittingBand.Mid     => MapText.PickerTitleMid,
+              EveConsole.Controls.FittingBand.Low     => MapText.PickerTitleLow,
+              EveConsole.Controls.FittingBand.Rig     => MapText.PickerTitleRig,
+              EveConsole.Controls.FittingBand.Service => MapText.PickerTitleService,
+              _                                       => MapText.PickerTitleSubsystem,
+          }, s.Index + 1)
         : "";
 
     private bool _pickerOpen;
@@ -486,18 +537,21 @@ public class StructureBrowserViewModel : ReactiveObject
         set { this.RaiseAndSetIfChanged(ref _moduleFilter, value); ApplyModuleFilter(); }
     }
 
-    /// <summary>Everything fittable in the open slot, before the text filter narrows it.</summary>
+    /// <summary>Everything fittable in the open slot, before the text filter narrows it. English,
+    /// as the service returns it: the filter matches the English as well as the name shown.</summary>
     private List<FittingOption> _allModuleOptions = [];
 
     private void ApplyModuleFilter()
     {
         ModuleOptions.Clear();
 
+        // The module or its group, by the name shown or the English. The list shows DisplayName
+        // and DisplayGroupName; only the TypeId is ever written.
         var needle = ModuleFilter.Trim();
         foreach (var o in _allModuleOptions)
             if (needle.Length == 0 ||
-                o.Name.Contains(needle, StringComparison.OrdinalIgnoreCase) ||
-                o.GroupName.Contains(needle, StringComparison.OrdinalIgnoreCase))
+                SdeNames.Matches(SdeNameKind.Type,  o.TypeId,  o.Name,      needle) ||
+                SdeNames.Matches(SdeNameKind.Group, o.GroupId, o.GroupName, needle))
                 ModuleOptions.Add(o);
     }
 
@@ -511,7 +565,7 @@ public class StructureBrowserViewModel : ReactiveObject
     {
         if (FittingReadOnly)
         {
-            DetailStatus = "This fitting is known from assets and cannot be edited.";
+            DetailStatus = MapText.StatusFittingLocked;
             return;
         }
 
@@ -522,12 +576,21 @@ public class StructureBrowserViewModel : ReactiveObject
         SelectedModule = null;
         PickerOpen   = true;
 
+        // In the service's order: by group, then module, as both are shown.
         _allModuleOptions = await _fittingOptions.OptionsAsync(slot.Band, (int)row.TypeId);
         ApplyModuleFilter();
 
         DetailStatus = _allModuleOptions.Count == 0
-            ? $"Nothing fits a {slot.Band} slot on this hull."
-            : $"{_allModuleOptions.Count} module(s) fit this slot.";
+            ? slot.Band switch
+              {
+                  EveConsole.Controls.FittingBand.High    => MapText.StatusNothingFitsHigh,
+                  EveConsole.Controls.FittingBand.Mid     => MapText.StatusNothingFitsMid,
+                  EveConsole.Controls.FittingBand.Low     => MapText.StatusNothingFitsLow,
+                  EveConsole.Controls.FittingBand.Rig     => MapText.StatusNothingFitsRig,
+                  EveConsole.Controls.FittingBand.Service => MapText.StatusNothingFitsService,
+                  _                                       => MapText.StatusNothingFitsSubsystem,
+              }
+            : string.Format(MapText.StatusModulesFit, _allModuleOptions.Count);
     }
 
     private async Task FitSelectedModuleAsync()
@@ -536,7 +599,7 @@ public class StructureBrowserViewModel : ReactiveObject
         if (Selected is not { } row) return;
 
         await WriteSlotAsync(row.StructureId, slot, module.TypeId);
-        DetailStatus = $"Fitted {module.Name}.";
+        DetailStatus = string.Format(MapText.StatusFitted, module.DisplayName);
     }
 
     private async Task ClearSlotAsync()
@@ -544,7 +607,7 @@ public class StructureBrowserViewModel : ReactiveObject
         if (PickingSlot is not { } slot || Selected is not { } row) return;
 
         await WriteSlotAsync(row.StructureId, slot, 0);
-        DetailStatus = "Slot cleared.";
+        DetailStatus = MapText.StatusSlotCleared;
     }
 
     /// <summary>
@@ -599,7 +662,7 @@ public class StructureBrowserViewModel : ReactiveObject
             // Rebuild so the ring shows the change, including its icon.
             await LoadDetailAsync(Selected);
         }
-        catch (Exception ex) { DetailStatus = $"Could not record that module: {ex.Message}"; }
+        catch (Exception ex) { DetailStatus = string.Format(MapText.StatusRecordModuleFailed, ex.Message); }
     }
 
     private Avalonia.Media.Imaging.Bitmap? _typeRender;
@@ -731,17 +794,26 @@ public class StructureBrowserViewModel : ReactiveObject
 
     private static string StatusLabel(int status) => (StructureStatus)status switch
     {
-        StructureStatus.Resolved => "OK",
-        StructureStatus.NoAccess => "No access",         // 403 — private / no docking rights
-        StructureStatus.NotFound => "Unanchored (gone)", // 404 — structure no longer exists
-        _                        => "Pending",
+        StructureStatus.Resolved => MapText.StructureStatusOk,
+        StructureStatus.NoAccess => MapText.StructureStatusNoAccess,   // 403 — private / no docking rights
+        StructureStatus.NotFound => MapText.StructureStatusGone,       // 404 — structure no longer exists
+        _                        => MapText.StructureStatusPending,
     };
+
+    /// <summary>Who last wrote a structure's record, as the line under its name says it. The
+    /// stored value is a key (<see cref="StructureSource"/>); a person reads the label.</summary>
+    private static string WriterLabel(string updatedBy) =>
+        updatedBy == StructureSource.User ? MapText.ProvenanceWriterUser : updatedBy;
 
     private async Task LoadAsync()
     {
         Busy = true;
         try
         {
+            // The filter suggestions are the names shown, built once per load — and the first load
+            // runs at startup, usually before the SDE names are in.
+            await SdeNames.EnsureLoadedAsync();
+
             // Compute nearest celestials for anything pending (local-only, fast) so the column fills
             // after an SDE import without a full ESI resolve.
             try { await _polling.RefreshNearestCelestialsAsync(); } catch { }
@@ -799,8 +871,8 @@ public class StructureBrowserViewModel : ReactiveObject
                 catch { /* names are best-effort; fall back to "Corp {id}" labels */ }
             }
 
-            string CorpN(long id)  => id > 0 ? names.GetValueOrDefault(id, $"Corp {id}") : "";
-            string AllyN(long id)  => id > 0 ? names.GetValueOrDefault(id, $"Alliance {id}") : "";
+            string CorpN(long id)  => id > 0 ? names.GetValueOrDefault(id, string.Format(MapText.CorpNumbered, id)) : "";
+            string AllyN(long id)  => id > 0 ? names.GetValueOrDefault(id, string.Format(MapText.AllianceNumbered, id)) : "";
 
             _all = structs.Select(s =>
             {
@@ -810,13 +882,13 @@ public class StructureBrowserViewModel : ReactiveObject
                 return new StructureRow
                 {
                     StructureId     = s.StructureId,
-                    Name            = string.IsNullOrEmpty(s.Name) ? $"Structure {s.StructureId}" : s.Name,
+                    Name            = string.IsNullOrEmpty(s.Name) ? string.Format(MapText.StructureNumbered, s.StructureId) : s.Name,
                     SystemName      = sinfo?.Name ?? "",
                     Constellation   = constId > 0 ? cons.GetValueOrDefault((int)constId, "") : "",
                     Region          = regId > 0 ? regs.GetValueOrDefault((int)regId, "") : "",
                     CorpName        = CorpN(s.OwnerId),
                     AllianceName    = AllyN(s.AllianceId),
-                    TypeName        = s.TypeId > 0 ? typeNames.GetValueOrDefault(s.TypeId, $"Type {s.TypeId}") : "",
+                    TypeName        = s.TypeId > 0 ? typeNames.GetValueOrDefault(s.TypeId, string.Format(MapText.TypeNumbered, s.TypeId)) : "",
                     StatusText      = StatusLabel(s.Status),
                     IsKnown         = s.Status == (int)StructureStatus.Resolved,
                     Coordinates     = (s.X == 0 && s.Y == 0 && s.Z == 0)
@@ -835,9 +907,9 @@ public class StructureBrowserViewModel : ReactiveObject
 
             BuildFilters();
             ApplyFilters();
-            Status = $"{_all.Count} structure(s).";
+            Status = string.Format(MapText.StatusStructures, _all.Count);
         }
-        catch (Exception ex) { Status = $"Load failed: {ex.Message}"; }
+        catch (Exception ex) { Status = string.Format(MapText.StatusLoadFailed, ex.Message); }
         finally { Busy = false; }
     }
 
@@ -880,10 +952,10 @@ public class StructureBrowserViewModel : ReactiveObject
             // predating an SDE import, would be quietly erased by opening the tab and pressing Save.
             _editSystem = row.SystemId == 0
                 ? null
-                : Ensure(SystemOptions, v => SystemOptions = v, (int)row.SystemId, row.SystemName);
+                : Ensure(SystemOptions, v => SystemOptions = v, (int)row.SystemId, row.SystemLabel);
             _editType = row.TypeId == 0
                 ? NoType
-                : Ensure(TypeOptions, v => TypeOptions = v, (int)row.TypeId, row.TypeName);
+                : Ensure(TypeOptions, v => TypeOptions = v, (int)row.TypeId, row.TypeLabel);
 
             _editSystemText = _editSystem?.Label ?? "";
             this.RaisePropertyChanged(nameof(EditSystem));
@@ -893,8 +965,9 @@ public class StructureBrowserViewModel : ReactiveObject
             Provenance = s is null
                 ? ""
                 : s.UpdatedAt == default
-                    ? $"Never written · {s.UpdatedBy}"
-                    : $"Last written by {s.UpdatedBy} at {s.UpdatedAt.ToLocalTime():yyyy-MM-dd HH:mm}";
+                    ? string.Format(MapText.ProvenanceNeverWritten, WriterLabel(s.UpdatedBy))
+                    : string.Format(MapText.ProvenanceLastWritten, WriterLabel(s.UpdatedBy),
+                                    s.UpdatedAt.ToLocalTime());
 
             EveRefNote = await BuildEveRefNoteAsync(db, row, s);
 
@@ -910,12 +983,17 @@ public class StructureBrowserViewModel : ReactiveObject
                 .Select(a => new { a.LocationFlag, a.TypeId })
                 .ToListAsync();
 
+            // A type as the interface names it, for the fitting list and ring, the container paths
+            // and the jobs. An asset row's own item keeps the English (see StructureAssetRow).
+            string Shown(int typeId) =>
+                SdeNames.Type(typeId, typeNames.GetValueOrDefault(typeId, string.Format(MapText.TypeNumbered, typeId)));
+
             foreach (var f in fitted.OrderBy(f => f.LocationFlag))
                 Fitting.Add(new FittingRow
                 {
                     Slot       = f.LocationFlag,
                     TypeId     = f.TypeId,
-                    TypeName   = typeNames.GetValueOrDefault(f.TypeId, $"Type {f.TypeId}"),
+                    TypeName   = Shown(f.TypeId),
                     FromAssets = true,
                 });
 
@@ -934,7 +1012,7 @@ public class StructureBrowserViewModel : ReactiveObject
                 {
                     Slot     = slot,
                     TypeId   = f.TypeId,
-                    TypeName = typeNames.GetValueOrDefault(f.TypeId, $"Type {f.TypeId}"),
+                    TypeName = Shown(f.TypeId),
                 });
             }
 
@@ -964,8 +1042,8 @@ public class StructureBrowserViewModel : ReactiveObject
                 .ToDictionaryAsync(c => (long)c.Id, c => c.Name);
 
             string OwnerName(long id, string type) => type == "corporation"
-                ? corpNames.GetValueOrDefault(id, $"Corp {id}")
-                : charNames.GetValueOrDefault(id, $"Character {id}");
+                ? corpNames.GetValueOrDefault(id, string.Format(MapText.CorpNumbered, id))
+                : charNames.GetValueOrDefault(id, string.Format(MapText.CharacterNumbered, id));
 
             // Corp hangar divisions are named by the corp, and the name is the only thing that
             // says what a division is for — "CorpSAG3" tells you nothing, "Reactions" tells you
@@ -986,7 +1064,7 @@ public class StructureBrowserViewModel : ReactiveObject
 
                 return divisions.TryGetValue((ownerId, div), out var name) && name.Length > 0
                     ? name
-                    : $"Division {div}";
+                    : string.Format(MapText.DivisionNumbered, div);
             }
 
             // The flag column keeps the division number alongside the name: this column is about
@@ -998,7 +1076,7 @@ public class StructureBrowserViewModel : ReactiveObject
                     return flag;
 
                 return divisions.TryGetValue((ownerId, div), out var name) && name.Length > 0
-                    ? $"{name} (div {div})"
+                    ? string.Format(MapText.DivisionWithNumber, name, div)
                     : flag;
             }
 
@@ -1021,7 +1099,7 @@ public class StructureBrowserViewModel : ReactiveObject
                 {
                     if (!byItem.TryGetValue(id, out var parent)) break;
 
-                    parts.Insert(0, typeNames.GetValueOrDefault(parent.TypeId, $"Type {parent.TypeId}"));
+                    parts.Insert(0, Shown(parent.TypeId));
                     if (DivisionName(ownerId, ownerType, flag) is { } division)
                         parts.Insert(1, division);
 
@@ -1036,7 +1114,7 @@ public class StructureBrowserViewModel : ReactiveObject
             {
                 var vm = new StructureAssetRow
                 {
-                    TypeName  = typeNames.GetValueOrDefault(a.TypeId, $"Type {a.TypeId}"),
+                    TypeName  = typeNames.GetValueOrDefault(a.TypeId, string.Format(MapText.TypeNumbered, a.TypeId)),
                     TypeId    = a.TypeId,
                     OwnerId   = a.OwnerId,
                     OwnerType = a.OwnerType,
@@ -1090,31 +1168,32 @@ public class StructureBrowserViewModel : ReactiveObject
             {
                 Activity = ActivityName(j.ActivityId),
                 // Nullable: research and copying jobs produce no item type.
-                Product  = j.ProductTypeId is { } pid
-                             ? typeNames.GetValueOrDefault(pid, $"Type {pid}")
-                             : "—",
+                Product  = j.ProductTypeId is { } pid ? Shown(pid) : "—",
                 ProductTypeId = j.ProductTypeId ?? 0,
-                Runs     = j.Runs,
-                Status   = j.Status,
+                Runs      = j.Runs,
+                Status    = JobStatusLabel(j.Status),
+                StatusKey = j.Status,
                 EndDate  = j.EndDate.ToLocalTime().ToString("yyyy-MM-dd HH:mm"),
                 EndsAt   = j.EndDate.ToLocalTime().DateTime,
             }).ToList();
 
             // Statuses actually present, so the dropdown never offers one that matches nothing.
-            var statuses = _allJobs.Select(j => j.Status).Distinct()
+            var statuses = _allJobs.Select(j => j.StatusKey).Distinct()
                                    .OrderBy(x => x).ToList();
             JobStatuses.Clear();
-            JobStatuses.Add("All");
-            foreach (var st in statuses) JobStatuses.Add(st);
-            if (!JobStatuses.Contains(JobStatus)) JobStatus = "All";
+            JobStatuses.Add(new("", MapText.JobStatusAll));
+            foreach (var st in statuses) JobStatuses.Add(new(st, JobStatusLabel(st)));
+            // A status this structure has no jobs in falls back to every status. Raised either
+            // way: refilling the list cleared the ComboBox's selection.
+            if (JobStatuses.All(o => o.Value != _jobStatus)) _jobStatus = "";
+            this.RaisePropertyChanged(nameof(JobStatus));
 
             ApplyJobFilters();
 
-            DetailStatus =
-                $"{Fitting.Count} fitted · {Assets.Count:N0} stored · {Cargo.Count:N0} cargo · " +
-                $"{Fuel.Count:N0} fuel · {Fighters.Count:N0} fighters · {_allJobs.Count:N0} job(s)";
+            DetailStatus = string.Format(MapText.DetailCounts, Fitting.Count, Assets.Count, Cargo.Count,
+                                         Fuel.Count, Fighters.Count, _allJobs.Count);
         }
-        catch (Exception ex) { DetailStatus = $"Detail load failed: {ex.Message}"; }
+        catch (Exception ex) { DetailStatus = string.Format(MapText.StatusDetailLoadFailed, ex.Message); }
     }
 
     // Dogma attributes that carry slot counts. Populated identically for hulls and structures,
@@ -1196,9 +1275,12 @@ public class StructureBrowserViewModel : ReactiveObject
 
                 if (typeId > 0) wanted.Add(typeId);
 
+                // The ring only ever shows the name (its tooltip); the slot keeps the TypeId.
                 slots.Add(new EveConsole.Controls.FittingSlot(
                     band, i, typeId,
-                    typeId > 0 ? typeNames.GetValueOrDefault(typeId, $"Type {typeId}") : "",
+                    typeId > 0
+                        ? SdeNames.Type(typeId, typeNames.GetValueOrDefault(typeId, string.Format(MapText.TypeNumbered, typeId)))
+                        : "",
                     Icon: null,
                     FromAssets: fromAssets));
             }
@@ -1350,14 +1432,14 @@ public class StructureBrowserViewModel : ReactiveObject
 
     private static string ActivityName(int activityId) => activityId switch
     {
-        1 => "Manufacturing",
-        3 => "TE Research",
-        4 => "ME Research",
-        5 => "Copying",
-        8 => "Invention",
-        9 => "Reactions",
-        11 => "Reactions",
-        _ => $"Activity {activityId}",
+        1 => MapText.ActivityManufacturing,
+        3 => MapText.JobActivityTeResearch,
+        4 => MapText.JobActivityMeResearch,
+        5 => MapText.ActivityCopying,
+        8 => MapText.ActivityInvention,
+        9 => MapText.JobActivityReactions,
+        11 => MapText.JobActivityReactions,
+        _ => string.Format(MapText.JobActivityNumbered, activityId),
     };
 
     /// <summary>
@@ -1381,16 +1463,17 @@ public class StructureBrowserViewModel : ReactiveObject
         if (t is null) return "";
 
         var fields = new List<string>();
-        if (t.Name.Length > 0   && s.Name == t.Name)                   fields.Add("name");
-        if (t.SolarSystemId > 0 && s.SolarSystemId == t.SolarSystemId) fields.Add("system");
-        if (t.TypeId > 0        && s.TypeId == t.TypeId)               fields.Add("type");
-        if (t.OwnerId > 0       && s.OwnerId == t.OwnerId)             fields.Add("owner");
+        if (t.Name.Length > 0   && s.Name == t.Name)                   fields.Add(MapText.EveRefFieldName);
+        if (t.SolarSystemId > 0 && s.SolarSystemId == t.SolarSystemId) fields.Add(MapText.EveRefFieldSystem);
+        if (t.TypeId > 0        && s.TypeId == t.TypeId)               fields.Add(MapText.EveRefFieldType);
+        if (t.OwnerId > 0       && s.OwnerId == t.OwnerId)             fields.Add(MapText.EveRefFieldOwner);
 
         if (fields.Count == 0) return "";
 
-        var seen = t.FetchedAt == default ? "" : $", read {t.FetchedAt.ToLocalTime():yyyy-MM-dd}";
-        return $"The {string.Join(", ", fields)} came from EVE Ref{seen} — a third party's "
-             + "observation, not something ESI confirmed. It can be out of date.";
+        var list = string.Join(CommonText.ListSeparator, fields);
+        return t.FetchedAt == default
+            ? string.Format(MapText.EveRefNote, list)
+            : string.Format(MapText.EveRefNoteRead, list, t.FetchedAt.ToLocalTime());
     }
 
     /// <summary>
@@ -1410,21 +1493,32 @@ public class StructureBrowserViewModel : ReactiveObject
             // the selection handler blocks the UI for the whole load rather than yielding.
             var (systems, types) = await Task.Run(async () =>
             {
+                // Built once, at startup, and the labels keep the names they are built with — so
+                // the names are waited for first.
+                await SdeNames.EnsureLoadedAsync();
+
                 await using var db = await _dbFactory.CreateDbContextAsync();
 
                 var regs = await db.SdeRegions.AsNoTracking()
                     .ToDictionaryAsync(r => r.RegionId, r => r.Name);
 
+                static string Place(string system, string region) =>
+                    region.Length > 0 ? $"{system} — {region}" : system;
+
+                // Shown in the interface language, and matched in English too.
                 var sys = (await db.SdeSolarSystems.AsNoTracking()
                         .Select(s => new { s.SolarSystemId, s.Name, s.RegionId })
                         .ToListAsync())
-                    .OrderBy(s => s.Name, StringComparer.OrdinalIgnoreCase)
                     .Select(s =>
                     {
                         var region = regs.GetValueOrDefault(s.RegionId, "");
                         return new PickOption(
-                            s.SolarSystemId, region.Length > 0 ? $"{s.Name} — {region}" : s.Name);
+                            s.SolarSystemId,
+                            Place(SdeNames.SolarSystem(s.SolarSystemId, s.Name),
+                                  region.Length > 0 ? SdeNames.Region(s.RegionId, region) : ""),
+                            Place(s.Name, region));
                     })
+                    .OrderBy(o => o.Label, StringComparer.CurrentCulture)
                     .ToList();
 
                 // Category 65 is what makes a type a structure, the same test the non-structure
@@ -1434,8 +1528,8 @@ public class StructureBrowserViewModel : ReactiveObject
                               t => t.GroupId, g => g.GroupId, (t, g) => new { t.TypeId, t.Name, t.Published })
                         .Where(t => t.Published)
                         .ToListAsync())
-                    .OrderBy(t => t.Name, StringComparer.OrdinalIgnoreCase)
-                    .Select(t => new PickOption(t.TypeId, t.Name))
+                    .Select(t => new PickOption(t.TypeId, SdeNames.Type(t.TypeId, t.Name), t.Name))
+                    .OrderBy(o => o.Label, StringComparer.CurrentCulture)
                     .ToList();
 
                 // A dropdown has no equivalent of clearing the text, so "unknown" has to be an
@@ -1449,13 +1543,13 @@ public class StructureBrowserViewModel : ReactiveObject
             SystemOptions = systems;
             TypeOptions   = types;
         }
-        catch (Exception ex) { DetailStatus = $"Could not load pickers: {ex.Message}"; }
+        catch (Exception ex) { DetailStatus = string.Format(MapText.StatusPickersFailed, ex.Message); }
     }
 
     private const int StructureCategory = 65;
 
     /// <summary>The "no type recorded" row, so the dropdown can express what an empty text box can.</summary>
-    private static readonly PickOption NoType = new(0, "— none —");
+    private static readonly PickOption NoType = new(0, MapText.PickNoType);
 
     /// <summary>
     /// Finds the option for an id, inventing one from the row's own label if the SDE list does not
@@ -1467,7 +1561,7 @@ public class StructureBrowserViewModel : ReactiveObject
         var found = options.FirstOrDefault(o => o.Id == id);
         if (found is not null) return found;
 
-        var made = new PickOption(id, label.Length > 0 ? label : $"Type {id}");
+        var made = new PickOption(id, label.Length > 0 ? label : string.Format(MapText.TypeNumbered, id));
         // A replaced list, not a mutated one — the bound controls only notice a new reference.
         replace([.. options, made]);
         return made;
@@ -1492,7 +1586,7 @@ public class StructureBrowserViewModel : ReactiveObject
             var s = await db.Structures.FindAsync(row.StructureId);
             if (s is null)
             {
-                DetailStatus = "That structure is no longer in the table.";
+                DetailStatus = MapText.StatusStructureGone;
                 return;
             }
 
@@ -1515,7 +1609,7 @@ public class StructureBrowserViewModel : ReactiveObject
                     // Text with no selection is a half-finished edit. Refusing is better than
                     // guessing: writing 0 would erase a system the user was mid-way through
                     // retyping, and keeping the old one would ignore what they typed.
-                    DetailStatus = "Pick a system from the list, or clear the box to leave it unset.";
+                    DetailStatus = MapText.StatusPickSystem;
                     return;
                 }
 
@@ -1528,11 +1622,12 @@ public class StructureBrowserViewModel : ReactiveObject
 
             await db.SaveChangesAsync();
 
-            DetailStatus = CanEditIdentity ? "Saved." : "Notes saved (identity comes from ESI).";
-            Provenance   = $"Last written by {StructureSource.User} at {DateTimeOffset.Now:yyyy-MM-dd HH:mm}";
+            DetailStatus = CanEditIdentity ? MapText.StatusSaved : MapText.StatusNotesSaved;
+            Provenance   = string.Format(MapText.ProvenanceLastWritten, WriterLabel(StructureSource.User),
+                                         DateTimeOffset.Now);
             await LoadAsync();
         }
-        catch (Exception ex) { DetailStatus = $"Save failed: {ex.Message}"; }
+        catch (Exception ex) { DetailStatus = string.Format(MapText.StatusSaveFailed, ex.Message); }
     }
 
     /// <summary>
@@ -1546,7 +1641,7 @@ public class StructureBrowserViewModel : ReactiveObject
         if (Selected is not { } row) return;
 
         var id = row.StructureId;
-        DetailStatus = "Asking ESI…";
+        DetailStatus = MapText.StatusAskingEsi;
         Busy = true;
         try
         {
@@ -1554,10 +1649,10 @@ public class StructureBrowserViewModel : ReactiveObject
 
             DetailStatus = status switch
             {
-                StructureStatus.Resolved => "Resolved from ESI.",
-                StructureStatus.NoAccess => "No access (403) — no docking rights with this structure.",
-                StructureStatus.NotFound => "Not found (404) — the structure has been unanchored or destroyed.",
-                _                        => "ESI did not answer. See the error log.",
+                StructureStatus.Resolved => MapText.PullResolved,
+                StructureStatus.NoAccess => MapText.PullNoAccess,
+                StructureStatus.NotFound => MapText.PullNotFound,
+                _                        => MapText.PullNoAnswer,
             };
 
             await LoadAsync();
@@ -1565,7 +1660,7 @@ public class StructureBrowserViewModel : ReactiveObject
             // row object, so the old selection now points at an instance the grid has never seen.
             SelectById(id);
         }
-        catch (Exception ex) { DetailStatus = $"Pull failed: {ex.Message}"; }
+        catch (Exception ex) { DetailStatus = string.Format(MapText.StatusPullFailed, ex.Message); }
         finally { Busy = false; }
     }
 
@@ -1580,7 +1675,7 @@ public class StructureBrowserViewModel : ReactiveObject
         var text = new string(AddIdText.Where(char.IsDigit).ToArray());
         if (!long.TryParse(text, out var id) || id <= 0)
         {
-            AddStatus = "Enter a numeric location ID.";
+            AddStatus = MapText.AddEnterNumericId;
             return;
         }
 
@@ -1588,7 +1683,7 @@ public class StructureBrowserViewModel : ReactiveObject
         {
             if (await db.Structures.AnyAsync(s => s.StructureId == id))
             {
-                AddStatus = "Already in the table.";
+                AddStatus = MapText.AddAlreadyInTable;
                 AddOpen   = false;
                 SelectById(id);
                 return;
@@ -1598,11 +1693,9 @@ public class StructureBrowserViewModel : ReactiveObject
         // A warning rather than a refusal. Station ids and the like are far below this, and the
         // lookup will simply 404 — but refusing outright would also block whatever id range CCP
         // decides to use next, and being wrong in that direction is worse.
-        var caveat = id < EveIds.PlayerStructureThreshold
-            ? " (that is below the player-structure ID range, so a 404 is likely)"
-            : "";
-
-        AddStatus = $"Asking ESI about {id}{caveat}…";
+        AddStatus = id < EveIds.PlayerStructureThreshold
+            ? string.Format(MapText.AddAskingEsiLowId, id)
+            : string.Format(MapText.AddAskingEsi, id);
         Busy = true;
         try
         {
@@ -1613,29 +1706,30 @@ public class StructureBrowserViewModel : ReactiveObject
 
             if (row is null)
             {
-                AddPreview = "ESI did not answer — see the error log. It can still be added and "
-                           + "filled in by hand.";
-                AddStatus  = "No answer.";
+                AddPreview = MapText.AddPreviewNoAnswer;
+                AddStatus  = MapText.AddStatusNoAnswer;
                 return;
             }
 
             AddPreview = (StructureStatus)row.Status switch
             {
-                StructureStatus.NoAccess => "No access (403) — no docking rights with this "
-                                          + "structure. It can still be added and filled in by hand.",
-                StructureStatus.NotFound => "Not found (404) — no such structure, or it has been "
-                                          + "unanchored. Check the ID before adding.",
+                StructureStatus.NoAccess => MapText.AddPreviewNoAccess,
+                StructureStatus.NotFound => MapText.AddPreviewNotFound,
                 StructureStatus.Resolved => await DescribeAsync(row),
-                _                        => "ESI returned nothing usable for this ID.",
+                _                        => MapText.AddPreviewNothingUsable,
             };
 
-            AddStatus = ((StructureStatus)row.Status) == StructureStatus.Resolved
-                ? "Resolved."
-                : StatusLabel(row.Status) + ".";
+            AddStatus = (StructureStatus)row.Status switch
+            {
+                StructureStatus.Resolved => MapText.AddStatusResolved,
+                StructureStatus.NoAccess => MapText.AddStatusNoAccess,
+                StructureStatus.NotFound => MapText.AddStatusGone,
+                _                        => MapText.AddStatusPending,
+            };
         }
         catch (Exception ex)
         {
-            AddStatus  = $"Look-up failed: {ex.Message}";
+            AddStatus  = string.Format(MapText.AddLookupFailed, ex.Message);
             AddPreview = "";
         }
         finally { Busy = false; }
@@ -1649,19 +1743,23 @@ public class StructureBrowserViewModel : ReactiveObject
 
         var system = await db.SdeSolarSystems.AsNoTracking()
             .Where(s => s.SolarSystemId == row.SolarSystemId)
-            .Select(s => s.Name).FirstOrDefaultAsync() ?? $"System {row.SolarSystemId}";
+            .Select(s => s.Name).FirstOrDefaultAsync() ?? string.Format(MapText.SystemNumbered, row.SolarSystemId);
 
         var type = row.TypeId > 0
             ? await db.SdeTypes.AsNoTracking().Where(t => t.TypeId == row.TypeId)
-                  .Select(t => t.Name).FirstOrDefaultAsync() ?? $"Type {row.TypeId}"
-            : "unknown type";
+                  .Select(t => t.Name).FirstOrDefaultAsync() ?? string.Format(MapText.TypeNumbered, row.TypeId)
+            : MapText.PreviewUnknownType;
 
         var owner = row.OwnerId > 0
             ? await db.UniverseNames.AsNoTracking().Where(u => u.EntityId == row.OwnerId)
-                  .Select(u => u.Name).FirstOrDefaultAsync() ?? $"Corp {row.OwnerId}"
-            : "unknown owner";
+                  .Select(u => u.Name).FirstOrDefaultAsync() ?? string.Format(MapText.CorpNumbered, row.OwnerId)
+            : MapText.PreviewUnknownOwner;
 
-        return $"{row.Name}\n{type} in {system}\nOwned by {owner}";
+        // Read before committing, so the type and system as the interface names them; the name
+        // and owner are the players' own.
+        return string.Format(MapText.AddPreviewResolved, row.Name,
+                             row.TypeId > 0 ? SdeNames.Type(row.TypeId, type) : type,
+                             SdeNames.SolarSystem(row.SolarSystemId, system), owner);
     }
 
     /// <summary>
@@ -1700,7 +1798,7 @@ public class StructureBrowserViewModel : ReactiveObject
             await LoadAsync();
             SelectById(id);
         }
-        catch (Exception ex) { AddStatus = $"Add failed: {ex.Message}"; }
+        catch (Exception ex) { AddStatus = string.Format(MapText.AddFailed, ex.Message); }
         finally { Busy = false; }
     }
 
@@ -1746,10 +1844,10 @@ public class StructureBrowserViewModel : ReactiveObject
                                   .Distinct().OrderBy(s => s))
                 col.Add(v);
         }
-        Fill(RegionSuggestions,        r => r.Region);
-        Fill(ConstellationSuggestions, r => r.Constellation);
-        Fill(SystemSuggestions,        r => r.SystemName);
-        Fill(TypeSuggestions,          r => r.TypeName);
+        Fill(RegionSuggestions,        r => r.RegionLabel);
+        Fill(ConstellationSuggestions, r => r.ConstellationLabel);
+        Fill(SystemSuggestions,        r => r.SystemLabel);
+        Fill(TypeSuggestions,          r => r.TypeLabel);
         Fill(CorpSuggestions,          r => r.CorpName);
         Fill(AllianceSuggestions,      r => r.AllianceName);
     }
@@ -1760,31 +1858,41 @@ public class StructureBrowserViewModel : ReactiveObject
             string.IsNullOrWhiteSpace(filter) ||
             value.Contains(filter.Trim(), StringComparison.OrdinalIgnoreCase);
 
+        // An SDE name matches as shown or in English: the suggestions offer the one shown, and the
+        // English gets pasted in from elsewhere.
+        static bool HasName(SdeNameKind kind, long id, string english, string filter) =>
+            string.IsNullOrWhiteSpace(filter) || SdeNames.Matches(kind, id, english, filter.Trim());
+
         bool Match(StructureRow r) =>
             (ShowUnknown || r.IsKnown) &&
-            Has(r.Region, RegionText) && Has(r.Constellation, ConstellationText) &&
-            Has(r.SystemName, SystemText) && Has(r.TypeName, TypeText) &&
+            HasName(SdeNameKind.Region,        r.RegionId,        r.Region,        RegionText) &&
+            HasName(SdeNameKind.Constellation, r.ConstellationId, r.Constellation, ConstellationText) &&
+            HasName(SdeNameKind.SolarSystem,   r.SystemId,        r.SystemName,    SystemText) &&
+            HasName(SdeNameKind.Type,          r.TypeId,          r.TypeName,      TypeText) &&
             Has(r.CorpName, CorpText) && Has(r.AllianceName, AllianceText);
 
         Rows.Clear();
-        foreach (var r in _all.Where(Match).OrderBy(r => r.Region).ThenBy(r => r.SystemName).ThenBy(r => r.Name))
+        foreach (var r in _all.Where(Match)
+                              .OrderBy(r => r.RegionLabel, StringComparer.CurrentCulture)
+                              .ThenBy(r => r.SystemLabel, StringComparer.CurrentCulture)
+                              .ThenBy(r => r.Name))
             Rows.Add(r);
         int hidden = _all.Count(r => !r.IsKnown);
         Status = ShowUnknown || hidden == 0
-            ? $"{Rows.Count} of {_all.Count} structure(s)."
-            : $"{Rows.Count} shown · {hidden} unknown hidden.";
+            ? string.Format(MapText.StatusStructuresShown, Rows.Count, _all.Count)
+            : string.Format(MapText.StatusStructuresUnknownHidden, Rows.Count, hidden);
     }
 
     private async Task ResolveAsync()
     {
         Busy = true;
-        Status = "Resolving structures via ESI…";
+        Status = MapText.StatusResolving;
         try
         {
             await _polling.ForceResolveStructureNamesAsync();
             await LoadAsync();
         }
-        catch (Exception ex) { Status = $"Resolve failed: {ex.Message}"; }
+        catch (Exception ex) { Status = string.Format(MapText.StatusResolveFailed, ex.Message); }
         finally { Busy = false; }
     }
 }

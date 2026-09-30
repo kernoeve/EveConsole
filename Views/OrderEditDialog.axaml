@@ -1,8 +1,9 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:EveConsole.Localization"
         xmlns:ctl="clr-namespace:EveConsole.Controls"
         x:Class="EveConsole.Views.OrderEditDialog"
-        Title="Add Order"
+        Title="{x:Static loc:SalesText.TitleAddOrder}"
         Width="420" Height="680"
         CanResize="True"
         WindowStartupLocation="CenterOwner"
@@ -25,9 +26,9 @@
     <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
     <StackPanel Spacing="10" Margin="0 0 4 0">
 
-      <TextBlock Classes="lbl" Text="ITEM TYPE" />
-      <TextBlock x:Name="SelectedTypeText" Text="(none selected)" Foreground="{DynamicResource AccentBrush}" FontSize="12" />
-      <TextBox x:Name="SearchBox" Watermark="Start typing item name…"
+      <TextBlock Classes="lbl" Text="{x:Static loc:SalesText.ItemTypeLabel}" />
+      <TextBlock x:Name="SelectedTypeText" Text="{x:Static loc:SalesText.NoneSelected}" Foreground="{DynamicResource AccentBrush}" FontSize="12" />
+      <TextBox x:Name="SearchBox" Watermark="{x:Static loc:SalesText.HintStartTypingItemName}"
                CornerRadius="3" CaretBrush="{DynamicResource AccentBrush}" Padding="8 5" TextChanged="OnSearchChanged" />
       <Border x:Name="ResultsBox" IsVisible="False"
               Background="{DynamicResource SurfacePanelBrush}" CornerRadius="3" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" Height="120">
@@ -49,12 +50,12 @@
 
       <Grid ColumnDefinitions="*,12,*">
         <StackPanel Grid.Column="0" Spacing="5">
-          <TextBlock Classes="lbl" Text="UNITS" />
+          <TextBlock Classes="lbl" Text="{x:Static loc:SalesText.UnitsLabel}" />
           <NumericUpDown x:Name="UnitsBox" Value="1" Minimum="1" Maximum="999999999"
                          Increment="1" ShowButtonSpinner="True" />
         </StackPanel>
         <StackPanel Grid.Column="2" Spacing="5">
-          <TextBlock Classes="lbl" Text="PURCHASE PRICE (TOTAL)" />
+          <TextBlock Classes="lbl" Text="{x:Static loc:SalesText.PurchasePriceTotalLabel}" />
           <NumericUpDown x:Name="PriceBox" Value="0" Minimum="0" Maximum="1000000000000000"
                          Increment="1000000" FormatString="N0" ShowButtonSpinner="False" />
         </StackPanel>
@@ -65,9 +66,9 @@
            the search cannot reach is still recordable — and every order made while this was free
            text keeps its name and shows it here on edit. -->
       <StackPanel Spacing="5">
-        <TextBlock Classes="lbl" Text="BUYER" />
-        <TextBlock x:Name="SelectedBuyerText" Text="(none selected)" Foreground="{DynamicResource AccentBrush}" FontSize="12" />
-        <TextBox x:Name="BuyerBox" Watermark="Start typing a character or corporation…"
+        <TextBlock Classes="lbl" Text="{x:Static loc:SalesText.BuyerLabel}" />
+        <TextBlock x:Name="SelectedBuyerText" Text="{x:Static loc:SalesText.NoneSelected}" Foreground="{DynamicResource AccentBrush}" FontSize="12" />
+        <TextBox x:Name="BuyerBox" Watermark="{x:Static loc:SalesText.HintStartTypingACharacterOr}"
                  CornerRadius="3" CaretBrush="{DynamicResource AccentBrush}" Padding="8 5" TextChanged="OnBuyerSearchChanged" />
         <Border x:Name="BuyerResultsBox" IsVisible="False"
                 Background="{DynamicResource SurfacePanelBrush}" CornerRadius="3" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" Height="110">
@@ -94,41 +95,41 @@
       </StackPanel>
 
       <StackPanel Spacing="5">
-        <TextBlock Classes="lbl" Text="ESTIMATED DATE" />
+        <TextBlock Classes="lbl" Text="{x:Static loc:SalesText.EstimatedDateLabel}" />
         <TextBox x:Name="EstDateBox" Watermark="yyyy-MM-dd" Padding="8 5" />
       </StackPanel>
 
       <StackPanel Spacing="5">
-        <TextBlock Classes="lbl" Text="COMPLETED DATE" />
+        <TextBlock Classes="lbl" Text="{x:Static loc:SalesText.CompletedDateLabel}" />
         <TextBox x:Name="CompletedBox" Watermark="yyyy-MM-dd" Padding="8 5" />
         <TextBlock FontSize="10" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
-                   Text="Set automatically: today when you mark an order completed or cancelled, or the date the linked contract was accepted. Override it here if the real date differs." />
+                   Text="{x:Static loc:SalesText.SetAutomaticallyTodayWhenNote}" />
       </StackPanel>
 
       <CheckBox x:Name="PriorityBox" FontSize="11"
-                Content="Priority — put this order and everything it needs at the top"
-                ToolTip.Tip="Outranks every other order regardless of estimated date, along with the jobs, purchases and hauls that serve it."/>
+                Content="{x:Static loc:SalesText.PriorityPutThisOrder}"
+                ToolTip.Tip="{x:Static loc:SalesText.TipOutranksEveryOtherOrder}"/>
 
       <StackPanel Spacing="5">
-        <TextBlock Classes="lbl" Text="CONTRACT" />
-        <TextBox x:Name="ContractBox" Watermark="contract ids, if the match missed one" Padding="8 5" />
+        <TextBlock Classes="lbl" Text="{x:Static loc:SalesText.ContractLabel}" />
+        <TextBox x:Name="ContractBox" Watermark="{x:Static loc:SalesText.HintContractIdsIfThe}" Padding="8 5" />
         <TextBlock FontSize="10" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
-                   Text="Normally filled in automatically — every contract carrying this order, since an order can go out over several. Add an id here when a contract cannot be matched, usually because it was made out before the order was entered; separate several with commas. Removing an id lets that contract go." />
+                   Text="{x:Static loc:SalesText.NormallyFilledInAutomaticallyNote}" />
       </StackPanel>
 
       <StackPanel Spacing="5">
-        <TextBlock Classes="lbl" Text="LABELS" />
+        <TextBlock Classes="lbl" Text="{x:Static loc:SalesText.LabelsLabel}" />
         <ctl:LabelsBox x:Name="LabelsField" />
         <TextBlock FontSize="10" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
-                   Text="Free tags for grouping orders — a corp programme, a customer, a shipment. Type anything; if it does not exist yet, pressing Enter creates it. The Order Tracker can filter on them." />
+                   Text="{x:Static loc:SalesText.FreeTagsForGroupingNote}" />
       </StackPanel>
 
       <StackPanel Spacing="5">
-        <TextBlock Classes="lbl" Text="STATUS" />
+        <TextBlock Classes="lbl" Text="{x:Static loc:SalesText.StatusLabel}" />
         <ComboBox x:Name="StatusBox" SelectedIndex="0" HorizontalAlignment="Stretch">
-          <ComboBoxItem>Pending</ComboBoxItem>
-          <ComboBoxItem>Completed</ComboBoxItem>
-          <ComboBoxItem>Canceled</ComboBoxItem>
+          <ComboBoxItem Content="{x:Static loc:SalesText.OrderStatusPending}" />
+          <ComboBoxItem Content="{x:Static loc:SalesText.OrderStatusCompleted}" />
+          <ComboBoxItem Content="{x:Static loc:SalesText.OrderStatusCanceled}" />
         </ComboBox>
       </StackPanel>
 
@@ -136,11 +137,11 @@
     </ScrollViewer>
 
     <Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto" Margin="0 14 0 0">
-      <TextBlock Grid.Column="0" x:Name="HintText" Text="Select an item type above."
+      <TextBlock Grid.Column="0" x:Name="HintText" Text="{x:Static loc:SalesText.SelectAnItemTypeAbove}"
                  Foreground="{DynamicResource BorderStrongBrush}" FontSize="11" VerticalAlignment="Center" />
-      <Button Grid.Column="1" Content="Cancel" Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
+      <Button Grid.Column="1" Content="{x:Static loc:SalesText.Cancel}" Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
               BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" Padding="14 6" Margin="0 0 8 0" Click="OnCancel" />
-      <Button Grid.Column="2" x:Name="OkButton" Content="Save" Background="{DynamicResource SurfaceSelectedBrush}" Foreground="{DynamicResource AccentBrush}"
+      <Button Grid.Column="2" x:Name="OkButton" Content="{x:Static loc:SalesText.Save}" Background="{DynamicResource SurfaceSelectedBrush}" Foreground="{DynamicResource AccentBrush}"
               BorderBrush="{DynamicResource AccentSurfaceBrush}" BorderThickness="1" Padding="14 6" IsEnabled="False" Click="OnSave" />
     </Grid>
 

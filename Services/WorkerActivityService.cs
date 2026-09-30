@@ -2,6 +2,7 @@ using System.Text.Json;
 using EveConsole.Data;
 using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
+using EveConsole.Localization;
 
 namespace EveConsole.Services;
 
@@ -272,7 +273,7 @@ public sealed class WorkerActivityService
             var toSend = batch.Skip(dropped).ToList();
             if (dropped > 0)
                 toSend.Insert(0, new ActivityEntry(
-                    DateTimeOffset.UtcNow, "—", $"({dropped} more calls not relayed)", true, 0, null));
+                    DateTimeOffset.UtcNow, "—", Plurals.Format(DataText.ResourceManager, nameof(DataText.CallsNotRelayedOther), dropped), true, 0, null));
 
             payload = JsonSerializer.Serialize(new CallsPayload
             {

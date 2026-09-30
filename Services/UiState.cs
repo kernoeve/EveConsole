@@ -37,6 +37,9 @@ public static class UiState
     public const string Theme                 = "ui.theme";
     /// <summary>The UI scale as a factor, "1.25"; 50% to 200%, this machine's own.</summary>
     public const string Scale                 = "ui.scale";
+    /// <summary>The interface language's code, "zh-Hans"; absent for the system's language. Read
+    /// once at startup — see Localization.Languages.</summary>
+    public const string Language              = "ui.language";
     /// <summary>"0" once the user has ticked "don't ask again" on the external-link warning.</summary>
     public const string ConfirmExternalLinks  = "links.confirm_external";
 
