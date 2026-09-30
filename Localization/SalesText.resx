@@ -2443,4 +2443,26 @@ Nothing is destroyed: its orders stay in the Order Tracker, and its settings, al
     <value>Declined.</value>
     <comment>Stores screen, after Decline on a web order.</comment>
   </data>
+  <data name="PostToDiscord" xml:space="preserve">
+    <value>Post to Discord</value>
+    <comment>Sale Posting, Posting tab: button that posts the selected posting to the Discord webhook set for Sale Posting. Discord is a brand name.</comment>
+  </data>
+  <data name="DiscordNotConfigured" xml:space="preserve">
+    <value>No Discord webhook set for Sale Posting.</value>
+    <comment>Sale Posting: Discord status line when no webhook is set.</comment>
+  </data>
+  <data name="DiscordAlreadyPosted" xml:space="preserve">
+    <value>"{0}" was already posted to Discord {1}.
+
+</value>
+    <comment>Question before posting again to Discord. {0} is the posting, {1} how long ago ("3 hours ago"). Ends in a blank line; "Post it again?" follows.</comment>
+  </data>
+  <data name="DiscordPosting" xml:space="preserve">
+    <value>Posting to Discord…</value>
+    <comment>Sale Posting: Discord status while posting.</comment>
+  </data>
+  <data name="DiscordPostFailed" xml:space="preserve">
+    <value>Discord post failed on "{0}": {1}</value>
+    <comment>Sale Posting: Discord status. {0} is the post block, {1} the error.</comment>
+  </data>
 </root>

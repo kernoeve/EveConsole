@@ -2368,4 +2368,32 @@
     <value>{0:0.#}% · {1:0.#}% tax</value>
     <comment>Entity viewer, value of a station's Reprocessing. {0} is the reprocessing efficiency, {1} the tax the station takes, both in percent.</comment>
   </data>
+  <data name="PostToDiscord" xml:space="preserve">
+    <value>Post to Discord</value>
+    <comment>Corp Activity, Top 10 and Monthly Summary tabs: button that posts to the Discord webhook set for it. Discord is a brand name.</comment>
+  </data>
+  <data name="DiscordNoDestination" xml:space="preserve">
+    <value>No Discord webhook set for this — pick one under Settings, Discord.</value>
+    <comment>Corp Activity: status line when Post to Discord has nowhere to post. Settings and Discord name the place in the Settings window.</comment>
+  </data>
+  <data name="Top10AlreadyPostedDiscord" xml:space="preserve">
+    <value>This Top 10 listing was already posted to Discord {0}.</value>
+    <comment>Question before posting the Top 10 to Discord again. {0} is how long ago, e.g. "3 hours ago".</comment>
+  </data>
+  <data name="SummaryAlreadyPostedDiscord" xml:space="preserve">
+    <value>This monthly summary was already posted to Discord {0}.</value>
+    <comment>Question before posting the monthly summary to Discord again. {0} is how long ago, e.g. "3 hours ago".</comment>
+  </data>
+  <data name="DiscordPosting" xml:space="preserve">
+    <value>Posting to Discord…</value>
+    <comment>Corp Activity: status line while posting to Discord.</comment>
+  </data>
+  <data name="DiscordPostFailed" xml:space="preserve">
+    <value>Discord post failed: {0}</value>
+    <comment>Corp Activity: status line when posting to Discord failed. {0} is the error.</comment>
+  </data>
+  <data name="DiscordPostedPartly" xml:space="preserve">
+    <value>Posted {0} of {1} messages to {2}; Discord refused the next: {3}</value>
+    <comment>Corp Activity: status line when a long post was split and Discord refused a later part. {0} is how many parts were posted, {1} how many there were, {2} the webhook's name, {3} the error.</comment>
+  </data>
 </root>

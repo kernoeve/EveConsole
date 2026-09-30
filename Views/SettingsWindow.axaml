@@ -2769,6 +2769,115 @@
     </ScrollViewer>
   </TabItem>
 
+  <!-- ── Discord ─────────────────────────────────────────────────────────
+       Webhooks only: no bot, no sign-in. Laid out like the Slack tab's webhook section, with a
+       Test per row, since a link pasted from somebody else's server is only known to work once
+       something has been posted through it. -->
+  <TabItem Header="{x:Static loc:SettingsText.TabDiscord}">
+    <ScrollViewer>
+      <StackPanel Spacing="16" Margin="24 16">
+
+        <TextBlock Text="{x:Static loc:SettingsText.DiscordIntegration}"
+                   FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+
+        <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" FontSize="12"
+                   Text="{x:Static loc:SettingsText.DiscordIntroNote}" />
+
+        <StackPanel Spacing="8">
+          <TextBlock Text="{x:Static loc:SettingsText.Webhooks}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
+          <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" FontSize="11"
+                     Text="{x:Static loc:SettingsText.DiscordHowToNote}" />
+          <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" FontSize="11"
+                     Text="{x:Static loc:SettingsText.DiscordSecretNote}" />
+
+          <!-- The link column shows the webhook's id and never its token: the full link is a
+               credential, and this window turns up in screenshots. -->
+          <DataGrid ItemsSource="{Binding DiscordVm.Webhooks}" AutoGenerateColumns="False"
+                    IsReadOnly="True" MaxHeight="150" HeadersVisibility="Column"
+                    Background="Transparent">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="{x:Static loc:SettingsText.ColName}" Binding="{Binding Name}" Width="200" />
+              <DataGridTextColumn Header="URL"  Binding="{Binding Link}"  Width="*" />
+              <DataGridTemplateColumn Header="" Width="150">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="vm:DiscordWebhookRow">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <Button Content="{x:Static loc:SettingsText.DiscordTest}" FontSize="10" Padding="6 1" Cursor="Hand"
+                              Command="{Binding $parent[Window].((vm:SettingsViewModel)DataContext).DiscordVm.TestWebhookCommand}"
+                              CommandParameter="{Binding Id}"
+                              IsEnabled="{Binding !$parent[Window].((vm:SettingsViewModel)DataContext).DiscordVm.IsBusy}"
+                              Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
+                              BorderBrush="{DynamicResource SurfaceSelectedBrush}" BorderThickness="1" />
+                      <Button Content="{x:Static loc:SettingsText.Remove}" FontSize="10" Padding="6 1" Cursor="Hand"
+                              Command="{Binding $parent[Window].((vm:SettingsViewModel)DataContext).DiscordVm.RemoveWebhookCommand}"
+                              CommandParameter="{Binding Id}"
+                              Background="{DynamicResource BadSurfaceBrush}" Foreground="{DynamicResource BadBrush}"
+                              BorderBrush="{DynamicResource BadSurfaceBrush}" BorderThickness="1" />
+                    </StackPanel>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+            </DataGrid.Columns>
+          </DataGrid>
+
+          <Grid ColumnDefinitions="200,*,Auto">
+            <TextBox Grid.Column="0" Text="{Binding DiscordVm.NewWebhookName}"
+                     Watermark="{x:Static loc:SettingsText.HintName}" FontSize="12"
+                     Background="{DynamicResource SurfacePanelAltBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+            <TextBox Grid.Column="1" Text="{Binding DiscordVm.NewWebhookUrl}"
+                     Watermark="https://discord.com/api/webhooks/…" FontSize="12" Margin="8 0"
+                     Background="{DynamicResource SurfacePanelAltBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+            <Button Grid.Column="2" Content="{x:Static loc:SettingsText.Add}" Command="{Binding DiscordVm.AddWebhookCommand}"
+                    Padding="14 5" FontSize="12"
+                    Background="{DynamicResource SurfaceBaseBrush}" Foreground="{DynamicResource GoodBrush}"
+                    BorderBrush="{DynamicResource GoodSurfaceBrush}" BorderThickness="1" />
+          </Grid>
+
+          <TextBlock Text="{Binding DiscordVm.WebhookStatus}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                     TextWrapping="Wrap" IsVisible="{Binding DiscordVm.WebhookStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+        </StackPanel>
+
+        <!-- Which webhook each part of the app posts to -->
+        <StackPanel Spacing="6">
+          <TextBlock Text="{x:Static loc:SettingsText.DiscordWhereEachPosts}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
+          <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" FontSize="12"
+                     Text="{x:Static loc:SettingsText.DiscordPickWebhookNote}" />
+          <Grid ColumnDefinitions="200,*" Margin="0 4 0 0">
+            <TextBlock Grid.Column="0" Text="{x:Static loc:SettingsText.CorpActivityTop10}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}"
+                       VerticalAlignment="Center" TextWrapping="Wrap" />
+            <ComboBox Grid.Column="1"
+                      ItemsSource="{Binding DiscordVm.Choices}"
+                      SelectedItem="{Binding DiscordVm.CorpTop10Hook}"
+                      HorizontalAlignment="Stretch" FontSize="12"
+                      Background="{DynamicResource SurfacePanelAltBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
+                      BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" />
+          </Grid>
+          <Grid ColumnDefinitions="200,*" Margin="0 4 0 0">
+            <TextBlock Grid.Column="0" Text="{x:Static loc:SettingsText.CorpActivityMonthlySummary}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}"
+                       VerticalAlignment="Center" TextWrapping="Wrap" />
+            <ComboBox Grid.Column="1"
+                      ItemsSource="{Binding DiscordVm.Choices}"
+                      SelectedItem="{Binding DiscordVm.CorpMonthlyHook}"
+                      HorizontalAlignment="Stretch" FontSize="12"
+                      Background="{DynamicResource SurfacePanelAltBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
+                      BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" />
+          </Grid>
+          <Grid ColumnDefinitions="200,*" Margin="0 4 0 0">
+            <TextBlock Grid.Column="0" Text="{x:Static loc:SettingsText.SalePosting}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}"
+                       VerticalAlignment="Center" TextWrapping="Wrap" />
+            <ComboBox Grid.Column="1"
+                      ItemsSource="{Binding DiscordVm.Choices}"
+                      SelectedItem="{Binding DiscordVm.SalePostingHook}"
+                      HorizontalAlignment="Stretch" FontSize="12"
+                      Background="{DynamicResource SurfacePanelAltBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
+                      BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" />
+          </Grid>
+        </StackPanel>
+
+      </StackPanel>
+    </ScrollViewer>
+  </TabItem>
+
   <!-- ── Alerts ────────────────────────────────────────────────────────── -->
   <TabItem Header="{x:Static loc:SettingsText.TabAlerts}">
     <ScrollViewer>

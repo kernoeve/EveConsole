@@ -254,9 +254,16 @@ public class ScheduledBlockRenderer(
         return (CorpTrendChartReport.RenderPng(chart), chart.Title);
     }
 
-    /// <summary>Renders every block, in order, into one message.</summary>
+    /// <summary>
+    /// Renders every block, in order, into one message.
+    ///
+    /// <para><paramref name="formatName"/> is the markup the message is written in: "Slack" for a
+    /// Slack post, "Discord" for a Discord one, as the export formats name them. Only headings and
+    /// the reports' own exports change with it; a text section is sent as it was typed.</para>
+    /// </summary>
     public async Task<RenderedMessage> RenderAsync(
-        IReadOnlyList<MessageBlock> blocks, DateTime nowUtc, CancellationToken ct = default)
+        IReadOnlyList<MessageBlock> blocks, DateTime nowUtc, CancellationToken ct = default,
+        string formatName = "Slack")
     {
         var parts      = new List<string>();
         var anyDynamic = false;
@@ -268,10 +275,10 @@ public class ScheduledBlockRenderer(
             var text = b.Type switch
             {
                 MessageBlock.TypeText     => b.Text.Trim(),
-                MessageBlock.TypeTop10    => await Top10Async(b, nowUtc, ct),
-                MessageBlock.TypeMonthly  => await MonthlyAsync(b, nowUtc, ct),
-                MessageBlock.TypeSale     => await SalePostingAsync(b, ct),
-                MessageBlock.TypeProjects => await StandingProjectsAsync(b, ct),
+                MessageBlock.TypeTop10    => await Top10Async(b, nowUtc, formatName, ct),
+                MessageBlock.TypeMonthly  => await MonthlyAsync(b, nowUtc, formatName, ct),
+                MessageBlock.TypeSale     => await SalePostingAsync(b, formatName, ct),
+                MessageBlock.TypeProjects => await StandingProjectsAsync(b, formatName, ct),
 
                 // A chart contributes no text. It is uploaded separately, by whoever is posting.
                 _                         => "",
@@ -304,7 +311,7 @@ public class ScheduledBlockRenderer(
         return (new DateTimeOffset(first), new DateTimeOffset(first.AddMonths(1)), label);
     }
 
-    private async Task<string> Top10Async(MessageBlock b, DateTime nowUtc, CancellationToken ct)
+    private async Task<string> Top10Async(MessageBlock b, DateTime nowUtc, string formatName, CancellationToken ct)
     {
         if (b.CorpId <= 0 || b.Categories.Count == 0) return "";
 
@@ -401,12 +408,13 @@ public class ScheduledBlockRenderer(
                 for (var i = 0; i < c.Length; i++)
                     widths[i] = Math.Max(widths[i], MonoColumns.Width(c[i]));
 
-        var sb = new StringBuilder();
+        var sb   = new StringBuilder();
+        var bold = OutputFormat.ByName(formatName);
 
         foreach (var (title, cells) in lists)
         {
             sb.AppendLine();
-            sb.AppendLine($"*{title}*");
+            sb.AppendLine(bold.Bold(title));
             sb.AppendLine("```");
 
             foreach (var c in cells)
@@ -435,7 +443,7 @@ public class ScheduledBlockRenderer(
     /// <para>⚠️ The same report the screen shows, not a second set of numbers. MonthlySummaryReport
     /// holds what that summary says; both the export button and this ask it.</para>
     /// </summary>
-    private async Task<string> MonthlyAsync(MessageBlock b, DateTime nowUtc, CancellationToken ct)
+    private async Task<string> MonthlyAsync(MessageBlock b, DateTime nowUtc, string formatName, CancellationToken ct)
     {
         if (b.CorpId <= 0) return "";
 
@@ -452,7 +460,7 @@ public class ScheduledBlockRenderer(
             year,
             titles.HeaderPrefix);
 
-        return MonthlySummaryReport.Export(lines, header, "Slack");
+        return MonthlySummaryReport.Export(lines, header, formatName);
     }
 
     /// <summary>
@@ -465,11 +473,11 @@ public class ScheduledBlockRenderer(
     /// block is one piece of one message, so they are joined in the same order instead — the
     /// thread is a shape the tool's own button owns, not the posting's.</para>
     /// </summary>
-    private async Task<string> SalePostingAsync(MessageBlock b, CancellationToken ct)
+    private async Task<string> SalePostingAsync(MessageBlock b, string formatName, CancellationToken ct)
     {
         if (b.PostingId <= 0) return "";
 
-        var posts = await sales.RenderAsync(b.PostingId, "Slack", ct);
+        var posts = await sales.RenderAsync(b.PostingId, formatName, ct);
 
         return string.Join("\n\n", posts
             .Select(p => p.Text.Trim())
@@ -484,7 +492,7 @@ public class ScheduledBlockRenderer(
     /// which projects to report on picked definitions, so the exclusions are matched against
     /// DbId, which every expanded row still carries.</para>
     /// </summary>
-    private async Task<string> StandingProjectsAsync(MessageBlock b, CancellationToken ct)
+    private async Task<string> StandingProjectsAsync(MessageBlock b, string formatName, CancellationToken ct)
     {
         if (b.CorpId <= 0) return "";
 
@@ -517,7 +525,7 @@ public class ScheduledBlockRenderer(
         var heading = b.SectionTitle.Trim();
 
         return StandingProjectReport.Export(
-            [.. wanted], heading, b.ProjectType, b.ShowHeaders, b.ShowIskLeft, b.ShowLastCompleted);
+            [.. wanted], heading, b.ProjectType, b.ShowHeaders, b.ShowIskLeft, b.ShowLastCompleted, formatName);
     }
 
     /// <summary>The corp's name, or nothing — a header without one still reads correctly.</summary>

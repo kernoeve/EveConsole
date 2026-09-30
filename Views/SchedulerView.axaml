@@ -242,7 +242,7 @@
                   </ComboBox.ItemTemplate>
                 </ComboBox>
                 <TextBlock Classes="hint"
-                           Text="{x:Static loc:AlarmsText.WorkspaceChannelsAndWebhooksNote}" />
+                           Text="{x:Static loc:AlarmsText.SlackAndDiscordDestinationsNote}" />
 
                 <CheckBox IsChecked="{Binding SkipIfNoDynamicContent}" Margin="0 4 0 0"
                           Content="{x:Static loc:AlarmsText.DoNotPostIf}" />
