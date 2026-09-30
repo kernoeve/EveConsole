@@ -20,6 +20,30 @@ public sealed record UiLanguage(
 {
     /// <summary>The culture the interface text is looked up under.</summary>
     public CultureInfo Culture => CultureInfo.GetCultureInfo(Code);
+
+    /// <summary>The language's name in the interface language: "German" in English, "Allemand"
+    /// in French, "Deutsch" in German.</summary>
+    public string LocalName => Code switch
+    {
+        "en"      => CommonText.LanguageEnglish,
+        "zh-Hans" => CommonText.LanguageChineseSimplified,
+        "de"      => CommonText.LanguageGerman,
+        "es"      => CommonText.LanguageSpanish,
+        "fr"      => CommonText.LanguageFrench,
+        "ja"      => CommonText.LanguageJapanese,
+        "ko"      => CommonText.LanguageKorean,
+        "ru"      => CommonText.LanguageRussian,
+        _         => EnglishName,
+    };
+
+    /// <summary>
+    /// How a list of languages names it: in the interface language, then as it calls itself —
+    /// "German (Deutsch)" — so a reader finds both the name they know and the one a speaker would
+    /// look for. Once where the two are the same: "English" in English, "Deutsch" in German.
+    /// </summary>
+    public string ListName => LocalName == NativeName
+        ? NativeName
+        : string.Format(CommonText.LanguageLocalAndNative, LocalName, NativeName);
 }
 
 /// <summary>One entry in the Language list: a language, or "System default" (an empty code).</summary>
@@ -135,6 +159,10 @@ public static class Languages
     private static UiLanguage? Find(string code) =>
         All.FirstOrDefault(l => string.Equals(l.Code, code, StringComparison.OrdinalIgnoreCase));
 
+    /// <summary>The interface language an SDE language code stands for: the SDE's "zh" is the
+    /// Chinese the game ships, Simplified. Null for a code no interface language matches.</summary>
+    public static UiLanguage? ForSdeCode(string code) => Find(code == "zh" ? "zh-Hans" : code);
+
     /// <summary>
     /// Settles this run's language. Called first thing in Main, once the profile is known — the
     /// choice lives in the profile's config — and before anything reads a string.
@@ -203,15 +231,15 @@ public static class Languages
         return SKFontManager.Default.MatchCharacter(null, SKFontStyle.Normal, [Active.Code], sample);
     }
 
-    /// <summary>The Language list: "System default", then every language by its own name.</summary>
+    /// <summary>The Language list: "System default", then every language — named in the
+    /// interface language, and as it calls itself (<see cref="UiLanguage.ListName"/>).</summary>
     public static IReadOnlyList<LanguageChoice> Choices()
     {
         var system = Resolve("", SystemCulture);
         return
         [
-            new("", string.Format(SettingsText.LanguageSystemDefault, system.NativeName)),
-            .. All.Select(l => new LanguageChoice(
-                l.Code, l.Preview ? string.Format(SettingsText.LanguagePreview, l.NativeName) : l.NativeName)),
+            new("", string.Format(SettingsText.LanguageSystemDefault, system.LocalName)),
+            .. All.Select(l => new LanguageChoice(l.Code, l.ListName)),
         ];
     }
 }

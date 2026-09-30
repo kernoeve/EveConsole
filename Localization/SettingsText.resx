@@ -98,10 +98,6 @@
     <value>System default ({0})</value>
     <comment>{0} is the language the system setting comes to, in that language's own name.</comment>
   </data>
-  <data name="LanguagePreview" xml:space="preserve">
-    <value>{0} (preview)</value>
-    <comment>{0} is a language's own name. Preview: not fully translated yet.</comment>
-  </data>
   <data name="LanguagePreviewNote" xml:space="preserve">
     <value>Preview: parts of the app are not translated yet and show in English.</value>
   </data>

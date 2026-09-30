@@ -364,6 +364,42 @@
     <value>, </value>
     <comment>Joins two clauses of one sentence that the app builds from pieces, e.g. Worklist details: "short 5, 3 on order". Not for lists of names (ListSeparator). Include the space after it where your language puts one — the value may end in a space.</comment>
   </data>
+  <data name="LanguageEnglish" xml:space="preserve">
+    <value>English</value>
+    <comment>The English language, named in this language: in the Language list on the Settings screen, the store's language list, and the SDE tab's list of names per language. As a menu entry: start with a capital where the language capitalizes a menu entry.</comment>
+  </data>
+  <data name="LanguageChineseSimplified" xml:space="preserve">
+    <value>Simplified Chinese</value>
+    <comment>Chinese in simplified characters (the EVE client's Chinese), named in this language: in the Language list, the store's language list and the SDE tab. As a menu entry. It is followed by its own name in brackets (简体中文), so avoid brackets inside this name.</comment>
+  </data>
+  <data name="LanguageGerman" xml:space="preserve">
+    <value>German</value>
+    <comment>The German language, named in this language: in the Language list, the store's language list and the SDE tab. As a menu entry.</comment>
+  </data>
+  <data name="LanguageSpanish" xml:space="preserve">
+    <value>Spanish</value>
+    <comment>The Spanish language, named in this language: in the Language list, the store's language list and the SDE tab. As a menu entry.</comment>
+  </data>
+  <data name="LanguageFrench" xml:space="preserve">
+    <value>French</value>
+    <comment>The French language, named in this language: in the Language list, the store's language list and the SDE tab. As a menu entry.</comment>
+  </data>
+  <data name="LanguageJapanese" xml:space="preserve">
+    <value>Japanese</value>
+    <comment>The Japanese language, named in this language: in the Language list, the store's language list and the SDE tab. As a menu entry.</comment>
+  </data>
+  <data name="LanguageKorean" xml:space="preserve">
+    <value>Korean</value>
+    <comment>The Korean language, named in this language: in the Language list, the store's language list and the SDE tab. As a menu entry.</comment>
+  </data>
+  <data name="LanguageRussian" xml:space="preserve">
+    <value>Russian</value>
+    <comment>The Russian language, named in this language: in the Language list, the store's language list and the SDE tab. As a menu entry.</comment>
+  </data>
+  <data name="LanguageLocalAndNative" xml:space="preserve">
+    <value>{0} ({1})</value>
+    <comment>An entry of the Language list: {0} is a language's name in this language (LanguageGerman…), {1} what it calls itself (Deutsch). Use this language's brackets and spacing (（） in Chinese and Japanese).</comment>
+  </data>
   <data name="DateMonthDay" xml:space="preserve">
     <value>MMM d</value>
     <comment>Chart axes and short dates, e.g. Sep 28. A .NET date format pattern: d = day, MMM = short month name, MMMM = full month name, yyyy = year, HH:mm = time, dddd = weekday. Reorder it and add your language's characters; keep the letters that stand for parts of the date.</comment>

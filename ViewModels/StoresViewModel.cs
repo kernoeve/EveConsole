@@ -238,8 +238,8 @@ public class StoresViewModel : ReactiveObject
     // interface language of the client that serves the shop, which is shown beside it.
     public IReadOnlyList<Choice<string>> LanguageOptions { get; } =
     [
-        new("", string.Format(SalesText.StoreLanguageSameAsApp, Languages.Active.NativeName)),
-        .. Languages.All.Select(l => new Choice<string>(l.Code, l.NativeName)),
+        new("", string.Format(SalesText.StoreLanguageSameAsApp, Languages.Active.LocalName)),
+        .. Languages.All.Select(l => new Choice<string>(l.Code, l.ListName)),
     ];
 
     public sealed record LimitOption(string Key, string Label)

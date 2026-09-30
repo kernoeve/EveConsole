@@ -329,15 +329,15 @@ public class SdeViewModel : ReactiveObject
 
     /// <summary>
     /// The names each of the game's other languages brought, on a line under the result: the one
-    /// place a language the SDE did not carry shows, as a 0. Each language in its own name, which
-    /// its readers know whatever language this screen is in. Nothing when the count failed; the
-    /// Error Log says why.
+    /// place a language the SDE did not carry shows, as a 0. Each language named in the interface
+    /// language, as the rest of the line is. Nothing when the count failed; the Error Log says why.
     /// </summary>
     private static string NamesStored(IReadOnlyDictionary<string, int>? byLanguage)
     {
         if (byLanguage is null) return "";
         var list = string.Join(CommonText.ListSeparator, SdeNames.OtherLanguages.Select(code =>
-            $"{System.Globalization.CultureInfo.GetCultureInfo(code).NativeName} {byLanguage.GetValueOrDefault(code):N0}"));
+            $"{Languages.ForSdeCode(code)?.LocalName ?? System.Globalization.CultureInfo.GetCultureInfo(code).NativeName} "
+            + $"{byLanguage.GetValueOrDefault(code):N0}"));
         return "\n" + string.Format(SettingsText.SdeImportNamesByLanguage, list);
     }
 
