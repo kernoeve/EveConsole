@@ -14,18 +14,28 @@ namespace EveConsole.ViewModels;
 public class RetentionSectionVm : ReactiveObject
 {
     private readonly RetentionRule _rule;
-    private readonly Func<int, Task<int>> _purge;
+    private readonly Func<int, IProgress<(int Done, int Total)>, Task<int>> _purge;
     private readonly string _removedText;
+    private readonly string? _progressText;
     private readonly bool _loading;
 
     /// <param name="removedText">What a purge that removed something says, as a whole sentence:
     /// "Removed {0:N0} killmails older than {1:N0} days. …" — {0} the rows removed, {1} the days.</param>
     public RetentionSectionVm(RetentionRule rule, Func<int, Task<int>> purge, string removedText)
+        : this(rule, (days, _) => purge(days), removedText, null) { }
+
+    /// <summary>For a purge that reports how far it has got — one that can run for minutes.</summary>
+    /// <param name="progressText">What it says while it runs, as a whole sentence: "Purging… {0:N0} of
+    /// {1:N0} killmails removed" — {0} removed so far, {1} to remove.</param>
+    public RetentionSectionVm(
+        RetentionRule rule, Func<int, IProgress<(int Done, int Total)>, Task<int>> purge,
+        string removedText, string? progressText)
     {
-        _loading     = true;
-        _rule        = rule;
-        _purge       = purge;
-        _removedText = removedText;
+        _loading      = true;
+        _rule         = rule;
+        _purge        = purge;
+        _removedText  = removedText;
+        _progressText = progressText;
 
         _enabled = rule.Enabled;
         _days    = rule.Days;
@@ -106,7 +116,12 @@ public class RetentionSectionVm : ReactiveObject
         Status = SettingsText.RetentionPurging;
         try
         {
-            var removed = await _purge(Days);
+            // Raised on this (the UI) thread, whichever thread the purge reports from.
+            var progress = new Progress<(int Done, int Total)>(p =>
+            {
+                if (IsPurging && _progressText is not null) Status = string.Format(_progressText, p.Done, p.Total);
+            });
+            var removed = await _purge(Days, progress);
 
             // A manual purge satisfies the daily window as much as a scheduled one does — not
             // stamping it would have the background sweep repeat the same work minutes later.
@@ -142,9 +157,13 @@ public class DataRetentionSettingsViewModel : ReactiveObject
             retention.ErrorLog, d => retention.PurgeErrorLogAsync(d),
             SettingsText.RetentionRemovedErrorLog);
 
-        Killmails = new RetentionSectionVm(
-            retention.Killmails, d => retention.PurgeKillmailsAsync(d),
-            SettingsText.RetentionRemovedKillmails);
+        OurKillmails = new RetentionSectionVm(
+            retention.OurKillmails, (d, p) => retention.PurgeOurKillmailsAsync(d, p),
+            SettingsText.RetentionRemovedKillmails, SettingsText.RetentionPurgingKillmails);
+
+        OtherKillmails = new RetentionSectionVm(
+            retention.OtherKillmails, (d, p) => retention.PurgeOtherKillmailsAsync(d, p),
+            SettingsText.RetentionRemovedKillmails, SettingsText.RetentionPurgingKillmails);
 
         PriceHistory = new RetentionSectionVm(
             retention.PriceHistory, d => retention.PurgePriceHistoryAsync(d),
@@ -164,7 +183,8 @@ public class DataRetentionSettingsViewModel : ReactiveObject
     }
 
     public RetentionSectionVm ErrorLog       { get; }
-    public RetentionSectionVm Killmails      { get; }
+    public RetentionSectionVm OurKillmails   { get; }
+    public RetentionSectionVm OtherKillmails { get; }
     public RetentionSectionVm PriceHistory   { get; }
     public RetentionSectionVm GameLog        { get; }
     public RetentionSectionVm ChatMessages   { get; }

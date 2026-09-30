@@ -3283,6 +3283,10 @@ The application will restart.</value>
     <value>Removed {0:N0} killmails older than {1:N0} days. The file will not get smaller until it is compacted — see Database → Shrink Database.</value>
     <comment>Data Retention tab, Kill Mails status. {0} is the killmails removed, {1} the number of days. Database → Shrink Database names the tab and button.</comment>
   </data>
+  <data name="RetentionPurgingKillmails" xml:space="preserve">
+    <value>Purging… {0:N0} of {1:N0} killmails removed</value>
+    <comment>Data Retention tab, Kill Mails status while a purge runs (it can take minutes). {0} is the killmails removed so far, {1} how many are to go in all.</comment>
+  </data>
   <data name="RetentionRemovedPriceHistory" xml:space="preserve">
     <value>Removed {0:N0} rows older than {1:N0} days. The file will not get smaller until it is compacted — see Database → Shrink Database.</value>
     <comment>Data Retention tab, Price History status. {0} is the rows removed, {1} the number of days. Database → Shrink Database names the tab and button.</comment>

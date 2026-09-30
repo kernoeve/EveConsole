@@ -40,6 +40,7 @@ public class EntityTabViewModel : ReactiveObject
         OpenItemCommand    = ReactiveCommand.Create<int>(id => NavigateToItemAction?.Invoke(id));
         OpenSystemMapCommand = ReactiveCommand.Create<int>(id => { if (id > 0) NavigateToSystemAction?.Invoke(id); });
         OpenStationCommand   = ReactiveCommand.Create<long>(id => Open(EntityKind.Station, id));
+        LoadMoreKillsCommand = ReactiveCommand.Create(LoadMoreKills);
     }
 
     // ── Search ────────────────────────────────────────────────────────────────
@@ -410,12 +411,28 @@ public class EntityTabViewModel : ReactiveObject
                 this.RaisePropertyChanged(nameof(NoSelection));
                 this.RaisePropertyChanged(nameof(HasDescription));
                 Status = "";
+
+                // A new entity starts its zKillboard pages from nothing — and at once, if its
+                // Kills / Losses tab is the one already open.
+                _zkbFor     = id;
+                _zkbPages   = 0;
+                _zkbOldest  = null;
+                _zkbDone    = false;
+                _zkbStored  = 0;
+                _zkbStarted = false;
+                CanLoadMoreKills  = false;
+                LoadMoreKillsText = MoreKillsText;
+                StartZkbIfWanted();
+
+                ZkbStats       = null;
+                ZkbStatsStatus = HasKills ? "Loading zKillboard stats…" : "";
             });
 
             // Everything below is optional detail — the About pane is already usable, so
             // none of it blocks the others.
             if (detail.ImageUrl is { } url) _ = LoadImageAsync(url, ct);
             _ = EnrichAsync(id, ct);
+            if (HasKills) _ = LoadZkbStatsAsync(id, ct);
             if (HasKills) _ = LoadKillsAsync(id, ct);
             if (HasIntel)   _ = LoadIntelAsync(id, ct);
             if (HasMembers) _ = LoadMembersAsync(id, ct);
@@ -592,10 +609,14 @@ public class EntityTabViewModel : ReactiveObject
             var rows = page.Rows.Select(r => new KillmailListRowVm(r)).ToList();
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                if (ct.IsCancellationRequested) return;
+                // ⚠️ Nor once a zKillboard page is on screen: that list is complete back to its
+                // oldest kill, and this one is only what happened to be stored.
+                if (ct.IsCancellationRequested || _zkbPages > 0) return;
                 Kills.Clear();
                 foreach (var r in rows) Kills.Add(r);
                 _ = Task.WhenAll(rows.Select(r => r.LoadImagesAsync()));
+                // While zKillboard is being asked, its own status stands.
+                if (_zkbBusyFor == id) return;
                 KillsStatus = rows.Count == 0
                     ? CorpText.NoKillmailsForEntity
                     : rows.Count >= EntityBrowserService.MaxDetailRows
@@ -605,6 +626,234 @@ public class EntityTabViewModel : ReactiveObject
         }
         catch (OperationCanceledException) { }
         catch (Exception ex) { KillsStatus = string.Format(CommonText.ErrorWithMessage, ex.Message); }
+    }
+
+    // ── zKillboard stats, in the header ───────────────────────────────────────
+
+    /// <summary>The panel, once zKillboard has answered for the entity on screen.</summary>
+    private ZkbStatsVm? _zkbStats;
+    public ZkbStatsVm? ZkbStats
+    {
+        get => _zkbStats;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _zkbStats, value);
+            this.RaisePropertyChanged(nameof(HasZkbStats));
+        }
+    }
+    public bool HasZkbStats => ZkbStats is not null;
+
+    /// <summary>Loading, why there are none, or "" once the panel is filled.</summary>
+    private string _zkbStatsStatus = "";
+    public string ZkbStatsStatus { get => _zkbStatsStatus; private set => this.RaiseAndSetIfChanged(ref _zkbStatsStatus, value); }
+
+    /// <summary>
+    /// The entity's summary from zKillboard, asked for as it is picked — the header shows on
+    /// every tab, so unlike the kill pages this is not left until a tab opens. One request, kept
+    /// ten minutes by the service. On the entity's token, like everything else it loads.
+    /// </summary>
+    private async Task LoadZkbStatsAsync(long id, CancellationToken ct)
+    {
+        try
+        {
+            var answer = await Task.Run(() => _killmails.ZkbStatsAsync(Kind, id, ct), ct);
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (ct.IsCancellationRequested || _loadedId != id) return;
+                if (answer.Problem is { } problem)
+                {
+                    ZkbStatsStatus = $"{problem}, so there are no stats to show.";
+                    return;
+                }
+                if (answer.Stats is not { } stats)
+                {
+                    ZkbStatsStatus = "zKillboard has no kills or losses for this entity.";
+                    return;
+                }
+                ZkbStats       = new ZkbStatsVm(stats, ZkbUrl(Kind, id));
+                ZkbStatsStatus = "";
+            });
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested) { }
+        catch (Exception ex)
+        {
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (_loadedId == id) ZkbStatsStatus = $"zKillboard stats failed: {ex.Message}";
+            });
+        }
+    }
+
+    private static string ZkbUrl(EntityKind kind, long id) => kind switch
+    {
+        EntityKind.Pilot      => $"https://zkillboard.com/character/{id}/",
+        EntityKind.PlayerCorp => $"https://zkillboard.com/corporation/{id}/",
+        _                     => $"https://zkillboard.com/alliance/{id}/",
+    };
+
+    // ── Kills: everything zKillboard has, a page at a time ────────────────────
+    //
+    // The database holds only the kills something brought in — our own, a feed, a backfill — so
+    // for anyone else it is a sample. zKillboard has them all, 200 to a page, newest first. A
+    // page is pulled and stored when asked for, and the tab then shows every stored kill back to
+    // that page's oldest: complete down to there, since anything this database had that zKillboard
+    // did not is in the same window.
+
+    /// <summary>
+    /// Bound to the Kills / Losses tab. zKillboard is only asked once the tab is open — it is a
+    /// network round trip per page, and most entities are looked at for their About pane.
+    /// </summary>
+    private bool _killsTabSelected;
+    public bool KillsTabSelected
+    {
+        get => _killsTabSelected;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _killsTabSelected, value);
+            if (value) StartZkbIfWanted();
+        }
+    }
+
+    private const string MoreKillsText  = "Load 200 more from zKillboard";
+    private const string RetryKillsText = "Try zKillboard again";
+
+    /// <summary>The Load more button: shown while zKillboard may hold older kills.</summary>
+    private bool _canLoadMoreKills;
+    public bool CanLoadMoreKills { get => _canLoadMoreKills; private set => this.RaiseAndSetIfChanged(ref _canLoadMoreKills, value); }
+
+    private string _loadMoreKillsText = MoreKillsText;
+    public string LoadMoreKillsText { get => _loadMoreKillsText; private set => this.RaiseAndSetIfChanged(ref _loadMoreKillsText, value); }
+
+    public ReactiveCommand<System.Reactive.Unit, System.Reactive.Unit> LoadMoreKillsCommand { get; }
+
+    // Which entity the pages belong to, how many are in, the oldest kill they cover, whether
+    // zKillboard has run out, and how many kills they brought that were not stored before.
+    // Touched on the UI thread only.
+    private long            _zkbFor;
+    private int             _zkbPages;
+    private DateTimeOffset? _zkbOldest;
+    private bool            _zkbDone;
+    private int             _zkbStored;
+    private bool            _zkbStarted;
+
+    /// <summary>The entity a pull is running for, or zero. Per entity, so a pull for the last one
+    /// finishing late cannot mark the new one's as done.</summary>
+    private long _zkbBusyFor;
+
+    /// <summary>The first page, the first time this entity's tab is open — once, so a failure is
+    /// retried from the button rather than on every return to the tab.</summary>
+    private void StartZkbIfWanted()
+    {
+        if (!HasKills || !KillsTabSelected || !HasSelection || _zkbStarted || _zkbFor != _loadedId || _loadedId == 0)
+            return;
+        _zkbStarted = true;
+        _ = PullZkbPageAsync(_loadedId, 1, _cts.Token);
+    }
+
+    private void LoadMoreKills()
+    {
+        if (!HasSelection || _zkbDone || _zkbBusyFor != 0 || _zkbFor != _loadedId) return;
+        _zkbStarted = true;
+        _ = PullZkbPageAsync(_loadedId, _zkbPages + 1, _cts.Token);
+    }
+
+    /// <summary>
+    /// One zKillboard page: pulled, stored, and its window added to the list.
+    ///
+    /// <para>⚠️ On the token of the entity it is for, so choosing another record mid-load cancels
+    /// it — the HTTP call, and the save with it, since nothing is written until the whole page is
+    /// staged. Every write back to the screen checks it is still that record's.</para>
+    /// </summary>
+    private async Task PullZkbPageAsync(long id, int page, CancellationToken ct)
+    {
+        _zkbBusyFor      = id;
+        CanLoadMoreKills = false;
+        KillsStatus      = page == 1
+            ? "Asking zKillboard for the kills not stored here…"
+            : $"{Kills.Count:N0} shown — loading page {page} from zKillboard. A page it has not served "
+            + "lately can take a minute.";
+
+        // Where the last page stopped; page one runs to the present.
+        var previous = _zkbOldest;
+
+        try
+        {
+            // ⚠️ Off the UI thread. A page stages some four thousand rows and SQLite has no real
+            // async I/O, so saving it from here would freeze the window for as long as it took.
+            var (result, rows) = await Task.Run(async () =>
+            {
+                var pulled = await _killmails.PullEntityPageAsync(Kind, id, page, ct);
+                if (!pulled.Reached || pulled.Kills == 0) return (pulled, new List<KillmailListRowVm>());
+
+                // Everything stored in this page's window: the kills it brought, and any this
+                // database held that zKillboard does not.
+                var window = await _killmails.GetListAsync(0, 5_000, entityKind: Kind, entityId: id, ct: ct,
+                    since: pulled.Oldest, before: previous);
+                return (pulled, window.Rows.Select(r => new KillmailListRowVm(r)).ToList());
+            }, ct);
+            if (ct.IsCancellationRequested) return;
+
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (ct.IsCancellationRequested || _loadedId != id || _zkbFor != id) return;
+
+                if (!result.Reached)
+                {
+                    KillsStatus = $"{result.Problem ?? "zKillboard could not be reached"} — "
+                                + (page == 1 ? "so these are only the kills stored here."
+                                             : $"{Kills.Count:N0} shown, page {page} not loaded.");
+                    LoadMoreKillsText = RetryKillsText;
+                    CanLoadMoreKills  = true;
+                    return;
+                }
+
+                LoadMoreKillsText = MoreKillsText;
+                if (result.Kills == 0)
+                {
+                    _zkbDone = true;
+                    CanLoadMoreKills = false;
+                    KillsStatus = page == 1
+                        ? (Kills.Count == 0
+                            ? "No killmails for this entity, here or on zKillboard."
+                            : $"{Kills.Count:N0} stored here; zKillboard has none for this entity.")
+                        : $"{Kills.Count:N0} kills and losses — everything zKillboard has.";
+                    return;
+                }
+
+                _zkbPages   = page;
+                _zkbOldest  = result.Oldest;
+                _zkbStored += result.Stored;
+
+                if (page == 1) Kills.Clear();
+                var shown = Kills.Select(k => k.KillMailId).ToHashSet();
+                var added = rows.Where(r => shown.Add(r.KillMailId)).ToList();
+                foreach (var r in added) Kills.Add(r);
+                _ = Task.WhenAll(added.Select(r => r.LoadImagesAsync()));
+
+                // ⚠️ zKillboard refuses page 101, so the button stops at 100 — saying so, rather
+                // than leaving a reader to wonder where it went.
+                var last = page >= ZkillboardApiClient.MaxEntityPage;
+                CanLoadMoreKills = !last;
+                KillsStatus = $"{Kills.Count:N0} kills and losses back to {result.Oldest!.Value.ToLocalTime():yyyy-MM-dd HH:mm} — "
+                            + $"complete from zKillboard, {_zkbStored:N0} fetched that were not stored here."
+                            + (last ? $" zKillboard serves no further back than this: its page limit is {ZkillboardApiClient.MaxEntityPage}." : "");
+            });
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested) { }
+        catch (Exception ex)
+        {
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                if (_loadedId != id) return;
+                KillsStatus       = $"zKillboard page failed: {ex.Message}";
+                LoadMoreKillsText = RetryKillsText;
+                CanLoadMoreKills  = true;
+            });
+        }
+        finally
+        {
+            await Dispatcher.UIThread.InvokeAsync(() => { if (_zkbBusyFor == id) _zkbBusyFor = 0; });
+        }
     }
 
     private async Task LoadIntelAsync(long id, CancellationToken ct)

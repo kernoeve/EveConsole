@@ -4051,6 +4051,19 @@ public class App : Application
             AutomaticDecompression = System.Net.DecompressionMethods.All,
         });
 
+        // ⚠️ The entity viewer's pages, on a client of their own for the timeout. A page
+        // zKillboard has not served lately is built on request: measured on a large alliance,
+        // page 1 answered in 0.14s and page 10 in 36.7s — past the 30s above, which cut it off
+        // and read as the list simply ending.
+        services.AddHttpClient("zkillboard-pages", client =>
+        {
+            client.DefaultRequestHeaders.Add("User-Agent", "EveConsole/1.0 (https://github.com/kernoeve/EveConsole)");
+            client.Timeout = TimeSpan.FromMinutes(2);
+        }).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+        {
+            AutomaticDecompression = System.Net.DecompressionMethods.All,
+        });
+
         // Services — EsiClient is singleton so it can hold per-character token state
         services.AddSingleton<EsiClient>();
         services.AddSingleton<EsiAuthService>();

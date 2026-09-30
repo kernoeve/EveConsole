@@ -202,6 +202,12 @@ public sealed class ZkillboardBackfillService(
                 : string.Format(DataText.ZkbBackfillImported, imported, days);
             ProgressText = StatusText;
         }
+        catch (ZkillboardApiClient.R2Z2RefusedException ex)
+        {
+            // Logged once by the API client, when the refusals began.
+            StatusText   = $"zKillboard backfill: stopped at {ProgressText} — {ex.Message}";
+            ProgressText = StatusText;
+        }
         catch (Exception ex)
         {
             StatusText   = string.Format(DataText.ZkbBackfillFailed, Truncate(ex.Message));
@@ -272,6 +278,13 @@ public sealed class ZkillboardBackfillService(
             StatusText = localCt.IsCancellationRequested
                 ? string.Format(DataText.ZkbGapFillCancelled, settings.LastFullDay)
                 : string.Format(DataText.ZkbGapFillDone, settings.LastFullDay, imported);
+            ProgressText = StatusText;
+        }
+        catch (ZkillboardApiClient.R2Z2RefusedException ex)
+        {
+            // Logged once by the API client, when the refusals began; the next hourly pass
+            // takes up from the watermark, which only a fetched day moves.
+            StatusText   = $"zKillboard gap-fill: waiting, caught up through {settings.LastFullDay:yyyy-MM-dd} — {ex.Message}";
             ProgressText = StatusText;
         }
         catch (Exception ex)

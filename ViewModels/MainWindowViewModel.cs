@@ -443,64 +443,107 @@ public class MainWindowViewModel : ReactiveObject
     /// timer rather than the clock's, because it costs a query — and off the UI thread, since
     /// SQLite has no real async I/O and awaiting it here would freeze the window.
     /// </summary>
-    private void StartOnlineCharactersWatch(IDbContextFactory<AppDbContext> dbFactory)
+    private void StartOnlineCharactersWatch(IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errorLogger)
     {
-        _ = RefreshOnlineCharactersAsync(dbFactory);
+        _ = RefreshOnlineCharactersAsync(dbFactory, errorLogger);
 
         var timer = new System.Timers.Timer(TimeSpan.FromSeconds(30)) { AutoReset = true };
-        timer.Elapsed += (_, _) => _ = RefreshOnlineCharactersAsync(dbFactory);
+        timer.Elapsed += (_, _) => _ = RefreshOnlineCharactersAsync(dbFactory, errorLogger);
         timer.Start();
     }
 
-    private async Task RefreshOnlineCharactersAsync(IDbContextFactory<AppDbContext> dbFactory)
+    /// <summary>The last failure logged, so one that repeats every thirty seconds is written once.</summary>
+    private string? _onlineCharactersError;
+
+    /// <summary>One of your characters as the header reads it: online or not, and for one who
+    /// is, where and in what — any of which a poll may not have filled in yet. The names are the
+    /// English; the ids are for naming them in the interface language.</summary>
+    internal sealed record OnlineCharacterRow(
+        string Name, bool Online, bool Docked, string? System, string? Place, string? Hull, string? ShipName,
+        int? SolarSystemId = null, long? StationId = null, int? ShipTypeId = null);
+
+    /// <summary>
+    /// Every character with a status row, with names looked up for the ones online.
+    ///
+    /// <para>⚠️ A plain join and then a lookup per name, never correlated left joins. Written as
+    /// "from x in table.Where(matches s).DefaultIfEmpty()" once per name, this needed SQL's
+    /// APPLY, which SQLite does not have: on every SQLite database the query threw, the catch in
+    /// the caller swallowed it, and the header showed a dot with no words beside it. Only
+    /// PostgreSQL, which has APPLY, ever saw it work.</para>
+    /// </summary>
+    internal static async Task<List<OnlineCharacterRow>> ReadOnlineCharactersAsync(
+        AppDbContext db, CancellationToken ct = default)
+    {
+        var statuses = await (
+            from s in db.CharacterStatuses.AsNoTracking()
+            join c in db.Characters.AsNoTracking() on s.CharacterId equals c.Id
+            select new
+            {
+                c.Name, s.Online, s.SolarSystemId, s.StationId, s.StructureId, s.ShipTypeId, s.ShipName,
+            }).ToListAsync(ct);
+
+        // Names only for who is online — nothing else is shown. A character who has just logged
+        // in may not have had a location or ship poll yet, and is still counted.
+        var here = statuses.Where(s => s.Online).ToList();
+        var systemIds    = here.Where(s => s.SolarSystemId is not null).Select(s => s.SolarSystemId!.Value).Distinct().ToList();
+        var shipIds      = here.Where(s => s.ShipTypeId is not null).Select(s => s.ShipTypeId!.Value).Distinct().ToList();
+        var stationIds   = here.Where(s => s.StationId is not null).Select(s => (int)s.StationId!.Value).Distinct().ToList();
+        var structureIds = here.Where(s => s.StructureId is not null).Select(s => s.StructureId!.Value).Distinct().ToList();
+
+        var systems  = await db.SdeSolarSystems.AsNoTracking().Where(x => systemIds.Contains(x.SolarSystemId))
+            .ToDictionaryAsync(x => x.SolarSystemId, x => x.Name, ct);
+        var ships    = await db.SdeTypes.AsNoTracking().Where(x => shipIds.Contains(x.TypeId))
+            .ToDictionaryAsync(x => x.TypeId, x => x.Name, ct);
+        var stations = await db.SdeStations.AsNoTracking().Where(x => stationIds.Contains(x.StationId))
+            .ToDictionaryAsync(x => (long)x.StationId, x => x.Name, ct);
+
+        // The docked place from every table that names one — three for player structures — so a
+        // pilot in a Keepstar reads as being in it rather than merely in its system. The first
+        // table to name it wins, in the order these were always read.
+        var structures = new Dictionary<long, string>();
+        void Name(IEnumerable<(long Id, string Name)> found)
+        {
+            foreach (var (id, name) in found)
+                if (!string.IsNullOrEmpty(name)) structures.TryAdd(id, name);
+        }
+        if (structureIds.Count > 0)
+        {
+            Name((await db.Structures.AsNoTracking().Where(x => structureIds.Contains(x.StructureId))
+                .Select(x => new { x.StructureId, x.Name }).ToListAsync(ct)).Select(x => (x.StructureId, x.Name)));
+            Name((await db.EsiStructureNames.AsNoTracking().Where(x => structureIds.Contains(x.StructureId))
+                .Select(x => new { x.StructureId, x.Name }).ToListAsync(ct)).Select(x => (x.StructureId, x.Name)));
+            Name((await db.EsiCorpStructures.AsNoTracking().Where(x => structureIds.Contains(x.StructureId))
+                .Select(x => new { x.StructureId, x.Name }).ToListAsync(ct)).Select(x => (x.StructureId, x.Name)));
+        }
+
+        return statuses.Select(s => new OnlineCharacterRow(
+            s.Name,
+            s.Online,
+            Docked: s.StationId != null || s.StructureId != null,
+            System: s.SolarSystemId is int sys ? systems.GetValueOrDefault(sys) : null,
+            Place:  s.StationId is long sta && stations.TryGetValue(sta, out var station) ? station
+                  : s.StructureId is long str ? structures.GetValueOrDefault(str) : null,
+            Hull:   s.ShipTypeId is int hull ? ships.GetValueOrDefault(hull) : null,
+            s.ShipName,
+            SolarSystemId: s.SolarSystemId, StationId: s.StationId, ShipTypeId: s.ShipTypeId)).ToList();
+    }
+
+    private async Task RefreshOnlineCharactersAsync(IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errorLogger)
     {
         try
         {
+            // Off the UI thread: SQLite has no real async I/O, and awaiting it here would freeze
+            // the window.
             var rows = await Task.Run(async () =>
             {
                 await using var db = await dbFactory.CreateDbContextAsync();
-
-                // Left joins throughout: a character who has just logged in may not have had a
-                // location or ship poll yet, and should still be counted as online. The docked
-                // place is looked up in every table that names one — the SDE for NPC stations,
-                // three for player structures — so a pilot in a Keepstar reads as being in it
-                // rather than merely in its system.
-                return await (
-                    from s in db.CharacterStatuses.AsNoTracking()
-                    join c in db.Characters.AsNoTracking() on s.CharacterId equals c.Id
-                    from sys in db.SdeSolarSystems.AsNoTracking()
-                        .Where(x => x.SolarSystemId == s.SolarSystemId).DefaultIfEmpty()
-                    from ship in db.SdeTypes.AsNoTracking()
-                        .Where(x => x.TypeId == s.ShipTypeId).DefaultIfEmpty()
-                    from sta in db.SdeStations.AsNoTracking()
-                        .Where(x => (long)x.StationId == s.StationId).DefaultIfEmpty()
-                    from str in db.Structures.AsNoTracking()
-                        .Where(x => x.StructureId == s.StructureId && x.Name != "").DefaultIfEmpty()
-                    from strn in db.EsiStructureNames.AsNoTracking()
-                        .Where(x => x.StructureId == s.StructureId && x.Name != "").DefaultIfEmpty()
-                    from cstr in db.EsiCorpStructures.AsNoTracking()
-                        .Where(x => x.StructureId == s.StructureId && x.Name != "").DefaultIfEmpty()
-                    select new
-                    {
-                        c.Name,
-                        s.Online,
-                        Docked   = s.StationId != null || s.StructureId != null,
-                        s.StationId,
-                        s.SolarSystemId,
-                        System   = sys != null ? sys.Name : null,
-                        Place    = sta  != null ? sta.Name
-                                 : str  != null ? str.Name
-                                 : strn != null ? strn.Name
-                                 : cstr != null ? cstr.Name : null,
-                        s.ShipTypeId,
-                        Hull     = ship != null ? ship.Name : null,
-                        s.ShipName,
-                    }).ToListAsync();
+                return await ReadOnlineCharactersAsync(db);
             });
 
             var online = rows.Where(r => r.Online).OrderBy(r => r.Name).ToList();
 
-            var text = string.Format(ShellText.OnlineOfTotal, online.Count, rows.Count);
+            // Nobody on is worth saying in words: "0 of 24 Online" makes the reader do the sum.
+            var text = online.Count > 0 ? string.Format(ShellText.OnlineOfTotal, online.Count, rows.Count) : "No Characters Online";
 
             var list = online.Select(r =>
             {
@@ -533,10 +576,18 @@ public class MainWindowViewModel : ReactiveObject
                 OnlineCharacters      = list;
                 OnlineCharactersColor = online.Count > 0 ? Palette.Good : Palette.BorderStrong;
             });
+            _onlineCharactersError = null;
         }
-        catch
+        catch (Exception ex)
         {
-            // A header ornament must never be the thing that takes the window down.
+            // A header ornament must never be the thing that takes the window down — but it must
+            // not fail in silence either: this one was broken on SQLite with nothing to show for
+            // it. Logged once per distinct failure, not every thirty seconds.
+            if (ex.Message != _onlineCharactersError)
+            {
+                _onlineCharactersError = ex.Message;
+                errorLogger.Log(nameof(MainWindowViewModel), "online characters", ex);
+            }
         }
     }
 
@@ -1205,7 +1256,7 @@ public class MainWindowViewModel : ReactiveObject
         AgentVm = new AgentPanelViewModel(agentService, ttsService, speechInputService, hotkeyService);
 
         StartEveTimeClock();
-        StartOnlineCharactersWatch(dbFactory);
+        StartOnlineCharactersWatch(dbFactory, errorLogger);
         BindAlarmLight(alarmService, workerActivity);
 
         // The status bar's lines on the background processes, once a second whatever tab is
