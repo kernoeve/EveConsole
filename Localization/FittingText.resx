@@ -240,6 +240,14 @@
     <value>{0} fit</value>
     <comment>Fitting tool: the name offered when a fit with no name is saved. {0} is the hull's name (a ship type).</comment>
   </data>
+  <data name="GameFitDescription" xml:space="preserve">
+    <value>Saved from EVE Console</value>
+    <comment>Written into the game as the description of a fitting saved from the fitting tool; the player reads it in the game client's fitting window. Keep "EVE Console" (the app's name) as it is.</comment>
+  </data>
+  <data name="GameFitNoName" xml:space="preserve">
+    <value>Fit</value>
+    <comment>Written into the game as the name of a fitting saved with no name of its own (rare: a name is normally offered first). One short word.</comment>
+  </data>
   <data name="CopyEft" xml:space="preserve">
     <value>Copy EFT</value>
     <comment>Fitting tool, above a fit: button — copies the fit to the clipboard as EFT text. EFT is the name of the fitting text format: keep it. Short.</comment>

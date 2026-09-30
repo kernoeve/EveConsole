@@ -1400,8 +1400,9 @@ public class FitTabViewModel : ReactiveObject
 
     private long? _lastSavedToApp;
 
-    // English: the description a fitting saved from here carries in the game.
-    private const string GameDescription = "Saved from EVE Console";
+    // The description a fitting saved from here carries in the game, where the player reads it:
+    // in the interface language, like the fit's name.
+    private static string GameDescription => FittingText.GameFitDescription;
 
     /// <summary>Saves as a new fitting on <paramref name="characterId"/>.</summary>
     private async Task<bool> SaveToGameAsync(long characterId)

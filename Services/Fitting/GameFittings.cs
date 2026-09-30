@@ -92,8 +92,8 @@ public static class GameFittings
     public static async Task<(int? FittingId, string? Error)> CreateAsync(EsiClient esi, long characterId, FitDefinition fit,
         DogmaData data, string description, CancellationToken ct = default)
     {
-        // English: the name of a fitting with none, written into the game.
-        var name = fit.Name.Trim().Length > 0 ? fit.Name.Trim() : "Fit";
+        // The name of a fitting with none, written into the game for the player to read.
+        var name = fit.Name.Trim().Length > 0 ? fit.Name.Trim() : FittingText.GameFitNoName;
         var body = new EsiFittingCreate(name.Length > MaxName ? name[..MaxName] : name,
             description.Length > MaxDescription ? description[..MaxDescription] : description,
             fit.ShipTypeId, ToItems(fit, data, out _));
