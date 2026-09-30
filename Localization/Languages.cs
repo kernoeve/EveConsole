@@ -90,27 +90,27 @@ public static class Languages
     public static IReadOnlyList<UiLanguage> All { get; } =
     [
         English,
-        new("zh-Hans", "简体中文", "Chinese (Simplified)", Preview: true,
+        new("zh-Hans", "简体中文", "Chinese (Simplified)", Preview: false,
         [
             "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB",
             "Noto Sans CJK SC", "Noto Sans SC", "Source Han Sans SC", "WenQuanYi Micro Hei",
         ]),
         // Latin, which the bundled Inter covers: no fallback list needed.
-        new("de", "Deutsch", "German", Preview: true, []),
-        new("es", "Español", "Spanish", Preview: true, []),
-        new("fr", "Français", "French", Preview: true, []),
-        new("ja", "日本語", "Japanese", Preview: true,
+        new("de", "Deutsch", "German", Preview: false, []),
+        new("es", "Español", "Spanish", Preview: false, []),
+        new("fr", "Français", "French", Preview: false, []),
+        new("ja", "日本語", "Japanese", Preview: false,
         [
             "Yu Gothic UI", "Meiryo UI", "Meiryo", "Hiragino Sans", "Hiragino Kaku Gothic ProN",
             "Noto Sans CJK JP", "Noto Sans JP", "Source Han Sans JP", "IPAexGothic",
         ]),
-        new("ko", "한국어", "Korean", Preview: true,
+        new("ko", "한국어", "Korean", Preview: false,
         [
             "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans CJK KR", "Noto Sans KR",
             "Source Han Sans KR", "NanumGothic",
         ]),
         // Cyrillic, which the bundled Inter covers.
-        new("ru", "Русский", "Russian", Preview: true, []),
+        new("ru", "Русский", "Russian", Preview: false, []),
     ];
 
     /// <summary>The language in force for this run.</summary>
