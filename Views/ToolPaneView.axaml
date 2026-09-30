@@ -1,0 +1,261 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:views="clr-namespace:EveConsole.Views"
+             x:Class="EveConsole.Views.ToolPaneView"
+             x:DataType="vm:ToolPane">
+
+  <!-- One side of the main window: its tab strip, and the tool showing. -->
+  <Grid RowDefinitions="Auto,1,*">
+
+    <!-- Tab strip -->
+    <Panel Grid.Row="0">
+      <Border x:Name="Strip" Background="{DynamicResource SurfaceBaseBrush}" Classes.dimmed="{Binding IsDimmed}">
+        <!-- ⚠️ Horizontal scrolling is DISABLED below, and that is what makes the wrapping
+             work rather than merely permitting it: a WrapPanel inside a scroller that offers
+             horizontal scrolling is measured with infinite width, so it never meets an edge to
+             wrap at and lays every tab out on one line regardless. -->
+        <ListBox x:Name="TabStrip"
+                 ItemsSource="{Binding Tabs}"
+                 SelectedItem="{Binding SelectedTab}"
+                 Background="Transparent" BorderThickness="0" Padding="0"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
+          <ListBox.Styles>
+            <!-- Descendant selectors must be outside ControlTheme -->
+            <Style Selector="ListBoxItem:selected TextBlock">
+              <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+            </Style>
+            <Style Selector="ListBoxItem:pointerover TextBlock">
+              <Setter Property="Foreground" Value="{DynamicResource WarnBrush}" />
+            </Style>
+            <!-- With two sides, the one not being worked in marks its selected tab more quietly. -->
+            <Style Selector="Border.dimmed ListBoxItem:selected">
+              <Setter Property="BorderBrush" Value="{DynamicResource BorderStrongBrush}" />
+            </Style>
+            <Style Selector="Border.dimmed ListBoxItem:selected TextBlock">
+              <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+            </Style>
+          </ListBox.Styles>
+          <ListBox.ItemContainerTheme>
+            <ControlTheme TargetType="ListBoxItem">
+              <Setter Property="Padding"         Value="0" />
+              <Setter Property="Margin"          Value="0" />
+              <Setter Property="Background"      Value="Transparent" />
+              <Setter Property="BorderThickness" Value="0 0 0 2" />
+              <Setter Property="BorderBrush"     Value="Transparent" />
+              <Setter Property="CornerRadius"    Value="0" />
+              <Setter Property="Template">
+                <ControlTemplate>
+                  <Border Background="{TemplateBinding Background}"
+                          BorderBrush="{TemplateBinding BorderBrush}"
+                          BorderThickness="{TemplateBinding BorderThickness}"
+                          CornerRadius="{TemplateBinding CornerRadius}">
+                    <ContentPresenter Content="{TemplateBinding Content}"
+                                      ContentTemplate="{TemplateBinding ContentTemplate}" />
+                  </Border>
+                      </ControlTemplate>
+                    </Setter>
+                    <Style Selector="^:selected">
+                      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                    </Style>
+                  </ControlTheme>
+                </ListBox.ItemContainerTheme>
+  <!-- Tabs wrap onto a second row rather than scrolling. The strip was a horizontal
+                     StackPanel in a scroller, so opening more tabs than fit put a scrollbar across
+                     the bottom of them — which covers the tabs it exists to reach. The row is Auto
+                     height, so the strip grows and the content below simply starts lower. -->
+                <ListBox.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <WrapPanel Orientation="Horizontal" />
+                  </ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
+                <ListBox.ItemTemplate>
+                  <DataTemplate x:DataType="vm:ToolTab" x:CompileBindings="False">
+                    <StackPanel Orientation="Horizontal" Spacing="0"
+                                PointerPressed="OnTabPointerPressed"
+                                PointerMoved="OnTabPointerMoved"
+                                PointerReleased="OnTabPointerReleased">
+                      <TextBlock Text="{Binding Title}" FontSize="12" Foreground="{DynamicResource TextDimBrush}"
+                                 Padding="14 8 4 8" VerticalAlignment="Center" />
+                      <Button IsVisible="{Binding CanClose}"
+                              x:CompileBindings="False"
+                              Command="{Binding $parent[Window].DataContext.CloseTabCommand}"
+                              CommandParameter="{Binding}"
+                              Content="×" FontSize="13"
+                              Background="Transparent" BorderThickness="0"
+                              Foreground="{DynamicResource BorderStrongBrush}" Padding="2 6 8 6"
+                              VerticalAlignment="Center" Cursor="Hand">
+                        <Button.Styles>
+                          <Style Selector="Button:pointerover /template/ ContentPresenter">
+                            <Setter Property="Background" Value="Transparent" />
+                          </Style>
+                          <Style Selector="Button:pointerover">
+                            <Setter Property="Foreground" Value="{DynamicResource BadBrush}" />
+                          </Style>
+                        </Button.Styles>
+                      </Button>
+                    </StackPanel>
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+      </Border>
+      <!-- Where a dragged tab would land. -->
+      <Canvas IsHitTestVisible="False">
+        <Border x:Name="DropMark" Width="2" Background="{DynamicResource AccentBrush}" IsVisible="False" />
+      </Canvas>
+    </Panel>
+
+    <!-- Tab strip / content divider -->
+    <Rectangle Grid.Row="1" Fill="{DynamicResource SurfaceHoverBrush}" />
+
+    <!-- The tool on this side -->
+    <ContentControl x:Name="PaneContent"
+                    Grid.Row="2"
+                    Content="{Binding SelectedTab.ViewModel}">
+      <ContentControl.DataTemplates>
+        <DataTemplate DataType="vm:OverviewViewModel">
+          <views:CharacterView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:CharacterViewModel">
+          <views:CharacterView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:CharacterViewerViewModel">
+          <views:CharacterViewerView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:AssetBrowserViewModel">
+          <views:AssetBrowserView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:ItemBrowserViewModel">
+          <views:ItemBrowserView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:IndustryBrowserViewModel">
+          <views:IndustryBrowserView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:IndyParksViewModel">
+          <views:IndyParksView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:ProductionCalculatorViewModel">
+          <views:ProductionCalculatorView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:FittingViewModel">
+          <views:FittingView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:PriceOverrideViewModel">
+          <views:PriceOverrideView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:StructureBrowserViewModel">
+          <views:StructureBrowserView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:UniverseViewModel">
+          <views:UniverseView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:AlarmsViewModel">
+          <views:AlarmsView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:SchedulerViewModel">
+          <views:SchedulerView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:JumpPlannerViewModel">
+          <views:JumpPlannerView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:MarketLevelViewModel">
+          <views:MarketLevelView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:InvLevelViewModel">
+          <views:InvLevelView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:SalePostingViewModel">
+          <views:SalePostingView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:StoresViewModel">
+          <views:StoresView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:TradeOpportunitiesViewModel">
+          <views:TradeOpportunitiesView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:IndustryOpportunitiesViewModel">
+          <views:IndustryOpportunitiesView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:NetWorthViewModel">
+          <views:NetWorthView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:IncomeExpenseViewModel">
+          <views:IncomeExpenseView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:WalletViewModel">
+          <views:WalletView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:ContractsViewModel">
+          <views:ContractsView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:MarketViewerViewModel">
+          <views:MarketViewerView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:SalesTrackerViewModel">
+          <views:SalesTrackerView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:SaleListingViewModel">
+          <views:SaleListingView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:OrderTrackerViewModel">
+          <views:OrderTrackerView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:CorpActivityViewModel">
+          <views:CorpActivityView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:KillmailBrowserViewModel">
+          <views:KillmailBrowserView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:EveMailViewModel">
+          <views:EveMailView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:NotificationsViewModel">
+          <views:NotificationsView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:EsiExplorerViewModel">
+          <views:EsiExplorerView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:ErrorLogViewModel">
+          <views:ErrorLogView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:AgentUsageViewModel">
+          <views:AgentUsageView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:AgentGridViewModel">
+          <views:AgentGridView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:AgentDocumentViewModel">
+          <views:AgentDocumentView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:StandingBuyOrdersViewModel">
+          <views:StandingBuyOrdersView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:WorklistViewModel">
+          <views:WorklistView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:LpMarketValuesViewModel">
+          <views:LpMarketValuesView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:ApiActivityViewModel">
+          <views:BackgroundProcessesView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:ItemValuationViewModel">
+          <views:ItemValuationView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:PlayerEntitiesViewModel">
+          <views:PlayerEntitiesView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:NpcEntitiesViewModel">
+          <views:NpcEntitiesView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:GameLogViewerViewModel">
+          <views:GameLogViewerView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:ChatLogViewerViewModel">
+          <views:ChatLogViewerView />
+        </DataTemplate>
+      </ContentControl.DataTemplates>
+    </ContentControl>
+  </Grid>
+</UserControl>

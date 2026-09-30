@@ -160,6 +160,12 @@
   <data name="TabUniverse" xml:space="preserve">
     <value>Univers</value>
   </data>
+  <data name="DropToSplit" xml:space="preserve">
+    <value>Déposer ici pour afficher deux outils côte à côte</value>
+  </data>
+  <data name="DropToDetach" xml:space="preserve">
+    <value>Relâcher pour l'ouvrir dans sa propre fenêtre</value>
+  </data>
   <data name="TabAlarms" xml:space="preserve">
     <value>Alarmes</value>
   </data>

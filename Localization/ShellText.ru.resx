@@ -160,6 +160,12 @@
   <data name="TabUniverse" xml:space="preserve">
     <value>Вселенная</value>
   </data>
+  <data name="DropToSplit" xml:space="preserve">
+    <value>Перетащите сюда, чтобы видеть два инструмента рядом</value>
+  </data>
+  <data name="DropToDetach" xml:space="preserve">
+    <value>Отпустите, чтобы открыть в отдельном окне</value>
+  </data>
   <data name="TabAlarms" xml:space="preserve">
     <value>Тревоги</value>
   </data>

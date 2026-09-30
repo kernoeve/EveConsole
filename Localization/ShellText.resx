@@ -184,6 +184,14 @@
     <value>Universe</value>
     <comment>Tab title for the Universe Map.</comment>
   </data>
+  <data name="DropToSplit" xml:space="preserve">
+    <value>Drop here to see two tools side by side</value>
+    <comment>Main window: shown over the right half of the window while a tab is dragged; dropping the tab there splits the window in two, one tool per half.</comment>
+  </data>
+  <data name="DropToDetach" xml:space="preserve">
+    <value>Release to open in its own window</value>
+    <comment>Main window: shown over a tool while its tab is dragged down into it; letting go there opens the tool in a window of its own.</comment>
+  </data>
   <data name="TabAlarms" xml:space="preserve">
     <value>Alarms</value>
     <comment>User-defined alarms (undocks, notifications, and so on).</comment>

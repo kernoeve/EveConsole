@@ -160,6 +160,12 @@
   <data name="TabUniverse" xml:space="preserve">
     <value>星图</value>
   </data>
+  <data name="DropToSplit" xml:space="preserve">
+    <value>拖放到此处以并排查看两个工具</value>
+  </data>
+  <data name="DropToDetach" xml:space="preserve">
+    <value>松开以在单独的窗口中打开</value>
+  </data>
   <data name="TabAlarms" xml:space="preserve">
     <value>警报</value>
   </data>

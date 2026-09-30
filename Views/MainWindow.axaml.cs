@@ -39,7 +39,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     private ProductionCalculatorWindow?  _productionCalculatorWindow;
     private FittingWindow?               _fittingWindow;
 
-    // Tab drag-to-detach state
+    // Tab drag state
     private PointerPressedEventArgs? _tabDragPressArgs;
     private ToolTab?                 _tabBeingDragged;
     private bool                     _isDraggingTab;
@@ -54,6 +54,12 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         // the ordinary copy. The database is named in the title bar's own hover; this is for
         // telling two windows apart before reading either.
         if (AppConfig.ProfileName is { } profile) Title = $"EVE Console — {profile}";
+
+        // Two halves while the right side holds a tab, one side otherwise.
+        this.GetObservable(DataContextProperty)
+            .Select(dc => dc is MainWindowViewModel vm ? vm.WhenAnyValue(x => x.IsSplit) : Observable.Return(false))
+            .Switch()
+            .Subscribe(split => Sides.ColumnDefinitions[1].Width = split ? new GridLength(1, GridUnitType.Star) : new GridLength(0));
     }
 
     protected override void OnOpened(EventArgs e)
@@ -771,7 +777,22 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         DetachToolInWindow(vm, tab);
     }
 
-    // ── Tab drag-to-detach ────────────────────────────────────────────────────
+    // ── Tab dragging: along a strip, to the other side, to split, or out to a window ──
+
+    /// <summary>
+    /// How far a tab must move before a press becomes a drag — far enough that a click on a tab
+    /// never moves it.
+    /// </summary>
+    private const double TabDragStart = 6;
+
+    /// <summary>
+    /// How far down into its own side a tab must be dragged to be taken out into a window of its
+    /// own. Dragging it out of the main window does the same, but a maximised window has no
+    /// outside to drag to.
+    /// </summary>
+    private const double TabDetachDepth = 90;
+
+    private Point _tabDragStart;
 
     internal void OnTabPointerPressed(object? sender, PointerPressedEventArgs e)
     {
@@ -779,39 +800,140 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         _tabDragPressArgs = e;
         _isDraggingTab    = false;
         _tabBeingDragged  = (sender as Control)?.DataContext as ToolTab;
+        _tabDragStart     = e.GetPosition(this);
     }
 
     internal void OnTabPointerMoved(object? sender, PointerEventArgs e)
     {
-        if (_tabDragPressArgs is null || _isDraggingTab) return;
-        if (!e.GetCurrentPoint(sender as Control).Properties.IsLeftButtonPressed)
+        if (_tabDragPressArgs is null || _tabBeingDragged is not { } tab || DataContext is not MainWindowViewModel vm) return;
+        if (!e.GetCurrentPoint(sender as Control).Properties.IsLeftButtonPressed) { EndTabDrag(vm); return; }
+
+        var at = e.GetPosition(this);
+        if (!_isDraggingTab)
         {
-            _tabDragPressArgs = null; _tabBeingDragged = null; return;
+            var d = at - _tabDragStart;
+            if (Math.Abs(d.X) < TabDragStart && Math.Abs(d.Y) < TabDragStart) return;
+            _isDraggingTab   = true;
+            vm.IsDraggingTab = true;
+            // The split zone covers the right half of the content, below the tabs.
+            SplitDropZone.Margin = new Thickness(0, LeftSide.StripBounds(SidesArea).Height + 1, 0, 0);
         }
 
-        var ctrl  = sender as Control;
-        var delta = e.GetPosition(ctrl) - _tabDragPressArgs.GetPosition(ctrl);
-        if (Math.Abs(delta.Y) < 24) return;
-
-        _isDraggingTab = true;
-        var pressArgs  = _tabDragPressArgs;
-        var dragTab    = _tabBeingDragged;
-        _tabDragPressArgs = null; _tabBeingDragged = null;
-
-        if (DataContext is not MainWindowViewModel vm || dragTab is null) return;
-
-        var screenPt = this.PointToScreen(e.GetPosition(this));
-        var win      = DetachToolInWindow(vm, dragTab);
-        if (win is null) return;
-
-        win.Position = new PixelPoint(screenPt.X - 200, screenPt.Y - 15);
-        win.BeginMoveDrag(pressArgs);
+        // Out of the main window: into a window of its own, which follows the pointer from here.
+        if (OutsideWindow(at) && Detachable.Contains(tab.Id))
+        {
+            var press = _tabDragPressArgs;
+            EndTabDrag(vm);
+            var screen = this.PointToScreen(at);
+            if (DetachToolInWindow(vm, tab) is { } win)
+            {
+                win.Position = new PixelPoint(screen.X - 200, screen.Y - 15);
+                win.BeginMoveDrag(press);
+            }
+            return;
+        }
+        ShowTabDropTarget(vm, tab, at);
     }
 
     internal void OnTabPointerReleased(object? sender, PointerReleasedEventArgs e)
     {
-        _tabDragPressArgs = null; _tabBeingDragged = null; _isDraggingTab = false;
+        if (DataContext is not MainWindowViewModel vm) return;
+        var at = e.GetPosition(this);
+        if (_isDraggingTab && _tabBeingDragged is { } tab)
+        {
+            if (TabDropTarget(vm, tab, at) is { } target)
+                vm.MoveTab(tab, target.Pane, target.Index);
+            else if (DetachArea(vm, tab) is { } area && area.Contains(this.TranslatePoint(at, SidesArea) ?? at))
+            {
+                EndTabDrag(vm);
+                var screen = this.PointToScreen(at);
+                if (DetachToolInWindow(vm, tab) is { } win) win.Position = new PixelPoint(screen.X - 200, screen.Y - 15);
+                return;
+            }
+        }
+        EndTabDrag(vm);
     }
+
+    private void EndTabDrag(MainWindowViewModel vm)
+    {
+        _tabDragPressArgs = null; _tabBeingDragged = null; _isDraggingTab = false;
+        vm.IsDraggingTab = false;
+        LeftSide.HideDropMark();
+        RightSide.HideDropMark();
+        DetachHint.IsVisible = false;
+    }
+
+    private ToolPaneView SideOf(ToolPane pane) => pane.IsRight ? RightSide : LeftSide;
+
+    private bool OutsideWindow(Point at) => at.X < 0 || at.Y < 0 || at.X > Bounds.Width || at.Y > Bounds.Height;
+
+    /// <summary>
+    /// Where letting go of a tab opens its tool in a window of its own: well down into the tab's
+    /// own side, clear of the split zone — the other places a tab can go. Only acted on when the
+    /// tab is let go, so a drag passing through on its way to the right half does not trip it.
+    /// Null for a tool with no window of its own.
+    /// </summary>
+    private Rect? DetachArea(MainWindowViewModel vm, ToolTab tab)
+    {
+        if (!Detachable.Contains(tab.Id) || vm.PaneOf(tab) is not { } from) return null;
+        var content = SideOf(from).ContentBounds(SidesArea);
+        var width   = vm.ShowSplitDropZone ? content.Width / 2 : content.Width;
+        return new Rect(content.Left, content.Top + TabDetachDepth, width, Math.Max(0, content.Height - TabDetachDepth));
+    }
+
+    private Rect SplitZoneBounds() =>
+        SplitDropZone.TranslatePoint(default, SidesArea) is { } p ? new Rect(p, SplitDropZone.Bounds.Size) : default;
+
+    /// <summary>
+    /// Where a tab dropped at <paramref name="at"/> goes: the split zone (the right side), a strip
+    /// (at a place along it), or the other side's tool (the end of its strip). Null for nowhere —
+    /// its own side's tool, below its strip.
+    /// </summary>
+    private (ToolPane Pane, int? Index)? TabDropTarget(MainWindowViewModel vm, ToolTab tab, Point at)
+    {
+        var p = this.TranslatePoint(at, SidesArea) ?? at;
+        foreach (var side in vm.IsSplit ? new[] { LeftSide, RightSide } : new[] { LeftSide })
+            if (side.Pane is { } pane && side.StripBounds(SidesArea).Contains(p))
+                return (pane, side.InsertIndexAt(p, SidesArea));
+        if (vm.ShowSplitDropZone && SplitZoneBounds().Contains(p)) return (vm.RightPane, null);
+        if (vm.IsSplit)
+            foreach (var side in new[] { LeftSide, RightSide })
+                if (side.Pane is { } pane && pane != vm.PaneOf(tab) && side.ContentBounds(SidesArea).Contains(p))
+                    return (pane, null);
+        return null;
+    }
+
+    private void ShowTabDropTarget(MainWindowViewModel vm, ToolTab tab, Point at)
+    {
+        var target = TabDropTarget(vm, tab, at);
+        // Over the place letting go would take the tool out to a window of its own: say so.
+        if (target is null && DetachArea(vm, tab) is { } area && area.Contains(this.TranslatePoint(at, SidesArea) ?? at))
+        {
+            DetachHint.Margin = new Thickness(area.Left, area.Top, 0, 0);
+            DetachHint.Width  = area.Width;
+            DetachHint.Height = area.Height;
+            DetachHint.IsVisible = true;
+        }
+        else DetachHint.IsVisible = false;
+        foreach (var side in new[] { LeftSide, RightSide })
+        {
+            if (target is { } t && side.Pane == t.Pane && !(vm.ShowSplitDropZone && t.Pane.IsRight))
+                side.ShowDropMark(t.Index ?? t.Pane.Tabs.Count);
+            else side.HideDropMark();
+        }
+    }
+
+    /// <summary>The tools that have a window of their own to be taken out into.</summary>
+    private static readonly HashSet<string> Detachable =
+    [
+        "characters", "assets", "industry", "items", "data", "corp_activity", "killmails", "eve_mail",
+        "wallet", "net_worth", "inv_levels", "market_levels", "trade", "industry_opps", "indy_parks",
+        "prod_calc", "fitting",
+    ];
+
+    /// <summary>The tool on the side being worked in — what "the current tab" is for a screenshot.</summary>
+    private Control ActiveContent =>
+        (DataContext as MainWindowViewModel)?.ActivePane.IsRight == true ? RightSide.ContentArea : LeftSide.ContentArea;
 
     private Window? DetachToolInWindow(MainWindowViewModel vm, ToolTab tab)
     {
@@ -900,7 +1022,12 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
         // By the Tool Reference's names, like the tab on screen: a tab's title is in the interface
         // language, and this is read by the model.
-        var otherTabs = vm.OpenTabs.Where(t => !ReferenceEquals(t, active)).Select(t => OnScreenName(t) ?? t.Title).ToList();
+        // Split, the other half of the window shows a second tool — on screen too, but not the one
+        // being worked in.
+        var beside = vm.OtherSideTab;
+        if (beside is not null)
+            sb.AppendLine($"Also on screen, beside it in the other half of the window: {OnScreenName(beside) ?? beside.Title}.");
+        var otherTabs = vm.OpenTabs.Where(t => !ReferenceEquals(t, active) && !ReferenceEquals(t, beside)).Select(t => OnScreenName(t) ?? t.Title).ToList();
         if (otherTabs.Count > 0)
             sb.AppendLine($"Other tabs open behind it (not on screen): {string.Join(", ", otherTabs)}");
 
@@ -939,7 +1066,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                     "characters" when _characterViewerWindow?.IsVisible == true  => _characterViewerWindow,
                     "items"      when _itemBrowserWindow?.IsVisible == true      => _itemBrowserWindow,
                     "data"       when _explorerWindow?.IsVisible == true         => _explorerWindow,
-                    _                                                             => MainContent,
+                    _                                                             => ActiveContent,
                 };
 
                 if (target is null) return ((byte[]?)null, "Target not found.");
