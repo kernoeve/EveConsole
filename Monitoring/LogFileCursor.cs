@@ -30,10 +30,14 @@ public static class LogFileCursor
     /// when the share is busiest. Passing the date as a wildcard makes the filesystem (or the
     /// SMB server) do the filtering and returns single digits of entries.</para>
     ///
-    /// <para>EVE names log files <c>&lt;name&gt;_yyyyMMdd_HHmmss[_charId].txt</c>. Yesterday is
-    /// included as well as today so a tail window that crosses midnight is not cut off, and both
-    /// the local and the UTC date are tried because the two importers do not agree on which the
-    /// client uses. Write time is still checked afterwards — by then it costs nothing.</para>
+    /// <para>EVE names chat logs <c>&lt;channel&gt;_yyyyMMdd_HHmmss[_charId].txt</c> and game logs
+    /// <c>yyyyMMdd_HHmmss[_charId].txt</c> — the date first, with nothing before it — so both
+    /// shapes are asked for. ⚠️ Only the chat shape was, from 2026-08-11 until 2026-10-01, and
+    /// it matches no game log at all: the game-log tail found nothing every pass and said so to
+    /// nobody, while the chat tail worked. Yesterday is included as well as today so a tail
+    /// window that crosses midnight is not cut off, and both the local and the UTC date are
+    /// tried because the two importers do not agree on which the client uses. Write time is
+    /// still checked afterwards — by then it costs nothing.</para>
     ///
     /// <para>History imports must keep enumerating the folder in full: they exist precisely to
     /// reach files this does not return.</para>
@@ -45,9 +49,10 @@ public static class LogFileCursor
         var files = new List<FileInfo>();
 
         foreach (var stamp in DateStamps())
-            foreach (var f in info.EnumerateFiles($"*_{stamp}_*.txt"))
-                if (f.LastWriteTimeUtc >= cutoffUtc && seen.Add(f.FullName))
-                    files.Add(f);
+            foreach (var pattern in new[] { $"*_{stamp}_*.txt", $"{stamp}_*.txt" })
+                foreach (var f in info.EnumerateFiles(pattern))
+                    if (f.LastWriteTimeUtc >= cutoffUtc && seen.Add(f.FullName))
+                        files.Add(f);
 
         return files;
     }
