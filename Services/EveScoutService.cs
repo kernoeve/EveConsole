@@ -24,6 +24,9 @@ public sealed class EveScoutService(
     public const string BaseUrl = "https://api.eve-scout.com/";
     private static readonly TimeSpan Interval = TimeSpan.FromMinutes(5);
 
+    /// <summary>Whether the list is read at all (Settings → Map Data).</summary>
+    public bool Enabled => settings.EveScoutEnabled;
+
     /// <summary>Raised after the stored list changed — read, or cleared.</summary>
     public event Action? Changed;
 

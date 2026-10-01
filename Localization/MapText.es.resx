@@ -1988,4 +1988,40 @@ Sin sistema capital, así que sin zona</value>
   <data name="ColKillsHour" xml:space="preserve">
     <value>Muertes (1 h)</value>
   </data>
+  <data name="WormholesToggle" xml:space="preserve">
+    <value>Thera / Turnur</value>
+  </data>
+  <data name="TipWormholesToggle" xml:space="preserve">
+    <value>Mostrar las conexiones de Thera y Turnur, según EVE-Scout</value>
+  </data>
+  <data name="LegendWormholes" xml:space="preserve">
+    <value>Agujero de gusano a Thera (Θ) o Turnur (T); líneas discontinuas desde Turnur. Pasa el ratón para ver las firmas.</value>
+  </data>
+  <data name="ShipSizeCapital" xml:space="preserve">
+    <value>Capital</value>
+  </data>
+  <data name="HoleTitle" xml:space="preserve">
+    <value>Agujeros de gusano en {0}</value>
+  </data>
+  <data name="HoleLine" xml:space="preserve">
+    <value>{0}: {1} aquí, {2} al otro lado · hasta {3} · {4}</value>
+  </data>
+  <data name="HoleHubTitle" xml:space="preserve">
+    <value>Agujeros de gusano desde {0}: {1}</value>
+  </data>
+  <data name="HoleHubLine" xml:space="preserve">
+    <value>{0} ({1}): {2} aquí, {3} al otro lado · hasta {4} · {5}</value>
+  </data>
+  <data name="HoleRegionTitle" xml:space="preserve">
+    <value>Agujeros de Thera y Turnur en {0}</value>
+  </data>
+  <data name="HoleRegionLine" xml:space="preserve">
+    <value>{0} — {1}</value>
+  </data>
+  <data name="HoleHoursLeft" xml:space="preserve">
+    <value>quedan {0} h</value>
+  </data>
+  <data name="HoleUnderHour" xml:space="preserve">
+    <value>queda menos de una hora</value>
+  </data>
 </root>

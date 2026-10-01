@@ -1946,4 +1946,40 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   <data name="ColKillsHour" xml:space="preserve">
     <value>撃墜(1時間)</value>
   </data>
+  <data name="WormholesToggle" xml:space="preserve">
+    <value>Thera / Turnur</value>
+  </data>
+  <data name="TipWormholesToggle" xml:space="preserve">
+    <value>EVE-Scoutが掲載しているTheraとTurnurの接続を表示</value>
+  </data>
+  <data name="LegendWormholes" xml:space="preserve">
+    <value>Thera(Θ)またはTurnur(T)へのワームホール。Turnurからは破線。カーソルを合わせるとシグネチャを表示。</value>
+  </data>
+  <data name="ShipSizeCapital" xml:space="preserve">
+    <value>主力艦</value>
+  </data>
+  <data name="HoleTitle" xml:space="preserve">
+    <value>{0}のワームホール</value>
+  </data>
+  <data name="HoleLine" xml:space="preserve">
+    <value>{0}: こちら{1}、向こう側{2} · 最大{3} · {4}</value>
+  </data>
+  <data name="HoleHubTitle" xml:space="preserve">
+    <value>{0}からのワームホール: {1}</value>
+  </data>
+  <data name="HoleHubLine" xml:space="preserve">
+    <value>{0}({1}): こちら{2}、向こう側{3} · 最大{4} · {5}</value>
+  </data>
+  <data name="HoleRegionTitle" xml:space="preserve">
+    <value>{0}のTheraとTurnurのワームホール</value>
+  </data>
+  <data name="HoleRegionLine" xml:space="preserve">
+    <value>{0} — {1}</value>
+  </data>
+  <data name="HoleHoursLeft" xml:space="preserve">
+    <value>残り{0}時間</value>
+  </data>
+  <data name="HoleUnderHour" xml:space="preserve">
+    <value>残り1時間未満</value>
+  </data>
 </root>

@@ -1129,7 +1129,7 @@ public class MainWindowViewModel : ReactiveObject
             universeMapService, mapStatsService, appPrefs, NewSystemPage,
             new LiveIntelService(dbFactory, corpActivityService), errorLogger, jumpBridges,
             new RoutePlannerService(dbFactory, systemGraph, jumpBridges, esi, eveScout),
-            JumpPlannerVm, dbFactory);
+            JumpPlannerVm, dbFactory, eveScout);
         AlarmsVm               = new AlarmsViewModel(dbFactory, alarmService, alarmSounds, alarmMute);
         SchedulerVm            = new SchedulerViewModel(dbFactory, schedulerService, blockRenderer, slackService, discordService,
                                                         corpActivityService, salePostingService, errorLogger);

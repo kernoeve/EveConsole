@@ -1988,4 +1988,40 @@ Pas de système capitale, donc pas de zone</value>
   <data name="ColKillsHour" xml:space="preserve">
     <value>Destructions (1 h)</value>
   </data>
+  <data name="WormholesToggle" xml:space="preserve">
+    <value>Thera / Turnur</value>
+  </data>
+  <data name="TipWormholesToggle" xml:space="preserve">
+    <value>Afficher les connexions de Thera et Turnur, telles qu'EVE-Scout les liste</value>
+  </data>
+  <data name="LegendWormholes" xml:space="preserve">
+    <value>Trou de ver vers Thera (Θ) ou Turnur (T) ; lignes pointillées depuis Turnur. Survolez pour les signatures.</value>
+  </data>
+  <data name="ShipSizeCapital" xml:space="preserve">
+    <value>Capital</value>
+  </data>
+  <data name="HoleTitle" xml:space="preserve">
+    <value>Trous de ver dans {0}</value>
+  </data>
+  <data name="HoleLine" xml:space="preserve">
+    <value>{0} : {1} ici, {2} de l'autre côté · jusqu'à {3} · {4}</value>
+  </data>
+  <data name="HoleHubTitle" xml:space="preserve">
+    <value>Trous de ver depuis {0} : {1}</value>
+  </data>
+  <data name="HoleHubLine" xml:space="preserve">
+    <value>{0} ({1}) : {2} ici, {3} de l'autre côté · jusqu'à {4} · {5}</value>
+  </data>
+  <data name="HoleRegionTitle" xml:space="preserve">
+    <value>Trous de ver de Thera et Turnur dans {0}</value>
+  </data>
+  <data name="HoleRegionLine" xml:space="preserve">
+    <value>{0} — {1}</value>
+  </data>
+  <data name="HoleHoursLeft" xml:space="preserve">
+    <value>encore {0} h</value>
+  </data>
+  <data name="HoleUnderHour" xml:space="preserve">
+    <value>moins d'une heure</value>
+  </data>
 </root>

@@ -366,6 +366,47 @@ public class UniverseViewModel : ReactiveObject
         }
     }
 
+    // ── Thera and Turnur ─────────────────────────────────────────────────────
+
+    private IReadOnlyDictionary<int, MapHoleMark>? _holes;
+    /// <summary>Wormhole marks per system and region, pushed in by the map tool.</summary>
+    public IReadOnlyDictionary<int, MapHoleMark>? Holes
+    {
+        get => _holes;
+        set { this.RaiseAndSetIfChanged(ref _holes, value); this.RaisePropertyChanged(nameof(VisibleHoles)); }
+    }
+
+    private IReadOnlyList<MapHoleLink>? _holeLinks;
+    public IReadOnlyList<MapHoleLink>? HoleLinks
+    {
+        get => _holeLinks;
+        set { this.RaiseAndSetIfChanged(ref _holeLinks, value); this.RaisePropertyChanged(nameof(VisibleHoleLinks)); }
+    }
+
+    private bool _holesAvailable;
+    /// <summary>EVE-Scout is being read: the toggle is offered only then.</summary>
+    public bool HolesAvailable
+    {
+        get => _holesAvailable;
+        set => this.RaiseAndSetIfChanged(ref _holesAvailable, value);
+    }
+
+    private bool _showHoles = UiState.GetBool(UiState.UniverseWormholes, true);
+    public bool ShowHoles
+    {
+        get => _showHoles;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _showHoles, value);
+            UiState.SetBool(UiState.UniverseWormholes, value);
+            this.RaisePropertyChanged(nameof(VisibleHoles));
+            this.RaisePropertyChanged(nameof(VisibleHoleLinks));
+        }
+    }
+
+    public IReadOnlyDictionary<int, MapHoleMark>? VisibleHoles     => _showHoles ? _holes : null;
+    public IReadOnlyList<MapHoleLink>?            VisibleHoleLinks => _showHoles ? _holeLinks : null;
+
     /// <summary>The route avoid list, ringed on the map. Pushed in by the map tool.</summary>
     private IReadOnlyCollection<int>? _avoided = RouteAvoidList.Ids;
     public IReadOnlyCollection<int>? Avoided

@@ -1946,4 +1946,40 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   <data name="ColKillsHour" xml:space="preserve">
     <value>격추(1시간)</value>
   </data>
+  <data name="WormholesToggle" xml:space="preserve">
+    <value>Thera / Turnur</value>
+  </data>
+  <data name="TipWormholesToggle" xml:space="preserve">
+    <value>EVE-Scout에 등록된 Thera 및 Turnur 연결 표시</value>
+  </data>
+  <data name="LegendWormholes" xml:space="preserve">
+    <value>Thera(Θ) 또는 Turnur(T)로 가는 웜홀. Turnur에서는 점선. 마우스를 올리면 시그니처를 표시합니다.</value>
+  </data>
+  <data name="ShipSizeCapital" xml:space="preserve">
+    <value>캐피탈</value>
+  </data>
+  <data name="HoleTitle" xml:space="preserve">
+    <value>{0}의 웜홀</value>
+  </data>
+  <data name="HoleLine" xml:space="preserve">
+    <value>{0}: 여기 {1}, 건너편 {2} · 최대 {3} · {4}</value>
+  </data>
+  <data name="HoleHubTitle" xml:space="preserve">
+    <value>{0}에서 나가는 웜홀: {1}</value>
+  </data>
+  <data name="HoleHubLine" xml:space="preserve">
+    <value>{0}({1}): 여기 {2}, 건너편 {3} · 최대 {4} · {5}</value>
+  </data>
+  <data name="HoleRegionTitle" xml:space="preserve">
+    <value>{0}의 Thera 및 Turnur 웜홀</value>
+  </data>
+  <data name="HoleRegionLine" xml:space="preserve">
+    <value>{0} — {1}</value>
+  </data>
+  <data name="HoleHoursLeft" xml:space="preserve">
+    <value>{0}시간 남음</value>
+  </data>
+  <data name="HoleUnderHour" xml:space="preserve">
+    <value>1시간 미만 남음</value>
+  </data>
 </root>

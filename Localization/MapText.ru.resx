@@ -2072,4 +2072,40 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   <data name="ColKillsHour" xml:space="preserve">
     <value>Убийства (1 ч)</value>
   </data>
+  <data name="WormholesToggle" xml:space="preserve">
+    <value>Thera / Turnur</value>
+  </data>
+  <data name="TipWormholesToggle" xml:space="preserve">
+    <value>Показать соединения Thera и Turnur из списка EVE-Scout</value>
+  </data>
+  <data name="LegendWormholes" xml:space="preserve">
+    <value>Червоточина в Thera (Θ) или Turnur (T); пунктир от Turnur. Наведите курсор, чтобы увидеть сигнатуры.</value>
+  </data>
+  <data name="ShipSizeCapital" xml:space="preserve">
+    <value>КБТ</value>
+  </data>
+  <data name="HoleTitle" xml:space="preserve">
+    <value>Червоточины в {0}</value>
+  </data>
+  <data name="HoleLine" xml:space="preserve">
+    <value>{0}: здесь {1}, на той стороне {2} · до {3} · {4}</value>
+  </data>
+  <data name="HoleHubTitle" xml:space="preserve">
+    <value>Червоточины из {0}: {1}</value>
+  </data>
+  <data name="HoleHubLine" xml:space="preserve">
+    <value>{0} ({1}): здесь {2}, на той стороне {3} · до {4} · {5}</value>
+  </data>
+  <data name="HoleRegionTitle" xml:space="preserve">
+    <value>Червоточины Thera и Turnur в {0}</value>
+  </data>
+  <data name="HoleRegionLine" xml:space="preserve">
+    <value>{0} — {1}</value>
+  </data>
+  <data name="HoleHoursLeft" xml:space="preserve">
+    <value>осталось {0} ч</value>
+  </data>
+  <data name="HoleUnderHour" xml:space="preserve">
+    <value>осталось меньше часа</value>
+  </data>
 </root>

@@ -1988,4 +1988,40 @@ Kein Hauptstadtsystem, daher keine Zone</value>
   <data name="ColKillsHour" xml:space="preserve">
     <value>Abschüsse (1 h)</value>
   </data>
+  <data name="WormholesToggle" xml:space="preserve">
+    <value>Thera / Turnur</value>
+  </data>
+  <data name="TipWormholesToggle" xml:space="preserve">
+    <value>Verbindungen von Thera und Turnur zeigen, wie EVE-Scout sie auflistet</value>
+  </data>
+  <data name="LegendWormholes" xml:space="preserve">
+    <value>Wurmloch nach Thera (Θ) oder Turnur (T); gestrichelte Linien von Turnur. Für die Signaturen darüberfahren.</value>
+  </data>
+  <data name="ShipSizeCapital" xml:space="preserve">
+    <value>Großkampfschiff</value>
+  </data>
+  <data name="HoleTitle" xml:space="preserve">
+    <value>Wurmlöcher in {0}</value>
+  </data>
+  <data name="HoleLine" xml:space="preserve">
+    <value>{0}: {1} hier, {2} auf der anderen Seite · bis {3} · {4}</value>
+  </data>
+  <data name="HoleHubTitle" xml:space="preserve">
+    <value>Wurmlöcher aus {0}: {1}</value>
+  </data>
+  <data name="HoleHubLine" xml:space="preserve">
+    <value>{0} ({1}): {2} hier, {3} auf der anderen Seite · bis {4} · {5}</value>
+  </data>
+  <data name="HoleRegionTitle" xml:space="preserve">
+    <value>Wurmlöcher von Thera und Turnur in {0}</value>
+  </data>
+  <data name="HoleRegionLine" xml:space="preserve">
+    <value>{0} — {1}</value>
+  </data>
+  <data name="HoleHoursLeft" xml:space="preserve">
+    <value>noch {0} h</value>
+  </data>
+  <data name="HoleUnderHour" xml:space="preserve">
+    <value>weniger als eine Stunde</value>
+  </data>
 </root>

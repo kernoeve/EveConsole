@@ -41,6 +41,7 @@ public sealed class MapToolViewModel : ReactiveObject
     private readonly RoutePlannerService?       _routes;
     private readonly JumpPlannerViewModel?      _jumpPlanner;
     private readonly IDbContextFactory<AppDbContext>? _db;
+    private readonly EveScoutService?           _eveScout;
 
     public static readonly TimeSpan LiveEvery    = TimeSpan.FromSeconds(5);
     public static readonly TimeSpan OverlayEvery = TimeSpan.FromSeconds(60);
@@ -55,8 +56,11 @@ public sealed class MapToolViewModel : ReactiveObject
         JumpBridgeService?        bridges = null,
         RoutePlannerService?      routes  = null,
         JumpPlannerViewModel?     jumpPlanner = null,
-        IDbContextFactory<AppDbContext>? db = null)
+        IDbContextFactory<AppDbContext>? db = null,
+        EveScoutService?          eveScout = null)
     {
+        _eveScout      = eveScout;
+        if (eveScout is not null) eveScout.Changed += () => _ = ReloadHolesAsync();
         _errors        = errors;
         _bridges       = bridges;
         _routes        = routes;
@@ -100,6 +104,7 @@ public sealed class MapToolViewModel : ReactiveObject
 
         // The tool opens on New Eden, as the single map did.
         NewUniverseTab();
+        _ = ReloadHolesAsync();
     }
 
     // ── Panes and tabs ───────────────────────────────────────────────────────
@@ -233,6 +238,7 @@ public sealed class MapToolViewModel : ReactiveObject
         if (_snapshot is { } live) tab.ApplyLive(live);
         map.Bridges = _bridgeLines;
         map.Route   = _route;
+        tab.ApplyHoles(_holeList, _eveScout?.Enabled == true);
         return tab;
     }
 
@@ -530,6 +536,7 @@ public sealed class MapToolViewModel : ReactiveObject
                     // overlay publishes its result back to the UI thread itself.
                     foreach (var map in maps) await Task.Run(map.RefreshLiveOverlayAsync, ct);
                     await ReloadBridgesAsync();
+                    await ReloadHolesAsync();
                 }
             }
             catch (OperationCanceledException) when (ct.IsCancellationRequested) { return; }
@@ -554,6 +561,94 @@ public sealed class MapToolViewModel : ReactiveObject
     {
         try { return await timer.WaitForNextTickAsync(ct); }
         catch (OperationCanceledException) { return false; }
+    }
+
+    // ── Thera and Turnur ─────────────────────────────────────────────────────
+
+    private IReadOnlyList<EveConsole.Models.EveScoutConnection> _holeList = [];
+
+    /// <summary>Reads the stored EVE-Scout list and puts it on every map. Off, or empty: no marks.</summary>
+    public async Task ReloadHolesAsync()
+    {
+        if (_eveScout is null) return;
+        try
+        {
+            var enabled = _eveScout.Enabled;
+            var list = enabled ? await Task.Run(() => _eveScout.GetOpenAsync()) : [];
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                _holeList = list;
+                foreach (var tab in AllTabs.OfType<UniverseTabViewModel>()) tab.ApplyHoles(list, enabled);
+            });
+        }
+        catch (Exception ex) { _errors?.Log(nameof(MapToolViewModel), "wormholes", ex); }
+    }
+
+    /// <summary>
+    /// The marks and lines for one map: a mark on every system with a hole to Thera or Turnur,
+    /// one on Turnur listing all of its own, a summary on each region for the zoomed-out tier, and
+    /// a line from Turnur to each system — Thera is in wormhole space, off the map, so its holes
+    /// are marks only.
+    /// </summary>
+    internal static (Dictionary<int, MapHoleMark> Marks, List<MapHoleLink> Links) BuildHoles(
+        IReadOnlyList<EveConsole.Models.EveScoutConnection> holes, MapGraph graph)
+    {
+        var marks = new Dictionary<int, MapHoleMark>();
+        var links = new List<MapHoleLink>();
+        if (holes.Count == 0) return (marks, links);
+
+        var nodes   = graph.Nodes.Where(n => !n.IsRegion || !graph.IsContinuous).GroupBy(n => n.Id).ToDictionary(g => g.Key, g => g.First());
+        var regions = graph.Nodes.Where(n => n.IsRegion && graph.IsContinuous).GroupBy(n => n.RegionId).ToDictionary(g => g.Key, g => g.First());
+        var now     = DateTimeOffset.UtcNow;
+
+        static bool IsThera(EveConsole.Models.EveScoutConnection c) => c.HubSystemId == 31000005;   // Thera
+        static string Glyph(IEnumerable<EveConsole.Models.EveScoutConnection> cs) =>
+            (cs.Any(IsThera) ? "Θ" : "") + (cs.Any(c => !IsThera(c)) ? "T" : "");
+        string Hub(EveConsole.Models.EveScoutConnection c) => SdeNames.SolarSystem(c.HubSystemId, c.HubSystemName);
+        string Other(EveConsole.Models.EveScoutConnection c) => SdeNames.SolarSystem(c.OtherSystemId, c.OtherSystemName);
+        string Size(string s) => s.ToLowerInvariant() switch
+        {
+            "small"   => MapText.ShipSizeSmall,
+            "medium"  => MapText.ShipSizeMedium,
+            "large"   => MapText.ShipSizeLarge,
+            "xlarge"  => MapText.ShipSizeXLarge,
+            "capital" => MapText.ShipSizeCapital,
+            _         => s,
+        };
+        string Left(EveConsole.Models.EveScoutConnection c) =>
+            c.ExpiresAt is not { } end ? ""
+            : (end - now).TotalHours < 1 ? MapText.HoleUnderHour
+            : string.Format(MapText.HoleHoursLeft, (int)(end - now).TotalHours);
+
+        // Each system with holes: what they are, seen from that system.
+        foreach (var g in holes.GroupBy(c => c.OtherSystemId))
+        {
+            if (!nodes.TryGetValue(g.Key, out var node)) continue;
+            marks[g.Key] = new MapHoleMark(Glyph(g), string.Format(MapText.HoleTitle, node.Label),
+                string.Join("\n", g.Select(c => string.Format(MapText.HoleLine, Hub(c), c.OtherSignature, c.HubSignature, Size(c.MaxShipSize), Left(c)))));
+        }
+
+        // The hubs the map shows (Turnur): every hole out of it, and a line to each.
+        foreach (var g in holes.GroupBy(c => c.HubSystemId))
+        {
+            if (!nodes.TryGetValue(g.Key, out var hub)) continue;
+            marks[g.Key] = new MapHoleMark(Glyph(g), string.Format(MapText.HoleHubTitle, hub.Label, g.Count()),
+                string.Join("\n", g.Select(c => string.Format(MapText.HoleHubLine, Other(c),
+                    c.OtherRegionId is int rid ? SdeNames.Region(rid, c.OtherRegionName) : c.OtherRegionName,
+                    c.HubSignature, c.OtherSignature, Size(c.MaxShipSize), Left(c)))));
+            foreach (var c in g)
+                if (nodes.ContainsKey(c.OtherSystemId)) links.Add(new MapHoleLink(g.Key, c.OtherSystemId));
+        }
+
+        // Regions, for the zoomed-out tier: which of their systems have holes.
+        foreach (var region in regions.Values)
+        {
+            var inside = holes.Where(c => nodes.TryGetValue(c.OtherSystemId, out var n) && n.RegionId == region.RegionId).ToList();
+            if (inside.Count == 0) continue;
+            marks[region.Id] = new MapHoleMark(Glyph(inside), string.Format(MapText.HoleRegionTitle, region.Label),
+                string.Join("\n", inside.Select(c => string.Format(MapText.HoleRegionLine, Other(c), Hub(c)))));
+        }
+        return (marks, links);
     }
 
     // ── Markers from a snapshot ──────────────────────────────────────────────
@@ -740,7 +835,11 @@ public sealed class UniverseTabViewModel : MapTabViewModel
         // A map that arrives after the marks were read (the graph loads a moment after the tab
         // opens) gets them as soon as it can place them.
         map.WhenAnyValue(m => m.Graph).Where(g => g is not null)
-           .Subscribe(_ => { if (_live is { } live) ApplyLive(live); });
+           .Subscribe(_ =>
+           {
+               if (_live is { } live) ApplyLive(live);
+               if (_holes is { } holes) ApplyHoles(holes, Map.HolesAvailable);
+           });
     }
 
     public UniverseViewModel Map { get; }
@@ -749,6 +848,20 @@ public sealed class UniverseTabViewModel : MapTabViewModel
     public override string TabGlyph => "◎";
 
     private LiveMapSnapshot? _live;
+    private IReadOnlyList<EveConsole.Models.EveScoutConnection>? _holes;
+
+    /// <summary>Puts Thera and Turnur's holes on this map, as soon as it can place them. UI thread.</summary>
+    public void ApplyHoles(IReadOnlyList<EveConsole.Models.EveScoutConnection> holes, bool available)
+    {
+        _holes = holes;
+        Map.HolesAvailable = available;
+        if (Map.Graph is { } graph)
+        {
+            var (marks, links) = MapToolViewModel.BuildHoles(holes, graph);
+            Map.Holes     = marks;
+            Map.HoleLinks = links;
+        }
+    }
 
     /// <summary>Draws a snapshot on this map. UI thread.</summary>
     public void ApplyLive(LiveMapSnapshot live)

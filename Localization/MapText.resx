@@ -2647,4 +2647,52 @@ No capital system, so no zone</value>
     <value>Kills (1 h)</value>
     <comment>Route planner column: ship and pod kills there in the last hour.</comment>
   </data>
+  <data name="WormholesToggle" xml:space="preserve">
+    <value>Thera / Turnur</value>
+    <comment>Map toolbar toggle: shows the Thera and Turnur wormhole connections. Thera and Turnur are solar systems.</comment>
+  </data>
+  <data name="TipWormholesToggle" xml:space="preserve">
+    <value>Show Thera and Turnur connections, as EVE-Scout lists them</value>
+    <comment>Tooltip of the Thera / Turnur toggle. EVE-Scout is a proper name.</comment>
+  </data>
+  <data name="LegendWormholes" xml:space="preserve">
+    <value>Wormhole to Thera (Θ) or Turnur (T); dashed lines from Turnur. Hover for the signatures.</value>
+    <comment>Map legend, live marks. Θ and T are the marks drawn.</comment>
+  </data>
+  <data name="ShipSizeCapital" xml:space="preserve">
+    <value>Capital</value>
+    <comment>Wormhole size: takes capital ships.</comment>
+  </data>
+  <data name="HoleTitle" xml:space="preserve">
+    <value>Wormholes in {0}</value>
+    <comment>Map hover on a system's wormhole mark. {0} the system.</comment>
+  </data>
+  <data name="HoleLine" xml:space="preserve">
+    <value>{0}: {1} here, {2} on the far side · up to {3} · {4}</value>
+    <comment>Map hover, one wormhole. {0} Thera or Turnur, {1} the signature in this system, {2} the one in Thera/Turnur, {3} the largest ship (e.g. Battleship), {4} the time left (HoleHoursLeft).</comment>
+  </data>
+  <data name="HoleHubTitle" xml:space="preserve">
+    <value>Wormholes from {0}: {1}</value>
+    <comment>Map hover on Turnur's mark. {0} the system, {1} how many wormholes.</comment>
+  </data>
+  <data name="HoleHubLine" xml:space="preserve">
+    <value>{0} ({1}): {2} here, {3} on the far side · up to {4} · {5}</value>
+    <comment>Map hover, one of Turnur's wormholes. {0} the system it leads to, {1} its region, {2} the signature in Turnur, {3} the one at the far end, {4} the largest ship, {5} the time left.</comment>
+  </data>
+  <data name="HoleRegionTitle" xml:space="preserve">
+    <value>Thera and Turnur wormholes in {0}</value>
+    <comment>Map hover on a region's wormhole mark. {0} the region.</comment>
+  </data>
+  <data name="HoleRegionLine" xml:space="preserve">
+    <value>{0} — {1}</value>
+    <comment>Map hover, a region's wormholes: {0} the system, {1} Thera or Turnur.</comment>
+  </data>
+  <data name="HoleHoursLeft" xml:space="preserve">
+    <value>{0} h left</value>
+    <comment>How long a wormhole has left. {0} whole hours.</comment>
+  </data>
+  <data name="HoleUnderHour" xml:space="preserve">
+    <value>under an hour left</value>
+    <comment>A wormhole with less than an hour left.</comment>
+  </data>
 </root>

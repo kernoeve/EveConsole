@@ -1946,4 +1946,40 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   <data name="ColKillsHour" xml:space="preserve">
     <value>击毁（1 小时）</value>
   </data>
+  <data name="WormholesToggle" xml:space="preserve">
+    <value>Thera / Turnur</value>
+  </data>
+  <data name="TipWormholesToggle" xml:space="preserve">
+    <value>显示 EVE-Scout 列出的 Thera 和 Turnur 连接</value>
+  </data>
+  <data name="LegendWormholes" xml:space="preserve">
+    <value>通往 Thera（Θ）或 Turnur（T）的虫洞；Turnur 发出的为虚线。悬停查看信号。</value>
+  </data>
+  <data name="ShipSizeCapital" xml:space="preserve">
+    <value>旗舰</value>
+  </data>
+  <data name="HoleTitle" xml:space="preserve">
+    <value>{0} 的虫洞</value>
+  </data>
+  <data name="HoleLine" xml:space="preserve">
+    <value>{0}：此处 {1}，对面 {2} · 最大 {3} · {4}</value>
+  </data>
+  <data name="HoleHubTitle" xml:space="preserve">
+    <value>从 {0} 出发的虫洞：{1}</value>
+  </data>
+  <data name="HoleHubLine" xml:space="preserve">
+    <value>{0}（{1}）：此处 {2}，对面 {3} · 最大 {4} · {5}</value>
+  </data>
+  <data name="HoleRegionTitle" xml:space="preserve">
+    <value>{0} 的 Thera 和 Turnur 虫洞</value>
+  </data>
+  <data name="HoleRegionLine" xml:space="preserve">
+    <value>{0} — {1}</value>
+  </data>
+  <data name="HoleHoursLeft" xml:space="preserve">
+    <value>剩余 {0} 小时</value>
+  </data>
+  <data name="HoleUnderHour" xml:space="preserve">
+    <value>剩余不到一小时</value>
+  </data>
 </root>
