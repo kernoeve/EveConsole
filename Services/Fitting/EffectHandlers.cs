@@ -9,8 +9,8 @@ namespace EveConsole.Services.Fitting;
 /// cloaking skills whose bonus the SDE scales by level but applies to nothing, a Reactive Armor
 /// Hardener's adaptation (<see cref="AdaptiveArmor"/>), and what one-off and area modules do to
 /// their own ship while running: a micro jump drive's or field generator's signature bloom, a
-/// warp disruption field generator's, an Emergency Hull Energizer's hull resistance, and a
-/// doomsday's hold on the ship that fires it.</para>
+/// warp disruption field generator's, an Emergency Hull Energizer's hull resistance, a
+/// doomsday's hold on the ship that fires it, and an Entosis Link's on the ship that runs it.</para>
 ///
 /// <para>Not handled yet, by decision, and contributing nothing until they are: command bursts
 /// and phenomena generators, which need a fleet-boost system of their own.</para>
@@ -90,6 +90,7 @@ internal static class EffectHandlers
             // pod damage, so it changes none of them; the module's row says what it does.
             case "moduleBonusBreacherPodDamageControl": return true;
             case "debuffLance":               Doomsday(engine, item); return true;
+            case "entosisLink":               Entosis(engine, item); return true;
         }
         // Doomsdays and burst projectors (doomsday…), and the older titan doomsdays (superWeapon…), targeted.
         if ((effect.Name.StartsWith("doomsday", StringComparison.Ordinal) || effect.Name.StartsWith("superWeapon", StringComparison.Ordinal))
@@ -146,6 +147,18 @@ internal static class EffectHandlers
     {
         foreach (var (ship, own) in HullResonances)
             Add(e, e.Ship, ship, module, DogmaEngine.OpPreMul, own, chain: "emergencyHullEnergizer");
+    }
+
+    /// <summary>
+    /// A running Entosis Link, as it changes its own ship: every sensor strength up by the module's
+    /// <c>scan…StrengthPercent</c>, and no warping (<c>siegeModeWarpStatus</c>). Its speed limit
+    /// is an ordinary passive effect of its own.
+    /// </summary>
+    private static void Entosis(DogmaEngine e, DogmaItem module)
+    {
+        foreach (var sensor in new[] { "Radar", "Ladar", "Magnetometric", "Gravimetric" })
+            Add(e, e.Ship, $"scan{sensor}Strength", module, DogmaEngine.OpPostPercent, $"scan{sensor}StrengthPercent");
+        Add(e, e.Ship, "warpScrambleStatus", module, DogmaEngine.OpModAdd, "siegeModeWarpStatus");
     }
 
     /// <summary>

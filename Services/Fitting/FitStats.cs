@@ -86,7 +86,9 @@ public sealed class FitStats
     public int FighterSlotsUsed(FighterClass c) =>
         _e.Fighters.Count(f => f.ActiveCount > 0 && FighterAbilities.ClassOf(_e.Data, f.Type) == c);
 
-    public int Slots(FitSlot slot) => (int)Ship(slot switch
+    public int Slots(FitSlot slot) => slot == FitSlot.Subsystem && _e.Data.SubsystemPositions.TryGetValue(_e.Ship.Type.Id, out var positions)
+        ? Math.Min((int)Ship("maxSubSystems"), positions)
+        : (int)Ship(slot switch
     {
         FitSlot.High      => "hiSlots",
         FitSlot.Mid       => "medSlots",

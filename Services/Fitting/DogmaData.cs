@@ -125,8 +125,34 @@ public sealed class DogmaData
         var build = await db.SdeBuildInfos.AsNoTracking().Select(b => b.BuildNumber).FirstOrDefaultAsync(ct);
         return new DogmaData(dbFactory, attributes, effects, skills, build)
         {
-            FighterSlots = await LoadFighterSlotsAsync(db, ct),
+            FighterSlots       = await LoadFighterSlotsAsync(db, ct),
+            SubsystemPositions = await LoadSubsystemPositionsAsync(db, attributes, ct),
         };
+    }
+
+    /// <summary>
+    /// For each hull that takes subsystems, how many positions its subsystems fill (core,
+    /// defensive, offensive, propulsion): the most it can fit, one per position. The hull's own
+    /// <c>maxSubSystems</c> can say more — the SDE gives today's strategic cruisers 5 against their
+    /// 4 positions — and a slot no subsystem can go in is not one.
+    /// </summary>
+    public IReadOnlyDictionary<int, int> SubsystemPositions { get; private init; } = new Dictionary<int, int>();
+
+    private static async Task<Dictionary<int, int>> LoadSubsystemPositionsAsync(AppDbContext db,
+        Dictionary<int, DogmaAttributeInfo> attributes, CancellationToken ct)
+    {
+        int? Id(string name) => attributes.Values.FirstOrDefault(a => a.Name == name)?.Id;
+        if (Id("fitsToShipType") is not { } fits || Id("subSystemSlot") is not { } position) return [];
+        // Published subsystems only: an unpublished one sits in a fifth position no player can fill.
+        var rows = await (from a in db.SdeTypeDogmaAttributes.AsNoTracking()
+                          join t in db.SdeTypes.AsNoTracking() on a.TypeId equals t.TypeId
+                          where t.Published && (a.AttributeId == fits || a.AttributeId == position)
+                          select new { a.TypeId, a.AttributeId, a.Value }).ToListAsync(ct);
+        return rows.GroupBy(r => r.TypeId)
+            .Select(g => (Hull: g.FirstOrDefault(r => r.AttributeId == fits)?.Value, Position: g.FirstOrDefault(r => r.AttributeId == position)?.Value))
+            .Where(s => s.Hull is not null && s.Position is not null)
+            .GroupBy(s => (int)s.Hull!.Value)
+            .ToDictionary(g => g.Key, g => g.Select(s => s.Position).Distinct().Count());
     }
 
     private static async Task<Dictionary<int, IReadOnlyList<FighterSlotData>>> LoadFighterSlotsAsync(AppDbContext db, CancellationToken ct)
@@ -151,6 +177,18 @@ public sealed class DogmaData
     public DogmaAttributeInfo? Attribute(string name) => AttributesByName.GetValueOrDefault(name);
     public int AttrId(string name) => AttributesByName.TryGetValue(name, out var a) ? a.Id
         : throw new KeyNotFoundException($"dogma attribute '{name}' is not in the SDE");
+
+    /// <summary>
+    /// The effect a module cycles when the SDE marks none as its default: its one active or
+    /// targeted effect with a duration. Jump portal generators are like this — without it they
+    /// could not be switched on, and their capacitor cost never counted. The generic <c>online</c>
+    /// effect, filed as active, has no duration and is never it.
+    /// </summary>
+    private int? CyclingFallback(IEnumerable<int> effectIds)
+    {
+        var cycling = effectIds.Where(id => Effects.TryGetValue(id, out var e) && e.Category is 1 or 2 && e.DurationAttributeId is not null).ToList();
+        return cycling.Count == 1 ? cycling[0] : null;
+    }
 
     /// <summary>A type already loaded by <see cref="LoadTypesAsync"/>.</summary>
     public DogmaTypeInfo Type(int typeId) => _types.TryGetValue(typeId, out var t) ? t
@@ -196,7 +234,7 @@ public sealed class DogmaData
                     Id = t.TypeId, Name = t.Name, GroupId = t.GroupId, CategoryId = t.CategoryId,
                     Attributes = a,
                     EffectIds = effs[t.TypeId].Select(e => e.EffectId).ToList(),
-                    DefaultEffectId = effs[t.TypeId].FirstOrDefault(e => e.IsDefault)?.EffectId,
+                    DefaultEffectId = effs[t.TypeId].FirstOrDefault(e => e.IsDefault)?.EffectId ?? CyclingFallback(effs[t.TypeId].Select(e => e.EffectId)),
                     RequiredSkills = required,
                 };
             }

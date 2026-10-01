@@ -210,13 +210,13 @@ public static class EftFormat
 
     /// <summary>
     /// A module used once in a while rather than kept running — a micro jump drive or field
-    /// generator, an Emergency Hull Energizer, a doomsday, Breach Control — whose effect on its
+    /// generator, a jump portal generator, an Emergency Hull Energizer, a doomsday, Breach Control — whose effect on its
     /// own ship lasts only while it is used. Fitted, it starts on but not running, so the fit is
     /// shown as it flies; switched on, it shows what using it does.
     /// </summary>
     private static bool IsOneOff(DogmaData data, DogmaTypeInfo type) =>
         type.DefaultEffectId is { } id && data.Effects.TryGetValue(id, out var e)
-        && (e.Name is "microJumpDrive" or "microJumpPortalDrive" or "microJumpPortalDriveCapital" or "emergencyHullEnergizer"
+        && (e.Name is "microJumpDrive" or "microJumpPortalDrive" or "microJumpPortalDriveCapital" or "emergencyHullEnergizer" or "jumpPortalGeneration"
                    or "moduleBonusBreacherPodDamageControl" or "debuffLance"
             || e.Name.StartsWith("doomsday", StringComparison.Ordinal) || e.Name.StartsWith("superWeapon", StringComparison.Ordinal));
 
