@@ -112,11 +112,17 @@ public sealed record MapGraph(IReadOnlyList<MapNode> Nodes, IReadOnlyList<MapEdg
 
 /// <summary>A searchable place: a region or a system, with what is needed to navigate to it.
 /// SystemId is 0 for a region.</summary>
-public sealed record PlaceMatch(string Name, string Detail, int RegionId, int SystemId)
+public sealed record PlaceMatch(string Name, string Detail, int RegionId, int SystemId, int ConstellationId = 0)
 {
     /// <summary>The name in the interface language, for the jump box. <see cref="Name"/> stays
     /// English: the AI agent names places by it (open_map).</summary>
-    public string Label => SystemId > 0 ? SdeNames.SolarSystem(SystemId, Name) : SdeNames.Region(RegionId, Name);
+    public string Label => SystemId > 0        ? SdeNames.SolarSystem(SystemId, Name)
+                         : ConstellationId > 0 ? SdeNames.Constellation(ConstellationId, Name)
+                         :                       SdeNames.Region(RegionId, Name);
+
+    public bool IsSystem        => SystemId > 0;
+    public bool IsConstellation => SystemId == 0 && ConstellationId > 0;
+    public bool IsRegion        => SystemId == 0 && ConstellationId == 0;
 
     public override string ToString() => Label;
 }
@@ -263,8 +269,12 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
     /// <para>⚠️ Never for the agent. It opens the FIRST match, so what it finds and in which order
     /// must not move with the interface language.</para>
     /// </summary>
+    /// <param name="constellations">Constellations too, between the regions and the systems —
+    /// the map tool's search opens any of the three. Off for the agent, whose open_map takes the
+    /// first match and has no constellation to open.</param>
     public async Task<List<PlaceMatch>> SearchPlacesAsync(
-        string text, bool shownNames, int limit = 30, CancellationToken ct = default)
+        string text, bool shownNames, int limit = 30, CancellationToken ct = default,
+        bool constellations = false)
     {
         if (string.IsNullOrWhiteSpace(text) || text.Length < 2) return [];
         var q = text.Trim();
@@ -276,12 +286,13 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
 
         // Places whose shown name holds the text, by id — the SQL can only see the English.
         // Always empty in English.
-        List<int> regionIds = [], systemIds = [];
+        List<int> regionIds = [], systemIds = [], constellationIds = [];
         if (shownNames)
         {
             await SdeNames.EnsureLoadedAsync(ct);
-            regionIds = [.. SdeNames.Find(SdeNameKind.Region, q).Select(id => (int)id)];
-            systemIds = [.. SdeNames.Find(SdeNameKind.SolarSystem, q).Select(id => (int)id)];
+            regionIds        = [.. SdeNames.Find(SdeNameKind.Region, q).Select(id => (int)id)];
+            systemIds        = [.. SdeNames.Find(SdeNameKind.SolarSystem, q).Select(id => (int)id)];
+            constellationIds = [.. SdeNames.Find(SdeNameKind.Constellation, q).Select(id => (int)id)];
         }
 
         using var db = dbFactory.CreateDbContext();
@@ -307,18 +318,40 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
             .Take(limit * 2)
             .ToListAsync(ct);
 
+        var constellationMatches = new List<PlaceMatch>();
+        if (constellations)
+        {
+            // Known space only, like the regions: a wormhole constellation has nowhere on the map.
+            var cq = db.SdeConstellations.AsNoTracking().Where(c => c.RegionId < MaxKnownSpaceRegionId);
+            cq = constellationIds.Count == 0
+                ? cq.Where(c => c.Name.ToLower().Contains(needle))
+                : cq.Where(c => c.Name.ToLower().Contains(needle) || constellationIds.Contains(c.ConstellationId));
+
+            var rows = await cq
+                .Join(db.SdeRegions.AsNoTracking(), c => c.RegionId, r => r.RegionId,
+                      (c, r) => new { c.Name, c.ConstellationId, c.RegionId, Region = r.Name })
+                .Take(limit)
+                .ToListAsync(ct);
+
+            constellationMatches = rows.Select(c => new PlaceMatch(
+                c.Name, string.Format(MapText.SearchConstellationIn, SdeNames.Region(c.RegionId, c.Region)),
+                c.RegionId, 0, c.ConstellationId)).ToList();
+        }
+
         // The jump box ranks by the name it shows, the agent by the English it asked in.
         string Ranked(PlaceMatch p) => shownNames ? p.Label : p.Name;
         var byName = shownNames ? StringComparer.CurrentCulture : StringComparer.OrdinalIgnoreCase;
 
         return regions
             .Select(r => new PlaceMatch(r.Name, MapText.GoToRegion, r.RegionId, 0))
+            .Concat(constellationMatches)
             .Concat(systems.Select(s => new PlaceMatch(
                 s.Name, $"{SecurityColors.Rounded(s.Security):F1}  ·  {SdeNames.Region(s.RegionId, s.Region)}",
                 s.RegionId, s.SolarSystemId)))
             .OrderByDescending(p => p.Name.StartsWith(q, StringComparison.OrdinalIgnoreCase)
                                  || Ranked(p).StartsWith(q, StringComparison.OrdinalIgnoreCase))
-            .ThenBy(p => p.SystemId == 0 ? 0 : 1)   // regions before systems at equal rank
+            // Regions, then constellations, then systems at equal rank.
+            .ThenBy(p => p.IsRegion ? 0 : p.IsConstellation ? 1 : 2)
             .ThenBy(p => Ranked(p).Length)
             .ThenBy(p => Ranked(p), byName)
             .Take(limit)

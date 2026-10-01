@@ -11,7 +11,21 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EveConsole.Services;
 
-public record LocationOption(long Id, string Name);
+public record LocationOption(long Id, string Name, int RegionId, string Region)
+{
+    /// <summary>A place with no region to show. ⚠️ A constructor of its own, not optional
+    /// arguments: EF's query expressions cannot call a constructor that leaves any out.</summary>
+    public LocationOption(long id, string name) : this(id, name, 0, "") { }
+
+    /// <summary>A system's region, shown to the right of it in every system picker; "" otherwise.</summary>
+    public string RegionLabel => RegionId > 0 ? SdeNames.Region(RegionId, Region) : Region;
+}
+
+/// <summary>A search result as a list shows it: the place, and a system's region beside it.</summary>
+public sealed record ShownPlace(string Name, string Region)
+{
+    public override string ToString() => Name;
+}
 
 public record InvTypeResult(int TypeId, string Name);
 
@@ -242,7 +256,9 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
             "System" => await db.SdeSolarSystems
                 .Where(s => (EF.Functions.Like(s.Name, $"%{text}%") || systems.Contains(s.SolarSystemId)) && !s.IsWormhole)
                 .OrderBy(s => s.Name).Take(40)
-                .Select(s => new LocationOption(s.SolarSystemId, s.Name))
+                // The region comes along: every system picker shows it beside the name.
+                .Join(db.SdeRegions, s => s.RegionId, r => r.RegionId,
+                      (s, r) => new LocationOption(s.SolarSystemId, s.Name, s.RegionId, r.Name))
                 .ToListAsync(ct),
 
             "Region" => await db.SdeRegions

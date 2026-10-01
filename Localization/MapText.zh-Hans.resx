@@ -1509,4 +1509,273 @@
   <data name="ReagentSuperionicIcePerHour" xml:space="preserve">
     <value>超离子冰 {0:N0}/小时</value>
   </data>
+  <data name="SearchConstellationIn" xml:space="preserve">
+    <value>星座 · {0}</value>
+  </data>
+  <data name="LiveMarksLabel" xml:space="preserve">
+    <value>实时标记</value>
+  </data>
+  <data name="LiveMarkHostiles" xml:space="preserve">
+    <value>过去 5 分钟内经情报或击毁报告确认位于此处的敌对人员。悬停查看是谁、驾驶什么舰船。</value>
+  </data>
+  <data name="LiveMarkOwn" xml:space="preserve">
+    <value>你在此处在线的角色。悬停查看舰船以及是否停靠。</value>
+  </data>
+  <data name="TipMapTab" xml:space="preserve">
+    <value>沿标签栏拖动可调整顺序，拖到右半边可并排查看两个标签页。</value>
+  </data>
+  <data name="TipCloseMapTab" xml:space="preserve">
+    <value>关闭此标签页</value>
+  </data>
+  <data name="NewUniverseTab" xml:space="preserve">
+    <value>+ 新地图</value>
+  </data>
+  <data name="TipNewUniverseTab" xml:space="preserve">
+    <value>在新标签页中打开新伊甸地图</value>
+  </data>
+  <data name="HintSystemConstellationRegion" xml:space="preserve">
+    <value>星系、星座或星域</value>
+  </data>
+  <data name="TipMapSearch" xml:space="preserve">
+    <value>在新标签页中打开所选内容：星系页面，或以该星座或星域为中心的地图。</value>
+  </data>
+  <data name="EmptyMapToolHint" xml:space="preserve">
+    <value>没有打开的标签页。用“+ 新地图”添加地图，或搜索星系、星座或星域。</value>
+  </data>
+  <data name="DropSideBySide" xml:space="preserve">
+    <value>拖放到此处以并排查看两个标签页</value>
+  </data>
+  <data name="LiveHostilesTitle" xml:space="preserve">
+    <value>{1} 的敌对人员：{0}</value>
+  </data>
+  <data name="LiveOwnTitle" xml:space="preserve">
+    <value>你在 {1} 的角色：{0}</value>
+  </data>
+  <data name="LiveSystemCount" xml:space="preserve">
+    <value>{0}：{1}</value>
+  </data>
+  <data name="LiveHostileLine" xml:space="preserve">
+    <value>{0}——{1} · {2} · {3}</value>
+  </data>
+  <data name="LiveShipUnknown" xml:space="preserve">
+    <value>舰船未知</value>
+  </data>
+  <data name="LiveJustNow" xml:space="preserve">
+    <value>刚刚</value>
+  </data>
+  <data name="LiveMinutesAgo" xml:space="preserve">
+    <value>{0} 分钟前</value>
+  </data>
+  <data name="LiveSourceKillmail" xml:space="preserve">
+    <value>击毁报告</value>
+  </data>
+  <data name="LiveSourceIntel" xml:space="preserve">
+    <value>情报</value>
+  </data>
+  <data name="LiveSourceIntelNoVisual" xml:space="preserve">
+    <value>情报，NV</value>
+  </data>
+  <data name="LiveMore" xml:space="preserve">
+    <value>……另有 {0} 人</value>
+  </data>
+  <data name="LiveUnidentified" xml:space="preserve">
+    <value>+{0} 人未具名</value>
+  </data>
+  <data name="LiveOwnLine" xml:space="preserve">
+    <value>{0}——{1} · {2}</value>
+  </data>
+  <data name="LiveInSpace" xml:space="preserve">
+    <value>在太空中</value>
+  </data>
+  <data name="LiveDockedAt" xml:space="preserve">
+    <value>停靠于 {0}</value>
+  </data>
+  <data name="LiveDocked" xml:space="preserve">
+    <value>已停靠</value>
+  </data>
+  <data name="LiveCharacterId" xml:space="preserve">
+    <value>角色 {0}</value>
+  </data>
+  <data name="SidePanel" xml:space="preserve">
+    <value>详情</value>
+  </data>
+  <data name="TipSidePanel" xml:space="preserve">
+    <value>显示或隐藏右侧的详情和图例</value>
+  </data>
+  <data name="JumpBridgesTab" xml:space="preserve">
+    <value>跳桥</value>
+  </data>
+  <data name="TipJumpBridgesTab" xml:space="preserve">
+    <value>所有已知跳桥（来自 ESI 或手动添加），以及添加更多</value>
+  </data>
+  <data name="JumpBridgesToggle" xml:space="preserve">
+    <value>跳桥</value>
+  </data>
+  <data name="TipJumpBridgesToggle" xml:space="preserve">
+    <value>在地图上显示或隐藏跳桥</value>
+  </data>
+  <data name="BridgeTitle" xml:space="preserve">
+    <value>跳桥：{0} ⇄ {1}</value>
+  </data>
+  <data name="BridgeFuelUntil" xml:space="preserve">
+    <value>燃料至 {0}</value>
+  </data>
+  <data name="BridgeOneGate" xml:space="preserve">
+    <value>ESI 只显示 {0} 的门</value>
+  </data>
+  <data name="BridgeAddedByHand" xml:space="preserve">
+    <value>手动添加</value>
+  </data>
+  <data name="BridgesSummary" xml:space="preserve">
+    <value>跳桥：{0} · 来自 ESI：{1} · 手动添加：{2}</value>
+  </data>
+  <data name="BridgesNote" xml:space="preserve">
+    <value>来自 ESI 的跳桥是你添加了令牌的军团的安塞波跳桥，通往其名称所指之处（“A » B”）。其余的请手动添加：其他军团和盟友的跳桥。此处只能删除手动添加的跳桥。</value>
+  </data>
+  <data name="BridgesNone" xml:space="preserve">
+    <value>尚无已知跳桥。</value>
+  </data>
+  <data name="BridgesUnreadLabel" xml:space="preserve">
+    <value>名称未说明去向的门</value>
+  </data>
+  <data name="BridgeUnreadLine" xml:space="preserve">
+    <value>{0}（位于 {1}）</value>
+  </data>
+  <data name="BridgeNoName" xml:space="preserve">
+    <value>（无名称）</value>
+  </data>
+  <data name="BridgeColFrom" xml:space="preserve">
+    <value>星系</value>
+  </data>
+  <data name="BridgeColTo" xml:space="preserve">
+    <value>星系</value>
+  </data>
+  <data name="BridgeColSource" xml:space="preserve">
+    <value>来源</value>
+  </data>
+  <data name="BridgeColFuel" xml:space="preserve">
+    <value>燃料</value>
+  </data>
+  <data name="BridgeColGates" xml:space="preserve">
+    <value>门</value>
+  </data>
+  <data name="BridgeSourceEsiBoth" xml:space="preserve">
+    <value>ESI，两端</value>
+  </data>
+  <data name="BridgeSourceEsiOne" xml:space="preserve">
+    <value>ESI，一端</value>
+  </data>
+  <data name="BridgeSourceManual" xml:space="preserve">
+    <value>手动</value>
+  </data>
+  <data name="BridgeSourceBoth" xml:space="preserve">
+    <value>ESI 及手动</value>
+  </data>
+  <data name="BridgeFuelDays" xml:space="preserve">
+    <value>{0} 天（{1}）</value>
+  </data>
+  <data name="TipOpenSystemTab" xml:space="preserve">
+    <value>在标签页中打开此星系</value>
+  </data>
+  <data name="TipRemoveBridge" xml:space="preserve">
+    <value>删除此跳桥</value>
+  </data>
+  <data name="AddBridgeLabel" xml:space="preserve">
+    <value>添加跳桥</value>
+  </data>
+  <data name="HintBridgeFrom" xml:space="preserve">
+    <value>一端（星系）</value>
+  </data>
+  <data name="HintBridgeTo" xml:space="preserve">
+    <value>另一端（星系）</value>
+  </data>
+  <data name="HintBridgeNote" xml:space="preserve">
+    <value>备注（可选）</value>
+  </data>
+  <data name="AddBridge" xml:space="preserve">
+    <value>添加</value>
+  </data>
+  <data name="BridgePickBoth" xml:space="preserve">
+    <value>请为两端各选一个星系。</value>
+  </data>
+  <data name="BridgeAdded" xml:space="preserve">
+    <value>已添加 {0} ⇄ {1}。</value>
+  </data>
+  <data name="BridgeNotAdded" xml:space="preserve">
+    <value>该跳桥已在列表中，或两端是同一星系。</value>
+  </data>
+  <data name="PasteBridgesLabel" xml:space="preserve">
+    <value>粘贴列表</value>
+  </data>
+  <data name="HintPasteBridges" xml:space="preserve">
+    <value>每行一座跳桥，例如：
+QZ-X77 » XQ1-Z2 - Home run
+XQ1-Z2 &lt;-&gt; 9-97XQ
+或其他工具的导出格式</value>
+  </data>
+  <data name="ImportBridges" xml:space="preserve">
+    <value>导入</value>
+  </data>
+  <data name="BridgesImported" xml:space="preserve">
+    <value>已添加 {0} · 已存在 {1} · 未读取 {2}（留在框中）</value>
+  </data>
+  <data name="LegendJumpBridge" xml:space="preserve">
+    <value>跳桥——每一半以其端点的区域颜色显示；ESI 只显示一端时较淡</value>
+  </data>
+  <data name="BridgeAllianceId" xml:space="preserve">
+    <value>联盟 {0}</value>
+  </data>
+  <data name="BridgeDirectionLine" xml:space="preserve">
+    <value>{0} → {1}：{2} · {3}</value>
+  </data>
+  <data name="BridgeZoneFree" xml:space="preserve">
+    <value>1 区（距首都 {0:0.0} 光年），免费</value>
+  </data>
+  <data name="BridgeZoneCost" xml:space="preserve">
+    <value>{0} 区（距首都 {1:0.0} 光年），{2} 倍电容</value>
+  </data>
+  <data name="BridgeZoneNoCapital" xml:space="preserve">
+    <value>区域未知（该联盟没有首都星系）</value>
+  </data>
+  <data name="BridgeNoSov" xml:space="preserve">
+    <value>{0} → {1}：{0} 无人拥有主权，因此无人能朝这个方向跳跃</value>
+  </data>
+  <data name="BridgeSovUnknown" xml:space="preserve">
+    <value>无法读取谁可以跳跃：主权数据暂时不可用。</value>
+  </data>
+  <data name="BridgesRulesNote" xml:space="preserve">
+    <value>自 2026 年 9 月 22 日起，跳桥只能由跳跃起点星系的主权联盟使用，旗舰级舰船不能使用（长须鲸和货舰除外）。每次跳跃都会消耗跳桥的电容，落点离该联盟首都越远消耗越多：5 光年内免费（1 区），此后每远 5 光年分别为舰船基础消耗的 2 倍、6 倍、9 倍和 15 倍。</value>
+  </data>
+  <data name="OverlaySovZones" xml:space="preserve">
+    <value>主权区域</value>
+  </data>
+  <data name="SovZoneCaption" xml:space="preserve">
+    <value>Z{0} · {1}</value>
+  </data>
+  <data name="NodeSovZone" xml:space="preserve">
+    <value>{0}
+{1} 区：距首都 {2:0.0} 光年，{3}</value>
+  </data>
+  <data name="NodeSovNoCapital" xml:space="preserve">
+    <value>{0}
+没有首都星系，因此没有区域</value>
+  </data>
+  <data name="LegendZone1" xml:space="preserve">
+    <value>Z1：5 光年内，免费</value>
+  </data>
+  <data name="LegendZone2" xml:space="preserve">
+    <value>Z2：5–10 光年，2 倍</value>
+  </data>
+  <data name="LegendZone3" xml:space="preserve">
+    <value>Z3：10–15 光年，6 倍</value>
+  </data>
+  <data name="LegendZone4" xml:space="preserve">
+    <value>Z4：15–20 光年，9 倍</value>
+  </data>
+  <data name="LegendZone5" xml:space="preserve">
+    <value>Z5：20 光年以上，15 倍</value>
+  </data>
+  <data name="LegendZoneNoCapital" xml:space="preserve">
+    <value>持有者没有首都星系</value>
+  </data>
 </root>

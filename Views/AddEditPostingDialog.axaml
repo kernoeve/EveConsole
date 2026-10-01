@@ -56,7 +56,18 @@
                   Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
                   CornerRadius="3" MaxHeight="120" IsVisible="False">
             <ListBox x:Name="LocationListBox" Background="Transparent" BorderThickness="0"
-                     FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
+                     FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}">
+              <ListBox.ItemTemplate>
+                <DataTemplate>
+                  <!-- A system's region beside it, as every system picker shows it. -->
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Grid.Column="0" Text="{Binding Name}" />
+                    <TextBlock Grid.Column="1" Text="{Binding Region}" FontSize="10" Margin="10 0 0 0"
+                               Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+                  </Grid>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
           </Border>
           <TextBlock x:Name="SelectedLocationText" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
         </StackPanel>

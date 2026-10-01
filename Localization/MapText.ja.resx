@@ -1509,4 +1509,273 @@
   <data name="ReagentSuperionicIcePerHour" xml:space="preserve">
     <value>超イオンアイス{0:N0}/h</value>
   </data>
+  <data name="SearchConstellationIn" xml:space="preserve">
+    <value>コンステレーション · {0}</value>
+  </data>
+  <data name="LiveMarksLabel" xml:space="preserve">
+    <value>ライブ表示</value>
+  </data>
+  <data name="LiveMarkHostiles" xml:space="preserve">
+    <value>過去5分間にインテルまたはキルレポートでここにいると分かった敵対者です。カーソルを合わせると、誰が何に乗っているかを表示します。</value>
+  </data>
+  <data name="LiveMarkOwn" xml:space="preserve">
+    <value>ここでオンラインのあなたのキャラクターです。カーソルを合わせると、艦船と入港中かどうかを表示します。</value>
+  </data>
+  <data name="TipMapTab" xml:space="preserve">
+    <value>バーに沿ってドラッグすると並べ替え、右半分にドラッグすると2つのタブを並べて表示します。</value>
+  </data>
+  <data name="TipCloseMapTab" xml:space="preserve">
+    <value>このタブを閉じる</value>
+  </data>
+  <data name="NewUniverseTab" xml:space="preserve">
+    <value>+ 新しいマップ</value>
+  </data>
+  <data name="TipNewUniverseTab" xml:space="preserve">
+    <value>ニューエデンのマップを新しいタブで開きます。</value>
+  </data>
+  <data name="HintSystemConstellationRegion" xml:space="preserve">
+    <value>システム、コンステレーション、リージョン</value>
+  </data>
+  <data name="TipMapSearch" xml:space="preserve">
+    <value>選んだものを新しいタブで開きます。システムのページ、またはコンステレーションやリージョンに合わせたマップです。</value>
+  </data>
+  <data name="EmptyMapToolHint" xml:space="preserve">
+    <value>開いているタブはありません。「+ 新しいマップ」でマップを追加するか、システム、コンステレーション、リージョンを検索してください。</value>
+  </data>
+  <data name="DropSideBySide" xml:space="preserve">
+    <value>ここにドロップすると2つのタブを並べて表示します</value>
+  </data>
+  <data name="LiveHostilesTitle" xml:space="preserve">
+    <value>{1}の敵対者: {0}</value>
+  </data>
+  <data name="LiveOwnTitle" xml:space="preserve">
+    <value>{1}のあなたのキャラクター: {0}</value>
+  </data>
+  <data name="LiveSystemCount" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="LiveHostileLine" xml:space="preserve">
+    <value>{0} — {1} · {2} · {3}</value>
+  </data>
+  <data name="LiveShipUnknown" xml:space="preserve">
+    <value>艦船不明</value>
+  </data>
+  <data name="LiveJustNow" xml:space="preserve">
+    <value>たった今</value>
+  </data>
+  <data name="LiveMinutesAgo" xml:space="preserve">
+    <value>{0}分前</value>
+  </data>
+  <data name="LiveSourceKillmail" xml:space="preserve">
+    <value>キルレポート</value>
+  </data>
+  <data name="LiveSourceIntel" xml:space="preserve">
+    <value>インテル</value>
+  </data>
+  <data name="LiveSourceIntelNoVisual" xml:space="preserve">
+    <value>インテル、NV</value>
+  </data>
+  <data name="LiveMore" xml:space="preserve">
+    <value>…ほか{0}人</value>
+  </data>
+  <data name="LiveUnidentified" xml:space="preserve">
+    <value>+{0}人(名前なし)</value>
+  </data>
+  <data name="LiveOwnLine" xml:space="preserve">
+    <value>{0} — {1} · {2}</value>
+  </data>
+  <data name="LiveInSpace" xml:space="preserve">
+    <value>宇宙空間</value>
+  </data>
+  <data name="LiveDockedAt" xml:space="preserve">
+    <value>{0}に入港中</value>
+  </data>
+  <data name="LiveDocked" xml:space="preserve">
+    <value>入港中</value>
+  </data>
+  <data name="LiveCharacterId" xml:space="preserve">
+    <value>キャラクター{0}</value>
+  </data>
+  <data name="SidePanel" xml:space="preserve">
+    <value>詳細</value>
+  </data>
+  <data name="TipSidePanel" xml:space="preserve">
+    <value>右側の詳細と凡例を表示または非表示にします。</value>
+  </data>
+  <data name="JumpBridgesTab" xml:space="preserve">
+    <value>ジャンプブリッジ</value>
+  </data>
+  <data name="TipJumpBridgesTab" xml:space="preserve">
+    <value>ESIまたは手動で登録した既知のジャンプブリッジの一覧と追加</value>
+  </data>
+  <data name="JumpBridgesToggle" xml:space="preserve">
+    <value>ジャンプブリッジ</value>
+  </data>
+  <data name="TipJumpBridgesToggle" xml:space="preserve">
+    <value>マップ上のジャンプブリッジを表示または非表示にします。</value>
+  </data>
+  <data name="BridgeTitle" xml:space="preserve">
+    <value>ジャンプブリッジ: {0} ⇄ {1}</value>
+  </data>
+  <data name="BridgeFuelUntil" xml:space="preserve">
+    <value>燃料 {0} まで</value>
+  </data>
+  <data name="BridgeOneGate" xml:space="preserve">
+    <value>ESIで見えるのは{0}のゲートだけです</value>
+  </data>
+  <data name="BridgeAddedByHand" xml:space="preserve">
+    <value>手動で追加</value>
+  </data>
+  <data name="BridgesSummary" xml:space="preserve">
+    <value>ジャンプブリッジ: {0} · ESI: {1} · 手動: {2}</value>
+  </data>
+  <data name="BridgesNote" xml:space="preserve">
+    <value>ESIのブリッジは、トークンを追加したコーポレーションのアンシブレックスで、名前(「A » B」)の示す先につながります。それ以外(他のコーポレーションや同盟のブリッジ)は手動で追加してください。ここで削除できるのは手動で追加したブリッジだけです。</value>
+  </data>
+  <data name="BridgesNone" xml:space="preserve">
+    <value>既知のジャンプブリッジはまだありません。</value>
+  </data>
+  <data name="BridgesUnreadLabel" xml:space="preserve">
+    <value>名前から行き先が分からないゲート</value>
+  </data>
+  <data name="BridgeUnreadLine" xml:space="preserve">
+    <value>{0}({1})</value>
+  </data>
+  <data name="BridgeNoName" xml:space="preserve">
+    <value>(名前なし)</value>
+  </data>
+  <data name="BridgeColFrom" xml:space="preserve">
+    <value>システム</value>
+  </data>
+  <data name="BridgeColTo" xml:space="preserve">
+    <value>システム</value>
+  </data>
+  <data name="BridgeColSource" xml:space="preserve">
+    <value>情報源</value>
+  </data>
+  <data name="BridgeColFuel" xml:space="preserve">
+    <value>燃料</value>
+  </data>
+  <data name="BridgeColGates" xml:space="preserve">
+    <value>ゲート</value>
+  </data>
+  <data name="BridgeSourceEsiBoth" xml:space="preserve">
+    <value>ESI、両方のゲート</value>
+  </data>
+  <data name="BridgeSourceEsiOne" xml:space="preserve">
+    <value>ESI、片方のゲート</value>
+  </data>
+  <data name="BridgeSourceManual" xml:space="preserve">
+    <value>手動</value>
+  </data>
+  <data name="BridgeSourceBoth" xml:space="preserve">
+    <value>ESIと手動</value>
+  </data>
+  <data name="BridgeFuelDays" xml:space="preserve">
+    <value>{0}日({1})</value>
+  </data>
+  <data name="TipOpenSystemTab" xml:space="preserve">
+    <value>このシステムをタブで開く</value>
+  </data>
+  <data name="TipRemoveBridge" xml:space="preserve">
+    <value>このブリッジを削除</value>
+  </data>
+  <data name="AddBridgeLabel" xml:space="preserve">
+    <value>ブリッジを追加</value>
+  </data>
+  <data name="HintBridgeFrom" xml:space="preserve">
+    <value>一方の端(システム)</value>
+  </data>
+  <data name="HintBridgeTo" xml:space="preserve">
+    <value>もう一方の端(システム)</value>
+  </data>
+  <data name="HintBridgeNote" xml:space="preserve">
+    <value>メモ(任意)</value>
+  </data>
+  <data name="AddBridge" xml:space="preserve">
+    <value>追加</value>
+  </data>
+  <data name="BridgePickBoth" xml:space="preserve">
+    <value>両端のシステムを選んでください。</value>
+  </data>
+  <data name="BridgeAdded" xml:space="preserve">
+    <value>{0} ⇄ {1} を追加しました。</value>
+  </data>
+  <data name="BridgeNotAdded" xml:space="preserve">
+    <value>そのブリッジはすでに一覧にあるか、両端が同じシステムです。</value>
+  </data>
+  <data name="PasteBridgesLabel" xml:space="preserve">
+    <value>一覧を貼り付け</value>
+  </data>
+  <data name="HintPasteBridges" xml:space="preserve">
+    <value>1行に1ブリッジ。例:
+QZ-X77 » XQ1-Z2 - Home run
+XQ1-Z2 &lt;-&gt; 9-97XQ
+または他のツールのエクスポート形式</value>
+  </data>
+  <data name="ImportBridges" xml:space="preserve">
+    <value>インポート</value>
+  </data>
+  <data name="BridgesImported" xml:space="preserve">
+    <value>追加 {0} · 登録済み {1} · 読めなかった行 {2}(ボックスに残ります)</value>
+  </data>
+  <data name="LegendJumpBridge" xml:space="preserve">
+    <value>ジャンプブリッジ — 各半分はその端のゾーン色。ESIで片方のゲートしか見えない場合は薄く表示</value>
+  </data>
+  <data name="BridgeAllianceId" xml:space="preserve">
+    <value>アライアンス {0}</value>
+  </data>
+  <data name="BridgeDirectionLine" xml:space="preserve">
+    <value>{0} → {1}: {2} · {3}</value>
+  </data>
+  <data name="BridgeZoneFree" xml:space="preserve">
+    <value>ゾーン1(首都から{0:0.0}光年)、無料</value>
+  </data>
+  <data name="BridgeZoneCost" xml:space="preserve">
+    <value>ゾーン{0}(首都から{1:0.0}光年)、キャパシタ{2}倍</value>
+  </data>
+  <data name="BridgeZoneNoCapital" xml:space="preserve">
+    <value>ゾーン不明(アライアンスに首都星系がありません)</value>
+  </data>
+  <data name="BridgeNoSov" xml:space="preserve">
+    <value>{0} → {1}: {0}の主権を持つ者がいないため、この方向には誰もジャンプできません</value>
+  </data>
+  <data name="BridgeSovUnknown" xml:space="preserve">
+    <value>ジャンプできる者を読み取れませんでした。主権データが現在利用できません。</value>
+  </data>
+  <data name="BridgesRulesNote" xml:space="preserve">
+    <value>2026年9月22日以降、ブリッジを使えるのはジャンプ開始地点の主権を持つアライアンスのみで、キャピタル艦は使えません(ロークァルと輸送艦は例外)。各ジャンプはブリッジのキャパシタを消費し、そのアライアンスの首都から着地点が遠いほど多くなります。5光年以内は無料(ゾーン1)、以降5光年ごとに艦船の基本コストの2倍、6倍、9倍、15倍です。</value>
+  </data>
+  <data name="OverlaySovZones" xml:space="preserve">
+    <value>主権ゾーン</value>
+  </data>
+  <data name="SovZoneCaption" xml:space="preserve">
+    <value>Z{0} · {1}</value>
+  </data>
+  <data name="NodeSovZone" xml:space="preserve">
+    <value>{0}
+ゾーン{1}: 首都から{2:0.0}光年、{3}</value>
+  </data>
+  <data name="NodeSovNoCapital" xml:space="preserve">
+    <value>{0}
+首都星系がないためゾーンなし</value>
+  </data>
+  <data name="LegendZone1" xml:space="preserve">
+    <value>Z1: 5光年以内、無料</value>
+  </data>
+  <data name="LegendZone2" xml:space="preserve">
+    <value>Z2: 5~10光年、2倍</value>
+  </data>
+  <data name="LegendZone3" xml:space="preserve">
+    <value>Z3: 10~15光年、6倍</value>
+  </data>
+  <data name="LegendZone4" xml:space="preserve">
+    <value>Z4: 15~20光年、9倍</value>
+  </data>
+  <data name="LegendZone5" xml:space="preserve">
+    <value>Z5: 20光年超、15倍</value>
+  </data>
+  <data name="LegendZoneNoCapital" xml:space="preserve">
+    <value>保有者に首都星系がない</value>
+  </data>
 </root>

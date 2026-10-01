@@ -115,6 +115,26 @@ public sealed class AlarmFieldVm : ReactiveObject
             ? int.Parse(m.Groups[1].Value) : null;
     public bool IsStage => StageNumber is not null;
 
+    /// <summary>
+    /// The choice this field depends on, by the schema's <c>show_if</c>: shown only while the
+    /// field named here holds one of <see cref="ShowIfValues"/>. Null for a field always shown.
+    /// Hidden is not cleared — a list kept aside comes back when its choice does, and the check
+    /// reads only the fields its choice uses.
+    /// </summary>
+    public string? ShowIfField { get; init; }
+    public IReadOnlyList<string>? ShowIfValues { get; init; }
+
+    private bool _applies = true;
+    /// <summary>False while the choice this field depends on says it does not apply.</summary>
+    public bool Applies
+    {
+        get => _applies;
+        set { this.RaiseAndSetIfChanged(ref _applies, value); this.RaisePropertyChanged(nameof(IsInForm)); }
+    }
+
+    /// <summary>Shown among the check's fields: not a stage's, and in force.</summary>
+    public bool IsInForm => !IsStage && Applies;
+
     public AlarmFieldVm()
     {
         AddCommand    = ReactiveCommand.CreateFromTask(AddAsync);
@@ -307,7 +327,8 @@ public sealed class AlarmFieldVm : ReactiveObject
 /// <para>⚠️ The box takes <see cref="ToString"/> — the English — when one is picked, so the saved
 /// config keeps the name the checks match on, whatever language the list was read in.</para>
 /// </summary>
-public sealed record AlarmNameSuggestion(string English, string Shown)
+/// <param name="Region">A system's region, shown to its right in the list; "" for anything else.</param>
+public sealed record AlarmNameSuggestion(string English, string Shown, string Region = "")
 {
     /// <summary>The English, beside the shown name, when the two differ.</summary>
     public bool IsTranslated => !string.Equals(English, Shown, StringComparison.Ordinal);
@@ -1024,6 +1045,17 @@ public sealed class AlarmsViewModel : ReactiveObject
                   }
                 : null;
             var unitsName = spec.TryGetProperty("units", out var un) && un.ValueKind == JsonValueKind.String ? un.GetString() : null;
+
+            // "show_if" is this editor's too: { "around": ["Systems"] } shows the field only while
+            // that choice holds one of those values.
+            var showIf = spec.TryGetProperty("show_if", out var si) && si.ValueKind == JsonValueKind.Object
+                ? si.EnumerateObject().FirstOrDefault() : default;
+            List<string>? showIfValues = showIf.Value.ValueKind switch
+            {
+                JsonValueKind.Array  => [.. showIf.Value.EnumerateArray().Select(x => x.GetString() ?? "")],
+                JsonValueKind.String => [showIf.Value.GetString() ?? ""],
+                _                    => null,
+            };
             var unitsDflt = unitsName is not null && props.TryGetProperty(unitsName, out var us)
                          && us.TryGetProperty("default", out var ud) ? ud.GetRawText() : "";
 
@@ -1051,6 +1083,8 @@ public sealed class AlarmsViewModel : ReactiveObject
                 Suffix      = screen?.Suffix ?? suffix,
                 Default     = dflt,
                 UnitsName   = kind == "enum" ? unitsName : null,
+                ShowIfField  = showIfValues is not null ? showIf.Name : null,
+                ShowIfValues = showIfValues,
             };
             if (field.HasUnits) field.UnitsText = unitsDflt;
 
@@ -1083,7 +1117,9 @@ public sealed class AlarmsViewModel : ReactiveObject
             {
                 (field.Populator, field.Resolver) = format switch
                 {
-                    "place-name" => (SearchPlaceNamesAsync, ResolvePlaceAsync),
+                    "place-name"     => (SearchPlaceNamesAsync, ResolvePlaceAsync),
+                    "system-name"    => (SearchSystemNamesAsync, ResolveSystemAsync),
+                    "character-name" => (SearchCharacterNamesAsync, ResolveCharacterAsync),
                     "ship-name"  => (SearchShipNamesAsync,  ResolveShipAsync),
                     "item-name"  => (SearchItemNamesAsync,  ResolveItemAsync),
                     _            => ((Func<string?, CancellationToken, Task<IEnumerable<object>>>?)null,
@@ -1092,6 +1128,15 @@ public sealed class AlarmsViewModel : ReactiveObject
             }
 
             Fields.Add(field);
+        }
+
+        // A field shown only for some choices follows that choice as it changes — and as an
+        // existing alarm's config sets it, since that goes through the same Text.
+        foreach (var field in Fields.Where(f => f.ShowIfField is not null))
+        {
+            if (Fields.FirstOrDefault(f => f.Name == field.ShowIfField) is not { } choice) continue;
+            choice.WhenAnyValue(c => c.Text).Subscribe(value =>
+                field.Applies = field.ShowIfValues!.Contains(value, StringComparer.OrdinalIgnoreCase));
         }
 
         // ⚠️ Rebuilt here, with the fields, and not only when the condition changes: reopening
@@ -1213,10 +1258,15 @@ public sealed class AlarmsViewModel : ReactiveObject
                     .Where(r => r.Name.ToLower().Contains(lower) || regionIds.Contains(r.RegionId))
                     .Select(r => new { r.RegionId, r.Name }).Take(20).ToListAsync(ct))
                 .Select(r => new AlarmNameSuggestion(r.Name, SdeNames.Region(r.RegionId, r.Name))));
+            // Systems carry their region, shown beside them as every system picker shows it.
             hits.AddRange((await db.SdeSolarSystems.AsNoTracking()
                     .Where(s => s.Name.ToLower().Contains(lower) || systemIds.Contains(s.SolarSystemId))
-                    .Select(s => new { s.SolarSystemId, s.Name }).Take(50).ToListAsync(ct))
-                .Select(s => new AlarmNameSuggestion(s.Name, SdeNames.SolarSystem(s.SolarSystemId, s.Name))));
+                    .Take(50)
+                    .Join(db.SdeRegions.AsNoTracking(), s => s.RegionId, r => r.RegionId,
+                          (s, r) => new { s.SolarSystemId, s.Name, s.RegionId, Region = r.Name })
+                    .ToListAsync(ct))
+                .Select(s => new AlarmNameSuggestion(s.Name, SdeNames.SolarSystem(s.SolarSystemId, s.Name),
+                                                     SdeNames.Region(s.RegionId, s.Region))));
             hits.AddRange((await db.Structures.AsNoTracking()
                 .Where(s => s.Name.ToLower().Contains(lower)).Select(s => s.Name).Take(50).ToListAsync(ct)).Select(AsIs));
             hits.AddRange((await db.EsiStructureNames.AsNoTracking()
@@ -1272,6 +1322,83 @@ public sealed class AlarmsViewModel : ReactiveObject
                 .Select(s => new { s.StationId, s.Name }).FirstOrDefaultAsync(ct) is { } otherStation)
             return new AlarmNameSuggestion(otherStation.Name, SdeNames.Station(otherStation.StationId, otherStation.Name));
         return null;
+    }, ct);
+
+    /// <summary>
+    /// Solar systems only, from the SDE, each with its region beside it as every system picker
+    /// shows it. Found and listed in the interface language too; the one picked goes in as
+    /// English.
+    /// </summary>
+    private async Task<IEnumerable<object>> SearchSystemNamesAsync(string? text, CancellationToken ct)
+    {
+        var term = text?.Trim() ?? "";
+        if (term.Length < 2) return [];
+        var lower = term.ToLower();
+
+        return await Task.Run(async () =>
+        {
+            await SdeNames.EnsureLoadedAsync(ct);
+            var systemIds = ShownMatches(SdeNameKind.SolarSystem, term);
+            await using var db = await _dbFactory.CreateDbContextAsync(ct);
+            var hits = (await db.SdeSolarSystems.AsNoTracking()
+                    .Where(s => s.Name.ToLower().Contains(lower) || systemIds.Contains(s.SolarSystemId))
+                    .Take(100)
+                    .Join(db.SdeRegions.AsNoTracking(), s => s.RegionId, r => r.RegionId,
+                          (s, r) => new { s.SolarSystemId, s.Name, s.RegionId, Region = r.Name })
+                    .ToListAsync(ct))
+                .Select(s => new AlarmNameSuggestion(s.Name, SdeNames.SolarSystem(s.SolarSystemId, s.Name),
+                                                     SdeNames.Region(s.RegionId, s.Region)));
+            return Rank(hits, term);
+        }, ct);
+    }
+
+    /// <summary>A typed system as the alarm stores it and as the screen shows it: by its English,
+    /// or its name in the interface language or another of the game client's. Null for a name
+    /// that names no system.</summary>
+    private Task<AlarmNameSuggestion?> ResolveSystemAsync(string name, CancellationToken ct) => Task.Run(async () =>
+    {
+        var text = name.Trim();
+        var u    = text.ToUpper();
+        await SdeNames.EnsureLoadedAsync(ct);
+        await using var db = await _dbFactory.CreateDbContextAsync(ct);
+
+        var system = await db.SdeSolarSystems.AsNoTracking().Where(s => s.Name.ToUpper() == u)
+            .Select(s => new { s.SolarSystemId, s.Name }).FirstOrDefaultAsync(ct);
+        if (system is null)
+        {
+            var ids = await OtherLanguageIdsAsync(db, text, SdeNameKind.SolarSystem, ct);
+            system = await db.SdeSolarSystems.AsNoTracking().Where(s => ids.Contains(s.SolarSystemId))
+                .Select(s => new { s.SolarSystemId, s.Name }).FirstOrDefaultAsync(ct);
+        }
+        return system is null ? null : new AlarmNameSuggestion(system.Name, SdeNames.SolarSystem(system.SolarSystemId, system.Name));
+    }, ct);
+
+    /// <summary>The capsuleer's own characters: the ones an alarm can watch around. A name is
+    /// a name in every language.</summary>
+    private async Task<IEnumerable<object>> SearchCharacterNamesAsync(string? text, CancellationToken ct)
+    {
+        var term = text?.Trim() ?? "";
+        if (term.Length < 2) return [];
+        var lower = term.ToLower();
+
+        return await Task.Run(async () =>
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync(ct);
+            var names = await db.Characters.AsNoTracking()
+                .Where(c => c.Name.ToLower().Contains(lower)).Select(c => c.Name).Take(50).ToListAsync(ct);
+            return Rank(names.Select(AsIs), term);
+        }, ct);
+    }
+
+    /// <summary>One of the capsuleer's characters by name, as they spell it. Null for anyone
+    /// else: an alarm can only watch where its own characters are.</summary>
+    private Task<AlarmNameSuggestion?> ResolveCharacterAsync(string name, CancellationToken ct) => Task.Run(async () =>
+    {
+        var u = name.Trim().ToUpper();
+        await using var db = await _dbFactory.CreateDbContextAsync(ct);
+        var found = await db.Characters.AsNoTracking().Where(c => c.Name.ToUpper() == u)
+            .Select(c => c.Name).FirstOrDefaultAsync(ct);
+        return found is null ? null : AsIs(found);
     }, ct);
 
     /// <summary>

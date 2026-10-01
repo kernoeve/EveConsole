@@ -120,6 +120,7 @@ public class AppDbContext : DbContext
     public DbSet<ChatMessage>     ChatMessages      => Set<ChatMessage>();
 
     public DbSet<IntelReport>          IntelReports          => Set<IntelReport>();
+    public DbSet<ManualJumpBridge>     ManualJumpBridges     => Set<ManualJumpBridge>();
     public DbSet<IntelReportCharacter> IntelReportCharacters => Set<IntelReportCharacter>();
     public DbSet<CharacterAffiliation> CharacterAffiliations  => Set<CharacterAffiliation>();
     public DbSet<NameLookupMiss>       NameLookupMisses       => Set<NameLookupMiss>();
@@ -1210,6 +1211,13 @@ public class AppDbContext : DbContext
             e.HasIndex(x => new { x.SystemId, x.ReportedAt })     // the overlays' query
              .HasDatabaseName("IX_IntelReports_System_Time");
             e.HasIndex(x => new { x.Obsolete, x.ReportedAt }).HasDatabaseName("IX_IntelReports_Obsolete_Time"); });
+
+        mb.Entity<ManualJumpBridge>(e => {
+            e.HasKey(x => x.Id);
+            // One row per pair: From is always the lower system id, so the pair entered the other
+            // way round is refused rather than stored twice.
+            e.HasIndex(x => new { x.FromSystemId, x.ToSystemId }).IsUnique()
+             .HasDatabaseName("IX_ManualJumpBridges_Pair"); });
 
         mb.Entity<NameLookupMiss>(e => {
             e.HasKey(x => x.Name);

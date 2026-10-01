@@ -1,0 +1,162 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             x:Class="EveConsole.Views.JumpBridgesView"
+             x:DataType="vm:BridgesTabViewModel"
+             Background="{DynamicResource SurfaceBaseBrush}">
+
+  <UserControl.Styles>
+    <Style Selector="TextBlock.flabel">
+      <Setter Property="FontSize" Value="9.5" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
+    </Style>
+    <Style Selector="TextBlock.head">
+      <Setter Property="FontSize" Value="10" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
+    </Style>
+    <Style Selector="Button.link">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="Foreground" Value="{DynamicResource InfoBrush}" />
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Button.action">
+      <Setter Property="Background" Value="{DynamicResource SurfaceRaisedBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource InfoBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource InfoSurfaceBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Padding" Value="12 4" />
+      <Setter Property="FontSize" Value="11" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid ColumnDefinitions="*,320">
+
+    <!-- ── The list ──────────────────────────────────────────────────── -->
+    <DockPanel Grid.Column="0" Margin="14 10">
+      <StackPanel DockPanel.Dock="Top" Spacing="4" Margin="0 0 0 8">
+        <TextBlock Text="{Binding Summary}" FontSize="13" Foreground="{DynamicResource TextBrightBrush}" />
+        <TextBlock Text="{x:Static loc:MapText.BridgesNote}" FontSize="11" TextWrapping="Wrap"
+                   Foreground="{DynamicResource TextDimBrush}" />
+        <TextBlock Text="{x:Static loc:MapText.BridgesRulesNote}" FontSize="11" TextWrapping="Wrap"
+                   Foreground="{DynamicResource TextDimBrush}" />
+      </StackPanel>
+
+      <!-- Gates ESI shows whose names do not say where they go. -->
+      <StackPanel DockPanel.Dock="Bottom" Spacing="2" Margin="0 8 0 0" IsVisible="{Binding HasUnread}">
+        <TextBlock Classes="flabel" Text="{x:Static loc:MapText.BridgesUnreadLabel}" />
+        <ItemsControl ItemsSource="{Binding Unread}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="x:String">
+              <TextBlock Text="{Binding}" FontSize="11" Foreground="{DynamicResource WarnBrush}" TextWrapping="Wrap" />
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+
+      <Grid RowDefinitions="Auto,*">
+        <Grid Grid.Row="0" ColumnDefinitions="110,110,120,120,*,Auto" Margin="0 0 0 4">
+          <TextBlock Grid.Column="0" Classes="head" Text="{x:Static loc:MapText.BridgeColFrom}" />
+          <TextBlock Grid.Column="1" Classes="head" Text="{x:Static loc:MapText.BridgeColTo}" />
+          <TextBlock Grid.Column="2" Classes="head" Text="{x:Static loc:MapText.BridgeColSource}" />
+          <TextBlock Grid.Column="3" Classes="head" Text="{x:Static loc:MapText.BridgeColFuel}" />
+          <TextBlock Grid.Column="4" Classes="head" Text="{x:Static loc:MapText.BridgeColGates}" />
+        </Grid>
+        <TextBlock Grid.Row="1" Text="{x:Static loc:MapText.BridgesNone}" IsVisible="{Binding !HasRows}"
+                   FontSize="12" Foreground="{DynamicResource TextDimBrush}" Margin="0 8 0 0" />
+        <ScrollViewer Grid.Row="1" IsVisible="{Binding HasRows}">
+          <ItemsControl ItemsSource="{Binding Rows}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:BridgeRowVm">
+                <Border BorderThickness="0 0 0 1" BorderBrush="{DynamicResource BorderSubtleBrush}" Padding="0 5">
+                  <Grid ColumnDefinitions="110,110,120,120,*,Auto">
+                    <Button Grid.Column="0" Classes="link" Content="{Binding SystemA}" Command="{Binding OpenACommand}"
+                            VerticalAlignment="Top" ToolTip.Tip="{x:Static loc:MapText.TipOpenSystemTab}" />
+                    <Button Grid.Column="1" Classes="link" Content="{Binding SystemB}" Command="{Binding OpenBCommand}"
+                            VerticalAlignment="Top" ToolTip.Tip="{x:Static loc:MapText.TipOpenSystemTab}" />
+                    <TextBlock Grid.Column="2" Text="{Binding Source}" FontSize="11"
+                               Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap" />
+                    <TextBlock Grid.Column="3" Text="{Binding Fuel}" FontSize="11" TextWrapping="Wrap"
+                               Foreground="{DynamicResource TextMutedBrush}"
+                               Classes.low="{Binding FuelLow}">
+                      <TextBlock.Styles>
+                        <Style Selector="TextBlock.low">
+                          <Setter Property="Foreground" Value="{DynamicResource WarnBrush}" />
+                        </Style>
+                      </TextBlock.Styles>
+                    </TextBlock>
+                    <StackPanel Grid.Column="4" Spacing="1">
+                      <TextBlock Text="{Binding Gates}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"
+                                 TextWrapping="Wrap" />
+                      <TextBlock Text="{Binding Access}" FontSize="11" Foreground="{DynamicResource InfoBrush}"
+                                 TextWrapping="Wrap" />
+                      <TextBlock Text="{Binding Note}" FontSize="11" Foreground="{DynamicResource TextDimBrush}"
+                                 TextWrapping="Wrap"
+                                 IsVisible="{Binding Note, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                    </StackPanel>
+                    <Button Grid.Column="5" Content="✕" FontSize="10" Background="Transparent" BorderThickness="0"
+                            Foreground="{DynamicResource TextFaintBrush}" Padding="6 0" VerticalAlignment="Top"
+                            IsVisible="{Binding CanRemove}" Command="{Binding RemoveCommand}"
+                            ToolTip.Tip="{x:Static loc:MapText.TipRemoveBridge}" />
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+      </Grid>
+    </DockPanel>
+
+    <!-- ── Adding ────────────────────────────────────────────────────── -->
+    <Border Grid.Column="1" BorderThickness="1 0 0 0" BorderBrush="{DynamicResource BorderSubtleBrush}"
+            Background="{DynamicResource SurfacePanelBrush}" Padding="12 10">
+      <StackPanel Spacing="8">
+        <TextBlock Classes="flabel" Text="{x:Static loc:MapText.AddBridgeLabel}" />
+        <AutoCompleteBox Text="{Binding FromText}" ItemsSource="{Binding FromPlaces}" SelectedItem="{Binding From}"
+                         FilterMode="None" MinimumPrefixLength="2" FontSize="11"
+                         Watermark="{x:Static loc:MapText.HintBridgeFrom}">          <AutoCompleteBox.ItemTemplate>
+            <DataTemplate>
+              <!-- The region beside the system, as every system picker shows it. -->
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="{Binding Label}" FontSize="11.5" Foreground="{DynamicResource TextPrimaryBrush}" />
+                <TextBlock Text="{Binding Detail}" FontSize="10" Foreground="{DynamicResource TextDimBrush}"
+                           VerticalAlignment="Center" />
+              </StackPanel>
+            </DataTemplate>
+          </AutoCompleteBox.ItemTemplate>
+        </AutoCompleteBox>
+        <AutoCompleteBox Text="{Binding ToText}" ItemsSource="{Binding ToPlaces}" SelectedItem="{Binding To}"
+                         FilterMode="None" MinimumPrefixLength="2" FontSize="11"
+                         Watermark="{x:Static loc:MapText.HintBridgeTo}">          <AutoCompleteBox.ItemTemplate>
+            <DataTemplate>
+              <!-- The region beside the system, as every system picker shows it. -->
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="{Binding Label}" FontSize="11.5" Foreground="{DynamicResource TextPrimaryBrush}" />
+                <TextBlock Text="{Binding Detail}" FontSize="10" Foreground="{DynamicResource TextDimBrush}"
+                           VerticalAlignment="Center" />
+              </StackPanel>
+            </DataTemplate>
+          </AutoCompleteBox.ItemTemplate>
+        </AutoCompleteBox>
+        <TextBox Text="{Binding Note}" FontSize="11" Watermark="{x:Static loc:MapText.HintBridgeNote}" />
+        <Button Classes="action" Content="{x:Static loc:MapText.AddBridge}" Command="{Binding AddCommand}"
+                HorizontalAlignment="Left" />
+
+        <Rectangle Height="1" Fill="{DynamicResource BorderSubtleBrush}" Margin="0 6" />
+
+        <TextBlock Classes="flabel" Text="{x:Static loc:MapText.PasteBridgesLabel}" />
+        <TextBox Text="{Binding PasteText}" AcceptsReturn="True" TextWrapping="NoWrap" Height="160" FontSize="11"
+                 Watermark="{x:Static loc:MapText.HintPasteBridges}" />
+        <Button Classes="action" Content="{x:Static loc:MapText.ImportBridges}" Command="{Binding ImportCommand}"
+                HorizontalAlignment="Left" />
+
+        <TextBlock Text="{Binding Message}" FontSize="11" TextWrapping="Wrap"
+                   Foreground="{DynamicResource TextMutedBrush}" />
+      </StackPanel>
+    </Border>
+  </Grid>
+</UserControl>

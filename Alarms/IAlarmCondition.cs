@@ -106,6 +106,14 @@ public interface IAlarmCondition
     string? Announcement(JsonElement config, IReadOnlyList<AlarmMatch> matches) => null;
 
     /// <summary>
+    /// A config rewritten into the shape the editor shows, or null when it already is. The agent
+    /// writes configs from the schema and may leave out a choice the check can infer; saved as
+    /// it came, the editor would open on the choice's default rather than on what the check
+    /// does.
+    /// </summary>
+    string? NormaliseConfig(string? json) => null;
+
+    /// <summary>
     /// How many stages a firing of this check can progress through, or 0 for an ordinary check.
     ///
     /// <para>A staged check emits matches that each carry a <c>stage</c>, a <c>scope_key</c>

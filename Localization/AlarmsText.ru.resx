@@ -731,7 +731,7 @@
     <value>Сообщение разведки</value>
   </data>
   <data name="CheckIntelNote" xml:space="preserve">
-    <value>Срабатывает, когда кто-то сообщает о пилоте в отслеживаемой системе. Укажите список систем или одну систему и радиус в прыжках, чтобы охватить всё вокруг неё. Читает каналы разведки, которые уже разбираются в «Настройки → Журналы чата».</value>
+    <value>Срабатывает, когда кто-то сообщает о пилоте рядом с тем, что вы отслеживаете: вашими персонажами вне дока, вашими персонажами где угодно или списком систем — каждый с радиусом в прыжках. Читает каналы разведки, которые уже разбираются в «Настройки → Журналы чата».</value>
   </data>
   <data name="CheckShipUndock" xml:space="preserve">
     <value>Выход корабля из дока</value>
@@ -779,19 +779,13 @@
     <value>Системы</value>
   </data>
   <data name="IntelSystemsNote" xml:space="preserve">
-    <value>Названия отслеживаемых систем через запятую, например «{0}, {1}». Можно оставить пустым, если вместо этого задан радиус в прыжках.</value>
-  </data>
-  <data name="IntelWithinJumpsLabel" xml:space="preserve">
-    <value>В пределах прыжков от</value>
-  </data>
-  <data name="IntelWithinJumpsNote" xml:space="preserve">
-    <value>Необязательно. Название системы; отслеживается всё в пределах указанного ниже числа прыжков. Дополняет список выше, а не заменяет его.</value>
+    <value>Отслеживаемые системы, например {0} или {1}. Добавляйте по одной; при 0 прыжков отслеживаются только эти системы.</value>
   </data>
   <data name="IntelJumpsLabel" xml:space="preserve">
     <value>Прыжки</value>
   </data>
   <data name="IntelJumpsNote" xml:space="preserve">
-    <value>На сколько прыжков через врата от системы из поля «В пределах прыжков от» вести наблюдение. 0 — только эта система. Не больше 15 — дальше это уже не окрестности.</value>
+    <value>На сколько прыжков через врата от каждого персонажа или системы вести наблюдение. 0 — только их собственная система. Не больше 15 — дальше это уже не окрестности.</value>
   </data>
   <data name="IntelMinPlayersLabel" xml:space="preserve">
     <value>Мин. пилотов</value>
@@ -1440,5 +1434,41 @@
   </data>
   <data name="RunPostedPartDiscord" xml:space="preserve">
     <value>Опубликовано сообщений: {0} из {1} (символов: {2:N0}); следующее Discord отклонил: {3}.</value>
+  </data>
+  <data name="IntelAroundLabel" xml:space="preserve">
+    <value>Наблюдать вокруг</value>
+  </data>
+  <data name="IntelAroundNote" xml:space="preserve">
+    <value>Персонажи вне дока: где бы ни находились в космосе ваши персонажи в сети; пристыкованные не отслеживаются. Персонажи: где бы они ни были, пока в сети, в доке или нет. Системы: системы из списка ниже.</value>
+  </data>
+  <data name="OptionUndockedCharacters" xml:space="preserve">
+    <value>Персонажи вне дока</value>
+  </data>
+  <data name="OptionCharacters" xml:space="preserve">
+    <value>Персонажи</value>
+  </data>
+  <data name="OptionSystems" xml:space="preserve">
+    <value>Системы</value>
+  </data>
+  <data name="IntelCharactersLabel" xml:space="preserve">
+    <value>Персонажи</value>
+  </data>
+  <data name="IntelCharactersNote" xml:space="preserve">
+    <value>Необязательно. Ваши персонажи, вокруг которых вести наблюдение; оставьте пустым для всех. Учитываются только персонажи в сети.</value>
+  </data>
+  <data name="IntelSaidWhereIs" xml:space="preserve">
+    <value>там, где {0}</value>
+  </data>
+  <data name="IntelSaidJumpsFromOne" xml:space="preserve">
+    <value>в {0} прыжке от {1}</value>
+  </data>
+  <data name="IntelSaidJumpsFromFew" xml:space="preserve">
+    <value>в {0} прыжках от {1}</value>
+  </data>
+  <data name="IntelSaidJumpsFromMany" xml:space="preserve">
+    <value>в {0} прыжках от {1}</value>
+  </data>
+  <data name="IntelSaidJumpsFromOther" xml:space="preserve">
+    <value>в {0} прыжках от {1}</value>
   </data>
 </root>

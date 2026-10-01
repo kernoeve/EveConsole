@@ -2066,4 +2066,361 @@ Owned by {3}</value>
     <value>{0:N0}/h Superionic Ice</value>
     <comment>System page, Celestials tab, Reagent column: what an ice planet yields per hour (/h). {0} is the amount; Superionic Ice is the game's item name.</comment>
   </data>
+  <data name="SearchConstellationIn" xml:space="preserve">
+    <value>Constellation · {0}</value>
+    <comment>Map tool search: the small line under a suggestion that is a constellation. {0} is its region.</comment>
+  </data>
+  <data name="LiveMarksLabel" xml:space="preserve">
+    <value>LIVE MARKS</value>
+    <comment>Label in UniverseView's side panel, above the legend of the live marks on the map.</comment>
+  </data>
+  <data name="LiveMarkHostiles" xml:space="preserve">
+    <value>Hostiles placed here in the last 5 minutes, by intel or a killmail. Hover for who they are and what they fly.</value>
+    <comment>Legend beside the red round mark on the map.</comment>
+  </data>
+  <data name="LiveMarkOwn" xml:space="preserve">
+    <value>Your characters online here. Hover for their ships and whether they are docked.</value>
+    <comment>Legend beside the blue square mark on the map.</comment>
+  </data>
+  <data name="TipMapTab" xml:space="preserve">
+    <value>Drag along the strip to reorder, or onto the right half to see two tabs side by side.</value>
+    <comment>Tooltip on a tab of the map tool.</comment>
+  </data>
+  <data name="TipCloseMapTab" xml:space="preserve">
+    <value>Close this tab</value>
+    <comment>Tooltip on a map tool tab's close button.</comment>
+  </data>
+  <data name="NewUniverseTab" xml:space="preserve">
+    <value>+ New map</value>
+    <comment>Button above the map tool's tabs: opens a map of New Eden in a new tab.</comment>
+  </data>
+  <data name="TipNewUniverseTab" xml:space="preserve">
+    <value>Open a map of New Eden in a new tab</value>
+    <comment>Tooltip on the New map button.</comment>
+  </data>
+  <data name="HintSystemConstellationRegion" xml:space="preserve">
+    <value>system, constellation or region</value>
+    <comment>Hint in the map tool's empty search box.</comment>
+  </data>
+  <data name="TipMapSearch" xml:space="preserve">
+    <value>Opens what you pick in a new tab: a system's page, or a map framed on the constellation or region.</value>
+    <comment>Tooltip on the map tool's search box.</comment>
+  </data>
+  <data name="EmptyMapToolHint" xml:space="preserve">
+    <value>No tabs open. Add a map with + New map, or search for a system, constellation or region.</value>
+    <comment>Shown in the map tool when every tab is closed. '+ New map' is the button's text (NewUniverseTab).</comment>
+  </data>
+  <data name="DropSideBySide" xml:space="preserve">
+    <value>Drop here to see two tabs side by side</value>
+    <comment>Target shown on the right half of the map tool while a tab is dragged.</comment>
+  </data>
+  <data name="LiveHostilesTitle" xml:space="preserve">
+    <value>Hostiles in {1}: {0}</value>
+    <comment>Map hover on the red mark. {0} is the number of hostiles, {1} the system or region.</comment>
+  </data>
+  <data name="LiveOwnTitle" xml:space="preserve">
+    <value>Your characters in {1}: {0}</value>
+    <comment>Map hover on the blue mark. {0} is the number of characters, {1} the system or region.</comment>
+  </data>
+  <data name="LiveSystemCount" xml:space="preserve">
+    <value>{0}: {1}</value>
+    <comment>Map hover on a region's mark, one line per system. {0} is the system, {1} the number.</comment>
+  </data>
+  <data name="LiveHostileLine" xml:space="preserve">
+    <value>{0} — {1} · {2} · {3}</value>
+    <comment>Map hover, one line per hostile pilot. {0} pilot, {1} ship, {2} how long ago (LiveJustNow or LiveMinutesAgo), {3} what placed them (LiveSource...).</comment>
+  </data>
+  <data name="LiveShipUnknown" xml:space="preserve">
+    <value>ship unknown</value>
+    <comment>Map hover: in place of a ship nobody reported.</comment>
+  </data>
+  <data name="LiveJustNow" xml:space="preserve">
+    <value>just now</value>
+    <comment>Map hover: placed less than a minute ago.</comment>
+  </data>
+  <data name="LiveMinutesAgo" xml:space="preserve">
+    <value>{0} min ago</value>
+    <comment>Map hover: placed {0} minutes ago.</comment>
+  </data>
+  <data name="LiveSourceKillmail" xml:space="preserve">
+    <value>killmail</value>
+    <comment>Map hover: the pilot was placed by a killmail.</comment>
+  </data>
+  <data name="LiveSourceIntel" xml:space="preserve">
+    <value>intel</value>
+    <comment>Map hover: the pilot was placed by an intel report.</comment>
+  </data>
+  <data name="LiveSourceIntelNoVisual" xml:space="preserve">
+    <value>intel, no visual</value>
+    <comment>Map hover: placed by an intel report that said NV (in local, not seen on grid).</comment>
+  </data>
+  <data name="LiveMore" xml:space="preserve">
+    <value>…and {0} more</value>
+    <comment>Map hover: pilots beyond the ones listed. {0} is how many.</comment>
+  </data>
+  <data name="LiveUnidentified" xml:space="preserve">
+    <value>+{0} not named</value>
+    <comment>Map hover: pilots an intel report counted without naming. {0} is how many.</comment>
+  </data>
+  <data name="LiveOwnLine" xml:space="preserve">
+    <value>{0} — {1} · {2}</value>
+    <comment>Map hover, one line per own character. {0} character, {1} ship, {2} where (LiveInSpace, LiveDocked or LiveDockedAt).</comment>
+  </data>
+  <data name="LiveInSpace" xml:space="preserve">
+    <value>in space</value>
+    <comment>Map hover: the character is undocked.</comment>
+  </data>
+  <data name="LiveDockedAt" xml:space="preserve">
+    <value>docked at {0}</value>
+    <comment>Map hover: docked. {0} is the station or structure.</comment>
+  </data>
+  <data name="LiveDocked" xml:space="preserve">
+    <value>docked</value>
+    <comment>Map hover: docked where the name is not known.</comment>
+  </data>
+  <data name="LiveCharacterId" xml:space="preserve">
+    <value>Character {0}</value>
+    <comment>Map hover: a pilot whose name has not been looked up yet. {0} is the character's id.</comment>
+  </data>
+  <data name="SidePanel" xml:space="preserve">
+    <value>Details</value>
+    <comment>Toggle button at the right of the map's toolbar: shows or hides the details and legend panel.</comment>
+  </data>
+  <data name="TipSidePanel" xml:space="preserve">
+    <value>Show or hide the details and legend on the right</value>
+    <comment>Tooltip on the Details toggle.</comment>
+  </data>
+  <data name="JumpBridgesTab" xml:space="preserve">
+    <value>Jump bridges</value>
+    <comment>Button above the map tool's tabs, and the title of the jump bridges tab.</comment>
+  </data>
+  <data name="TipJumpBridgesTab" xml:space="preserve">
+    <value>Every jump bridge known — from ESI or added by hand — and adding more</value>
+    <comment>Tooltip on the Jump bridges button.</comment>
+  </data>
+  <data name="JumpBridgesToggle" xml:space="preserve">
+    <value>Jump bridges</value>
+    <comment>Toggle in the map's toolbar: draws jump bridges on the map.</comment>
+  </data>
+  <data name="TipJumpBridgesToggle" xml:space="preserve">
+    <value>Show or hide jump bridges on the map</value>
+    <comment>Tooltip on the Jump bridges toggle.</comment>
+  </data>
+  <data name="BridgeTitle" xml:space="preserve">
+    <value>Jump bridge: {0} ⇄ {1}</value>
+    <comment>Map hover on a jump bridge. {0} and {1} are its two systems.</comment>
+  </data>
+  <data name="BridgeFuelUntil" xml:space="preserve">
+    <value>fuel until {0}</value>
+    <comment>Map hover, after a gate's name. {0} is the date its fuel runs out.</comment>
+  </data>
+  <data name="BridgeOneGate" xml:space="preserve">
+    <value>ESI shows only the gate in {0}</value>
+    <comment>Map hover: the gate at the other end belongs to a corporation without a token. {0} is the system of the gate that is seen.</comment>
+  </data>
+  <data name="BridgeAddedByHand" xml:space="preserve">
+    <value>Added by hand</value>
+    <comment>A jump bridge the user entered, not one read from ESI.</comment>
+  </data>
+  <data name="BridgesSummary" xml:space="preserve">
+    <value>Jump bridges: {0} · from ESI: {1} · added by hand: {2}</value>
+    <comment>Top of the jump bridges tab. {0} total, {1} read from ESI, {2} entered by hand (a bridge can be both).</comment>
+  </data>
+  <data name="BridgesNote" xml:space="preserve">
+    <value>Bridges from ESI are the Ansiblexes of corporations you have added a token for, and they go where their names say ("A » B"). Add the rest by hand: other corporations' and allies' bridges. Only bridges added by hand can be removed here.</value>
+    <comment>Explanation at the top of the jump bridges tab.</comment>
+  </data>
+  <data name="BridgesNone" xml:space="preserve">
+    <value>No jump bridges known yet.</value>
+    <comment>Jump bridges tab, empty list.</comment>
+  </data>
+  <data name="BridgesUnreadLabel" xml:space="preserve">
+    <value>GATES WHOSE NAME DOES NOT SAY WHERE THEY GO</value>
+    <comment>Label above the Ansiblexes ESI shows whose names are not in the 'A » B' form.</comment>
+  </data>
+  <data name="BridgeUnreadLine" xml:space="preserve">
+    <value>{0} (in {1})</value>
+    <comment>One unreadable gate. {0} its name, {1} its system.</comment>
+  </data>
+  <data name="BridgeNoName" xml:space="preserve">
+    <value>(no name)</value>
+    <comment>In place of a gate's name when ESI has none.</comment>
+  </data>
+  <data name="BridgeColFrom" xml:space="preserve">
+    <value>SYSTEM</value>
+    <comment>Column: one end of the bridge.</comment>
+  </data>
+  <data name="BridgeColTo" xml:space="preserve">
+    <value>SYSTEM</value>
+    <comment>Column: the other end of the bridge.</comment>
+  </data>
+  <data name="BridgeColSource" xml:space="preserve">
+    <value>SOURCE</value>
+    <comment>Column: where the bridge is known from.</comment>
+  </data>
+  <data name="BridgeColFuel" xml:space="preserve">
+    <value>FUEL</value>
+    <comment>Column: days of fuel left in the first gate to run out.</comment>
+  </data>
+  <data name="BridgeColGates" xml:space="preserve">
+    <value>GATES</value>
+    <comment>Column: the gates' names and owners.</comment>
+  </data>
+  <data name="BridgeSourceEsiBoth" xml:space="preserve">
+    <value>ESI, both gates</value>
+    <comment>Source: both gates are seen through ESI.</comment>
+  </data>
+  <data name="BridgeSourceEsiOne" xml:space="preserve">
+    <value>ESI, one gate</value>
+    <comment>Source: only one gate is seen through ESI; its name says where the other is.</comment>
+  </data>
+  <data name="BridgeSourceManual" xml:space="preserve">
+    <value>Added by hand</value>
+    <comment>Source: entered by the user.</comment>
+  </data>
+  <data name="BridgeSourceBoth" xml:space="preserve">
+    <value>ESI and by hand</value>
+    <comment>Source: seen through ESI and also entered by hand.</comment>
+  </data>
+  <data name="BridgeFuelDays" xml:space="preserve">
+    <value>{0} days ({1})</value>
+    <comment>Fuel column. {0} whole days left, {1} the date it runs out.</comment>
+  </data>
+  <data name="TipOpenSystemTab" xml:space="preserve">
+    <value>Open this system in a tab</value>
+    <comment>Tooltip on a system name in the jump bridges list.</comment>
+  </data>
+  <data name="TipRemoveBridge" xml:space="preserve">
+    <value>Remove this bridge</value>
+    <comment>Tooltip on the remove button of a bridge added by hand.</comment>
+  </data>
+  <data name="AddBridgeLabel" xml:space="preserve">
+    <value>ADD A BRIDGE</value>
+    <comment>Label above the pickers for adding one bridge.</comment>
+  </data>
+  <data name="HintBridgeFrom" xml:space="preserve">
+    <value>one end (system)</value>
+    <comment>Hint in the first system picker.</comment>
+  </data>
+  <data name="HintBridgeTo" xml:space="preserve">
+    <value>other end (system)</value>
+    <comment>Hint in the second system picker.</comment>
+  </data>
+  <data name="HintBridgeNote" xml:space="preserve">
+    <value>note (optional)</value>
+    <comment>Hint in the note box.</comment>
+  </data>
+  <data name="AddBridge" xml:space="preserve">
+    <value>Add</value>
+    <comment>Button: adds the bridge between the two picked systems.</comment>
+  </data>
+  <data name="BridgePickBoth" xml:space="preserve">
+    <value>Pick a system for each end.</value>
+    <comment>Shown when Add is pressed without two systems picked.</comment>
+  </data>
+  <data name="BridgeAdded" xml:space="preserve">
+    <value>Added {0} ⇄ {1}.</value>
+    <comment>After a bridge is added. {0} and {1} its systems.</comment>
+  </data>
+  <data name="BridgeNotAdded" xml:space="preserve">
+    <value>That bridge is already in the list, or both ends are the same system.</value>
+    <comment>Shown when Add adds nothing.</comment>
+  </data>
+  <data name="PasteBridgesLabel" xml:space="preserve">
+    <value>PASTE A LIST</value>
+    <comment>Label above the box for pasting many bridges.</comment>
+  </data>
+  <data name="HintPasteBridges" xml:space="preserve">
+    <value>One bridge per line, for example:
+QZ-X77 » XQ1-Z2 - Home run
+XQ1-Z2 &lt;-&gt; 9-97XQ
+or as another tool exports them</value>
+    <comment>Hint in the paste box. The system names are invented examples; keep them as they are.</comment>
+  </data>
+  <data name="ImportBridges" xml:space="preserve">
+    <value>Import</value>
+    <comment>Button: adds every bridge in the pasted list.</comment>
+  </data>
+  <data name="BridgesImported" xml:space="preserve">
+    <value>Added {0} · already known {1} · not read {2} (left in the box)</value>
+    <comment>After an import. {0} added, {1} already in the list, {2} lines naming fewer than two systems, which stay in the box.</comment>
+  </data>
+  <data name="LegendJumpBridge" xml:space="preserve">
+    <value>Jump bridge — each half in the zone colour of its end; fainter when ESI shows only one gate</value>
+    <comment>Map legend, beside the dashed violet line.</comment>
+  </data>
+  <data name="BridgeAllianceId" xml:space="preserve">
+    <value>Alliance {0}</value>
+    <comment>An alliance whose name has not been looked up yet. {0} is its id.</comment>
+  </data>
+  <data name="BridgeDirectionLine" xml:space="preserve">
+    <value>{0} → {1}: {2} · {3}</value>
+    <comment>One direction of a jump bridge. {0} where the jump starts, {1} where it lands, {2} the alliance whose pilots may jump it, {3} the zone and cost (BridgeZoneFree / BridgeZoneCost / BridgeZoneNoCapital).</comment>
+  </data>
+  <data name="BridgeZoneFree" xml:space="preserve">
+    <value>zone 1 ({0:0.0} ly from the capital), free</value>
+    <comment>Zone of a bridge jump that costs no capacitor. {0} light-years from the alliance capital to where the jump lands.</comment>
+  </data>
+  <data name="BridgeZoneCost" xml:space="preserve">
+    <value>zone {0} ({1:0.0} ly from the capital), {2}× capacitor</value>
+    <comment>Zone of a bridge jump. {0} zone number, {1} light-years from the alliance capital to where the jump lands, {2} the multiple of the ship's base capacitor cost.</comment>
+  </data>
+  <data name="BridgeZoneNoCapital" xml:space="preserve">
+    <value>zone unknown (the alliance has no capital system)</value>
+    <comment>The alliance using the bridge has no capital, so the zone cannot be worked out.</comment>
+  </data>
+  <data name="BridgeNoSov" xml:space="preserve">
+    <value>{0} → {1}: nobody holds sovereignty in {0}, so nobody can jump this way</value>
+    <comment>A bridge direction whose starting system has no sovereign alliance. {0} start, {1} destination.</comment>
+  </data>
+  <data name="BridgeSovUnknown" xml:space="preserve">
+    <value>Who may jump could not be read: sovereignty is not available right now.</value>
+    <comment>Shown when ESI's sovereignty data could not be read.</comment>
+  </data>
+  <data name="BridgesRulesNote" xml:space="preserve">
+    <value>Since 22 September 2026 a bridge can be used only by the alliance holding sovereignty where the jump starts, and not by capital ships (Rorquals and freighters excepted). Each jump draws on the bridge's capacitor, more the further from that alliance's capital the jump lands: free within 5 ly (zone 1), then 2×, 6×, 9× and 15× the ship's base cost every 5 ly further.</value>
+    <comment>Rules summary at the top of the jump bridges tab.</comment>
+  </data>
+  <data name="OverlaySovZones" xml:space="preserve">
+    <value>Sovereignty zones</value>
+    <comment>Map overlay: each claimed system coloured by its Ansiblex zone (distance from its holder's capital).</comment>
+  </data>
+  <data name="SovZoneCaption" xml:space="preserve">
+    <value>Z{0} · {1}</value>
+    <comment>Map box caption, Sovereignty zones overlay. {0} the zone number (or ?), {1} the holder, shortened. Z is short for zone.</comment>
+  </data>
+  <data name="NodeSovZone" xml:space="preserve">
+    <value>{0}
+Zone {1}: {2:0.0} ly from the capital, {3}</value>
+    <comment>Map hover, Sovereignty zones overlay. {0} holder, {1} zone, {2} light-years from the holder's capital, {3} the capital system.</comment>
+  </data>
+  <data name="NodeSovNoCapital" xml:space="preserve">
+    <value>{0}
+No capital system, so no zone</value>
+    <comment>Map hover, Sovereignty zones overlay: the holder has not set a capital. {0} holder.</comment>
+  </data>
+  <data name="LegendZone1" xml:space="preserve">
+    <value>Z1: within 5 ly, free</value>
+    <comment>Legend, zone 1.</comment>
+  </data>
+  <data name="LegendZone2" xml:space="preserve">
+    <value>Z2: 5–10 ly, 2×</value>
+    <comment>Legend, zone 2: the bridge jump costs twice the ship's base capacitor cost.</comment>
+  </data>
+  <data name="LegendZone3" xml:space="preserve">
+    <value>Z3: 10–15 ly, 6×</value>
+    <comment>Legend, zone 3.</comment>
+  </data>
+  <data name="LegendZone4" xml:space="preserve">
+    <value>Z4: 15–20 ly, 9×</value>
+    <comment>Legend, zone 4.</comment>
+  </data>
+  <data name="LegendZone5" xml:space="preserve">
+    <value>Z5: beyond 20 ly, 15×</value>
+    <comment>Legend, zone 5.</comment>
+  </data>
+  <data name="LegendZoneNoCapital" xml:space="preserve">
+    <value>Holder has no capital system</value>
+    <comment>Legend: claimed, but the holder has no capital, so no zone.</comment>
+  </data>
 </root>

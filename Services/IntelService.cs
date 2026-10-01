@@ -89,7 +89,118 @@ public sealed class IntelService(
         var channels = settings.ChatIntelChannels;
         if (channels.Count == 0) return 0;
 
-        return await RunAsync(channels, once: false, null, ct);
+        // A pass already running (a re-parse from Settings) is doing this work: skip rather than
+        // queue, so the chat import this is hooked to is not held up behind it.
+        if (!await _pass.WaitAsync(0, ct)) return 0;
+        try
+        {
+            return await ProcessNewCoreAsync(channels, ct);
+        }
+        finally
+        {
+            _pass.Release();
+        }
+    }
+
+    /// <summary>
+    /// One intel pass at a time. ⚠️ Two passes read the same watermark and the same "already
+    /// parsed" set, then both insert reports for the same messages — the second fails on the
+    /// unique ChatMessageId (seen 2026-09-30: a re-parse from Settings alongside the live pass
+    /// that follows every chat scan).
+    /// </summary>
+    private readonly SemaphoreSlim _pass = new(1, 1);
+
+    private async Task<int> ProcessNewCoreAsync(IReadOnlyList<string> channels, CancellationToken ct)
+    {
+        var written = await RunAsync(channels, once: false, null, ct);
+
+        // Killmails arrive on their own schedule, from another client's background work, so
+        // this cannot wait for new chat the way the chat-to-chat supersede does. Once a minute
+        // is enough: the live map works out who is where itself; this is for the reports' own
+        // "superseded" mark.
+        if (written > 0 || DateTimeOffset.UtcNow - _lastKillSupersede > TimeSpan.FromMinutes(1))
+        {
+            _lastKillSupersede = DateTimeOffset.UtcNow;
+            try
+            {
+                using var db = dbFactory.CreateDbContext();
+                await SupersedeByKillmailsAsync(db, ct);
+            }
+            catch (OperationCanceledException) { throw; }
+            catch (Exception ex) { errorLogger.Log(nameof(IntelService), "supersede by killmails", ex); }
+        }
+
+        return written;
+    }
+
+    private DateTimeOffset _lastKillSupersede = DateTimeOffset.MinValue;
+
+    /// <summary>How far back a report can still be superseded by a killmail.</summary>
+    private static readonly TimeSpan KillSupersedeWindow = TimeSpan.FromHours(24);
+
+    private sealed class KillSeen
+    {
+        public long           CharacterId  { get; set; }
+        public DateTimeOffset KillMailTime { get; set; }
+    }
+
+    /// <summary>
+    /// A killmail is a sighting too, and a better one than a report: the exact pilot, ship and
+    /// time. So a report whose pilot turns up on a newer killmail — attacking, or losing a ship —
+    /// is superseded exactly as a newer report naming them would supersede it.
+    ///
+    /// <para>Only the last <see cref="KillSupersedeWindow"/> of reports: a day-old sighting is
+    /// history whatever came after it, and the killmail tables are too large to ask about every
+    /// report ever made.</para>
+    ///
+    /// <para>⚠️ The time comparison is made here, not in SQL. Report times are ISO text and
+    /// killmail times a timestamp, stored differently on each engine; comparing them in SQL
+    /// would need a different statement for SQLite and PostgreSQL.</para>
+    /// </summary>
+    private static async Task SupersedeByKillmailsAsync(AppDbContext db, CancellationToken ct)
+    {
+        var since     = DateTimeOffset.UtcNow - KillSupersedeWindow;
+        var sinceText = since.UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ssZ", System.Globalization.CultureInfo.InvariantCulture);
+
+        var standing = await (
+            from r in db.IntelReports.AsNoTracking()
+            join c in db.IntelReportCharacters.AsNoTracking() on r.Id equals c.IntelReportId
+            where !r.Obsolete && string.Compare(r.ReportedAt, sinceText) >= 0
+            select new { r.Id, r.ReportedAt, c.CharacterId }).ToListAsync(ct);
+        if (standing.Count == 0) return;
+
+        // ⚠️ Ids are longs read from our own table, never text anyone typed, so they are written
+        // into the statement rather than bound one parameter each — a few hundred parameters
+        // would pass PostgreSQL's limit on some passes and gain nothing. The time stays bound.
+        var ids = string.Join(",", standing.Select(s => s.CharacterId).Distinct()
+                                           .Select(id => id.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+
+        var sql = $$"""
+            SELECT a."CharacterId" AS "CharacterId", d."KillMailTime" AS "KillMailTime"
+            FROM "KillMailAttackers" a
+            JOIN "KillMailDetails" d ON d."KillMailId" = a."KillMailId"
+            WHERE a."CharacterId" IN ({{ids}}) AND d."KillMailTime" >= {0}
+            UNION ALL
+            SELECT d."VictimCharId" AS "CharacterId", d."KillMailTime" AS "KillMailTime"
+            FROM "KillMailDetails" d
+            WHERE d."VictimCharId" IN ({{ids}}) AND d."KillMailTime" >= {0}
+            """;
+        var seen = await db.Database.SqlQueryRaw<KillSeen>(sql, since).ToListAsync(ct);
+        if (seen.Count == 0) return;
+
+        var lastKill = seen.GroupBy(s => s.CharacterId).ToDictionary(g => g.Key, g => g.Max(s => s.KillMailTime));
+
+        var superseded = standing
+            .Where(s => lastKill.TryGetValue(s.CharacterId, out var k)
+                     && LiveIntelService.TryParseReported(s.ReportedAt, out var at) && k > at)
+            .Select(s => s.Id).Distinct().ToList();
+        if (superseded.Count == 0) return;
+
+        var now = DateTimeOffset.UtcNow;
+        await db.IntelReports
+            .Where(r => superseded.Contains(r.Id) && !r.Obsolete)
+            .ExecuteUpdateAsync(s => s.SetProperty(r => r.Obsolete, true)
+                                      .SetProperty(r => r.ObsoleteSetOn, now), ct);
     }
 
     /// <summary>
@@ -115,6 +226,21 @@ public sealed class IntelService(
         var channels = settings.ChatIntelChannels;
         if (channels.Count == 0) return 0;
 
+        // Waits for a live pass to finish (see _pass); the live passes then skip until this is done.
+        await _pass.WaitAsync(ct);
+        try
+        {
+            return await BackfillCoreAsync(channels, progress, ct);
+        }
+        finally
+        {
+            _pass.Release();
+        }
+    }
+
+    private async Task<int> BackfillCoreAsync(
+        IReadOnlyList<string> channels, IProgress<string>? progress, CancellationToken ct)
+    {
         using (var db = dbFactory.CreateDbContext())
         {
             // The horizon of what a re-parse can actually reproduce.
