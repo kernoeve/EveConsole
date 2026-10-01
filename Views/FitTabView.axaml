@@ -271,7 +271,8 @@
             </StackPanel>
           </Grid>
           <TextBlock Text="{Binding EhpText}" Classes="big" ToolTip.Tip="{x:Static loc:FittingText.TipEhp}" />
-          <Grid ColumnDefinitions="64,*,*,*,*,*,*" Margin="0 4 0 0">
+          <!-- HP and EHP get the wider share; the four resistances are never more than "100.0%". -->
+          <Grid ColumnDefinitions="60,1.35*,*,*,*,*,1.35*" Margin="0 4 0 0">
             <TextBlock Grid.Column="1" Text="{x:Static loc:FittingText.ColHp}"  Classes="line" HorizontalAlignment="Right" />
             <TextBlock Grid.Column="2" Text="{x:Static loc:FittingText.ColEm}"  Classes="line" HorizontalAlignment="Right" />
             <TextBlock Grid.Column="3" Text="{x:Static loc:FittingText.ColTh}"  Classes="line" HorizontalAlignment="Right" />
@@ -282,14 +283,16 @@
           <ItemsControl ItemsSource="{Binding TankRows}">
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="vm:TankLayerRow">
-                <Grid ColumnDefinitions="64,*,*,*,*,*,*">
-                  <TextBlock Grid.Column="0" Text="{Binding Layer}"     FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
-                  <TextBlock Grid.Column="1" Text="{Binding Hp}"        FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Right" />
+                <Grid ColumnDefinitions="60,1.35*,*,*,*,*,1.35*">
+                  <TextBlock Grid.Column="0" Text="{Binding Layer}"     FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" />
+                  <TextBlock Grid.Column="1" Text="{Binding Hp}"        FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Right"
+                             ToolTip.Tip="{Binding HpExact}" />
                   <TextBlock Grid.Column="2" Text="{Binding Em}"        FontSize="11" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Right" />
                   <TextBlock Grid.Column="3" Text="{Binding Thermal}"   FontSize="11" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Right" />
                   <TextBlock Grid.Column="4" Text="{Binding Kinetic}"   FontSize="11" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Right" />
                   <TextBlock Grid.Column="5" Text="{Binding Explosive}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Right" />
-                  <TextBlock Grid.Column="6" Text="{Binding Ehp}"       FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Right" />
+                  <TextBlock Grid.Column="6" Text="{Binding Ehp}"       FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Right"
+                             ToolTip.Tip="{Binding EhpExact}" />
                 </Grid>
               </DataTemplate>
             </ItemsControl.ItemTemplate>

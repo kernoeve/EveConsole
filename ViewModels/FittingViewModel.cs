@@ -334,7 +334,10 @@ public sealed record SkillSourceOption(string Name, long? CharacterId, int AllLe
 
 /// <param name="Name">The fit's name, the user's own.</param>
 /// <param name="ShipName">The hull's name as shown.</param>
-public sealed record TankLayerRow(string Layer, string Hp, string Em, string Thermal, string Kinetic, string Explosive, string Ehp);
+/// <summary>One row of the resistance table. HP and EHP are short ("18.00M") once they reach a
+/// million — a structure's or a titan's do not fit the column otherwise — and exact in the tip.</summary>
+public sealed record TankLayerRow(string Layer, string Hp, string Em, string Thermal, string Kinetic, string Explosive, string Ehp,
+    string HpExact = "", string EhpExact = "");
 
 /// <summary>Every number the stats panel shows, computed together off the UI thread.</summary>
 public sealed class FitSnapshot
@@ -2056,9 +2059,13 @@ public class FitTabViewModel : ReactiveObject
         snap.Launchers = e.Modules.Count(m => m.Type.EffectIds.Any(id => e.Data.Effects.TryGetValue(id, out var fx) && fx.Name == "launcherFitted"));
 
         static string Pct(double resonance) => $"{(1 - resonance) * 100:0.0}%";
+        static string Short(double hp) => hp >= 1e6 ? $"{hp / 1e6:N2}M" : $"{hp:N0}";
         foreach (var (name, layer) in new[] { (FittingText.LayerShield, s.Shield), (FittingText.LayerArmor, s.Armor), (FittingText.LayerHull, s.Hull) })
-            snap.Tank.Add(new TankLayerRow(name, $"{layer.Hp:N0}", Pct(layer.EmResonance), Pct(layer.ThermalResonance),
-                Pct(layer.KineticResonance), Pct(layer.ExplosiveResonance), $"{layer.Ehp(profile):N0}"));
+        {
+            var ehp = layer.Ehp(profile);
+            snap.Tank.Add(new TankLayerRow(name, Short(layer.Hp), Pct(layer.EmResonance), Pct(layer.ThermalResonance),
+                Pct(layer.KineticResonance), Pct(layer.ExplosiveResonance), Short(ehp), $"{layer.Hp:N0}", $"{ehp:N0}"));
+        }
         snap.Ehp = s.Ehp(profile);
         snap.Cargo = s.CargoUsed; snap.CargoOut = s.CargoCapacity;
         var repairs = s.Repairs();
