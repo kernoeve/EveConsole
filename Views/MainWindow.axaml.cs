@@ -679,6 +679,9 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         settingsWin.WireDatabase(dbVm, this);
         if (initialTab is not null) settingsWin.SelectTab(initialTab);
         await settingsWin.ShowDialog(this);
+        // The tabs save as they are changed; what was still waiting on a typing pause is saved as
+        // the window closes. Awaited before anything here reads what was changed.
+        await settingsWin.PendingSaves;
         // Slack token / channel or a Discord webhook may have changed — re-evaluate the post
         // buttons' visibility.
         vm.CorpActivityVm.RefreshSlackState();

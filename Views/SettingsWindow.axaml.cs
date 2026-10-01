@@ -3,6 +3,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Disposables;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
+using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using EveConsole.ViewModels;
 using EveConsole.Localization;
@@ -16,7 +18,36 @@ public partial class SettingsWindow : Window
     public SettingsWindow()
     {
         InitializeComponent();
+
+        // Every tab saves as it is changed, and text once typing pauses. Leaving a box saves it
+        // now: a pause is no promise the next thing done is not closing the window, or reading
+        // the setting somewhere else. Handled ones too — a box inside a control (a number picker)
+        // may have its focus events handled by it.
+        AddHandler(LostFocusEvent, OnFieldLostFocus, RoutingStrategies.Bubble, handledEventsToo: true);
+
+        // A pick is saved at once — but some picks land in a text value (a model chosen from a
+        // service's list is the model's name, which can also be typed), and a text value waits for
+        // the typing pause. A pick in any drop-down saves what is waiting.
+        AddHandler(SelectingItemsControl.SelectionChangedEvent, OnPicked, RoutingStrategies.Bubble, handledEventsToo: true);
     }
+
+    private void OnFieldLostFocus(object? sender, RoutedEventArgs e)
+    {
+        if (e.Source is TextBox && DataContext is SettingsViewModel vm)
+            _ = vm.FlushPendingSavesAsync();
+    }
+
+    private void OnPicked(object? sender, SelectionChangedEventArgs e)
+    {
+        if (e.Source is not ComboBox || DataContext is not SettingsViewModel vm) return;
+        // Posted: the event can come before the binding has handed the pick to the view model.
+        Avalonia.Threading.Dispatcher.UIThread.Post(() => _ = vm.FlushPendingSavesAsync(),
+                                                    Avalonia.Threading.DispatcherPriority.Background);
+    }
+
+    /// <summary>The saves still waiting when the window closed, for the owner to await before it
+    /// reads what was changed.</summary>
+    public Task PendingSaves { get; private set; } = Task.CompletedTask;
 
     // Select a tab by its header text — pass the same resource the header is built from
     // (SettingsText.TabAlerts), never the English words, or it finds nothing in any other language.
@@ -60,6 +91,8 @@ public partial class SettingsWindow : Window
     protected override void OnClosed(EventArgs e)
     {
         _disposables.Dispose();
+        // Before base.OnClosed, which completes ShowDialog: the owner finds it set.
+        if (DataContext is SettingsViewModel vm) PendingSaves = vm.CloseAsync();
         base.OnClosed(e);
     }
 

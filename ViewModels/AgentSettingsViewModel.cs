@@ -2,6 +2,7 @@ using EveConsole.Agent;
 using EveConsole.Services;
 using ReactiveUI;
 using System.Reactive.Linq;
+using System.Text.Json;
 using System.Windows.Input;
 using System.Linq;
 using EveConsole.Localization;
@@ -10,6 +11,14 @@ using SpeechInputKind = EveConsole.Agent.SpeechInputProvider;
 
 namespace EveConsole.ViewModels;
 
+/// <summary>
+/// The AI Agent tab and its four inner tabs, over one settings object.
+///
+/// <para>Saved as it is changed: once typing pauses for a text box, at once for anything picked,
+/// ticked or added. Each save hands the whole object to the agent, its voices and speech input —
+/// so a change that comes to nothing is not saved (<see cref="_savedSignature"/>), and speech
+/// input is only reconfigured when one of its own fields changed.</para>
+/// </summary>
 public sealed class AgentSettingsViewModel : ReactiveObject
 {
     private readonly AgentService        _service;
@@ -847,10 +856,28 @@ public sealed class AgentSettingsViewModel : ReactiveObject
     public string SaveStatus
     {
         get => _saveStatus;
-        set => this.RaiseAndSetIfChanged(ref _saveStatus, value);
+        private set => this.RaiseAndSetIfChanged(ref _saveStatus, value);
     }
 
-    public ICommand SaveCommand { get; }
+    // ── saving as it is changed ──────────────────────────────────────────────────
+
+    private readonly AutoSave _autoSave;
+
+    /// <summary>The settings as last saved, serialised: a save that would write the same is skipped.
+    /// Most of what this tab raises — a selection moving, a list's roles re-read — changes nothing
+    /// that is kept.</summary>
+    private string _savedSignature = "";
+
+    /// <summary>Speech input's own fields as last given to it. ⚠️ Its Configure warms the local model
+    /// up — a transcription of a second of silence — every time it is called, so it is called only
+    /// when one of these changed, not at every name typed elsewhere on the tab.</summary>
+    private string _speechSignature = "";
+
+    /// <summary>Set while this tab's own save is being handed to the agent, whose Settings then
+    /// comes straight back through the subscription below.</summary>
+    private bool _configuring;
+
+    private readonly IDisposable _serviceEcho;
 
     public AgentSettingsViewModel(AgentService service, TtsService? tts = null,
         SpeechInputService? speech = null, GlobalHotkeyService? hotkey = null)
@@ -858,6 +885,8 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         _service                  = service;
         _tts                      = tts;
         _speech                   = speech;
+        _autoSave                 = new AutoSave(SaveAsync,
+            ex => SaveStatus = string.Format(CommonText.ErrorWithMessage, ex.Message));
         DownloadModelCommand      = ReactiveCommand.Create(DownloadModel);
         DownloadKokoroModelCommand = ReactiveCommand.Create(DownloadKokoroModel);
         AddVoiceCommand            = ReactiveCommand.Create(AddVoice);
@@ -866,7 +895,11 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         MoveVoiceDownCommand       = ReactiveCommand.Create(() => MoveVoice(+1));
         AddModelCommand            = ReactiveCommand.Create(AddModel);
         RemoveModelCommand         = ReactiveCommand.Create(RemoveModel);
-        ResetHandOffWhenCommand    = ReactiveCommand.Create(() => { HandOffWhen = AgentSettings.DefaultHandOffWhen; });
+        ResetHandOffWhenCommand    = ReactiveCommand.Create(() =>
+        {
+            HandOffWhen = AgentSettings.DefaultHandOffWhen;
+            _autoSave.Changed();   // a button, not typing: saved now
+        });
         RefreshMicDevicesCommand  = ReactiveCommand.Create(RefreshMicrophoneDevices);
         TranscriptionList         = new ServiceListChoice(() => _transcriptionModel, id => TranscriptionModel = id, TranscriptionSource,
             n => string.Format(SettingsText.TranscriptionListFound, n), () => SettingsText.TranscriptionListEmpty,
@@ -875,20 +908,38 @@ public sealed class AgentSettingsViewModel : ReactiveObject
                             .ObserveOnUi("transcription list")
                             .Subscribe(settled => _ = TranscriptionList.LoadAsync());
         LoadFromService();
-        SaveCommand               = ReactiveCommand.Create(Save);
 
         // ⚠️ The agent writes the standing instructions too, through update_guidance. This tab
-        // rebuilds its whole settings object on Save, so without following the service's copy a
-        // Save pressed after the agent recorded something would write the old text back over it.
-        _service.WhenAnyValue(x => x.Settings)
+        // rebuilds its whole settings object on a save, so without following the service's copy a
+        // save made after the agent recorded something would write the old text back over it.
+        _serviceEcho = _service.WhenAnyValue(x => x.Settings)
                 .Subscribe(s =>
                 {
+                    // ⚠️ Not this tab's own save coming back. It holds the text trimmed and a blank
+                    // name as the default's: put on the tab, it would take the space just typed, or
+                    // fill a name box somebody has just emptied to type a new one.
+                    if (_configuring) return;
+
+                    // Somebody else's values, not an edit: not saved back.
+                    using var applying = _autoSave.Suspend();
                     AgentName    = string.IsNullOrWhiteSpace(s.AgentName) ? AgentSettings.DefaultAgentName : s.AgentName;
                     _verbosity   = s.Verbosity;
                     this.RaisePropertyChanged(nameof(Verbosity));
                     UserGuidance = s.UserGuidance ?? "";
                     UserName     = string.IsNullOrWhiteSpace(s.UserName) ? AgentSettings.DefaultUserName : s.UserName;
                 });
+
+        // What the tab holds now is what is saved; watched from here on, so loading saves nothing.
+        var loaded       = BuildSettings();
+        _savedSignature  = JsonSerializer.Serialize(loaded);
+        // What speech input was last given: the agent's settings as they stand, not as this tab
+        // tidies them (a blank language reads as "en" here), so the first save that differs sends them.
+        _speechSignature = SpeechSignature(_service.Settings);
+        Watch(this);
+        foreach (var model in Models) Watch(model);
+        foreach (var voice in Voices) Watch(voice);
+        Models.CollectionChanged += (_, e) => ListEdited(e);
+        Voices.CollectionChanged += (_, e) => ListEdited(e);
 
         // What another client has written since this one started. The subscription above puts
         // it on the tab when it lands.
@@ -957,9 +1008,90 @@ public sealed class AgentSettingsViewModel : ReactiveObject
             RefreshMicrophoneDevices();
     }
 
-    private void Save()
+    /// <summary>Saves a change still waiting — a box losing focus.</summary>
+    public Task FlushAsync() => _autoSave.FlushAsync();
+
+    /// <summary>
+    /// The Settings window closed: what is waiting is saved, and this tab stops following the
+    /// agent's settings. ⚠️ A new one is made each time the window opens; without letting go, every
+    /// one ever opened would go on taking the agent's settings for the rest of the session.
+    /// </summary>
+    public async Task CloseAsync()
     {
-        var settings = new AgentSettings
+        await _autoSave.FlushAsync();
+        _serviceEcho.Dispose();
+    }
+
+    private void Watch(ReactiveObject source) =>
+        source.Changed.Subscribe(e => Edited(e.Sender, e.PropertyName));
+
+    /// <summary>
+    /// A property changed on the tab, a model or a voice: saved once typing pauses when it is text,
+    /// at once otherwise. One with no public setter is shown, not edited — a status, a list being
+    /// fetched — and saves nothing.
+    /// </summary>
+    private void Edited(object sender, string? name)
+    {
+        if (name is null || _autoSave.IsSuspended) return;
+        var property = sender.GetType().GetProperties().FirstOrDefault(p => p.Name == name);
+        if (property?.SetMethod is not { IsPublic: true }) return;
+        if (property.PropertyType == typeof(string)) _autoSave.Typed();
+        else                                          _autoSave.Changed();
+    }
+
+    /// <summary>A model or voice added, removed or moved: watched if new, and saved at once.</summary>
+    private void ListEdited(System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    {
+        foreach (var added in e.NewItems?.OfType<ReactiveObject>() ?? []) Watch(added);
+        _autoSave.Changed();
+    }
+
+    /// <summary>What speech input is configured with, as one string to compare.</summary>
+    private static string SpeechSignature(AgentSettings s) => JsonSerializer.Serialize(new
+    {
+        s.SpeechInputProvider, s.OpenAiApiKey, s.WhisperLocalModel, s.MicrophoneDeviceName,
+        s.WhisperLanguage, s.OpenAiTranscriptionModel,
+    });
+
+    /// <summary>
+    /// Hands the tab's settings to the agent, its voices and speech input, which store them.
+    ///
+    /// <para>What each does with them: the agent writes its settings file and the shared half to
+    /// the database, and rebuilds its models only when a model, a role or a key changed; the voices
+    /// rebuild only when a voice or its key changed; speech input reopens the microphone only when
+    /// the device or the service changed. So a save restarts nothing that did not change.</para>
+    /// </summary>
+    private Task SaveAsync()
+    {
+        var settings  = BuildSettings();
+        var signature = JsonSerializer.Serialize(settings);
+        if (signature == _savedSignature) return Task.CompletedTask;
+
+        // Configure speech and TTS FIRST so their IsAvailable/HasTts are already true
+        // when _service.Configure raises the Settings property-changed (which re-evaluates
+        // HasSpeechInput and HasTts on AgentPanelViewModel).
+        var speech = SpeechSignature(settings);
+        if (speech != _speechSignature)
+        {
+            _speech?.Configure(settings.SpeechInputProvider, settings.OpenAiApiKey,
+                               settings.WhisperLocalModel, settings.MicrophoneDeviceName, settings.WhisperLanguage,
+                               settings.OpenAiTranscriptionModel ?? "");
+            _speechSignature = speech;
+        }
+        _tts?.Configure(settings);
+
+        _configuring = true;
+        try     { _service.Configure(settings); }
+        finally { _configuring = false; }
+
+        _savedSignature = signature;
+        _autoSave.Flash(s => SaveStatus = s, SettingsText.Saved);
+        return Task.CompletedTask;
+    }
+
+    private AgentSettings BuildSettings()
+    {
+        return new AgentSettings
         {
             AgentName  = string.IsNullOrWhiteSpace(_agentName) ? AgentSettings.DefaultAgentName : _agentName.Trim(),
             Verbosity  = _verbosity,
@@ -1014,17 +1146,6 @@ public sealed class AgentSettingsViewModel : ReactiveObject
             MicrophoneDeviceName  = _microphoneDevice,
             PushToTalkKey         = _pushToTalkKey,
         };
-
-        // Configure speech and TTS FIRST so their IsAvailable/HasTts are already true
-        // when _service.Configure raises the Settings property-changed (which re-evaluates
-        // HasSpeechInput and HasTts on AgentPanelViewModel).
-        _speech?.Configure(settings.SpeechInputProvider, settings.OpenAiApiKey,
-                           settings.WhisperLocalModel, settings.MicrophoneDeviceName, settings.WhisperLanguage,
-                           settings.OpenAiTranscriptionModel ?? "");
-        _tts?.Configure(settings);
-        _service.Configure(settings);
-
-        SaveStatus = SettingsText.Saved;
     }
 
     /// <summary>

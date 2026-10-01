@@ -1,4 +1,3 @@
-using System.Reactive;
 using EveConsole.Data;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
@@ -6,9 +5,13 @@ using EveConsole.Localization;
 
 namespace EveConsole.ViewModels;
 
+/// <summary>
+/// Which conditions the Overview raises alerts for. Every rule is saved the moment it is changed.
+/// </summary>
 public class AlertSettingsViewModel : ReactiveObject
 {
-    private readonly AppDbContext _db;
+    private readonly IDbContextFactory<AppDbContext> _dbFactory;
+    private readonly AutoSave                        _autoSave;
 
     private bool    _skillQueueEmpty       = true;
     private bool    _skillQueuePaused      = true;
@@ -93,22 +96,38 @@ public class AlertSettingsViewModel : ReactiveObject
     public string Status
     {
         get => _status;
-        set => this.RaiseAndSetIfChanged(ref _status, value);
+        private set => this.RaiseAndSetIfChanged(ref _status, value);
     }
 
-    public ReactiveCommand<Unit, Unit> SaveCommand { get; }
-
-    public AlertSettingsViewModel(AppDbContext db)
+    /// <param name="dbFactory">⚠️ A context per load and per save, not one held: the Overview
+    /// reloads these while the Settings tab may be saving them, and one context cannot run both.</param>
+    public AlertSettingsViewModel(IDbContextFactory<AppDbContext> dbFactory)
     {
-        _db = db;
-        SaveCommand = ReactiveCommand.CreateFromTask(SaveAsync);
+        _dbFactory = dbFactory;
+        _autoSave  = new AutoSave(SaveAsync,
+            ex => Status = string.Format(CommonText.ErrorWithMessage, ex.Message));
+
+        // Every rule is a tick box or a number picker, so each change is saved at once.
+        Changed.Subscribe(e => { if (e.PropertyName != nameof(Status)) _autoSave.Changed(); });
     }
+
+    /// <summary>Saves a change still waiting — the Settings window, closing.</summary>
+    public Task FlushAsync() => _autoSave.FlushAsync();
 
     public async Task LoadAsync()
     {
-        var s = await _db.AlertSettings.AsNoTracking()
-            .FirstOrDefaultAsync(x => x.Id == 1);
+        var s = await Task.Run(async () =>
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync().ConfigureAwait(false);
+            return await db.AlertSettings.AsNoTracking().FirstOrDefaultAsync(x => x.Id == 1).ConfigureAwait(false);
+        });
         if (s is null) return;
+
+        // ⚠️ Not over a change still being saved: the tab is newer than what was just read, and
+        // putting the old value back would have the save write the old value too.
+        if (_autoSave.IsPending) return;
+
+        using var loading = _autoSave.Suspend();
         SkillQueueEmpty       = s.SkillQueueEmpty;
         SkillQueuePaused      = s.SkillQueuePaused;
         SkillQueueEmptyInDays = s.SkillQueueEmptyInDays;
@@ -136,26 +155,29 @@ public class AlertSettingsViewModel : ReactiveObject
         int outstanding = OutstandingContracts      ? 1 : 0;
         int expiring  = ExpiringContracts           ? 1 : 0;
 
-        await _db.Database.ExecuteSqlInterpolatedAsync($"""
-            INSERT INTO "AlertSettings"
-                ("Id","SkillQueueEmpty","SkillQueuePaused","SkillQueueEmptyInDays","SkillQueueEmptyDays","AssetSafety","InactiveStandingProjects","StandingBuyOrdersAttention","UnriggedIndustryJobs","IndustryJobsReady","OutstandingContracts","ExpiringContracts")
-            VALUES (1,{empty},{paused},{emptyDay},{days},{safety},{inactive},{buyOrders},{unrigged},{ready},{outstanding},{expiring})
-            ON CONFLICT("Id") DO UPDATE SET
-                "SkillQueueEmpty"             = excluded."SkillQueueEmpty",
-                "SkillQueuePaused"            = excluded."SkillQueuePaused",
-                "SkillQueueEmptyInDays"       = excluded."SkillQueueEmptyInDays",
-                "SkillQueueEmptyDays"         = excluded."SkillQueueEmptyDays",
-                "AssetSafety"                 = excluded."AssetSafety",
-                "InactiveStandingProjects"    = excluded."InactiveStandingProjects",
-                "StandingBuyOrdersAttention"  = excluded."StandingBuyOrdersAttention",
-                "UnriggedIndustryJobs"        = excluded."UnriggedIndustryJobs",
-                "IndustryJobsReady"           = excluded."IndustryJobsReady",
-                "OutstandingContracts"        = excluded."OutstandingContracts",
-                "ExpiringContracts"           = excluded."ExpiringContracts"
-            """);
+        // Read above, on the UI thread; written off it.
+        await Task.Run(async () =>
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync().ConfigureAwait(false);
+            await db.Database.ExecuteSqlInterpolatedAsync($"""
+                INSERT INTO "AlertSettings"
+                    ("Id","SkillQueueEmpty","SkillQueuePaused","SkillQueueEmptyInDays","SkillQueueEmptyDays","AssetSafety","InactiveStandingProjects","StandingBuyOrdersAttention","UnriggedIndustryJobs","IndustryJobsReady","OutstandingContracts","ExpiringContracts")
+                VALUES (1,{empty},{paused},{emptyDay},{days},{safety},{inactive},{buyOrders},{unrigged},{ready},{outstanding},{expiring})
+                ON CONFLICT("Id") DO UPDATE SET
+                    "SkillQueueEmpty"             = excluded."SkillQueueEmpty",
+                    "SkillQueuePaused"            = excluded."SkillQueuePaused",
+                    "SkillQueueEmptyInDays"       = excluded."SkillQueueEmptyInDays",
+                    "SkillQueueEmptyDays"         = excluded."SkillQueueEmptyDays",
+                    "AssetSafety"                 = excluded."AssetSafety",
+                    "InactiveStandingProjects"    = excluded."InactiveStandingProjects",
+                    "StandingBuyOrdersAttention"  = excluded."StandingBuyOrdersAttention",
+                    "UnriggedIndustryJobs"        = excluded."UnriggedIndustryJobs",
+                    "IndustryJobsReady"           = excluded."IndustryJobsReady",
+                    "OutstandingContracts"        = excluded."OutstandingContracts",
+                    "ExpiringContracts"           = excluded."ExpiringContracts"
+                """).ConfigureAwait(false);
+        });
 
-        Status = SettingsText.Saved;
-        await Task.Delay(2000);
-        Status = "";
+        _autoSave.Flash(s => Status = s, SettingsText.Saved);
     }
 }
