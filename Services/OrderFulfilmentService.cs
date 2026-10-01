@@ -21,6 +21,7 @@ namespace EveConsole.Services;
 /// </summary>
 public class OrderFulfilmentService(
     IDbContextFactory<AppDbContext> dbFactory,
+    InvLevelService inv,
     AppErrorLogger errorLogger)
 {
     /// <summary>Sources, as stored in TrackedOrder.FulfilmentSource.</summary>
@@ -209,6 +210,9 @@ public class OrderFulfilmentService(
             if (Ours(m.OwnerType, m.OwnerId))
                 stock[m.TypeId] = Math.Max(0, stock.GetValueOrDefault(m.TypeId) + m.Units);
 
+        // What each store sells from, for the orders that came through one — see StoreShelvesAsync.
+        var shelves = await StoreShelvesAsync(db, orders, typeIds, ct);
+
         // Jobs that have not yet delivered. A delivered job's output is in assets — or credited
         // above until it is — so counting it here as well would promise the same units twice.
         var openJobs = await db.EsiIndustryJobs
@@ -314,10 +318,24 @@ public class OrderFulfilmentService(
             // next order count the same nineteen again. It also gives the order tracker a real
             // number to show: an order for fifty with nineteen on hand reads 19/50 instead of an
             // empty box that looks identical to nothing at all.
-            var available = stock.GetValueOrDefault(order.TypeId);
+            var onHand    = stock.GetValueOrDefault(order.TypeId);
+            var shelf     = shelves.KeyByOrder.GetValueOrDefault(order.Id);
+            var available = shelf is null ? onHand : Math.Min(onHand, shelves.Units[shelf].GetValueOrDefault(order.TypeId));
             var take      = (int)Math.Min(available, need);
 
-            if (take > 0) stock[order.TypeId] = available - take;
+            if (take > 0)
+            {
+                stock[order.TypeId] = onHand - take;
+                if (shelf is not null) shelves.Units[shelf][order.TypeId] -= take;
+
+                // ⚠️ The shelves overlap — a store selling packaged hulls in one station and the
+                // hangar as a whole hold some of the same units — and which units a take used is
+                // not known. No shelf may promise more than is left of everything we own, so each
+                // is cut to that; a take from one store's shelf is not charged to another's beyond it.
+                foreach (var units in shelves.Units.Values)
+                    if (units.TryGetValue(order.TypeId, out var left) && left > onHand - take)
+                        units[order.TypeId] = onHand - take;
+            }
 
             if (order.StockOnHand != take) { order.StockOnHand = take; changed = true; }
 
@@ -864,6 +882,111 @@ public class OrderFulfilmentService(
         DateTimeOffset? LastAccepted, DateTimeOffset? DeclinedAt, double? Price)
     {
         public static readonly Contracted None = new(0, 0, false, null, null, null);
+    }
+
+    /// <summary>
+    /// What each store's orders may be filled from: per shelf — a store listing's effective
+    /// scope, packaging rule and stock override — the units of each type on it. Orders with no
+    /// store, or for a type their store's posting does not list, have no shelf and take from
+    /// everything we own, as before.
+    /// </summary>
+    private sealed record StoreShelves(Dictionary<int, string> KeyByOrder, Dictionary<string, Dictionary<int, long>> Units);
+
+    /// <summary>
+    /// The shelves the store orders among <paramref name="orders"/> are filled from.
+    ///
+    /// <para>⚠️ A store's order is filled from what that store sells. The store works out "in
+    /// stock" through its sale posting — the section's scope, "only packaged", an item's own
+    /// stock figure — but the pass counted every unit we own anywhere: a store selling only
+    /// packaged hulls listed none in stock, took an order, and the order then read "in stock"
+    /// off two assembled hulls in use, and its buyer was told as much. The listing's settings
+    /// are read through <see cref="SalePostingService.EffectiveFor"/> and counted by
+    /// <see cref="InvLevelService"/>, the same two the store's own figure comes from.</para>
+    ///
+    /// <para>An item's stock override is a ceiling here, never a source: the store may say five
+    /// to buyers, but an order is only "in stock" for units that are actually on the shelf.</para>
+    /// </summary>
+    private async Task<StoreShelves> StoreShelvesAsync(
+        AppDbContext db, List<TrackedOrder> orders, List<int> typeIds, CancellationToken ct)
+    {
+        var none = new StoreShelves([], []);
+        var storeIds = orders.Where(o => o.StoreId != 0).Select(o => o.StoreId).Distinct().ToList();
+        if (storeIds.Count == 0) return none;
+
+        var postingByStore = await db.Stores.AsNoTracking()
+            .Where(s => storeIds.Contains(s.Id) && s.PostingId != 0)
+            .ToDictionaryAsync(s => s.Id, s => s.PostingId, ct);
+        var postingIds = postingByStore.Values.Distinct().ToList();
+        if (postingIds.Count == 0) return none;
+
+        var postings = await db.SalePostings.AsNoTracking()
+            .Where(p => postingIds.Contains(p.Id))
+            .ToDictionaryAsync(p => p.Id, ct);
+        var sections = await db.SalePostingSections.AsNoTracking()
+            .Where(s => postingIds.Contains(s.PostingId))
+            .ToDictionaryAsync(s => s.Id, ct);
+        var sectionIds = sections.Keys.ToList();
+        var items = await db.SalePostingItems.AsNoTracking()
+            .Where(i => sectionIds.Contains(i.SectionId) && typeIds.Contains(i.TypeId))
+            .OrderBy(i => i.SectionId).ThenBy(i => i.Id)
+            .ToListAsync(ct);
+
+        // A type listed twice in one posting is priced and stocked by its first listing.
+        var listing = new Dictionary<(int Posting, int Type), SalePostingItem>();
+        foreach (var i in items)
+            listing.TryAdd((sections[i.SectionId].PostingId, i.TypeId), i);
+
+        var keyByOrder = new Dictionary<int, string>();
+        var wanted     = new Dictionary<string, (SalePosting Settings, int? Ceiling, HashSet<int> Types)>();
+        foreach (var o in orders)
+        {
+            if (!postingByStore.TryGetValue(o.StoreId, out var postingId)
+                || !postings.TryGetValue(postingId, out var posting)
+                || !listing.TryGetValue((postingId, o.TypeId), out var item))
+                continue;
+
+            var settings = SalePostingService.EffectiveFor(posting, sections[item.SectionId]);
+            var key = FormattableString.Invariant(
+                $"{settings.Scope}|{settings.LocationId}|{settings.OnlyPackaged}|{item.InStockOverride}");
+            keyByOrder[o.Id] = key;
+            if (!wanted.TryGetValue(key, out var shelf))
+                wanted[key] = shelf = (settings, item.InStockOverride, []);
+            shelf.Types.Add(o.TypeId);
+        }
+        if (wanted.Count == 0) return none;
+
+        // One load per packaging rule, every shelf with that rule in it.
+        var units = new Dictionary<string, Dictionary<int, long>>();
+        foreach (var byPackaging in wanted.GroupBy(w => w.Value.Settings.OnlyPackaged))
+        {
+            var shelfList = byPackaging.ToList();
+            var requests = shelfList.Select((w, n) => (
+                    Group: new InvLevelGroup
+                    {
+                        Id                     = -1 - n,   // not a saved rule; only keys the answer
+                        Scope                  = w.Value.Settings.Scope,
+                        LocationId             = w.Value.Settings.LocationId,
+                        IncludeAssets          = true,
+                        IncludeIndustryJobs    = false,
+                        IncludeMarketBuyOrders = false,
+                    },
+                    TypeIds: (IReadOnlyList<int>)w.Value.Types.ToList()))
+                .ToList();
+            var loaded = await inv.LoadAvailableAsync(requests, ct, packagedOnly: byPackaging.Key);
+
+            for (var n = 0; n < shelfList.Count; n++)
+            {
+                var (key, (_, ceiling, types)) = shelfList[n];
+                var found = loaded.GetValueOrDefault(requests[n].Group.Id) ?? [];
+                units[key] = types.ToDictionary(t => t, t =>
+                {
+                    var count = found.GetValueOrDefault(t)?.Assets ?? 0;
+                    return ceiling is int c ? Math.Min(count, Math.Max(0, c)) : count;
+                });
+            }
+        }
+
+        return new StoreShelves(keyByOrder, units);
     }
 
     /// <summary>
