@@ -84,7 +84,18 @@
                 </DataTemplate>
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
-            <DataGridTextColumn Header="{x:Static loc:PiText.ColPlanet}" Binding="{Binding PlanetName}" Width="130" SortMemberPath="PlanetName" />
+            <DataGridTemplateColumn Header="{x:Static loc:PiText.ColPlanet}" Width="150" SortMemberPath="PlanetName"
+                                    ClipboardContentBinding="{Binding PlanetName}">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:PiColonyRowVm">
+                  <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="4 0">
+                    <Image Source="{Binding PlanetIcon}" Width="20" Height="20" VerticalAlignment="Center" ToolTip.Tip="{Binding PlanetType}" />
+                    <TextBlock Text="{Binding PlanetName}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                  </StackPanel>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTextColumn Header="{x:Static loc:PiText.ColType}" Binding="{Binding PlanetType}" Width="Auto" MinWidth="80" SortMemberPath="PlanetType" />
             <DataGridTemplateColumn Header="{x:Static loc:PiText.ColSystem}" Width="130" SortMemberPath="SystemName"
                                     ClipboardContentBinding="{Binding SystemName}">
               <DataGridTemplateColumn.CellTemplate>
@@ -96,7 +107,7 @@
                 </DataTemplate>
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
-            <DataGridTextColumn Header="{x:Static loc:PiText.ColType}" Binding="{Binding PlanetType}" Width="80" SortMemberPath="PlanetType" />
+            <DataGridTextColumn Header="{x:Static loc:AssetsText.ColRegion}" Binding="{Binding RegionName}" Width="Auto" MinWidth="90" SortMemberPath="RegionName" />
             <DataGridTextColumn Header="{x:Static loc:PiText.ColKind}" Binding="{Binding KindText}" Width="Auto" MinWidth="80" SortMemberPath="KindText" />
             <DataGridTemplateColumn Header="{x:Static loc:PiText.ColCc}" Width="60" SortMemberPath="CcLevel"
                                     ClipboardContentBinding="{Binding CcLevelText}">

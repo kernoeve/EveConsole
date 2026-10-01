@@ -45,6 +45,10 @@ public sealed record PiColonyStatus(
 
     /// <summary>That type's English name, the fallback for <see cref="PiNames.PlanetType"/>.</summary>
     public string PlanetTypeName { get; init; } = "";
+
+    /// <summary>The system's region and its English name, the fallback for the region shown.</summary>
+    public int    RegionId   { get; init; }
+    public string RegionName { get; init; } = "";
 }
 
 /// <summary>A colony slot as the colony list has it, read or not.</summary>
@@ -182,7 +186,7 @@ public sealed class PiService(IDbContextFactory<AppDbContext> dbFactory, PiTaxSe
             .Select(f =>
             {
                 var l = f.Layout;
-                var (systemName, security) = systems.GetValueOrDefault(l.SolarSystemId, ("", 0));
+                var (systemName, security, regionId, regionName) = systems.GetValueOrDefault(l.SolarSystemId, ("", 0, 0, ""));
                 var (planetName, planetTypeId) = planetNames.GetValueOrDefault(l.PlanetId, ("", 0));
                 return new PiColonyStatus(
                     l.CharacterId, names.GetValueOrDefault(l.CharacterId, l.CharacterId.ToString()),
@@ -193,6 +197,8 @@ public sealed class PiService(IDbContextFactory<AppDbContext> dbFactory, PiTaxSe
                 {
                     PlanetTypeId   = planetTypeId,
                     PlanetTypeName = planetTypeNames.GetValueOrDefault(planetTypeId, ""),
+                    RegionId       = regionId,
+                    RegionName     = regionName,
                 };
             })
             .ToList();
@@ -210,9 +216,10 @@ public sealed class PiService(IDbContextFactory<AppDbContext> dbFactory, PiTaxSe
             .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct).ConfigureAwait(false);
     }
 
-    /// <summary>Planets' English names and SDE types, and systems' English names and security.</summary>
+    /// <summary>Planets' English names and SDE types; systems' English names, security and region
+    /// (with the region's English name — wormhole space has its own regions, "A-R00001" and the like).</summary>
     private static async Task<(Dictionary<int, (string Name, int TypeId)> Planets,
-                               Dictionary<int, (string Name, double Security)> Systems)>
+                               Dictionary<int, (string Name, double Security, int RegionId, string RegionName)> Systems)>
         PlaceNamesAsync(AppDbContext db, IEnumerable<(int PlanetId, int SolarSystemId)> places, CancellationToken ct)
     {
         var list      = places.ToList();
@@ -224,9 +231,16 @@ public sealed class PiService(IDbContextFactory<AppDbContext> dbFactory, PiTaxSe
                 .Select(c => new { c.ItemId, c.Name, c.TypeId })
                 .ToListAsync(ct).ConfigureAwait(false))
             .ToDictionary(c => (int)c.ItemId, c => (c.Name, c.TypeId));
-        var systems = await db.SdeSolarSystems.AsNoTracking()
+        var rows = await db.SdeSolarSystems.AsNoTracking()
             .Where(s => systemIds.Contains(s.SolarSystemId))
-            .ToDictionaryAsync(s => s.SolarSystemId, s => (s.Name, s.Security), ct).ConfigureAwait(false);
+            .Select(s => new { s.SolarSystemId, s.Name, s.Security, s.RegionId })
+            .ToListAsync(ct).ConfigureAwait(false);
+        var regionIds = rows.Select(s => s.RegionId).Distinct().ToList();
+        var regions = await db.SdeRegions.AsNoTracking()
+            .Where(r => regionIds.Contains(r.RegionId))
+            .ToDictionaryAsync(r => r.RegionId, r => r.Name, ct).ConfigureAwait(false);
+        var systems = rows.ToDictionary(s => s.SolarSystemId,
+            s => (s.Name, s.Security, s.RegionId, regions.GetValueOrDefault(s.RegionId, "")));
         return (planets, systems);
     }
 

@@ -509,8 +509,18 @@ public static class PiEngine
             foreach (var f in _factories) _local.Add(f.Schematic!.OutputTypeId);
 
             // Running at the snapshot when the last cycle has not finished yet.
+            //
+            // ⚠️ Not when that "cycle" started at the snapshot itself. The game stamps a processor's
+            // last_cycle_start with the moment the colony is saved when its schematic is set, input
+            // or not: four high-tech plants on a colony that had never been given any input all
+            // read "started" at the second of the colony's last_update, and were simulated running
+            // and delivering product that was never made. A cycle the game really started has its
+            // own, earlier moment; one stamped with the save is taken as the schematic being set.
+            // (A factory fed by hand at the very moment of the save loses its first cycle here —
+            // the lesser error.)
             foreach (var f in _factories)
                 if (f.Source.LastCycleStart is { } started
+                    && t0 - started >= TimeSpan.FromSeconds(1)
                     && started.AddSeconds(f.Schematic!.CycleSeconds) is var ends && ends > t0)
                 {
                     f.Running = true;

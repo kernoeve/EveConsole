@@ -240,6 +240,25 @@ PiColonyLayout FactoryPlanet() => new()
           firstDone.Factories.Single().CyclesCompleted == 1
           && firstDone.Storage.Single(s => s.PinId == 5).ContentsAt.GetValueOrDefault(Z) == 15_905);
 
+    // A schematic set when the colony was saved, with no input anywhere: the game stamps
+    // last_cycle_start with the save itself, and that is not a cycle (seen on a live colony whose
+    // plants had never been given input).
+    var neverFed = new PiColonyLayout
+    {
+        CharacterId = 1, PlanetId = 2, LastUpdate = t0,
+        Pins = FactoryPlanet().Pins.Select(p => p with
+        {
+            Contents       = new Dictionary<int, long>(),
+            LastCycleStart = p.PinId == 4 ? t0 : p.LastCycleStart,
+        }).ToList(),
+        Routes = FactoryPlanet().Routes,
+    };
+    var unfed = PiEngine.Forecast(neverFed, sd, H(t0, 3));
+    Check("factory planet: a cycle stamped at the save is not a cycle",
+          unfed.Factories.Single().StateAt == PiFactoryState.Idle && unfed.Factories.Single().CyclesCompleted == 0
+          && unfed.Storage.All(s => s.ContentsAt.Count == 0),
+          $"{unfed.Factories.Single().StateAt}, cycles {unfed.Factories.Single().CyclesCompleted}");
+
     var after = PiEngine.Forecast(FactoryPlanet(), sd, H(t0, 25));
     Check("factory planet: output lost once storage is full", after.LostAt.GetValueOrDefault(Z) == 25,
           $"got {after.LostAt.GetValueOrDefault(Z)}");

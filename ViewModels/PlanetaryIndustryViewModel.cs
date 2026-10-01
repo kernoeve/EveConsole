@@ -241,11 +241,16 @@ public sealed class PiColonyRowVm : ReactiveObject
     public string CharacterName => Colony.CharacterName;
     public string PlanetName    { get; }
     public string SystemName    { get; }
+    public string RegionName    { get; }
     public string SecurityText  { get; }
     public string SecurityColor { get; }
     public string SecurityTip   { get; }
     public string PlanetType    { get; }
     public string KindText      { get; }
+
+    private Bitmap? _planetIcon;
+    /// <summary>The planet type's icon from EVE's image server, beside the planet's name.</summary>
+    public Bitmap? PlanetIcon { get => _planetIcon; private set => this.RaiseAndSetIfChanged(ref _planetIcon, value); }
     public string CcLevelText   { get; }
     public string CcLevelTip    { get; }
     public IBrush CcLevelColor  { get; }
@@ -299,6 +304,7 @@ public sealed class PiColonyRowVm : ReactiveObject
 
         PlanetName    = PiNames.Planet(c);
         SystemName    = PiNames.System(c.SolarSystemId, c.SystemName);
+        RegionName    = c.RegionId > 0 ? SdeNames.Region(c.RegionId, c.RegionName) : c.RegionName;
         SecurityText  = SecurityColors.Text(c.Security);
         SecurityColor = SecurityColors.Hex(c.Security);
         SecurityTip   = SecurityColors.Tip(c.Security);
@@ -410,6 +416,12 @@ public sealed class PiColonyRowVm : ReactiveObject
     {
         var bmp = await EveImageCache.GetAsync($"https://images.evetech.net/characters/{CharacterId}/portrait?size=32");
         if (bmp is not null) Dispatcher.UIThread.Post(() => Portrait = bmp);
+
+        // The planet's own type (wormhole and "scorched" variants included), so the icon is the
+        // one the game shows for this planet.
+        if (Colony.PlanetTypeId > 0
+            && await EveImageCache.GetAsync($"https://images.evetech.net/types/{Colony.PlanetTypeId}/icon?size=32") is { } icon)
+            Dispatcher.UIThread.Post(() => PlanetIcon = icon);
     }
 }
 
