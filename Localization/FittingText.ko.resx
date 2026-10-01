@@ -127,26 +127,32 @@
   <data name="PasteEft" xml:space="preserve">
     <value>EFT 붙여넣기…</value>
   </data>
-  <data name="FromGame" xml:space="preserve">
-    <value>게임에서…</value>
+  <data name="OpenFit" xml:space="preserve">
+    <value>피팅 열기…</value>
   </data>
-  <data name="TipFromGame" xml:space="preserve">
-    <value>캐릭터 또는 코퍼레이션이 게임에 저장한 피팅 열기</value>
+  <data name="TipOpenFit" xml:space="preserve">
+    <value>EVE Console에 저장한 피팅, 또는 캐릭터나 코퍼레이션이 게임에 저장한 피팅 열기</value>
   </data>
-  <data name="SavedFitsPlaceholder" xml:space="preserve">
-    <value>저장된 피팅…</value>
+  <data name="TitleOpenFit" xml:space="preserve">
+    <value>피팅 열기</value>
   </data>
-  <data name="TipSavedFits" xml:space="preserve">
-    <value>EVE Console에 저장한 피팅 열기</value>
+  <data name="FitSearchWatermark" xml:space="preserve">
+    <value>피팅 또는 선체 이름으로 검색…</value>
   </data>
-  <data name="SavedFitLabel" xml:space="preserve">
-    <value>{0}  ({1})</value>
+  <data name="NoFitsMatch" xml:space="preserve">
+    <value>검색과 일치하는 피팅이 없습니다.</value>
+  </data>
+  <data name="TitleDeleteSaved" xml:space="preserve">
+    <value>피팅 삭제</value>
+  </data>
+  <data name="ConfirmDeleteSaved" xml:space="preserve">
+    <value>EVE Console에 저장한 피팅 "{0}"을(를) 삭제할까요? 되돌릴 수 없습니다.</value>
   </data>
   <data name="DeleteSaved" xml:space="preserve">
     <value>삭제</value>
   </data>
   <data name="TipDeleteSaved" xml:space="preserve">
-    <value>목록에서 선택한 저장된 피팅 삭제</value>
+    <value>선택한 피팅 삭제 (EVE Console에 저장한 피팅만)</value>
   </data>
   <data name="EmptyToolHint" xml:space="preserve">
     <value>선체로 새 피팅을 시작하거나, 피팅을 붙여넣거나, 게임 또는 저장된 피팅에서 여십시오. 각 피팅은 별도의 탭에서 열립니다.</value>
@@ -200,10 +206,34 @@
     <value>이 피팅을 EFT 텍스트로 클립보드에 복사</value>
   </data>
   <data name="SaveFit" xml:space="preserve">
-    <value>저장…</value>
+    <value>저장</value>
   </data>
   <data name="TipSaveFit" xml:space="preserve">
-    <value>EVE Console 또는 게임 속 캐릭터의 피팅에 저장</value>
+    <value>불러온 피팅 또는 마지막으로 저장한 피팅에 확인 없이 덮어씁니다. 저장한 적 없는 피팅은 다른 이름으로 저장을 사용하세요.</value>
+  </data>
+  <data name="SaveFitAs" xml:space="preserve">
+    <value>다른 이름으로 저장…</value>
+  </data>
+  <data name="TipSaveFitAs" xml:space="preserve">
+    <value>이름과 저장 위치 선택: EVE Console 또는 게임 속 캐릭터의 피팅</value>
+  </data>
+  <data name="SavedInConsole" xml:space="preserve">
+    <value>EVE Console에 저장됨</value>
+  </data>
+  <data name="SavedInGame" xml:space="preserve">
+    <value>게임 속 {0}의 피팅에 저장됨</value>
+  </data>
+  <data name="NotSavedYet" xml:space="preserve">
+    <value>아직 저장되지 않음</value>
+  </data>
+  <data name="TitleOverwriteFit" xml:space="preserve">
+    <value>피팅 덮어쓰기</value>
+  </data>
+  <data name="ConfirmOverwriteApp" xml:space="preserve">
+    <value>이 선체의 "{0}" 피팅이 이미 EVE Console에 저장되어 있습니다. 덮어쓸까요?</value>
+  </data>
+  <data name="ConfirmOverwriteGame" xml:space="preserve">
+    <value>게임 속 {1}의 피팅 "{0}"을(를) 교체할까요? 게임에서는 피팅을 수정할 수 없으므로 새 피팅을 먼저 저장한 뒤 기존 피팅을 삭제합니다.</value>
   </data>
   <data name="GameSource" xml:space="preserve">
     <value>게임 속 {0}의 피팅에서: {1}</value>
@@ -721,9 +751,6 @@
   <data name="StatusOpened" xml:space="preserve">
     <value>{0}을(를) 열었습니다.</value>
   </data>
-  <data name="StatusChooseSavedToDelete" xml:space="preserve">
-    <value>삭제할 저장된 피팅을 선택하십시오.</value>
-  </data>
   <data name="StatusDeleted" xml:space="preserve">
     <value>{0}을(를) 삭제했습니다.</value>
   </data>
@@ -939,9 +966,6 @@
   </data>
   <data name="WhyNotMaxType" xml:space="preserve">
     <value>이 모듈은 {0:0}개까지만 장착할 수 있습니다.</value>
-  </data>
-  <data name="TitleLoadFitFromGame" xml:space="preserve">
-    <value>게임에서 피팅 불러오기</value>
   </data>
   <data name="LoadFit" xml:space="preserve">
     <value>피팅 불러오기</value>

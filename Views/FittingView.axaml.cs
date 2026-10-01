@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Threading;
 using EveConsole.Services.Fitting;
 using Avalonia.Input;
+using EveConsole.Localization;
 using EveConsole.Models;
 using EveConsole.ViewModels;
 using ReactiveUI;
@@ -53,11 +54,16 @@ public partial class FittingView : UserControl
             var owner = TopLevel.GetTopLevel(this) as Window;
             ctx.SetOutput(owner is null ? null : await new SaveFitDialog(ctx.Input).ShowDialog<SaveChoice?>(owner));
         }));
-        _handlers.Add(vm.PickEsiFit.RegisterHandler(async ctx =>
+        _handlers.Add(vm.PickFit.RegisterHandler(async ctx =>
         {
             var owner = TopLevel.GetTopLevel(this) as Window;
             var result = owner is null ? null : await new FitSelectorWindow(ctx.Input).ShowDialog<FitSelectorResult?>(owner);
-            ctx.SetOutput(result?.Fitting);
+            ctx.SetOutput(result?.Entry);
+        }));
+        _handlers.Add(vm.AskConfirm.RegisterHandler(async ctx =>
+        {
+            var owner = TopLevel.GetTopLevel(this) as Window;
+            ctx.SetOutput(owner is not null && await new ConfirmDialog(ctx.Input, title: FittingText.TitleOverwriteFit).ShowDialog<bool>(owner));
         }));
     }
 

@@ -9,9 +9,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EveConsole.Services;
 
-public enum FitSource { Personal, Corp }
+/// <summary>Where a fit is kept: a character's fittings or a corporation's in the game, or EVE
+/// Console's own saved fits.</summary>
+public enum FitSource { Personal, Corp, App }
 
-public record FitEntry(EsiFittingData Data, FitSource Source, string OwnerName);
+/// <param name="SavedFitId">For a fit saved in EVE Console: its row.</param>
+public record FitEntry(EsiFittingData Data, FitSource Source, string OwnerName, long? SavedFitId = null)
+{
+    /// <summary>The owner shown for a fit saved in EVE Console: the app's name, not translated.</summary>
+    public const string AppOwner = "EVE Console";
+}
 
 public class FittingsService(EsiClient esi, IDbContextFactory<AppDbContext> dbFactory)
 {

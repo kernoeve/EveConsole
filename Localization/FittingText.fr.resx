@@ -127,26 +127,32 @@
   <data name="PasteEft" xml:space="preserve">
     <value>Coller EFT…</value>
   </data>
-  <data name="FromGame" xml:space="preserve">
-    <value>Depuis le jeu…</value>
+  <data name="OpenFit" xml:space="preserve">
+    <value>Ouvrir un montage…</value>
   </data>
-  <data name="TipFromGame" xml:space="preserve">
-    <value>Ouvrir un montage enregistré par l'un de vos personnages ou l'une de vos corporations</value>
+  <data name="TipOpenFit" xml:space="preserve">
+    <value>Ouvrir un montage enregistré dans EVE Console, ou l'un des montages de vos personnages ou corporations dans le jeu</value>
   </data>
-  <data name="SavedFitsPlaceholder" xml:space="preserve">
-    <value>Montages enregistrés…</value>
+  <data name="TitleOpenFit" xml:space="preserve">
+    <value>Ouvrir un montage</value>
   </data>
-  <data name="TipSavedFits" xml:space="preserve">
-    <value>Ouvrir un montage enregistré dans EVE Console</value>
+  <data name="FitSearchWatermark" xml:space="preserve">
+    <value>Rechercher par nom de montage ou de coque…</value>
   </data>
-  <data name="SavedFitLabel" xml:space="preserve">
-    <value>{0}  ({1})</value>
+  <data name="NoFitsMatch" xml:space="preserve">
+    <value>Aucun montage ne correspond à la recherche.</value>
+  </data>
+  <data name="TitleDeleteSaved" xml:space="preserve">
+    <value>Supprimer le montage</value>
+  </data>
+  <data name="ConfirmDeleteSaved" xml:space="preserve">
+    <value>Supprimer le montage « {0} » enregistré dans EVE Console ? Cette action est irréversible.</value>
   </data>
   <data name="DeleteSaved" xml:space="preserve">
     <value>Supprimer</value>
   </data>
   <data name="TipDeleteSaved" xml:space="preserve">
-    <value>Supprimer le montage enregistré choisi dans la liste</value>
+    <value>Supprimer le montage choisi (uniquement ceux enregistrés dans EVE Console)</value>
   </data>
   <data name="EmptyToolHint" xml:space="preserve">
     <value>Commencez un montage à partir d'une coque, collez-en un, ou ouvrez-en un depuis le jeu ou vos montages enregistrés. Chacun s'ouvre dans son propre onglet.</value>
@@ -200,10 +206,34 @@
     <value>Copier ce montage dans le presse-papiers au format EFT</value>
   </data>
   <data name="SaveFit" xml:space="preserve">
-    <value>Enregistrer…</value>
+    <value>Enregistrer</value>
   </data>
   <data name="TipSaveFit" xml:space="preserve">
-    <value>Enregistrer dans EVE Console, ou dans les montages d'un personnage dans le jeu</value>
+    <value>Enregistrer par-dessus le montage d'où il a été ouvert ou sous lequel il a été enregistré, sans rien demander. Pour un montage jamais enregistré, utilisez Enregistrer sous.</value>
+  </data>
+  <data name="SaveFitAs" xml:space="preserve">
+    <value>Enregistrer sous…</value>
+  </data>
+  <data name="TipSaveFitAs" xml:space="preserve">
+    <value>Choisir un nom et où enregistrer : EVE Console, ou les montages d'un personnage dans le jeu</value>
+  </data>
+  <data name="SavedInConsole" xml:space="preserve">
+    <value>Enregistré dans EVE Console</value>
+  </data>
+  <data name="SavedInGame" xml:space="preserve">
+    <value>Enregistré dans les montages de {0} dans le jeu</value>
+  </data>
+  <data name="NotSavedYet" xml:space="preserve">
+    <value>Pas encore enregistré</value>
+  </data>
+  <data name="TitleOverwriteFit" xml:space="preserve">
+    <value>Remplacer le montage</value>
+  </data>
+  <data name="ConfirmOverwriteApp" xml:space="preserve">
+    <value>Un montage nommé « {0} » pour cette coque est déjà enregistré dans EVE Console. Le remplacer ?</value>
+  </data>
+  <data name="ConfirmOverwriteGame" xml:space="preserve">
+    <value>Remplacer le montage « {0} » dans les montages de {1} dans le jeu ? Le jeu ne permet pas de modifier un montage : le nouveau est enregistré d'abord, puis l'ancien supprimé.</value>
   </data>
   <data name="GameSource" xml:space="preserve">
     <value>Issu des montages de {0} dans le jeu : {1}</value>
@@ -727,9 +757,6 @@
   <data name="StatusOpened" xml:space="preserve">
     <value>Montage {0} ouvert.</value>
   </data>
-  <data name="StatusChooseSavedToDelete" xml:space="preserve">
-    <value>Choisissez un montage enregistré à supprimer.</value>
-  </data>
   <data name="StatusDeleted" xml:space="preserve">
     <value>Montage {0} supprimé.</value>
   </data>
@@ -948,9 +975,6 @@
   </data>
   <data name="WhyNotMaxType" xml:space="preserve">
     <value>Ce module est limité à {0:0} par montage.</value>
-  </data>
-  <data name="TitleLoadFitFromGame" xml:space="preserve">
-    <value>Charger un montage depuis le jeu</value>
   </data>
   <data name="LoadFit" xml:space="preserve">
     <value>Charger le montage</value>

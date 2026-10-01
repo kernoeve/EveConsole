@@ -168,33 +168,41 @@
     <value>Paste EFT…</value>
     <comment>Fitting tool, top bar: button — import a fit pasted as EFT text. EFT is the name of the fitting text format the game and fitting sites use: keep it. Short.</comment>
   </data>
-  <data name="FromGame" xml:space="preserve">
-    <value>From the game…</value>
-    <comment>Fitting tool, top bar: button — open one of the characters' or corporations' fittings saved in the game. Short.</comment>
+  <data name="OpenFit" xml:space="preserve">
+    <value>Open fit…</value>
+    <comment>Fitting tool, new-fit bar: opens the picker of saved fits — EVE Console's own and the game's.</comment>
   </data>
-  <data name="TipFromGame" xml:space="preserve">
-    <value>Open one of your characters' or corporations' saved fittings</value>
-    <comment>Fitting tool, top bar: tooltip on the From the game… button.</comment>
+  <data name="TipOpenFit" xml:space="preserve">
+    <value>Open a fit saved in EVE Console, or one of your characters' or corporations' fittings in the game</value>
+    <comment>Fitting tool, new-fit bar: tooltip on Open fit.</comment>
   </data>
-  <data name="SavedFitsPlaceholder" xml:space="preserve">
-    <value>Saved fits…</value>
-    <comment>Fitting tool, top bar: the pick list of fits saved in EVE Console, while none is picked.</comment>
+  <data name="TitleOpenFit" xml:space="preserve">
+    <value>Open Fit</value>
+    <comment>Fitting tool: title of the window listing saved fits to open.</comment>
   </data>
-  <data name="TipSavedFits" xml:space="preserve">
-    <value>Open a fit saved in EVE Console</value>
-    <comment>Fitting tool, top bar: tooltip on the saved fits pick list.</comment>
+  <data name="FitSearchWatermark" xml:space="preserve">
+    <value>Search by fit or hull name…</value>
+    <comment>Fitting tool, Open Fit window: placeholder in the search box above the list of fits.</comment>
   </data>
-  <data name="SavedFitLabel" xml:space="preserve">
-    <value>{0}  ({1})</value>
-    <comment>Fitting tool, top bar: one fit in the saved fits pick list. {0} is the fit's name (the user's own), {1} the hull's name. Two spaces before the bracket in English.</comment>
+  <data name="NoFitsMatch" xml:space="preserve">
+    <value>No fits match the search.</value>
+    <comment>Fitting tool, Open Fit window: status when the search leaves nothing in the list.</comment>
+  </data>
+  <data name="TitleDeleteSaved" xml:space="preserve">
+    <value>Delete fit</value>
+    <comment>Fitting tool, Open Fit window: title of the yes/no question before deleting a fit saved in EVE Console.</comment>
+  </data>
+  <data name="ConfirmDeleteSaved" xml:space="preserve">
+    <value>Delete the fit "{0}" saved in EVE Console? This cannot be undone.</value>
+    <comment>Fitting tool, Open Fit window: asked before deleting a fit saved in the app. {0} is the fit's name.</comment>
   </data>
   <data name="DeleteSaved" xml:space="preserve">
     <value>Delete</value>
     <comment>Fitting tool, top bar: button — deletes the saved fit chosen in the list beside it. A verb.</comment>
   </data>
   <data name="TipDeleteSaved" xml:space="preserve">
-    <value>Delete the saved fit chosen in the list</value>
-    <comment>Fitting tool, top bar: tooltip on the Delete button.</comment>
+    <value>Delete the fit chosen — only fits saved in EVE Console</value>
+    <comment>Fitting tool, Open Fit window: tooltip on Delete. Fittings in the game are not deleted from here.</comment>
   </data>
   <data name="EmptyToolHint" xml:space="preserve">
     <value>Start a fit from a hull, paste one, or open one from the game or your saved fits. Each opens in its own tab.</value>
@@ -265,12 +273,44 @@
     <comment>Fitting tool, above a fit: tooltip on the Copy EFT button.</comment>
   </data>
   <data name="SaveFit" xml:space="preserve">
-    <value>Save…</value>
-    <comment>Fitting tool, above a fit: button — saves the fit, after asking where. Short.</comment>
+    <value>Save</value>
+    <comment>Fitting tool, beside the fit's name: saves the fit back where it was opened from or last saved (EVE Console, or a character's fittings in the game), without asking anything.</comment>
   </data>
   <data name="TipSaveFit" xml:space="preserve">
-    <value>Save in EVE Console, or to a character's fittings in the game</value>
-    <comment>Fitting tool, above a fit: tooltip on the Save… button.</comment>
+    <value>Save over the fit this was opened from or last saved as, without asking. For a fit never saved, use Save As.</value>
+    <comment>Fitting tool: tooltip on Save. Save As is the button beside it.</comment>
+  </data>
+  <data name="SaveFitAs" xml:space="preserve">
+    <value>Save As…</value>
+    <comment>Fitting tool, beside Save: opens a dialog to choose a name and where to save the fit.</comment>
+  </data>
+  <data name="TipSaveFitAs" xml:space="preserve">
+    <value>Choose a name and where to save: EVE Console, or a character's fittings in the game</value>
+    <comment>Fitting tool: tooltip on Save As.</comment>
+  </data>
+  <data name="SavedInConsole" xml:space="preserve">
+    <value>Saved in EVE Console</value>
+    <comment>Fitting tool, under the fit's name: where Save writes — this fit is one saved in the app itself.</comment>
+  </data>
+  <data name="SavedInGame" xml:space="preserve">
+    <value>Saved in {0}'s fittings in the game</value>
+    <comment>Fitting tool, under the fit's name: where Save writes — a character's saved fittings in the game. {0} is the character's name.</comment>
+  </data>
+  <data name="NotSavedYet" xml:space="preserve">
+    <value>Not saved yet</value>
+    <comment>Fitting tool, under the fit's name: the fit has never been saved, so Save is off until Save As is used.</comment>
+  </data>
+  <data name="TitleOverwriteFit" xml:space="preserve">
+    <value>Overwrite fit</value>
+    <comment>Fitting tool: title of the yes/no question asked before Save As overwrites a fit.</comment>
+  </data>
+  <data name="ConfirmOverwriteApp" xml:space="preserve">
+    <value>A fit named "{0}" for this hull is already saved in EVE Console. Overwrite it?</value>
+    <comment>Fitting tool, Save As: asked before overwriting a fit of the same name and hull saved in the app. {0} is the fit's name.</comment>
+  </data>
+  <data name="ConfirmOverwriteGame" xml:space="preserve">
+    <value>Replace the fitting "{0}" in {1}'s fittings in the game? The game cannot change a fitting, so the new one is saved first and the old one then deleted.</value>
+    <comment>Fitting tool, Save As: asked before replacing a character's fitting in the game. {0} is the fitting's name, {1} the character's.</comment>
   </data>
   <data name="GameSource" xml:space="preserve">
     <value>From {0}'s fittings in the game: {1}</value>
@@ -968,10 +1008,6 @@
     <value>Opened {0}.</value>
     <comment>Fitting tool, status line: a fit saved in EVE Console was opened. {0} is its name.</comment>
   </data>
-  <data name="StatusChooseSavedToDelete" xml:space="preserve">
-    <value>Choose a saved fit to delete.</value>
-    <comment>Fitting tool, status line: Delete was clicked with no saved fit chosen.</comment>
-  </data>
   <data name="StatusDeleted" xml:space="preserve">
     <value>Deleted {0}.</value>
     <comment>Fitting tool, status line: a saved fit was deleted. {0} is its name.</comment>
@@ -1263,10 +1299,6 @@
   <data name="WhyNotMaxType" xml:space="preserve">
     <value>Only {0:0} of this module can be fitted.</value>
     <comment>Fitting tool, status line: an item was not added to the fit — the fit already has as many of this module as a ship may. {0} is that number.</comment>
-  </data>
-  <data name="TitleLoadFitFromGame" xml:space="preserve">
-    <value>Load Fit From the Game</value>
-    <comment>Title of the window listing the fittings saved in the game, when the fitting tool opens it to load one.</comment>
   </data>
   <data name="LoadFit" xml:space="preserve">
     <value>Load Fit</value>

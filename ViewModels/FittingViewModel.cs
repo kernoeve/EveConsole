@@ -334,11 +334,6 @@ public sealed record SkillSourceOption(string Name, long? CharacterId, int AllLe
 
 /// <param name="Name">The fit's name, the user's own.</param>
 /// <param name="ShipName">The hull's name as shown.</param>
-public sealed record SavedFitOption(long Id, string Name, string ShipName)
-{
-    public override string ToString() => string.Format(FittingText.SavedFitLabel, Name, ShipName);
-}
-
 public sealed record TankLayerRow(string Layer, string Hp, string Em, string Thermal, string Kinetic, string Explosive, string Ehp);
 
 /// <summary>Every number the stats panel shows, computed together off the UI thread.</summary>
@@ -407,8 +402,7 @@ public class FittingViewModel : ReactiveObject
         try { _finderVisible = UiState.Get(FinderKey) != "0"; } catch { }
 
         ImportEftCommand   = Guarded(ReactiveCommand.CreateFromTask(ImportEftAsync));
-        ImportEsiCommand   = Guarded(ReactiveCommand.CreateFromTask(ImportEsiAsync));
-        DeleteSavedCommand = Guarded(ReactiveCommand.CreateFromTask(DeleteSavedAsync));
+        OpenFitCommand     = Guarded(ReactiveCommand.CreateFromTask(OpenFitAsync));
         AddSelectedCommand = Guarded(ReactiveCommand.CreateFromTask(() => SelectedResult is { } r ? AddAsync(r) : Task.CompletedTask));
         AddToCargoCommand  = Guarded(ReactiveCommand.Create(() =>
         {
@@ -622,7 +616,6 @@ public class FittingViewModel : ReactiveObject
             await using (var db = await DbFactory.CreateDbContextAsync())
                 foreach (var c in (await db.Characters.AsNoTracking().Select(c => new { c.Id, c.Name }).ToListAsync()).OrderBy(c => c.Name))
                     SkillSources.Add(new SkillSourceOption(c.Name, c.Id, 0));
-            await LoadSavedListAsync();
             Hulls.Clear();
             foreach (var h in Catalog.Entries.Where(e => e.Kind == CatalogKind.Hull).OrderBy(e => e.DisplayName, StringComparer.CurrentCulture))
                 Hulls.Add(h);
@@ -909,14 +902,18 @@ public class FittingViewModel : ReactiveObject
     // ── Import, export, saving ──────────────────────────────────────────────────
 
     public ReactiveCommand<Unit, Unit> ImportEftCommand   { get; }
-    public ReactiveCommand<Unit, Unit> ImportEsiCommand   { get; }
+    /// <summary>Opens a saved fit: EVE Console's, or a fitting from the game.</summary>
+    public ReactiveCommand<Unit, Unit> OpenFitCommand     { get; }
 
     /// <summary>Asks the view for EFT text to import; null when cancelled.</summary>
     public Interaction<Unit, string?> AskEft { get; } = new();
     /// <summary>Hands the view EFT text to put on the clipboard.</summary>
     public Interaction<string, Unit> CopyText { get; } = new();
     /// <summary>Asks the view to show the in-game fittings picker.</summary>
-    public Interaction<FitSelectorViewModel, EsiFittingData?> PickEsiFit { get; } = new();
+    /// <summary>Asks the view to show the saved-fits picker; the fit chosen, or null.</summary>
+    public Interaction<FitSelectorViewModel, FitEntry?> PickFit { get; } = new();
+    /// <summary>Asks the view a yes/no question (overwriting a fit); true for yes.</summary>
+    public Interaction<string, bool> AskConfirm { get; } = new();
     /// <summary>Asks the view where to save; null when cancelled.</summary>
     public Interaction<SaveRequest, SaveChoice?> AskSave { get; } = new();
 
@@ -932,19 +929,29 @@ public class FittingViewModel : ReactiveObject
             : string.Format(FittingText.StatusImportedUnrecognised, string.Join(CommonText.ListSeparator, parsed.Unknown));
     }
 
-    private async Task ImportEsiAsync()
+    /// <summary>
+    /// Opens a saved fit in a new tab, chosen in one picker from both places fits are kept: EVE
+    /// Console's own, and the characters' and corporations' fittings in the game.
+    /// </summary>
+    private async Task OpenFitAsync()
     {
         if (Data is null || Catalog is null) return;
-        if (Fittings is null || Characters is null || Corporations is null) { Status = FittingText.StatusNoCharacters; return; }
-        var picker = new FitSelectorViewModel(Fittings, DbFactory, Characters, Corporations, [], 0) { ChooseGroup = false };
-        var esi = await PickEsiFit.Handle(picker);
-        if (esi is null) return;
+        var picker = new FitSelectorViewModel(Characters is null || Corporations is null ? null : Fittings, DbFactory,
+            Characters ?? [], Corporations ?? [], [], 0, await LocalFitsAsync())
+        {
+            ChooseGroup = false,
+            DeleteLocal = DeleteSavedAsync,
+        };
+        var entry = await PickFit.Handle(picker);
+        if (entry is null) return;
+        if (entry is { Source: FitSource.App, SavedFitId: { } id }) { await OpenSavedAsync(id); return; }
+
+        var esi = entry.Data;
         var tab = NewTab();
         await tab.LoadFitAsync(await EftFormat.FromEsiAsync(esi, Data, Catalog));
 
-        // A character's own fitting can be updated in place; a corporation's cannot be written at all.
-        if (picker.SelectedNode?.Entry is { Source: FitSource.Personal } entry
-            && Characters.FirstOrDefault(c => c.Name == entry.OwnerName) is { } owner)
+        // A character's own fitting is saved back to; a corporation's cannot be written at all.
+        if (entry.Source == FitSource.Personal && Characters?.FirstOrDefault(c => c.Name == entry.OwnerName) is { } owner)
         {
             tab.CurrentGameSource = new FitTabViewModel.GameSource(owner.Id, owner.Name, esi.FittingId, esi.Name);
             // Calculated with the owner's skills unless a character pilot was already chosen.
@@ -956,36 +963,29 @@ public class FittingViewModel : ReactiveObject
 
     // ── Saved fits ──────────────────────────────────────────────────────────────
 
-    public ReactiveCommand<Unit, Unit> DeleteSavedCommand { get; }
-    public ObservableCollection<SavedFitOption> SavedFits { get; } = [];
-
-    private SavedFitOption? _selectedSaved;
-    /// <summary>Choosing a saved fit opens it in a new tab.</summary>
-    public SavedFitOption? SelectedSaved
+    /// <summary>The fits saved in EVE Console, as the picker lists them: with the game's own
+    /// layout of items, so its contents panel shows them as it shows a fitting from the game.</summary>
+    public async Task<List<FitEntry>> LocalFitsAsync()
     {
-        get => _selectedSaved;
-        set
-        {
-            var previous = _selectedSaved;
-            this.RaiseAndSetIfChanged(ref _selectedSaved, value);
-            if (value is not null && value != previous) _ = OpenSavedAsync(value);
-        }
-    }
-
-    internal async Task LoadSavedListAsync()
-    {
+        if (Data is null) return [];
         await using var db = await DbFactory.CreateDbContextAsync();
-        var rows = await db.SavedFits.AsNoTracking().Select(f => new { f.Id, f.Name, f.ShipTypeId }).ToListAsync();
-        SavedFits.Clear();
-        foreach (var r in rows.OrderBy(r => r.Name, StringComparer.OrdinalIgnoreCase))
-            SavedFits.Add(new SavedFitOption(r.Id, r.Name, Catalog?.Find(r.ShipTypeId)?.DisplayName ?? ""));
+        var rows = await db.SavedFits.AsNoTracking().ToListAsync();
+        var entries = new List<FitEntry>();
+        foreach (var row in rows)
+        {
+            var fit = (await EftFormat.ParseAsync(row.Eft, Data)).Fit;
+            var items = GameFittings.ToItems(fit, Data, out _);
+            entries.Add(new FitEntry(new EsiFittingData(0, row.Name, "", row.ShipTypeId, items), FitSource.App, FitEntry.AppOwner, row.Id));
+        }
+        return entries;
     }
 
-    private async Task OpenSavedAsync(SavedFitOption option)
+    /// <summary>Opens the fit saved in EVE Console as <paramref name="id"/> in a new tab.</summary>
+    internal async Task OpenSavedAsync(long id)
     {
         if (Data is null) return;
         await using var db = await DbFactory.CreateDbContextAsync();
-        var row = await db.SavedFits.AsNoTracking().FirstOrDefaultAsync(f => f.Id == option.Id);
+        var row = await db.SavedFits.AsNoTracking().FirstOrDefaultAsync(f => f.Id == id);
         if (row is null) return;
         var parsed = await EftFormat.ParseAsync(row.Eft, Data);
         var tab = NewTab();
@@ -995,14 +995,15 @@ public class FittingViewModel : ReactiveObject
         Status = string.Format(FittingText.StatusOpened, row.Name);
     }
 
-    private async Task DeleteSavedAsync()
+    /// <summary>Deletes the fit saved in EVE Console as <paramref name="id"/>. A tab showing it
+    /// keeps the fit, as not saved anywhere.</summary>
+    private async Task DeleteSavedAsync(long id)
     {
-        if (SelectedSaved is not { } sel) { Status = FittingText.StatusChooseSavedToDelete; return; }
         await using var db = await DbFactory.CreateDbContextAsync();
-        await db.SavedFits.Where(f => f.Id == sel.Id).ExecuteDeleteAsync();
-        _selectedSaved = null; this.RaisePropertyChanged(nameof(SelectedSaved));
-        await LoadSavedListAsync();
-        Status = string.Format(FittingText.StatusDeleted, sel.Name);
+        var name = await db.SavedFits.Where(f => f.Id == id).Select(f => f.Name).FirstOrDefaultAsync();
+        await db.SavedFits.Where(f => f.Id == id).ExecuteDeleteAsync();
+        foreach (var tab in AllTabs) tab.ForgetSavedInApp(id);
+        if (name is not null) Status = string.Format(FittingText.StatusDeleted, name);
     }
 }
 
@@ -1072,13 +1073,18 @@ public class FitTabViewModel : ReactiveObject
         CloseCommand   = ReactiveCommand.Create(() => Tool.CloseTab(this));
         SelectCommand  = ReactiveCommand.Create(() => { Tool.SelectedTab = this; });
         CopyEftCommand = Tool.Guarded(ReactiveCommand.CreateFromTask(CopyEftAsync));
-        SaveCommand    = Tool.Guarded(ReactiveCommand.CreateFromTask(async () => { await SaveInteractiveAsync(); }));
+        SaveCommand    = Tool.Guarded(ReactiveCommand.CreateFromTask(SaveAsync, this.WhenAnyValue(x => x.CanSave)));
+        SaveAsCommand  = Tool.Guarded(ReactiveCommand.CreateFromTask(async () => { await SaveAsInteractiveAsync(); }));
     }
 
     /// <summary>The side of the tool this tab is on.</summary>
     public FitPaneViewModel Pane { get; internal set; } = null!;
     public ReactiveCommand<Unit, Unit> CopyEftCommand { get; }
+    /// <summary>Saves over the fit this one was opened from or last saved as — in EVE Console or a
+    /// character's fittings in the game — without asking. Off for a fit never saved.</summary>
     public ReactiveCommand<Unit, Unit> SaveCommand    { get; }
+    /// <summary>Saves under a name and in a place chosen in a dialog, asking before it overwrites a fit.</summary>
+    public ReactiveCommand<Unit, Unit> SaveAsCommand  { get; }
 
     /// <summary>The tab's label: the fit's name, else the hull's.</summary>
     public string TabTitle => FitName.Trim().Length > 0 ? FitName.Trim() : ShipName.Length > 0 ? ShipName : FittingText.TabNewFit;
@@ -1104,9 +1110,44 @@ public class FitTabViewModel : ReactiveObject
     /// <summary>Recorded as saved in EVE Console under <paramref name="id"/> — a fit opened from the saved list.</summary>
     internal void MarkSavedInApp(long id)
     {
-        _loadedSavedId  = id;
-        _lastSavedToApp = id;
+        SetOrigin(id, null);
         MarkClean();
+    }
+
+    /// <summary>The fit saved in EVE Console as <paramref name="id"/> was deleted: this one, if it
+    /// was that, is no longer saved anywhere.</summary>
+    internal void ForgetSavedInApp(long id)
+    {
+        if (_loadedSavedId == id) SetOrigin(null, null);
+    }
+
+    // ── Where it is saved ───────────────────────────────────────────────────────
+
+    /// <summary>Where Save writes: EVE Console's saved fit <paramref name="savedId"/>, or a
+    /// character's fitting in the game — one or the other, or neither for a fit never saved.</summary>
+    private void SetOrigin(long? savedId, GameSource? game)
+    {
+        _loadedSavedId  = savedId;
+        _lastSavedToApp = savedId;
+        _gameSource     = game;
+        this.RaisePropertyChanged(nameof(HasGameSource));
+        this.RaisePropertyChanged(nameof(GameSourceText));
+        this.RaisePropertyChanged(nameof(SaveLocationText));
+        this.RaisePropertyChanged(nameof(CanSave));
+    }
+
+    /// <summary>Whether Save has somewhere to write without asking.</summary>
+    public bool CanSave => _shipTypeId != 0 && (_loadedSavedId is not null || _gameSource is not null);
+
+    /// <summary>Above the fit: where Save writes — EVE Console, or which character's fittings.</summary>
+    public string SaveLocationText => _gameSource is { } g ? string.Format(FittingText.SavedInGame, g.CharacterName)
+        : _loadedSavedId is not null ? FittingText.SavedInConsole
+        : FittingText.NotSavedYet;
+
+    private async Task SaveAsync()
+    {
+        if (_gameSource is not null) await UpdateInGameAsync();
+        else if (_loadedSavedId is { } id) await SaveToAppAsync(id);
     }
 
     // ── Header: hull, name, pilot ───────────────────────────────────────────────
@@ -1270,6 +1311,7 @@ public class FitTabViewModel : ReactiveObject
         _shipTypeId = typeId;
         ShipName = SdeNames.Type(typeId, _catalog?.Find(typeId)?.Name ?? _data?.Type(typeId).Name ?? "");
         this.RaisePropertyChanged(nameof(HasShip));
+        this.RaisePropertyChanged(nameof(CanSave));
         _ = LoadShipIconAsync(typeId);
     }
 
@@ -1389,8 +1431,9 @@ public class FitTabViewModel : ReactiveObject
     private void NewFit(bool announce)
     {
         _shipTypeId = 0; ShipName = ""; ShipIcon = null; ShipRender = null; SelectedModule = null; FitName = "";
-        _modules.Clear(); Drones.Clear(); Implants.Clear(); Cargo.Clear(); _gameSource = null;
-        _lastEngine = null; _loadedSavedId = null;
+        _modules.Clear(); Drones.Clear(); Implants.Clear(); Cargo.Clear();
+        _lastEngine = null;
+        SetOrigin(null, null);
         this.RaisePropertyChanged(nameof(HasShip));
         RebuildSlots();
         Stats = null;
@@ -1523,12 +1566,7 @@ public class FitTabViewModel : ReactiveObject
     internal GameSource? CurrentGameSource
     {
         get => _gameSource;
-        set
-        {
-            _gameSource = value;
-            this.RaisePropertyChanged(nameof(HasGameSource));
-            this.RaisePropertyChanged(nameof(GameSourceText));
-        }
+        set => SetOrigin(value is null ? _loadedSavedId : null, value);
     }
     public bool   HasGameSource  => _gameSource is not null;
     public string GameSourceText => _gameSource is { } g ? string.Format(FittingText.GameSource, g.CharacterName, g.Name) : "";
@@ -1589,8 +1627,9 @@ public class FitTabViewModel : ReactiveObject
         return targets;
     }
 
-    /// <summary>Asks where to save, and saves there. True when it was saved.</summary>
-    public async Task<bool> SaveInteractiveAsync()
+    /// <summary>Asks where to save and under what name, and saves there — asking first when that
+    /// would overwrite a fit already saved there. True when it was saved.</summary>
+    public async Task<bool> SaveAsInteractiveAsync()
     {
         if (_data is null || _shipTypeId == 0) { Status = FittingText.StatusNothingToSave; return false; }
         var targets = await SaveTargetsAsync();
@@ -1603,13 +1642,42 @@ public class FitTabViewModel : ReactiveObject
         if (choice is null) return false;
         FitName = choice.Name;
 
-        return choice.Target.Kind switch
+        switch (choice.Target.Kind)
         {
-            SaveKind.App        => await SaveToAppAsync(),
-            SaveKind.GameNew    => await SaveToGameAsync(choice.Target.CharacterId!.Value),
-            _                   => await UpdateInGameAsync(),
-        };
+            case SaveKind.App:
+            {
+                // The same name on the same hull is the same saved fit.
+                await using var db = await _dbFactory.CreateDbContextAsync();
+                var existing = await db.SavedFits.AsNoTracking().Where(f => f.Name == choice.Name && f.ShipTypeId == _shipTypeId)
+                    .Select(f => (long?)f.Id).FirstOrDefaultAsync();
+                if (existing is not null && !await Tool.AskConfirm.Handle(string.Format(FittingText.ConfirmOverwriteApp, choice.Name)))
+                    return false;
+                return await SaveToAppAsync(existing);
+            }
+            case SaveKind.GameNew:
+            {
+                // The game keeps any number of fittings of one name; one of this name on this hull
+                // is taken to be this fit, saved before, and replaced if the user says so.
+                var id = choice.Target.CharacterId!.Value;
+                var same = _esi is null ? null : await GameFittings.ListAsync(_esi, id);
+                var replacing = same?.Where(f => f.Name == choice.Name && f.ShipTypeId == _shipTypeId).Select(f => f.FittingId).ToList() ?? [];
+                if (replacing.Count > 0)
+                {
+                    await using var db = await _dbFactory.CreateDbContextAsync();
+                    var who = await db.Characters.AsNoTracking().Where(c => c.Id == id).Select(c => c.Name).FirstOrDefaultAsync() ?? "";
+                    if (!await Tool.AskConfirm.Handle(string.Format(FittingText.ConfirmOverwriteGame, choice.Name, who)))
+                        return false;
+                }
+                return await SaveToGameAsync(id, replacing);
+            }
+            default:
+                if (_gameSource is { } src
+                    && !await Tool.AskConfirm.Handle(string.Format(FittingText.ConfirmOverwriteGame, src.Name, src.CharacterName)))
+                    return false;
+                return await UpdateInGameAsync();
+        }
     }
+
 
     private long? _lastSavedToApp;
 
@@ -1617,8 +1685,10 @@ public class FitTabViewModel : ReactiveObject
     // in the interface language, like the fit's name.
     private static string GameDescription => FittingText.GameFitDescription;
 
-    /// <summary>Saves as a new fitting on <paramref name="characterId"/>.</summary>
-    private async Task<bool> SaveToGameAsync(long characterId)
+    /// <summary>Saves as a new fitting on <paramref name="characterId"/>, then deletes the fittings
+    /// <paramref name="replacing"/> names — the game has no way to change a fitting in place, so
+    /// overwriting one is saving anew and removing the old, only once the new one is safe.</summary>
+    private async Task<bool> SaveToGameAsync(long characterId, IReadOnlyList<int>? replacing = null)
     {
         if (_data is null || _esi is null) { Status = FittingText.StatusGameUnreachable; return false; }
         if (await WritableCharacterAsync(characterId) is not { } ch) return false;
@@ -1628,9 +1698,14 @@ public class FitTabViewModel : ReactiveObject
         Status = string.Format(FittingText.StatusSavingToGame, ch.Name);
         var (fittingId, error) = await GameFittings.CreateAsync(_esi, ch.Id, fit, _data, GameDescription);
         if (error is not null) { Status = error; return false; }
+        int? refused = null;
+        foreach (var old in replacing ?? [])
+            refused ??= await GameFittings.DeleteAsync(_esi, ch.Id, old);
         CurrentGameSource = new GameSource(ch.Id, ch.Name, fittingId!.Value, fit.Name);
         MarkClean();
-        Status = Sentences.Join(string.Format(FittingText.StatusSavedToGame, ch.Name), Skipped(skipped));
+        Status = refused is { } r ? string.Format(FittingText.StatusSavedButOldNotRemoved, r)
+            : Sentences.Join(string.Format(replacing is { Count: > 0 } ? FittingText.StatusUpdatedInGame : FittingText.StatusSavedToGame,
+                  replacing is { Count: > 0 } ? fit.Name : ch.Name, ch.Name), Skipped(skipped));
         return true;
     }
 
@@ -2181,21 +2256,21 @@ public class FitTabViewModel : ReactiveObject
         MarkClean();
     }
 
-    /// <summary>Saves in EVE Console, under the fit's name: the same name on the same hull replaces it.</summary>
-    private async Task<bool> SaveToAppAsync()
+    /// <summary>Saves in EVE Console, under the fit's name: over saved fit <paramref name="id"/>, or as
+    /// a new one when null (or when that one has since been deleted).</summary>
+    private async Task<bool> SaveToAppAsync(long? id)
     {
         if (_data is null || _shipTypeId == 0) { Status = FittingText.StatusNothingToSave; return false; }
         var name = FitName.Trim().Length > 0 ? FitName.Trim() : string.Format(FittingText.DefaultFitName, ShipName);
         await using var db = await _dbFactory.CreateDbContextAsync();
-        // Saving under the name of a fit already saved for this hull replaces it; a new name adds one.
-        var row = await db.SavedFits.FirstOrDefaultAsync(f => f.Name == name && f.ShipTypeId == _shipTypeId);
-        if (row is null) { row = new SavedFit { Name = name, ShipTypeId = _shipTypeId }; db.SavedFits.Add(row); }
-        row.Eft       = EftFormat.Write(CurrentFit(), _data);
-        row.UpdatedAt = DateTimeOffset.UtcNow;
+        var row = id is { } existing ? await db.SavedFits.FirstOrDefaultAsync(f => f.Id == existing) : null;
+        if (row is null) { row = new SavedFit(); db.SavedFits.Add(row); }
+        row.Name       = name;
+        row.ShipTypeId = _shipTypeId;
+        row.Eft        = EftFormat.Write(CurrentFit(), _data);
+        row.UpdatedAt  = DateTimeOffset.UtcNow;
         await db.SaveChangesAsync();
-        _loadedSavedId = row.Id;
-        _lastSavedToApp = row.Id;
-        await Tool.LoadSavedListAsync();
+        SetOrigin(row.Id, null);
         MarkClean();
         Status = string.Format(FittingText.StatusSavedInApp, name);
         return true;

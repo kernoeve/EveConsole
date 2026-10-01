@@ -224,12 +224,9 @@
             </AutoCompleteBox.ItemTemplate>
           </AutoCompleteBox>
           <Button Classes="tool" Content="{x:Static loc:FittingText.PasteEft}" Command="{Binding ImportEftCommand}" Margin="0 0 6 4" />
-          <Button Classes="tool" Content="{x:Static loc:FittingText.FromGame}" Command="{Binding ImportEsiCommand}" Margin="0 0 12 4"
-                  ToolTip.Tip="{x:Static loc:FittingText.TipFromGame}" />
-          <ComboBox ItemsSource="{Binding SavedFits}" SelectedItem="{Binding SelectedSaved}" PlaceholderText="{x:Static loc:FittingText.SavedFitsPlaceholder}"
-                    MinWidth="200" Margin="0 0 6 4" FontSize="11" ToolTip.Tip="{x:Static loc:FittingText.TipSavedFits}" />
-          <Button Classes="tool" Content="{x:Static loc:FittingText.DeleteSaved}" Command="{Binding DeleteSavedCommand}" Margin="0 0 0 4"
-                  ToolTip.Tip="{x:Static loc:FittingText.TipDeleteSaved}" />
+          <!-- Every saved fit, EVE Console's and the game's, in one picker. -->
+          <Button Classes="tool" Content="{x:Static loc:FittingText.OpenFit}" Command="{Binding OpenFitCommand}" Margin="0 0 0 4"
+                  ToolTip.Tip="{x:Static loc:FittingText.TipOpenFit}" />
         </WrapPanel>
       </Border>
 

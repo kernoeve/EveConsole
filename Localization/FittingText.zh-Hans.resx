@@ -127,26 +127,32 @@
   <data name="PasteEft" xml:space="preserve">
     <value>粘贴 EFT…</value>
   </data>
-  <data name="FromGame" xml:space="preserve">
-    <value>从游戏打开…</value>
+  <data name="OpenFit" xml:space="preserve">
+    <value>打开装配…</value>
   </data>
-  <data name="TipFromGame" xml:space="preserve">
-    <value>打开你的角色或军团在游戏中保存的装配</value>
+  <data name="TipOpenFit" xml:space="preserve">
+    <value>打开保存在 EVE Console 中的装配，或你的角色或军团在游戏中的装配</value>
   </data>
-  <data name="SavedFitsPlaceholder" xml:space="preserve">
-    <value>已保存的装配…</value>
+  <data name="TitleOpenFit" xml:space="preserve">
+    <value>打开装配</value>
   </data>
-  <data name="TipSavedFits" xml:space="preserve">
-    <value>打开保存在 EVE Console 中的装配</value>
+  <data name="FitSearchWatermark" xml:space="preserve">
+    <value>按装配或舰体名称搜索…</value>
   </data>
-  <data name="SavedFitLabel" xml:space="preserve">
-    <value>{0}（{1}）</value>
+  <data name="NoFitsMatch" xml:space="preserve">
+    <value>没有符合搜索的装配。</value>
+  </data>
+  <data name="TitleDeleteSaved" xml:space="preserve">
+    <value>删除装配</value>
+  </data>
+  <data name="ConfirmDeleteSaved" xml:space="preserve">
+    <value>要删除保存在 EVE Console 中的装配“{0}”吗？此操作无法撤销。</value>
   </data>
   <data name="DeleteSaved" xml:space="preserve">
     <value>删除</value>
   </data>
   <data name="TipDeleteSaved" xml:space="preserve">
-    <value>删除列表中所选的已保存装配</value>
+    <value>删除所选装配（仅限保存在 EVE Console 中的）</value>
   </data>
   <data name="EmptyToolHint" xml:space="preserve">
     <value>从船体开始新装配、粘贴装配，或从游戏或已保存的装配中打开一个。每个装配都在单独的标签页中打开。</value>
@@ -200,10 +206,34 @@
     <value>将此装配以 EFT 文本复制到剪贴板</value>
   </data>
   <data name="SaveFit" xml:space="preserve">
-    <value>保存…</value>
+    <value>保存</value>
   </data>
   <data name="TipSaveFit" xml:space="preserve">
-    <value>保存到 EVE Console，或保存到某个角色在游戏中的装配</value>
+    <value>直接覆盖保存到打开它的或上次保存的装配，不再询问。从未保存过的装配请用“另存为”。</value>
+  </data>
+  <data name="SaveFitAs" xml:space="preserve">
+    <value>另存为…</value>
+  </data>
+  <data name="TipSaveFitAs" xml:space="preserve">
+    <value>选择名称和保存位置：EVE Console，或某个角色在游戏中的装配</value>
+  </data>
+  <data name="SavedInConsole" xml:space="preserve">
+    <value>已保存在 EVE Console</value>
+  </data>
+  <data name="SavedInGame" xml:space="preserve">
+    <value>已保存在 {0} 的游戏装配中</value>
+  </data>
+  <data name="NotSavedYet" xml:space="preserve">
+    <value>尚未保存</value>
+  </data>
+  <data name="TitleOverwriteFit" xml:space="preserve">
+    <value>覆盖装配</value>
+  </data>
+  <data name="ConfirmOverwriteApp" xml:space="preserve">
+    <value>EVE Console 中已保存了此舰体名为“{0}”的装配。要覆盖吗？</value>
+  </data>
+  <data name="ConfirmOverwriteGame" xml:space="preserve">
+    <value>要替换 {1} 游戏装配中的“{0}”吗？游戏无法修改装配，因此会先保存新装配，再删除旧装配。</value>
   </data>
   <data name="GameSource" xml:space="preserve">
     <value>来自 {0} 在游戏中的装配：{1}</value>
@@ -721,9 +751,6 @@
   <data name="StatusOpened" xml:space="preserve">
     <value>已打开 {0}。</value>
   </data>
-  <data name="StatusChooseSavedToDelete" xml:space="preserve">
-    <value>请选择要删除的已保存装配。</value>
-  </data>
   <data name="StatusDeleted" xml:space="preserve">
     <value>已删除 {0}。</value>
   </data>
@@ -939,9 +966,6 @@
   </data>
   <data name="WhyNotMaxType" xml:space="preserve">
     <value>此装备最多只能装配 {0:0} 个。</value>
-  </data>
-  <data name="TitleLoadFitFromGame" xml:space="preserve">
-    <value>从游戏载入装配</value>
   </data>
   <data name="LoadFit" xml:space="preserve">
     <value>载入装配</value>

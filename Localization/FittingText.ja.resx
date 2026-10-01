@@ -127,26 +127,32 @@
   <data name="PasteEft" xml:space="preserve">
     <value>EFTを貼り付け…</value>
   </data>
-  <data name="FromGame" xml:space="preserve">
-    <value>ゲームから…</value>
+  <data name="OpenFit" xml:space="preserve">
+    <value>装備を開く…</value>
   </data>
-  <data name="TipFromGame" xml:space="preserve">
-    <value>キャラクターやコーポレーションがゲームに保存した装備を開きます</value>
+  <data name="TipOpenFit" xml:space="preserve">
+    <value>EVE Consoleに保存した装備、またはキャラクターやコーポレーションがゲームに保存した装備を開きます</value>
   </data>
-  <data name="SavedFitsPlaceholder" xml:space="preserve">
-    <value>保存した装備…</value>
+  <data name="TitleOpenFit" xml:space="preserve">
+    <value>装備を開く</value>
   </data>
-  <data name="TipSavedFits" xml:space="preserve">
-    <value>EVE Consoleに保存した装備を開きます</value>
+  <data name="FitSearchWatermark" xml:space="preserve">
+    <value>装備名または船体名で検索…</value>
   </data>
-  <data name="SavedFitLabel" xml:space="preserve">
-    <value>{0}（{1}）</value>
+  <data name="NoFitsMatch" xml:space="preserve">
+    <value>検索に一致する装備はありません。</value>
+  </data>
+  <data name="TitleDeleteSaved" xml:space="preserve">
+    <value>装備の削除</value>
+  </data>
+  <data name="ConfirmDeleteSaved" xml:space="preserve">
+    <value>EVE Consoleに保存した装備「{0}」を削除しますか？元に戻せません。</value>
   </data>
   <data name="DeleteSaved" xml:space="preserve">
     <value>削除</value>
   </data>
   <data name="TipDeleteSaved" xml:space="preserve">
-    <value>一覧で選択した保存済みの装備を削除します</value>
+    <value>選んだ装備を削除します（EVE Consoleに保存した装備のみ）</value>
   </data>
   <data name="EmptyToolHint" xml:space="preserve">
     <value>船体から装備を始めるか、装備を貼り付けるか、ゲームまたは保存済みの装備から開いてください。それぞれ専用のタブで開きます。</value>
@@ -200,10 +206,34 @@
     <value>この装備をEFTテキストとしてクリップボードにコピーします</value>
   </data>
   <data name="SaveFit" xml:space="preserve">
-    <value>保存…</value>
+    <value>保存</value>
   </data>
   <data name="TipSaveFit" xml:space="preserve">
-    <value>EVE Consoleに、またはゲーム内のキャラクターの装備に保存します</value>
+    <value>開いた元、または最後に保存した装備に確認なしで上書き保存します。一度も保存していない装備は「名前を付けて保存」を使ってください。</value>
+  </data>
+  <data name="SaveFitAs" xml:space="preserve">
+    <value>名前を付けて保存…</value>
+  </data>
+  <data name="TipSaveFitAs" xml:space="preserve">
+    <value>名前と保存先を選びます：EVE Console、またはゲーム内のキャラクターの装備</value>
+  </data>
+  <data name="SavedInConsole" xml:space="preserve">
+    <value>EVE Consoleに保存済み</value>
+  </data>
+  <data name="SavedInGame" xml:space="preserve">
+    <value>ゲーム内の{0}の装備に保存済み</value>
+  </data>
+  <data name="NotSavedYet" xml:space="preserve">
+    <value>未保存</value>
+  </data>
+  <data name="TitleOverwriteFit" xml:space="preserve">
+    <value>装備の上書き</value>
+  </data>
+  <data name="ConfirmOverwriteApp" xml:space="preserve">
+    <value>この船体の「{0}」という装備はすでにEVE Consoleに保存されています。上書きしますか？</value>
+  </data>
+  <data name="ConfirmOverwriteGame" xml:space="preserve">
+    <value>ゲーム内の{1}の装備「{0}」を置き換えますか？ゲームでは装備を変更できないため、新しい装備を先に保存してから古い装備を削除します。</value>
   </data>
   <data name="GameSource" xml:space="preserve">
     <value>ゲーム内の{0}の装備から：{1}</value>
@@ -721,9 +751,6 @@
   <data name="StatusOpened" xml:space="preserve">
     <value>{0}を開きました。</value>
   </data>
-  <data name="StatusChooseSavedToDelete" xml:space="preserve">
-    <value>削除する保存済みの装備を選択してください。</value>
-  </data>
   <data name="StatusDeleted" xml:space="preserve">
     <value>{0}を削除しました。</value>
   </data>
@@ -939,9 +966,6 @@
   </data>
   <data name="WhyNotMaxType" xml:space="preserve">
     <value>このモジュールは{0:0}個までしか装備できません。</value>
-  </data>
-  <data name="TitleLoadFitFromGame" xml:space="preserve">
-    <value>ゲームから装備をロード</value>
   </data>
   <data name="LoadFit" xml:space="preserve">
     <value>装備をロード</value>

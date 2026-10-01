@@ -108,6 +108,13 @@ public static class GameFittings
             });
     }
 
+    /// <summary>The fittings <paramref name="characterId"/> has in the game, or null when they could not be read.</summary>
+    public static async Task<List<Models.EsiFittingData>?> ListAsync(EsiClient esi, long characterId, CancellationToken ct = default)
+    {
+        var r = await esi.ExecuteAuthAsync<List<Models.EsiFittingData>>(characterId, $"characters/{characterId}/fittings/", ct);
+        return r.IsSuccess ? r.Data ?? [] : null;
+    }
+
     /// <summary>Deletes fitting <paramref name="fittingId"/> from <paramref name="characterId"/>: null
     /// once it is gone, else the HTTP status the game refused with (0 when it could not be reached).</summary>
     public static async Task<int?> DeleteAsync(EsiClient esi, long characterId, int fittingId, CancellationToken ct = default)

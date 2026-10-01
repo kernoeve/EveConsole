@@ -23,8 +23,8 @@
 
       <!-- Hull, name, pilot -->
       <!-- Two rows so it still fits at half width, beside another fit. -->
-      <Grid DockPanel.Dock="Top" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" Margin="0 0 0 8">
-        <Border Grid.RowSpan="2" Width="64" Height="64" Margin="0 0 12 0" CornerRadius="3" VerticalAlignment="Top"
+      <Grid DockPanel.Dock="Top" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" Margin="0 0 0 8">
+        <Border Grid.RowSpan="3" Width="64" Height="64" Margin="0 0 12 0" CornerRadius="3" VerticalAlignment="Top"
                 Background="{DynamicResource SurfaceRaisedBrush}">
           <Image Source="{Binding ShipIcon}" Width="64" Height="64" />
         </Border>
@@ -39,17 +39,21 @@
             <ColumnDefinition Width="*" MaxWidth="360" />
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
           </Grid.ColumnDefinitions>
           <TextBox Text="{Binding FitName}" Watermark="{x:Static loc:FittingText.FitNameWatermark}" FontSize="12" />
           <Button Grid.Column="1" Classes="tool" Content="{x:Static loc:FittingText.CopyEft}" Command="{Binding CopyEftCommand}" Margin="6 0 0 0"
                   ToolTip.Tip="{x:Static loc:FittingText.TipCopyEft}" />
+          <!-- Save writes back where the fit came from, without asking; Save As asks where. -->
           <Button Grid.Column="2" Classes="tool" Content="{x:Static loc:FittingText.SaveFit}" Command="{Binding SaveCommand}" Margin="6 0 0 0"
-                  ToolTip.Tip="{x:Static loc:FittingText.TipSaveFit}" />
+                  ToolTip.Tip="{x:Static loc:FittingText.TipSaveFit}" ToolTip.ShowOnDisabled="True" />
+          <Button Grid.Column="3" Classes="tool" Content="{x:Static loc:FittingText.SaveFitAs}" Command="{Binding SaveAsCommand}" Margin="6 0 0 0"
+                  ToolTip.Tip="{x:Static loc:FittingText.TipSaveFitAs}" />
         </Grid>
+        <!-- Where Save writes: EVE Console, a character's fittings in the game, or nowhere yet. -->
+        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding SaveLocationText}" FontSize="11" Margin="0 4 0 0"
+                   Foreground="{DynamicResource InfoBrush}" ToolTip.Tip="{Binding GameSourceText}" />
       </Grid>
-
-      <TextBlock DockPanel.Dock="Bottom" Text="{Binding GameSourceText}" FontSize="11" IsVisible="{Binding HasGameSource}"
-                 Foreground="{DynamicResource InfoBrush}" Margin="0 4 0 0" />
 
       <Grid RowDefinitions="3*,Auto,2*">
         <!-- The ring: slots around the hull, as in the game. Click a module to switch it,

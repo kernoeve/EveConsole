@@ -127,26 +127,32 @@
   <data name="PasteEft" xml:space="preserve">
     <value>Pegar EFT…</value>
   </data>
-  <data name="FromGame" xml:space="preserve">
-    <value>Del juego…</value>
+  <data name="OpenFit" xml:space="preserve">
+    <value>Abrir equipamiento…</value>
   </data>
-  <data name="TipFromGame" xml:space="preserve">
-    <value>Abrir uno de los equipamientos guardados de tus personajes o corporaciones</value>
+  <data name="TipOpenFit" xml:space="preserve">
+    <value>Abrir un equipamiento guardado en EVE Console, o uno de los equipamientos de tus personajes o corporaciones en el juego</value>
   </data>
-  <data name="SavedFitsPlaceholder" xml:space="preserve">
-    <value>Equipamientos guardados…</value>
+  <data name="TitleOpenFit" xml:space="preserve">
+    <value>Abrir equipamiento</value>
   </data>
-  <data name="TipSavedFits" xml:space="preserve">
-    <value>Abrir un equipamiento guardado en EVE Console</value>
+  <data name="FitSearchWatermark" xml:space="preserve">
+    <value>Buscar por nombre de equipamiento o casco…</value>
   </data>
-  <data name="SavedFitLabel" xml:space="preserve">
-    <value>{0}  ({1})</value>
+  <data name="NoFitsMatch" xml:space="preserve">
+    <value>Ningún equipamiento coincide con la búsqueda.</value>
+  </data>
+  <data name="TitleDeleteSaved" xml:space="preserve">
+    <value>Borrar equipamiento</value>
+  </data>
+  <data name="ConfirmDeleteSaved" xml:space="preserve">
+    <value>¿Borrar el equipamiento «{0}» guardado en EVE Console? No se puede deshacer.</value>
   </data>
   <data name="DeleteSaved" xml:space="preserve">
     <value>Eliminar</value>
   </data>
   <data name="TipDeleteSaved" xml:space="preserve">
-    <value>Eliminar el equipamiento guardado elegido en la lista</value>
+    <value>Borrar el equipamiento elegido (solo los guardados en EVE Console)</value>
   </data>
   <data name="EmptyToolHint" xml:space="preserve">
     <value>Empieza un equipamiento a partir de un casco, pega uno o abre uno del juego o de tus equipamientos guardados. Cada uno se abre en su propia pestaña.</value>
@@ -200,10 +206,34 @@
     <value>Copiar este equipamiento al portapapeles como texto EFT</value>
   </data>
   <data name="SaveFit" xml:space="preserve">
-    <value>Guardar…</value>
+    <value>Guardar</value>
   </data>
   <data name="TipSaveFit" xml:space="preserve">
-    <value>Guardar en EVE Console o en los equipamientos de un personaje en el juego</value>
+    <value>Guardar sobre el equipamiento del que se abrió o con el que se guardó por última vez, sin preguntar. Para uno nunca guardado, usa Guardar como.</value>
+  </data>
+  <data name="SaveFitAs" xml:space="preserve">
+    <value>Guardar como…</value>
+  </data>
+  <data name="TipSaveFitAs" xml:space="preserve">
+    <value>Elige un nombre y dónde guardar: EVE Console o los equipamientos de un personaje en el juego</value>
+  </data>
+  <data name="SavedInConsole" xml:space="preserve">
+    <value>Guardado en EVE Console</value>
+  </data>
+  <data name="SavedInGame" xml:space="preserve">
+    <value>Guardado en los equipamientos de {0} en el juego</value>
+  </data>
+  <data name="NotSavedYet" xml:space="preserve">
+    <value>Aún sin guardar</value>
+  </data>
+  <data name="TitleOverwriteFit" xml:space="preserve">
+    <value>Sobrescribir equipamiento</value>
+  </data>
+  <data name="ConfirmOverwriteApp" xml:space="preserve">
+    <value>Ya hay un equipamiento llamado «{0}» para este casco guardado en EVE Console. ¿Sobrescribirlo?</value>
+  </data>
+  <data name="ConfirmOverwriteGame" xml:space="preserve">
+    <value>¿Sustituir el equipamiento «{0}» en los equipamientos de {1} en el juego? El juego no permite cambiar un equipamiento, así que primero se guarda el nuevo y luego se borra el antiguo.</value>
   </data>
   <data name="GameSource" xml:space="preserve">
     <value>De los equipamientos de {0} en el juego: {1}</value>
@@ -727,9 +757,6 @@
   <data name="StatusOpened" xml:space="preserve">
     <value>Abierto: {0}.</value>
   </data>
-  <data name="StatusChooseSavedToDelete" xml:space="preserve">
-    <value>Elige un equipamiento guardado para eliminarlo.</value>
-  </data>
   <data name="StatusDeleted" xml:space="preserve">
     <value>Eliminado: {0}.</value>
   </data>
@@ -948,9 +975,6 @@
   </data>
   <data name="WhyNotMaxType" xml:space="preserve">
     <value>Máximo que se puede equipar de este módulo: {0:0}.</value>
-  </data>
-  <data name="TitleLoadFitFromGame" xml:space="preserve">
-    <value>Cargar equipamiento del juego</value>
   </data>
   <data name="LoadFit" xml:space="preserve">
     <value>Cargar equipamiento</value>

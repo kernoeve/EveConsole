@@ -127,26 +127,32 @@
   <data name="PasteEft" xml:space="preserve">
     <value>Вставить EFT…</value>
   </data>
-  <data name="FromGame" xml:space="preserve">
-    <value>Из игры…</value>
+  <data name="OpenFit" xml:space="preserve">
+    <value>Открыть оснастку…</value>
   </data>
-  <data name="TipFromGame" xml:space="preserve">
-    <value>Открыть оснастку, сохранённую в игре одним из ваших персонажей или одной из корпораций</value>
+  <data name="TipOpenFit" xml:space="preserve">
+    <value>Открыть оснастку, сохранённую в EVE Console, или оснастку ваших персонажей или корпораций в игре</value>
   </data>
-  <data name="SavedFitsPlaceholder" xml:space="preserve">
-    <value>Сохранённые оснастки…</value>
+  <data name="TitleOpenFit" xml:space="preserve">
+    <value>Открытие оснастки</value>
   </data>
-  <data name="TipSavedFits" xml:space="preserve">
-    <value>Открыть оснастку, сохранённую в EVE Console</value>
+  <data name="FitSearchWatermark" xml:space="preserve">
+    <value>Поиск по названию оснастки или корпуса…</value>
   </data>
-  <data name="SavedFitLabel" xml:space="preserve">
-    <value>{0}  ({1})</value>
+  <data name="NoFitsMatch" xml:space="preserve">
+    <value>Нет оснасток, подходящих под поиск.</value>
+  </data>
+  <data name="TitleDeleteSaved" xml:space="preserve">
+    <value>Удаление оснастки</value>
+  </data>
+  <data name="ConfirmDeleteSaved" xml:space="preserve">
+    <value>Удалить оснастку «{0}», сохранённую в EVE Console? Это нельзя отменить.</value>
   </data>
   <data name="DeleteSaved" xml:space="preserve">
     <value>Удалить</value>
   </data>
   <data name="TipDeleteSaved" xml:space="preserve">
-    <value>Удалить сохранённую оснастку, выбранную в списке</value>
+    <value>Удалить выбранную оснастку (только сохранённые в EVE Console)</value>
   </data>
   <data name="EmptyToolHint" xml:space="preserve">
     <value>Начните оснастку с выбора корпуса, вставьте готовую или откройте оснастку из игры или из сохранённых. Каждая открывается в отдельной вкладке.</value>
@@ -200,10 +206,34 @@
     <value>Скопировать эту оснастку в буфер обмена в формате EFT</value>
   </data>
   <data name="SaveFit" xml:space="preserve">
-    <value>Сохранить…</value>
+    <value>Сохранить</value>
   </data>
   <data name="TipSaveFit" xml:space="preserve">
-    <value>Сохранить в EVE Console или в оснастки персонажа в игре</value>
+    <value>Сохранить поверх оснастки, из которой она открыта или в которую последний раз сохранена, без вопросов. Для ещё не сохранённой — «Сохранить как».</value>
+  </data>
+  <data name="SaveFitAs" xml:space="preserve">
+    <value>Сохранить как…</value>
+  </data>
+  <data name="TipSaveFitAs" xml:space="preserve">
+    <value>Выбрать имя и место сохранения: EVE Console или оснастки персонажа в игре</value>
+  </data>
+  <data name="SavedInConsole" xml:space="preserve">
+    <value>Сохранено в EVE Console</value>
+  </data>
+  <data name="SavedInGame" xml:space="preserve">
+    <value>Сохранено в оснастках персонажа {0} в игре</value>
+  </data>
+  <data name="NotSavedYet" xml:space="preserve">
+    <value>Ещё не сохранено</value>
+  </data>
+  <data name="TitleOverwriteFit" xml:space="preserve">
+    <value>Перезапись оснастки</value>
+  </data>
+  <data name="ConfirmOverwriteApp" xml:space="preserve">
+    <value>Оснастка «{0}» для этого корпуса уже сохранена в EVE Console. Перезаписать её?</value>
+  </data>
+  <data name="ConfirmOverwriteGame" xml:space="preserve">
+    <value>Заменить оснастку «{0}» в оснастках персонажа {1} в игре? Игра не позволяет изменить оснастку, поэтому сначала сохраняется новая, затем удаляется старая.</value>
   </data>
   <data name="GameSource" xml:space="preserve">
     <value>Из оснасток персонажа {0} в игре: {1}</value>
@@ -739,9 +769,6 @@
   <data name="StatusOpened" xml:space="preserve">
     <value>Открыто: {0}.</value>
   </data>
-  <data name="StatusChooseSavedToDelete" xml:space="preserve">
-    <value>Выберите сохранённую оснастку, которую нужно удалить.</value>
-  </data>
   <data name="StatusDeleted" xml:space="preserve">
     <value>Удалено: {0}.</value>
   </data>
@@ -966,9 +993,6 @@
   </data>
   <data name="WhyNotMaxType" xml:space="preserve">
     <value>Таких модулей можно установить не более {0:0}.</value>
-  </data>
-  <data name="TitleLoadFitFromGame" xml:space="preserve">
-    <value>Загрузка оснастки из игры</value>
   </data>
   <data name="LoadFit" xml:space="preserve">
     <value>Загрузить оснастку</value>

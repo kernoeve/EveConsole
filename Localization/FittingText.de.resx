@@ -127,26 +127,32 @@
   <data name="PasteEft" xml:space="preserve">
     <value>EFT einfügen…</value>
   </data>
-  <data name="FromGame" xml:space="preserve">
-    <value>Aus dem Spiel…</value>
+  <data name="OpenFit" xml:space="preserve">
+    <value>Ausrüstung öffnen…</value>
   </data>
-  <data name="TipFromGame" xml:space="preserve">
-    <value>Eine gespeicherte Ausrüstung Ihrer Charaktere oder Corporations öffnen</value>
+  <data name="TipOpenFit" xml:space="preserve">
+    <value>Eine in EVE Console gespeicherte Ausrüstung oder eine Ausrüstung Ihrer Charaktere oder Corporations im Spiel öffnen</value>
   </data>
-  <data name="SavedFitsPlaceholder" xml:space="preserve">
-    <value>Gespeicherte Ausrüstungen…</value>
+  <data name="TitleOpenFit" xml:space="preserve">
+    <value>Ausrüstung öffnen</value>
   </data>
-  <data name="TipSavedFits" xml:space="preserve">
-    <value>Eine in EVE Console gespeicherte Ausrüstung öffnen</value>
+  <data name="FitSearchWatermark" xml:space="preserve">
+    <value>Nach Ausrüstungs- oder Rumpfname suchen…</value>
   </data>
-  <data name="SavedFitLabel" xml:space="preserve">
-    <value>{0}  ({1})</value>
+  <data name="NoFitsMatch" xml:space="preserve">
+    <value>Keine Ausrüstung passt zur Suche.</value>
+  </data>
+  <data name="TitleDeleteSaved" xml:space="preserve">
+    <value>Ausrüstung löschen</value>
+  </data>
+  <data name="ConfirmDeleteSaved" xml:space="preserve">
+    <value>Die in EVE Console gespeicherte Ausrüstung „{0}“ löschen? Das kann nicht rückgängig gemacht werden.</value>
   </data>
   <data name="DeleteSaved" xml:space="preserve">
     <value>Löschen</value>
   </data>
   <data name="TipDeleteSaved" xml:space="preserve">
-    <value>Die in der Liste gewählte gespeicherte Ausrüstung löschen</value>
+    <value>Die gewählte Ausrüstung löschen – nur in EVE Console gespeicherte</value>
   </data>
   <data name="EmptyToolHint" xml:space="preserve">
     <value>Beginnen Sie eine Ausrüstung mit einem Rumpf, fügen Sie eine ein oder öffnen Sie eine aus dem Spiel oder aus Ihren gespeicherten Ausrüstungen. Jede öffnet sich in einem eigenen Tab.</value>
@@ -200,10 +206,34 @@
     <value>Diese Ausrüstung als EFT-Text in die Zwischenablage kopieren</value>
   </data>
   <data name="SaveFit" xml:space="preserve">
-    <value>Speichern…</value>
+    <value>Speichern</value>
   </data>
   <data name="TipSaveFit" xml:space="preserve">
-    <value>In EVE Console oder in den Ausrüstungen eines Charakters im Spiel speichern</value>
+    <value>Über die Ausrüstung speichern, aus der diese geöffnet oder zuletzt gespeichert wurde, ohne Rückfrage. Für eine nie gespeicherte Ausrüstung „Speichern unter“ verwenden.</value>
+  </data>
+  <data name="SaveFitAs" xml:space="preserve">
+    <value>Speichern unter…</value>
+  </data>
+  <data name="TipSaveFitAs" xml:space="preserve">
+    <value>Namen und Speicherort wählen: EVE Console oder die Ausrüstungen eines Charakters im Spiel</value>
+  </data>
+  <data name="SavedInConsole" xml:space="preserve">
+    <value>Gespeichert in EVE Console</value>
+  </data>
+  <data name="SavedInGame" xml:space="preserve">
+    <value>Gespeichert in den Ausrüstungen von {0} im Spiel</value>
+  </data>
+  <data name="NotSavedYet" xml:space="preserve">
+    <value>Noch nicht gespeichert</value>
+  </data>
+  <data name="TitleOverwriteFit" xml:space="preserve">
+    <value>Ausrüstung überschreiben</value>
+  </data>
+  <data name="ConfirmOverwriteApp" xml:space="preserve">
+    <value>Eine Ausrüstung namens „{0}“ für diesen Rumpf ist bereits in EVE Console gespeichert. Überschreiben?</value>
+  </data>
+  <data name="ConfirmOverwriteGame" xml:space="preserve">
+    <value>Die Ausrüstung „{0}“ in den Ausrüstungen von {1} im Spiel ersetzen? Das Spiel kann eine Ausrüstung nicht ändern; die neue wird zuerst gespeichert, dann die alte gelöscht.</value>
   </data>
   <data name="GameSource" xml:space="preserve">
     <value>Aus den Ausrüstungen von {0} im Spiel: {1}</value>
@@ -727,9 +757,6 @@
   <data name="StatusOpened" xml:space="preserve">
     <value>{0} geöffnet.</value>
   </data>
-  <data name="StatusChooseSavedToDelete" xml:space="preserve">
-    <value>Wählen Sie eine gespeicherte Ausrüstung zum Löschen.</value>
-  </data>
   <data name="StatusDeleted" xml:space="preserve">
     <value>{0} gelöscht.</value>
   </data>
@@ -948,9 +975,6 @@
   </data>
   <data name="WhyNotMaxType" xml:space="preserve">
     <value>Von diesem Modul können nur {0:0} eingebaut werden.</value>
-  </data>
-  <data name="TitleLoadFitFromGame" xml:space="preserve">
-    <value>Ausrüstung aus dem Spiel laden</value>
   </data>
   <data name="LoadFit" xml:space="preserve">
     <value>Ausrüstung laden</value>
