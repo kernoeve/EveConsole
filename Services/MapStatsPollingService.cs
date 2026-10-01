@@ -75,10 +75,7 @@ public class MapStatsPollingService(
             (b, d) => MapStatsIngest.Jumps(b, d), ct);
         stored += await PollAsync<EsiSystemKill>(MapDataset.Kills, "universe/system_kills/",
             (b, d) => MapStatsIngest.Kills(b, d), ct);
-        stored += await PollAsync<EsiSovereigntyEntry>(MapDataset.Sovereignty, "sovereignty/map/",
-            (b, d) => MapStatsIngest.Sovereignty(b, d), ct);
-        stored += await PollAsync<EsiSovStructureEntry>(MapDataset.SovStructures, "sovereignty/structures/",
-            (b, d) => MapStatsIngest.SovStructures(b, d), ct);
+        stored += await PollSovereigntyAsync(ct);
         stored += await PollAsync<EsiIndustrySystem>(MapDataset.Industry, "industry/systems/",
             (b, d) => MapStatsIngest.Industry(b, d), ct);
         stored += await PollAsync<EsiFwSystem>(MapDataset.FactionWar, "fw/systems/",
@@ -89,6 +86,64 @@ public class MapStatsPollingService(
         StatusText = stored > 0
             ? string.Format(SettingsText.MapStatsPollStored, stored, DateTime.Now)
             : string.Format(SettingsText.MapStatsPollUpToDate, DateTime.Now);
+    }
+
+    /// <summary>
+    /// The date the sovereignty route is asked at. /sovereignty/systems lives at ESI's root, not
+    /// under /latest/, and answers only with a date; the retired /sovereignty/map already answers
+    /// 404 at this one.
+    /// </summary>
+    private const string SovCompatibilityDate = "2026-08-01";
+
+    /// <summary>
+    /// Both sovereignty datasets from the one route that replaced /sovereignty/map and
+    /// /sovereignty/structures (retired at compatibility date 2026-05-19), stored as the same
+    /// rows those gave, so the overlays, the system page and the archive backfill go on as they
+    /// were. The archive still publishes the old routes' snapshots; MapStatsIngest keeps the two
+    /// sources' rows alike.
+    /// </summary>
+    private async Task<int> PollSovereigntyAsync(CancellationToken ct)
+    {
+        try
+        {
+            var client = httpFactory.CreateClient("esi-public");
+            using var request = new HttpRequestMessage(HttpMethod.Get, "https://esi.evetech.net/sovereignty/systems");
+            request.Headers.Add("X-Compatibility-Date", SovCompatibilityDate);
+            using var resp = await client.SendAsync(request, ct);
+            if (!resp.IsSuccessStatusCode)
+            {
+                // Said, not swallowed: a route that stops answering is how the last one went
+                // unnoticed.
+                errors?.Log("MapStats", "poll sovereignty", $"sovereignty/systems answered {(int)resp.StatusCode}");
+                return 0;
+            }
+
+            var modified = resp.Content.Headers.LastModified ?? resp.Headers.Date;
+            if (modified is null) return 0;
+            var bucket = MapStatsService.BucketOf(modified.Value);
+
+            var needHolders = !await stats.HasBucketAsync(MapDataset.Sovereignty, bucket, ct);
+            var needHubs    = !await stats.HasBucketAsync(MapDataset.SovStructures, bucket, ct);
+            if (!needHolders && !needHubs) return 0;
+
+            var data = await resp.Content.ReadFromJsonAsync<EveConsole.Api.EsiClient.EsiSovSystems>(Json, ct);
+            if (data is null) return 0;
+
+            var n = 0;
+            if (needHolders)
+                n += Math.Max(await stats.StoreAsync(MapDataset.Sovereignty, bucket, "esi",
+                    MapStatsIngest.Sovereignty(bucket, data.SolarSystems), ct), 0);
+            if (needHubs)
+                n += Math.Max(await stats.StoreAsync(MapDataset.SovStructures, bucket, "esi",
+                    MapStatsIngest.SovStructures(bucket, data.SolarSystems), ct), 0);
+            return n;
+        }
+        catch (OperationCanceledException) { throw; }
+        catch (Exception ex)
+        {
+            errors?.Log("MapStats", "poll sovereignty", ex);
+            return 0;
+        }
     }
 
     /// <summary>Fetches one endpoint and stores it under the bucket its Last-Modified names.</summary>
