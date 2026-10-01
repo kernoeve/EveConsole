@@ -1393,4 +1393,49 @@
   <data name="AdriftStopEndsNote" xml:space="preserve">
     <value>チェックあり：出港後に艦船を停止すると、その出港のアラームは終了します — 停止した艦船は出港地点から漂流せず、誰かが停止を押したことになります。ゲームログから読み取るため、そのクライアントのゲームログフォルダーが読み込まれている必要があります（設定 → ゲームログ）。読み込まれていない場合、ステージはこれまでどおり進みます。</value>
   </data>
+  <data name="CheckGameLogEvent" xml:space="preserve">
+    <value>ゲームログのイベント</value>
+  </data>
+  <data name="CheckGameLogEventNote" xml:space="preserve">
+    <value>自分のキャラクターのゲームログに、近くの何かによってクロークが解除された、ワープスクランブルやワープ妨害を受けた、攻撃を受けている、と記録されたときに発動します — 自由に組み合わせてチェックできます。スクランブルや攻撃は戦闘ごとに1回発動します：間隔が2分以内の行は同じ戦闘です。そのクライアントのゲームログフォルダーが読み込まれていること（設定 → ゲームログ）と、ゲームクライアントが英語であることが必要です。数秒以内に検知します。</value>
+  </data>
+  <data name="GameLogDecloakedLabel" xml:space="preserve">
+    <value>クローク解除</value>
+  </data>
+  <data name="GameLogDecloakedNote" xml:space="preserve">
+    <value>スターゲート、ストラクチャー、その他クロークを解除するものの近くでクロークが解除されました。</value>
+  </data>
+  <data name="GameLogScrambledLabel" xml:space="preserve">
+    <value>ワープスクランブル</value>
+  </data>
+  <data name="GameLogScrambledNote" xml:space="preserve">
+    <value>ワープスクランブラーまたはワープディスラプターを受けました。</value>
+  </data>
+  <data name="GameLogAttackedLabel" xml:space="preserve">
+    <value>攻撃を受けている</value>
+  </data>
+  <data name="GameLogAttackedNote" xml:space="preserve">
+    <value>ダメージを受けています。</value>
+  </data>
+  <data name="GameLogPlayersOnlyLabel" xml:space="preserve">
+    <value>プレイヤーのみ</value>
+  </data>
+  <data name="GameLogPlayersOnlyNote" xml:space="preserve">
+    <value>チェックあり：スクランブルや攻撃はプレイヤーからのものだけを数え、NPCからのものは数えません — そうしないとラッティング中ずっと発動してしまいます。</value>
+  </data>
+  <data name="GameLogCharactersNote" xml:space="preserve">
+    <value>任意。監視する自分のキャラクター。空欄にするとすべてのキャラクターが対象です。</value>
+  </data>
+  <data name="GameLogEventsTitle" xml:space="preserve">
+    <value>ゲームログのイベント：{0}件</value>
+  </data>
+  <data name="GameLogSaidDecloaked" xml:space="preserve">
+    <value>{0}は{1}の近くでクロークが解除されました。</value>
+  </data>
+  <data name="GameLogSaidScrambled" xml:space="preserve">
+    <value>{0}は{1}にワープスクランブルされています。</value>
+  </data>
+  <data name="GameLogSaidAttacked" xml:space="preserve">
+    <value>{0}は{1}に攻撃されています。</value>
+  </data>
 </root>

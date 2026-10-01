@@ -1483,4 +1483,49 @@
   <data name="AdriftStopEndsNote" xml:space="preserve">
     <value>Отмечено: остановка корабля после выхода из дока завершает тревогу этого выхода — остановленный корабль не дрейфует от точки выхода, и кто-то нажал «стоп». Читается из игрового журнала, поэтому папка игровых журналов этого клиента должна читаться (Настройки → Игровые журналы); без неё этапы идут как прежде.</value>
   </data>
+  <data name="CheckGameLogEvent" xml:space="preserve">
+    <value>Событие игрового журнала</value>
+  </data>
+  <data name="CheckGameLogEventNote" xml:space="preserve">
+    <value>Срабатывает, когда игровой журнал одного из ваших персонажей сообщает, что с него сняло маскировку что-то поблизости, его варп-двигатель заблокирован или подавлен, или он под атакой — отметьте любое сочетание. Блокировка или атака срабатывает один раз за бой: строки с промежутком не больше двух минут — один бой. Нужно, чтобы читалась папка игровых журналов этого клиента (Настройки → Игровые журналы), и английский игровой клиент; замечается за секунды.</value>
+  </data>
+  <data name="GameLogDecloakedLabel" xml:space="preserve">
+    <value>Маскировка снята</value>
+  </data>
+  <data name="GameLogDecloakedNote" xml:space="preserve">
+    <value>Маскировка снялась рядом со звёздными вратами, сооружением или чем-то ещё, что её снимает.</value>
+  </data>
+  <data name="GameLogScrambledLabel" xml:space="preserve">
+    <value>Варп заблокирован</value>
+  </data>
+  <data name="GameLogScrambledNote" xml:space="preserve">
+    <value>На вас попал блокировщик или подавитель варп-двигателя.</value>
+  </data>
+  <data name="GameLogAttackedLabel" xml:space="preserve">
+    <value>Под атакой</value>
+  </data>
+  <data name="GameLogAttackedNote" xml:space="preserve">
+    <value>Вы получаете урон.</value>
+  </data>
+  <data name="GameLogPlayersOnlyLabel" xml:space="preserve">
+    <value>Только игроки</value>
+  </data>
+  <data name="GameLogPlayersOnlyNote" xml:space="preserve">
+    <value>Отмечено: блокировка или атака считается только от игрока, не от NPC — иначе фарм NPC включал бы её весь вечер.</value>
+  </data>
+  <data name="GameLogCharactersNote" xml:space="preserve">
+    <value>Необязательно. Ваши персонажи, за которыми следить; оставьте пустым для всех.</value>
+  </data>
+  <data name="GameLogEventsTitle" xml:space="preserve">
+    <value>События игрового журнала: {0}</value>
+  </data>
+  <data name="GameLogSaidDecloaked" xml:space="preserve">
+    <value>С {0} снята маскировка рядом с {1}.</value>
+  </data>
+  <data name="GameLogSaidScrambled" xml:space="preserve">
+    <value>{0}: варп заблокирован — {1}.</value>
+  </data>
+  <data name="GameLogSaidAttacked" xml:space="preserve">
+    <value>{0} под атакой: {1}.</value>
+  </data>
 </root>

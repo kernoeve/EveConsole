@@ -664,8 +664,22 @@ public sealed class AlarmsViewModel : ReactiveObject
             .Subscribe(a => _ = LoadEditorAsync(a!.Id));
 
         this.WhenAnyValue(x => x.SelectedCondition)
-            .Subscribe(_ => RebuildFields());
+            .Subscribe(choice =>
+            {
+                RebuildFields();
+
+                // A new alarm starts on the check's own interval, unless "Check every" was
+                // already changed by hand. An alarm being edited keeps what it was saved with.
+                var dflt = choice?.Condition.DefaultPollSeconds ?? GeneralPollSeconds;
+                if (EditingId == 0 && PollSeconds == _pollDefault) PollSeconds = dflt;
+                _pollDefault = dflt;
+            });
     }
+
+    private const int GeneralPollSeconds = 60;
+
+    /// <summary>The interval the selected check suggested, to tell an untouched box from one set by hand.</summary>
+    private int _pollDefault = GeneralPollSeconds;
 
     /// <summary>
     /// One editor section per stage of the selected check, each holding the stage's field and
@@ -919,7 +933,8 @@ public sealed class AlarmsViewModel : ReactiveObject
         ActiveFrom        = "";
         ActiveThru        = "";
         SetRepeat(AlarmRepeat.Continuous);
-        PollSeconds       = 60;
+        PollSeconds       = GeneralPollSeconds;
+        _pollDefault      = GeneralPollSeconds;
         CooldownSeconds   = 0;
         SelectedCondition = Conditions.FirstOrDefault();
         RebuildFields();

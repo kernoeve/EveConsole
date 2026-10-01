@@ -125,6 +125,13 @@ public interface IAlarmCondition
     int Stages => 0;
 
     /// <summary>
+    /// How often a new alarm of this check looks, in seconds, when the editor's general default
+    /// would be too slow for it — or null for that default. Only a starting value: the person
+    /// can change it, and an alarm already saved keeps its own.
+    /// </summary>
+    int? DefaultPollSeconds => null;
+
+    /// <summary>
     /// The whole of what the agent is told, for a check that needs more than "say this": a
     /// wake-up call asks a question and must let the reply come. Null, the default, leaves it
     /// to the runner's generic prompt. The capsuleer's standing instruction, if any, is appended

@@ -56,6 +56,7 @@ public static class GameLogRules
     public const string KindJumped           = "movement.jumped";
     public const string KindUndocked         = "movement.undocked";
     public const string KindShipStopped      = "movement.ship_stopped";
+    public const string KindDecloaked        = "movement.decloaked";
     public const string KindUnmatched        = "unmatched";
 
     /// <summary>[ 2024.11.13 01:30:53 ] (channel) rest</summary>
@@ -128,6 +129,11 @@ public static class GameLogRules
     /// instead). What the wake-up alarm takes as proof somebody is at the keyboard.
     /// </summary>
     private static readonly Regex ShipStoppingRx = new(@"^Ship\s+stopping\.?\s*$", Opts);
+
+    /// <summary>"Your cloak deactivates due to proximity to a nearby Stargate (Jita)." — or a
+    /// Keepstar, an Ansiblex, any structure. What dropped it goes in LocationName.</summary>
+    private static readonly Regex DecloakRx = new(
+        @"^Your\s+cloak\s+deactivates\s+due\s+to\s+proximity\s+to\s+a\s+nearby\s+(?<what>.+?)\.?\s*$", Opts);
 
     /// <summary>"Undocking from Jita IV - Moon 4 - Caldari Navy Assembly Plant to Jita solar system."</summary>
     private static readonly Regex UndockRx = new(
@@ -234,6 +240,13 @@ public static class GameLogRules
 
         if (ShipStoppingRx.IsMatch(body))
             return Row(KindShipStopped);
+
+        if (DecloakRx.Match(body) is { Success: true } decloak)
+        {
+            var r = Row(KindDecloaked);
+            r.LocationName = decloak.Groups["what"].Value.Trim();
+            return r;
+        }
 
         // ── (combat) ─────────────────────────────────────────────────────────
         if (line.Channel.Equals("combat", StringComparison.OrdinalIgnoreCase))
