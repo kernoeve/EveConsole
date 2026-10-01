@@ -632,7 +632,8 @@ public class FittingViewModel : ReactiveObject
     /// <summary>Called when the tool is first shown: reads the SDE's dogma data and the item list.</summary>
     public async Task EnsureLoadedAsync()
     {
-        if (_loaded || _loading) return;
+        if (_loaded) return;
+        if (_loading) { Status = FittingText.StatusLoadingGameData; return; }
         _loading = true;
         Status = FittingText.StatusLoadingGameData;
         try
@@ -641,7 +642,10 @@ public class FittingViewModel : ReactiveObject
             Catalog = await Task.Run(() => FittingCatalog.LoadAsync(Data, DbFactory));
             if (Data.Effects.Count == 0 || Catalog.Entries.Count == 0)
             {
-                Status = FittingText.StatusNoGameData;
+                // Not kept: an empty catalog would look loaded, and nothing would try again.
+                Status  = FittingText.StatusNoGameData;
+                Data    = null;
+                Catalog = null;
                 return;
             }
             // An SDE imported by a build before this tool has the effects but not their rules,
@@ -668,7 +672,27 @@ public class FittingViewModel : ReactiveObject
             await RunSearchAsync();
         }
         catch (Exception ex) { Status = string.Format(FittingText.StatusLoadFailed, ex.Message); }
-        finally { _loading = false; }
+        finally
+        {
+            _loading = false;
+            if (_reloadPending) { _reloadPending = false; _ = ReloadGameDataAsync(); }
+        }
+    }
+
+    private bool _reloadPending;
+
+    /// <summary>
+    /// The game data was imported again: read it afresh and work every open fit out again with it.
+    /// Also the second chance for a tool that first loaded while the import was under way — and
+    /// found nothing, or a database busy with it — which would otherwise stay empty until restarted.
+    /// </summary>
+    public async Task ReloadGameDataAsync()
+    {
+        if (_loading) { _reloadPending = true; return; }
+        IsReady = false;
+        await EnsureLoadedAsync();
+        if (Data is not null)
+            foreach (var tab in AllTabs.Where(t => t.HasShip)) tab.ScheduleRecalc();
     }
 
     // ── Finder ──────────────────────────────────────────────────────────────────
@@ -978,6 +1002,8 @@ public class FittingViewModel : ReactiveObject
     /// </summary>
     private async Task OpenFitAsync()
     {
+        // Not loaded yet (or the first try failed): try again, rather than doing nothing.
+        if (Data is null || Catalog is null) await EnsureLoadedAsync();
         if (Data is null || Catalog is null) return;
         var picker = new FitSelectorViewModel(Characters is null ? null : Fittings, DbFactory,
             Characters ?? [], [], 0, await LocalFitsAsync())

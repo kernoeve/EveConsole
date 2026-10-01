@@ -74,6 +74,12 @@ public partial class FittingView : UserControl
         _handlers.Clear();
     }
 
+    /// <summary>The hull box with no hulls to offer means the game data is not loaded: try again.</summary>
+    private void OnHullPickerFocused(object? sender, GotFocusEventArgs e)
+    {
+        if (Vm is { IsReady: false } vm) _ = vm.EnsureLoadedAsync();
+    }
+
     /// <summary>A hull chosen under New fit starts a fit on it; the box empties for the next one.</summary>
     private void OnHullPicked(object? sender, SelectionChangedEventArgs e)
     {

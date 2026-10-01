@@ -207,7 +207,7 @@
             <TextBlock Text="{x:Static loc:FittingText.ToggleItems}" />
           </ToggleButton>
           <TextBlock Text="{x:Static loc:FittingText.NewFitLabel}" Classes="section" Margin="0 0 8 4" VerticalAlignment="Center" />
-          <AutoCompleteBox x:Name="HullPicker" Width="260" Margin="0 0 6 4" FontSize="12"
+          <AutoCompleteBox x:Name="HullPicker" Width="260" Margin="0 0 6 4" FontSize="12" GotFocus="OnHullPickerFocused"
                            Watermark="{x:Static loc:FittingText.HullWatermark}"
                            ItemsSource="{Binding Hulls}" FilterMode="Custom" ItemFilter="{Binding HullFilter}"
                            MinimumPrefixLength="1" MaxDropDownHeight="420"

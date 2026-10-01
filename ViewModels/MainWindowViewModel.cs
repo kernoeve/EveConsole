@@ -1091,6 +1091,10 @@ public class MainWindowViewModel : ReactiveObject
         MarketVm          = new MarketSettingsViewModel(dbFactory.CreateDbContext(), dbFactory, marketPricing, esi, CharacterVm.Characters, buildCostService);
         var fittingsService = new FittingsService(esi, dbFactory);
         FittingVm         = new FittingViewModel(dbFactory, fittingsService, CharacterVm.Characters, esi);
+        // When an SDE import finishes — by hand, or the one a schema change starts by itself — the
+        // fitting tool reads the new game data; one that loaded during the import gets its second try.
+        SdeVm.WhenAnyValue(x => x.IsBusy).Skip(1).Where(busy => !busy)
+            .Subscribe(idle => _ = FittingVm.ReloadGameDataAsync());
         MarketLevelVm     = new MarketLevelViewModel(marketLevelService, dbFactory, fittingsService,
             CharacterVm.Characters, batchAddService, prodCalcService);
         // appPrefs is the constructor parameter, not the AppPrefs property — that is not assigned
