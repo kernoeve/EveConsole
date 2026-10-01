@@ -727,6 +727,9 @@
   <data name="CheckIntelNote" xml:space="preserve">
     <value>Se dispara cuando alguien notifica un piloto cerca de lo que vigilas: tus personajes mientras están desacoplados, tus personajes estén donde estén, o una lista de sistemas, cada uno con un alcance en saltos. Lee los canales de inteligencia que ya se analizan en Ajustes → Registros de chat.</value>
   </data>
+  <data name="CheckIntelKillsNote" xml:space="preserve">
+    <value>También cuentan las muertes allí con pilotos hostiles entre los atacantes: una muerte sitúa a sus atacantes en ese sistema.</value>
+  </data>
   <data name="CheckShipUndock" xml:space="preserve">
     <value>Desacople de nave</value>
   </data>
@@ -1029,6 +1032,9 @@
   </data>
   <data name="SaidSentence" xml:space="preserve">
     <value>{0}.</value>
+  </data>
+  <data name="IntelSaidOnKill" xml:space="preserve">
+    <value>Visto en una muerte</value>
   </data>
   <data name="UnknownSystem" xml:space="preserve">
     <value>un sistema desconocido</value>

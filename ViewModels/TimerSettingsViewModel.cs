@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.Reactive;
+using System.Reactive.Linq;
 using EveConsole.Services;
 using ReactiveUI;
 using EveConsole.Localization;
@@ -83,8 +84,12 @@ public class TimerRowVm : ReactiveObject
         ForceStatus = SettingsText.TimerForceDue;
     }
 
-    public async Task SaveAsync() =>
-        await _svc.SetIntervalAsync(Key, Interval * UnitSeconds);
+    /// <summary>Writes the interval: read here, on the UI thread, and written off it.</summary>
+    public Task SaveAsync()
+    {
+        var seconds = Interval * UnitSeconds;
+        return Task.Run(() => _svc.SetIntervalAsync(Key, seconds));
+    }
 }
 
 public class TimerSettingsViewModel : ReactiveObject
@@ -93,8 +98,6 @@ public class TimerSettingsViewModel : ReactiveObject
     public ObservableCollection<TimerRowVm> CorpRows  { get; } = [];
     public ObservableCollection<TimerRowVm> OtherRows { get; } = [];
 
-    public ReactiveCommand<Unit, Unit> SaveCommand { get; }
-
     private string _saveStatus = "";
     public string SaveStatus
     {
@@ -102,9 +105,16 @@ public class TimerSettingsViewModel : ReactiveObject
         private set => this.RaiseAndSetIfChanged(ref _saveStatus, value);
     }
 
+    /// <summary>The rows changed since the last save: only those are written.</summary>
+    private readonly HashSet<TimerRowVm> _changed = [];
+    private readonly AutoSave            _autoSave;
+
     public TimerSettingsViewModel(EsiPollingService pollingService, TimerSettingsService timerSettings,
                                   TimerForceService? force = null)
     {
+        _autoSave = new AutoSave(SaveChangedAsync,
+            ex => SaveStatus = string.Format(CommonText.ErrorWithMessage, ex.Message));
+
         foreach (var ep in pollingService.CharacterEndpointInfos)
             CharRows.Add(new TimerRowVm(ep, timerSettings, pollingService, force));
 
@@ -137,20 +147,39 @@ public class TimerSettingsViewModel : ReactiveObject
             new EndpointInfo("contract.pricing", SettingsText.TimerContractPricing, 300, 1800),
             timerSettings, pollingService, force));
 
-        SaveCommand = ReactiveCommand.CreateFromTask(SaveAllAsync);
+        // Watched once every row holds its stored interval, so building the rows saves nothing.
+        // An interval is typed, so it is saved once typing pauses; one that does not read as a
+        // number never reaches Interval (the box shows the error) and so is never saved.
+        foreach (var row in CharRows.Concat(CorpRows).Concat(OtherRows))
+            row.WhenAnyValue(r => r.Interval).Skip(1).Subscribe(_ =>
+            {
+                _changed.Add(row);
+                _autoSave.Typed();
+            });
     }
 
-    private async Task SaveAllAsync()
-    {
-        foreach (var row in CharRows)
-            await row.SaveAsync();
-        foreach (var row in CorpRows)
-            await row.SaveAsync();
-        foreach (var row in OtherRows)
-            await row.SaveAsync();
+    /// <summary>Saves a change still waiting — a box losing focus, or the Settings window closing.</summary>
+    public Task FlushAsync() => _autoSave.FlushAsync();
 
-        SaveStatus = SettingsText.Saved;
-        await Task.Delay(2000);
-        SaveStatus = "";
+    /// <summary>
+    /// Writes the changed rows. Nothing restarts: the polling loop reads an interval from the
+    /// service's cache as it schedules each call, and the cache takes the new one at once.
+    /// </summary>
+    private async Task SaveChangedAsync()
+    {
+        var rows = _changed.ToList();
+        _changed.Clear();   // a change made while these are written is saved by the next save
+        try
+        {
+            foreach (var row in rows)
+                await row.SaveAsync();
+        }
+        catch
+        {
+            _changed.UnionWith(rows);   // tried again with the next change
+            throw;
+        }
+
+        _autoSave.Flash(s => SaveStatus = s, SettingsText.Saved);
     }
 }

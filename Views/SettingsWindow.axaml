@@ -589,10 +589,8 @@
                              FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" />
                 </Grid>
 
+                <!-- No Save: a source is saved as it is changed (MarketSettingsViewModel). -->
                 <StackPanel Orientation="Horizontal" Spacing="6" Margin="0 8 0 0">
-                  <Button Content="{x:Static loc:SettingsText.Save}"
-                          Command="{Binding MarketVm.SaveCommand}"
-                          Padding="14 4" />
                   <Button Content="{x:Static loc:SettingsText.RefreshThis}"
                           Command="{Binding MarketVm.RefreshSelectedCommand}"
                           Padding="14 4" />
@@ -702,9 +700,8 @@
                          TextWrapping="Wrap" />
             </Grid>
 
-            <!-- Save row -->
+            <!-- Saved as they are changed; this says so for a moment after each save. -->
             <StackPanel Grid.Row="5" Orientation="Horizontal" Spacing="10">
-              <Button Content="{x:Static loc:SettingsText.SaveDefaults}" Command="{Binding MarketVm.SaveDefaultsCommand}" Padding="14 4" />
               <TextBlock Text="{Binding MarketVm.DefaultsStatus}"
                          FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
             </StackPanel>
@@ -846,9 +843,8 @@
             </StackPanel>
           </Border>
 
-          <!-- Save row -->
+          <!-- Saved as it is changed, with the Market tab's defaults it belongs to. -->
           <StackPanel Orientation="Horizontal" Spacing="10">
-            <Button Content="{x:Static loc:SettingsText.Save}" Command="{Binding MarketVm.SaveDefaultsCommand}" Padding="14 4" />
             <TextBlock Text="{Binding MarketVm.DefaultsStatus}"
                        FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
           </StackPanel>
@@ -984,17 +980,12 @@
           </StackPanel>
         </ScrollViewer>
 
-        <!-- Save bar -->
+        <!-- Status bar. An interval is saved once typing pauses, or when its box is left; this
+             says so for a moment after each save. -->
         <Border Grid.Row="1" Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4" Padding="10 8" Margin="0 8 0 0">
-          <Grid ColumnDefinitions="*,Auto">
-            <TextBlock Grid.Column="0"
-                       Text="{Binding TimerVm.SaveStatus}"
-                       FontSize="11" Foreground="{DynamicResource GoodBrush}"
-                       VerticalAlignment="Center" />
-            <Button Grid.Column="1" Content="{x:Static loc:SettingsText.SaveTimers}"
-                    Command="{Binding TimerVm.SaveCommand}"
-                    Padding="14 4" />
-          </Grid>
+          <TextBlock Text="{Binding TimerVm.SaveStatus}"
+                     FontSize="11" Foreground="{DynamicResource GoodBrush}"
+                     VerticalAlignment="Center" MinHeight="16" />
         </Border>
 
       </Grid>
@@ -1695,7 +1686,7 @@
         <!-- Left: what every section is called. Scrolls, because twelve fields and a
              prefix do not fit a settings pane at every window height. -->
         <Border Grid.Column="0" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
-          <Grid RowDefinitions="Auto,Auto,*,Auto">
+          <Grid RowDefinitions="Auto,Auto,*">
             <Border Grid.Row="0" Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
               <TextBlock Text="{x:Static loc:SettingsText.Top10ListTitles}" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
             </Border>
@@ -1752,11 +1743,6 @@
               </StackPanel>
             </ScrollViewer>
 
-            <Button Grid.Row="3" Content="{x:Static loc:SettingsText.SaveTitles}" Command="{Binding SaveTitlesCommand}"
-                    Margin="10 0 10 10" HorizontalAlignment="Left"
-                    FontSize="11" Padding="12 4"
-                    Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
-                    BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" />
           </Grid>
         </Border>
 
@@ -1824,9 +1810,9 @@
 
     <!-- ══ Agent ═══════════════════════════════════════════════════════════════ -->
     <TabItem Header="{x:Static loc:SettingsText.TabAiAgent}">
-      <!-- Four sub-tabs over one view model and ONE save bar: the tab had grown to two hundred
-           lines of sections, and Save applies to all of them, so it stays outside the sub-tabs
-           where it is visible whichever one is showing. -->
+      <!-- Four sub-tabs over one view model and ONE status bar: the tab had grown to two hundred
+           lines of sections, all saved as they are changed, so the bar that says so stays outside
+           the sub-tabs where it is visible whichever one is showing. -->
       <Grid RowDefinitions="*,Auto" Margin="0 8 0 0"
             x:DataType="vm:AgentSettingsViewModel" DataContext="{Binding AgentVm}">
         <TabControl Grid.Row="0" Padding="0">
@@ -2569,17 +2555,11 @@
         </TabControl>
 
         <Grid Grid.Row="1" Margin="0 8 0 0">
-          <!-- Save bar -->
+          <!-- Status bar -->
           <Border Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4" Padding="10 8">
-            <Grid ColumnDefinitions="*,Auto">
-              <TextBlock Grid.Column="0"
-                         Text="{Binding SaveStatus}"
-                         FontSize="11" Foreground="{DynamicResource GoodBrush}"
-                         VerticalAlignment="Center" />
-              <Button Grid.Column="1" Content="{x:Static loc:SettingsText.SaveAgentSettings}"
-                      Command="{Binding SaveCommand}"
-                      Padding="14 4" />
-            </Grid>
+            <TextBlock Text="{Binding SaveStatus}"
+                       FontSize="11" Foreground="{DynamicResource GoodBrush}"
+                       VerticalAlignment="Center" MinHeight="16" />
           </Border>
         </Grid>
       </Grid>
@@ -2660,8 +2640,9 @@
           <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextDimBrush}" FontSize="11"
                      Text="{x:Static loc:SettingsText.StoredLocallyInYourNote}" />
           <StackPanel Orientation="Horizontal" Spacing="8">
-            <Button Content="{x:Static loc:SettingsText.SaveTest}"
-                    Command="{Binding SlackVm.SaveAndTestCommand}"
+            <!-- The token saves as it is typed; this only asks Slack whether it works. -->
+            <Button Content="{x:Static loc:SettingsText.DiscordTest}"
+                    Command="{Binding SlackVm.TestCommand}"
                     IsEnabled="{Binding !SlackVm.IsBusy}"
                     Padding="12 4" FontSize="11"
                     Background="{DynamicResource GoodSurfaceBrush}" Foreground="{DynamicResource GoodBrush}"
@@ -2929,10 +2910,8 @@
                          VerticalAlignment="Center" />
             </StackPanel>
 
+            <!-- Every rule on the tab is saved as it is ticked; this says so for a moment. -->
             <StackPanel Orientation="Horizontal" Spacing="10" Margin="0 6 0 0">
-              <Button Content="{x:Static loc:SettingsText.SaveAlerts}"
-                      Command="{Binding AlertsVm.SaveCommand}"
-                      Padding="14 4" />
               <TextBlock Text="{Binding AlertsVm.Status}"
                          FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
                          VerticalAlignment="Center" />

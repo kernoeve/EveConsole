@@ -727,6 +727,9 @@
   <data name="CheckIntelNote" xml:space="preserve">
     <value>Se déclenche quand quelqu'un signale un pilote près de ce que vous surveillez : vos personnages quand ils sont appareillés, vos personnages où qu'ils soient, ou une liste de systèmes, chacun avec une portée en sauts. Lit les canaux de renseignements déjà analysés dans Paramètres → Journaux de discussion.</value>
   </data>
+  <data name="CheckIntelKillsNote" xml:space="preserve">
+    <value>Les destructions qui y comptent des pilotes hostiles parmi les attaquants comptent aussi : une destruction place ses attaquants dans ce système.</value>
+  </data>
   <data name="CheckShipUndock" xml:space="preserve">
     <value>Appareillage d'un vaisseau</value>
   </data>
@@ -1029,6 +1032,9 @@
   </data>
   <data name="SaidSentence" xml:space="preserve">
     <value>{0}.</value>
+  </data>
+  <data name="IntelSaidOnKill" xml:space="preserve">
+    <value>Vu lors d'une destruction</value>
   </data>
   <data name="UnknownSystem" xml:space="preserve">
     <value>un système inconnu</value>

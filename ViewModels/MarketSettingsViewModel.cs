@@ -1,4 +1,6 @@
-﻿using System.Collections.ObjectModel;
+﻿using System.Collections;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Reactive;
 using System.Reactive.Linq;
 using EveConsole.Api;
@@ -88,7 +90,14 @@ public class SdeRegionOption
     public override string ToString() => DisplayName;
 }
 
-public class MarketPricingConfigVm : ReactiveObject
+/// <summary>
+/// One price source as the Market tab edits it. The tab saves a source as it is changed; see
+/// <see cref="MarketSettingsViewModel"/>.
+///
+/// <para>The location id is checked as it is typed (<see cref="INotifyDataErrorInfo"/>, which the
+/// box shows): one that does not read as an id is never saved, where it used to be saved as 0.</para>
+/// </summary>
+public class MarketPricingConfigVm : ReactiveObject, INotifyDataErrorInfo
 {
     public int Id { get; init; }
 
@@ -171,9 +180,27 @@ public class MarketPricingConfigVm : ReactiveObject
             var another = _locationIdText != value;
             this.RaiseAndSetIfChanged(ref _locationIdText, value);
             ResolvedLocationName = "";
-            if (another) PlaceName = null;   // named again once the lookup has found it
+            if (another)
+            {
+                PlaceName = null;   // named again once the lookup has found it
+                ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(nameof(LocationIdText)));
+            }
         }
     }
+
+    /// <summary>The location id as typed, when it reads as one: a whole number above zero.</summary>
+    public long? LocationId => long.TryParse(_locationIdText, out var id) && id > 0 ? id : null;
+
+    // ── Validation: the location id only ─────────────────────────────────────
+
+    public bool HasErrors => LocationId is null;
+
+    public event EventHandler<DataErrorsChangedEventArgs>? ErrorsChanged;
+
+    public IEnumerable GetErrors(string? propertyName) =>
+        propertyName == nameof(LocationIdText) && LocationId is null
+            ? new[] { SettingsText.MarketInvalidId }
+            : Array.Empty<string>();
 
     private string _priceType = MarketPriceType.Midpoint;
     public string PriceType
@@ -193,7 +220,13 @@ public class MarketPricingConfigVm : ReactiveObject
         }
     }
 
-    public long? AuthCharId { get; set; }
+    private long? _authCharId;
+    /// <summary>Raised only when it changes: picking the character it already is saves nothing.</summary>
+    public long? AuthCharId
+    {
+        get => _authCharId;
+        set => this.RaiseAndSetIfChanged(ref _authCharId, value);
+    }
 
     private SdeRegionOption? _selectedRegion;
     public SdeRegionOption? SelectedRegion
@@ -205,6 +238,7 @@ public class MarketPricingConfigVm : ReactiveObject
             if (value is null) return;
             _locationIdText = value.RegionId.ToString();
             this.RaisePropertyChanged(nameof(LocationIdText));
+            ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(nameof(LocationIdText)));
             PlaceName    = value.Name;
             LocationName = value.Name;
         }
@@ -259,7 +293,12 @@ public class MarketPricingConfigVm : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _percentilePercent, value);
     }
 
-    public long? StationFilter { get; set; }
+    private long? _stationFilter;
+    public long? StationFilter
+    {
+        get => _stationFilter;
+        set => this.RaiseAndSetIfChanged(ref _stationFilter, value);
+    }
 
     public bool IsFuzzwork       => _method == MarketMethod.Fuzzwork;
     public bool IsEsiRegion      => _method == MarketMethod.EsiRegion;
@@ -268,6 +307,13 @@ public class MarketPricingConfigVm : ReactiveObject
     public string MethodBadge    => _method == MarketMethod.Fuzzwork ? "FW" : "ESI";
 }
 
+/// <summary>
+/// The Market tab — the price sources, and the default pricing it shares with the Industry tab.
+///
+/// <para>Saved as they are changed: a source by itself (<see cref="_sourceSave"/>), the defaults
+/// as a whole (<see cref="_defaultsSave"/>). Names and ids are typed, so they are saved once typing
+/// pauses; everything else at once.</para>
+/// </summary>
 public class MarketSettingsViewModel : ReactiveObject
 {
     private readonly AppDbContext                    _db;
@@ -275,6 +321,25 @@ public class MarketSettingsViewModel : ReactiveObject
     private readonly MarketPricingService            _svc;
     private readonly EsiClient                       _esiClient;
     private readonly BuildCostService?               _buildCostSvc;
+
+    /// <summary>
+    /// The sources changed since the last save. ⚠️ Kept by source, not read from
+    /// <see cref="Selected"/> when the save runs: picking another source while a name is still
+    /// waiting to be saved must save the one that was typed into.
+    /// </summary>
+    private readonly HashSet<MarketPricingConfigVm> _changedSources = [];
+    private readonly AutoSave                       _sourceSave;
+    private readonly AutoSave                       _defaultsSave;
+
+    /// <summary>What a source saves.</summary>
+    private static readonly HashSet<string> SourceFields =
+    [
+        nameof(MarketPricingConfigVm.MethodKey),      nameof(MarketPricingConfigVm.LocationName),
+        nameof(MarketPricingConfigVm.LocationIdText), nameof(MarketPricingConfigVm.PriceType),
+        nameof(MarketPricingConfigVm.AuthCharId),     nameof(MarketPricingConfigVm.IsEnabled),
+        nameof(MarketPricingConfigVm.StationFilter),  nameof(MarketPricingConfigVm.UsePercentileFilter),
+        nameof(MarketPricingConfigVm.PercentilePercent),
+    ];
 
     // Fuzzwork is intentionally omitted — too much of the app (per-order views, station filters,
     // structure markets) needs raw orders, which the Fuzzwork method does not provide.
@@ -309,8 +374,11 @@ public class MarketSettingsViewModel : ReactiveObject
         set
         {
             this.RaiseAndSetIfChanged(ref _selectedStationFilter, value);
-            if (!_loadingStationOptions && Selected is not null)
-                Selected.StationFilter = value?.LocationId;
+            // ⚠️ Null is the box letting go — the list refilled, or the window closing — never a
+            // choice: "all stations" is an entry of its own. Taken as one, it would save the
+            // filter away.
+            if (!_loadingStationOptions && Selected is not null && value is not null)
+                Selected.StationFilter = value.LocationId;
         }
     }
 
@@ -375,63 +443,78 @@ public class MarketSettingsViewModel : ReactiveObject
     public MarketPricingConfigVm? SelectedAssetConfig
     {
         get => _selectedAssetConfig;
-        set => this.RaiseAndSetIfChanged(ref _selectedAssetConfig, value);
+        set { if (value is not null) SetDefault(ref _selectedAssetConfig, value); else this.RaisePropertyChanged(); }
     }
 
     private string _assetValuePriceType = MarketPriceType.Midpoint;
     public string AssetValuePriceType
     {
         get => _assetValuePriceType;
-        set => this.RaiseAndSetIfChanged(ref _assetValuePriceType, value);
+        set { if (value is not null) SetDefault(ref _assetValuePriceType, value); else this.RaisePropertyChanged(); }
     }
 
     private MarketPricingConfigVm? _selectedManufacturingConfig;
     public MarketPricingConfigVm? SelectedManufacturingConfig
     {
         get => _selectedManufacturingConfig;
-        set => this.RaiseAndSetIfChanged(ref _selectedManufacturingConfig, value);
+        set { if (value is not null) SetDefault(ref _selectedManufacturingConfig, value); else this.RaisePropertyChanged(); }
     }
 
     private string _manufacturingPriceType = MarketPriceType.Sell;
     public string ManufacturingPriceType
     {
         get => _manufacturingPriceType;
-        set => this.RaiseAndSetIfChanged(ref _manufacturingPriceType, value);
+        set { if (value is not null) SetDefault(ref _manufacturingPriceType, value); else this.RaisePropertyChanged(); }
     }
 
     private decimal _missingPriceMarkupPct = 15m;
     public decimal MissingPriceMarkupPct
     {
         get => _missingPriceMarkupPct;
-        set => this.RaiseAndSetIfChanged(ref _missingPriceMarkupPct, value);
+        set => SetDefault(ref _missingPriceMarkupPct, value);
     }
 
     private bool _filterLowballBuyOrders = true;
     public bool FilterLowballBuyOrders
     {
         get => _filterLowballBuyOrders;
-        set => this.RaiseAndSetIfChanged(ref _filterLowballBuyOrders, value);
+        set => SetDefault(ref _filterLowballBuyOrders, value);
     }
 
     private decimal _lowballBuyOrderThresholdPct = 25m;
     public decimal LowballBuyOrderThresholdPct
     {
         get => _lowballBuyOrderThresholdPct;
-        set => this.RaiseAndSetIfChanged(ref _lowballBuyOrderThresholdPct, value);
+        set => SetDefault(ref _lowballBuyOrderThresholdPct, value);
     }
 
     private bool _purchaseWhenCheaper;
     public bool PurchaseWhenCheaper
     {
         get => _purchaseWhenCheaper;
-        set => this.RaiseAndSetIfChanged(ref _purchaseWhenCheaper, value);
+        set => SetDefault(ref _purchaseWhenCheaper, value);
     }
 
     private decimal _purchaseThresholdPct = 100m;
     public decimal PurchaseThresholdPct
     {
         get => _purchaseThresholdPct;
-        set => this.RaiseAndSetIfChanged(ref _purchaseThresholdPct, value);
+        set => SetDefault(ref _purchaseThresholdPct, value);
+    }
+
+    /// <summary>
+    /// A default changed: saved at once — they are all picks, ticks and number boxes.
+    ///
+    /// <para>⚠️ Null is refused by the four pickers' setters before it gets here. It is what a box
+    /// sends when its list is refilled or the window closes, and there is no "none" entry for a
+    /// person to pick.</para>
+    /// </summary>
+    private void SetDefault<T>(ref T field, T value, [System.Runtime.CompilerServices.CallerMemberName] string? name = null)
+    {
+        if (EqualityComparer<T>.Default.Equals(field, value)) return;
+        field = value;
+        this.RaisePropertyChanged(name);
+        _defaultsSave.Changed();
     }
 
     private string _defaultsStatus = "";
@@ -449,13 +532,11 @@ public class MarketSettingsViewModel : ReactiveObject
     }
 
     public ReactiveCommand<Unit, Unit> AddCommand                       { get; }
-    public ReactiveCommand<Unit, Unit> SaveCommand                      { get; }
     public ReactiveCommand<Unit, Unit> RemoveCommand                    { get; }
     public ReactiveCommand<Unit, Unit> RefreshAllCommand                { get; }
     public ReactiveCommand<Unit, Unit> RefreshSelectedCommand           { get; }
     public ReactiveCommand<Unit, Unit> SearchLocationsCommand           { get; }
     public ReactiveCommand<Unit, Unit> UseSelectedLocationCommand       { get; }
-    public ReactiveCommand<Unit, Unit> SaveDefaultsCommand              { get; }
     public ReactiveCommand<Unit, Unit> RecalculateBuildCostsCommand     { get; }
 
     public MarketSettingsViewModel(
@@ -471,18 +552,20 @@ public class MarketSettingsViewModel : ReactiveObject
         _svc           = svc;
         _esiClient     = esiClient;
         _buildCostSvc  = buildCostSvc;
+        _sourceSave    = new AutoSave(SaveSourcesAsync,
+            ex => Status = string.Format(CommonText.ErrorWithMessage, ex.Message));
+        _defaultsSave  = new AutoSave(SaveDefaultsAsync,
+            ex => DefaultsStatus = string.Format(CommonText.ErrorWithMessage, ex.Message));
 
         RebuildCharacterOptions(characters);
         characters.CollectionChanged += (_, _) => RebuildCharacterOptions(characters);
 
         AddCommand                    = ReactiveCommand.CreateFromTask(AddAsync);
-        SaveCommand                   = ReactiveCommand.CreateFromTask(SaveAsync);
         RemoveCommand                 = ReactiveCommand.CreateFromTask(RemoveAsync);
         RefreshAllCommand             = ReactiveCommand.CreateFromTask(RefreshAllAsync);
         RefreshSelectedCommand        = ReactiveCommand.CreateFromTask(RefreshSelectedAsync);
         SearchLocationsCommand        = ReactiveCommand.CreateFromTask(SearchLocationsAsync);
         UseSelectedLocationCommand    = ReactiveCommand.Create(UseSelectedLocation);
-        SaveDefaultsCommand           = ReactiveCommand.CreateFromTask(SaveDefaultsAsync);
         RecalculateBuildCostsCommand  = ReactiveCommand.CreateFromTask(RecalculateBuildCostsAsync);
 
         // Auto-resolve location name 600 ms after the user stops typing an ID.
@@ -502,8 +585,33 @@ public class MarketSettingsViewModel : ReactiveObject
     // loaded before the SDE finished importing, leaving region dropdowns unresolved.
     public Task ReloadAsync() => LoadAsync();
 
+    /// <summary>Saves a change still waiting — a box losing focus, or the Settings window closing.</summary>
+    public Task FlushAsync() => Task.WhenAll(_sourceSave.FlushAsync(), _defaultsSave.FlushAsync());
+
+    /// <summary>
+    /// A source, watched for changes from here on — after it holds its stored values, so building
+    /// it saves nothing.
+    /// </summary>
+    private MarketPricingConfigVm Watched(MarketPricingConfigVm vm)
+    {
+        vm.Changed.Subscribe(e =>
+        {
+            if (e.PropertyName is not { } name || !SourceFields.Contains(name) || _sourceSave.IsSuspended) return;
+            _changedSources.Add(vm);
+
+            // The id is typed, except under the region method, where picking a region sets it.
+            var typed = name == nameof(MarketPricingConfigVm.LocationName)
+                     || (name == nameof(MarketPricingConfigVm.LocationIdText) && !vm.IsEsiRegion);
+            if (typed) _sourceSave.Typed(); else _sourceSave.Changed();
+        });
+        return vm;
+    }
+
     private async Task LoadAsync()
     {
+        // Whatever is waiting is saved before the sources are read back over it.
+        await FlushAsync();
+
         // By the name shown, so the picker waits for the interface language's names first.
         await SdeNames.EnsureLoadedAsync();
         RegionOptions = (await _db.SdeRegions.AsNoTracking()
@@ -520,7 +628,7 @@ public class MarketSettingsViewModel : ReactiveObject
 
         Configs.Clear();
         foreach (var row in rows)
-            Configs.Add(ToVm(row, places));
+            Configs.Add(Watched(ToVm(row, places)));
 
         Selected = Configs.FirstOrDefault();
 
@@ -530,11 +638,16 @@ public class MarketSettingsViewModel : ReactiveObject
                 .FirstOrDefaultAsync(d => d.Id == 1);
             if (defaults is not null)
             {
-                SelectedAssetConfig         = defaults.AssetValueConfigId.HasValue
-                    ? Configs.FirstOrDefault(c => c.Id == defaults.AssetValueConfigId.Value) : null;
+                using var loading = _defaultsSave.Suspend();
+                // The two sources by their fields: "none" is a stored value, and the setters
+                // refuse null (see SetDefault).
+                SetDefault(ref _selectedAssetConfig, defaults.AssetValueConfigId.HasValue
+                    ? Configs.FirstOrDefault(c => c.Id == defaults.AssetValueConfigId.Value) : null,
+                    nameof(SelectedAssetConfig));
                 AssetValuePriceType         = defaults.AssetValuePriceType;
-                SelectedManufacturingConfig = defaults.ManufacturingConfigId.HasValue
-                    ? Configs.FirstOrDefault(c => c.Id == defaults.ManufacturingConfigId.Value) : null;
+                SetDefault(ref _selectedManufacturingConfig, defaults.ManufacturingConfigId.HasValue
+                    ? Configs.FirstOrDefault(c => c.Id == defaults.ManufacturingConfigId.Value) : null,
+                    nameof(SelectedManufacturingConfig));
                 ManufacturingPriceType      = defaults.ManufacturingPriceType;
                 MissingPriceMarkupPct          = defaults.MissingPriceMarkupPct;
                 FilterLowballBuyOrders         = defaults.FilterLowballBuyOrders;
@@ -545,21 +658,27 @@ public class MarketSettingsViewModel : ReactiveObject
         }
     }
 
+    /// <summary>
+    /// Writes the default pricing. Nothing is re-priced now: the screens and services that use a
+    /// default read it when they next price something, and stored build costs follow at the next
+    /// recalculation (the Industry tab's button, or the next market refresh).
+    /// </summary>
     private async Task SaveDefaultsAsync()
     {
-        try
-        {
-            int?    assetConfigId = SelectedAssetConfig?.Id;
-            string  assetType     = AssetValuePriceType;
-            int?    mfgConfigId   = SelectedManufacturingConfig?.Id;
-            string  mfgType       = ManufacturingPriceType;
-            decimal markup        = MissingPriceMarkupPct;
-            int     filterLowball = FilterLowballBuyOrders ? 1 : 0;
-            decimal lowballPct    = LowballBuyOrderThresholdPct;
-            int     buyCheaper    = PurchaseWhenCheaper ? 1 : 0;
-            decimal buyThreshold  = PurchaseThresholdPct;
+        int?    assetConfigId = SelectedAssetConfig?.Id;
+        string  assetType     = AssetValuePriceType;
+        int?    mfgConfigId   = SelectedManufacturingConfig?.Id;
+        string  mfgType       = ManufacturingPriceType;
+        decimal markup        = MissingPriceMarkupPct;
+        int     filterLowball = FilterLowballBuyOrders ? 1 : 0;
+        decimal lowballPct    = LowballBuyOrderThresholdPct;
+        int     buyCheaper    = PurchaseWhenCheaper ? 1 : 0;
+        decimal buyThreshold  = PurchaseThresholdPct;
 
-            await using var fdb = _dbFactory.CreateDbContext();
+        // Read above, on the UI thread; written off it.
+        await Task.Run(async () =>
+        {
+            await using var fdb = await _dbFactory.CreateDbContextAsync().ConfigureAwait(false);
             await fdb.Database.ExecuteSqlInterpolatedAsync(
                 $"""
                 INSERT INTO "MarketDefaultSettings"
@@ -582,11 +701,10 @@ public class MarketSettingsViewModel : ReactiveObject
                     "LowballBuyOrderThresholdPct"  = excluded."LowballBuyOrderThresholdPct",
                     "PurchaseWhenCheaper"          = excluded."PurchaseWhenCheaper",
                     "PurchaseThresholdPct"         = excluded."PurchaseThresholdPct"
-                """);
+                """).ConfigureAwait(false);
+        });
 
-            DefaultsStatus = SettingsText.Saved;
-        }
-        catch (Exception ex) { DefaultsStatus = string.Format(CommonText.ErrorWithMessage, ex.Message); }
+        _defaultsSave.Flash(s => DefaultsStatus = s, SettingsText.Saved);
     }
 
     private async Task RecalculateBuildCostsAsync()
@@ -695,32 +813,66 @@ public class MarketSettingsViewModel : ReactiveObject
         _db.MarketPricingConfigs.Add(config);
         await _db.SaveChangesAsync();
 
-        var vm = ToVm(config);
+        var vm = Watched(ToVm(config));
         Configs.Add(vm);
         Selected = vm;
         Status = SettingsText.MarketSourceAdded;
     }
 
-    private async Task SaveAsync()
+    /// <summary>
+    /// Writes the sources changed since the last save. A location id that does not read as one is
+    /// left as stored (the box says why); the rest of that source is saved.
+    ///
+    /// <para>Nothing refreshes: a source's prices are fetched at its next refresh — Refresh this,
+    /// Refresh all, or the market timer — and read with its new settings then.</para>
+    ///
+    /// <para>⚠️ Through a context of its own, off the UI thread, not the tab's long-lived one: that
+    /// one also serves the station list and the id lookup, which can be running when a save lands,
+    /// and a context runs one thing at a time.</para>
+    /// </summary>
+    private async Task SaveSourcesAsync()
     {
-        if (Selected is null) return;
+        var changed = _changedSources.ToList();
+        _changedSources.Clear();
+        if (changed.Count == 0) return;
 
-        var config = await _db.MarketPricingConfigs.FindAsync(Selected.Id);
-        if (config is null) return;
+        // Read here, on the UI thread; a change made while these are written is the next save's.
+        var rows = changed.Select(s => new
+        {
+            s.Id, s.MethodKey, s.LocationName, s.LocationId, s.PriceType, s.AuthCharId,
+            s.IsEnabled, s.StationFilter, s.UsePercentileFilter, s.PercentilePercent,
+        }).ToList();
 
-        config.Method               = Selected.MethodKey;
-        config.LocationName         = Selected.LocationName;
-        config.LocationId           = long.TryParse(Selected.LocationIdText, out var lid) ? lid : 0;
-        config.PriceType            = Selected.PriceType;
-        config.AuthCharId           = Selected.AuthCharId;
-        config.IsEnabled            = Selected.IsEnabled;
-        config.StationFilter        = Selected.StationFilter;
-        config.UsePercentileFilter  = Selected.UsePercentileFilter;
-        config.PercentilePercent    = Selected.PercentilePercent;
-        var shown                   = Selected.DisplayName;
+        try
+        {
+            await Task.Run(async () =>
+            {
+                await using var db = await _dbFactory.CreateDbContextAsync().ConfigureAwait(false);
+                foreach (var r in rows)
+                {
+                    // Removed since it was changed: nothing to save.
+                    if (await db.MarketPricingConfigs.FindAsync(r.Id).ConfigureAwait(false) is not { } config) continue;
 
-        await _db.SaveChangesAsync();
-        Status = string.Format(SettingsText.MarketSourceSaved, shown);
+                    config.Method               = r.MethodKey;
+                    config.LocationName         = r.LocationName;
+                    if (r.LocationId is { } id) config.LocationId = id;
+                    config.PriceType            = r.PriceType;
+                    config.AuthCharId           = r.AuthCharId;
+                    config.IsEnabled            = r.IsEnabled;
+                    config.StationFilter        = r.StationFilter;
+                    config.UsePercentileFilter  = r.UsePercentileFilter;
+                    config.PercentilePercent    = r.PercentilePercent;
+                }
+                await db.SaveChangesAsync().ConfigureAwait(false);
+            });
+        }
+        catch
+        {
+            _changedSources.UnionWith(changed);   // tried again with the next change
+            throw;
+        }
+
+        Status = string.Format(SettingsText.MarketSourceSaved, changed[^1].DisplayName);
     }
 
     private async Task RemoveAsync()
@@ -738,18 +890,28 @@ public class MarketSettingsViewModel : ReactiveObject
         }
 
         var removed = Selected;
+        _changedSources.Remove(removed);
         Configs.Remove(removed);
         Selected = Configs.FirstOrDefault();
         Status = SettingsText.MarketSourceRemoved;
+
+        // A default that priced from it prices from nothing now, and is saved so — the setters
+        // refuse null, which is what a box sends when it lets go.
+        if (ReferenceEquals(_selectedAssetConfig, removed))
+            SetDefault(ref _selectedAssetConfig, null, nameof(SelectedAssetConfig));
+        if (ReferenceEquals(_selectedManufacturingConfig, removed))
+            SetDefault(ref _selectedManufacturingConfig, null, nameof(SelectedManufacturingConfig));
     }
 
     private async Task RefreshAllAsync()
     {
+        // Whatever is waiting is saved first, and refreshed with it — before the status says
+        // what is happening, which the save's own message would otherwise replace.
+        await _sourceSave.FlushAsync();
         IsBusy = true;
         Status = SettingsText.MarketRefreshingAll;
         try
         {
-            await SaveAsync();
             await Task.Run(async () => await _svc.RefreshAllAsync());
             await LoadAsync();
             Status = SettingsText.MarketRefreshedAll;
@@ -761,17 +923,19 @@ public class MarketSettingsViewModel : ReactiveObject
     private async Task RefreshSelectedAsync()
     {
         if (Selected is null) return;
+        await _sourceSave.FlushAsync();   // as Refresh all
         IsBusy = true;
         Status = string.Format(SettingsText.MarketRefreshing, Selected.DisplayName);
         try
         {
-            await SaveAsync();
             var refreshed = await Task.Run(async () => await _svc.RefreshConfigAsync(Selected.Id));
 
             var updated = await _db.MarketPricingConfigs.AsNoTracking()
                 .FirstOrDefaultAsync(c => c.Id == Selected.Id);
             if (updated is not null)
             {
+                // As the refresh left them, not a change to save back.
+                using var loading = _sourceSave.Suspend();
                 Selected.LastRefreshedText      = updated.LastRefreshed?.UtcDateTime.ToString("g") ?? SettingsText.Never;
                 Selected.LastStatus             = updated.LastStatus;
                 Selected.UsePercentileFilter    = updated.UsePercentileFilter;
@@ -911,5 +1075,8 @@ public class MarketSettingsViewModel : ReactiveObject
         LocationResults.Clear();
         LocationSearch = "";
         SearchStatus   = SettingsText.MarketLocationApplied;
+
+        // Picked, not typed: saved now rather than after the typing pause.
+        _sourceSave.Changed();
     }
 }

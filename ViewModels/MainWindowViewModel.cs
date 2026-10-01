@@ -971,7 +971,7 @@ public class MainWindowViewModel : ReactiveObject
         ChatLogSettingsVm = new ChatLogSettingsViewModel(monitoringSettings, chatLogImport, intelService);
         ZkbSettingsVm     = new ZkillboardSettingsViewModel(zkillboardSettings, zkbPolling, zkbFirehose, zkbBackfill, zkbPost);
         MapStatsSettingsVm = new MapStatsSettingsViewModel(mapStatsSettings, mapStatsBackfill, mapStatsPolling, mapStatsService, eveScout);
-        AlertSettingsVm   = new AlertSettingsViewModel(dbFactory.CreateDbContext());
+        AlertSettingsVm   = new AlertSettingsViewModel(dbFactory);
         OverviewVm        = new OverviewViewModel(dbFactory.CreateDbContext(), AlertSettingsVm, errorLogger, newsService, appPrefs, corpActivityService, dbFactory, esi, standingBuyOrderService, indyFacilityCheck);
         CharacterVm       = new CharacterViewModel(auth, esi, dbFactory.CreateDbContext(), errorLogger);
         SdeVm             = new SdeViewModel(sdeService, hoboService, dbFactory.CreateDbContext());

@@ -733,6 +733,9 @@
   <data name="CheckIntelNote" xml:space="preserve">
     <value>Срабатывает, когда кто-то сообщает о пилоте рядом с тем, что вы отслеживаете: вашими персонажами вне дока, вашими персонажами где угодно или списком систем — каждый с радиусом в прыжках. Читает каналы разведки, которые уже разбираются в «Настройки → Журналы чата».</value>
   </data>
+  <data name="CheckIntelKillsNote" xml:space="preserve">
+    <value>Учитываются и победы там, где среди атакующих есть пилоты противника: победа показывает, что атакующие были в этой системе.</value>
+  </data>
   <data name="CheckShipUndock" xml:space="preserve">
     <value>Выход корабля из дока</value>
   </data>
@@ -1059,6 +1062,9 @@
   </data>
   <data name="SaidSentence" xml:space="preserve">
     <value>{0}.</value>
+  </data>
+  <data name="IntelSaidOnKill" xml:space="preserve">
+    <value>Замечен при уничтожении корабля</value>
   </data>
   <data name="UnknownSystem" xml:space="preserve">
     <value>неизвестная система</value>
@@ -1462,13 +1468,13 @@
   <data name="IntelSaidJumpsFromOne" xml:space="preserve">
     <value>в {0} прыжке от {1}</value>
   </data>
+  <data name="IntelSaidJumpsFromOther" xml:space="preserve">
+    <value>в {0} прыжках от {1}</value>
+  </data>
   <data name="IntelSaidJumpsFromFew" xml:space="preserve">
     <value>в {0} прыжках от {1}</value>
   </data>
   <data name="IntelSaidJumpsFromMany" xml:space="preserve">
-    <value>в {0} прыжках от {1}</value>
-  </data>
-  <data name="IntelSaidJumpsFromOther" xml:space="preserve">
     <value>в {0} прыжках от {1}</value>
   </data>
 </root>

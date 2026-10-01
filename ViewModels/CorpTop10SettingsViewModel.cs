@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Reactive;
+using System.Reactive.Linq;
 using EveConsole.Models;
 using EveConsole.Services;
 using ReactiveUI;
@@ -71,8 +72,22 @@ public sealed class CorpTop10SettingsViewModel : ReactiveObject
     public string HeaderPrefix
     {
         get => _headerPrefix;
-        set => this.RaiseAndSetIfChanged(ref _headerPrefix, value);
+        set
+        {
+            if (value == _headerPrefix) return;
+            this.RaiseAndSetIfChanged(ref _headerPrefix, value);
+            _prefixChanged = true;
+            _titlesSave.Typed();
+        }
     }
+
+    /// <summary>The headings typed into since the last save, and whether the prefix was: only
+    /// those are written.</summary>
+    private readonly HashSet<Top10TitleRowVm> _changedTitles = [];
+    private bool _prefixChanged;
+
+    /// <summary>The headings and the prefix are typed, so they are saved once typing pauses.</summary>
+    private readonly AutoSave _titlesSave;
 
     private string _searchText = "";
     public string SearchText
@@ -139,7 +154,6 @@ public sealed class CorpTop10SettingsViewModel : ReactiveObject
 
     public ReactiveCommand<Unit, Unit>                 AddCommand       { get; }
     public ReactiveCommand<CorpTop10ExcludeRowVm, Unit> RemoveCommand    { get; }
-    public ReactiveCommand<Unit, Unit>                 SaveTitlesCommand { get; }
 
     public CorpTop10SettingsViewModel(CorpTop10ExcludeService svc, CorpReportTitles titles)
     {
@@ -148,11 +162,26 @@ public sealed class CorpTop10SettingsViewModel : ReactiveObject
 
         AddCommand        = ReactiveCommand.CreateFromTask(AddSelectedAsync);
         RemoveCommand     = ReactiveCommand.CreateFromTask<CorpTop10ExcludeRowVm>(RemoveAsync);
-        SaveTitlesCommand = ReactiveCommand.CreateFromTask(SaveTitlesAsync);
+        _titlesSave       = new AutoSave(SaveTitlesAsync,
+            ex => StatusText = string.Format(SettingsText.Top10SaveError, ex.Message));
 
         AddCommand       .ThrownExceptions.Subscribe(ex => StatusText = string.Format(SettingsText.Top10AddError, ex.Message));
         RemoveCommand    .ThrownExceptions.Subscribe(ex => StatusText = string.Format(SettingsText.Top10RemoveError, ex.Message));
-        SaveTitlesCommand.ThrownExceptions.Subscribe(ex => StatusText = string.Format(SettingsText.Top10SaveError, ex.Message));
+    }
+
+    /// <summary>Saves a heading still waiting — a box losing focus, or the Settings window closing.</summary>
+    public Task FlushAsync() => _titlesSave.FlushAsync();
+
+    /// <summary>A heading row, watched for typing from here on — after it holds its stored text,
+    /// so loading saves nothing.</summary>
+    private Top10TitleRowVm Watched(Top10TitleRowVm row)
+    {
+        row.WhenAnyValue(r => r.Title).Skip(1).Subscribe(_ =>
+        {
+            _changedTitles.Add(row);
+            _titlesSave.Typed();
+        });
+        return row;
     }
 
     public void Load()
@@ -163,25 +192,52 @@ public sealed class CorpTop10SettingsViewModel : ReactiveObject
 
         Titles.Clear();
         foreach (var (key, title) in CorpReportTitles.Top10Categories)
-            Titles.Add(new Top10TitleRowVm(
+            Titles.Add(Watched(new Top10TitleRowVm(
                 CorpReportTitles.Top10Group, key, title,
-                _titles.Override(CorpReportTitles.Top10Group, key)));
+                _titles.Override(CorpReportTitles.Top10Group, key))));
 
         SummaryTitles.Clear();
         foreach (var (key, title) in CorpReportTitles.SummarySections)
-            SummaryTitles.Add(new Top10TitleRowVm(
+            SummaryTitles.Add(Watched(new Top10TitleRowVm(
                 CorpReportTitles.SummaryGroup, key, title,
-                _titles.Override(CorpReportTitles.SummaryGroup, key)));
+                _titles.Override(CorpReportTitles.SummaryGroup, key))));
 
-        HeaderPrefix = _titles.HeaderPrefix;
+        // The stored prefix, not a change to it.
+        _headerPrefix = _titles.HeaderPrefix;
+        this.RaisePropertyChanged(nameof(HeaderPrefix));
     }
 
-    private async Task SaveTitlesAsync(System.Threading.CancellationToken ct = default)
+    /// <summary>
+    /// Writes the headings typed into, and the prefix if it was. Nothing else runs: the Top 10 and
+    /// the monthly summary read their headings when they are next written.
+    /// </summary>
+    private async Task SaveTitlesAsync()
     {
-        foreach (var t in Titles.Concat(SummaryTitles))
-            await _titles.SetOverrideAsync(t.Group, t.Key, t.Title);
+        // Read here, on the UI thread; a change typed while these are written is the next save's.
+        var rows   = _changedTitles.ToList();
+        var titles = rows.Select(t => (t.Group, t.Key, t.Title)).ToList();
+        string? prefix = _prefixChanged ? HeaderPrefix : null;
+        _changedTitles.Clear();
+        _prefixChanged = false;
 
-        await _titles.SetHeaderPrefixAsync(HeaderPrefix);
+        try
+        {
+            await Task.Run(async () =>
+            {
+                foreach (var (group, key, title) in titles)
+                    await _titles.SetOverrideAsync(group, key, title).ConfigureAwait(false);
+                if (prefix is not null)
+                    await _titles.SetHeaderPrefixAsync(prefix).ConfigureAwait(false);
+            });
+        }
+        catch
+        {
+            // Tried again with the next change.
+            _changedTitles.UnionWith(rows);
+            _prefixChanged |= prefix is not null;
+            throw;
+        }
+
         StatusText = SettingsText.Top10TitlesSaved;
     }
 

@@ -724,6 +724,9 @@
   <data name="CheckIntelNote" xml:space="preserve">
     <value>監視対象の周辺でパイロットが報告されたときに発動します。対象は、出港中の自分のキャラクター、居場所を問わない自分のキャラクター、またはシステムの一覧で、それぞれにジャンプ範囲を指定します。「設定 → チャットログ」ですでに解析しているインテルチャンネルを読み取ります。</value>
   </data>
+  <data name="CheckIntelKillsNote" xml:space="preserve">
+    <value>攻撃側に敵パイロットがいるキルも対象です。キルは、その攻撃者がそのシステムにいたことを示します。</value>
+  </data>
   <data name="CheckShipUndock" xml:space="preserve">
     <value>艦船の出港</value>
   </data>
@@ -1014,6 +1017,9 @@
   </data>
   <data name="SaidSentence" xml:space="preserve">
     <value>{0}。</value>
+  </data>
+  <data name="IntelSaidOnKill" xml:space="preserve">
+    <value>キルで確認</value>
   </data>
   <data name="UnknownSystem" xml:space="preserve">
     <value>不明なシステム</value>

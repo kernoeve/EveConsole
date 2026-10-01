@@ -252,11 +252,11 @@ public sealed class LiveIntelService(
         });
     }
 
-    private sealed record Friends(HashSet<long> Characters, HashSet<long> Corporations, HashSet<long> Alliances);
+    internal sealed record Friends(HashSet<long> Characters, HashSet<long> Corporations, HashSet<long> Alliances);
 
     /// <summary>The user's own characters, corporations and alliances, and whoever they have set
     /// to positive standing.</summary>
-    private static async Task<Friends> FriendlyAsync(AppDbContext db, CancellationToken ct)
+    internal static async Task<Friends> FriendlyAsync(AppDbContext db, CancellationToken ct)
     {
         var chars = await db.Characters.AsNoTracking()
             .Select(c => new { c.Id, c.CorporationId, c.AllianceId }).ToListAsync(ct);
