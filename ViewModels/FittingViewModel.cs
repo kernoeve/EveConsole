@@ -309,6 +309,29 @@ public sealed record DamageProfileOption(string Key, string Name, DamageProfile?
     public override string ToString() => Name;
 }
 
+/// <summary>
+/// A fit boosting this one: another open tab (calculated with its pilot), or a fit saved in EVE
+/// Console (with All V). Its running command bursts and phenomena generators are what boost.
+/// </summary>
+public sealed class BoosterRowVm : ReactiveObject
+{
+    public required string Name { get; init; }
+    public required string Detail { get; init; }
+    public FitTabViewModel? Tab { get; init; }
+    public long? SavedFitId { get; init; }
+
+    private bool _isOn = true;
+    /// <summary>Boosting now; off keeps it in the list without its bonuses.</summary>
+    public bool IsOn { get => _isOn; set => this.RaiseAndSetIfChanged(ref _isOn, value); }
+    public ReactiveCommand<Unit, Unit>? RemoveCommand { get; set; }
+}
+
+/// <summary>A fit that could be added as a booster: an open tab, or a fit saved in EVE Console.</summary>
+public sealed record BoosterChoice(string Label, FitTabViewModel? Tab, long? SavedFitId)
+{
+    public override string ToString() => Label;
+}
+
 public sealed class FittingImplantRowVm(int typeId, string name, bool booster)
 {
     public int    TypeId    { get; } = typeId;
@@ -364,6 +387,10 @@ public sealed class FitSnapshot
     public Dictionary<int, string> DroneDetail = new();    // by drone/squadron index
     public double Speed, Align, Signature, Warp, Mass, Agility;
     public bool   CanWarp = true;
+    /// <summary>The fleet boosts reaching the fit, as lines to show.</summary>
+    public List<string> Boosts = [];
+    /// <summary>Whether the fit runs command bursts (or phenomena generators) of its own.</summary>
+    public bool HasOwnBursts;
     /// <summary>An Upwell structure: no navigation but its signature, and holds with no set capacity.</summary>
     public bool   IsStructure;
     public double Range, ScanRes, MaxTargets, Sensor;
@@ -510,6 +537,7 @@ public class FittingViewModel : ReactiveObject
     {
         var pane = tab.Pane;
         if (!TakeOut(tab)) return;
+        foreach (var other in AllTabs) other.ForgetBooster(tab);
         if (pane == _activePane) this.RaisePropertyChanged(nameof(SelectedTab));
         PanesChanged();
     }
@@ -588,6 +616,12 @@ public class FittingViewModel : ReactiveObject
     internal void TabCalculated(FitTabViewModel tab)
     {
         if (tab == SelectedTab && FitsOnly && tab.ShipTypeId != _searchedHull) _ = RunSearchAsync();
+        // A fit boosting others has changed what its bursts send: work those out again. Only on a
+        // change, so two fits boosting each other do not recalculate each other for ever.
+        var signature = tab.BoostSignature;
+        if (signature == tab.LastBoostSignature) return;
+        tab.LastBoostSignature = signature;
+        foreach (var other in AllTabs.Where(t => t != tab && t.IsBoostedBy(tab))) other.ScheduleRecalc();
     }
 
     // ── Loading ─────────────────────────────────────────────────────────────────
@@ -1158,6 +1192,100 @@ public class FitTabViewModel : ReactiveObject
     {
         if (_gameSource is not null) await UpdateInGameAsync();
         else if (_loadedSavedId is { } id) await SaveToAppAsync(id);
+    }
+
+    // ── Fleet boosts ────────────────────────────────────────────────────────────
+
+    /// <summary>The fits boosting this one; any number, the strongest of each bonus applying.</summary>
+    public ObservableCollection<BoosterRowVm> Boosters { get; } = [];
+
+    private bool _boostsItself = true;
+    /// <summary>Its own running bursts boost it too, as they do every fleet member in range.</summary>
+    public bool BoostsItself
+    {
+        get => _boostsItself;
+        set { this.RaiseAndSetIfChanged(ref _boostsItself, value); ScheduleRecalc(); }
+    }
+    public bool HasOwnBursts => Stats?.HasOwnBursts == true;
+    public IReadOnlyList<string> BoostLines => Stats?.Boosts ?? [];
+    public bool HasBoostLines => BoostLines.Count > 0;
+
+    /// <summary>What could be added: the other open tabs with a hull, then the fits saved in EVE Console.</summary>
+    public ObservableCollection<BoosterChoice> BoosterChoices { get; } = [];
+
+    private BoosterChoice? _selectedBoosterChoice;
+    /// <summary>Choosing a fit adds it as a booster; the list then clears for the next.</summary>
+    public BoosterChoice? SelectedBoosterChoice
+    {
+        get => _selectedBoosterChoice;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _selectedBoosterChoice, value);
+            if (value is null) return;
+            AddBooster(value);
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => { _selectedBoosterChoice = null; this.RaisePropertyChanged(nameof(SelectedBoosterChoice)); });
+        }
+    }
+
+    /// <summary>Fills <see cref="BoosterChoices"/> afresh — when the list is opened.</summary>
+    public async Task RefreshBoosterChoicesAsync()
+    {
+        BoosterChoices.Clear();
+        foreach (var tab in Tool.AllTabs.Where(t => t != this && t.HasShip && Boosters.All(b => b.Tab != t)))
+            BoosterChoices.Add(new BoosterChoice(string.Format(FittingText.BoosterOpenTab, tab.TabTitle), tab, null));
+        await using var db = await _dbFactory.CreateDbContextAsync();
+        var saved = await db.SavedFits.AsNoTracking().Select(f => new { f.Id, f.Name, f.ShipTypeId }).ToListAsync();
+        foreach (var f in saved.Where(f => Boosters.All(b => b.SavedFitId != f.Id)).OrderBy(f => f.Name, StringComparer.CurrentCultureIgnoreCase))
+            BoosterChoices.Add(new BoosterChoice(string.Format(FittingText.BoosterSaved, f.Name, _catalog?.Find(f.ShipTypeId)?.DisplayName ?? ""), null, f.Id));
+    }
+
+    private void AddBooster(BoosterChoice choice)
+    {
+        var row = new BoosterRowVm
+        {
+            Name = choice.Tab?.TabTitle ?? choice.Label,
+            Detail = choice.Tab is not null ? FittingText.BoosterDetailTab : FittingText.BoosterDetailSaved,
+            Tab = choice.Tab, SavedFitId = choice.SavedFitId,
+        };
+        row.RemoveCommand = ReactiveCommand.Create(() => { Boosters.Remove(row); ScheduleRecalc(); });
+        row.WhenAnyValue(r => r.IsOn).Skip(1).Subscribe(_ => ScheduleRecalc());
+        Boosters.Add(row);
+        ScheduleRecalc();
+    }
+
+    /// <summary>A booster tab has closed: it boosts no more.</summary>
+    internal void ForgetBooster(FitTabViewModel tab)
+    {
+        var gone = Boosters.Where(b => b.Tab == tab).ToList();
+        foreach (var row in gone) Boosters.Remove(row);
+        if (gone.Count > 0) ScheduleRecalc();
+    }
+
+    internal bool IsBoostedBy(FitTabViewModel tab) => Boosters.Any(b => b.IsOn && b.Tab == tab);
+
+    /// <summary>What a booster's bursts depend on: its hull, modules with their states and charges,
+    /// and its pilot. A boosted fit is worked out again only when this changes.</summary>
+    internal string BoostSignature => $"{_shipTypeId}|{SelectedSkillSource?.Name}|{_modeTypeId}|"
+        + string.Join(",", _modules.Select(m => $"{m.TypeId}:{(int)m.State}:{m.Charge?.TypeId}"));
+    internal string? LastBoostSignature { get; set; }
+
+    /// <summary>Each switched-on booster as a fit and pilot: an open tab with its own pilot, a saved fit with All V.</summary>
+    private async Task<List<(string Name, FitDefinition Fit, SkillSet Skills)>> BoosterSourcesAsync()
+    {
+        var list = new List<(string, FitDefinition, SkillSet)>();
+        if (_data is null) return list;
+        foreach (var b in Boosters.Where(b => b.IsOn).ToList())
+        {
+            if (b.Tab is { HasShip: true } tab)
+                list.Add((tab.TabTitle, tab.CurrentFit(), await tab.SkillsAsync()));
+            else if (b.SavedFitId is { } id)
+            {
+                await using var db = await _dbFactory.CreateDbContextAsync();
+                if (await db.SavedFits.AsNoTracking().FirstOrDefaultAsync(f => f.Id == id) is { } row)
+                    list.Add((row.Name, (await EftFormat.ParseAsync(row.Eft, _data)).Fit, SkillSet.AllAt(_data, 5)));
+            }
+        }
+        return list;
     }
 
     // ── Tactical mode ───────────────────────────────────────────────────────────
@@ -1935,7 +2063,7 @@ public class FitTabViewModel : ReactiveObject
 
     private CancellationTokenSource? _recalcCts;
 
-    private void ScheduleRecalc()
+    internal void ScheduleRecalc()
     {
         _recalcCts?.Cancel();
         var cts = _recalcCts = new CancellationTokenSource();
@@ -1979,12 +2107,25 @@ public class FitTabViewModel : ReactiveObject
         var fit     = CurrentFit();
         var skills  = await SkillsAsync();
         var profile = CurrentProfile;
+        var boosters = await BoosterSourcesAsync();
+        var boostsItself = BoostsItself;
+        var selfName = TabTitle;
         try
         {
             var (engine, snap) = await Task.Run(async () =>
             {
+                // First the fit alone, for the buffs its own bursts send; then, when anything boosts
+                // it, again with the strongest of each buff arriving.
                 var e = await DogmaEngine.CreateAsync(_data, fit, skills, profile, ct);
-                return (e, Snapshot(e, profile));
+                var own = e.OutgoingBuffs(selfName);
+                var incoming = new List<FleetBuff>();
+                if (boostsItself) incoming.AddRange(own);
+                foreach (var (name, boosterFit, boosterSkills) in boosters)
+                    incoming.AddRange((await DogmaEngine.CreateAsync(_data, boosterFit, boosterSkills, null, ct)).OutgoingBuffs(name));
+                if (incoming.Count > 0) e = await DogmaEngine.CreateAsync(_data, fit, skills, profile, ct, incoming);
+                var s = Snapshot(e, profile);
+                s.HasOwnBursts = own.Count > 0;
+                return (e, s);
             }, ct);
             if (ct.IsCancellationRequested) return;
             _lastEngine = engine;
@@ -2090,6 +2231,19 @@ public class FitTabViewModel : ReactiveObject
         return changed;
     }
 
+    /// <summary>A boost's value as the game shows it: a percentage signed the way the player reads
+    /// it (a resonance cut shown as a resistance bonus), a multiplier, or an amount.</summary>
+    private static string BoostValue(AppliedBuff b)
+    {
+        var v = b.Buff.Inverted ? -b.Value : b.Value;
+        return b.Buff.Operation switch
+        {
+            DogmaEngine.OpPostPercent              => $"{v:+0.##;-0.##}%",
+            DogmaEngine.OpPostMul or DogmaEngine.OpPreMul => $"×{v:0.###}",
+            _                                      => $"{v:+0.##;-0.##}",
+        };
+    }
+
     private static FitSnapshot Snapshot(DogmaEngine e, DamageProfile profile)
     {
         var s = new FitStats(e);
@@ -2116,6 +2270,8 @@ public class FitTabViewModel : ReactiveObject
                 Pct(layer.KineticResonance), Pct(layer.ExplosiveResonance), Short(ehp), $"{layer.Hp:N0}", $"{ehp:N0}"));
         }
         snap.Ehp = s.Ehp(profile);
+        foreach (var b in e.Buffs.Where(b => !b.Buff.Hidden).OrderBy(b => b.Buff.DisplayName, StringComparer.CurrentCulture))
+            snap.Boosts.Add(string.Format(FittingText.BoostLine, b.Buff.DisplayName, BoostValue(b), b.From));
         snap.Cargo = s.CargoUsed; snap.CargoOut = s.CargoCapacity;
         var repairs = s.Repairs();
         snap.Rates = s.Tank(repairs);
@@ -2281,7 +2437,7 @@ public class FitTabViewModel : ReactiveObject
     {
         foreach (var p in new[] { nameof(CpuText), nameof(CpuFraction), nameof(CpuOver), nameof(PowerText), nameof(PowerFraction), nameof(PowerOver),
                      nameof(CalibText), nameof(CalibFraction), nameof(CalibOver), nameof(HardpointsText), nameof(HardpointsOver), nameof(DroneText), nameof(DroneOver), nameof(HasDroneBay), nameof(HasFighterBay), nameof(FighterText), nameof(FighterOver), nameof(CargoText), nameof(CargoOver),
-                     nameof(TankRows), nameof(EhpText), nameof(RegenText), nameof(RepairText), nameof(HasRepairs), nameof(CapText), nameof(CapStateText), nameof(CapStable), nameof(CapFlowText),
+                     nameof(TankRows), nameof(HasOwnBursts), nameof(BoostLines), nameof(HasBoostLines), nameof(EhpText), nameof(RegenText), nameof(RepairText), nameof(HasRepairs), nameof(CapText), nameof(CapStateText), nameof(CapStable), nameof(CapFlowText),
                      nameof(DpsText), nameof(DpsSplitText), nameof(DpsSplitTip), nameof(DamageTypesText), nameof(SpeedText), nameof(NavText), nameof(MassText), nameof(ShowsMovement),
                      nameof(TargetingText), nameof(SensorText) })
             this.RaisePropertyChanged(p);

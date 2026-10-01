@@ -2944,6 +2944,9 @@ SQLite 데이터베이스는 읽기만 하고 변경하지 않습니다. 데이�
   <data name="ImportStageFighterAbilities" xml:space="preserve">
     <value>파이터 능력</value>
   </data>
+  <data name="ImportStageFleetBoosts" xml:space="preserve">
+    <value>함대 버프</value>
+  </data>
   <data name="ImportStageBlueprints" xml:space="preserve">
     <value>블루프린트</value>
   </data>

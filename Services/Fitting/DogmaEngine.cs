@@ -34,6 +34,12 @@ public sealed class DogmaItem
 /// <c>Source</c>, by <c>Operation</c>". An <c>Amount</c> function stands in for effects that
 /// have no modifierInfo and are computed in code instead (see <see cref="EffectHandlers"/>).
 /// </summary>
+/// <summary>A fleet buff arriving at a fit: its id, its value, and the fit whose burst sends it.</summary>
+public sealed record FleetBuff(int BuffId, double Value, string From);
+
+/// <summary>A fleet buff as it applies to a fit: the strongest of the values sent for it, and who sent that.</summary>
+public sealed record AppliedBuff(DbuffInfo Buff, double Value, string From);
+
 internal sealed record Modification(DogmaItem Source, int Operation, int ModifyingAttributeId, Func<double>? Amount,
     bool? PenalizedOverride = null, string? PenaltyGroup = null);
 
@@ -111,7 +117,10 @@ public sealed class DogmaEngine
     private readonly Dictionary<(DogmaItem, int), double> _cache = new();
     private readonly HashSet<(DogmaItem, int)> _evaluating = [];
 
-    private DogmaEngine(DogmaData data, FitDefinition fit, SkillSet skills, DamageProfile? profile)
+    /// <summary>The fleet buffs reaching the fit, each at the strongest value sent for it.</summary>
+    public IReadOnlyList<AppliedBuff> Buffs { get; private set; } = [];
+
+    private DogmaEngine(DogmaData data, FitDefinition fit, SkillSet skills, DamageProfile? profile, IReadOnlyList<FleetBuff>? buffs = null)
     {
         Data     = data;
         SkillSet = skills;
@@ -174,6 +183,59 @@ public sealed class DogmaEngine
 
         foreach (var item in AllItems())
             RegisterEffects(item);
+        if (buffs is { Count: > 0 }) ApplyBuffs(buffs);
+    }
+
+    /// <summary>
+    /// Fleet buffs, as the game applies them (dbuffCollections): of the values arriving for each
+    /// buff the strongest — largest or smallest, as the buff says — and that one value onto the
+    /// attributes the buff names, on the ship or on what it holds. A buff is stacking-penalized with
+    /// the fit's own modules that change the same attribute by the same operation (a shield
+    /// resistance burst with shield hardeners), as bursts are in game.
+    /// </summary>
+    private void ApplyBuffs(IReadOnlyList<FleetBuff> buffs)
+    {
+        var applied = new List<AppliedBuff>();
+        foreach (var g in buffs.GroupBy(b => b.BuffId))
+        {
+            if (!Data.Dbuffs.TryGetValue(g.Key, out var buff)) continue;
+            var best  = buff.Maximum ? g.MaxBy(b => b.Value)! : g.MinBy(b => b.Value)!;
+            var value = best.Value;
+            applied.Add(new AppliedBuff(buff, value, best.From));
+            foreach (var mod in buff.Modifiers)
+            {
+                IEnumerable<DogmaItem> targets = mod.Kind switch
+                {
+                    "item"                  => [Ship],
+                    "location"              => LocatedIn(Ship),
+                    "locationGroup"         => LocatedIn(Ship).Where(i => i.Type.GroupId == mod.GroupId),
+                    "locationRequiredSkill" => LocatedIn(Ship).Where(i => mod.SkillTypeId is { } s && i.Type.Requires(s)),
+                    _                       => [],
+                };
+                foreach (var target in targets)
+                    AddModification(target, mod.AttributeId,
+                        new Modification(Ship, buff.Operation, 0, () => value, PenalizedOverride: true));
+            }
+        }
+        Buffs = applied;
+    }
+
+    /// <summary>
+    /// The fleet buffs this fit sends: each running module carrying <c>warfareBuff1ID</c> … <c>4ID</c>
+    /// — a command burst with its charge loaded, a phenomena generator — with its
+    /// <c>warfareBuff…Value</c> as the pilot's skills, the hull and any mindlink make it.
+    /// </summary>
+    public IReadOnlyList<FleetBuff> OutgoingBuffs(string from)
+    {
+        var list = new List<FleetBuff>();
+        foreach (var m in Modules.Where(m => m.State >= ModuleState.Active))
+            for (var n = 1; n <= 4; n++)
+            {
+                if (Data.Attribute($"warfareBuff{n}ID")?.Id is not { } idAttr || Data.Attribute($"warfareBuff{n}Value")?.Id is not { } valueAttr) continue;
+                var id = (int)Value(m, idAttr);
+                if (id > 0 && Data.Dbuffs.ContainsKey(id)) list.Add(new FleetBuff(id, Value(m, valueAttr), from));
+            }
+        return list;
     }
 
     /// <summary>The generic character type (Amarr). Its dogma attributes are the pilot's base
@@ -182,7 +244,7 @@ public sealed class DogmaEngine
 
     /// <summary>Loads what the fit needs and computes it.</summary>
     public static async Task<DogmaEngine> CreateAsync(DogmaData data, FitDefinition fit, SkillSet skills,
-        DamageProfile? profile = null, CancellationToken ct = default)
+        DamageProfile? profile = null, CancellationToken ct = default, IReadOnlyList<FleetBuff>? buffs = null)
     {
         await data.LoadTypesAsync(fit.AllTypeIds().Append(CharacterTypeId).Concat(skills.Levels.Keys), ct);
         // A heavy fighter's bomb is a type of its own, whose damage the bomb ability delivers.
@@ -192,7 +254,7 @@ public sealed class DogmaEngine
                 .OfType<double>().Where(b => b > 0).Select(b => (int)b).ToList();
             if (bombs.Count > 0) await data.LoadTypesAsync(bombs, ct);
         }
-        return new DogmaEngine(data, fit, skills, profile);
+        return new DogmaEngine(data, fit, skills, profile, buffs);
     }
 
     public IEnumerable<DogmaItem> AllItems()

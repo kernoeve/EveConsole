@@ -2944,6 +2944,9 @@ Die Anwendung wird neu gestartet.</value>
   <data name="ImportStageFighterAbilities" xml:space="preserve">
     <value>Jägerfähigkeiten</value>
   </data>
+  <data name="ImportStageFleetBoosts" xml:space="preserve">
+    <value>Flottenboni</value>
+  </data>
   <data name="ImportStageBlueprints" xml:space="preserve">
     <value>Blaupausen</value>
   </data>

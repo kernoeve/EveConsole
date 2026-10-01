@@ -604,6 +604,46 @@
     <value>IMPLANTS AND BOOSTERS</value>
     <comment>Fitting tool: heading of the pilot's implants and boosters. Upper case in English.</comment>
   </data>
+  <data name="BoostsHeading" xml:space="preserve">
+    <value>FLEET BOOSTS</value>
+    <comment>Fitting tool, list under the ring: heading of the fleet boosts section — command bursts boosting this fit. Upper case in English, like the other section headings.</comment>
+  </data>
+  <data name="BoostSelf" xml:space="preserve">
+    <value>Its own command bursts boost it</value>
+    <comment>Fitting tool, fleet boosts: tick box shown when the fit runs command bursts of its own.</comment>
+  </data>
+  <data name="TipBoostSelf" xml:space="preserve">
+    <value>Bursts reach every fleet member in range, the ship running them included. Untick for a booster flying alone.</value>
+    <comment>Fitting tool, fleet boosts: tooltip on the tick box for a fit's own bursts boosting it.</comment>
+  </data>
+  <data name="AddBooster" xml:space="preserve">
+    <value>Add a boosting fit…</value>
+    <comment>Fitting tool, fleet boosts: placeholder of the pick list of fits (open tabs, saved fits) that can be added as boosters.</comment>
+  </data>
+  <data name="TipAddBooster" xml:space="preserve">
+    <value>Fits whose running command bursts boost this one — any number. Of the same bonus from several, the strongest applies.</value>
+    <comment>Fitting tool, fleet boosts: tooltip on the section heading and the pick list of boosting fits.</comment>
+  </data>
+  <data name="BoosterOpenTab" xml:space="preserve">
+    <value>{0} — open tab</value>
+    <comment>Fitting tool, fleet boosts pick list: a fit open in another tab. {0} is its tab title.</comment>
+  </data>
+  <data name="BoosterSaved" xml:space="preserve">
+    <value>{0} ({1}) — saved in EVE Console</value>
+    <comment>Fitting tool, fleet boosts pick list: a fit saved in the app. {0} is its name, {1} its hull.</comment>
+  </data>
+  <data name="BoosterDetailTab" xml:space="preserve">
+    <value>open tab, its pilot</value>
+    <comment>Fitting tool, fleet boosts: beside a booster that is a fit open in another tab — worked out with the pilot chosen there.</comment>
+  </data>
+  <data name="BoosterDetailSaved" xml:space="preserve">
+    <value>saved fit, All V</value>
+    <comment>Fitting tool, fleet boosts: beside a booster that is a saved fit — worked out with every skill at level V (All V, as in the pilot list).</comment>
+  </data>
+  <data name="BoostLine" xml:space="preserve">
+    <value>{0}  {1}  · {2}</value>
+    <comment>Fitting tool, fleet boosts: one bonus reaching the fit. {0} is the bonus's name (from the game), {1} its value (+17.25%), {2} the fit whose burst sends the strongest of it.</comment>
+  </data>
   <data name="ResourcesHeading" xml:space="preserve">
     <value>RESOURCES</value>
     <comment>Fitting tool, the figures on the right: heading of the ship's fitting resources. Upper case in English.</comment>

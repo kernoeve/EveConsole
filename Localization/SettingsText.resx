@@ -3879,6 +3879,10 @@ The application will restart.</value>
     <value>Fighter Abilities</value>
     <comment>Settings → SDE import progress, stage: fighter abilities, and each fighter type's ability slots.</comment>
   </data>
+  <data name="ImportStageFleetBoosts" xml:space="preserve">
+    <value>Fleet Boosts</value>
+    <comment>Settings → SDE import progress, stage: fleet buffs — what command bursts and similar effects do to the ships they reach.</comment>
+  </data>
   <data name="ImportStageBlueprints" xml:space="preserve">
     <value>Blueprints</value>
     <comment>Settings → SDE / Hoboleaks import progress, stage: blueprints. Use the game's own word.</comment>

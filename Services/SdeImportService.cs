@@ -157,6 +157,7 @@ public class SdeImportService
             await ImportDogmaEffectsAsync(archive, fsdRoot, db, progress, ct);
             await ImportTypeDogmaAsync(archive, fsdRoot, db, progress, ct);
             await ImportFighterAbilitiesAsync(archive, fsdRoot, db, progress, ct);
+            await ImportDbuffsAsync(archive, fsdRoot, db, progress, ct);
             await ImportBlueprintsAsync(archive, fsdRoot, db, progress, ct);
             var customNames = await ImportUniverseAsync(archive, fsdRoot, db, progress, ct);
             await ImportStationsAsync(archive, fsdRoot, db, progress, ct);
@@ -297,6 +298,7 @@ public class SdeImportService
             "dogmaUnits.yaml", "icons.yaml", "graphics.yaml", "skins.yaml", "skinLicenses.yaml",
             "npcStations.yaml", "stationServices.yaml", "stationOperations.yaml",
             "fighterAbilities.yaml", "fighterAbilitiesByType.yaml",
+            "dbuffCollections.yaml",
         };
         var missingOptional = optional.Where(f => archive.GetEntry($"{fsdRoot}{f}") is null).ToList();
         if (missingOptional.Count > 0)
@@ -407,6 +409,9 @@ public class SdeImportService
             // Fighter abilities, and each fighter type's ability slots with their charges and cooldowns.
             """CREATE TABLE IF NOT EXISTS "SdeFighterAbilities" ("AbilityId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL DEFAULT '', "Tooltip" TEXT NOT NULL DEFAULT '', "TargetMode" TEXT NOT NULL DEFAULT '', "IconId" INTEGER, "DisallowInHighSec" INTEGER NOT NULL DEFAULT 0, "DisallowInLowSec" INTEGER NOT NULL DEFAULT 0)""",
             """CREATE TABLE IF NOT EXISTS "SdeFighterTypeAbilities" ("TypeId" INTEGER NOT NULL, "Slot" INTEGER NOT NULL, "AbilityId" INTEGER NOT NULL, "CooldownSeconds" REAL, "ChargeCount" INTEGER, "RearmSeconds" REAL, CONSTRAINT "PK_SdeFighterTypeAbilities" PRIMARY KEY ("TypeId", "Slot"))""",
+            // Fleet buffs (command bursts and the like): what each buff id changes, and how values combine.
+            """CREATE TABLE IF NOT EXISTS "SdeDbuffs" ("DbuffId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL DEFAULT '', "AggregateMode" TEXT NOT NULL DEFAULT '', "Operation" TEXT NOT NULL DEFAULT '', "ShowInUi" TEXT NOT NULL DEFAULT '')""",
+            """CREATE TABLE IF NOT EXISTS "SdeDbuffModifiers" ("DbuffId" INTEGER NOT NULL, "Ordinal" INTEGER NOT NULL, "Kind" TEXT NOT NULL DEFAULT '', "AttributeId" INTEGER NOT NULL, "GroupId" INTEGER, "SkillTypeId" INTEGER, CONSTRAINT "PK_SdeDbuffModifiers" PRIMARY KEY ("DbuffId", "Ordinal"))""",
             """CREATE TABLE IF NOT EXISTS "SdeDogmaEffectModifiers" ("EffectId" INTEGER NOT NULL, "Ordinal" INTEGER NOT NULL, "Func" TEXT NOT NULL, "Domain" TEXT NOT NULL, "Operation" INTEGER, "ModifiedAttributeId" INTEGER, "ModifyingAttributeId" INTEGER, "GroupId" INTEGER, "SkillTypeId" INTEGER, "StoppedEffectId" INTEGER, CONSTRAINT "PK_SdeDogmaEffectModifiers" PRIMARY KEY ("EffectId", "Ordinal"))""",
             """CREATE TABLE IF NOT EXISTS "SdeTypeDogmaAttributes" ("TypeId" INTEGER NOT NULL, "AttributeId" INTEGER NOT NULL, "Value" REAL NOT NULL, PRIMARY KEY ("TypeId", "AttributeId"))""",
             """CREATE TABLE IF NOT EXISTS "SdeTypeDogmaEffects" ("TypeId" INTEGER NOT NULL, "EffectId" INTEGER NOT NULL, "IsDefault" INTEGER NOT NULL, PRIMARY KEY ("TypeId", "EffectId"))""",
@@ -1797,6 +1802,46 @@ public class SdeImportService
         await SaveBatchesAsync(db, db.SdeFighterTypeAbilities, slots, SettingsText.ImportStageFighterAbilities, -1, p, 0.672, 0.674, ct);
     }
 
+    /// <summary>
+    /// Fleet buffs (dbuffCollections.yaml): what each buff a command burst carries does — the
+    /// attributes it changes and how — and how several of the same buff combine. The fitting tool
+    /// applies fleet boosts from these.
+    /// </summary>
+    private async Task ImportDbuffsAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
+        IProgress<SdeImportProgress> p, CancellationToken ct)
+    {
+        var entry = zip.GetEntry($"{fsdRoot}dbuffCollections.yaml");
+        if (entry is null) { Report(p, SettingsText.ImportStageFleetBoosts, SettingsText.SdeNotFoundInZip, 0.674); return; }
+        Report(p, SettingsText.ImportStageFleetBoosts, SettingsText.ImportParsing, 0.674);
+
+        Dictionary<int, DbuffYaml> buffs;
+        using (var reader = OpenEntry(entry))
+            buffs = _yaml.Deserialize<Dictionary<int, DbuffYaml>>(reader) ?? [];
+        var rows = buffs.Select(kv => new SdeDbuff
+        {
+            DbuffId       = kv.Key,
+            Name          = kv.Value.displayName?.en ?? kv.Value.developerDescription ?? "",
+            AggregateMode = kv.Value.aggregateMode ?? "",
+            Operation     = kv.Value.operationName ?? "",
+            ShowInUi      = kv.Value.showOutputValueInUI ?? "",
+        });
+        await SaveBatchesAsync(db, db.SdeDbuffs, rows, SettingsText.ImportStageFleetBoosts, buffs.Count, p, 0.674, 0.675, ct);
+        await SaveNamesAsync(db, SdeNameKind.Dbuff, buffs.Where(kv => kv.Value.displayName is not null).Select(kv => ((long)kv.Key, kv.Value.displayName)), p, 0.675, ct);
+
+        // Every modifier list in the buff's order: on the ship, on all it holds, by group, by skill.
+        var modifiers = buffs.SelectMany(kv =>
+            (kv.Value.itemModifiers ?? []).Select(m => (Kind: "item", M: m))
+            .Concat((kv.Value.locationModifiers ?? []).Select(m => (Kind: "location", M: m)))
+            .Concat((kv.Value.locationGroupModifiers ?? []).Select(m => (Kind: "locationGroup", M: m)))
+            .Concat((kv.Value.locationRequiredSkillModifiers ?? []).Select(m => (Kind: "locationRequiredSkill", M: m)))
+            .Select((x, i) => new SdeDbuffModifier
+            {
+                DbuffId = kv.Key, Ordinal = i, Kind = x.Kind,
+                AttributeId = x.M.dogmaAttributeID, GroupId = x.M.groupID, SkillTypeId = x.M.skillID,
+            }));
+        await SaveBatchesAsync(db, db.SdeDbuffModifiers, modifiers, SettingsText.ImportStageFleetBoosts, -1, p, 0.675, 0.676, ct);
+    }
+
     private async Task ImportTypeMaterialsAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
         IProgress<SdeImportProgress> p, CancellationToken ct)
     {
@@ -2603,6 +2648,26 @@ public class SdeImportService
         public int?           iconID            { get; set; }
         public bool           disallowInHighSec { get; set; }
         public bool           disallowInLowSec  { get; set; }
+    }
+
+    private class DbuffYaml
+    {
+        public string?                    aggregateMode                  { get; set; }
+        public string?                    developerDescription           { get; set; }
+        public LocalizedName?             displayName                    { get; set; }
+        public string?                    operationName                  { get; set; }
+        public string?                    showOutputValueInUI            { get; set; }
+        public List<DbuffModifierYaml>?   itemModifiers                  { get; set; }
+        public List<DbuffModifierYaml>?   locationModifiers              { get; set; }
+        public List<DbuffModifierYaml>?   locationGroupModifiers         { get; set; }
+        public List<DbuffModifierYaml>?   locationRequiredSkillModifiers { get; set; }
+    }
+
+    private class DbuffModifierYaml
+    {
+        public int  dogmaAttributeID { get; set; }
+        public int? groupID          { get; set; }
+        public int? skillID          { get; set; }
     }
 
     private class FighterAbilitySlotYaml

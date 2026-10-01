@@ -2944,6 +2944,9 @@ L'application va redémarrer.</value>
   <data name="ImportStageFighterAbilities" xml:space="preserve">
     <value>Aptitudes des chasseurs</value>
   </data>
+  <data name="ImportStageFleetBoosts" xml:space="preserve">
+    <value>Bonus de flotte</value>
+  </data>
   <data name="ImportStageBlueprints" xml:space="preserve">
     <value>Plans de construction</value>
   </data>

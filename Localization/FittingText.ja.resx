@@ -454,6 +454,36 @@
   <data name="ImplantsHeading" xml:space="preserve">
     <value>インプラントとブースター</value>
   </data>
+  <data name="BoostsHeading" xml:space="preserve">
+    <value>フリートブースト</value>
+  </data>
+  <data name="BoostSelf" xml:space="preserve">
+    <value>自艦のコマンドバーストも自艦にかかる</value>
+  </data>
+  <data name="TipBoostSelf" xml:space="preserve">
+    <value>バーストは範囲内のフリートメンバー全員に届き、使用艦自身も含みます。単独で飛ぶ場合はオフにしてください。</value>
+  </data>
+  <data name="AddBooster" xml:space="preserve">
+    <value>ブースト艦を追加…</value>
+  </data>
+  <data name="TipAddBooster" xml:space="preserve">
+    <value>稼働中のコマンドバーストでこの装備を強化する装備（いくつでも）。同じボーナスが複数ある場合は最も強いものが適用されます。</value>
+  </data>
+  <data name="BoosterOpenTab" xml:space="preserve">
+    <value>{0} — 開いているタブ</value>
+  </data>
+  <data name="BoosterSaved" xml:space="preserve">
+    <value>{0}（{1}）— EVE Consoleに保存</value>
+  </data>
+  <data name="BoosterDetailTab" xml:space="preserve">
+    <value>開いているタブ、そのパイロット</value>
+  </data>
+  <data name="BoosterDetailSaved" xml:space="preserve">
+    <value>保存した装備、全スキルV</value>
+  </data>
+  <data name="BoostLine" xml:space="preserve">
+    <value>{0}  {1}  · {2}</value>
+  </data>
   <data name="ResourcesHeading" xml:space="preserve">
     <value>リソース</value>
   </data>

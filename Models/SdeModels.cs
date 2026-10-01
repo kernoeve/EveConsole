@@ -167,6 +167,40 @@ public class SdeFighterAbility
 }
 
 /// <summary>
+/// A fleet buff as the game defines it (dbuffCollections.yaml): what a command burst, a
+/// phenomena generator or a system effect does to the ships it reaches. A burst carries only the
+/// buff's id and a value; this says which attributes the value changes, by which operation, and
+/// how several values for the same buff combine — the strongest (Maximum or Minimum) applies.
+/// Its name in other languages is an SdeNames row.
+/// </summary>
+public class SdeDbuff
+{
+    public int    DbuffId       { get; set; }
+    public string Name          { get; set; } = "";
+    /// <summary>Maximum or Minimum: which of several values for this buff applies.</summary>
+    public string AggregateMode { get; set; } = "";
+    /// <summary>The dogma operation by name: PostPercent, PostMul, ModAdd, …</summary>
+    public string Operation     { get; set; } = "";
+    /// <summary>ShowNormal, ShowInverted or Hide — how the game shows the value.</summary>
+    public string ShowInUi      { get; set; } = "";
+}
+
+/// <summary>
+/// One attribute a fleet buff changes (an entry of a dbuffCollections.yaml modifier list): on the
+/// ship itself ("item"), on everything fitted ("location"), on what is fitted of a group
+/// ("locationGroup"), or on what is fitted that requires a skill ("locationRequiredSkill").
+/// </summary>
+public class SdeDbuffModifier
+{
+    public int    DbuffId     { get; set; }
+    public int    Ordinal     { get; set; }
+    public string Kind        { get; set; } = "";
+    public int    AttributeId { get; set; }
+    public int?   GroupId     { get; set; }
+    public int?   SkillTypeId { get; set; }
+}
+
+/// <summary>
 /// One ability slot of a fighter type (fighterAbilitiesByType.yaml): the ability, and its cooldown
 /// or charges. Slot 0 is the squadron's standing weapon, slot 1 its movement ability, slot 2 its
 /// secondary — the order the game gives them, which is also how they are matched to the dogma
@@ -695,6 +729,7 @@ public enum SdeNameKind
     // station's parts, the way the game client does — see Localization/LocationNames.cs.
     Station                = 22,
     FighterAbility         = 23,  // SdeFighterAbilities.Name
+    Dbuff                  = 24,  // SdeDbuffs.Name
 }
 
 /// <summary>

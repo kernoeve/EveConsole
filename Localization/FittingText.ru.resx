@@ -454,6 +454,36 @@
   <data name="ImplantsHeading" xml:space="preserve">
     <value>Имплантаты и стимуляторы</value>
   </data>
+  <data name="BoostsHeading" xml:space="preserve">
+    <value>Флотские бонусы</value>
+  </data>
+  <data name="BoostSelf" xml:space="preserve">
+    <value>Собственные командные импульсы усиливают и его</value>
+  </data>
+  <data name="TipBoostSelf" xml:space="preserve">
+    <value>Импульсы действуют на всех членов флота в радиусе, включая сам корабль. Снимите флажок, если он летит один.</value>
+  </data>
+  <data name="AddBooster" xml:space="preserve">
+    <value>Добавить усиливающую оснастку…</value>
+  </data>
+  <data name="TipAddBooster" xml:space="preserve">
+    <value>Оснастки, чьи работающие командные импульсы усиливают эту, — сколько угодно. Из одинаковых бонусов действует сильнейший.</value>
+  </data>
+  <data name="BoosterOpenTab" xml:space="preserve">
+    <value>{0} — открытая вкладка</value>
+  </data>
+  <data name="BoosterSaved" xml:space="preserve">
+    <value>{0} ({1}) — сохранено в EVE Console</value>
+  </data>
+  <data name="BoosterDetailTab" xml:space="preserve">
+    <value>открытая вкладка, её пилот</value>
+  </data>
+  <data name="BoosterDetailSaved" xml:space="preserve">
+    <value>сохранённая оснастка, Все V</value>
+  </data>
+  <data name="BoostLine" xml:space="preserve">
+    <value>{0}  {1}  · {2}</value>
+  </data>
   <data name="ResourcesHeading" xml:space="preserve">
     <value>Ресурсы</value>
   </data>

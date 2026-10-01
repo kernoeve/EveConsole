@@ -298,6 +298,27 @@ public static class PostgresSchema
         )
         """,
         """
+        CREATE TABLE IF NOT EXISTS "SdeDbuffs" (
+            "DbuffId"       INTEGER NOT NULL,
+            "Name"          TEXT    NOT NULL DEFAULT '',
+            "AggregateMode" TEXT    NOT NULL DEFAULT '',
+            "Operation"     TEXT    NOT NULL DEFAULT '',
+            "ShowInUi"      TEXT    NOT NULL DEFAULT '',
+            CONSTRAINT "PK_SdeDbuffs" PRIMARY KEY ("DbuffId")
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS "SdeDbuffModifiers" (
+            "DbuffId"     INTEGER NOT NULL,
+            "Ordinal"     INTEGER NOT NULL,
+            "Kind"        TEXT    NOT NULL DEFAULT '',
+            "AttributeId" INTEGER NOT NULL,
+            "GroupId"     INTEGER NULL,
+            "SkillTypeId" INTEGER NULL,
+            CONSTRAINT "PK_SdeDbuffModifiers" PRIMARY KEY ("DbuffId", "Ordinal")
+        )
+        """,
+        """
         CREATE TABLE IF NOT EXISTS "SdeDogmaEffectModifiers" (
             "EffectId"             INTEGER NOT NULL,
             "Ordinal"              INTEGER NOT NULL,

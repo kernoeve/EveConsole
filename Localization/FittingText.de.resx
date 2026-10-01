@@ -454,6 +454,36 @@
   <data name="ImplantsHeading" xml:space="preserve">
     <value>Implantate und Booster</value>
   </data>
+  <data name="BoostsHeading" xml:space="preserve">
+    <value>Flottenboni</value>
+  </data>
+  <data name="BoostSelf" xml:space="preserve">
+    <value>Die eigenen Kommandoschübe verstärken es selbst</value>
+  </data>
+  <data name="TipBoostSelf" xml:space="preserve">
+    <value>Schübe erreichen jedes Flottenmitglied in Reichweite, auch das Schiff selbst. Für einen allein fliegenden Booster abwählen.</value>
+  </data>
+  <data name="AddBooster" xml:space="preserve">
+    <value>Boostende Ausrüstung hinzufügen…</value>
+  </data>
+  <data name="TipAddBooster" xml:space="preserve">
+    <value>Ausrüstungen, deren laufende Kommandoschübe diese verstärken – beliebig viele. Von gleichen Boni gilt der stärkste.</value>
+  </data>
+  <data name="BoosterOpenTab" xml:space="preserve">
+    <value>{0} – geöffneter Tab</value>
+  </data>
+  <data name="BoosterSaved" xml:space="preserve">
+    <value>{0} ({1}) – in EVE Console gespeichert</value>
+  </data>
+  <data name="BoosterDetailTab" xml:space="preserve">
+    <value>geöffneter Tab, sein Pilot</value>
+  </data>
+  <data name="BoosterDetailSaved" xml:space="preserve">
+    <value>gespeicherte Ausrüstung, Alle V</value>
+  </data>
+  <data name="BoostLine" xml:space="preserve">
+    <value>{0}  {1}  · {2}</value>
+  </data>
   <data name="ResourcesHeading" xml:space="preserve">
     <value>Ressourcen</value>
   </data>

@@ -454,6 +454,36 @@
   <data name="ImplantsHeading" xml:space="preserve">
     <value>植入体和增效剂</value>
   </data>
+  <data name="BoostsHeading" xml:space="preserve">
+    <value>舰队加成</value>
+  </data>
+  <data name="BoostSelf" xml:space="preserve">
+    <value>自身的指挥脉冲也作用于自己</value>
+  </data>
+  <data name="TipBoostSelf" xml:space="preserve">
+    <value>脉冲作用于范围内的所有舰队成员，包括使用者自身。单独飞行时请取消勾选。</value>
+  </data>
+  <data name="AddBooster" xml:space="preserve">
+    <value>添加加成装配…</value>
+  </data>
+  <data name="TipAddBooster" xml:space="preserve">
+    <value>其运行中的指挥脉冲为本装配提供加成的装配，数量不限。同一加成有多个来源时取最强者。</value>
+  </data>
+  <data name="BoosterOpenTab" xml:space="preserve">
+    <value>{0} — 已打开的标签页</value>
+  </data>
+  <data name="BoosterSaved" xml:space="preserve">
+    <value>{0}（{1}）— 已保存在 EVE Console</value>
+  </data>
+  <data name="BoosterDetailTab" xml:space="preserve">
+    <value>已打开的标签页，其飞行员</value>
+  </data>
+  <data name="BoosterDetailSaved" xml:space="preserve">
+    <value>已保存的装配，全部 V 级</value>
+  </data>
+  <data name="BoostLine" xml:space="preserve">
+    <value>{0}  {1}  · {2}</value>
+  </data>
   <data name="ResourcesHeading" xml:space="preserve">
     <value>资源</value>
   </data>

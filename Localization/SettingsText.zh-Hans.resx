@@ -2944,6 +2944,9 @@ SQLite 数据库只会被读取，不会被修改。大型数据库需要一些�
   <data name="ImportStageFighterAbilities" xml:space="preserve">
     <value>铁骑舰载机技能</value>
   </data>
+  <data name="ImportStageFleetBoosts" xml:space="preserve">
+    <value>舰队加成</value>
+  </data>
   <data name="ImportStageBlueprints" xml:space="preserve">
     <value>蓝图</value>
   </data>

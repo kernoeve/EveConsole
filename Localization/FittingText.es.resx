@@ -454,6 +454,36 @@
   <data name="ImplantsHeading" xml:space="preserve">
     <value>Implantes y potenciadores</value>
   </data>
+  <data name="BoostsHeading" xml:space="preserve">
+    <value>Bonificaciones de flota</value>
+  </data>
+  <data name="BoostSelf" xml:space="preserve">
+    <value>Sus propias ráfagas de mando la potencian</value>
+  </data>
+  <data name="TipBoostSelf" xml:space="preserve">
+    <value>Las ráfagas alcanzan a todos los miembros de la flota en alcance, incluida la propia nave. Desmárcalo si vuela solo.</value>
+  </data>
+  <data name="AddBooster" xml:space="preserve">
+    <value>Añadir un equipamiento que potencie…</value>
+  </data>
+  <data name="TipAddBooster" xml:space="preserve">
+    <value>Equipamientos cuyas ráfagas de mando activas potencian este, los que sean. De la misma bonificación de varios, se aplica la más fuerte.</value>
+  </data>
+  <data name="BoosterOpenTab" xml:space="preserve">
+    <value>{0} — pestaña abierta</value>
+  </data>
+  <data name="BoosterSaved" xml:space="preserve">
+    <value>{0} ({1}) — guardado en EVE Console</value>
+  </data>
+  <data name="BoosterDetailTab" xml:space="preserve">
+    <value>pestaña abierta, su piloto</value>
+  </data>
+  <data name="BoosterDetailSaved" xml:space="preserve">
+    <value>equipamiento guardado, Todas a V</value>
+  </data>
+  <data name="BoostLine" xml:space="preserve">
+    <value>{0}  {1}  · {2}</value>
+  </data>
   <data name="ResourcesHeading" xml:space="preserve">
     <value>Recursos</value>
   </data>

@@ -454,6 +454,36 @@
   <data name="ImplantsHeading" xml:space="preserve">
     <value>임플란트 및 부스터</value>
   </data>
+  <data name="BoostsHeading" xml:space="preserve">
+    <value>함대 버프</value>
+  </data>
+  <data name="BoostSelf" xml:space="preserve">
+    <value>자체 지휘 버스트가 자신에게도 적용</value>
+  </data>
+  <data name="TipBoostSelf" xml:space="preserve">
+    <value>버스트는 범위 내 모든 함대원에게 적용되며, 사용하는 함선 자신도 포함됩니다. 혼자 비행하는 경우 해제하세요.</value>
+  </data>
+  <data name="AddBooster" xml:space="preserve">
+    <value>버프 피팅 추가…</value>
+  </data>
+  <data name="TipAddBooster" xml:space="preserve">
+    <value>작동 중인 지휘 버스트로 이 피팅을 강화하는 피팅(개수 제한 없음). 같은 보너스가 여러 개면 가장 강한 것이 적용됩니다.</value>
+  </data>
+  <data name="BoosterOpenTab" xml:space="preserve">
+    <value>{0} — 열린 탭</value>
+  </data>
+  <data name="BoosterSaved" xml:space="preserve">
+    <value>{0} ({1}) — EVE Console에 저장됨</value>
+  </data>
+  <data name="BoosterDetailTab" xml:space="preserve">
+    <value>열린 탭, 해당 파일럿</value>
+  </data>
+  <data name="BoosterDetailSaved" xml:space="preserve">
+    <value>저장된 피팅, 전체 V</value>
+  </data>
+  <data name="BoostLine" xml:space="preserve">
+    <value>{0}  {1}  · {2}</value>
+  </data>
   <data name="ResourcesHeading" xml:space="preserve">
     <value>자원</value>
   </data>

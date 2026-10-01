@@ -454,6 +454,36 @@
   <data name="ImplantsHeading" xml:space="preserve">
     <value>Implants et boosters</value>
   </data>
+  <data name="BoostsHeading" xml:space="preserve">
+    <value>Bonus de flotte</value>
+  </data>
+  <data name="BoostSelf" xml:space="preserve">
+    <value>Ses propres salves de commandement le renforcent</value>
+  </data>
+  <data name="TipBoostSelf" xml:space="preserve">
+    <value>Les salves touchent tous les membres de la flotte à portée, y compris le vaisseau lui-même. Décochez pour un booster seul.</value>
+  </data>
+  <data name="AddBooster" xml:space="preserve">
+    <value>Ajouter un montage de bonus…</value>
+  </data>
+  <data name="TipAddBooster" xml:space="preserve">
+    <value>Montages dont les salves de commandement actives renforcent celui-ci, autant que voulu. D'un même bonus venu de plusieurs, le plus fort s'applique.</value>
+  </data>
+  <data name="BoosterOpenTab" xml:space="preserve">
+    <value>{0} — onglet ouvert</value>
+  </data>
+  <data name="BoosterSaved" xml:space="preserve">
+    <value>{0} ({1}) — enregistré dans EVE Console</value>
+  </data>
+  <data name="BoosterDetailTab" xml:space="preserve">
+    <value>onglet ouvert, son pilote</value>
+  </data>
+  <data name="BoosterDetailSaved" xml:space="preserve">
+    <value>montage enregistré, Tout à V</value>
+  </data>
+  <data name="BoostLine" xml:space="preserve">
+    <value>{0}  {1}  · {2}</value>
+  </data>
   <data name="ResourcesHeading" xml:space="preserve">
     <value>Ressources</value>
   </data>
