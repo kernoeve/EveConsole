@@ -2195,4 +2195,19 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   <data name="SysCampaignLabel" xml:space="preserve">
     <value>战役</value>
   </data>
+  <data name="FwFrontline" xml:space="preserve">
+    <value>前线</value>
+  </data>
+  <data name="FwCommandOps" xml:space="preserve">
+    <value>指挥行动</value>
+  </data>
+  <data name="FwRearguard" xml:space="preserve">
+    <value>后方</value>
+  </data>
+  <data name="LegendFwTier" xml:space="preserve">
+    <value>{0}：{1}</value>
+  </data>
+  <data name="LegendFwContested" xml:space="preserve">
+    <value>虚线：争夺中（{0}）</value>
+  </data>
 </root>

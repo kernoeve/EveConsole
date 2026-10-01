@@ -2195,4 +2195,19 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   <data name="SysCampaignLabel" xml:space="preserve">
     <value>ソブリンティ戦</value>
   </data>
+  <data name="FwFrontline" xml:space="preserve">
+    <value>前線</value>
+  </data>
+  <data name="FwCommandOps" xml:space="preserve">
+    <value>指揮作戦</value>
+  </data>
+  <data name="FwRearguard" xml:space="preserve">
+    <value>後衛</value>
+  </data>
+  <data name="LegendFwTier" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="LegendFwContested" xml:space="preserve">
+    <value>破線: 係争中({0})</value>
+  </data>
 </root>

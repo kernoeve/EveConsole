@@ -20,7 +20,9 @@ namespace EveConsole.Controls;
 /// <param name="Caption">Second line inside the node box — whatever the current overlay is
 /// measuring (constellation, security, kill count). Shown under the dot at low zoom.</param>
 /// <param name="Detail">Longer text for the hover tooltip.</param>
-public sealed record MapNodeStyle(Color Fill, string? Caption = null, string? Detail = null);
+/// <param name="Dashed">Ringed with a dashed outline: a second fact the fill cannot carry, such as
+/// a faction-warfare system being fought over.</param>
+public sealed record MapNodeStyle(Color Fill, string? Caption = null, string? Detail = null, bool Dashed = false);
 
 /// <summary>
 /// Live marks on one node: hostiles believed to be there now, and the user's own characters.
@@ -880,6 +882,7 @@ public class MapCanvas : Control
         DrawingContext ctx, MapNode n, Point p, Color fill, MapNodeStyle? style, bool labels)
     {
         ctx.DrawEllipse(new ImmutableSolidColorBrush(fill), NodePen, p, NodeRadius, NodeRadius);
+        if (style?.Dashed == true)   ctx.DrawEllipse(null, DashedOutlinePen, p, NodeRadius + 2.5, NodeRadius + 2.5);
 
         if (n.Id == SelectedId)      ctx.DrawEllipse(null, SelectedPen, p, NodeRadius + 4, NodeRadius + 4);
         else if (_hover?.Id == n.Id) ctx.DrawEllipse(null, HoverPen,    p, NodeRadius + 3, NodeRadius + 3);
@@ -914,6 +917,8 @@ public class MapCanvas : Control
 
         var radius = Math.Min(7, h / 2);
         ctx.DrawRectangle(new ImmutableSolidColorBrush(fill), BoxPen, new RoundedRect(rect, radius));
+        if (style?.Dashed == true)
+            ctx.DrawRectangle(null, DashedOutlinePen, new RoundedRect(rect.Inflate(2.5), radius + 2));
 
         ctx.DrawText(text.Name, new Point(p.X - text.Name.Width / 2, rect.Y + padY));
         if (text.Caption is not null)
@@ -939,6 +944,10 @@ public class MapCanvas : Control
     // Docking was gold and orange, which at 9px were one colour. Violet and green share no hue,
     // so the three ranks are told apart at a glance rather than by comparison — and the bar's
     // stepped height still says which is which if the colours ever fail someone.
+
+    /// <summary>The dashed ring of <see cref="MapNodeStyle.Dashed"/>: light, so it reads on any fill.</summary>
+    private static readonly IPen DashedOutlinePen = new ImmutablePen(
+        new ImmutableSolidColorBrush(Color.Parse("#F0F0F5")), 1.6, new ImmutableDashStyle([2, 1.5], 0));
 
     private static readonly IBrush DockSuper   = new ImmutableSolidColorBrush(Color.Parse("#a855f7"));
     private static readonly IBrush DockCapital = new ImmutableSolidColorBrush(Color.Parse("#22c55e"));

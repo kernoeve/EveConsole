@@ -885,7 +885,9 @@ public class UniverseViewModel : ReactiveObject
         BuildContinuousOverlayAsync(MapGraph g)
     {
         var regionOnly = new MapGraph(g.Nodes.Where(n => n.Tier == 0).ToList(), []);
-        var systemOnly = new MapGraph(g.Nodes.Where(n => n.Tier == 1).ToList(), []);
+        // The system tier keeps its gate links: an overlay judging a system by its neighbours
+        // (faction warfare's front lines) reads them.
+        var systemOnly = new MapGraph(g.Nodes.Where(n => n.Tier == 1).ToList(), g.Edges.Where(e => e.Tier == 1).ToList());
 
         var (regionStyles, regionLegend) = await BuildOverlayAsync(regionOnly, byRegion: true);
         var (systemStyles, systemLegend) = await BuildOverlayAsync(systemOnly, byRegion: false);
@@ -1406,6 +1408,7 @@ public class UniverseViewModel : ReactiveObject
         if (_stats is null) return;
 
         var fw       = await _stats.GetLatestFactionWarfareAsync();
+        var tiers    = FwTiers(fw, g);
         // As shown — only ever the tooltip and legend text, looked up by id.
         var factions = (await _stats.GetFactionNamesAsync())
             .ToDictionary(kv => kv.Key, kv => SdeNames.Faction(kv.Key, kv.Value));
@@ -1431,28 +1434,89 @@ public class UniverseViewModel : ReactiveObject
                 ? 100.0 * f.VictoryPoints / f.VictoryPointsThreshold
                 : 0;
 
-            // Contested systems are lifted toward full saturation so a fight stands out
-            // against quiet space held by the same militia.
-            var color = FromHsv(hues.GetValueOrDefault(f.OccupierFactionId),
-                                f.ContestedState == "contested" ? 0.75 : 0.35,
-                                f.ContestedState == "contested" ? 0.95 : 0.65);
+            // The militia's hue; how bright, by where the war is — the front line bright,
+            // command operations softer, the rearguard dim. Being fought over is the dashed
+            // outline, so it shows whatever the shade, and the caption says how far along.
+            var tier   = tiers.GetValueOrDefault(n.Id, FwTier.Rearguard);
+            var (s, v) = FwShade(tier);
+            var fought = f.ContestedState is "contested" or "vulnerable";
 
             styles[n.Id] = new MapNodeStyle(
-                color,
-                Caption: contested > 0 ? $"{contested:F0}%" : ContestedLabel(f.ContestedState),
+                FromHsv(hues.GetValueOrDefault(f.OccupierFactionId), s, v),
+                Caption: contested > 0 ? $"{contested:F0}%" : FwTierLabel(tier),
                 Detail: $"{factions.GetValueOrDefault(f.OccupierFactionId, MapText.FactionUnknown)} · " +
-                        $"{ContestedLabel(f.ContestedState)}" +
+                        $"{FwTierLabel(tier)} · {ContestedLabel(f.ContestedState)}" +
                         (f.VictoryPointsThreshold > 0
                             ? " · " + string.Format(MapText.NodeVictoryPoints,
                                                     f.VictoryPoints, f.VictoryPointsThreshold)
-                            : ""));
+                            : ""),
+                Dashed: fought);
         }
 
         foreach (var (id, h) in hues)
             legend.Add(new LegendEntryVm(factions.GetValueOrDefault(id, string.Format(MapText.FactionNumbered, id)),
-                FromHsv(h, 0.75, 0.95)));
+                FromHsv(h, 0.85, 1.0)));
+        foreach (var t in new[] { FwTier.Frontline, FwTier.Command, FwTier.Rearguard })
+        {
+            var (_, v) = FwShade(t);
+            legend.Add(new LegendEntryVm(string.Format(MapText.LegendFwTier, FwTierLabel(t), tiers.Values.Count(x => x == t)),
+                FromHsv(0, 0, v * 0.85)));
+        }
+        legend.Add(new LegendEntryVm(string.Format(MapText.LegendFwContested,
+            fw.Values.Count(f => f.ContestedState is "contested" or "vulnerable")), neutral));
         legend.Add(new LegendEntryVm(MapText.LegendNotFwSpace, neutral));
     }
+
+    /// <summary>Where a faction-warfare system stands in the war.</summary>
+    internal enum FwTier { Frontline, Command, Rearguard }
+
+    /// <summary>
+    /// Each faction-warfare system's place in the war, from who occupies it and its gates: a
+    /// front line borders a system occupied by another militia; command operations border their
+    /// own militia's front line; everything else a militia holds is its rearguard. Read off the
+    /// map's own gate links.
+    /// </summary>
+    internal static Dictionary<int, FwTier> FwTiers(IReadOnlyDictionary<int, EveConsole.Models.MapFactionWarfare> fw, MapGraph g)
+    {
+        var tiers = new Dictionary<int, FwTier>();
+        if (fw.Count == 0) return tiers;
+
+        var next = new Dictionary<int, List<int>>();
+        void Link(int a, int b)
+        {
+            if (!next.TryGetValue(a, out var l)) next[a] = l = [];
+            l.Add(b);
+        }
+        foreach (var e in g.Edges)
+            if (fw.ContainsKey(e.FromId) && fw.ContainsKey(e.ToId)) { Link(e.FromId, e.ToId); Link(e.ToId, e.FromId); }
+        IEnumerable<int> Near(int id) => next.TryGetValue(id, out var l) ? l : [];
+
+        foreach (var (id, f) in fw)
+            if (Near(id).Any(n => fw[n].OccupierFactionId != f.OccupierFactionId)) tiers[id] = FwTier.Frontline;
+        foreach (var (id, f) in fw)
+        {
+            if (tiers.ContainsKey(id)) continue;
+            tiers[id] = Near(id).Any(n => tiers.TryGetValue(n, out var t) && t == FwTier.Frontline
+                                          && fw[n].OccupierFactionId == f.OccupierFactionId)
+                ? FwTier.Command : FwTier.Rearguard;
+        }
+        return tiers;
+    }
+
+    private static string FwTierLabel(FwTier tier) => tier switch
+    {
+        FwTier.Frontline => MapText.FwFrontline,
+        FwTier.Command   => MapText.FwCommandOps,
+        _                => MapText.FwRearguard,
+    };
+
+    /// <summary>Saturation and brightness by tier: the front line bright, the rearguard dim.</summary>
+    private static (double S, double V) FwShade(FwTier tier) => tier switch
+    {
+        FwTier.Frontline => (0.85, 1.00),
+        FwTier.Command   => (0.55, 0.75),
+        _                => (0.35, 0.50),
+    };
 
     /// <summary>A faction-warfare system's state as shown; ESI's own word for one not listed.
     /// The overlay compares ESI's word, never this.</summary>

@@ -2237,4 +2237,19 @@ Sin sistema capital, así que sin zona</value>
   <data name="SysCampaignLabel" xml:space="preserve">
     <value>Campaña</value>
   </data>
+  <data name="FwFrontline" xml:space="preserve">
+    <value>Primera línea</value>
+  </data>
+  <data name="FwCommandOps" xml:space="preserve">
+    <value>Operaciones de mando</value>
+  </data>
+  <data name="FwRearguard" xml:space="preserve">
+    <value>Retaguardia</value>
+  </data>
+  <data name="LegendFwTier" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="LegendFwContested" xml:space="preserve">
+    <value>Discontinuo: en disputa ({0})</value>
+  </data>
 </root>

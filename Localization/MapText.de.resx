@@ -2237,4 +2237,19 @@ Kein Hauptstadtsystem, daher keine Zone</value>
   <data name="SysCampaignLabel" xml:space="preserve">
     <value>Kampf</value>
   </data>
+  <data name="FwFrontline" xml:space="preserve">
+    <value>Frontlinie</value>
+  </data>
+  <data name="FwCommandOps" xml:space="preserve">
+    <value>Kommandooperationen</value>
+  </data>
+  <data name="FwRearguard" xml:space="preserve">
+    <value>Nachhut</value>
+  </data>
+  <data name="LegendFwTier" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="LegendFwContested" xml:space="preserve">
+    <value>Gestrichelt: umkämpft ({0})</value>
+  </data>
 </root>

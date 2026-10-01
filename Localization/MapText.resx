@@ -2979,4 +2979,24 @@ No capital system, so no zone</value>
     <value>Campaign</value>
     <comment>System page header: label of a sovereignty campaign in the system.</comment>
   </data>
+  <data name="FwFrontline" xml:space="preserve">
+    <value>Front line</value>
+    <comment>Faction warfare: a system bordering one occupied by another militia.</comment>
+  </data>
+  <data name="FwCommandOps" xml:space="preserve">
+    <value>Command operations</value>
+    <comment>Faction warfare: a system bordering its own militia's front line.</comment>
+  </data>
+  <data name="FwRearguard" xml:space="preserve">
+    <value>Rearguard</value>
+    <comment>Faction warfare: the rest of a militia's systems.</comment>
+  </data>
+  <data name="LegendFwTier" xml:space="preserve">
+    <value>{0}: {1}</value>
+    <comment>Map legend, faction warfare. {0} the tier, {1} how many systems.</comment>
+  </data>
+  <data name="LegendFwContested" xml:space="preserve">
+    <value>Dashed: contested ({0})</value>
+    <comment>Map legend, faction warfare. {0} how many systems are contested or vulnerable.</comment>
+  </data>
 </root>

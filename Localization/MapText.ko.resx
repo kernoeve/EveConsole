@@ -2195,4 +2195,19 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   <data name="SysCampaignLabel" xml:space="preserve">
     <value>전투</value>
   </data>
+  <data name="FwFrontline" xml:space="preserve">
+    <value>최전선</value>
+  </data>
+  <data name="FwCommandOps" xml:space="preserve">
+    <value>지휘 작전</value>
+  </data>
+  <data name="FwRearguard" xml:space="preserve">
+    <value>후방</value>
+  </data>
+  <data name="LegendFwTier" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="LegendFwContested" xml:space="preserve">
+    <value>점선: 교전 중 ({0})</value>
+  </data>
 </root>

@@ -2321,4 +2321,19 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   <data name="SysCampaignLabel" xml:space="preserve">
     <value>Бой</value>
   </data>
+  <data name="FwFrontline" xml:space="preserve">
+    <value>Линия фронта</value>
+  </data>
+  <data name="FwCommandOps" xml:space="preserve">
+    <value>Командные операции</value>
+  </data>
+  <data name="FwRearguard" xml:space="preserve">
+    <value>Тыл</value>
+  </data>
+  <data name="LegendFwTier" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="LegendFwContested" xml:space="preserve">
+    <value>Пунктир: идёт борьба ({0})</value>
+  </data>
 </root>
