@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using EveConsole.Localization;
 using EveConsole.ViewModels;
 
 namespace EveConsole.Views;
@@ -34,6 +35,49 @@ public partial class ToolPaneView : UserControl
     private void OnTabPointerPressed(object? sender, PointerPressedEventArgs e)  => Owner?.OnTabPointerPressed(sender, e);
     private void OnTabPointerMoved(object? sender, PointerEventArgs e)           => Owner?.OnTabPointerMoved(sender, e);
     private void OnTabPointerReleased(object? sender, PointerReleasedEventArgs e) => Owner?.OnTabPointerReleased(sender, e);
+
+    // ── The tab's right-click menu ──
+    // The window's view model is the main one in every window (a window of tabs keeps it, for
+    // closing), and the menu's items carry the tab they were opened on.
+
+    private MainWindowViewModel? Vm => TopLevel.GetTopLevel(this)?.DataContext as MainWindowViewModel;
+
+    private static ToolTab? TabOf(object? sender) => (sender as Control)?.DataContext as ToolTab;
+
+    /// <summary>Just before the menu opens: says "on this side" when the window is split, and greys
+    /// out what would close nothing.</summary>
+    private void OnTabContextRequested(object? sender, ContextRequestedEventArgs e)
+    {
+        if (sender is not Control { ContextMenu: { } menu } || Pane is not { } pane || TabOf(sender) is not { } tab) return;
+        var split = pane.Workspace?.IsSplit == true;
+        foreach (var item in menu.Items.OfType<MenuItem>())
+            switch (item.Tag as string)
+            {
+                case "others":
+                    item.Header    = split ? ShellText.MenuCloseOtherTabsSide : ShellText.MenuCloseOtherTabs;
+                    item.IsEnabled = pane.Tabs.Any(t => t.CanClose && t != tab);
+                    break;
+                case "all":
+                    item.Header    = split ? ShellText.MenuCloseAllTabsSide : ShellText.MenuCloseAllTabs;
+                    item.IsEnabled = pane.Tabs.Any(t => t.CanClose);
+                    break;
+            }
+    }
+
+    private void OnCloseTab(object? sender, RoutedEventArgs e)
+    {
+        if (TabOf(sender) is { } tab) Vm?.CloseTab(tab);
+    }
+
+    private void OnCloseOtherTabs(object? sender, RoutedEventArgs e)
+    {
+        if (TabOf(sender) is { } tab) Vm?.CloseTabsBeside(tab, keepIt: true);
+    }
+
+    private void OnCloseAllTabs(object? sender, RoutedEventArgs e)
+    {
+        if (TabOf(sender) is { } tab) Vm?.CloseTabsBeside(tab, keepIt: false);
+    }
 
     /// <summary><paramref name="control"/>'s bounds in <paramref name="relativeTo"/>'s coordinates.</summary>
     private static Rect BoundsIn(Control control, Visual relativeTo) =>

@@ -169,6 +169,21 @@
   <data name="TipToggleNav" xml:space="preserve">
     <value>显示或隐藏导航</value>
   </data>
+  <data name="MenuCloseTab" xml:space="preserve">
+    <value>关闭</value>
+  </data>
+  <data name="MenuCloseOtherTabs" xml:space="preserve">
+    <value>关闭其他标签页</value>
+  </data>
+  <data name="MenuCloseAllTabs" xml:space="preserve">
+    <value>关闭所有标签页</value>
+  </data>
+  <data name="MenuCloseOtherTabsSide" xml:space="preserve">
+    <value>关闭这一侧的其他标签页</value>
+  </data>
+  <data name="MenuCloseAllTabsSide" xml:space="preserve">
+    <value>关闭这一侧的所有标签页</value>
+  </data>
   <data name="TabAlarms" xml:space="preserve">
     <value>警报</value>
   </data>

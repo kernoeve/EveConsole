@@ -939,6 +939,19 @@ public class MainWindowViewModel : ReactiveObject
         this.RaisePropertyChanged(nameof(SelectedTab));
     }
 
+    /// <summary>
+    /// Closes the tabs on <paramref name="tab"/>'s side of its window — the whole window when it is
+    /// not split — all of them, or all but <paramref name="tab"/>. The Overview stays; a window of
+    /// tabs left with none closes.
+    /// </summary>
+    public void CloseTabsBeside(ToolTab tab, bool keepIt)
+    {
+        if (WorkspaceOf(tab) is not { } ws || ws.PaneOf(tab) is not { } pane) return;
+        foreach (var t in pane.Tabs.Where(t => t.CanClose && !(keepIt && t == tab)).ToList())
+            CloseTab(t);
+        if (keepIt) Show(tab);
+    }
+
     // ── Constructor ───────────────────────────────────────────────────────────
 
     public MainWindowViewModel(

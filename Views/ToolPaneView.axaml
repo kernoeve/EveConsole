@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              xmlns:views="clr-namespace:EveConsole.Views"
+             xmlns:loc="using:EveConsole.Localization"
              x:Class="EveConsole.Views.ToolPaneView"
              x:DataType="vm:ToolPane">
 
@@ -75,7 +76,17 @@
                     <StackPanel Orientation="Horizontal" Spacing="0"
                                 PointerPressed="OnTabPointerPressed"
                                 PointerMoved="OnTabPointerMoved"
-                                PointerReleased="OnTabPointerReleased">
+                                PointerReleased="OnTabPointerReleased"
+                                ContextRequested="OnTabContextRequested">
+                      <!-- Right-click: close this tab, the others, or all — on this side when the
+                           window is split, else the whole window. Labels set as it opens. -->
+                      <StackPanel.ContextMenu>
+                        <ContextMenu>
+                          <MenuItem Header="{x:Static loc:ShellText.MenuCloseTab}" IsVisible="{Binding CanClose}" Click="OnCloseTab" />
+                          <MenuItem Tag="others" Header="{x:Static loc:ShellText.MenuCloseOtherTabs}" Click="OnCloseOtherTabs" />
+                          <MenuItem Tag="all" Header="{x:Static loc:ShellText.MenuCloseAllTabs}" Click="OnCloseAllTabs" />
+                        </ContextMenu>
+                      </StackPanel.ContextMenu>
                       <TextBlock Text="{Binding Title}" FontSize="12" Foreground="{DynamicResource TextDimBrush}"
                                  Padding="14 8 4 8" VerticalAlignment="Center" />
                       <Button IsVisible="{Binding CanClose}"

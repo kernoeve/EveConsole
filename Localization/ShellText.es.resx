@@ -169,6 +169,21 @@
   <data name="TipToggleNav" xml:space="preserve">
     <value>Mostrar u ocultar la navegación</value>
   </data>
+  <data name="MenuCloseTab" xml:space="preserve">
+    <value>Cerrar</value>
+  </data>
+  <data name="MenuCloseOtherTabs" xml:space="preserve">
+    <value>Cerrar las demás pestañas</value>
+  </data>
+  <data name="MenuCloseAllTabs" xml:space="preserve">
+    <value>Cerrar todas las pestañas</value>
+  </data>
+  <data name="MenuCloseOtherTabsSide" xml:space="preserve">
+    <value>Cerrar las demás pestañas de este lado</value>
+  </data>
+  <data name="MenuCloseAllTabsSide" xml:space="preserve">
+    <value>Cerrar todas las pestañas de este lado</value>
+  </data>
   <data name="TabAlarms" xml:space="preserve">
     <value>Alarmas</value>
   </data>

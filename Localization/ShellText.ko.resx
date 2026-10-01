@@ -169,6 +169,21 @@
   <data name="TipToggleNav" xml:space="preserve">
     <value>탐색 표시/숨기기</value>
   </data>
+  <data name="MenuCloseTab" xml:space="preserve">
+    <value>닫기</value>
+  </data>
+  <data name="MenuCloseOtherTabs" xml:space="preserve">
+    <value>다른 탭 닫기</value>
+  </data>
+  <data name="MenuCloseAllTabs" xml:space="preserve">
+    <value>모든 탭 닫기</value>
+  </data>
+  <data name="MenuCloseOtherTabsSide" xml:space="preserve">
+    <value>이쪽의 다른 탭 닫기</value>
+  </data>
+  <data name="MenuCloseAllTabsSide" xml:space="preserve">
+    <value>이쪽의 모든 탭 닫기</value>
+  </data>
   <data name="TabAlarms" xml:space="preserve">
     <value>알람</value>
   </data>

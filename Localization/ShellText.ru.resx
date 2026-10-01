@@ -169,6 +169,21 @@
   <data name="TipToggleNav" xml:space="preserve">
     <value>Показать или скрыть навигацию</value>
   </data>
+  <data name="MenuCloseTab" xml:space="preserve">
+    <value>Закрыть</value>
+  </data>
+  <data name="MenuCloseOtherTabs" xml:space="preserve">
+    <value>Закрыть другие вкладки</value>
+  </data>
+  <data name="MenuCloseAllTabs" xml:space="preserve">
+    <value>Закрыть все вкладки</value>
+  </data>
+  <data name="MenuCloseOtherTabsSide" xml:space="preserve">
+    <value>Закрыть другие вкладки на этой стороне</value>
+  </data>
+  <data name="MenuCloseAllTabsSide" xml:space="preserve">
+    <value>Закрыть все вкладки на этой стороне</value>
+  </data>
   <data name="TabAlarms" xml:space="preserve">
     <value>Тревоги</value>
   </data>

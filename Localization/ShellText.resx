@@ -196,6 +196,26 @@
     <value>Show or hide the navigation</value>
     <comment>Main window, title bar: tooltip on the ☰ button that shows or hides the list of tools on the left.</comment>
   </data>
+  <data name="MenuCloseTab" xml:space="preserve">
+    <value>Close</value>
+    <comment>Main window and windows of tabs: right-click menu on a tab. Closes the tab clicked.</comment>
+  </data>
+  <data name="MenuCloseOtherTabs" xml:space="preserve">
+    <value>Close other tabs</value>
+    <comment>Main window and windows of tabs: right-click menu on a tab. Closes every tab in the window except the one clicked (the Overview always stays).</comment>
+  </data>
+  <data name="MenuCloseAllTabs" xml:space="preserve">
+    <value>Close all tabs</value>
+    <comment>Main window and windows of tabs: right-click menu on a tab. Closes every tab in the window (the Overview always stays; a separate window closes).</comment>
+  </data>
+  <data name="MenuCloseOtherTabsSide" xml:space="preserve">
+    <value>Close other tabs on this side</value>
+    <comment>Main window and windows of tabs: right-click menu on a tab. When the window is split in two halves: closes every tab on the clicked tab's half except it.</comment>
+  </data>
+  <data name="MenuCloseAllTabsSide" xml:space="preserve">
+    <value>Close all tabs on this side</value>
+    <comment>Main window and windows of tabs: right-click menu on a tab. When the window is split in two halves: closes every tab on the clicked tab's half.</comment>
+  </data>
   <data name="TabAlarms" xml:space="preserve">
     <value>Alarms</value>
     <comment>User-defined alarms (undocks, notifications, and so on).</comment>

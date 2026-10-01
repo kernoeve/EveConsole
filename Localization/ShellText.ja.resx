@@ -169,6 +169,21 @@
   <data name="TipToggleNav" xml:space="preserve">
     <value>ナビゲーションの表示・非表示</value>
   </data>
+  <data name="MenuCloseTab" xml:space="preserve">
+    <value>閉じる</value>
+  </data>
+  <data name="MenuCloseOtherTabs" xml:space="preserve">
+    <value>他のタブを閉じる</value>
+  </data>
+  <data name="MenuCloseAllTabs" xml:space="preserve">
+    <value>すべてのタブを閉じる</value>
+  </data>
+  <data name="MenuCloseOtherTabsSide" xml:space="preserve">
+    <value>この側の他のタブを閉じる</value>
+  </data>
+  <data name="MenuCloseAllTabsSide" xml:space="preserve">
+    <value>この側のすべてのタブを閉じる</value>
+  </data>
   <data name="TabAlarms" xml:space="preserve">
     <value>アラーム</value>
   </data>
