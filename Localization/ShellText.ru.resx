@@ -635,4 +635,7 @@ PID: {2}
   <data name="TrayExit" xml:space="preserve">
     <value>Выход</value>
   </data>
+  <data name="NavPlanetaryIndustry" xml:space="preserve">
+    <value>Планетарная промышленность</value>
+  </data>
 </root>

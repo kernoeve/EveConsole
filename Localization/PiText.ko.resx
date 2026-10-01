@@ -1,0 +1,442 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="PlanetWithId" xml:space="preserve">
+    <value>행성 {0}</value>
+  </data>
+  <data name="TypeWithId" xml:space="preserve">
+    <value>종류 {0}</value>
+  </data>
+  <data name="DurationDaysHours" xml:space="preserve">
+    <value>{0}일 {1}시간</value>
+  </data>
+  <data name="InDuration" xml:space="preserve">
+    <value>{0} 후</value>
+  </data>
+  <data name="AgoDuration" xml:space="preserve">
+    <value>{0} 전</value>
+  </data>
+  <data name="Updated" xml:space="preserve">
+    <value>갱신: {0}</value>
+  </data>
+  <data name="SummarySeparator" xml:space="preserve">
+    <value> · </value>
+  </data>
+  <data name="SummaryColoniesOther" xml:space="preserve">
+    <value>콜로니 {0}개</value>
+  </data>
+  <data name="SummaryStoppedOther" xml:space="preserve">
+    <value>추출기 {0}개 정지</value>
+  </data>
+  <data name="SummaryHaulingOther" xml:space="preserve">
+    <value>운반 필요 {0}곳</value>
+  </data>
+  <data name="SummaryInputsOther" xml:space="preserve">
+    <value>투입 자원 부족 {0}곳</value>
+  </data>
+  <data name="TabColonies" xml:space="preserve">
+    <value>콜로니</value>
+  </data>
+  <data name="TabColony" xml:space="preserve">
+    <value>세부 정보</value>
+  </data>
+  <data name="TabCharacters" xml:space="preserve">
+    <value>캐릭터</value>
+  </data>
+  <data name="OpenColony" xml:space="preserve">
+    <value>콜로니 열기</value>
+  </data>
+  <data name="TipOpenColony" xml:space="preserve">
+    <value>선택한 콜로니의 시설, 흐름, 손익을 자세히 표시합니다. 행을 더블클릭해도 같습니다.</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>새로고침</value>
+  </data>
+  <data name="TipRefresh" xml:space="preserve">
+    <value>콜로니를 다시 읽습니다. 목록이 열려 있는 동안에는 1분마다 새로 고쳐지며, 새 콜로니 구성은 10분마다 ESI에서 읽어 옵니다.</value>
+  </data>
+  <data name="EstimatesNote" xml:space="preserve">
+    <value>추출기 시각은 정확합니다. 저장고와 투입 자원 시각은 각 콜로니를 게임에서 마지막으로 열었던 시점부터 다시 계산한 추정치이며, 그 시점이 얼마나 지났는지는 데이터 경과 열에 표시됩니다.</value>
+  </data>
+  <data name="EmptyNote" xml:space="preserve">
+    <value>아직 표시할 콜로니가 없습니다. 콜로니는 설정 → 캐릭터에서 PI 확인란을 선택한 캐릭터의 것만 읽습니다. 콜로니는 ESI에서 구성을 읽은 뒤에 여기에 나타나며, ESI의 구성은 게임에서 그 콜로니를 마지막으로 열었을 때의 것입니다.</value>
+  </data>
+  <data name="ColCharacter" xml:space="preserve">
+    <value>캐릭터</value>
+  </data>
+  <data name="ColPlanet" xml:space="preserve">
+    <value>행성</value>
+  </data>
+  <data name="ColSystem" xml:space="preserve">
+    <value>항성계</value>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>종류</value>
+  </data>
+  <data name="ColKind" xml:space="preserve">
+    <value>유형</value>
+  </data>
+  <data name="ColCc" xml:space="preserve">
+    <value>CC</value>
+  </data>
+  <data name="ColExtractorsEnd" xml:space="preserve">
+    <value>추출 종료</value>
+  </data>
+  <data name="ColStorageFull" xml:space="preserve">
+    <value>저장고 가득 참</value>
+  </data>
+  <data name="ColInputsRunOut" xml:space="preserve">
+    <value>투입 자원 고갈</value>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>상태</value>
+  </data>
+  <data name="ColDataAge" xml:space="preserve">
+    <value>데이터 경과</value>
+  </data>
+  <data name="ColProfit" xml:space="preserve">
+    <value>이익</value>
+  </data>
+  <data name="LevelOfMax" xml:space="preserve">
+    <value>{0} / {1}</value>
+  </data>
+  <data name="TipCcHeadroom" xml:space="preserve">
+    <value>통제센터 레벨 {0}. 통제센터 업그레이드 스킬로 {1}까지 올릴 수 있으므로 업그레이드할 수 있습니다.</value>
+  </data>
+  <data name="TipCcAtMax" xml:space="preserve">
+    <value>통제센터 레벨 {0}: 통제센터 업그레이드 스킬이 허용하는 최고 레벨입니다.</value>
+  </data>
+  <data name="Stopped" xml:space="preserve">
+    <value>정지됨</value>
+  </data>
+  <data name="TipExtractorsStopped" xml:space="preserve">
+    <value>첫 추출기가 {0} 전, {1}에 정지했습니다. 정확한 값입니다: 추출 프로그램의 종료 시각은 설정할 때 정해집니다.</value>
+  </data>
+  <data name="TipExtractorsStop" xml:space="preserve">
+    <value>첫 추출기가 {0}에 정지합니다. 정확한 값입니다: 추출 프로그램의 종료 시각은 설정할 때 정해집니다.</value>
+  </data>
+  <data name="TipNoExtractors" xml:space="preserve">
+    <value>이 콜로니에는 추출기가 없습니다.</value>
+  </data>
+  <data name="Full" xml:space="preserve">
+    <value>가득 참</value>
+  </data>
+  <data name="TipStorageFull" xml:space="preserve">
+    <value>{0}부터 가득 찬 것으로 추정됩니다: 지금 도착하는 생산품은 사라집니다. 게임에서 콜로니를 마지막으로 열었던 시점을 기준으로 추정했습니다.</value>
+  </data>
+  <data name="TipStorageFills" xml:space="preserve">
+    <value>{0}에 가득 찰 것으로 추정됩니다 (게임에서 콜로니를 마지막으로 열었던 시점 기준).</value>
+  </data>
+  <data name="NotWithinHorizon" xml:space="preserve">
+    <value>30일 이내 없음</value>
+  </data>
+  <data name="TipStorageNotFull" xml:space="preserve">
+    <value>추정이 내다보는 30일 안에는 저장고가 가득 차지 않습니다.</value>
+  </data>
+  <data name="RanOut" xml:space="preserve">
+    <value>고갈됨</value>
+  </data>
+  <data name="TipInputsOut" xml:space="preserve">
+    <value>{0}에 고갈된 것으로 추정됩니다: 제조시설이 멈춰 있습니다. 게임에서 콜로니를 마지막으로 열었던 시점을 기준으로 추정했습니다.</value>
+  </data>
+  <data name="TipInputsRunOut" xml:space="preserve">
+    <value>{0}에 고갈될 것으로 추정됩니다 (게임에서 콜로니를 마지막으로 열었던 시점 기준).</value>
+  </data>
+  <data name="TipInputsNotOut" xml:space="preserve">
+    <value>수입한 투입 자원이 추정이 내다보는 30일보다 오래 갑니다.</value>
+  </data>
+  <data name="TipNoInputs" xml:space="preserve">
+    <value>수입하는 것이 없습니다: 추출 행성은 필요한 것을 직접 만듭니다.</value>
+  </data>
+  <data name="StateAction" xml:space="preserve">
+    <value>조치</value>
+  </data>
+  <data name="StateAttention" xml:space="preserve">
+    <value>주의</value>
+  </data>
+  <data name="StateOk" xml:space="preserve">
+    <value>정상</value>
+  </data>
+  <data name="AgeStale" xml:space="preserve">
+    <value>{0} (오래됨)</value>
+  </data>
+  <data name="TipAge" xml:space="preserve">
+    <value>게임에서 마지막으로 연 시각: {0}.</value>
+  </data>
+  <data name="TipAgeStale" xml:space="preserve">
+    <value>게임에서 마지막으로 연 시각: {0}. 너무 오래되어 추정치를 믿을 수 없습니다. 게임에서 콜로니를 열어 갱신하십시오.</value>
+  </data>
+  <data name="PerDay" xml:space="preserve">
+    <value>{0} / 일</value>
+  </data>
+  <data name="TipProfit" xml:space="preserve">
+    <value>하루 생산품 {0}에서 투입 자원 {1}과 수입·수출 관세 {2}를 뺀 금액이며, 거래소 가격 기준입니다.</value>
+  </data>
+  <data name="KindExtractor" xml:space="preserve">
+    <value>추출</value>
+  </data>
+  <data name="KindFactory" xml:space="preserve">
+    <value>제조</value>
+  </data>
+  <data name="KindEmpty" xml:space="preserve">
+    <value>비어 있음</value>
+  </data>
+  <data name="ReasonExtractorsStopped" xml:space="preserve">
+    <value>추출기가 정지했습니다.</value>
+  </data>
+  <data name="ReasonExtractorsStopping" xml:space="preserve">
+    <value>사전 알림 기간 안에 추출기가 정지합니다.</value>
+  </data>
+  <data name="ReasonStorageFull" xml:space="preserve">
+    <value>저장고가 가득 찼습니다 (추정).</value>
+  </data>
+  <data name="ReasonStorageFilling" xml:space="preserve">
+    <value>사전 알림 기간 안에 저장고가 가득 찹니다 (추정).</value>
+  </data>
+  <data name="ReasonInputsOut" xml:space="preserve">
+    <value>투입 자원이 떨어졌습니다 (추정).</value>
+  </data>
+  <data name="ReasonInputsLow" xml:space="preserve">
+    <value>사전 알림 기간 안에 투입 자원이 떨어집니다 (추정).</value>
+  </data>
+  <data name="ReasonStale" xml:space="preserve">
+    <value>데이터가 너무 오래되어 믿을 수 없습니다.</value>
+  </data>
+  <data name="ReasonNothingDue" xml:space="preserve">
+    <value>사전 알림 기간 안에 처리할 일이 없습니다.</value>
+  </data>
+  <data name="CharactersNote" xml:space="preserve">
+    <value>설정 → 캐릭터에서 PI 확인란을 선택한 캐릭터입니다. 콜로니 슬롯 수는 행성 관리 스킬로, 통제센터 레벨은 통제센터 업그레이드 스킬로 정해집니다.</value>
+  </data>
+  <data name="OpenPiSwitch" xml:space="preserve">
+    <value>설정의 PI 확인란…</value>
+  </data>
+  <data name="TipOpenPiSwitch" xml:space="preserve">
+    <value>설정 → 캐릭터를 엽니다. 캐릭터마다 있는 PI 확인란이 그 캐릭터를 이 도구, 경보, 작업 목록의 작업 항목에 포함할지 정합니다.</value>
+  </data>
+  <data name="ColColonies" xml:space="preserve">
+    <value>콜로니</value>
+  </data>
+  <data name="ColFreeSlots" xml:space="preserve">
+    <value>빈 슬롯</value>
+  </data>
+  <data name="ColSkills" xml:space="preserve">
+    <value>스킬</value>
+  </data>
+  <data name="ColCommandCenters" xml:space="preserve">
+    <value>통제센터</value>
+  </data>
+  <data name="ColoniesOfAllowed" xml:space="preserve">
+    <value>{0} / {1}</value>
+  </data>
+  <data name="FreeSlotsOther" xml:space="preserve">
+    <value>{0}개 남음</value>
+  </data>
+  <data name="NoFreeSlots" xml:space="preserve">
+    <value>없음</value>
+  </data>
+  <data name="SkillsShort" xml:space="preserve">
+    <value>IC {0} · CCU {1}</value>
+  </data>
+  <data name="TipSkills" xml:space="preserve">
+    <value>행성 관리 (IC): 콜로니 1개에 레벨당 1개씩 추가. 통제센터 업그레이드 (CCU): 통제센터의 최고 레벨.</value>
+  </data>
+  <data name="SlotWithHeadroom" xml:space="preserve">
+    <value>{0}: {1}/{2} ↑</value>
+  </data>
+  <data name="SlotAtMax" xml:space="preserve">
+    <value>{0}: {1}/{2}</value>
+  </data>
+  <data name="NoColonySelected" xml:space="preserve">
+    <value>콜로니 탭에서 콜로니를 고르십시오 — 더블클릭하거나, 선택한 뒤 콜로니 열기를 누르십시오.</value>
+  </data>
+  <data name="DetailSubtitle" xml:space="preserve">
+    <value>{0} · {1} {2} · {3} · {4}</value>
+  </data>
+  <data name="DetailAge" xml:space="preserve">
+    <value>데이터 경과 {0}: 게임에서 마지막으로 연 시각은 {1}입니다. 저장고, 제조시설, 투입 자원 수치는 그 시점부터 추정한 것입니다.</value>
+  </data>
+  <data name="DetailAgeStale" xml:space="preserve">
+    <value>데이터 경과 {0}: 게임에서 마지막으로 연 시각은 {1}로, 너무 오래되어 추정치를 믿을 수 없습니다. 게임에서 콜로니를 열어 갱신하십시오.</value>
+  </data>
+  <data name="SectionCommandCenter" xml:space="preserve">
+    <value>통제센터</value>
+  </data>
+  <data name="DetailCommandCenter" xml:space="preserve">
+    <value>레벨 {0} (허용 최고 {1}) — CPU {2:N0} tf, 파워그리드 {3:N0} MW.</value>
+  </data>
+  <data name="SectionExtractors" xml:space="preserve">
+    <value>추출기 (정확)</value>
+  </data>
+  <data name="NoProduct" xml:space="preserve">
+    <value>추출 자원 미설정</value>
+  </data>
+  <data name="HeadsOther" xml:space="preserve">
+    <value>헤드 {0}개</value>
+  </data>
+  <data name="ProgramFromTo" xml:space="preserve">
+    <value>추출 프로그램 {0} ~ {1}</value>
+  </data>
+  <data name="NoProgram" xml:space="preserve">
+    <value>실행 중인 추출 프로그램 없음</value>
+  </data>
+  <data name="CyclesDoneOfTotal" xml:space="preserve">
+    <value>사이클 {0}/{1}, {2}마다</value>
+  </data>
+  <data name="OutputTotalRemaining" xml:space="preserve">
+    <value>총 {0}, 남은 양 {1}</value>
+  </data>
+  <data name="YieldUnknown" xml:space="preserve">
+    <value>생산량 알 수 없음: ESI가 이 프로그램의 수량을 제공하지 않았습니다.</value>
+  </data>
+  <data name="ExtractorStopped" xml:space="preserve">
+    <value>{0} 정지됨</value>
+  </data>
+  <data name="ExtractorStops" xml:space="preserve">
+    <value>{0} 정지</value>
+  </data>
+  <data name="ChartDone" xml:space="preserve">
+    <value>완료</value>
+  </data>
+  <data name="ChartCurrent" xml:space="preserve">
+    <value>진행 중</value>
+  </data>
+  <data name="ChartAhead" xml:space="preserve">
+    <value>예정</value>
+  </data>
+  <data name="ChartCycle" xml:space="preserve">
+    <value>사이클</value>
+  </data>
+  <data name="ChartUnits" xml:space="preserve">
+    <value>유닛</value>
+  </data>
+  <data name="SectionProcessors" xml:space="preserve">
+    <value>제조시설 (추정)</value>
+  </data>
+  <data name="ColSchematic" xml:space="preserve">
+    <value>설계도</value>
+  </data>
+  <data name="ColOutput" xml:space="preserve">
+    <value>생산품</value>
+  </data>
+  <data name="ColFacility" xml:space="preserve">
+    <value>시설</value>
+  </data>
+  <data name="ColStateEstimated" xml:space="preserve">
+    <value>상태 (추정)</value>
+  </data>
+  <data name="NoSchematic" xml:space="preserve">
+    <value>설치된 설계도 없음</value>
+  </data>
+  <data name="ProcessorRunning" xml:space="preserve">
+    <value>가동 중</value>
+  </data>
+  <data name="ProcessorIdle" xml:space="preserve">
+    <value>대기 중</value>
+  </data>
+  <data name="ProcessorIdleSince" xml:space="preserve">
+    <value>{0}부터 대기 중</value>
+  </data>
+  <data name="SectionStorage" xml:space="preserve">
+    <value>저장시설 및 발사시설 (추정)</value>
+  </data>
+  <data name="ColPin" xml:space="preserve">
+    <value>유형</value>
+  </data>
+  <data name="ColFill" xml:space="preserve">
+    <value>사용률</value>
+  </data>
+  <data name="ColVolume" xml:space="preserve">
+    <value>부피</value>
+  </data>
+  <data name="ColFullEstimated" xml:space="preserve">
+    <value>가득 참</value>
+  </data>
+  <data name="ColContents" xml:space="preserve">
+    <value>내용물</value>
+  </data>
+  <data name="PinStorage" xml:space="preserve">
+    <value>저장시설</value>
+  </data>
+  <data name="PinLaunchpad" xml:space="preserve">
+    <value>발사시설</value>
+  </data>
+  <data name="PinCommandCenter" xml:space="preserve">
+    <value>통제센터</value>
+  </data>
+  <data name="Percent" xml:space="preserve">
+    <value>{0}%</value>
+  </data>
+  <data name="VolumeOfCapacity" xml:space="preserve">
+    <value>{0} / {1} m³</value>
+  </data>
+  <data name="Empty" xml:space="preserve">
+    <value>비어 있음</value>
+  </data>
+  <data name="QuantityOf" xml:space="preserve">
+    <value>{0} × {1}</value>
+  </data>
+  <data name="SectionFlows" xml:space="preserve">
+    <value>일일 흐름</value>
+  </data>
+  <data name="FlowsNote" xml:space="preserve">
+    <value>현재 구성대로 가동할 때 콜로니가 하루에 생산하는 양, 소비하는 양, 수입해야 하는 양, 수출하도록 남기는 양입니다.</value>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>아이템</value>
+  </data>
+  <data name="ColTier" xml:space="preserve">
+    <value>티어</value>
+  </data>
+  <data name="ColProduced" xml:space="preserve">
+    <value>생산</value>
+  </data>
+  <data name="ColConsumed" xml:space="preserve">
+    <value>소비</value>
+  </data>
+  <data name="ColImported" xml:space="preserve">
+    <value>수입</value>
+  </data>
+  <data name="ColExported" xml:space="preserve">
+    <value>수출</value>
+  </data>
+  <data name="SectionEconomics" xml:space="preserve">
+    <value>일일 손익</value>
+  </data>
+  <data name="EconOutputValue" xml:space="preserve">
+    <value>생산품 가치</value>
+  </data>
+  <data name="EconInputCost" xml:space="preserve">
+    <value>투입 자원 비용</value>
+  </data>
+  <data name="EconExportCharges" xml:space="preserve">
+    <value>수출 관세</value>
+  </data>
+  <data name="EconImportCharges" xml:space="preserve">
+    <value>수입 관세</value>
+  </data>
+  <data name="EconProfit" xml:space="preserve">
+    <value>이익</value>
+  </data>
+  <data name="EconTaxRate" xml:space="preserve">
+    <value>세율</value>
+  </data>
+  <data name="RateUnknown" xml:space="preserve">
+    <value>알 수 없음</value>
+  </data>
+  <data name="RateLearned" xml:space="preserve">
+    <value>{0}% — 이 행성의 {1} 세율, {2}에 계좌 저널에서 확인함</value>
+  </data>
+  <data name="RateDefault" xml:space="preserve">
+    <value>{0}% — 설정 → 산업의 {1} 기본값 (이 행성의 세율은 아직 확인되지 않음)</value>
+  </data>
+  <data name="CustomsOffice" xml:space="preserve">
+    <value>세관 사무소</value>
+  </data>
+  <data name="Skyhook" xml:space="preserve">
+    <value>스카이훅</value>
+  </data>
+</root>

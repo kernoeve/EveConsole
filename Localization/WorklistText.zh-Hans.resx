@@ -2161,4 +2161,70 @@
   <data name="SummaryWorstShown" xml:space="preserve">
     <value>仅显示最严重的 {0} 项；其余见对应标签页。</value>
   </data>
+  <data name="SourcePlanetaryIndustry" xml:space="preserve">
+    <value>行星开发</value>
+  </data>
+  <data name="KindPi" xml:space="preserve">
+    <value>行星开发</value>
+  </data>
+  <data name="KindTipPi" xml:space="preserve">
+    <value>行星开发</value>
+  </data>
+  <data name="PiRestartTitle" xml:space="preserve">
+    <value>重启 {0} 上的采集器</value>
+  </data>
+  <data name="PiRestartStoppedDetail" xml:space="preserve">
+    <value>已于 {0} 前停止，停止时间：{1}（精确）。</value>
+  </data>
+  <data name="PiRestartStoppingDetail" xml:space="preserve">
+    <value>将在 {0} 后停止，停止时间：{1}（精确）。</value>
+  </data>
+  <data name="PiRestartWaiting" xml:space="preserve">
+    <value>仍将运行 {0}</value>
+  </data>
+  <data name="PiHaulOutTitle" xml:space="preserve">
+    <value>运走 {0} 的产出</value>
+  </data>
+  <data name="PiHaulOutSystemOther" xml:space="preserve">
+    <value>运走 {1} 中 {0} 颗行星的产出</value>
+  </data>
+  <data name="PiHaulOutFull" xml:space="preserve">
+    <value>{0}：储藏已满，产出正在损失（预计）</value>
+  </data>
+  <data name="PiHaulOutFilling" xml:space="preserve">
+    <value>{0}：储藏将在 {1} 后装满（预计）</value>
+  </data>
+  <data name="PiHaulOutCollect" xml:space="preserve">
+    <value>{0}：产出已占储藏一半或以上（预计）</value>
+  </data>
+  <data name="PiStaleNote" xml:space="preserve">
+    <value>这些数字是根据旧数据推算的：该殖民地已有一段时间未在游戏中打开。</value>
+  </data>
+  <data name="PiHaulInTitle" xml:space="preserve">
+    <value>向 {0} 运送原料</value>
+  </data>
+  <data name="PiHaulInOutDetailOther" xml:space="preserve">
+    <value>原料已于 {1} 前耗尽（预计）：工厂处于空闲。此趟可提供 {0} 天的运转量。</value>
+  </data>
+  <data name="PiHaulInLowDetailOther" xml:space="preserve">
+    <value>原料将在 {1} 后耗尽（预计）。此趟可提供 {0} 天的运转量。</value>
+  </data>
+  <data name="PiSetUpTitleOther" xml:space="preserve">
+    <value>建立殖民地——{0} 个栏位空闲</value>
+  </data>
+  <data name="PiSetUpDetail" xml:space="preserve">
+    <value>已使用 {0} / {1} 个殖民地；行星统筹管理学允许 {1} 个。</value>
+  </data>
+  <data name="PiUpgradeTitle" xml:space="preserve">
+    <value>将 {0} 上的指挥中心升级到 {1} 级</value>
+  </data>
+  <data name="PiUpgradeDetail" xml:space="preserve">
+    <value>当前为 {0} 级；指挥中心升级理论允许 {1} 级。升级可为采集点和工厂提供更多 CPU 和能量栅格。</value>
+  </data>
+  <data name="PiOpenTitle" xml:space="preserve">
+    <value>在游戏中打开 {0}</value>
+  </data>
+  <data name="PiOpenDetail" xml:space="preserve">
+    <value>其数据已有 {0}，预计数据已不可信。在游戏中打开该殖民地即可刷新。</value>
+  </data>
 </root>

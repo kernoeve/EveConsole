@@ -3337,4 +3337,73 @@ Die Anwendung wird neu gestartet.</value>
   <data name="DiscordErrHttp" xml:space="preserve">
     <value>Von Discord abgelehnt (HTTP {0}): {1}</value>
   </data>
+  <data name="ColPi" xml:space="preserve">
+    <value>PI</value>
+  </data>
+  <data name="TipCharacterDoesPi" xml:space="preserve">
+    <value>Der Charakter betreibt Planetare Industrie. Ohne Häkchen bleibt der Charakter im PI-Tool außen vor, erhält keine PI-Warnungen oder -Arbeitslistenaufgaben, und seine Kolonien werden nicht gelesen.</value>
+  </data>
+  <data name="PiTaxTitle" xml:space="preserve">
+    <value>Steuer der Planetaren Industrie</value>
+  </data>
+  <data name="PiTaxNote" xml:space="preserve">
+    <value>Was ein Planet für Güter berechnet, die von ihm exportiert oder auf ihn importiert werden, bis sein eigener Satz nach einem Export oder Import dort aus dem Konto-Logbuch ermittelt wurde. Zollämter gibt es in Hochsicherheit, Niedersicherheit, Wurmlöchern und NPC-Nullsicherheit; in Nullsicherheit mit Souveränität stehen stattdessen Skyhooks. Importieren kostet die Hälfte des Exportierens.</value>
+  </data>
+  <data name="PiTaxCustomsDefault" xml:space="preserve">
+    <value>Zollamt-Steuer</value>
+  </data>
+  <data name="PiTaxSkyhookDefault" xml:space="preserve">
+    <value>Skyhook-Steuer</value>
+  </data>
+  <data name="PiTimingTitle" xml:space="preserve">
+    <value>Warnungen und Aufgaben der Planetaren Industrie</value>
+  </data>
+  <data name="PiTimingNote" xml:space="preserve">
+    <value>Wie weit die PI-Warnungen der Übersicht und die PI-Aufgaben der Arbeitsliste vorausschauen, ab wann die Daten einer Kolonie zu alt sind, um ihnen zu trauen, und wie viel Material ein Transport bringt. Welche Warnungen überhaupt ausgelöst werden, legen Sie im Tab „Warnungen“ fest.</value>
+  </data>
+  <data name="PiLeadExtractors" xml:space="preserve">
+    <value>Extraktoren stoppen</value>
+  </data>
+  <data name="PiLeadStorage" xml:space="preserve">
+    <value>Lager oder Launchpad voll</value>
+  </data>
+  <data name="PiLeadInputs" xml:space="preserve">
+    <value>Fabrikmaterial geht aus</value>
+  </data>
+  <data name="PiHoursAhead" xml:space="preserve">
+    <value>Stunden vorher (exakt)</value>
+  </data>
+  <data name="PiHoursAheadEstimated" xml:space="preserve">
+    <value>Stunden vorher (geschätzt)</value>
+  </data>
+  <data name="PiStaleAfter" xml:space="preserve">
+    <value>Koloniedaten zu alt nach</value>
+  </data>
+  <data name="PiInputDays" xml:space="preserve">
+    <value>Ein Materialtransport bringt</value>
+  </data>
+  <data name="PiDaysOfRunning" xml:space="preserve">
+    <value>Tage Betrieb</value>
+  </data>
+  <data name="PiAlertsTitle" xml:space="preserve">
+    <value>Planetare Industrie</value>
+  </data>
+  <data name="PiAlertExtractors" xml:space="preserve">
+    <value>Extraktoren gestoppt oder bald gestoppt</value>
+  </data>
+  <data name="PiAlertStorage" xml:space="preserve">
+    <value>Lager oder Launchpad voll oder bald voll (geschätzt)</value>
+  </data>
+  <data name="PiAlertInputs" xml:space="preserve">
+    <value>Material eines Fabrikplaneten aufgebraucht oder bald aufgebraucht (geschätzt)</value>
+  </data>
+  <data name="PiAlertFreeSlots" xml:space="preserve">
+    <value>Ein PI-Charakter hat einen ungenutzten Kolonie-Slot</value>
+  </data>
+  <data name="PiAlertStale" xml:space="preserve">
+    <value>Eine Kolonie wurde zu lange nicht im Spiel geöffnet, um ihren Schätzungen zu trauen</value>
+  </data>
+  <data name="PiAlertsNote" xml:space="preserve">
+    <value>Nur Charaktere mit gesetztem PI-Häkchen im Tab „Charaktere“. Wie bald „bald“ ist und wie alt zu alt ist, legen Sie im Tab „Industrie“ fest; die PI-Aufgaben der Arbeitsliste verwenden dieselben Zeiten.</value>
+  </data>
 </root>

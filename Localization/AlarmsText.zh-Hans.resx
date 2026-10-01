@@ -1387,4 +1387,40 @@
   <data name="IntelSaidJumpsFromOther" xml:space="preserve">
     <value>距离 {1} {0} 跳</value>
   </data>
+  <data name="CheckPi" xml:space="preserve">
+    <value>行星开发</value>
+  </data>
+  <data name="CheckPiNote" xml:space="preserve">
+    <value>针对进行行星开发的角色的殖民地触发：采集器的开采方案已结束或即将结束（精确），储藏设施或发射平台已满，或工厂行星的原料即将耗尽（后两者均根据该殖民地最近一次在游戏中被打开时的数据推算）。每个殖民地的事件只触发一次；重新运行采集器或再次打开该殖民地后，它会重新算作新事件。</value>
+  </data>
+  <data name="PiWatchLabel" xml:space="preserve">
+    <value>监视内容</value>
+  </data>
+  <data name="PiWatchNote" xml:space="preserve">
+    <value>对三者中的哪一项触发。</value>
+  </data>
+  <data name="PiLeadLabel" xml:space="preserve">
+    <value>预警时间</value>
+  </data>
+  <data name="PiLeadNote" xml:space="preserve">
+    <value>在事件发生前这么多小时触发。0 表示在发生时触发。</value>
+  </data>
+  <data name="PiLeadSuffix" xml:space="preserve">
+    <value>小时</value>
+  </data>
+  <data name="OptionPiAll" xml:space="preserve">
+    <value>全部三项</value>
+  </data>
+  <data name="OptionPiExtractors" xml:space="preserve">
+    <value>采集器即将停止</value>
+  </data>
+  <data name="OptionPiStorage" xml:space="preserve">
+    <value>储藏即将装满</value>
+  </data>
+  <data name="OptionPiInputs" xml:space="preserve">
+    <value>原料即将耗尽</value>
+  </data>
+  <data name="PiTitleOther" xml:space="preserve">
+    <value>{0} 个行星开发殖民地需要处理</value>
+  </data>
 </root>

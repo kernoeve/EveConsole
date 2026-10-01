@@ -2161,4 +2161,70 @@
   <data name="SummaryWorstShown" xml:space="preserve">
     <value>深刻な上位{0}件を表示しています。残りはタブにあります。</value>
   </data>
+  <data name="SourcePlanetaryIndustry" xml:space="preserve">
+    <value>惑星インダストリー</value>
+  </data>
+  <data name="KindPi" xml:space="preserve">
+    <value>PI</value>
+  </data>
+  <data name="KindTipPi" xml:space="preserve">
+    <value>惑星インダストリー</value>
+  </data>
+  <data name="PiRestartTitle" xml:space="preserve">
+    <value>{0}で抽出を再開する</value>
+  </data>
+  <data name="PiRestartStoppedDetail" xml:space="preserve">
+    <value>{0}前（{1}）に停止しました（正確）。</value>
+  </data>
+  <data name="PiRestartStoppingDetail" xml:space="preserve">
+    <value>{0}後（{1}）に停止します（正確）。</value>
+  </data>
+  <data name="PiRestartWaiting" xml:space="preserve">
+    <value>まだ稼働中（残り{0}）</value>
+  </data>
+  <data name="PiHaulOutTitle" xml:space="preserve">
+    <value>{0}から産出物を運び出す</value>
+  </data>
+  <data name="PiHaulOutSystemOther" xml:space="preserve">
+    <value>{1}の惑星{0}個から産出物を運び出す</value>
+  </data>
+  <data name="PiHaulOutFull" xml:space="preserve">
+    <value>{0}：保管施設が満杯で、産出物が失われています（推定）</value>
+  </data>
+  <data name="PiHaulOutFilling" xml:space="preserve">
+    <value>{0}：{1}後に保管施設が満杯（推定）</value>
+  </data>
+  <data name="PiHaulOutCollect" xml:space="preserve">
+    <value>{0}：産出物で半分以上埋まっています（推定）</value>
+  </data>
+  <data name="PiStaleNote" xml:space="preserve">
+    <value>数値は古いデータからの推定です：このコロニーはしばらくゲーム内で開かれていません。</value>
+  </data>
+  <data name="PiHaulInTitle" xml:space="preserve">
+    <value>{0}へ投入資源を運ぶ</value>
+  </data>
+  <data name="PiHaulInOutDetailOther" xml:space="preserve">
+    <value>{1}前に投入資源が枯渇しました（推定）：工場は待機中です。{0}日分の稼働量を運びます。</value>
+  </data>
+  <data name="PiHaulInLowDetailOther" xml:space="preserve">
+    <value>{1}後に投入資源が枯渇します（推定）。{0}日分の稼働量を運びます。</value>
+  </data>
+  <data name="PiSetUpTitleOther" xml:space="preserve">
+    <value>コロニーを設置する — 空きスロット{0}個</value>
+  </data>
+  <data name="PiSetUpDetail" xml:space="preserve">
+    <value>使用中のコロニーは{1}か所中{0}か所です。惑星間コンソリデーションの上限は{1}か所です。</value>
+  </data>
+  <data name="PiUpgradeTitle" xml:space="preserve">
+    <value>{0}の司令基地をレベル{1}にアップグレードする</value>
+  </data>
+  <data name="PiUpgradeDetail" xml:space="preserve">
+    <value>現在はレベル{0}で、司令基地強化の上限は{1}です。エクストラクターの抽出ヘッドと工場に使えるCPUとパワーグリッドが増えます。</value>
+  </data>
+  <data name="PiOpenTitle" xml:space="preserve">
+    <value>ゲーム内で{0}を開く</value>
+  </data>
+  <data name="PiOpenDetail" xml:space="preserve">
+    <value>データが{0}前のもので、推定値はもう信頼できません。ゲーム内でコロニーを開くと更新されます。</value>
+  </data>
 </root>

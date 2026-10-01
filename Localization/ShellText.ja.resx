@@ -617,4 +617,7 @@ PID：{2}
   <data name="TrayExit" xml:space="preserve">
     <value>終了</value>
   </data>
+  <data name="NavPlanetaryIndustry" xml:space="preserve">
+    <value>惑星インダストリー</value>
+  </data>
 </root>

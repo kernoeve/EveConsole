@@ -2224,4 +2224,106 @@
   <data name="SummaryWorstShown" xml:space="preserve">
     <value>Показаны худшие ({0}); остальные — на вкладке.</value>
   </data>
+  <data name="SourcePlanetaryIndustry" xml:space="preserve">
+    <value>Планетарная промышленность</value>
+  </data>
+  <data name="KindPi" xml:space="preserve">
+    <value>PI</value>
+  </data>
+  <data name="KindTipPi" xml:space="preserve">
+    <value>Планетарная промышленность</value>
+  </data>
+  <data name="PiRestartTitle" xml:space="preserve">
+    <value>{0} — перезапустить экстракторы</value>
+  </data>
+  <data name="PiRestartStoppedDetail" xml:space="preserve">
+    <value>Остановлены {0} назад, в {1} (точно).</value>
+  </data>
+  <data name="PiRestartStoppingDetail" xml:space="preserve">
+    <value>Остановятся через {0}, в {1} (точно).</value>
+  </data>
+  <data name="PiRestartWaiting" xml:space="preserve">
+    <value>Работают ещё {0}</value>
+  </data>
+  <data name="PiHaulOutTitle" xml:space="preserve">
+    <value>{0} — вывезти продукцию</value>
+  </data>
+  <data name="PiHaulOutSystemOne" xml:space="preserve">
+    <value>{1} — вывезти продукцию с {0} планеты</value>
+  </data>
+  <data name="PiHaulOutSystemOther" xml:space="preserve">
+    <value>{1} — вывезти продукцию с {0} планеты</value>
+  </data>
+  <data name="PiHaulOutSystemFew" xml:space="preserve">
+    <value>{1} — вывезти продукцию с {0} планет</value>
+  </data>
+  <data name="PiHaulOutSystemMany" xml:space="preserve">
+    <value>{1} — вывезти продукцию с {0} планет</value>
+  </data>
+  <data name="PiHaulOutFull" xml:space="preserve">
+    <value>{0}: хранилище заполнено, продукция теряется (оценка)</value>
+  </data>
+  <data name="PiHaulOutFilling" xml:space="preserve">
+    <value>{0}: хранилище заполнится через {1} (оценка)</value>
+  </data>
+  <data name="PiHaulOutCollect" xml:space="preserve">
+    <value>{0}: хранилище заполнено продукцией наполовину или больше (оценка)</value>
+  </data>
+  <data name="PiStaleNote" xml:space="preserve">
+    <value>Цифры рассчитаны по устаревшим данным: колонию давно не открывали в игре.</value>
+  </data>
+  <data name="PiHaulInTitle" xml:space="preserve">
+    <value>{0} — доставить материалы</value>
+  </data>
+  <data name="PiHaulInOutDetailOne" xml:space="preserve">
+    <value>Материалы кончились {1} назад (оценка): производственные комплексы простаивают. Доставка — на {0} день работы.</value>
+  </data>
+  <data name="PiHaulInOutDetailOther" xml:space="preserve">
+    <value>Материалы кончились {1} назад (оценка): производственные комплексы простаивают. Доставка — на {0} дня работы.</value>
+  </data>
+  <data name="PiHaulInOutDetailFew" xml:space="preserve">
+    <value>Материалы кончились {1} назад (оценка): производственные комплексы простаивают. Доставка — на {0} дня работы.</value>
+  </data>
+  <data name="PiHaulInOutDetailMany" xml:space="preserve">
+    <value>Материалы кончились {1} назад (оценка): производственные комплексы простаивают. Доставка — на {0} дней работы.</value>
+  </data>
+  <data name="PiHaulInLowDetailOne" xml:space="preserve">
+    <value>Материалы кончатся через {1} (оценка). Доставка — на {0} день работы.</value>
+  </data>
+  <data name="PiHaulInLowDetailOther" xml:space="preserve">
+    <value>Материалы кончатся через {1} (оценка). Доставка — на {0} дня работы.</value>
+  </data>
+  <data name="PiHaulInLowDetailFew" xml:space="preserve">
+    <value>Материалы кончатся через {1} (оценка). Доставка — на {0} дня работы.</value>
+  </data>
+  <data name="PiHaulInLowDetailMany" xml:space="preserve">
+    <value>Материалы кончатся через {1} (оценка). Доставка — на {0} дней работы.</value>
+  </data>
+  <data name="PiSetUpTitleOne" xml:space="preserve">
+    <value>Основать колонию — свободен {0} слот</value>
+  </data>
+  <data name="PiSetUpTitleOther" xml:space="preserve">
+    <value>Основать колонию — свободно {0} слота</value>
+  </data>
+  <data name="PiSetUpTitleFew" xml:space="preserve">
+    <value>Основать колонию — свободно {0} слота</value>
+  </data>
+  <data name="PiSetUpTitleMany" xml:space="preserve">
+    <value>Основать колонию — свободно {0} слотов</value>
+  </data>
+  <data name="PiSetUpDetail" xml:space="preserve">
+    <value>Используется колоний: {0} из {1}; навык «Параллельное управление наземными базами» позволяет {1}.</value>
+  </data>
+  <data name="PiUpgradeTitle" xml:space="preserve">
+    <value>{0} — улучшить командный центр до уровня {1}</value>
+  </data>
+  <data name="PiUpgradeDetail" xml:space="preserve">
+    <value>Сейчас уровень {0}; навык «Модификации наземной базы» позволяет {1}. Больше ЦПУ и энергосети для головок экстракторов и производственных комплексов.</value>
+  </data>
+  <data name="PiOpenTitle" xml:space="preserve">
+    <value>{0} — открыть в игре</value>
+  </data>
+  <data name="PiOpenDetail" xml:space="preserve">
+    <value>Возраст данных — {0}, и оценкам больше нельзя доверять. Если открыть колонию в игре, данные обновятся.</value>
+  </data>
 </root>

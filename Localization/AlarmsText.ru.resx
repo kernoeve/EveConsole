@@ -1477,4 +1477,49 @@
   <data name="IntelSaidJumpsFromMany" xml:space="preserve">
     <value>в {0} прыжках от {1}</value>
   </data>
+  <data name="CheckPi" xml:space="preserve">
+    <value>Планетарная промышленность</value>
+  </data>
+  <data name="CheckPiNote" xml:space="preserve">
+    <value>Срабатывает для колоний персонажей, занятых PI: программа экстрактора закончилась или скоро закончится (точно), хранилище или стартовая площадка заполнены, или у производственной планеты кончаются материалы (последние два — оценка с момента, когда колонию в последний раз открывали в игре). Каждое событие колонии срабатывает один раз; после перезапуска экстракторов или нового открытия колонии оно снова считается новым.</value>
+  </data>
+  <data name="PiWatchLabel" xml:space="preserve">
+    <value>Следить за</value>
+  </data>
+  <data name="PiWatchNote" xml:space="preserve">
+    <value>На какое из трёх событий срабатывать.</value>
+  </data>
+  <data name="PiLeadLabel" xml:space="preserve">
+    <value>Упреждение</value>
+  </data>
+  <data name="PiLeadNote" xml:space="preserve">
+    <value>Срабатывать за столько часов до события. 0 — в момент события.</value>
+  </data>
+  <data name="PiLeadSuffix" xml:space="preserve">
+    <value>ч</value>
+  </data>
+  <data name="OptionPiAll" xml:space="preserve">
+    <value>Все три</value>
+  </data>
+  <data name="OptionPiExtractors" xml:space="preserve">
+    <value>Остановка экстракторов</value>
+  </data>
+  <data name="OptionPiStorage" xml:space="preserve">
+    <value>Заполнение хранилища</value>
+  </data>
+  <data name="OptionPiInputs" xml:space="preserve">
+    <value>Материалы на исходе</value>
+  </data>
+  <data name="PiTitleOne" xml:space="preserve">
+    <value>{0} колония планетарной промышленности требует внимания</value>
+  </data>
+  <data name="PiTitleOther" xml:space="preserve">
+    <value>{0} колонии планетарной промышленности требуют внимания</value>
+  </data>
+  <data name="PiTitleFew" xml:space="preserve">
+    <value>{0} колонии планетарной промышленности требуют внимания</value>
+  </data>
+  <data name="PiTitleMany" xml:space="preserve">
+    <value>{0} колоний планетарной промышленности требуют внимания</value>
+  </data>
 </root>

@@ -623,4 +623,7 @@ Actualiza a la versión {1} el cliente que ejecuta los procesos en segundo plano
   <data name="TrayExit" xml:space="preserve">
     <value>Salir</value>
   </data>
+  <data name="NavPlanetaryIndustry" xml:space="preserve">
+    <value>Industria planetaria</value>
+  </data>
 </root>

@@ -1,0 +1,442 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="PlanetWithId" xml:space="preserve">
+    <value>行星 {0}</value>
+  </data>
+  <data name="TypeWithId" xml:space="preserve">
+    <value>类型 {0}</value>
+  </data>
+  <data name="DurationDaysHours" xml:space="preserve">
+    <value>{0} 天 {1} 小时</value>
+  </data>
+  <data name="InDuration" xml:space="preserve">
+    <value>{0} 后</value>
+  </data>
+  <data name="AgoDuration" xml:space="preserve">
+    <value>{0} 前</value>
+  </data>
+  <data name="Updated" xml:space="preserve">
+    <value>更新于 {0}</value>
+  </data>
+  <data name="SummarySeparator" xml:space="preserve">
+    <value> · </value>
+  </data>
+  <data name="SummaryColoniesOther" xml:space="preserve">
+    <value>{0} 个殖民地</value>
+  </data>
+  <data name="SummaryStoppedOther" xml:space="preserve">
+    <value>{0} 个采集器已停止</value>
+  </data>
+  <data name="SummaryHaulingOther" xml:space="preserve">
+    <value>{0} 个需要运走产出</value>
+  </data>
+  <data name="SummaryInputsOther" xml:space="preserve">
+    <value>{0} 个原料不足</value>
+  </data>
+  <data name="TabColonies" xml:space="preserve">
+    <value>殖民地</value>
+  </data>
+  <data name="TabColony" xml:space="preserve">
+    <value>殖民地详情</value>
+  </data>
+  <data name="TabCharacters" xml:space="preserve">
+    <value>角色</value>
+  </data>
+  <data name="OpenColony" xml:space="preserve">
+    <value>查看殖民地</value>
+  </data>
+  <data name="TipOpenColony" xml:space="preserve">
+    <value>显示所选殖民地的详情：设施、物流和收支。双击某一行也可以。</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>刷新</value>
+  </data>
+  <data name="TipRefresh" xml:space="preserve">
+    <value>重新读取殖民地。列表打开时也会每分钟自动刷新；新的殖民地布局每十分钟从 ESI 读取一次。</value>
+  </data>
+  <data name="EstimatesNote" xml:space="preserve">
+    <value>采集器时间是精确的。储藏和原料时间是预计值，根据每个殖民地最近一次在游戏中被打开时的数据推演；“数据距今”列显示那是多久以前。</value>
+  </data>
+  <data name="EmptyNote" xml:space="preserve">
+    <value>暂无殖民地可显示。系统会为在“设置 → 角色”中勾选了 PI 的角色读取殖民地；殖民地的布局从 ESI 读取后才会出现在这里，而 ESI 中的布局是该殖民地最近一次在游戏中被打开时的状态。</value>
+  </data>
+  <data name="ColCharacter" xml:space="preserve">
+    <value>角色</value>
+  </data>
+  <data name="ColPlanet" xml:space="preserve">
+    <value>行星</value>
+  </data>
+  <data name="ColSystem" xml:space="preserve">
+    <value>星系</value>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>类型</value>
+  </data>
+  <data name="ColKind" xml:space="preserve">
+    <value>用途</value>
+  </data>
+  <data name="ColCc" xml:space="preserve">
+    <value>等级</value>
+  </data>
+  <data name="ColExtractorsEnd" xml:space="preserve">
+    <value>采集结束</value>
+  </data>
+  <data name="ColStorageFull" xml:space="preserve">
+    <value>储藏装满</value>
+  </data>
+  <data name="ColInputsRunOut" xml:space="preserve">
+    <value>原料耗尽</value>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>状态</value>
+  </data>
+  <data name="ColDataAge" xml:space="preserve">
+    <value>数据距今</value>
+  </data>
+  <data name="ColProfit" xml:space="preserve">
+    <value>利润</value>
+  </data>
+  <data name="LevelOfMax" xml:space="preserve">
+    <value>{0} / {1}</value>
+  </data>
+  <data name="TipCcHeadroom" xml:space="preserve">
+    <value>指挥中心等级 {0}；指挥中心升级理论允许 {1} 级，因此可以升级。</value>
+  </data>
+  <data name="TipCcAtMax" xml:space="preserve">
+    <value>指挥中心等级 {0}：已达指挥中心升级理论允许的最高等级。</value>
+  </data>
+  <data name="Stopped" xml:space="preserve">
+    <value>已停止</value>
+  </data>
+  <data name="TipExtractorsStopped" xml:space="preserve">
+    <value>第一个采集器已于 {0} 前停止，停止时间：{1}。精确：采集器开采方案的结束时间在设定时即已确定。</value>
+  </data>
+  <data name="TipExtractorsStop" xml:space="preserve">
+    <value>第一个采集器将于 {0} 停止。精确：采集器开采方案的结束时间在设定时即已确定。</value>
+  </data>
+  <data name="TipNoExtractors" xml:space="preserve">
+    <value>此殖民地没有采集器。</value>
+  </data>
+  <data name="Full" xml:space="preserve">
+    <value>已满</value>
+  </data>
+  <data name="TipStorageFull" xml:space="preserve">
+    <value>预计自 {0} 起已满：现在到达的产出会损失。根据该殖民地最近一次在游戏中被打开时的数据推算。</value>
+  </data>
+  <data name="TipStorageFills" xml:space="preserve">
+    <value>预计将于 {0} 装满，根据该殖民地最近一次在游戏中被打开时的数据推算。</value>
+  </data>
+  <data name="NotWithinHorizon" xml:space="preserve">
+    <value>30 天内不会</value>
+  </data>
+  <data name="TipStorageNotFull" xml:space="preserve">
+    <value>在预计所覆盖的 30 天内，储藏不会装满。</value>
+  </data>
+  <data name="RanOut" xml:space="preserve">
+    <value>已耗尽</value>
+  </data>
+  <data name="TipInputsOut" xml:space="preserve">
+    <value>预计已于 {0} 耗尽：其工厂处于空闲。根据该殖民地最近一次在游戏中被打开时的数据推算。</value>
+  </data>
+  <data name="TipInputsRunOut" xml:space="preserve">
+    <value>预计将于 {0} 耗尽，根据该殖民地最近一次在游戏中被打开时的数据推算。</value>
+  </data>
+  <data name="TipInputsNotOut" xml:space="preserve">
+    <value>运入的原料可支撑超过预计所覆盖的 30 天。</value>
+  </data>
+  <data name="TipNoInputs" xml:space="preserve">
+    <value>无需运入任何东西：采集行星自产原料。</value>
+  </data>
+  <data name="StateAction" xml:space="preserve">
+    <value>需处理</value>
+  </data>
+  <data name="StateAttention" xml:space="preserve">
+    <value>注意</value>
+  </data>
+  <data name="StateOk" xml:space="preserve">
+    <value>正常</value>
+  </data>
+  <data name="AgeStale" xml:space="preserve">
+    <value>{0}（过旧）</value>
+  </data>
+  <data name="TipAge" xml:space="preserve">
+    <value>最近一次在游戏中打开于 {0}。</value>
+  </data>
+  <data name="TipAgeStale" xml:space="preserve">
+    <value>最近一次在游戏中打开于 {0}：时间太久，预计数据已不可信。在游戏中打开该殖民地即可刷新。</value>
+  </data>
+  <data name="PerDay" xml:space="preserve">
+    <value>{0}/天</value>
+  </data>
+  <data name="TipProfit" xml:space="preserve">
+    <value>每天产出 {0}，减去原料 {1} 和进出口税 {2}，按市场价格计算。</value>
+  </data>
+  <data name="KindExtractor" xml:space="preserve">
+    <value>采集</value>
+  </data>
+  <data name="KindFactory" xml:space="preserve">
+    <value>工厂</value>
+  </data>
+  <data name="KindEmpty" xml:space="preserve">
+    <value>空</value>
+  </data>
+  <data name="ReasonExtractorsStopped" xml:space="preserve">
+    <value>采集器已停止。</value>
+  </data>
+  <data name="ReasonExtractorsStopping" xml:space="preserve">
+    <value>采集器将在预警时间内停止。</value>
+  </data>
+  <data name="ReasonStorageFull" xml:space="preserve">
+    <value>储藏已满（预计）。</value>
+  </data>
+  <data name="ReasonStorageFilling" xml:space="preserve">
+    <value>储藏将在预警时间内装满（预计）。</value>
+  </data>
+  <data name="ReasonInputsOut" xml:space="preserve">
+    <value>原料已耗尽（预计）。</value>
+  </data>
+  <data name="ReasonInputsLow" xml:space="preserve">
+    <value>原料将在预警时间内耗尽（预计）。</value>
+  </data>
+  <data name="ReasonStale" xml:space="preserve">
+    <value>数据过旧，不可信。</value>
+  </data>
+  <data name="ReasonNothingDue" xml:space="preserve">
+    <value>预警时间内没有到期事项。</value>
+  </data>
+  <data name="CharactersNote" xml:space="preserve">
+    <value>在“设置 → 角色”中勾选了 PI 的角色。殖民地栏位数量取决于行星统筹管理学；指挥中心等级上限取决于指挥中心升级理论。</value>
+  </data>
+  <data name="OpenPiSwitch" xml:space="preserve">
+    <value>设置中的 PI 选项…</value>
+  </data>
+  <data name="TipOpenPiSwitch" xml:space="preserve">
+    <value>打开“设置 → 角色”，每个角色的 PI 复选框决定它是否出现在此工具、其提醒和工作项中。</value>
+  </data>
+  <data name="ColColonies" xml:space="preserve">
+    <value>殖民地</value>
+  </data>
+  <data name="ColFreeSlots" xml:space="preserve">
+    <value>空闲栏位</value>
+  </data>
+  <data name="ColSkills" xml:space="preserve">
+    <value>技能</value>
+  </data>
+  <data name="ColCommandCenters" xml:space="preserve">
+    <value>指挥中心</value>
+  </data>
+  <data name="ColoniesOfAllowed" xml:space="preserve">
+    <value>{0} / {1}</value>
+  </data>
+  <data name="FreeSlotsOther" xml:space="preserve">
+    <value>{0} 个空闲</value>
+  </data>
+  <data name="NoFreeSlots" xml:space="preserve">
+    <value>无</value>
+  </data>
+  <data name="SkillsShort" xml:space="preserve">
+    <value>IC {0} · CCU {1}</value>
+  </data>
+  <data name="TipSkills" xml:space="preserve">
+    <value>行星统筹管理学（IC）：一个殖民地，每级再加一个。指挥中心升级理论（CCU）：指挥中心的最高等级。</value>
+  </data>
+  <data name="SlotWithHeadroom" xml:space="preserve">
+    <value>{0}：{1}/{2} ↑</value>
+  </data>
+  <data name="SlotAtMax" xml:space="preserve">
+    <value>{0}：{1}/{2}</value>
+  </data>
+  <data name="NoColonySelected" xml:space="preserve">
+    <value>请在“殖民地”标签页中选择一个殖民地——双击它，或选中后点击“查看殖民地”。</value>
+  </data>
+  <data name="DetailSubtitle" xml:space="preserve">
+    <value>{0} · {1} {2} · {3} · {4}</value>
+  </data>
+  <data name="DetailAge" xml:space="preserve">
+    <value>数据已有 {0}：最近一次在游戏中打开于 {1}。储藏、工厂和原料数字均从那时起推算。</value>
+  </data>
+  <data name="DetailAgeStale" xml:space="preserve">
+    <value>数据已有 {0}：最近一次在游戏中打开于 {1}，时间太久，预计数据已不可信。在游戏中打开该殖民地即可刷新。</value>
+  </data>
+  <data name="SectionCommandCenter" xml:space="preserve">
+    <value>指挥中心</value>
+  </data>
+  <data name="DetailCommandCenter" xml:space="preserve">
+    <value>等级 {0}，最高允许 {1}——{2:N0} tf CPU，{3:N0} MW 能量栅格。</value>
+  </data>
+  <data name="SectionExtractors" xml:space="preserve">
+    <value>采集器（精确）</value>
+  </data>
+  <data name="NoProduct" xml:space="preserve">
+    <value>未设置产物</value>
+  </data>
+  <data name="HeadsOther" xml:space="preserve">
+    <value>{0} 个采集点</value>
+  </data>
+  <data name="ProgramFromTo" xml:space="preserve">
+    <value>开采方案：{0} 至 {1}</value>
+  </data>
+  <data name="NoProgram" xml:space="preserve">
+    <value>没有运行中的开采方案</value>
+  </data>
+  <data name="CyclesDoneOfTotal" xml:space="preserve">
+    <value>已完成 {0} / {1} 个周期，每周期 {2}</value>
+  </data>
+  <data name="OutputTotalRemaining" xml:space="preserve">
+    <value>共 {0}，尚有 {1} 待产出</value>
+  </data>
+  <data name="YieldUnknown" xml:space="preserve">
+    <value>产量未知：ESI 未提供此开采方案的数量。</value>
+  </data>
+  <data name="ExtractorStopped" xml:space="preserve">
+    <value>{0}已停止</value>
+  </data>
+  <data name="ExtractorStops" xml:space="preserve">
+    <value>{0}停止</value>
+  </data>
+  <data name="ChartDone" xml:space="preserve">
+    <value>已完成</value>
+  </data>
+  <data name="ChartCurrent" xml:space="preserve">
+    <value>进行中</value>
+  </data>
+  <data name="ChartAhead" xml:space="preserve">
+    <value>待进行</value>
+  </data>
+  <data name="ChartCycle" xml:space="preserve">
+    <value>周期</value>
+  </data>
+  <data name="ChartUnits" xml:space="preserve">
+    <value>数量</value>
+  </data>
+  <data name="SectionProcessors" xml:space="preserve">
+    <value>工厂（预计）</value>
+  </data>
+  <data name="ColSchematic" xml:space="preserve">
+    <value>加工方案</value>
+  </data>
+  <data name="ColOutput" xml:space="preserve">
+    <value>产出</value>
+  </data>
+  <data name="ColFacility" xml:space="preserve">
+    <value>设施</value>
+  </data>
+  <data name="ColStateEstimated" xml:space="preserve">
+    <value>状态（预计）</value>
+  </data>
+  <data name="NoSchematic" xml:space="preserve">
+    <value>未配备加工方案</value>
+  </data>
+  <data name="ProcessorRunning" xml:space="preserve">
+    <value>运行中</value>
+  </data>
+  <data name="ProcessorIdle" xml:space="preserve">
+    <value>空闲</value>
+  </data>
+  <data name="ProcessorIdleSince" xml:space="preserve">
+    <value>自 {0} 起空闲</value>
+  </data>
+  <data name="SectionStorage" xml:space="preserve">
+    <value>储藏设施和发射平台（预计）</value>
+  </data>
+  <data name="ColPin" xml:space="preserve">
+    <value>类型</value>
+  </data>
+  <data name="ColFill" xml:space="preserve">
+    <value>填充率</value>
+  </data>
+  <data name="ColVolume" xml:space="preserve">
+    <value>体积</value>
+  </data>
+  <data name="ColFullEstimated" xml:space="preserve">
+    <value>装满时间</value>
+  </data>
+  <data name="ColContents" xml:space="preserve">
+    <value>内容</value>
+  </data>
+  <data name="PinStorage" xml:space="preserve">
+    <value>储藏设施</value>
+  </data>
+  <data name="PinLaunchpad" xml:space="preserve">
+    <value>发射平台</value>
+  </data>
+  <data name="PinCommandCenter" xml:space="preserve">
+    <value>指挥中心</value>
+  </data>
+  <data name="Percent" xml:space="preserve">
+    <value>{0}%</value>
+  </data>
+  <data name="VolumeOfCapacity" xml:space="preserve">
+    <value>{0} / {1} m³</value>
+  </data>
+  <data name="Empty" xml:space="preserve">
+    <value>空</value>
+  </data>
+  <data name="QuantityOf" xml:space="preserve">
+    <value>{0} × {1}</value>
+  </data>
+  <data name="SectionFlows" xml:space="preserve">
+    <value>每日物流</value>
+  </data>
+  <data name="FlowsNote" xml:space="preserve">
+    <value>按当前布局运行时，殖民地每天生产、消耗、需要运入以及留待运走的物品。</value>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>物品</value>
+  </data>
+  <data name="ColTier" xml:space="preserve">
+    <value>级别</value>
+  </data>
+  <data name="ColProduced" xml:space="preserve">
+    <value>生产</value>
+  </data>
+  <data name="ColConsumed" xml:space="preserve">
+    <value>消耗</value>
+  </data>
+  <data name="ColImported" xml:space="preserve">
+    <value>运入</value>
+  </data>
+  <data name="ColExported" xml:space="preserve">
+    <value>运出</value>
+  </data>
+  <data name="SectionEconomics" xml:space="preserve">
+    <value>每日收支</value>
+  </data>
+  <data name="EconOutputValue" xml:space="preserve">
+    <value>产出价值</value>
+  </data>
+  <data name="EconInputCost" xml:space="preserve">
+    <value>原料成本</value>
+  </data>
+  <data name="EconExportCharges" xml:space="preserve">
+    <value>出口税</value>
+  </data>
+  <data name="EconImportCharges" xml:space="preserve">
+    <value>进口税</value>
+  </data>
+  <data name="EconProfit" xml:space="preserve">
+    <value>利润</value>
+  </data>
+  <data name="EconTaxRate" xml:space="preserve">
+    <value>税率</value>
+  </data>
+  <data name="RateUnknown" xml:space="preserve">
+    <value>未知</value>
+  </data>
+  <data name="RateLearned" xml:space="preserve">
+    <value>{0}%，此行星{1}的税率，于 {2} 从钱包日志中获知</value>
+  </data>
+  <data name="RateDefault" xml:space="preserve">
+    <value>{0}%，即“设置 → 工业”中的{1}默认税率——尚未获知此行星的税率</value>
+  </data>
+  <data name="CustomsOffice" xml:space="preserve">
+    <value>海关办公室</value>
+  </data>
+  <data name="Skyhook" xml:space="preserve">
+    <value>天钩</value>
+  </data>
+</root>
