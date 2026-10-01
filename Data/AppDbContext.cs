@@ -231,6 +231,8 @@ public class AppDbContext : DbContext
     // ── Stores (EVE mail order desk) ────────────────────────────────────────
     public DbSet<Store>       Stores       => Set<Store>();
     public DbSet<SlackWebhook>  SlackWebhooks  => Set<SlackWebhook>();
+    // ⚠️ A new table: hand-written CREATEs in both schema paths (App.axaml.cs, PostgresSchema).
+    public DbSet<DiscordWebhook> DiscordWebhooks => Set<DiscordWebhook>();
     public DbSet<ScheduledTask> ScheduledTasks => Set<ScheduledTask>();
     public DbSet<StoreSender> StoreSenders => Set<StoreSender>();
     public DbSet<StoreMail>   StoreMails   => Set<StoreMail>();
@@ -1095,6 +1097,10 @@ public class AppDbContext : DbContext
         mb.Entity<SlackWebhook>(e => {
             e.HasKey(x => x.Id);
             e.ToTable("SlackWebhooks"); });
+
+        mb.Entity<DiscordWebhook>(e => {
+            e.HasKey(x => x.Id);
+            e.ToTable("DiscordWebhooks"); });
 
         mb.Entity<ScheduledTask>(e => {
             e.HasKey(x => x.Id);

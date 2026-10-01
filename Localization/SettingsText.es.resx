@@ -3265,4 +3265,76 @@ La aplicación se reiniciará.</value>
   <data name="PurposeConversation" xml:space="preserve">
     <value>nuestra conversación</value>
   </data>
+  <data name="TabDiscord" xml:space="preserve">
+    <value>Discord</value>
+  </data>
+  <data name="DiscordIntegration" xml:space="preserve">
+    <value>Integración con Discord</value>
+  </data>
+  <data name="DiscordIntroNote" xml:space="preserve">
+    <value>Publica desde EVE Console en canales de Discord mediante webhooks, sin bot y sin iniciar sesión. No se publica nada hasta que pulses un botón «Publicar en Discord» o configures una tarea programada, y cada parte de la app solo muestra ese botón cuando tiene un webhook configurado abajo.</value>
+  </data>
+  <data name="DiscordHowToNote" xml:space="preserve">
+    <value>Quienes administran un servidor crean un webhook en Discord, en Editar canal → Integraciones → Webhooks, y copian su URL. Ponle aquí un nombre y podrás elegirlo abajo y en el Programador.</value>
+  </data>
+  <data name="DiscordSecretNote" xml:space="preserve">
+    <value>⚠ La URL de un webhook funciona como una contraseña: cualquiera que la tenga puede publicar en ese canal. EVE Console nunca la muestra completa ni la escribe en ningún registro. Si se filtra, elimina el webhook en Discord y añade uno nuevo aquí.</value>
+  </data>
+  <data name="DiscordTest" xml:space="preserve">
+    <value>Probar</value>
+  </data>
+  <data name="DiscordWebhookNeedsNameUrl" xml:space="preserve">
+    <value>Un webhook necesita un nombre y una URL.</value>
+  </data>
+  <data name="DiscordWebhookNotDiscord" xml:space="preserve">
+    <value>Esa no es la URL de un webhook de Discord. Empieza por https://discord.com/api/webhooks/.</value>
+  </data>
+  <data name="DiscordWebhookIsSlack" xml:space="preserve">
+    <value>Ese es un webhook de Slack. Añádelo en la pestaña Slack.</value>
+  </data>
+  <data name="DiscordNone" xml:space="preserve">
+    <value>(ninguno)</value>
+  </data>
+  <data name="DiscordTesting" xml:space="preserve">
+    <value>Probando «{0}»…</value>
+  </data>
+  <data name="DiscordTestSent" xml:space="preserve">
+    <value>Discord ha aceptado el mensaje de prueba de «{0}»: comprueba el canal.</value>
+  </data>
+  <data name="DiscordTestFailed" xml:space="preserve">
+    <value>Error en la prueba de «{0}»: {1}</value>
+  </data>
+  <data name="DiscordTestMessage" xml:space="preserve">
+    <value>Mensaje de prueba de EVE Console: este webhook funciona.</value>
+  </data>
+  <data name="DiscordWhereEachPosts" xml:space="preserve">
+    <value>Dónde publica cada parte</value>
+  </data>
+  <data name="DiscordPickWebhookNote" xml:space="preserve">
+    <value>Elige a qué webhook publica cada parte de EVE Console. Su botón «Publicar en Discord» solo aparece cuando tiene uno configurado. Slack se configura en su propia pestaña, y su botón se muestra aparte.</value>
+  </data>
+  <data name="DiscordErrNoWebhook" xml:space="preserve">
+    <value>No hay ningún webhook de Discord configurado para esto.</value>
+  </data>
+  <data name="DiscordErrWebhookRemoved" xml:space="preserve">
+    <value>Ese webhook de Discord se ha quitado de Ajustes.</value>
+  </data>
+  <data name="DiscordErrNothingToPost" xml:space="preserve">
+    <value>No hay nada que publicar.</value>
+  </data>
+  <data name="DiscordErrNotAWebhook" xml:space="preserve">
+    <value>El enlace guardado no es la URL de un webhook de Discord: pega uno nuevo en Ajustes, Discord.</value>
+  </data>
+  <data name="DiscordErrWebhookGone" xml:space="preserve">
+    <value>Discord ya no acepta este webhook (puede que se haya eliminado): pega un enlace nuevo en Ajustes, Discord.</value>
+  </data>
+  <data name="DiscordErrUnreachable" xml:space="preserve">
+    <value>No se ha podido conectar con Discord.</value>
+  </data>
+  <data name="DiscordErrRateLimited" xml:space="preserve">
+    <value>Discord ha pedido varias veces que se vaya más despacio: inténtalo de nuevo dentro de un minuto.</value>
+  </data>
+  <data name="DiscordErrHttp" xml:space="preserve">
+    <value>Discord lo ha rechazado (HTTP {0}): {1}</value>
+  </data>
 </root>

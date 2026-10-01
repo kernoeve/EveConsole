@@ -3271,4 +3271,76 @@ EVE Console сразу перезапустится, потому что баз�
   <data name="PurposeConversation" xml:space="preserve">
     <value>нашей беседы</value>
   </data>
+  <data name="TabDiscord" xml:space="preserve">
+    <value>Discord</value>
+  </data>
+  <data name="DiscordIntegration" xml:space="preserve">
+    <value>Интеграция с Discord</value>
+  </data>
+  <data name="DiscordIntroNote" xml:space="preserve">
+    <value>Публикуйте из EVE Console в каналы Discord через веб-хуки — без бота и без входа в аккаунт. Ничего не публикуется, пока вы не нажмёте кнопку «Опубликовать в Discord» или не настроите задачу по расписанию; а раздел приложения показывает эту кнопку, только если для него выбран веб-хук из списка ниже.</value>
+  </data>
+  <data name="DiscordHowToNote" xml:space="preserve">
+    <value>Управляющие сервера создают веб-хук в Discord: «Редактировать канал» → «Интеграции» → «Вебхуки» — и копируют его URL. Дайте ему здесь название, и его можно будет выбрать ниже и в планировщике.</value>
+  </data>
+  <data name="DiscordSecretNote" xml:space="preserve">
+    <value>⚠ URL веб-хука работает как пароль: любой, у кого он есть, может публиковать в этот канал. EVE Console никогда не показывает его целиком и не записывает в журнал. Если URL утёк, удалите веб-хук в Discord и добавьте здесь новый.</value>
+  </data>
+  <data name="DiscordTest" xml:space="preserve">
+    <value>Проверить</value>
+  </data>
+  <data name="DiscordWebhookNeedsNameUrl" xml:space="preserve">
+    <value>Для веб-хука нужны название и URL.</value>
+  </data>
+  <data name="DiscordWebhookNotDiscord" xml:space="preserve">
+    <value>Это не URL веб-хука Discord. Он начинается с https://discord.com/api/webhooks/.</value>
+  </data>
+  <data name="DiscordWebhookIsSlack" xml:space="preserve">
+    <value>Это веб-хук Slack. Добавьте его на вкладке Slack.</value>
+  </data>
+  <data name="DiscordNone" xml:space="preserve">
+    <value>(нет)</value>
+  </data>
+  <data name="DiscordTesting" xml:space="preserve">
+    <value>Проверка «{0}»…</value>
+  </data>
+  <data name="DiscordTestSent" xml:space="preserve">
+    <value>Discord принял пробное сообщение для «{0}» — проверьте канал.</value>
+  </data>
+  <data name="DiscordTestFailed" xml:space="preserve">
+    <value>Не удалось проверить «{0}»: {1}</value>
+  </data>
+  <data name="DiscordTestMessage" xml:space="preserve">
+    <value>Пробное сообщение от EVE Console: этот веб-хук работает.</value>
+  </data>
+  <data name="DiscordWhereEachPosts" xml:space="preserve">
+    <value>Куда публикует каждый раздел</value>
+  </data>
+  <data name="DiscordPickWebhookNote" xml:space="preserve">
+    <value>Выберите, в какой веб-хук публикует каждый раздел EVE Console. Кнопка «Опубликовать в Discord» появляется только после выбора. Slack настраивается на своей вкладке, и его кнопка показывается отдельно.</value>
+  </data>
+  <data name="DiscordErrNoWebhook" xml:space="preserve">
+    <value>Для этого не выбран веб-хук Discord.</value>
+  </data>
+  <data name="DiscordErrWebhookRemoved" xml:space="preserve">
+    <value>Этот веб-хук Discord удалён из настроек.</value>
+  </data>
+  <data name="DiscordErrNothingToPost" xml:space="preserve">
+    <value>Публиковать нечего.</value>
+  </data>
+  <data name="DiscordErrNotAWebhook" xml:space="preserve">
+    <value>Сохранённая ссылка — не URL веб-хука Discord. Вставьте новую в разделе «Настройки → Discord».</value>
+  </data>
+  <data name="DiscordErrWebhookGone" xml:space="preserve">
+    <value>Discord больше не принимает этот веб-хук — возможно, он удалён. Вставьте новую ссылку в разделе «Настройки → Discord».</value>
+  </data>
+  <data name="DiscordErrUnreachable" xml:space="preserve">
+    <value>Не удалось связаться с Discord.</value>
+  </data>
+  <data name="DiscordErrRateLimited" xml:space="preserve">
+    <value>Discord несколько раз просил снизить частоту запросов — повторите через минуту.</value>
+  </data>
+  <data name="DiscordErrHttp" xml:space="preserve">
+    <value>Discord отклонил запрос (HTTP {0}): {1}</value>
+  </data>
 </root>

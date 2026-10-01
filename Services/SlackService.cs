@@ -35,7 +35,14 @@ public sealed record SlackDestination(string Kind, string Id, string Label, stri
     public const string KindChannel = "chan";
     public const string KindWebhook = "hook";
 
+    /// <summary>A Discord webhook, in the Scheduler's one list of places a task can post.
+    /// ⚠️ Its own kind, never <see cref="KindWebhook"/>: a Slack webhook cannot carry a chart and
+    /// a Discord one can, and the id is a row in a different table.</summary>
+    public const string KindDiscord = "discord";
+
+    /// <summary>A SLACK webhook. A Discord webhook is <see cref="IsDiscord"/>, and is not this.</summary>
     public bool IsWebhook => Kind == KindWebhook;
+    public bool IsDiscord => Kind == KindDiscord;
 
     /// <summary>What the dropdown shows. Webhooks are prefixed so one is never read as a channel
     /// of the same name — they land in different workspaces and behave differently.</summary>

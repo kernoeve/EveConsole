@@ -1824,4 +1824,28 @@
     <value>{0:0.##} ten thousand ISK</value>
     <comment>Only for languages that count in 10,000s (Chinese, Japanese, Korean): a price read out when a store order arrives, in units of 10,000. {0} is the amount, e.g. 350. English uses the billion/million/thousand entries instead.</comment>
   </data>
+  <data name="TaskTypeSlackOrDiscordPost" xml:space="preserve">
+    <value>Post to Slack or Discord</value>
+    <comment>Scheduler, task type pick list. Slack and Discord are brand names.</comment>
+  </data>
+  <data name="DiscordDestination" xml:space="preserve">
+    <value>Discord: {0}</value>
+    <comment>Scheduler, Post To pick list: a Discord webhook, listed after the Slack channels and webhooks. {0} is the webhook's name. Discord is a brand name.</comment>
+  </data>
+  <data name="ErrNoDestinationsAny" xml:space="preserve">
+    <value>No channels or webhooks yet — add one under Settings, Slack or Discord.</value>
+    <comment>Scheduler status line on Save. Settings, Slack and Discord name places in the Settings window.</comment>
+  </data>
+  <data name="SlackAndDiscordDestinationsNote" xml:space="preserve">
+    <value>Slack channels and webhooks, then Discord webhooks, as set in Settings — in one list.</value>
+    <comment>Note under the Scheduler's Post To pick list.</comment>
+  </data>
+  <data name="RunDiscordRefused" xml:space="preserve">
+    <value>Discord refused it: {0}</value>
+    <comment>Scheduler, the result of a task's run that posts to Discord. {0} is why.</comment>
+  </data>
+  <data name="RunPostedPartDiscord" xml:space="preserve">
+    <value>Posted {0} of {1} messages ({2:N0} characters); Discord refused the next: {3}.</value>
+    <comment>Scheduler, the result of a Discord task's run whose message went in parts and not all arrived. {0} is the parts posted, {1} how many there were, {2} the characters posted, {3} the error.</comment>
+  </data>
 </root>

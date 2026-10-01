@@ -1980,12 +1980,15 @@
           <!-- Period selector row -->
           <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="10 6 10 4"
                   BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 0 0 1">
-            <Grid ColumnDefinitions="*,Auto,8,Auto,16,Auto,8,Auto,16,Auto,8,Auto,8,Auto,8,Auto,8,Auto">
+            <Grid ColumnDefinitions="*,Auto,8,Auto,16,Auto,8,Auto,16,Auto,8,Auto,8,Auto,8,Auto,8,Auto,8,Auto">
               <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
                 <TextBlock Text="{x:Static loc:CorpText.Top10ByMonthLabel}"
                            FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource GoodBrush}"
                            VerticalAlignment="Center" />
                 <TextBlock Text="{Binding SlackStatus}" ToolTip.Tip="{Binding SlackStatus}"
+                           FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
+                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                <TextBlock Text="{Binding DiscordStatus}" ToolTip.Tip="{Binding DiscordStatus}"
                            FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
                            VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
               </StackPanel>
@@ -2050,6 +2053,23 @@
                     </Canvas>
                   </Viewbox>
                   <TextBlock Text="{x:Static loc:CorpText.PostToSlack}" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
+              <!-- Only shown once a Discord webhook is set for the Top 10. Separate from Slack's: both show when both are set. -->
+              <Button Grid.Column="19" x:Name="PostTop10DiscordButton"
+                      IsVisible="{Binding IsDiscordTop10Configured}"
+                      IsEnabled="{Binding !IsTop10Loading}"
+                      ToolTip.Tip="{Binding DiscordTop10HookText}"
+                      FontSize="10" Padding="8 3"
+                      Background="{DynamicResource SurfacePanelBrush}" Foreground="{DynamicResource InfoBrush}"
+                      BorderBrush="{DynamicResource SurfaceSelectedBrush}" BorderThickness="1">
+                <StackPanel Orientation="Horizontal" Spacing="5">
+                  <Viewbox Width="12" Height="12">
+                    <Canvas Width="127.14" Height="96.36">
+                      <Path Fill="#5865F2" Data="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z" />
+                    </Canvas>
+                  </Viewbox>
+                  <TextBlock Text="{x:Static loc:CorpText.PostToDiscord}" VerticalAlignment="Center" />
                 </StackPanel>
               </Button>
             </Grid>
@@ -2237,12 +2257,15 @@
           <!-- Period selector row -->
           <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="10 6 10 4"
                   BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 0 0 1">
-            <Grid ColumnDefinitions="*,Auto,8,Auto,16,Auto,8,Auto,16,Auto,8,Auto,8,Auto,8,Auto">
+            <Grid ColumnDefinitions="*,Auto,8,Auto,16,Auto,8,Auto,16,Auto,8,Auto,8,Auto,8,Auto,8,Auto">
               <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
                 <TextBlock Text="{x:Static loc:CorpText.MonthlySummaryLabel}"
                            FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource GoodBrush}"
                            VerticalAlignment="Center" />
                 <TextBlock Text="{Binding SlackStatus}" ToolTip.Tip="{Binding SlackStatus}"
+                           FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
+                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                <TextBlock Text="{Binding DiscordStatus}" ToolTip.Tip="{Binding DiscordStatus}"
                            FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
                            VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
               </StackPanel>
@@ -2300,6 +2323,23 @@
                     </Canvas>
                   </Viewbox>
                   <TextBlock Text="{x:Static loc:CorpText.PostToSlack}" VerticalAlignment="Center" />
+                </StackPanel>
+              </Button>
+              <!-- Only shown once a Discord webhook is set for the Monthly Summary. -->
+              <Button Grid.Column="17" x:Name="PostSummaryDiscordButton"
+                      IsVisible="{Binding IsDiscordMonthlyConfigured}"
+                      IsEnabled="{Binding !IsSummaryLoading}"
+                      ToolTip.Tip="{Binding DiscordMonthlyHookText}"
+                      FontSize="10" Padding="8 3"
+                      Background="{DynamicResource SurfacePanelBrush}" Foreground="{DynamicResource InfoBrush}"
+                      BorderBrush="{DynamicResource SurfaceSelectedBrush}" BorderThickness="1">
+                <StackPanel Orientation="Horizontal" Spacing="5">
+                  <Viewbox Width="12" Height="12">
+                    <Canvas Width="127.14" Height="96.36">
+                      <Path Fill="#5865F2" Data="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22h0C129.24,52.84,122.09,29.11,107.7,8.07ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,46,53.89,53,48.84,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,46,96.12,53,91.08,65.69,84.69,65.69Z" />
+                    </Canvas>
+                  </Viewbox>
+                  <TextBlock Text="{x:Static loc:CorpText.PostToDiscord}" VerticalAlignment="Center" />
                 </StackPanel>
               </Button>
             </Grid>

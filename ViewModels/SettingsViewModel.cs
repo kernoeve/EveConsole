@@ -18,6 +18,7 @@ public class SettingsViewModel : ReactiveObject
     public DatabaseSettingsViewModel      DatabaseVm      { get; }
     public UpdateViewModel                UpdateVm        { get; }
     public SlackSettingsViewModel         SlackVm         { get; }
+    public DiscordSettingsViewModel       DiscordVm       { get; }
     public GameLogSettingsViewModel       GameLogVm       { get; }
     public ChatLogSettingsViewModel       ChatLogVm       { get; }
     public ZkillboardSettingsViewModel    ZkbVm           { get; }
@@ -48,6 +49,7 @@ public class SettingsViewModel : ReactiveObject
         CorpTop10SettingsViewModel    corpTop10Vm,
         DatabaseSettingsViewModel     databaseVm,
         SlackSettingsViewModel        slackVm,
+        DiscordSettingsViewModel      discordVm,
         GameLogSettingsViewModel      gameLogVm,
         ChatLogSettingsViewModel      chatLogVm,
         ZkillboardSettingsViewModel   zkbVm,
@@ -59,6 +61,7 @@ public class SettingsViewModel : ReactiveObject
         GlobalHotkeyService?          hotkey  = null)
     {
         SlackVm        = slackVm;
+        DiscordVm      = discordVm;
         GameLogVm      = gameLogVm;
         ChatLogVm      = chatLogVm;
         ZkbVm          = zkbVm;

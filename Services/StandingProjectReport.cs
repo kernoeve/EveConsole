@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using EveConsole.Localization;
+using EveConsole.ViewModels;
 
 namespace EveConsole.Services;
 
@@ -78,7 +79,8 @@ public static class StandingProjectReport
         string projectType      = DestroyNpc,
         bool   showHeaders      = false,
         bool   showIskLeft      = true,
-        bool   showLastCompleted = true)
+        bool   showLastCompleted = true,
+        string formatName       = "Slack")
     {
         if (rows.Count == 0) return "";
 
@@ -151,7 +153,8 @@ public static class StandingProjectReport
         // ⚠️ An empty heading prints NOTHING, not an empty bold line. The editor materialises the
         // default into its box, so blank is a choice somebody made rather than a field they left
         // alone — and a stray blank line above a table reads as a rendering fault.
-        if (heading.Trim().Length > 0) sb.AppendLine($"*{heading.Trim()}*");
+        // Bold in the markup of wherever it is going: *x* on Slack, **x** on Discord.
+        if (heading.Trim().Length > 0) sb.AppendLine(OutputFormat.ByName(formatName).Bold(heading.Trim()));
 
         sb.AppendLine("```");
 

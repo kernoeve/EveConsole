@@ -1817,4 +1817,21 @@
   <data name="WebSyncDeclined" xml:space="preserve">
     <value>거절했습니다.</value>
   </data>
+  <data name="PostToDiscord" xml:space="preserve">
+    <value>Discord에 게시</value>
+  </data>
+  <data name="DiscordNotConfigured" xml:space="preserve">
+    <value>판매 게시에 지정된 Discord 웹후크가 없습니다.</value>
+  </data>
+  <data name="DiscordAlreadyPosted" xml:space="preserve">
+    <value>"{0}"은(는) 이미 Discord에 게시되었습니다 ({1}).
+
+</value>
+  </data>
+  <data name="DiscordPosting" xml:space="preserve">
+    <value>Discord에 게시하는 중…</value>
+  </data>
+  <data name="DiscordPostFailed" xml:space="preserve">
+    <value>"{0}" 블록의 Discord 게시 실패: {1}</value>
+  </data>
 </root>
