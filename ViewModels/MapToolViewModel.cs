@@ -188,27 +188,31 @@ public sealed class MapToolViewModel : ReactiveObject
         return tab;
     }
 
-    /// <summary>The route drawn on the map tabs. Kept so a map opened afterwards shows it too.</summary>
-    private IReadOnlyList<MapRouteStep>? _route;
+    /// <summary>The routes on the maps, by the tab that planned them. A tab's route goes when it
+    /// clears it, turns Show on map off, or closes.</summary>
+    private readonly Dictionary<MapTabViewModel, IReadOnlyList<MapRouteStep>> _routeByTab = new();
+    private IReadOnlyList<IReadOnlyList<MapRouteStep>> _routeList = [];
 
-    /// <summary>
-    /// Draws a route on every map tab. With <paramref name="focus"/>, also brings forward the map
-    /// used last (or opens one) and frames the route on it — the "Show on map" button; without,
-    /// the maps are only kept in step with the route last planned.
-    /// </summary>
-    public void ShowRouteOnMap(RoutePlan plan, bool focus = true)
+    /// <summary>Puts a tool's route on every map, or takes it off (null or empty). UI thread.</summary>
+    public void SetRoute(MapTabViewModel owner, IReadOnlyList<MapRouteStep>? steps)
     {
-        _route = plan.NoRoute ? null
-               : plan.Steps.Select(s => new MapRouteStep(s.SystemId, s.RegionId, s.Hop is RouteHop.Bridge or RouteHop.Wormhole)).ToList();
-        foreach (var t in AllTabs.OfType<UniverseTabViewModel>()) t.Map.Route = _route;
-        if (!focus || _route is null) return;
+        if (steps is { Count: > 0 }) _routeByTab[owner] = steps;
+        else if (!_routeByTab.Remove(owner)) return;
+        PushRoutes();
+    }
 
-        var tab = AllTabs.OfType<UniverseTabViewModel>().MaxBy(t => t.LastActive) ?? NewUniverseTab();
-        SelectedTab = tab;
-        var ids = _route.Select(s => s.SystemId).ToList();
-        if (tab.Map.Graph is not null) tab.Map.FocusSystems(ids);
-        else tab.Map.WhenAnyValue(m => m.Graph).Where(g => g is not null).Take(1)
-                .Subscribe(_ => Dispatcher.UIThread.Post(() => tab.Map.FocusSystems(ids)));
+    /// <summary>The map's own Clear route: every route off every map, until a tool plans again.</summary>
+    private void ClearAllRoutes()
+    {
+        if (_routeByTab.Count == 0) return;
+        _routeByTab.Clear();
+        PushRoutes();
+    }
+
+    private void PushRoutes()
+    {
+        _routeList = [.. _routeByTab.Values];
+        foreach (var t in AllTabs.OfType<UniverseTabViewModel>()) t.Map.Routes = _routeList;
     }
 
     /// <summary>The jump bridges tab: there is only ever one, brought forward if open.</summary>
@@ -237,7 +241,8 @@ public sealed class MapToolViewModel : ReactiveObject
         Add(tab);
         if (_snapshot is { } live) tab.ApplyLive(live);
         map.Bridges = _bridgeLines;
-        map.Route   = _route;
+        map.Routes  = _routeList;
+        map.ClearRoutesRequested = ClearAllRoutes;
         tab.ApplyHoles(_holeList, _eveScout?.Enabled == true);
         return tab;
     }
@@ -262,6 +267,9 @@ public sealed class MapToolViewModel : ReactiveObject
     {
         var pane = tab.Pane;
         if (!TakeOut(tab)) return;
+        // A planning tool's route goes with it.
+        SetRoute(tab, null);
+        tab.OnClosed();
         if (pane == _activePane) this.RaisePropertyChanged(nameof(SelectedTab));
         PanesChanged();
     }
@@ -813,6 +821,9 @@ public abstract class MapTabViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> CloseCommand  { get; }
     public ReactiveCommand<Unit, Unit> SelectCommand { get; }
 
+    /// <summary>Called once the tab has been closed: what it started, it stops.</summary>
+    public virtual void OnClosed() { }
+
     /// <summary>When this tab was last selected, in selections (see MapToolViewModel).</summary>
     public long LastActive { get; internal set; }
 
@@ -876,9 +887,35 @@ public sealed class UniverseTabViewModel : MapTabViewModel
 /// <summary>The capital jump planner, moved into the map tool from a tool of its own.</summary>
 public sealed class JumpPlannerTabViewModel : MapTabViewModel
 {
-    public JumpPlannerTabViewModel(MapToolViewModel tool, JumpPlannerViewModel planner) : base(tool) => Planner = planner;
+    private readonly IDisposable _follow;
+
+    public JumpPlannerTabViewModel(MapToolViewModel tool, JumpPlannerViewModel planner) : base(tool)
+    {
+        Planner = planner;
+        // The planner publishes its finished route as MapRoute (null when cleared); the maps
+        // follow it, and Show on map. The planner outlives the tab, so a route planned before is
+        // shown again when the tab is reopened.
+        _follow = planner.WhenAnyValue(p => p.MapRoute, p => p.ShowOnMap)
+                         .Subscribe(_ => Dispatcher.UIThread.Post(Push));
+    }
 
     public JumpPlannerViewModel Planner { get; }
+
+    private void Push()
+    {
+        var legs = Planner.Legs;
+        if (!Planner.ShowOnMap || Planner.MapRoute is null || legs.Count == 0)
+        {
+            Tool.SetRoute(this, null);
+            return;
+        }
+        // Every leg is a jump drive's: dashed all the way.
+        var steps = new List<MapRouteStep> { new(legs[0].FromSystemId, legs[0].FromRegionId, false) };
+        steps.AddRange(legs.Select(l => new MapRouteStep(l.ToSystemId, l.ToRegionId, true)));
+        Tool.SetRoute(this, steps);
+    }
+
+    public override void OnClosed() => _follow.Dispose();
 
     public override string TabTitle => MapText.JumpPlannerTab;
     public override string TabGlyph => "⤴";

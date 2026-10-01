@@ -62,11 +62,10 @@ public sealed class RouteTabViewModel : MapTabViewModel
         PlanCommand           = ReactiveCommand.CreateFromTask(PlanAsync);
         SwapCommand           = ReactiveCommand.Create(Swap);
         FromHereCommand       = ReactiveCommand.Create(FromHere);
-        ShowOnMapCommand      = ReactiveCommand.Create(() => { if (_plan is { } p) Tool.ShowRouteOnMap(p); });
-        SetDestinationCommand = ReactiveCommand.CreateFromTask(SetDestinationAsync);
+        ClearCommand          = ReactiveCommand.Create(ClearRoute);
         AddAvoidCommand       = ReactiveCommand.Create(AddAvoid);
         ToggleAvoidListCommand = ReactiveCommand.Create(() => { ShowAvoidList = !ShowAvoidList; });
-        foreach (var c in new IHandleObservableErrors[] { PlanCommand, SetDestinationCommand })
+        foreach (var c in new IHandleObservableErrors[] { PlanCommand })
             c.ThrownExceptions.Subscribe(ex => Message = string.Format(CommonText.ErrorWithMessage, ex.Message));
 
         // Suggestions for the three pickers: systems only, each with its region.
@@ -79,9 +78,25 @@ public sealed class RouteTabViewModel : MapTabViewModel
         this.WhenAnyValue(x => x.AvoidPick).Where(p => p is not null)
             .Subscribe(_ => Dispatcher.UIThread.Post(AddAvoid));
 
-        RouteAvoidList.Changed += () => Dispatcher.UIThread.Post(() => _ = ShowAvoidAsync());
+        RouteAvoidList.Changed += OnAvoidChanged;
         _ = ShowAvoidAsync();
         _ = LoadCharactersAsync();
+
+        // Who is online changes as characters log in and out: the pick list and "Here" follow it.
+        _characterRefresh = Observable.Interval(TimeSpan.FromSeconds(30))
+            .Subscribe(tick => _ = LoadCharactersAsync());
+    }
+
+    private readonly IDisposable _characterRefresh;
+
+    private void OnAvoidChanged() => Dispatcher.UIThread.Post(() => _ = ShowAvoidAsync());
+
+    /// <summary>Closed: the refresh stops and the avoid list is no longer followed. The map tool
+    /// takes the route off the maps.</summary>
+    public override void OnClosed()
+    {
+        _characterRefresh.Dispose();
+        RouteAvoidList.Changed -= OnAvoidChanged;
     }
 
     public override string TabTitle => MapText.RoutePlannerTab;
@@ -125,9 +140,16 @@ public sealed class RouteTabViewModel : MapTabViewModel
                            .ToList();
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
+                // ⚠️ Changed entry by entry, never cleared and refilled: a ComboBox whose list is
+                // emptied loses its selection. Unchanged — the usual case every 30 s — touches nothing.
+                if (Characters.SequenceEqual(list)) return;
                 var keep = Character?.Id;
-                Characters.Clear();
-                foreach (var c in list) Characters.Add(c);
+                for (var i = 0; i < list.Count; i++)
+                {
+                    if (i < Characters.Count) { if (Characters[i] != list[i]) Characters[i] = list[i]; }
+                    else Characters.Add(list[i]);
+                }
+                while (Characters.Count > list.Count) Characters.RemoveAt(Characters.Count - 1);
                 Character = Characters.FirstOrDefault(c => c.Id == keep) ?? Characters.FirstOrDefault();
                 if (From is null && CanStartHere) FromHere();
             });
@@ -290,8 +312,39 @@ public sealed class RouteTabViewModel : MapTabViewModel
     public ReactiveCommand<Unit, Unit> PlanCommand           { get; }
     public ReactiveCommand<Unit, Unit> SwapCommand           { get; }
     public ReactiveCommand<Unit, Unit> FromHereCommand       { get; }
-    public ReactiveCommand<Unit, Unit> ShowOnMapCommand      { get; }
-    public ReactiveCommand<Unit, Unit> SetDestinationCommand { get; }
+    public ReactiveCommand<Unit, Unit> ClearCommand          { get; }
+
+    private bool _showOnMap = UiState.GetBool(UiState.RouteShowOnMap, true);
+    /// <summary>Whether the route is drawn on the map tabs. Remembered.</summary>
+    public bool ShowOnMap
+    {
+        get => _showOnMap;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _showOnMap, value);
+            UiState.SetBool(UiState.RouteShowOnMap, value);
+            PushRoute();
+        }
+    }
+
+    /// <summary>The route on the maps, or off them, as Show on map and the plan say.</summary>
+    private void PushRoute() =>
+        Tool.SetRoute(this, ShowOnMap && _plan is { NoRoute: false } plan
+            ? plan.Steps.Select(s => new Controls.MapRouteStep(s.SystemId, s.RegionId, s.Hop is RouteHop.Bridge or RouteHop.Wormhole)).ToList()
+            : null);
+
+    /// <summary>Clears the route here and on the map. Where it starts stays: usually where the
+    /// pilot is.</summary>
+    private void ClearRoute()
+    {
+        _plan = null;
+        Steps.Clear();
+        Summary = Message = "";
+        To = null;
+        ToText = "";
+        this.RaisePropertyChanged(nameof(HasRoute));
+        PushRoute();
+    }
     public ReactiveCommand<Unit, Unit> AddAvoidCommand       { get; }
     public ReactiveCommand<Unit, Unit> ToggleAvoidListCommand { get; }
 
@@ -321,6 +374,7 @@ public sealed class RouteTabViewModel : MapTabViewModel
                 kills.TryGetValue(s.SystemId, out var k) ? k.ShipKills + k.PodKills : 0));
         this.RaisePropertyChanged(nameof(HasRoute));
 
+        PushRoute();
         if (plan.NoRoute)
         {
             Summary = "";
@@ -333,19 +387,30 @@ public sealed class RouteTabViewModel : MapTabViewModel
         Summary = string.Format(MapText.RouteSummary, plan.Jumps, plan.BridgeJumps, holes,
                                 lowest.ToString("0.0", CultureInfo.CurrentCulture));
         Message = plan.Steps.Any(s => s.Bridge is { AccessKnown: false }) ? MapText.RouteBridgeAccessUnknown : "";
-        Tool.ShowRouteOnMap(plan, focus: false);
     }
 
-    private async Task SetDestinationAsync()
+    /// <summary>The characters logged in now, read when asked: Set destination offers these.</summary>
+    public async Task<List<RouteCharacter>> OnlineCharactersAsync()
+    {
+        await LoadCharactersAsync();
+        return [.. Characters.Where(c => c.Online).OrderBy(c => c.Name, StringComparer.CurrentCultureIgnoreCase)];
+    }
+
+    /// <summary>Sends the route to the game's autopilot for each of the given characters — one,
+    /// or everyone online — and says what came of it.</summary>
+    public async Task SendToAsync(IReadOnlyList<RouteCharacter> characters)
     {
         if (_plan is not { NoRoute: false } plan) return;
-        if (Character is not { } c) { Message = MapText.RoutePickCharacter; return; }
-        if (!c.Online) { Message = string.Format(MapText.RouteNotOnline, c.Name); return; }
+        if (characters.Count == 0) { Message = MapText.RouteNobodyOnline; return; }
 
-        var problem = await Task.Run(() => _planner.SendToAutopilotAsync(c.Id, plan));
-        Message = problem is null
-            ? string.Format(MapText.RouteSent, c.Name, RoutePlannerService.Waypoints(plan).Count)
-            : string.Format(MapText.RouteNotSent, problem);
+        var problems = new List<string>();
+        foreach (var c in characters)
+            if (await Task.Run(() => _planner.SendToAutopilotAsync(c.Id, plan)) is { } problem)
+                problems.Add($"{c.Name}: {problem}");
+
+        Message = problems.Count == 0
+            ? string.Format(MapText.RouteSent, string.Join(", ", characters.Select(c => c.Name)), RoutePlannerService.Waypoints(plan).Count)
+            : string.Format(MapText.RouteNotSent, string.Join("; ", problems));
     }
 }
 

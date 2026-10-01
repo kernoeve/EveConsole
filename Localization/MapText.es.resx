@@ -1836,7 +1836,7 @@ Sin sistema capital, así que sin zona</value>
     <value>Quitar ruta</value>
   </data>
   <data name="TipClearRoute" xml:space="preserve">
-    <value>Quita la ruta planificada de este mapa</value>
+    <value>Quita las rutas planificadas del mapa</value>
   </data>
   <data name="RouteCharacterLabel" xml:space="preserve">
     <value>Personaje</value>
@@ -1949,12 +1949,6 @@ Sin sistema capital, así que sin zona</value>
   <data name="RouteBridgeAccessUnknown" xml:space="preserve">
     <value>Algunos puentes de esta ruta no tienen un titular de soberanía conocido, así que no se sabe quién puede usarlos.</value>
   </data>
-  <data name="RoutePickCharacter" xml:space="preserve">
-    <value>Elige un personaje para fijar el destino.</value>
-  </data>
-  <data name="RouteNotOnline" xml:space="preserve">
-    <value>{0} no está conectado; el juego solo acepta un destino para un personaje conectado.</value>
-  </data>
   <data name="RouteSent" xml:space="preserve">
     <value>Destino fijado para {0} ({1} puntos de ruta). Cada puente o agujero de gusano lo saltas tú.</value>
   </data>
@@ -2023,5 +2017,17 @@ Sin sistema capital, así que sin zona</value>
   </data>
   <data name="HoleUnderHour" xml:space="preserve">
     <value>queda menos de una hora</value>
+  </data>
+  <data name="RouteAllOnline" xml:space="preserve">
+    <value>Todos los conectados</value>
+  </data>
+  <data name="RouteNobodyOnline" xml:space="preserve">
+    <value>No hay ningún personaje conectado; el juego solo acepta un destino para un personaje conectado.</value>
+  </data>
+  <data name="TipRouteClear" xml:space="preserve">
+    <value>Borra la ruta aquí y en el mapa</value>
+  </data>
+  <data name="TipShowOnMap" xml:space="preserve">
+    <value>Dibuja la ruta en las pestañas del mapa del universo</value>
   </data>
 </root>

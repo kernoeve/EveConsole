@@ -135,6 +135,18 @@ public sealed class JumpPlannerViewModel : ReactiveObject
     public ObservableCollection<WaypointVm> Waypoints { get; } = [];
     public ObservableCollection<JumpLegVm>  Legs      { get; } = [];
 
+    private bool _showOnMap = UiState.GetBool(UiState.JumpPlannerShowOnMap, true);
+    /// <summary>Whether the planned route is drawn on the Universe Map's tabs too. Remembered.</summary>
+    public bool ShowOnMap
+    {
+        get => _showOnMap;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _showOnMap, value);
+            UiState.SetBool(UiState.JumpPlannerShowOnMap, value);
+        }
+    }
+
     private JumpShip? _selectedShip;
     public JumpShip? SelectedShip
     {

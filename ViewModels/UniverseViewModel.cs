@@ -415,22 +415,31 @@ public class UniverseViewModel : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _avoided, value);
     }
 
-    /// <summary>A planned route drawn on this map, pushed in by the route planner; null for none.</summary>
-    private IReadOnlyList<MapRouteStep>? _route;
-    public IReadOnlyList<MapRouteStep>? Route
+    /// <summary>The planned routes drawn on this map, one per planning tool, pushed in by the map
+    /// tool; null or empty for none.</summary>
+    private IReadOnlyList<IReadOnlyList<MapRouteStep>>? _routes;
+    public IReadOnlyList<IReadOnlyList<MapRouteStep>>? Routes
     {
-        get => _route;
+        get => _routes;
         set
         {
-            this.RaiseAndSetIfChanged(ref _route, value);
+            this.RaiseAndSetIfChanged(ref _routes, value);
             this.RaisePropertyChanged(nameof(HasRoute));
         }
     }
 
-    public bool HasRoute => _route is { Count: > 0 };
+    public bool HasRoute => _routes is { Count: > 0 };
 
-    /// <summary>Takes the route off this map.</summary>
-    public void ClearRoute() => Route = null;
+    /// <summary>Set by the map tool: takes the routes off every map, since they belong to the
+    /// planning tools rather than to one map.</summary>
+    public Action? ClearRoutesRequested { get; set; }
+
+    /// <summary>Takes the routes off the map.</summary>
+    public void ClearRoute()
+    {
+        if (ClearRoutesRequested is { } clear) clear();
+        else Routes = null;
+    }
 
     private ReactiveCommand<Unit, Unit>? _clearRouteCommand;
     public ReactiveCommand<Unit, Unit> ClearRouteCommand => _clearRouteCommand ??= ReactiveCommand.Create(ClearRoute);

@@ -2444,7 +2444,7 @@ No capital system, so no zone</value>
     <comment>Map toolbar button: takes the planned route off this map.</comment>
   </data>
   <data name="TipClearRoute" xml:space="preserve">
-    <value>Take the planned route off this map</value>
+    <value>Take the planned routes off the map</value>
     <comment>Tooltip of Clear route.</comment>
   </data>
   <data name="RouteCharacterLabel" xml:space="preserve">
@@ -2595,14 +2595,6 @@ No capital system, so no zone</value>
     <value>Some bridges on this route have no known sovereignty holder, so who may use them is not known.</value>
     <comment>Route planner message.</comment>
   </data>
-  <data name="RoutePickCharacter" xml:space="preserve">
-    <value>Pick a character to set the destination for.</value>
-    <comment>Route planner message.</comment>
-  </data>
-  <data name="RouteNotOnline" xml:space="preserve">
-    <value>{0} is not logged in; the game only takes a destination for a character who is.</value>
-    <comment>Route planner message. {0} a character's name.</comment>
-  </data>
   <data name="RouteSent" xml:space="preserve">
     <value>Destination set for {0} ({1} waypoints). Each bridge or wormhole is yours to jump.</value>
     <comment>Route planner message. {0} a character's name, {1} how many waypoints were set.</comment>
@@ -2694,5 +2686,21 @@ No capital system, so no zone</value>
   <data name="HoleUnderHour" xml:space="preserve">
     <value>under an hour left</value>
     <comment>A wormhole with less than an hour left.</comment>
+  </data>
+  <data name="RouteAllOnline" xml:space="preserve">
+    <value>All online</value>
+    <comment>Set destination drop-down: every character logged in.</comment>
+  </data>
+  <data name="RouteNobodyOnline" xml:space="preserve">
+    <value>No character is logged in; the game only takes a destination for a character who is.</value>
+    <comment>Route planner message.</comment>
+  </data>
+  <data name="TipRouteClear" xml:space="preserve">
+    <value>Clear the route here and on the map</value>
+    <comment>Tooltip of the route planner's Clear button.</comment>
+  </data>
+  <data name="TipShowOnMap" xml:space="preserve">
+    <value>Draw the route on the Universe Map's tabs</value>
+    <comment>Tooltip of the Show on map tick box (route planner and jump planner).</comment>
   </data>
 </root>

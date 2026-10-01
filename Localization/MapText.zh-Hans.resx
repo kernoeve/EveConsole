@@ -1794,7 +1794,7 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
     <value>清除路线</value>
   </data>
   <data name="TipClearRoute" xml:space="preserve">
-    <value>从此地图上移除规划的路线</value>
+    <value>从地图上移除规划的路线</value>
   </data>
   <data name="RouteCharacterLabel" xml:space="preserve">
     <value>角色</value>
@@ -1907,12 +1907,6 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   <data name="RouteBridgeAccessUnknown" xml:space="preserve">
     <value>此路线上部分跳桥的主权持有者未知，因此不知道谁可以使用。</value>
   </data>
-  <data name="RoutePickCharacter" xml:space="preserve">
-    <value>请选择要设置目的地的角色。</value>
-  </data>
-  <data name="RouteNotOnline" xml:space="preserve">
-    <value>{0} 未登录；游戏只接受已登录角色的目的地。</value>
-  </data>
   <data name="RouteSent" xml:space="preserve">
     <value>已为 {0} 设置目的地（{1} 个路径点）。每座跳桥和每个虫洞需要你自己跳。</value>
   </data>
@@ -1981,5 +1975,17 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   </data>
   <data name="HoleUnderHour" xml:space="preserve">
     <value>剩余不到一小时</value>
+  </data>
+  <data name="RouteAllOnline" xml:space="preserve">
+    <value>所有在线角色</value>
+  </data>
+  <data name="RouteNobodyOnline" xml:space="preserve">
+    <value>没有角色在线；游戏只接受已登录角色的目的地。</value>
+  </data>
+  <data name="TipRouteClear" xml:space="preserve">
+    <value>清除此处和地图上的路线</value>
+  </data>
+  <data name="TipShowOnMap" xml:space="preserve">
+    <value>在宇宙地图标签页上绘制路线</value>
   </data>
 </root>

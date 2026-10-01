@@ -138,7 +138,7 @@
                       Badges="{Binding Badges}"
                       Markers="{Binding Markers}"
                       Bridges="{Binding VisibleBridges}"
-                      Route="{Binding Route}"
+                      Routes="{Binding Routes}"
                       Avoided="{Binding Avoided}"
                       Holes="{Binding VisibleHoles}"
                       HoleLinks="{Binding VisibleHoleLinks}"

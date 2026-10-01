@@ -1836,7 +1836,7 @@ Kein Hauptstadtsystem, daher keine Zone</value>
     <value>Route entfernen</value>
   </data>
   <data name="TipClearRoute" xml:space="preserve">
-    <value>Die geplante Route von dieser Karte nehmen</value>
+    <value>Die geplanten Routen von der Karte nehmen</value>
   </data>
   <data name="RouteCharacterLabel" xml:space="preserve">
     <value>Charakter</value>
@@ -1949,12 +1949,6 @@ Kein Hauptstadtsystem, daher keine Zone</value>
   <data name="RouteBridgeAccessUnknown" xml:space="preserve">
     <value>Für einige Brücken dieser Route ist kein Souveränitätsinhaber bekannt; wer sie nutzen darf, ist daher unbekannt.</value>
   </data>
-  <data name="RoutePickCharacter" xml:space="preserve">
-    <value>Wählen Sie einen Charakter, für den das Ziel gesetzt wird.</value>
-  </data>
-  <data name="RouteNotOnline" xml:space="preserve">
-    <value>{0} ist nicht eingeloggt; das Spiel nimmt ein Ziel nur für einen eingeloggten Charakter an.</value>
-  </data>
   <data name="RouteSent" xml:space="preserve">
     <value>Ziel für {0} gesetzt ({1} Wegpunkte). Jede Brücke und jedes Wurmloch springen Sie selbst.</value>
   </data>
@@ -2023,5 +2017,17 @@ Kein Hauptstadtsystem, daher keine Zone</value>
   </data>
   <data name="HoleUnderHour" xml:space="preserve">
     <value>weniger als eine Stunde</value>
+  </data>
+  <data name="RouteAllOnline" xml:space="preserve">
+    <value>Alle Eingeloggten</value>
+  </data>
+  <data name="RouteNobodyOnline" xml:space="preserve">
+    <value>Kein Charakter ist eingeloggt; das Spiel nimmt ein Ziel nur für einen eingeloggten Charakter an.</value>
+  </data>
+  <data name="TipRouteClear" xml:space="preserve">
+    <value>Die Route hier und auf der Karte löschen</value>
+  </data>
+  <data name="TipShowOnMap" xml:space="preserve">
+    <value>Die Route auf den Tabs der Universumskarte zeichnen</value>
   </data>
 </root>

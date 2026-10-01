@@ -1794,7 +1794,7 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
     <value>ルートを消去</value>
   </data>
   <data name="TipClearRoute" xml:space="preserve">
-    <value>計画したルートをこのマップから外す</value>
+    <value>計画したルートをマップから外す</value>
   </data>
   <data name="RouteCharacterLabel" xml:space="preserve">
     <value>キャラクター</value>
@@ -1907,12 +1907,6 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   <data name="RouteBridgeAccessUnknown" xml:space="preserve">
     <value>このルートの一部のブリッジはソブリンティ保有者が不明なため、誰が使えるかわかりません。</value>
   </data>
-  <data name="RoutePickCharacter" xml:space="preserve">
-    <value>目的地を設定するキャラクターを選んでください。</value>
-  </data>
-  <data name="RouteNotOnline" xml:space="preserve">
-    <value>{0}はログインしていません。ゲームはログイン中のキャラクターにしか目的地を設定できません。</value>
-  </data>
   <data name="RouteSent" xml:space="preserve">
     <value>{0}の目的地を設定しました(ウェイポイント{1}件)。ブリッジやワームホールのジャンプは自分で行ってください。</value>
   </data>
@@ -1981,5 +1975,17 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   </data>
   <data name="HoleUnderHour" xml:space="preserve">
     <value>残り1時間未満</value>
+  </data>
+  <data name="RouteAllOnline" xml:space="preserve">
+    <value>オンラインの全員</value>
+  </data>
+  <data name="RouteNobodyOnline" xml:space="preserve">
+    <value>ログイン中のキャラクターがいません。ゲームはログイン中のキャラクターにしか目的地を設定できません。</value>
+  </data>
+  <data name="TipRouteClear" xml:space="preserve">
+    <value>こことマップ上のルートを消去</value>
+  </data>
+  <data name="TipShowOnMap" xml:space="preserve">
+    <value>ユニバースマップのタブにルートを描く</value>
   </data>
 </root>

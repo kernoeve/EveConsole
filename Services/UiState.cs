@@ -30,6 +30,8 @@ public static class UiState
     public const string UniverseBridges      = "universe.bridges";
     public const string RouteAvoid           = "route.avoid";
     public const string UniverseWormholes    = "universe.wormholes";
+    public const string RouteShowOnMap       = "route.show_on_map";
+    public const string JumpPlannerShowOnMap = "jumpplanner.show_on_map";
     public const string OverviewPeriodHours  = "overview.period_hours";
     public const string MarketSource         = "itembrowser.market_source";
     public const string CollapsedGroups      = "invlevels.collapsed_groups";

@@ -126,14 +126,15 @@ public class MapCanvas : Control
         set => SetValue(BridgesProperty, value);
     }
 
-    /// <summary>A planned route, start first, drawn over the gates and under the systems.</summary>
-    public static readonly StyledProperty<IReadOnlyList<MapRouteStep>?> RouteProperty =
-        AvaloniaProperty.Register<MapCanvas, IReadOnlyList<MapRouteStep>?>(nameof(Route));
+    /// <summary>Planned routes, each start first — one per tool that planned one (the route
+    /// planner, the jump planner) — drawn over the gates and under the systems.</summary>
+    public static readonly StyledProperty<IReadOnlyList<IReadOnlyList<MapRouteStep>>?> RoutesProperty =
+        AvaloniaProperty.Register<MapCanvas, IReadOnlyList<IReadOnlyList<MapRouteStep>>?>(nameof(Routes));
 
-    public IReadOnlyList<MapRouteStep>? Route
+    public IReadOnlyList<IReadOnlyList<MapRouteStep>>? Routes
     {
-        get => GetValue(RouteProperty);
-        set => SetValue(RouteProperty, value);
+        get => GetValue(RoutesProperty);
+        set => SetValue(RoutesProperty, value);
     }
 
     /// <summary>Thera and Turnur wormholes per node id (systems, and regions on the zoomed-out tier).</summary>
@@ -216,7 +217,7 @@ public class MapCanvas : Control
 
     static MapCanvas()
     {
-        AffectsRender<MapCanvas>(GraphProperty, OverlayProperty, SelectedIdProperty, BadgesProperty, MarkersProperty, BridgesProperty, RouteProperty, AvoidedProperty, HolesProperty, HoleLinksProperty);
+        AffectsRender<MapCanvas>(GraphProperty, OverlayProperty, SelectedIdProperty, BadgesProperty, MarkersProperty, BridgesProperty, RoutesProperty, AvoidedProperty, HolesProperty, HoleLinksProperty);
     }
 
     public MapCanvas()
@@ -722,7 +723,9 @@ public class MapCanvas : Control
             }
 
         // A planned route over both, under the systems so their names stay readable.
-        if (Route is { Count: > 0 } route) DrawRoute(ctx, route, g.IsContinuous && _activeTier == 0);
+        if (Routes is { Count: > 0 } routes)
+            foreach (var route in routes)
+                if (route.Count > 0) DrawRoute(ctx, route, g.IsContinuous && _activeTier == 0);
 
         // How much room neighbouring systems have on screen decides the representation: dots
         // when they are packed together, labelled boxes once they are far enough apart. One or
