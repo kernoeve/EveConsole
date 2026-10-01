@@ -2900,4 +2900,108 @@
     <value>Worst {0} shown; the rest are on the tab.</value>
     <comment>Under a finding on the Bottlenecks → Summary tab when its list is cut short. {0} is how many are listed; the rest are on that finding's own tab.</comment>
   </data>
+  <data name="SourcePlanetaryIndustry" xml:space="preserve">
+    <value>Planetary Industry</value>
+    <comment>Name of a Worklist source (a switch on the Sources tab, and the error line): Planetary Industry tasks.</comment>
+  </data>
+  <data name="KindPi" xml:space="preserve">
+    <value>PI</value>
+    <comment>Task kind: Planetary Industry. Group heading and filter option on the Worklist. "PI" is the game's abbreviation; keep it short.</comment>
+  </data>
+  <data name="KindTipPi" xml:space="preserve">
+    <value>Planetary Industry</value>
+    <comment>Tooltip on the task-kind icon: a Planetary Industry task.</comment>
+  </data>
+  <data name="PiRestartTitle" xml:space="preserve">
+    <value>Restart extractors on {0}</value>
+    <comment>Worklist task. {0} is the planet.</comment>
+  </data>
+  <data name="PiRestartStoppedDetail" xml:space="preserve">
+    <value>Stopped {0} ago, at {1} (exact).</value>
+    <comment>Worklist task detail. {0} is a length of time, {1} a date and time.</comment>
+  </data>
+  <data name="PiRestartStoppingDetail" xml:space="preserve">
+    <value>Stops in {0}, at {1} (exact).</value>
+    <comment>Worklist task detail. {0} is a length of time, {1} a date and time.</comment>
+  </data>
+  <data name="PiRestartWaiting" xml:space="preserve">
+    <value>Still running for {0}</value>
+    <comment>Worklist, what a task is waiting for: the extractors are still running. {0} is a length of time.</comment>
+  </data>
+  <data name="PiHaulOutTitle" xml:space="preserve">
+    <value>Take output off {0}</value>
+    <comment>Worklist task: haul a colony's output away. {0} is the planet.</comment>
+  </data>
+  <data name="PiHaulOutSystemOne" xml:space="preserve">
+    <value>Take output off {0} planet in {1}</value>
+    <comment>Worklist task: one stop for several colonies of one character. {0} is the number of planets, {1} the solar system.</comment>
+  </data>
+  <data name="PiHaulOutSystemOther" xml:space="preserve">
+    <value>Take output off {0} planets in {1}</value>
+    <comment>Worklist task: one stop for several colonies of one character. {0} is the number of planets, {1} the solar system.</comment>
+  </data>
+  <data name="PiHaulOutFull" xml:space="preserve">
+    <value>{0}: storage full, output being lost (estimated)</value>
+    <comment>Worklist task detail, one per planet. {0} is the planet.</comment>
+  </data>
+  <data name="PiHaulOutFilling" xml:space="preserve">
+    <value>{0}: storage full in {1} (estimated)</value>
+    <comment>Worklist task detail, one per planet. {0} is the planet, {1} a length of time.</comment>
+  </data>
+  <data name="PiHaulOutCollect" xml:space="preserve">
+    <value>{0}: half full of output or more (estimated)</value>
+    <comment>Worklist task detail, one per planet. {0} is the planet.</comment>
+  </data>
+  <data name="PiStaleNote" xml:space="preserve">
+    <value>The figures are estimated from data that is old: the colony has not been opened in the game for a while.</value>
+    <comment>Worklist task detail, added at the end when a colony's data is older than the setting.</comment>
+  </data>
+  <data name="PiHaulInTitle" xml:space="preserve">
+    <value>Bring input to {0}</value>
+    <comment>Worklist task: haul a factory planet's input to it. {0} is the planet.</comment>
+  </data>
+  <data name="PiHaulInOutDetailOne" xml:space="preserve">
+    <value>Input ran out {1} ago (estimated): the factories are idle. Brings {0} day of running.</value>
+    <comment>Worklist task detail. {0} is the number of days of input the haul brings (a setting), {1} a length of time.</comment>
+  </data>
+  <data name="PiHaulInOutDetailOther" xml:space="preserve">
+    <value>Input ran out {1} ago (estimated): the factories are idle. Brings {0} days of running.</value>
+    <comment>Worklist task detail. {0} is the number of days of input the haul brings (a setting), {1} a length of time.</comment>
+  </data>
+  <data name="PiHaulInLowDetailOne" xml:space="preserve">
+    <value>Input runs out in {1} (estimated). Brings {0} day of running.</value>
+    <comment>Worklist task detail. {0} is the number of days of input the haul brings (a setting), {1} a length of time.</comment>
+  </data>
+  <data name="PiHaulInLowDetailOther" xml:space="preserve">
+    <value>Input runs out in {1} (estimated). Brings {0} days of running.</value>
+    <comment>Worklist task detail. {0} is the number of days of input the haul brings (a setting), {1} a length of time.</comment>
+  </data>
+  <data name="PiSetUpTitleOne" xml:space="preserve">
+    <value>Set up a colony — {0} slot free</value>
+    <comment>Worklist task for a character with unused colony slots. {0} is how many.</comment>
+  </data>
+  <data name="PiSetUpTitleOther" xml:space="preserve">
+    <value>Set up a colony — {0} slots free</value>
+    <comment>Worklist task for a character with unused colony slots. {0} is how many.</comment>
+  </data>
+  <data name="PiSetUpDetail" xml:space="preserve">
+    <value>{0} of {1} colonies in use; Interplanetary Consolidation allows {1}.</value>
+    <comment>Worklist task detail. {0} colonies in use, {1} allowed. "Interplanetary Consolidation" is a skill: use the game's name.</comment>
+  </data>
+  <data name="PiUpgradeTitle" xml:space="preserve">
+    <value>Upgrade the command center on {0} to level {1}</value>
+    <comment>Worklist task. {0} is the planet, {1} the level.</comment>
+  </data>
+  <data name="PiUpgradeDetail" xml:space="preserve">
+    <value>Level {0} now; Command Center Upgrades allows {1}. More CPU and powergrid for extractor heads and factories.</value>
+    <comment>Worklist task detail. {0} the level now, {1} the highest the skill allows. "Command Center Upgrades" is a skill: use the game's name.</comment>
+  </data>
+  <data name="PiOpenTitle" xml:space="preserve">
+    <value>Open {0} in the game</value>
+    <comment>Worklist task: open a colony in the game so its data is read again. {0} is the planet.</comment>
+  </data>
+  <data name="PiOpenDetail" xml:space="preserve">
+    <value>Its data is {0} old, so its estimates can no longer be trusted. Opening the colony in the game refreshes it.</value>
+    <comment>Worklist task detail. {0} is a length of time.</comment>
+  </data>
 </root>

@@ -235,6 +235,9 @@ public class MainWindowViewModel : ReactiveObject
     public ProductionCalculatorViewModel  ProductionCalcVm       { get; }
     public PriceOverrideViewModel         PriceOverrideVm        { get; }
     public StructureBrowserViewModel      StructureBrowserVm     { get; }
+    public PlanetaryIndustryViewModel     PlanetaryIndustryVm    { get; }
+    /// <summary>Planetary Industry's one door to the data, for the Settings window's PI boxes.</summary>
+    public EveConsole.Services.Pi.PiService Pi                   { get; }
     public MapToolViewModel                MapVm                  { get; }
     public AlarmsViewModel                AlarmsVm               { get; }
     public SchedulerViewModel             SchedulerVm            { get; }
@@ -721,6 +724,7 @@ public class MainWindowViewModel : ReactiveObject
             "prod_calc"  => (ShellText.NavProductionCalc, ProductionCalcVm,         true),
             "price_overrides" => (ShellText.NavPriceOverrides, PriceOverrideVm,     true),
             "structure_browser" => (ShellText.NavStructureBrowser, StructureBrowserVm, true),
+            "planetary_industry" => (ShellText.NavPlanetaryIndustry, PlanetaryIndustryVm, true),
             "universe"        => (ShellText.TabUniverse,        MapVm,             true),
             "alarms"          => (ShellText.TabAlarms,          AlarmsVm,          true),
             "scheduler"       => (ShellText.TabScheduler,       SchedulerVm,       true),
@@ -778,6 +782,7 @@ public class MainWindowViewModel : ReactiveObject
         // afresh, which is what somebody doing that is asking for.
         if (toolId == "error_log") ErrorLogVm.Reload();
         if (toolId == "ai_usage")  AgentUsageVm.Reload();
+        if (toolId == "planetary_industry") _ = PlanetaryIndustryVm.RefreshAsync();
 
         var navItem = _allNavItems.FirstOrDefault(i => i.ToolId == toolId);
         if (navItem is not null) navItem.IsOpen = true;
@@ -943,7 +948,8 @@ public class MainWindowViewModel : ReactiveObject
         LpStoreService                  lpStoreService,
         LpValueService                  lpValueService,
         SchedulerService                schedulerService,
-        ScheduledBlockRenderer          blockRenderer)
+        ScheduledBlockRenderer          blockRenderer,
+        EveConsole.Services.Pi.PiService piService)
     {
         AlarmActions = alarmActions;
         _uiLinks        = uiLinks;
@@ -1101,6 +1107,12 @@ public class MainWindowViewModel : ReactiveObject
         StructureBrowserVm     = new StructureBrowserViewModel(
                                      dbFactory, pollingService, esi, new FittingOptionService(dbFactory),
                                      appPrefs, indyStructureLink);
+        Pi                     = piService;
+        PlanetaryIndustryVm    = new PlanetaryIndustryViewModel(piService, errorLogger);
+        // The Overview's PI alerts open the colony they are about, or the list for several.
+        OverviewVm.Pi                     = piService;
+        OverviewVm.NavigateToPi           = (character, planet) => { OpenTool("planetary_industry"); PlanetaryIndustryVm.ShowColony(character, planet); };
+        OverviewVm.NavigateToPiCharacters = () => { OpenTool("planetary_industry"); PlanetaryIndustryVm.ShowCharacters(); };
         var universeMapService = new UniverseMapService(dbFactory);
         // Each system tab gets a page of its own, wired to the Item Browser like the rest.
         SystemPageViewModel NewSystemPage() => new(systemViewService, killmailBrowserService)
@@ -1304,6 +1316,7 @@ public class MainWindowViewModel : ReactiveObject
                 new NavItem("industry",      ShellText.NavIndustryJobs),
                 new NavItem("indy_parks",    ShellText.NavIndyParks),
                 new NavItem("prod_calc",     ShellText.NavProductionCalc),
+                new NavItem("planetary_industry", ShellText.NavPlanetaryIndustry),
                 new NavItem("price_overrides", ShellText.NavPriceOverrides),
                 new NavItem("industry_opps", ShellText.NavIndustryOpportunities),
             ]),

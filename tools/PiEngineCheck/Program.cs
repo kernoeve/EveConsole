@@ -2,6 +2,7 @@ using EveConsole.Data;
 using EveConsole.Models;
 using EveConsole.Services;
 using EveConsole.Services.Pi;
+using EveConsole.Services.Worklist;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,7 +24,9 @@ using Microsoft.EntityFrameworkCore;
 //
 //  The colonies: an extractor planet with P1 processors, a factory planet making P2 from imported
 //  P1, a full launchpad, an idle processor, an expired extractor; then the per-planet tax rate
-//  learned from constructed journal entries, in memory and through a throwaway SQLite database.
+//  learned from constructed journal entries, in memory and through a throwaway SQLite database;
+//  then the PI worklist tasks — which colony gets which, hauls grouped by system, characters with
+//  the PI box cleared left out — on constructed colonies and through the same database.
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ⚠️ SQLite, pinned, before anything reads the engine — the database section below must never
@@ -447,6 +450,168 @@ Check("skills: Command Center Upgrades 4 allows level 4", new PiSkills(1, 0, 4).
           PiTaxLearning.FromJournal(new WalletJournalEntry { RefType = "planetary_export_tax", ContextId = 60_003_760, ContextIdType = "station_id" }) is null);
 }
 
+// ── 11. Worklist tasks ──────────────────────────────────────────────────────────────
+//
+// The PI generator's rules on constructed colonies: which colony gets which task, a character's
+// colonies in one system hauled as one stop, input brought for the configured days, slots and
+// upgrades from the colony list, the "open it in game" task only where nothing else will open the
+// colony, and keys free of quantities and times.
+{
+    const long PilotOne = 1, PilotTwo = 2;
+    const int Jita = 30_000_142, Perimeter = 30_000_144;
+    var now = H(t0, 10);
+    var t   = PiThresholds.Default;   // extractors 24 h, storage 24 h, inputs 48 h, stale 7 d, 7 days of input
+
+    PiColonyLayout Extractor(long ch, int planet, int system, double stopsInHours, DateTimeOffset? snapshot = null) => new()
+    {
+        CharacterId = ch, PlanetId = planet, SolarSystemId = system, PlanetType = "barren", UpgradeLevel = 4,
+        LastUpdate = snapshot ?? t0,
+        Pins =
+        [
+            Pin(1, CcType),
+            Pin(2, EcuType) with { InstallTime = H(now, stopsInHours - 24), ExpiryTime = H(now, stopsInHours),
+                                   Extractor = new PiLayoutExtractor(A, 1800, 500, 4) },
+            Pin(5, StorageType),
+        ],
+        Routes = [new PiLayoutRoute(1, 2, 5, A, 500)],
+    };
+    PiColonyLayout Factory(long ch, int planet, int system)
+    {
+        var f = FactoryPlanet();
+        return new PiColonyLayout
+        {
+            CharacterId = ch, PlanetId = planet, SolarSystemId = system, PlanetType = "temperate", UpgradeLevel = 4,
+            LastUpdate = f.LastUpdate, Pins = f.Pins, Routes = f.Routes,
+        };
+    }
+    PiColonyLayout Lonely(long ch, int planet, int system, double daysOld) => new()
+    {
+        CharacterId = ch, PlanetId = planet, SolarSystemId = system, PlanetType = "ice", UpgradeLevel = 4,
+        LastUpdate = now.AddDays(-daysOld), Pins = [Pin(1, CcType)],
+    };
+    PiColonyStatus Status(PiColonyLayout l, string name, string system)
+    {
+        var f = PiEngine.Forecast(l, sd, now, new PiChargeRate(0.10, PiChargeKind.CustomsOffice));
+        return new PiColonyStatus(l.CharacterId, l.CharacterId == PilotOne ? "Pilot One" : "Pilot Two", l.PlanetId,
+                                  name, l.SolarSystemId, system, 0.9, 4, f, PiEconomics.For(f, new Dictionary<int, double>()));
+    }
+
+    var colonies = new List<PiColonyStatus>
+    {
+        Status(Extractor(PilotOne, 101, Jita, -5), "Jita I", "Jita"),                              // stopped 5 h ago
+        Status(Extractor(PilotOne, 102, Jita, 10), "Jita II", "Jita"),                             // stops in 10 h
+        Status(Extractor(PilotOne, 103, Jita, 48), "Jita III", "Jita"),                            // stops in 2 days
+        Status(Factory(PilotOne, 104, Jita), "Jita IV", "Jita"),                                   // fills in 10 h, Y out in 40 h
+        Status(Factory(PilotOne, 105, Jita), "Jita V", "Jita"),                                    // the same, same system
+        Status(Factory(PilotOne, 106, Perimeter), "Perimeter I", "Perimeter"),                     // the same, another system
+        Status(Lonely(PilotTwo, 201, Perimeter, 10), "Perimeter II", "Perimeter"),                // 10 days old, nothing else
+        Status(Extractor(PilotTwo, 202, Perimeter, -30, now.AddDays(-9)), "Perimeter III", "Perimeter"), // old AND stopped
+        Status(Factory(PilotTwo, 203, Jita), "Jita VI", "Jita"),                                   // another character, same system
+    };
+    var characters = new List<PiCharacterStatus>
+    {
+        // Interplanetary Consolidation 5: six colonies allowed, six used — no slot free.
+        new(PilotOne, "Pilot One", new PiSkills(PilotOne, 5, 4),
+            colonies.Where(c => c.CharacterId == PilotOne)
+                .Select(c => new PiColonySlot(c.PlanetId, "barren", c.SolarSystemId, c.PlanetId == 103 ? 2 : 4, 4, true)
+                             { PlanetName = c.PlanetName, SystemName = c.SystemName })
+                .ToList()),
+        // Interplanetary Consolidation 3: four allowed, three used — one free.
+        new(PilotTwo, "Pilot Two", new PiSkills(PilotTwo, 3, 4),
+            colonies.Where(c => c.CharacterId == PilotTwo)
+                .Select(c => new PiColonySlot(c.PlanetId, "ice", c.SolarSystemId, 4, 4, true)
+                             { PlanetName = c.PlanetName, SystemName = c.SystemName })
+                .ToList()),
+    };
+
+    var names = new Dictionary<int, string> { [A] = "Raw A", [X] = "Processed X", [Y] = "Processed Y", [Z] = "Refined Z" };
+    var tasks = PiTaskPlanner.Plan(colonies, characters, t, sd, names);
+    var keys  = tasks.Select(x => x.Key).ToHashSet();
+    WorklistItem? Find(string key) => tasks.FirstOrDefault(x => x.Key == key);
+
+    string[] expected =
+    [
+        "pi:extractors:1:101", "pi:extractors:1:102", "pi:extractors:2:202",
+        "pi:haul_out:1:30000142", "pi:haul_out:1:30000144", "pi:haul_out:2:30000142",
+        "pi:haul_in:1:104", "pi:haul_in:1:105", "pi:haul_in:1:106", "pi:haul_in:2:203",
+        "pi:setup:2",
+        "pi:upgrade:1:103",
+        "pi:stale:2:201",
+    ];
+    Check("tasks: exactly the expected tasks", keys.SetEquals(expected),
+          $"missing [{string.Join(", ", expected.Except(keys))}], extra [{string.Join(", ", keys.Except(expected))}]");
+    Check("tasks: no duplicate keys", tasks.Count == keys.Count, $"{tasks.Count} tasks, {keys.Count} keys");
+    Check("tasks: every task is a PI task from the PI source",
+          tasks.All(x => x.Kind == WorklistKind.Pi && x.Source == PiGenerator.SourceId));
+
+    // Restart extractors: stopped is ready, stopping is waiting, two days out is nothing yet.
+    Check("restart: a stopped extractor is ready, at Missing",
+          Find("pi:extractors:1:101") is { Readiness: WorklistReadiness.Ready, Priority: WorklistPriority.Missing });
+    Check("restart: one stopping within the lead time waits",
+          Find("pi:extractors:1:102") is { Readiness: WorklistReadiness.Waiting } w && w.BlockedBy.Length > 0);
+    Check("restart: one stopping after the lead time raises nothing", !keys.Contains("pi:extractors:1:103"));
+    Check("restart: names the character and the planet",
+          Find("pi:extractors:1:101") is { CharacterId: PilotOne, CharacterName: "Pilot One", LocationId: 101 });
+
+    // Take output off: Jita IV and Jita V are one stop; Perimeter I is another.
+    var jita = Find("pi:haul_out:1:30000142");
+    Check("haul out: one character's colonies in one system are one stop",
+          jita is not null && jita.LocationId == Jita && jita.Lines.Count == 1
+          && jita.Lines[0].TypeId == Z && jita.Lines[0].Quantity == 2 * 15_950,
+          jita is null ? "none" : string.Join(", ", jita.Lines.Select(l => $"{l.TypeId}×{l.Quantity}")));
+    Check("haul out: before full is HaulUnblocking", jita?.Priority == WorklistPriority.HaulUnblocking);
+    Check("haul out: another character in the same system is another haul",
+          Find("pi:haul_out:2:30000142") is { CharacterId: PilotTwo, LocationId: 203 } other && other.Lines.Single().Quantity == 15_950);
+    var perimeter = Find("pi:haul_out:1:30000144");
+    Check("haul out: a colony in another system is its own stop, at the planet",
+          perimeter is not null && perimeter.LocationId == 106 && perimeter.Lines.Count == 1 && perimeter.Lines[0].Quantity == 15_950);
+    Check("haul out: raw material used on the planet is not output",
+          tasks.Where(x => x.Key.StartsWith("pi:haul_out")).SelectMany(x => x.Lines).All(l => l.TypeId == Z));
+
+    // Bring input: seven days at 960 a day of each, less what is on hand after 11 starts.
+    var bring = Find("pi:haul_in:1:104");
+    Check("haul in: seven days of each input less what is there",
+          bring is not null
+          && bring.Lines.SingleOrDefault(l => l.TypeId == X)?.Quantity == 7 * 960 - (4000 - 11 * 40)
+          && bring.Lines.SingleOrDefault(l => l.TypeId == Y)?.Quantity == 7 * 960 - (2000 - 11 * 40),
+          bring is null ? "none" : string.Join(", ", bring.Lines.Select(l => $"{l.TypeId}×{l.Quantity}")));
+    Check("haul in: to the planet, separate from the output haul",
+          bring is { DestinationId: 104, LocationId: 0, Priority: WorklistPriority.Missing });
+    var fewerDays = PiTaskPlanner.Plan(colonies, characters, t with { InputDays = 3 }, sd, names);
+    // Three days: 2,880 of each, and 3,560 X is already there — only Y is wanted.
+    var three = fewerDays.SingleOrDefault(x => x.Key == "pi:haul_in:1:104");
+    Check("haul in: the days of input setting is used, and an input already covered is left out",
+          three is not null && three.Lines.Count == 1 && three.Lines[0].TypeId == Y
+          && three.Lines[0].Quantity == 3 * 960 - (2000 - 11 * 40),
+          three is null ? "none" : string.Join(", ", three.Lines.Select(l => $"{l.TypeId}×{l.Quantity}")));
+    var noLead = PiTaskPlanner.Plan(colonies, characters, t with { InputLead = TimeSpan.FromHours(24) }, sd, names);
+    Check("haul in: not raised before the lead time", !noLead.Any(x => x.Key.StartsWith("pi:haul_in")));
+
+    // Slots and command centers, from the colony list.
+    Check("setup: only a character with a free slot", keys.Contains("pi:setup:2") && !keys.Contains("pi:setup:1")
+          && Find("pi:setup:2")?.Priority == WorklistPriority.Housekeeping);
+    Check("upgrade: only where the skill allows a higher level",
+          tasks.Count(x => x.Key.StartsWith("pi:upgrade")) == 1 && Find("pi:upgrade:1:103")?.Priority == WorklistPriority.Housekeeping);
+
+    // Old data: a task of its own only when no other task will open the colony.
+    Check("stale: a lone old colony is to be opened in game", Find("pi:stale:2:201") is { Priority: WorklistPriority.Housekeeping });
+    Check("stale: an old colony with another task gets no second one", !keys.Contains("pi:stale:2:202"));
+
+    // Keys carry no quantity or time: half an hour later the same work has the same keys.
+    now = H(t0, 10.5);
+    var later = colonies.Select(c => Status(c.Forecast.Layout, c.PlanetName, c.SystemName)).ToList();
+    var laterKeys = PiTaskPlanner.Plan(later, characters, t, sd, names).Select(x => x.Key).ToHashSet();
+    Check("keys: stable as the estimates move", laterKeys.SetEquals(keys),
+          $"changed: [{string.Join(", ", keys.Except(laterKeys).Concat(laterKeys.Except(keys)))}]");
+    Check("keys: no quantity in any key", tasks.All(x => !x.Key.Contains("15950") && !x.Key.Contains("31900")));
+
+    // The attention the tool's chip shows agrees with the tasks.
+    var stoppedAttention = PiColonyAttention.For(colonies[0].Forecast, t);
+    Check("attention: a stopped extractor is Action", stoppedAttention.State == PiColonyState.Action);
+    Check("attention: two days out is OK", PiColonyAttention.For(colonies[2].Forecast, t).State == PiColonyState.Ok);
+    Check("attention: old data is Attention", PiColonyAttention.For(colonies[6].Forecast, t).State == PiColonyState.Attention);
+}
+
 // ── 10. Through a database ──────────────────────────────────────────────────────────
 //
 // A throwaway SQLite file built from the model: two snapshots of one colony stored the way the
@@ -530,6 +695,43 @@ try
           pi.SetEquals([90_000_001L, 90_000_003L]), string.Join(",", pi));
     Check("PI switch: one character asked directly",
           !await PiCharacters.IsOnAsync(db, 90_000_002) && await PiCharacters.IsOnAsync(db, 90_000_001));
+
+    // The worklist generator end to end: a stopped extractor on a character that does PI and on
+    // one whose PI box is cleared. Only the first raises anything — no task, slot or upgrade for
+    // the second.
+    EsiPlanetLayout Stopped() => new(
+        Links: [],
+        Pins:
+        [
+            new EsiPlanetPin(21, CcType, 0, 0, null, null, null, null, [], null, null),
+            new EsiPlanetPin(22, EcuType, 0, 0, null, t0.AddDays(-3), t0.AddDays(-2), null, [],
+                             new EsiExtractorDetails(1800, 0.01, [], A, 500), null),
+        ],
+        Routes: []);
+    var stamp = DateTimeOffset.UtcNow.AddHours(-1);
+    foreach (var (ch, planetId) in new[] { (90_000_001L, 40_000_011), (90_000_002L, 40_000_012) })
+    {
+        var c = new PlanetaryColony { CharacterId = ch, PlanetId = planetId, PlanetType = "barren",
+                                      SolarSystemId = 30_000_142, LastUpdate = stamp, NumPins = 2, UpgradeLevel = 0 };
+        db.EsiPlanetaryColonies.Add(c);
+        await db.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+        await PiLayoutStore.ReplaceAsync(db, c, Stopped(), null, stamp);
+    }
+    db.EsiSkills.Add(new StoredSkill { CharacterId = 90_000_002, SkillId = PiSkills.CommandCenterUpgradesId,
+                                       TrainedSkillLevel = 5, ActiveSkillLevel = 5 });
+    await db.SaveChangesAsync();
+    db.ChangeTracker.Clear();
+
+    var prefs     = new AppPreferencesService(null!);   // nothing set: every PI setting at its default
+    var piService = new PiService(new CheckDbFactory(opts), new PiTaxService(prefs), new PiSettings(prefs));
+    var generated = await new PiGenerator(piService).GenerateAsync();
+    Check("generator: the PI character's stopped extractor is a task",
+          generated.Any(x => x.Key == "pi:extractors:90000001:40000011"),
+          string.Join(", ", generated.Select(x => x.Key)));
+    Check("generator: a character with the PI box cleared raises nothing",
+          generated.All(x => x.CharacterId != 90_000_002), string.Join(", ", generated.Select(x => x.Key)));
+    Check("generator: a PI character with no colony is offered a slot", generated.Any(x => x.Key == "pi:setup:90000003"));
 }
 catch (Exception ex)
 {
@@ -545,3 +747,9 @@ finally
 Console.WriteLine($"PI engine check: {checks} check(s), {failures.Count} failure(s).");
 foreach (var f in failures) Console.WriteLine(f);
 return failures.Count == 0 ? 0 : 1;
+
+/// <summary>A context per call over the throwaway database, as the app's factory gives them.</summary>
+sealed class CheckDbFactory(DbContextOptions<AppDbContext> options) : IDbContextFactory<AppDbContext>
+{
+    public AppDbContext CreateDbContext() => new(options);
+}

@@ -1888,4 +1888,56 @@
     <value>{0} jumps from {1}</value>
     <comment>Spoken, in IntelSaidReportedAt: how many gate jumps from one of the capsuleer's characters. {0} is the number of jumps, {1} the character's name.</comment>
   </data>
+  <data name="CheckPi" xml:space="preserve">
+    <value>Planetary Industry</value>
+    <comment>Name of an alarm check in the alarm editor's Check list.</comment>
+  </data>
+  <data name="CheckPiNote" xml:space="preserve">
+    <value>Fires for the colonies of characters that do PI: an extractor program ended or ending (exact), storage or a launchpad full, or a factory planet's input running out (both estimated from the last time the colony was opened in the game). Each colony's event fires once; re-running the extractors or opening the colony again makes it news again.</value>
+    <comment>Alarm editor, under the Check list, for the Planetary Industry check.</comment>
+  </data>
+  <data name="PiWatchLabel" xml:space="preserve">
+    <value>WATCH FOR</value>
+    <comment>Alarm editor, Planetary Industry check: field label, upper case as the editor's labels are.</comment>
+  </data>
+  <data name="PiWatchNote" xml:space="preserve">
+    <value>Which of the three to fire for.</value>
+    <comment>Alarm editor, Planetary Industry check: under the Watch for field.</comment>
+  </data>
+  <data name="PiLeadLabel" xml:space="preserve">
+    <value>LEAD TIME</value>
+    <comment>Alarm editor, Planetary Industry check: field label, upper case as the editor's labels are.</comment>
+  </data>
+  <data name="PiLeadNote" xml:space="preserve">
+    <value>Fire this many hours before it happens. 0 fires when it happens.</value>
+    <comment>Alarm editor, Planetary Industry check: under the Lead time field.</comment>
+  </data>
+  <data name="PiLeadSuffix" xml:space="preserve">
+    <value>hours</value>
+    <comment>Alarm editor, Planetary Industry check: after the Lead time box.</comment>
+  </data>
+  <data name="OptionPiAll" xml:space="preserve">
+    <value>All three</value>
+    <comment>Alarm editor, Planetary Industry check, Watch for: extractors, storage and inputs.</comment>
+  </data>
+  <data name="OptionPiExtractors" xml:space="preserve">
+    <value>Extractors stopping</value>
+    <comment>Alarm editor, Planetary Industry check, Watch for.</comment>
+  </data>
+  <data name="OptionPiStorage" xml:space="preserve">
+    <value>Storage filling</value>
+    <comment>Alarm editor, Planetary Industry check, Watch for.</comment>
+  </data>
+  <data name="OptionPiInputs" xml:space="preserve">
+    <value>Inputs running out</value>
+    <comment>Alarm editor, Planetary Industry check, Watch for.</comment>
+  </data>
+  <data name="PiTitleOne" xml:space="preserve">
+    <value>{0} Planetary Industry colony needs attention</value>
+    <comment>Title of a Planetary Industry alarm's alert or dialog. {0} is the number of colonies.</comment>
+  </data>
+  <data name="PiTitleOther" xml:space="preserve">
+    <value>{0} Planetary Industry colonies need attention</value>
+    <comment>Title of a Planetary Industry alarm's alert or dialog. {0} is the number of colonies.</comment>
+  </data>
 </root>

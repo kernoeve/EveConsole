@@ -509,6 +509,22 @@ public static class PostgresSchema
         """
         ALTER TABLE "AlertSettings" ADD COLUMN IF NOT EXISTS "ExpiringContracts" BOOLEAN NOT NULL DEFAULT TRUE
         """,
+        // The Planetary Industry alerts. Mirrored for SQLite in App.axaml.cs.
+        """
+        ALTER TABLE "AlertSettings" ADD COLUMN IF NOT EXISTS "PiExtractors" BOOLEAN NOT NULL DEFAULT TRUE
+        """,
+        """
+        ALTER TABLE "AlertSettings" ADD COLUMN IF NOT EXISTS "PiStorage" BOOLEAN NOT NULL DEFAULT TRUE
+        """,
+        """
+        ALTER TABLE "AlertSettings" ADD COLUMN IF NOT EXISTS "PiInputs" BOOLEAN NOT NULL DEFAULT TRUE
+        """,
+        """
+        ALTER TABLE "AlertSettings" ADD COLUMN IF NOT EXISTS "PiFreeSlots" BOOLEAN NOT NULL DEFAULT TRUE
+        """,
+        """
+        ALTER TABLE "AlertSettings" ADD COLUMN IF NOT EXISTS "PiStaleData" BOOLEAN NOT NULL DEFAULT TRUE
+        """,
 
         // The HTTP status ESI answered a contract's item pull with, and the repair it makes
         // possible: corporation contracts issued by another corporation were once marked pulled
@@ -1098,8 +1114,9 @@ public static class PostgresSchema
         INSERT INTO "AlertSettings"
             ("Id", "SkillQueueEmpty", "SkillQueuePaused", "SkillQueueEmptyInDays", "SkillQueueEmptyDays",
              "AssetSafety", "InactiveStandingProjects", "StandingBuyOrdersAttention", "UnriggedIndustryJobs", "IndustryJobsReady",
-             "OutstandingContracts", "ExpiringContracts")
-        VALUES (1, true, true, true, 30, true, true, true, true, true, true, true)
+             "OutstandingContracts", "ExpiringContracts",
+             "PiExtractors", "PiStorage", "PiInputs", "PiFreeSlots", "PiStaleData")
+        VALUES (1, true, true, true, 30, true, true, true, true, true, true, true, true, true, true, true, true)
         ON CONFLICT DO NOTHING
         """,
         """

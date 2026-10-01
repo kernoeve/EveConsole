@@ -787,4 +787,8 @@ Update the client running the background processes to {1}, or close it and start
     <value>Exit</value>
     <comment>Tray icon menu item: closes the app. Settings quotes this word.</comment>
   </data>
+  <data name="NavPlanetaryIndustry" xml:space="preserve">
+    <value>Planetary Industry</value>
+    <comment>Navigation, Industry group: the Planetary Industry tool. Use the game's name for Planetary Industry.</comment>
+  </data>
 </root>

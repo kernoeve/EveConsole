@@ -2985,7 +2985,12 @@ public class App : Application
                         "UnriggedIndustryJobs"       INTEGER NOT NULL DEFAULT 1,
                         "IndustryJobsReady"          INTEGER NOT NULL DEFAULT 1,
                         "OutstandingContracts"       INTEGER NOT NULL DEFAULT 1,
-                        "ExpiringContracts"          INTEGER NOT NULL DEFAULT 1
+                        "ExpiringContracts"          INTEGER NOT NULL DEFAULT 1,
+                        "PiExtractors"               INTEGER NOT NULL DEFAULT 1,
+                        "PiStorage"                  INTEGER NOT NULL DEFAULT 1,
+                        "PiInputs"                   INTEGER NOT NULL DEFAULT 1,
+                        "PiFreeSlots"                INTEGER NOT NULL DEFAULT 1,
+                        "PiStaleData"                INTEGER NOT NULL DEFAULT 1
                     )
                     """);
                 // Existing installs predate these alerts.
@@ -2994,6 +2999,12 @@ public class App : Application
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "IndustryJobsReady" INTEGER NOT NULL DEFAULT 1"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "OutstandingContracts" INTEGER NOT NULL DEFAULT 1"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "ExpiringContracts" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                // Planetary Industry alerts. Mirrored for PostgreSQL in PostgresSchema.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "PiExtractors" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "PiStorage" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "PiInputs" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "PiFreeSlots" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "PiStaleData" INTEGER NOT NULL DEFAULT 1"""); } catch { }
                 // Every alert on by default. Named in full for the same reason as the market seed
                 // above, and with an extra sting: OR IGNORE swallows a NOT NULL violation rather
                 // than raising it, so the short form did not fail — it inserted nothing at all, and
@@ -3003,8 +3014,9 @@ public class App : Application
                     INSERT OR IGNORE INTO "AlertSettings"
                         ("Id", "SkillQueueEmpty", "SkillQueuePaused", "SkillQueueEmptyInDays", "SkillQueueEmptyDays",
                          "AssetSafety", "InactiveStandingProjects", "StandingBuyOrdersAttention", "UnriggedIndustryJobs", "IndustryJobsReady",
-                         "OutstandingContracts", "ExpiringContracts")
-                    VALUES (1, 1, 1, 1, 30, 1, 1, 1, 1, 1, 1, 1)
+                         "OutstandingContracts", "ExpiringContracts",
+                         "PiExtractors", "PiStorage", "PiInputs", "PiFreeSlots", "PiStaleData")
+                    VALUES (1, 1, 1, 1, 30, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
                     """);
 
                 db.Database.ExecuteSqlRaw("""
@@ -4240,6 +4252,7 @@ public class App : Application
         // Planetary Industry: tax defaults and per-planet rates, and the one door the PI tool,
         // its alerts and its worklist tasks read colonies through.
         services.AddSingleton<EveConsole.Services.Pi.PiTaxService>();
+        services.AddSingleton<EveConsole.Services.Pi.PiSettings>();
         services.AddSingleton<EveConsole.Services.Pi.PiService>();
         services.AddSingleton<EsiPollingService>();
         services.AddSingleton<NetWorthService>();
@@ -4346,6 +4359,8 @@ public class App : Application
                               EveConsole.Services.Worklist.SkillQueueGenerator>();
         services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
                               EveConsole.Services.Worklist.AssetSafetyGenerator>();
+        services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
+                              EveConsole.Services.Worklist.PiGenerator>();
         services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
                               EveConsole.Services.Worklist.RefiningGenerator>();
         services.AddSingleton<EveConsole.Services.Worklist.InventionService>();

@@ -1,0 +1,611 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="PlanetWithId" xml:space="preserve">
+    <value>Planet {0}</value>
+    <comment>A planet whose name is not known yet (no SDE). {0} is its id number.</comment>
+  </data>
+  <data name="TypeWithId" xml:space="preserve">
+    <value>Type {0}</value>
+    <comment>An item type whose name is not known yet (no SDE). {0} is its id number.</comment>
+  </data>
+  <data name="DurationDaysHours" xml:space="preserve">
+    <value>{0}d {1}h</value>
+    <comment>A length of time, as in "3d 4h". {0} is days, {1} hours. Keep it short.</comment>
+  </data>
+  <data name="InDuration" xml:space="preserve">
+    <value>in {0}</value>
+    <comment>A time ahead, as in "in 5h 20m". {0} is the length of time. Keep it short: it sits in a grid column.</comment>
+  </data>
+  <data name="AgoDuration" xml:space="preserve">
+    <value>{0} ago</value>
+    <comment>A time past, as in "3d 4h ago". {0} is the length of time. Keep it short: it sits in a grid column.</comment>
+  </data>
+  <data name="Updated" xml:space="preserve">
+    <value>Updated {0}</value>
+    <comment>PI tool, beside the Refresh button. {0} is the date and time of the last reading.</comment>
+  </data>
+  <data name="SummarySeparator" xml:space="preserve">
+    <value> · </value>
+    <comment>PI tool: what separates the parts of the summary line, as in "22 colonies · 3 extractors stopped". Keep the spaces as your language spaces a list.</comment>
+  </data>
+  <data name="SummaryColoniesOne" xml:space="preserve">
+    <value>{0} colony</value>
+    <comment>PI tool summary line, first part. {0} is the number of colonies.</comment>
+  </data>
+  <data name="SummaryColoniesOther" xml:space="preserve">
+    <value>{0} colonies</value>
+    <comment>PI tool summary line, first part. {0} is the number of colonies.</comment>
+  </data>
+  <data name="SummaryStoppedOne" xml:space="preserve">
+    <value>{0} extractor stopped</value>
+    <comment>PI tool summary line. {0} is the number of extractors (extractor control units) whose program has ended.</comment>
+  </data>
+  <data name="SummaryStoppedOther" xml:space="preserve">
+    <value>{0} extractors stopped</value>
+    <comment>PI tool summary line. {0} is the number of extractors (extractor control units) whose program has ended.</comment>
+  </data>
+  <data name="SummaryHaulingOne" xml:space="preserve">
+    <value>{0} needs hauling</value>
+    <comment>PI tool summary line. {0} is the number of colonies whose storage is full or fills within the lead time.</comment>
+  </data>
+  <data name="SummaryHaulingOther" xml:space="preserve">
+    <value>{0} need hauling</value>
+    <comment>PI tool summary line. {0} is the number of colonies whose storage is full or fills within the lead time.</comment>
+  </data>
+  <data name="SummaryInputsOne" xml:space="preserve">
+    <value>{0} input low</value>
+    <comment>PI tool summary line. {0} is the number of factory planets whose brought-in input runs out within the lead time.</comment>
+  </data>
+  <data name="SummaryInputsOther" xml:space="preserve">
+    <value>{0} inputs low</value>
+    <comment>PI tool summary line. {0} is the number of factory planets whose brought-in input runs out within the lead time.</comment>
+  </data>
+  <data name="TabColonies" xml:space="preserve">
+    <value>Colonies</value>
+    <comment>PI tool, tab: every colony of the characters that do Planetary Industry.</comment>
+  </data>
+  <data name="TabColony" xml:space="preserve">
+    <value>Colony</value>
+    <comment>PI tool, tab: one colony in detail.</comment>
+  </data>
+  <data name="TabCharacters" xml:space="preserve">
+    <value>Characters</value>
+    <comment>PI tool, tab: the characters that do Planetary Industry, their colony slots and command centers.</comment>
+  </data>
+  <data name="OpenColony" xml:space="preserve">
+    <value>Open colony</value>
+    <comment>PI tool, button: show the selected colony in detail.</comment>
+  </data>
+  <data name="TipOpenColony" xml:space="preserve">
+    <value>Show the selected colony in detail: its pins, flows and money. A double-click on a row does the same.</value>
+    <comment>Tooltip on the Open colony button in the PI tool.</comment>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Refresh</value>
+    <comment>PI tool, button: read the colonies again.</comment>
+  </data>
+  <data name="TipRefresh" xml:space="preserve">
+    <value>Read the colonies again. The list also refreshes every minute while it is open; new colony layouts are read from ESI every ten minutes.</value>
+    <comment>Tooltip on the Refresh button in the PI tool. ESI is the name of EVE's web API.</comment>
+  </data>
+  <data name="EstimatesNote" xml:space="preserve">
+    <value>Extractor times are exact. Storage and input times are estimates, replayed from the last time each colony was opened in the game; the data age column says how old that is.</value>
+    <comment>Note under the summary line in the PI tool.</comment>
+  </data>
+  <data name="EmptyNote" xml:space="preserve">
+    <value>No colonies to show yet. Colonies are read for characters with the PI box ticked on Settings → Characters; a colony appears here once its layout has been read from ESI, which happens when it was last opened in the game.</value>
+    <comment>PI tool, shown instead of an empty list. ESI is EVE's web API.</comment>
+  </data>
+  <data name="ColCharacter" xml:space="preserve">
+    <value>Character</value>
+    <comment>PI tool, column header: the character who owns the colony.</comment>
+  </data>
+  <data name="ColPlanet" xml:space="preserve">
+    <value>Planet</value>
+    <comment>PI tool, column header.</comment>
+  </data>
+  <data name="ColSystem" xml:space="preserve">
+    <value>System</value>
+    <comment>PI tool, column header: the solar system, after its security level.</comment>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>Type</value>
+    <comment>PI tool, column header: the planet type (Barren, Gas, …). Short.</comment>
+  </data>
+  <data name="ColKind" xml:space="preserve">
+    <value>Kind</value>
+    <comment>PI tool, column header: Extractor or Factory planet. Short.</comment>
+  </data>
+  <data name="ColCc" xml:space="preserve">
+    <value>CC</value>
+    <comment>PI tool, column header: the command center's upgrade level against the highest the skill allows. Very short (about 3 characters).</comment>
+  </data>
+  <data name="ColExtractorsEnd" xml:space="preserve">
+    <value>Extractors end</value>
+    <comment>PI tool, column header: when the colony's first extractor program ends (exact).</comment>
+  </data>
+  <data name="ColStorageFull" xml:space="preserve">
+    <value>Storage full</value>
+    <comment>PI tool, column header: when storage first fills (estimated).</comment>
+  </data>
+  <data name="ColInputsRunOut" xml:space="preserve">
+    <value>Inputs run out</value>
+    <comment>PI tool, column header: when a factory planet's brought-in input runs out (estimated).</comment>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>Status</value>
+    <comment>PI tool, column header: OK, Attention or Action.</comment>
+  </data>
+  <data name="ColDataAge" xml:space="preserve">
+    <value>Data age</value>
+    <comment>PI tool, column header: how long ago the colony was last opened in the game.</comment>
+  </data>
+  <data name="ColProfit" xml:space="preserve">
+    <value>Profit</value>
+    <comment>PI tool, column header: the colony's profit per day.</comment>
+  </data>
+  <data name="LevelOfMax" xml:space="preserve">
+    <value>{0} / {1}</value>
+    <comment>PI tool, CC column: command center level {0} of the highest {1} the character's Command Center Upgrades skill allows.</comment>
+  </data>
+  <data name="TipCcHeadroom" xml:space="preserve">
+    <value>Command center level {0}; Command Center Upgrades allows {1}, so it can be upgraded.</value>
+    <comment>Tooltip in the PI tool. {0} is the command center's level, {1} the highest the skill allows. "Command Center Upgrades" is a skill name: use the game's.</comment>
+  </data>
+  <data name="TipCcAtMax" xml:space="preserve">
+    <value>Command center level {0}: as high as Command Center Upgrades allows.</value>
+    <comment>Tooltip in the PI tool. {0} is the level. "Command Center Upgrades" is a skill name: use the game's.</comment>
+  </data>
+  <data name="Stopped" xml:space="preserve">
+    <value>Stopped</value>
+    <comment>PI tool, Extractors end column: the extractor program has ended. Short.</comment>
+  </data>
+  <data name="TipExtractorsStopped" xml:space="preserve">
+    <value>The first extractor stopped {0} ago, at {1}. Exact: an extractor program's end is fixed when it is set.</value>
+    <comment>Tooltip in the PI tool. {0} is a length of time, {1} a date and time.</comment>
+  </data>
+  <data name="TipExtractorsStop" xml:space="preserve">
+    <value>The first extractor stops at {0}. Exact: an extractor program's end is fixed when it is set.</value>
+    <comment>Tooltip in the PI tool. {0} is a date and time.</comment>
+  </data>
+  <data name="TipNoExtractors" xml:space="preserve">
+    <value>No extractors on this colony.</value>
+    <comment>Tooltip in the PI tool, Extractors end column of a factory planet.</comment>
+  </data>
+  <data name="Full" xml:space="preserve">
+    <value>Full</value>
+    <comment>PI tool: storage is full (estimated). Short.</comment>
+  </data>
+  <data name="TipStorageFull" xml:space="preserve">
+    <value>Estimated full since {0}: output that arrives now is lost. Estimated from the last time the colony was opened in the game.</value>
+    <comment>Tooltip in the PI tool. {0} is a date and time.</comment>
+  </data>
+  <data name="TipStorageFills" xml:space="preserve">
+    <value>Estimated to fill at {0}, from the last time the colony was opened in the game.</value>
+    <comment>Tooltip in the PI tool. {0} is a date and time.</comment>
+  </data>
+  <data name="NotWithinHorizon" xml:space="preserve">
+    <value>Not within 30 days</value>
+    <comment>PI tool: the estimate does not reach this within the 30 days it looks ahead.</comment>
+  </data>
+  <data name="TipStorageNotFull" xml:space="preserve">
+    <value>Storage does not fill within the 30 days the estimate looks ahead.</value>
+    <comment>Tooltip in the PI tool, Storage full column.</comment>
+  </data>
+  <data name="RanOut" xml:space="preserve">
+    <value>Ran out</value>
+    <comment>PI tool, Inputs run out column: a factory planet's input has run out (estimated). Short.</comment>
+  </data>
+  <data name="TipInputsOut" xml:space="preserve">
+    <value>Estimated to have run out at {0}: its factories are idle. Estimated from the last time the colony was opened in the game.</value>
+    <comment>Tooltip in the PI tool. {0} is a date and time.</comment>
+  </data>
+  <data name="TipInputsRunOut" xml:space="preserve">
+    <value>Estimated to run out at {0}, from the last time the colony was opened in the game.</value>
+    <comment>Tooltip in the PI tool. {0} is a date and time.</comment>
+  </data>
+  <data name="TipInputsNotOut" xml:space="preserve">
+    <value>The input brought in lasts longer than the 30 days the estimate looks ahead.</value>
+    <comment>Tooltip in the PI tool, Inputs run out column.</comment>
+  </data>
+  <data name="TipNoInputs" xml:space="preserve">
+    <value>Nothing is brought in: an extractor planet makes its own.</value>
+    <comment>Tooltip in the PI tool, Inputs run out column of an extractor planet.</comment>
+  </data>
+  <data name="StateAction" xml:space="preserve">
+    <value>Action</value>
+    <comment>PI tool, status chip: something has already happened (extractors stopped, storage full, input gone). Short.</comment>
+  </data>
+  <data name="StateAttention" xml:space="preserve">
+    <value>Attention</value>
+    <comment>PI tool, status chip: something comes due soon, or the data is old. Short.</comment>
+  </data>
+  <data name="StateOk" xml:space="preserve">
+    <value>OK</value>
+    <comment>PI tool, status chip: nothing due. Short.</comment>
+  </data>
+  <data name="AgeStale" xml:space="preserve">
+    <value>{0} (old)</value>
+    <comment>PI tool, Data age column, when the data is older than the setting. {0} is the age, as in "3d 4h".</comment>
+  </data>
+  <data name="TipAge" xml:space="preserve">
+    <value>Last opened in the game at {0}.</value>
+    <comment>Tooltip in the PI tool, Data age column. {0} is a date and time.</comment>
+  </data>
+  <data name="TipAgeStale" xml:space="preserve">
+    <value>Last opened in the game at {0}: too long ago for its estimates to be trusted. Open the colony in the game to refresh it.</value>
+    <comment>Tooltip in the PI tool, Data age column. {0} is a date and time.</comment>
+  </data>
+  <data name="PerDay" xml:space="preserve">
+    <value>{0} / day</value>
+    <comment>PI tool: an ISK amount per day. {0} is the amount.</comment>
+  </data>
+  <data name="TipProfit" xml:space="preserve">
+    <value>Output {0}, less inputs {1} and import and export charges {2}, a day, at market prices.</value>
+    <comment>Tooltip in the PI tool, Profit column. {0}, {1} and {2} are ISK amounts.</comment>
+  </data>
+  <data name="KindExtractor" xml:space="preserve">
+    <value>Extractor</value>
+    <comment>PI tool, Kind column: a colony with extractors, which only sends output off. Short.</comment>
+  </data>
+  <data name="KindFactory" xml:space="preserve">
+    <value>Factory</value>
+    <comment>PI tool, Kind column: a colony with factories only, which needs input brought in. Short.</comment>
+  </data>
+  <data name="KindEmpty" xml:space="preserve">
+    <value>Empty</value>
+    <comment>PI tool, Kind column: a colony with neither extractors nor factories. Short.</comment>
+  </data>
+  <data name="ReasonExtractorsStopped" xml:space="preserve">
+    <value>Extractors stopped.</value>
+    <comment>Tooltip line on the PI tool's status chip.</comment>
+  </data>
+  <data name="ReasonExtractorsStopping" xml:space="preserve">
+    <value>Extractors stop within the lead time.</value>
+    <comment>Tooltip line on the PI tool's status chip. The lead time is a setting.</comment>
+  </data>
+  <data name="ReasonStorageFull" xml:space="preserve">
+    <value>Storage full (estimated).</value>
+    <comment>Tooltip line on the PI tool's status chip.</comment>
+  </data>
+  <data name="ReasonStorageFilling" xml:space="preserve">
+    <value>Storage fills within the lead time (estimated).</value>
+    <comment>Tooltip line on the PI tool's status chip.</comment>
+  </data>
+  <data name="ReasonInputsOut" xml:space="preserve">
+    <value>Input ran out (estimated).</value>
+    <comment>Tooltip line on the PI tool's status chip.</comment>
+  </data>
+  <data name="ReasonInputsLow" xml:space="preserve">
+    <value>Input runs out within the lead time (estimated).</value>
+    <comment>Tooltip line on the PI tool's status chip.</comment>
+  </data>
+  <data name="ReasonStale" xml:space="preserve">
+    <value>Data too old to trust.</value>
+    <comment>Tooltip line on the PI tool's status chip.</comment>
+  </data>
+  <data name="ReasonNothingDue" xml:space="preserve">
+    <value>Nothing due within the lead times.</value>
+    <comment>Tooltip on the PI tool's status chip when it says OK.</comment>
+  </data>
+  <data name="CharactersNote" xml:space="preserve">
+    <value>Characters with the PI box ticked on Settings → Characters. Colony slots come from Interplanetary Consolidation; command center levels from Command Center Upgrades.</value>
+    <comment>Note on the PI tool's Characters tab. Skill names: use the game's.</comment>
+  </data>
+  <data name="OpenPiSwitch" xml:space="preserve">
+    <value>PI box in Settings…</value>
+    <comment>PI tool, button: opens Settings → Characters, where the PI box is.</comment>
+  </data>
+  <data name="TipOpenPiSwitch" xml:space="preserve">
+    <value>Open Settings → Characters, where each character's PI box decides whether it is in this tool, its alerts and its worklist tasks.</value>
+    <comment>Tooltip on the PI box button in the PI tool.</comment>
+  </data>
+  <data name="ColColonies" xml:space="preserve">
+    <value>Colonies</value>
+    <comment>PI tool, Characters tab, column header: colonies in use against colonies allowed.</comment>
+  </data>
+  <data name="ColFreeSlots" xml:space="preserve">
+    <value>Free slots</value>
+    <comment>PI tool, Characters tab, column header: colonies the character could still set up.</comment>
+  </data>
+  <data name="ColSkills" xml:space="preserve">
+    <value>Skills</value>
+    <comment>PI tool, Characters tab, column header: the two PI skills' levels.</comment>
+  </data>
+  <data name="ColCommandCenters" xml:space="preserve">
+    <value>Command centers</value>
+    <comment>PI tool, Characters tab, column header: each colony's command center level against the highest allowed.</comment>
+  </data>
+  <data name="ColoniesOfAllowed" xml:space="preserve">
+    <value>{0} / {1}</value>
+    <comment>PI tool, Characters tab: {0} colonies in use of {1} allowed.</comment>
+  </data>
+  <data name="FreeSlotsOne" xml:space="preserve">
+    <value>{0} free</value>
+    <comment>PI tool, Characters tab: {0} colony slot not used.</comment>
+  </data>
+  <data name="FreeSlotsOther" xml:space="preserve">
+    <value>{0} free</value>
+    <comment>PI tool, Characters tab: {0} colony slots not used.</comment>
+  </data>
+  <data name="NoFreeSlots" xml:space="preserve">
+    <value>None</value>
+    <comment>PI tool, Characters tab: every colony slot is in use.</comment>
+  </data>
+  <data name="SkillsShort" xml:space="preserve">
+    <value>IC {0} · CCU {1}</value>
+    <comment>PI tool, Characters tab: {0} is the Interplanetary Consolidation level, {1} the Command Center Upgrades level. IC and CCU are the common abbreviations; use your language's if the players use one.</comment>
+  </data>
+  <data name="TipSkills" xml:space="preserve">
+    <value>Interplanetary Consolidation (IC): one colony plus one per level. Command Center Upgrades (CCU): the highest command center level.</value>
+    <comment>Tooltip in the PI tool, Skills column. Skill names: use the game's.</comment>
+  </data>
+  <data name="SlotWithHeadroom" xml:space="preserve">
+    <value>{0}: {1}/{2} ↑</value>
+    <comment>PI tool, Characters tab: a colony whose command center can be upgraded. {0} is the planet, {1} its level, {2} the highest allowed. The arrow marks room to upgrade.</comment>
+  </data>
+  <data name="SlotAtMax" xml:space="preserve">
+    <value>{0}: {1}/{2}</value>
+    <comment>PI tool, Characters tab: a colony at the highest command center level allowed. {0} is the planet, {1} its level, {2} the highest allowed.</comment>
+  </data>
+  <data name="NoColonySelected" xml:space="preserve">
+    <value>Pick a colony on the Colonies tab — double-click it, or select it and press Open colony.</value>
+    <comment>PI tool, Colony tab, when no colony is chosen.</comment>
+  </data>
+  <data name="DetailSubtitle" xml:space="preserve">
+    <value>{0} · {1} {2} · {3} · {4}</value>
+    <comment>PI tool, Colony tab, under the planet name. {0} character, {1} system, {2} its security level, {3} planet type, {4} Extractor or Factory.</comment>
+  </data>
+  <data name="DetailAge" xml:space="preserve">
+    <value>Data {0} old: last opened in the game at {1}. Storage, factory and input figures are estimated from then.</value>
+    <comment>PI tool, Colony tab. {0} is a length of time, {1} a date and time.</comment>
+  </data>
+  <data name="DetailAgeStale" xml:space="preserve">
+    <value>Data {0} old: last opened in the game at {1}, too long ago for the estimates to be trusted. Open the colony in the game to refresh it.</value>
+    <comment>PI tool, Colony tab, when the data is older than the setting. {0} is a length of time, {1} a date and time.</comment>
+  </data>
+  <data name="SectionCommandCenter" xml:space="preserve">
+    <value>Command center</value>
+    <comment>PI tool, Colony tab, section heading.</comment>
+  </data>
+  <data name="DetailCommandCenter" xml:space="preserve">
+    <value>Level {0} of {1} allowed — {2:N0} tf CPU, {3:N0} MW powergrid.</value>
+    <comment>PI tool, Colony tab. {0} the level, {1} the highest the skill allows, {2} CPU in teraflops, {3} powergrid in megawatts.</comment>
+  </data>
+  <data name="SectionExtractors" xml:space="preserve">
+    <value>Extractors (exact)</value>
+    <comment>PI tool, Colony tab, section heading.</comment>
+  </data>
+  <data name="NoProduct" xml:space="preserve">
+    <value>No product set</value>
+    <comment>PI tool, Colony tab: an extractor with nothing to extract.</comment>
+  </data>
+  <data name="HeadsOne" xml:space="preserve">
+    <value>{0} head</value>
+    <comment>PI tool, Colony tab: an extractor's number of extractor heads.</comment>
+  </data>
+  <data name="HeadsOther" xml:space="preserve">
+    <value>{0} heads</value>
+    <comment>PI tool, Colony tab: an extractor's number of extractor heads.</comment>
+  </data>
+  <data name="ProgramFromTo" xml:space="preserve">
+    <value>Program {0} to {1}</value>
+    <comment>PI tool, Colony tab. {0} and {1} are the program's start and end, dates and times.</comment>
+  </data>
+  <data name="NoProgram" xml:space="preserve">
+    <value>No program running</value>
+    <comment>PI tool, Colony tab: an extractor that has never been started.</comment>
+  </data>
+  <data name="CyclesDoneOfTotal" xml:space="preserve">
+    <value>Cycle {0} of {1}, every {2}</value>
+    <comment>PI tool, Colony tab. {0} cycles done, {1} cycles in the program, {2} the cycle length (as in "2h 0m").</comment>
+  </data>
+  <data name="OutputTotalRemaining" xml:space="preserve">
+    <value>{0} in all, {1} still to come</value>
+    <comment>PI tool, Colony tab. {0} the program's total output in units, {1} what is still to come.</comment>
+  </data>
+  <data name="YieldUnknown" xml:space="preserve">
+    <value>Output unknown: ESI gave no quantity for this program.</value>
+    <comment>PI tool, Colony tab. ESI is EVE's web API.</comment>
+  </data>
+  <data name="ExtractorStopped" xml:space="preserve">
+    <value>Stopped {0}</value>
+    <comment>PI tool, Colony tab. {0} is "3d 4h ago" and the like.</comment>
+  </data>
+  <data name="ExtractorStops" xml:space="preserve">
+    <value>Stops {0}</value>
+    <comment>PI tool, Colony tab. {0} is "in 5h 20m" and the like.</comment>
+  </data>
+  <data name="ChartDone" xml:space="preserve">
+    <value>Done</value>
+    <comment>PI tool, extractor chart: cycles finished.</comment>
+  </data>
+  <data name="ChartCurrent" xml:space="preserve">
+    <value>Running</value>
+    <comment>PI tool, extractor chart: the cycle running now.</comment>
+  </data>
+  <data name="ChartAhead" xml:space="preserve">
+    <value>To come</value>
+    <comment>PI tool, extractor chart: cycles still to come.</comment>
+  </data>
+  <data name="ChartCycle" xml:space="preserve">
+    <value>Cycle</value>
+    <comment>PI tool, extractor chart, axis title.</comment>
+  </data>
+  <data name="ChartUnits" xml:space="preserve">
+    <value>Units</value>
+    <comment>PI tool, extractor chart, axis title: units extracted per cycle.</comment>
+  </data>
+  <data name="SectionProcessors" xml:space="preserve">
+    <value>Factories (estimated)</value>
+    <comment>PI tool, Colony tab, section heading: the processors.</comment>
+  </data>
+  <data name="ColSchematic" xml:space="preserve">
+    <value>Schematic</value>
+    <comment>PI tool, Colony tab, column header: what the factory is set to make. Use the game's word.</comment>
+  </data>
+  <data name="ColOutput" xml:space="preserve">
+    <value>Output</value>
+    <comment>PI tool, Colony tab, column header.</comment>
+  </data>
+  <data name="ColFacility" xml:space="preserve">
+    <value>Facility</value>
+    <comment>PI tool, Colony tab, column header: the factory's own type.</comment>
+  </data>
+  <data name="ColStateEstimated" xml:space="preserve">
+    <value>State (estimated)</value>
+    <comment>PI tool, Colony tab, column header: running or idle.</comment>
+  </data>
+  <data name="NoSchematic" xml:space="preserve">
+    <value>No schematic</value>
+    <comment>PI tool, Colony tab: a factory with nothing set to make.</comment>
+  </data>
+  <data name="ProcessorRunning" xml:space="preserve">
+    <value>Running</value>
+    <comment>PI tool, Colony tab: a factory mid-cycle (estimated).</comment>
+  </data>
+  <data name="ProcessorIdle" xml:space="preserve">
+    <value>Idle</value>
+    <comment>PI tool, Colony tab: a factory waiting for input (estimated).</comment>
+  </data>
+  <data name="ProcessorIdleSince" xml:space="preserve">
+    <value>Idle since {0}</value>
+    <comment>PI tool, Colony tab: a factory waiting for input (estimated). {0} is a date and time.</comment>
+  </data>
+  <data name="SectionStorage" xml:space="preserve">
+    <value>Storage and launchpads (estimated)</value>
+    <comment>PI tool, Colony tab, section heading.</comment>
+  </data>
+  <data name="ColPin" xml:space="preserve">
+    <value>Kind</value>
+    <comment>PI tool, Colony tab, column header: storage, launchpad or command center.</comment>
+  </data>
+  <data name="ColFill" xml:space="preserve">
+    <value>Fill</value>
+    <comment>PI tool, Colony tab, column header: how full, as a percentage.</comment>
+  </data>
+  <data name="ColVolume" xml:space="preserve">
+    <value>Volume</value>
+    <comment>PI tool, Colony tab, column header: m³ used of the capacity.</comment>
+  </data>
+  <data name="ColFullEstimated" xml:space="preserve">
+    <value>Full</value>
+    <comment>PI tool, Colony tab, column header: when it fills.</comment>
+  </data>
+  <data name="ColContents" xml:space="preserve">
+    <value>Contents</value>
+    <comment>PI tool, Colony tab, column header.</comment>
+  </data>
+  <data name="PinStorage" xml:space="preserve">
+    <value>Storage</value>
+    <comment>PI tool, Colony tab: a storage facility.</comment>
+  </data>
+  <data name="PinLaunchpad" xml:space="preserve">
+    <value>Launchpad</value>
+    <comment>PI tool, Colony tab: a launchpad. Use the game's word.</comment>
+  </data>
+  <data name="PinCommandCenter" xml:space="preserve">
+    <value>Command center</value>
+    <comment>PI tool, Colony tab: the command center. Use the game's word.</comment>
+  </data>
+  <data name="Percent" xml:space="preserve">
+    <value>{0}%</value>
+    <comment>A percentage, as in "45%". {0} is the number. Space it as your language does.</comment>
+  </data>
+  <data name="VolumeOfCapacity" xml:space="preserve">
+    <value>{0} / {1} m³</value>
+    <comment>PI tool, Colony tab: {0} m³ used of {1} m³ capacity.</comment>
+  </data>
+  <data name="Empty" xml:space="preserve">
+    <value>Empty</value>
+    <comment>PI tool, Colony tab: a storage pin holding nothing.</comment>
+  </data>
+  <data name="QuantityOf" xml:space="preserve">
+    <value>{0} × {1}</value>
+    <comment>PI tool, Colony tab: {0} units of {1} (an item name).</comment>
+  </data>
+  <data name="SectionFlows" xml:space="preserve">
+    <value>Flows per day</value>
+    <comment>PI tool, Colony tab, section heading.</comment>
+  </data>
+  <data name="FlowsNote" xml:space="preserve">
+    <value>What the colony makes, uses, needs brought in and leaves to be taken off, a day, running as built.</value>
+    <comment>PI tool, Colony tab, under the Flows per day heading.</comment>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>Item</value>
+    <comment>PI tool, Colony tab, column header.</comment>
+  </data>
+  <data name="ColTier" xml:space="preserve">
+    <value>Tier</value>
+    <comment>PI tool, Colony tab, column header: P0 to P4. Short.</comment>
+  </data>
+  <data name="ColProduced" xml:space="preserve">
+    <value>Made</value>
+    <comment>PI tool, Colony tab, column header: units made a day.</comment>
+  </data>
+  <data name="ColConsumed" xml:space="preserve">
+    <value>Used</value>
+    <comment>PI tool, Colony tab, column header: units used a day.</comment>
+  </data>
+  <data name="ColImported" xml:space="preserve">
+    <value>Brought in</value>
+    <comment>PI tool, Colony tab, column header: units brought in a day.</comment>
+  </data>
+  <data name="ColExported" xml:space="preserve">
+    <value>Taken off</value>
+    <comment>PI tool, Colony tab, column header: units taken off a day.</comment>
+  </data>
+  <data name="SectionEconomics" xml:space="preserve">
+    <value>Money per day</value>
+    <comment>PI tool, Colony tab, section heading.</comment>
+  </data>
+  <data name="EconOutputValue" xml:space="preserve">
+    <value>Output value</value>
+    <comment>PI tool, Colony tab, label: what the output taken off is worth at market.</comment>
+  </data>
+  <data name="EconInputCost" xml:space="preserve">
+    <value>Input cost</value>
+    <comment>PI tool, Colony tab, label: what the input brought in costs at market.</comment>
+  </data>
+  <data name="EconExportCharges" xml:space="preserve">
+    <value>Export charges</value>
+    <comment>PI tool, Colony tab, label: customs office or skyhook tax on goods taken off.</comment>
+  </data>
+  <data name="EconImportCharges" xml:space="preserve">
+    <value>Import charges</value>
+    <comment>PI tool, Colony tab, label: customs office or skyhook tax on goods brought in.</comment>
+  </data>
+  <data name="EconProfit" xml:space="preserve">
+    <value>Profit</value>
+    <comment>PI tool, Colony tab, label.</comment>
+  </data>
+  <data name="EconTaxRate" xml:space="preserve">
+    <value>Tax rate</value>
+    <comment>PI tool, Colony tab, label.</comment>
+  </data>
+  <data name="RateUnknown" xml:space="preserve">
+    <value>Not known</value>
+    <comment>PI tool, Colony tab: no tax rate.</comment>
+  </data>
+  <data name="RateLearned" xml:space="preserve">
+    <value>{0}% at this planet's {1}, learned from the wallet journal at {2}</value>
+    <comment>PI tool, Colony tab. {0} the rate, {1} "customs office" or "skyhook", {2} a date and time.</comment>
+  </data>
+  <data name="RateDefault" xml:space="preserve">
+    <value>{0}%, the {1} default on Settings → Industry — not learned for this planet yet</value>
+    <comment>PI tool, Colony tab. {0} the rate, {1} "customs office" or "skyhook".</comment>
+  </data>
+  <data name="CustomsOffice" xml:space="preserve">
+    <value>customs office</value>
+    <comment>PI tool, Colony tab: the structure that taxes goods leaving or reaching a planet. Use the game's word, lower case where your language allows it inside a sentence.</comment>
+  </data>
+  <data name="Skyhook" xml:space="preserve">
+    <value>skyhook</value>
+    <comment>PI tool, Colony tab: the sovereignty structure that taxes goods in null-sec. Use the game's word, lower case where your language allows it inside a sentence.</comment>
+  </data>
+</root>

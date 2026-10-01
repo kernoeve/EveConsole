@@ -37,12 +37,25 @@ public sealed record PiColonyStatus(
     // What the character's Command Center Upgrades allows.
     int MaxUpgradeLevel,
     PiColonyForecast Forecast,
-    PiEconomics Economics);
+    PiEconomics Economics)
+{
+    /// <summary>The planet's own SDE type ("Planet (Barren)"), for its localized type name; 0
+    /// when the SDE has not been read.</summary>
+    public int PlanetTypeId { get; init; }
+
+    /// <summary>That type's English name, the fallback for <see cref="PiNames.PlanetType"/>.</summary>
+    public string PlanetTypeName { get; init; } = "";
+}
 
 /// <summary>A colony slot as the colony list has it, read or not.</summary>
 public sealed record PiColonySlot(int PlanetId, string PlanetType, int SolarSystemId, int UpgradeLevel,
                                   int MaxUpgradeLevel, bool LayoutRead)
 {
+    /// <summary>English, from the SDE; the screen names it in the interface language
+    /// (<see cref="PiNames.Planet"/>).</summary>
+    public string PlanetName { get; init; } = "";
+    public string SystemName { get; init; } = "";
+
     /// <summary>Command center levels the character could still add.</summary>
     public int UpgradeHeadroom => Math.Max(0, MaxUpgradeLevel - UpgradeLevel);
 }
@@ -63,7 +76,7 @@ public sealed record PiCharacterStatus(long CharacterId, string Name, PiSkills S
 /// forecast to a moment with its charges and money. Part of the app's services; the screens,
 /// alerts and worklist tasks read from here and never assemble it themselves.
 /// </summary>
-public sealed class PiService(IDbContextFactory<AppDbContext> dbFactory, PiTaxService tax)
+public sealed class PiService(IDbContextFactory<AppDbContext> dbFactory, PiTaxService tax, PiSettings settings)
 {
     private static readonly TimeSpan StaticDataLife = TimeSpan.FromMinutes(10);
     private readonly SemaphoreSlim _staticGate = new(1, 1);
@@ -71,6 +84,9 @@ public sealed class PiService(IDbContextFactory<AppDbContext> dbFactory, PiTaxSe
     private DateTimeOffset _staticAt;
 
     public PiTaxService Tax => tax;
+
+    /// <summary>The lead times and limits the PI alerts and tasks judge colonies by.</summary>
+    public PiSettings Settings => settings;
 
     /// <summary>Which characters do PI. See <see cref="PiCharacters"/>.</summary>
     public async Task<HashSet<long>> PiCharacterIdsAsync(CancellationToken ct = default)
@@ -112,12 +128,18 @@ public sealed class PiService(IDbContextFactory<AppDbContext> dbFactory, PiTaxSe
                 .Select(l => new { l.CharacterId, l.PlanetId })
                 .ToListAsync(ct).ConfigureAwait(false))
             .Select(l => (l.CharacterId, l.PlanetId)).ToHashSet();
+        var (planetNames, systems) = await PlaceNamesAsync(db, colonies.Select(c => (c.PlanetId, c.SolarSystemId)), ct)
+            .ConfigureAwait(false);
 
         return ids
             .Select(id => new PiCharacterStatus(id, names.GetValueOrDefault(id, id.ToString()), skills[id],
                 colonies.Where(c => c.CharacterId == id).OrderBy(c => c.PlanetId)
                     .Select(c => new PiColonySlot(c.PlanetId, c.PlanetType, c.SolarSystemId, c.UpgradeLevel,
-                                                  skills[id].MaxUpgradeLevel, read.Contains((id, c.PlanetId))))
+                                                  skills[id].MaxUpgradeLevel, read.Contains((id, c.PlanetId)))
+                    {
+                        PlanetName = planetNames.TryGetValue(c.PlanetId, out var p) ? p.Name : "",
+                        SystemName = systems.TryGetValue(c.SolarSystemId, out var sys) ? sys.Name : "",
+                    })
                     .ToList()))
             .OrderBy(c => c.Name, StringComparer.CurrentCultureIgnoreCase)
             .ToList();
@@ -142,14 +164,12 @@ public sealed class PiService(IDbContextFactory<AppDbContext> dbFactory, PiTaxSe
         var skills = await PiSkills.LoadAsync(db, ids, ct).ConfigureAwait(false);
         var rates  = await tax.RatesAsync(db, layouts.Select(l => (l.PlanetId, l.SolarSystemId)), ct).ConfigureAwait(false);
 
-        var planetIds = layouts.Select(l => (long)l.PlanetId).Distinct().ToList();
-        var planetNames = await db.SdeCelestials.AsNoTracking()
-            .Where(c => planetIds.Contains(c.ItemId))
-            .ToDictionaryAsync(c => c.ItemId, c => c.Name, ct).ConfigureAwait(false);
-        var systemIds = layouts.Select(l => l.SolarSystemId).Distinct().ToList();
-        var systems = await db.SdeSolarSystems.AsNoTracking()
-            .Where(s => systemIds.Contains(s.SolarSystemId))
-            .ToDictionaryAsync(s => s.SolarSystemId, s => (s.Name, s.Security), ct).ConfigureAwait(false);
+        var (planetNames, systems) = await PlaceNamesAsync(db, layouts.Select(l => (l.PlanetId, l.SolarSystemId)), ct)
+            .ConfigureAwait(false);
+        var planetTypeIds = planetNames.Values.Select(p => p.TypeId).Where(t => t > 0).Distinct().ToList();
+        var planetTypeNames = await db.SdeTypes.AsNoTracking()
+            .Where(t => planetTypeIds.Contains(t.TypeId))
+            .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct).ConfigureAwait(false);
 
         var forecasts = layouts
             .Select(l => PiEngine.Forecast(l, sd, at, rates.GetValueOrDefault(l.PlanetId)))
@@ -163,14 +183,51 @@ public sealed class PiService(IDbContextFactory<AppDbContext> dbFactory, PiTaxSe
             {
                 var l = f.Layout;
                 var (systemName, security) = systems.GetValueOrDefault(l.SolarSystemId, ("", 0));
+                var (planetName, planetTypeId) = planetNames.GetValueOrDefault(l.PlanetId, ("", 0));
                 return new PiColonyStatus(
                     l.CharacterId, names.GetValueOrDefault(l.CharacterId, l.CharacterId.ToString()),
-                    l.PlanetId, planetNames.GetValueOrDefault(l.PlanetId, ""),
+                    l.PlanetId, planetName,
                     l.SolarSystemId, systemName, security,
                     skills.TryGetValue(l.CharacterId, out var s) ? s.MaxUpgradeLevel : 0,
-                    f, PiEconomics.For(f, prices));
+                    f, PiEconomics.For(f, prices))
+                {
+                    PlanetTypeId   = planetTypeId,
+                    PlanetTypeName = planetTypeNames.GetValueOrDefault(planetTypeId, ""),
+                };
             })
             .ToList();
+    }
+
+    /// <summary>English names of item types, for the screens and tasks to localize
+    /// (<see cref="PiNames.Type"/>).</summary>
+    public async Task<Dictionary<int, string>> TypeNamesAsync(IEnumerable<int> typeIds, CancellationToken ct = default)
+    {
+        var ids = typeIds.Distinct().ToList();
+        if (ids.Count == 0) return [];
+        await using var db = await dbFactory.CreateDbContextAsync(ct).ConfigureAwait(false);
+        return await db.SdeTypes.AsNoTracking()
+            .Where(t => ids.Contains(t.TypeId))
+            .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct).ConfigureAwait(false);
+    }
+
+    /// <summary>Planets' English names and SDE types, and systems' English names and security.</summary>
+    private static async Task<(Dictionary<int, (string Name, int TypeId)> Planets,
+                               Dictionary<int, (string Name, double Security)> Systems)>
+        PlaceNamesAsync(AppDbContext db, IEnumerable<(int PlanetId, int SolarSystemId)> places, CancellationToken ct)
+    {
+        var list      = places.ToList();
+        var planetIds = list.Select(p => (long)p.PlanetId).Distinct().ToList();
+        var systemIds = list.Select(p => p.SolarSystemId).Distinct().ToList();
+
+        var planets = (await db.SdeCelestials.AsNoTracking()
+                .Where(c => planetIds.Contains(c.ItemId))
+                .Select(c => new { c.ItemId, c.Name, c.TypeId })
+                .ToListAsync(ct).ConfigureAwait(false))
+            .ToDictionary(c => (int)c.ItemId, c => (c.Name, c.TypeId));
+        var systems = await db.SdeSolarSystems.AsNoTracking()
+            .Where(s => systemIds.Contains(s.SolarSystemId))
+            .ToDictionaryAsync(s => s.SolarSystemId, s => (s.Name, s.Security), ct).ConfigureAwait(false);
+        return (planets, systems);
     }
 
     private static async Task<Dictionary<long, string>> NamesAsync(AppDbContext db, HashSet<long> ids, CancellationToken ct)
