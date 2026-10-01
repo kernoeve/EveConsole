@@ -34,7 +34,6 @@ public sealed record FitOwner(FitSource Source, string Name);
 public class FitTreeNode : ReactiveObject
 {
     private static readonly IBrush PersonalBrush = new SolidColorBrush(Color.Parse("#c8a84b"));
-    private static readonly IBrush CorpBrush     = new SolidColorBrush(Color.Parse("#5599cc"));
     private static readonly IBrush AppBrush      = new SolidColorBrush(Color.Parse("#6fbf73"));
 
     public FitNodeKind    Kind    { get; init; }
@@ -57,18 +56,16 @@ public class FitTreeNode : ReactiveObject
     public string SourceBadge => Source switch
     {
         FitSource.Personal => CommonText.FitBadgePersonal,
-        FitSource.Corp     => CommonText.FitBadgeCorp,
         FitSource.App      => "",   // the owner beside it already says EVE Console
         _                  => ""
     };
     public IBrush SourceBrush => Source switch
     {
         FitSource.Personal => PersonalBrush,
-        FitSource.Corp     => CorpBrush,
         FitSource.App      => AppBrush,
         _                  => Brushes.Transparent
     };
-    /// <summary>Whose fitting it is, beside its name: the character, or the corporation.</summary>
+    /// <summary>Whose fitting it is, beside its name: the character, or EVE Console.</summary>
     public string OwnerLabel => Entry is { } e ? FitSelectorViewModel.OwnerLabel(e) : "";
 }
 
@@ -94,15 +91,13 @@ public class FitSelectorViewModel : ReactiveObject
     private readonly IReadOnlyList<FitEntry>         _localFits;
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private readonly ObservableCollection<Character>   _characters;
-    private readonly ObservableCollection<Corporation> _corporations;
 
     public ObservableCollection<FitTreeNode>   RootNodes   { get; } = [];
 
     // ── Owner filter ──────────────────────────────────────────────────────────
 
-    /// <summary>A fitting's owner as the picker names it: a character's name, a corporation's
-    /// followed by "(corp)" — a character and a corporation can share a name — or EVE Console.</summary>
-    public static string OwnerLabel(FitEntry e) => e.Source == FitSource.Corp ? string.Format(FittingText.OwnerCorp, e.OwnerName) : e.OwnerName;
+    /// <summary>A fitting's owner as the picker names it: a character's name, or EVE Console.</summary>
+    public static string OwnerLabel(FitEntry e) => e.OwnerName;
 
     /// <summary>Everyone (null), then each character with fittings, then each corporation. Chosen
     /// and matched by the owner itself; the label is only shown.</summary>
@@ -214,7 +209,6 @@ public class FitSelectorViewModel : ReactiveObject
         FittingsService?                    svc,
         IDbContextFactory<AppDbContext>     dbFactory,
         ObservableCollection<Character>     characters,
-        ObservableCollection<Corporation>   corporations,
         IReadOnlyList<FitGroupOption>       groupOptions,
         int                                 preselectedGroupId,
         IReadOnlyList<FitEntry>?            localFits = null)
@@ -223,7 +217,6 @@ public class FitSelectorViewModel : ReactiveObject
         _localFits    = localFits ?? [];
         _dbFactory    = dbFactory;
         _characters   = characters;
-        _corporations = corporations;
 
         foreach (var g in groupOptions) Groups.Add(g);
         _selectedGroup = Groups.FirstOrDefault(g => g.GroupId == preselectedGroupId)
@@ -250,7 +243,7 @@ public class FitSelectorViewModel : ReactiveObject
             string? gameError = null;
             if (_svc is not null)
             {
-                try { fits.AddRange(await _svc.FetchAllFitsAsync(_characters, _corporations, ct)); }
+                try { fits.AddRange(await _svc.FetchAllFitsAsync(_characters, ct)); }
                 catch (Exception ex) { gameError = string.Format(CommonText.ErrorWithMessage, ex.Message); }
             }
             _allFits = fits;

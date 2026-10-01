@@ -80,8 +80,6 @@
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
               <Ellipse Width="8" Height="8" Fill="#c8a84b" VerticalAlignment="Center" />
               <TextBlock Text="{x:Static loc:FittingText.LegendCharacter}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 8 0" />
-              <Ellipse Width="8" Height="8" Fill="#5599cc" VerticalAlignment="Center" />
-              <TextBlock Text="{x:Static loc:FittingText.LegendCorporation}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" Margin="0 0 8 0" />
               <Ellipse Width="8" Height="8" Fill="#6fbf73" VerticalAlignment="Center" IsVisible="{Binding AllowsDelete}" />
               <TextBlock Text="EVE Console" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" IsVisible="{Binding AllowsDelete}" />
             </StackPanel>

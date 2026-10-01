@@ -131,7 +131,7 @@
     <value>打开装配…</value>
   </data>
   <data name="TipOpenFit" xml:space="preserve">
-    <value>打开保存在 EVE Console 中的装配，或你的角色或军团在游戏中的装配</value>
+    <value>打开保存在 EVE Console 中的装配，或你的角色在游戏中的装配</value>
   </data>
   <data name="TitleOpenFit" xml:space="preserve">
     <value>打开装配</value>
@@ -866,7 +866,7 @@
     <value>保存到</value>
   </data>
   <data name="SaveNote" xml:space="preserve">
-    <value>无法从此处保存军团装配：ESI 没有提供写入方式，只有游戏客户端可以。植入体属于飞行员，不属于游戏内装配的一部分。</value>
+    <value>植入体属于飞行员，不属于游戏内装配的一部分。</value>
   </data>
   <data name="SaveConfirm" xml:space="preserve">
     <value>保存</value>
@@ -973,16 +973,10 @@
   <data name="LegendCharacter" xml:space="preserve">
     <value>角色</value>
   </data>
-  <data name="LegendCorporation" xml:space="preserve">
-    <value>军团</value>
-  </data>
   <data name="TipOwnerFilter" xml:space="preserve">
-    <value>显示某个角色或军团的装配</value>
+    <value>显示某个角色或 EVE Console 的装配</value>
   </data>
   <data name="OwnerEveryone" xml:space="preserve">
     <value>所有人</value>
-  </data>
-  <data name="OwnerCorp" xml:space="preserve">
-    <value>{0}（军团）</value>
   </data>
 </root>

@@ -217,9 +217,6 @@
   <data name="FitBadgePersonal" xml:space="preserve">
     <value>個</value>
   </data>
-  <data name="FitBadgeCorp" xml:space="preserve">
-    <value>社</value>
-  </data>
   <data name="FetchingFits" xml:space="preserve">
     <value>ESIから装備を取得中…</value>
   </data>

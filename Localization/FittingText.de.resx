@@ -131,7 +131,7 @@
     <value>Ausrüstung öffnen…</value>
   </data>
   <data name="TipOpenFit" xml:space="preserve">
-    <value>Eine in EVE Console gespeicherte Ausrüstung oder eine Ausrüstung Ihrer Charaktere oder Corporations im Spiel öffnen</value>
+    <value>Eine in EVE Console gespeicherte Ausrüstung oder eine Ausrüstung Ihrer Charaktere im Spiel öffnen</value>
   </data>
   <data name="TitleOpenFit" xml:space="preserve">
     <value>Ausrüstung öffnen</value>
@@ -875,7 +875,7 @@
     <value>Speichern in</value>
   </data>
   <data name="SaveNote" xml:space="preserve">
-    <value>Corporation-Ausrüstungen lassen sich hier nicht speichern: ESI bietet keinen Weg, sie zu schreiben, das kann nur der Spielclient. Implantate gehören dem Piloten und sind nicht Teil einer Ausrüstung im Spiel.</value>
+    <value>Implantate gehören dem Piloten und sind nicht Teil einer Ausrüstung im Spiel.</value>
   </data>
   <data name="SaveConfirm" xml:space="preserve">
     <value>Speichern</value>
@@ -982,16 +982,10 @@
   <data name="LegendCharacter" xml:space="preserve">
     <value>Charakter</value>
   </data>
-  <data name="LegendCorporation" xml:space="preserve">
-    <value>Corporation</value>
-  </data>
   <data name="TipOwnerFilter" xml:space="preserve">
-    <value>Die Ausrüstungen eines Charakters oder einer Corporation anzeigen</value>
+    <value>Nur die Ausrüstungen eines Charakters oder die von EVE Console anzeigen</value>
   </data>
   <data name="OwnerEveryone" xml:space="preserve">
     <value>Alle</value>
-  </data>
-  <data name="OwnerCorp" xml:space="preserve">
-    <value>{0} (Corp)</value>
   </data>
 </root>

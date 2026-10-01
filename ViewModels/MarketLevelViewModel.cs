@@ -385,7 +385,6 @@ public class MarketLevelViewModel : ReactiveObject, IPeriodicRefresh
     private          MarketCollectionRow?        _defaultCollRow;
     private readonly FittingsService?                 _fittings;
     private readonly ObservableCollection<Character>?   _characters;
-    private readonly ObservableCollection<Corporation>? _corporations;
     private readonly BatchAddService?                 _batchSvc;
     private readonly ProductionCalculatorService?     _prodCalc;
 
@@ -456,7 +455,6 @@ public class MarketLevelViewModel : ReactiveObject, IPeriodicRefresh
         IDbContextFactory<AppDbContext> dbFactory,
         FittingsService?                fittings      = null,
         ObservableCollection<Character>?   characters   = null,
-        ObservableCollection<Corporation>? corporations = null,
         BatchAddService?                batchSvc      = null,
         ProductionCalculatorService?    prodCalc      = null)
     {
@@ -464,7 +462,6 @@ public class MarketLevelViewModel : ReactiveObject, IPeriodicRefresh
         _dbFactory    = dbFactory;
         _fittings     = fittings;
         _characters   = characters;
-        _corporations = corporations;
         _batchSvc     = batchSvc;
         _prodCalc     = prodCalc;
 
@@ -507,7 +504,6 @@ public class MarketLevelViewModel : ReactiveObject, IPeriodicRefresh
             _fittings!,
             _dbFactory,
             _characters!,
-            _corporations!,
             groupOptions,
             preselectedId);
     }

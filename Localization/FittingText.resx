@@ -173,7 +173,7 @@
     <comment>Fitting tool, new-fit bar: opens the picker of saved fits — EVE Console's own and the game's.</comment>
   </data>
   <data name="TipOpenFit" xml:space="preserve">
-    <value>Open a fit saved in EVE Console, or one of your characters' or corporations' fittings in the game</value>
+    <value>Open a fit saved in EVE Console, or one of your characters' fittings in the game</value>
     <comment>Fitting tool, new-fit bar: tooltip on Open fit.</comment>
   </data>
   <data name="TitleOpenFit" xml:space="preserve">
@@ -1165,8 +1165,8 @@
     <comment>Save fit dialog: label above the places a fit can be saved. Upper case in English.</comment>
   </data>
   <data name="SaveNote" xml:space="preserve">
-    <value>Corporation fittings cannot be saved from here: ESI offers no way to write them, only the game client can. Implants are the pilot's and are not part of an in-game fitting.</value>
-    <comment>Save fit dialog: note under the places a fit can be saved. ESI is CCP's name for the game's web interface: keep it.</comment>
+    <value>Implants are the pilot's and are not part of an in-game fitting.</value>
+    <comment>Save fit dialog: note under the places a fit can be saved.</comment>
   </data>
   <data name="SaveConfirm" xml:space="preserve">
     <value>Save</value>
@@ -1308,20 +1308,12 @@
     <value>Character</value>
     <comment>Fit picker: beside a coloured dot — what that dot beside a fitting means: a character's own. Short.</comment>
   </data>
-  <data name="LegendCorporation" xml:space="preserve">
-    <value>Corporation</value>
-    <comment>Fit picker: beside a coloured dot — what that dot beside a fitting means: a corporation's. Short.</comment>
-  </data>
   <data name="TipOwnerFilter" xml:space="preserve">
-    <value>Show one character's or corporation's fittings</value>
+    <value>Show one character's fittings, or EVE Console's</value>
     <comment>Fit picker: tooltip on the pick list of owners.</comment>
   </data>
   <data name="OwnerEveryone" xml:space="preserve">
     <value>Everyone</value>
     <comment>Fit picker, the pick list of owners: every character's and corporation's fittings. Short.</comment>
-  </data>
-  <data name="OwnerCorp" xml:space="preserve">
-    <value>{0} (corp)</value>
-    <comment>Fit picker: a corporation that owns fittings, in the pick list of owners and beside each of its fittings. {0} is the corporation's name. Short.</comment>
   </data>
 </root>

@@ -131,7 +131,7 @@
     <value>Abrir equipamiento…</value>
   </data>
   <data name="TipOpenFit" xml:space="preserve">
-    <value>Abrir un equipamiento guardado en EVE Console, o uno de los equipamientos de tus personajes o corporaciones en el juego</value>
+    <value>Abrir un equipamiento guardado en EVE Console, o uno de los equipamientos de tus personajes en el juego</value>
   </data>
   <data name="TitleOpenFit" xml:space="preserve">
     <value>Abrir equipamiento</value>
@@ -875,7 +875,7 @@
     <value>Guardar en</value>
   </data>
   <data name="SaveNote" xml:space="preserve">
-    <value>Los equipamientos de corporación no se pueden guardar desde aquí: ESI no ofrece ninguna forma de escribirlos, solo el cliente del juego puede hacerlo. Los implantes son del piloto y no forman parte de un equipamiento del juego.</value>
+    <value>Los implantes son del piloto y no forman parte de un equipamiento del juego.</value>
   </data>
   <data name="SaveConfirm" xml:space="preserve">
     <value>Guardar</value>
@@ -982,16 +982,10 @@
   <data name="LegendCharacter" xml:space="preserve">
     <value>Personaje</value>
   </data>
-  <data name="LegendCorporation" xml:space="preserve">
-    <value>Corporación</value>
-  </data>
   <data name="TipOwnerFilter" xml:space="preserve">
-    <value>Mostrar los equipamientos de un personaje o una corporación</value>
+    <value>Mostrar los equipamientos de un personaje o los de EVE Console</value>
   </data>
   <data name="OwnerEveryone" xml:space="preserve">
     <value>Todos</value>
-  </data>
-  <data name="OwnerCorp" xml:space="preserve">
-    <value>{0} (corp.)</value>
   </data>
 </root>

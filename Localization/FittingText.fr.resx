@@ -131,7 +131,7 @@
     <value>Ouvrir un montage…</value>
   </data>
   <data name="TipOpenFit" xml:space="preserve">
-    <value>Ouvrir un montage enregistré dans EVE Console, ou l'un des montages de vos personnages ou corporations dans le jeu</value>
+    <value>Ouvrir un montage enregistré dans EVE Console, ou l'un des montages de vos personnages dans le jeu</value>
   </data>
   <data name="TitleOpenFit" xml:space="preserve">
     <value>Ouvrir un montage</value>
@@ -875,7 +875,7 @@
     <value>Enregistrer dans</value>
   </data>
   <data name="SaveNote" xml:space="preserve">
-    <value>Les montages de corporation ne peuvent pas être enregistrés d'ici : ESI ne permet pas de les écrire, seul le client du jeu le peut. Les implants appartiennent au pilote et ne font pas partie d'un montage en jeu.</value>
+    <value>Les implants appartiennent au pilote et ne font pas partie d'un montage en jeu.</value>
   </data>
   <data name="SaveConfirm" xml:space="preserve">
     <value>Enregistrer</value>
@@ -982,16 +982,10 @@
   <data name="LegendCharacter" xml:space="preserve">
     <value>Personnage</value>
   </data>
-  <data name="LegendCorporation" xml:space="preserve">
-    <value>Corporation</value>
-  </data>
   <data name="TipOwnerFilter" xml:space="preserve">
-    <value>Afficher les montages d'un seul personnage ou d'une seule corporation</value>
+    <value>Afficher les montages d'un seul personnage, ou ceux d'EVE Console</value>
   </data>
   <data name="OwnerEveryone" xml:space="preserve">
     <value>Tous</value>
-  </data>
-  <data name="OwnerCorp" xml:space="preserve">
-    <value>{0} (corpo.)</value>
   </data>
 </root>

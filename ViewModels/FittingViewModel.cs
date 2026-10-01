@@ -378,7 +378,6 @@ public class FittingViewModel : ReactiveObject
     public FittingsService?                    Fittings     { get; }
     public EveConsole.Api.EsiClient?           Esi          { get; }
     public ObservableCollection<Character>?    Characters   { get; }
-    public ObservableCollection<Corporation>?  Corporations { get; }
 
     public DogmaData?      Data    { get; private set; }
     public FittingCatalog? Catalog { get; private set; }
@@ -387,13 +386,11 @@ public class FittingViewModel : ReactiveObject
     public ObservableCollection<SkillSourceOption> SkillSources { get; } = [];
 
     public FittingViewModel(IDbContextFactory<AppDbContext> dbFactory, FittingsService? fittings = null,
-        ObservableCollection<Character>? characters = null, ObservableCollection<Corporation>? corporations = null,
-        EveConsole.Api.EsiClient? esi = null)
+        ObservableCollection<Character>? characters = null, EveConsole.Api.EsiClient? esi = null)
     {
         DbFactory    = dbFactory;
         Fittings     = fittings;
         Characters   = characters;
-        Corporations = corporations;
         Esi          = esi;
         LeftPane     = new FitPaneViewModel(this, false);
         RightPane    = new FitPaneViewModel(this, true);
@@ -936,8 +933,8 @@ public class FittingViewModel : ReactiveObject
     private async Task OpenFitAsync()
     {
         if (Data is null || Catalog is null) return;
-        var picker = new FitSelectorViewModel(Characters is null || Corporations is null ? null : Fittings, DbFactory,
-            Characters ?? [], Corporations ?? [], [], 0, await LocalFitsAsync())
+        var picker = new FitSelectorViewModel(Characters is null ? null : Fittings, DbFactory,
+            Characters ?? [], [], 0, await LocalFitsAsync())
         {
             ChooseGroup = false,
             DeleteLocal = DeleteSavedAsync,
@@ -950,7 +947,7 @@ public class FittingViewModel : ReactiveObject
         var tab = NewTab();
         await tab.LoadFitAsync(await EftFormat.FromEsiAsync(esi, Data, Catalog));
 
-        // A character's own fitting is saved back to; a corporation's cannot be written at all.
+        // Saved back to the character's fittings it came from.
         if (entry.Source == FitSource.Personal && Characters?.FirstOrDefault(c => c.Name == entry.OwnerName) is { } owner)
         {
             tab.CurrentGameSource = new FitTabViewModel.GameSource(owner.Id, owner.Name, esi.FittingId, esi.Name);

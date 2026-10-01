@@ -131,7 +131,7 @@
     <value>피팅 열기…</value>
   </data>
   <data name="TipOpenFit" xml:space="preserve">
-    <value>EVE Console에 저장한 피팅, 또는 캐릭터나 코퍼레이션이 게임에 저장한 피팅 열기</value>
+    <value>EVE Console에 저장한 피팅, 또는 캐릭터가 게임에 저장한 피팅 열기</value>
   </data>
   <data name="TitleOpenFit" xml:space="preserve">
     <value>피팅 열기</value>
@@ -866,7 +866,7 @@
     <value>저장 위치</value>
   </data>
   <data name="SaveNote" xml:space="preserve">
-    <value>코퍼레이션 피팅은 여기에서 저장할 수 없습니다. ESI에는 코퍼레이션 피팅을 쓰는 방법이 없으며 게임 클라이언트에서만 가능합니다. 임플란트는 파일럿의 것이므로 게임 속 피팅에 포함되지 않습니다.</value>
+    <value>임플란트는 파일럿의 것이므로 게임 속 피팅에 포함되지 않습니다.</value>
   </data>
   <data name="SaveConfirm" xml:space="preserve">
     <value>저장</value>
@@ -973,16 +973,10 @@
   <data name="LegendCharacter" xml:space="preserve">
     <value>캐릭터</value>
   </data>
-  <data name="LegendCorporation" xml:space="preserve">
-    <value>코퍼레이션</value>
-  </data>
   <data name="TipOwnerFilter" xml:space="preserve">
-    <value>한 캐릭터 또는 코퍼레이션의 피팅만 표시</value>
+    <value>한 캐릭터 또는 EVE Console의 피팅만 표시</value>
   </data>
   <data name="OwnerEveryone" xml:space="preserve">
     <value>전체</value>
-  </data>
-  <data name="OwnerCorp" xml:space="preserve">
-    <value>{0} (코퍼레이션)</value>
   </data>
 </root>

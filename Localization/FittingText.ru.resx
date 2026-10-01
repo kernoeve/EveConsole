@@ -131,7 +131,7 @@
     <value>Открыть оснастку…</value>
   </data>
   <data name="TipOpenFit" xml:space="preserve">
-    <value>Открыть оснастку, сохранённую в EVE Console, или оснастку ваших персонажей или корпораций в игре</value>
+    <value>Открыть оснастку, сохранённую в EVE Console, или оснастку ваших персонажей в игре</value>
   </data>
   <data name="TitleOpenFit" xml:space="preserve">
     <value>Открытие оснастки</value>
@@ -893,7 +893,7 @@
     <value>Куда сохранить</value>
   </data>
   <data name="SaveNote" xml:space="preserve">
-    <value>Оснастки корпорации отсюда сохранить нельзя: ESI не позволяет их записывать, это может только игровой клиент. Имплантаты принадлежат пилоту и в игровую оснастку не входят.</value>
+    <value>Имплантаты принадлежат пилоту и в игровую оснастку не входят.</value>
   </data>
   <data name="SaveConfirm" xml:space="preserve">
     <value>Сохранить</value>
@@ -1000,16 +1000,10 @@
   <data name="LegendCharacter" xml:space="preserve">
     <value>Персонаж</value>
   </data>
-  <data name="LegendCorporation" xml:space="preserve">
-    <value>Корпорация</value>
-  </data>
   <data name="TipOwnerFilter" xml:space="preserve">
-    <value>Показать оснастки одного персонажа или одной корпорации</value>
+    <value>Показать оснастки одного персонажа или EVE Console</value>
   </data>
   <data name="OwnerEveryone" xml:space="preserve">
     <value>Все</value>
-  </data>
-  <data name="OwnerCorp" xml:space="preserve">
-    <value>{0} (корп.)</value>
   </data>
 </root>

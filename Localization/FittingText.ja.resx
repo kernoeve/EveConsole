@@ -131,7 +131,7 @@
     <value>装備を開く…</value>
   </data>
   <data name="TipOpenFit" xml:space="preserve">
-    <value>EVE Consoleに保存した装備、またはキャラクターやコーポレーションがゲームに保存した装備を開きます</value>
+    <value>EVE Consoleに保存した装備、またはキャラクターがゲームに保存した装備を開きます</value>
   </data>
   <data name="TitleOpenFit" xml:space="preserve">
     <value>装備を開く</value>
@@ -866,7 +866,7 @@
     <value>保存先</value>
   </data>
   <data name="SaveNote" xml:space="preserve">
-    <value>コーポレーションの装備はここから保存できません。ESIには書き込む方法がなく、ゲームクライアントからしか保存できないためです。インプラントはパイロットのものであり、ゲーム内の装備には含まれません。</value>
+    <value>インプラントはパイロットのものであり、ゲーム内の装備には含まれません。</value>
   </data>
   <data name="SaveConfirm" xml:space="preserve">
     <value>保存</value>
@@ -973,16 +973,10 @@
   <data name="LegendCharacter" xml:space="preserve">
     <value>キャラクター</value>
   </data>
-  <data name="LegendCorporation" xml:space="preserve">
-    <value>コーポレーション</value>
-  </data>
   <data name="TipOwnerFilter" xml:space="preserve">
-    <value>1人のキャラクター、または1つのコーポレーションの装備だけを表示します</value>
+    <value>1人のキャラクター、またはEVE Consoleの装備だけを表示します</value>
   </data>
   <data name="OwnerEveryone" xml:space="preserve">
     <value>すべて</value>
-  </data>
-  <data name="OwnerCorp" xml:space="preserve">
-    <value>{0}（コーポ）</value>
   </data>
 </root>

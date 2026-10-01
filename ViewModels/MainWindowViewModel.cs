@@ -1090,14 +1090,14 @@ public class MainWindowViewModel : ReactiveObject
         IncomeExpenseVm   = new IncomeExpenseViewModel(dbFactory, errorLogger);
         MarketVm          = new MarketSettingsViewModel(dbFactory.CreateDbContext(), dbFactory, marketPricing, esi, CharacterVm.Characters, buildCostService);
         var fittingsService = new FittingsService(esi, dbFactory);
-        FittingVm         = new FittingViewModel(dbFactory, fittingsService, CharacterVm.Characters, CharacterVm.Corporations, esi);
+        FittingVm         = new FittingViewModel(dbFactory, fittingsService, CharacterVm.Characters, esi);
         MarketLevelVm     = new MarketLevelViewModel(marketLevelService, dbFactory, fittingsService,
-            CharacterVm.Characters, CharacterVm.Corporations, batchAddService, prodCalcService);
+            CharacterVm.Characters, batchAddService, prodCalcService);
         // appPrefs is the constructor parameter, not the AppPrefs property — that is not assigned
         // until far below this line, and passing it here handed the view model a null.
         InvLevelVm        = new InvLevelViewModel(invLevelService, dbFactory, appPrefs,
             batchAddService, prodCalcService, fittingsService,
-            CharacterVm.Characters, CharacterVm.Corporations);
+            CharacterVm.Characters);
         SalePostingVm     = new SalePostingViewModel(salePostingService, dbFactory, batchAddService, slackService, exportFormat);
         StoresVm          = new StoresViewModel(dbFactory, salePostingService, storeMailService, orderLabels, errorLogger, webStoreSync, workerLease, cloudflareDeploy);
 
