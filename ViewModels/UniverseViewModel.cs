@@ -366,6 +366,48 @@ public class UniverseViewModel : ReactiveObject
         }
     }
 
+    /// <summary>The route avoid list, ringed on the map. Pushed in by the map tool.</summary>
+    private IReadOnlyCollection<int>? _avoided = RouteAvoidList.Ids;
+    public IReadOnlyCollection<int>? Avoided
+    {
+        get => _avoided;
+        set => this.RaiseAndSetIfChanged(ref _avoided, value);
+    }
+
+    /// <summary>A planned route drawn on this map, pushed in by the route planner; null for none.</summary>
+    private IReadOnlyList<MapRouteStep>? _route;
+    public IReadOnlyList<MapRouteStep>? Route
+    {
+        get => _route;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _route, value);
+            this.RaisePropertyChanged(nameof(HasRoute));
+        }
+    }
+
+    public bool HasRoute => _route is { Count: > 0 };
+
+    /// <summary>Takes the route off this map.</summary>
+    public void ClearRoute() => Route = null;
+
+    private ReactiveCommand<Unit, Unit>? _clearRouteCommand;
+    public ReactiveCommand<Unit, Unit> ClearRouteCommand => _clearRouteCommand ??= ReactiveCommand.Create(ClearRoute);
+
+    /// <summary>Frames the systems of a route the map shows. UI thread.</summary>
+    public void FocusSystems(IReadOnlyCollection<int> systemIds)
+    {
+        if (Graph is not { } g) return;
+        var members = g.Nodes.Where(n => n.Tier == 1 && systemIds.Contains(n.Id)).ToList();
+        if (members.Count == 0) return;
+        double minX = members.Min(n => n.X), maxX = members.Max(n => n.X);
+        double minY = members.Min(n => n.Y), maxY = members.Max(n => n.Y);
+        var w = Math.Max(maxX - minX, 1e15);
+        var h = Math.Max(maxY - minY, 1e15);
+        FocusBounds = null;
+        FocusBounds = new Rect(minX - w * 0.1, minY - h * 0.1, w * 1.2, h * 1.2);
+    }
+
     /// <summary>What the canvas draws: the bridges, or none while they are switched off.</summary>
     public IReadOnlyList<MapBridgeLine>? VisibleBridges => _showBridges ? _bridges : null;
     /// <summary>Hostiles and own characters, per system and per region. Pushed in by the map

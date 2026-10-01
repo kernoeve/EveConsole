@@ -46,6 +46,10 @@ public sealed record MapMarkRow(string Text, long CharacterId = 0, int ShipTypeI
 public sealed record MapBridgeLine(int FromId, int ToId, string Title, string Detail, bool Complete,
                                    int ZoneFrom = 0, int ZoneTo = 0);
 
+/// <summary>One system of a planned route, and whether it was reached by something other than a
+/// stargate — a jump bridge or a wormhole — which is drawn dashed.</summary>
+public sealed record MapRouteStep(int SystemId, int RegionId, bool Jumped);
+
 /// <summary>Where the view is looking: the world point at its centre and the zoom. Held by the
 /// view model so a tab keeps its place when the view is rebuilt.</summary>
 public sealed record MapCamera(double CenterX, double CenterY, double Scale);
@@ -115,6 +119,26 @@ public class MapCanvas : Control
         set => SetValue(BridgesProperty, value);
     }
 
+    /// <summary>A planned route, start first, drawn over the gates and under the systems.</summary>
+    public static readonly StyledProperty<IReadOnlyList<MapRouteStep>?> RouteProperty =
+        AvaloniaProperty.Register<MapCanvas, IReadOnlyList<MapRouteStep>?>(nameof(Route));
+
+    public IReadOnlyList<MapRouteStep>? Route
+    {
+        get => GetValue(RouteProperty);
+        set => SetValue(RouteProperty, value);
+    }
+
+    /// <summary>Systems on the route avoid list, ringed in red where systems are drawn.</summary>
+    public static readonly StyledProperty<IReadOnlyCollection<int>?> AvoidedProperty =
+        AvaloniaProperty.Register<MapCanvas, IReadOnlyCollection<int>?>(nameof(Avoided));
+
+    public IReadOnlyCollection<int>? Avoided
+    {
+        get => GetValue(AvoidedProperty);
+        set => SetValue(AvoidedProperty, value);
+    }
+
     public static readonly StyledProperty<IReadOnlyDictionary<int, MapMarkers>?> MarkersProperty =
         AvaloniaProperty.Register<MapCanvas, IReadOnlyDictionary<int, MapMarkers>?>(nameof(Markers));
 
@@ -165,7 +189,7 @@ public class MapCanvas : Control
 
     static MapCanvas()
     {
-        AffectsRender<MapCanvas>(GraphProperty, OverlayProperty, SelectedIdProperty, BadgesProperty, MarkersProperty, BridgesProperty);
+        AffectsRender<MapCanvas>(GraphProperty, OverlayProperty, SelectedIdProperty, BadgesProperty, MarkersProperty, BridgesProperty, RouteProperty, AvoidedProperty);
     }
 
     public MapCanvas()
@@ -662,6 +686,9 @@ public class MapCanvas : Control
         if (Bridges is { Count: > 0 } bridges && (!g.IsContinuous || _activeTier == 1))
             DrawBridges(ctx, bridges);
 
+        // A planned route over both, under the systems so their names stay readable.
+        if (Route is { Count: > 0 } route) DrawRoute(ctx, route, g.IsContinuous && _activeTier == 0);
+
         // How much room neighbouring systems have on screen decides the representation: dots
         // when they are packed together, labelled boxes once they are far enough apart. One or
         // the other, never both.
@@ -697,6 +724,21 @@ public class MapCanvas : Control
                     ? box
                     : new Rect(p.X - NodeRadius, p.Y - NodeRadius, NodeRadius * 2, NodeRadius * 2), useBoxes));
         }
+
+        // Avoided systems, ringed over their node, where systems are drawn.
+        if (Avoided is { Count: > 0 } avoided && (!g.IsContinuous || _activeTier == 1))
+            foreach (var id in avoided)
+            {
+                if (!_byId.TryGetValue(id, out var n)) continue;
+                if (_nodeRects.TryGetValue(id, out var box))
+                {
+                    ctx.DrawRectangle(null, AvoidPen, box.Inflate(3), 4, 4);
+                    continue;
+                }
+                var at = ToScreen(n.X, n.Y);
+                if (at.X < -20 || at.Y < -20 || at.X > Bounds.Width + 20 || at.Y > Bounds.Height + 20) continue;
+                ctx.DrawEllipse(null, AvoidPen, at, NodeRadius + 4, NodeRadius + 4);
+            }
 
         // Live marks in a pass of their own, after every node: drawn with their node, a
         // neighbour's box painted later covered them — on the region tier, where boxes crowd,
@@ -979,6 +1021,41 @@ public class MapCanvas : Control
     private readonly List<(MapBridgeLine Line, Point[] Points)> _bridgeHits = new();
     private MapBridgeLine? _bridgeHover;
 
+    private static readonly IPen AvoidPen = new ImmutablePen(new ImmutableSolidColorBrush(Color.Parse("#E0FF4D4D")), 2, new ImmutableDashStyle([3, 2], 0));
+
+    private static readonly ImmutableSolidColorBrush RouteBrush = new ImmutableSolidColorBrush(Color.Parse("#E6FFC23D"));
+    private static readonly IPen   RoutePen       = new ImmutablePen(RouteBrush, 4, lineCap: PenLineCap.Round);
+    private static readonly IPen   RouteJumpPen   = new ImmutablePen(RouteBrush, 3, new ImmutableDashStyle([2, 2], 0), PenLineCap.Round);
+    private static readonly IPen   RouteEndPen    = new ImmutablePen(RouteBrush, 2.5);
+
+    /// <summary>
+    /// The route as one line through its systems — or, on the region tier, through the regions it
+    /// passes. A hop by bridge or wormhole is dashed; a system the map does not show (Thera, out
+    /// in wormhole space) is crossed by a dashed line from the system before it to the one after.
+    /// The start and the end are ringed.
+    /// </summary>
+    private void DrawRoute(DrawingContext ctx, IReadOnlyList<MapRouteStep> route, bool regionTier)
+    {
+        Point? last = null;
+        var dashed = false;
+        int? lastId = null;
+        foreach (var step in route)
+        {
+            var id = regionTier ? step.RegionId : step.SystemId;
+            dashed |= step.Jumped;
+            if (id == lastId) { dashed = false; continue; }
+            if (!_byId.TryGetValue(id, out var node)) { dashed = true; continue; }
+
+            var p = ToScreen(node.X, node.Y);
+            if (last is { } from) ctx.DrawLine(dashed && !regionTier ? RouteJumpPen : RoutePen, from, p);
+            last = p; lastId = id; dashed = false;
+        }
+
+        foreach (var end in new[] { route[0], route[^1] })
+            if (_byId.TryGetValue(regionTier ? end.RegionId : end.SystemId, out var node))
+                ctx.DrawEllipse(null, RouteEndPen, ToScreen(node.X, node.Y), NodeRadius + 6, NodeRadius + 6);
+    }
+
     /// <summary>
     /// An arc rather than a straight line, so a bridge never lies along the gates between the
     /// same two systems, and two bridges from one system fan apart. Bowed to one side by a fifth
@@ -1255,6 +1332,9 @@ public class MapCanvas : Control
     }
 
     // ── Interaction ──────────────────────────────────────────────────────────
+
+    /// <summary>The node drawn at a point of this control — what a right-click is about.</summary>
+    public MapNode? NodeAt(Point p) => HitTest(p);
 
     private MapNode? HitTest(Point p)
     {

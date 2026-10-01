@@ -17,6 +17,16 @@
                 Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
                 BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" Padding="10 4" FontSize="11" />
 
+        <Button Command="{Binding ShowRouteTabCommand}" Content="{x:Static loc:MapText.RoutePlannerTab}"
+                ToolTip.Tip="{x:Static loc:MapText.TipRoutePlannerTab}" IsVisible="{Binding HasRoutes}"
+                Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
+                BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" Padding="10 4" FontSize="11" />
+
+        <Button Command="{Binding ShowJumpPlannerTabCommand}" Content="{x:Static loc:MapText.JumpPlannerTab}"
+                ToolTip.Tip="{x:Static loc:MapText.TipJumpPlannerTab}" IsVisible="{Binding HasJumpPlanner}"
+                Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
+                BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" Padding="10 4" FontSize="11" />
+
         <Button Command="{Binding ShowBridgesTabCommand}" Content="{x:Static loc:MapText.JumpBridgesTab}"
                 ToolTip.Tip="{x:Static loc:MapText.TipJumpBridgesTab}" IsVisible="{Binding HasBridges}"
                 Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"

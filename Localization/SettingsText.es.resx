@@ -3337,4 +3337,19 @@ La aplicación se reiniciará.</value>
   <data name="DiscordErrHttp" xml:space="preserve">
     <value>Discord lo ha rechazado (HTTP {0}): {1}</value>
   </data>
+  <data name="EveScoutHeading" xml:space="preserve">
+    <value>Thera y Turnur</value>
+  </data>
+  <data name="EveScoutNote" xml:space="preserve">
+    <value>Conexiones de agujeros de gusano desde Thera y Turnur, leídas de EVE-Scout cada cinco minutos, para el planificador de rutas. Al desactivarlo se borran las conexiones guardadas: se cierran en pocas horas, y una lista antigua llevaría por agujeros que ya no existen.</value>
+  </data>
+  <data name="EveScoutPoll" xml:space="preserve">
+    <value>Leer las conexiones de Thera y Turnur desde EVE-Scout</value>
+  </data>
+  <data name="EveScoutRead" xml:space="preserve">
+    <value>{0} conexiones, leídas a las {1:t}</value>
+  </data>
+  <data name="EveScoutRefused" xml:space="preserve">
+    <value>EVE-Scout respondió {0}; se conserva la última lista hasta la próxima lectura.</value>
+  </data>
 </root>

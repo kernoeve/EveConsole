@@ -816,6 +816,26 @@ public static class PostgresSchema
         )
         """,
 
+        // Thera and Turnur connections, EVE-Scout's list replaced whole on each read.
+        """
+        CREATE TABLE IF NOT EXISTS "EveScoutConnections" (
+            "Id"              TEXT        NOT NULL PRIMARY KEY,
+            "HubSystemId"     INTEGER     NOT NULL DEFAULT 0,
+            "HubSystemName"   TEXT        NOT NULL DEFAULT '',
+            "HubSignature"    TEXT        NOT NULL DEFAULT '',
+            "OtherSystemId"   INTEGER     NOT NULL DEFAULT 0,
+            "OtherSystemName" TEXT        NOT NULL DEFAULT '',
+            "OtherSignature"  TEXT        NOT NULL DEFAULT '',
+            "OtherRegionId"   INTEGER     NULL,
+            "OtherRegionName" TEXT        NOT NULL DEFAULT '',
+            "OtherClass"      TEXT        NOT NULL DEFAULT '',
+            "WormholeType"    TEXT        NOT NULL DEFAULT '',
+            "MaxShipSize"     TEXT        NOT NULL DEFAULT '',
+            "ExpiresAt"       TIMESTAMPTZ NULL,
+            "ReadAt"          TIMESTAMPTZ NOT NULL
+        )
+        """,
+
         // ── Hoboleaks build info ─────────────────────────────────────────────
         //
         // Revision arrived after PostgreSQL support and reached servers only through the Hobo

@@ -121,6 +121,7 @@ public class AppDbContext : DbContext
 
     public DbSet<IntelReport>          IntelReports          => Set<IntelReport>();
     public DbSet<ManualJumpBridge>     ManualJumpBridges     => Set<ManualJumpBridge>();
+    public DbSet<EveScoutConnection>   EveScoutConnections   => Set<EveScoutConnection>();
     public DbSet<IntelReportCharacter> IntelReportCharacters => Set<IntelReportCharacter>();
     public DbSet<CharacterAffiliation> CharacterAffiliations  => Set<CharacterAffiliation>();
     public DbSet<NameLookupMiss>       NameLookupMisses       => Set<NameLookupMiss>();
@@ -1211,6 +1212,10 @@ public class AppDbContext : DbContext
             e.HasIndex(x => new { x.SystemId, x.ReportedAt })     // the overlays' query
              .HasDatabaseName("IX_IntelReports_System_Time");
             e.HasIndex(x => new { x.Obsolete, x.ReportedAt }).HasDatabaseName("IX_IntelReports_Obsolete_Time"); });
+
+        mb.Entity<EveScoutConnection>(e => {
+            e.HasKey(x => x.Id);
+            e.ToTable("EveScoutConnections"); });
 
         mb.Entity<ManualJumpBridge>(e => {
             e.HasKey(x => x.Id);

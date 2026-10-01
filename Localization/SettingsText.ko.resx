@@ -3334,4 +3334,19 @@ SQLite 데이터베이스는 읽기만 하고 변경하지 않습니다. 데이�
   <data name="DiscordErrHttp" xml:space="preserve">
     <value>Discord가 거부했습니다 (HTTP {0}): {1}</value>
   </data>
+  <data name="EveScoutHeading" xml:space="preserve">
+    <value>Thera 및 Turnur</value>
+  </data>
+  <data name="EveScoutNote" xml:space="preserve">
+    <value>Thera와 Turnur의 웜홀 연결을 경로 플래너용으로 5분마다 EVE-Scout에서 읽습니다. 끄면 저장된 연결이 삭제됩니다. 연결은 몇 시간 안에 닫히므로, 오래된 목록은 이미 사라진 웜홀로 경로를 잡게 됩니다.</value>
+  </data>
+  <data name="EveScoutPoll" xml:space="preserve">
+    <value>EVE-Scout에서 Thera 및 Turnur 연결 읽기</value>
+  </data>
+  <data name="EveScoutRead" xml:space="preserve">
+    <value>연결 {0}개, {1:t}에 읽음</value>
+  </data>
+  <data name="EveScoutRefused" xml:space="preserve">
+    <value>EVE-Scout 응답 {0}. 다음에 읽을 때까지 마지막 목록을 유지합니다.</value>
+  </data>
 </root>

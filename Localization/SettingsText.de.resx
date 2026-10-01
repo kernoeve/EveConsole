@@ -3337,4 +3337,19 @@ Die Anwendung wird neu gestartet.</value>
   <data name="DiscordErrHttp" xml:space="preserve">
     <value>Von Discord abgelehnt (HTTP {0}): {1}</value>
   </data>
+  <data name="EveScoutHeading" xml:space="preserve">
+    <value>Thera und Turnur</value>
+  </data>
+  <data name="EveScoutNote" xml:space="preserve">
+    <value>Wurmlochverbindungen von Thera und Turnur, alle fünf Minuten von EVE-Scout gelesen, für den Routenplaner. Beim Ausschalten werden die gespeicherten Verbindungen gelöscht: Sie schließen sich innerhalb von Stunden, und eine alte Liste würde durch Löcher führen, die es nicht mehr gibt.</value>
+  </data>
+  <data name="EveScoutPoll" xml:space="preserve">
+    <value>Verbindungen von Thera und Turnur von EVE-Scout lesen</value>
+  </data>
+  <data name="EveScoutRead" xml:space="preserve">
+    <value>{0} Verbindungen, gelesen um {1:t}</value>
+  </data>
+  <data name="EveScoutRefused" xml:space="preserve">
+    <value>EVE-Scout antwortete {0}; die letzte Liste bleibt bis zum nächsten Lesen erhalten.</value>
+  </data>
 </root>

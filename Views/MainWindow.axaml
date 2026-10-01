@@ -643,9 +643,6 @@
               <DataTemplate DataType="vm:SchedulerViewModel">
                 <views:SchedulerView />
               </DataTemplate>
-              <DataTemplate DataType="vm:JumpPlannerViewModel">
-                <views:JumpPlannerView />
-              </DataTemplate>
               <DataTemplate DataType="vm:MarketLevelViewModel">
                 <views:MarketLevelView />
               </DataTemplate>

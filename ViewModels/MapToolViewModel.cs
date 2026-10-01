@@ -4,8 +4,10 @@ using System.Reactive;
 using System.Reactive.Linq;
 using Avalonia.Threading;
 using EveConsole.Controls;
+using EveConsole.Data;
 using EveConsole.Localization;
 using EveConsole.Services;
+using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 
 namespace EveConsole.ViewModels;
@@ -36,6 +38,9 @@ public sealed class MapToolViewModel : ReactiveObject
     private readonly LiveIntelService?          _live;
     private readonly AppErrorLogger?            _errors;
     private readonly JumpBridgeService?         _bridges;
+    private readonly RoutePlannerService?       _routes;
+    private readonly JumpPlannerViewModel?      _jumpPlanner;
+    private readonly IDbContextFactory<AppDbContext>? _db;
 
     public static readonly TimeSpan LiveEvery    = TimeSpan.FromSeconds(5);
     public static readonly TimeSpan OverlayEvery = TimeSpan.FromSeconds(60);
@@ -47,10 +52,16 @@ public sealed class MapToolViewModel : ReactiveObject
         Func<SystemPageViewModel> newSystemPage,
         LiveIntelService?         live,
         AppErrorLogger?           errors  = null,
-        JumpBridgeService?        bridges = null)
+        JumpBridgeService?        bridges = null,
+        RoutePlannerService?      routes  = null,
+        JumpPlannerViewModel?     jumpPlanner = null,
+        IDbContextFactory<AppDbContext>? db = null)
     {
         _errors        = errors;
         _bridges       = bridges;
+        _routes        = routes;
+        _jumpPlanner   = jumpPlanner;
+        _db            = db;
         if (bridges is not null) bridges.Changed += () => _ = ReloadBridgesAsync();
         _map           = map;
         _stats         = stats;
@@ -65,6 +76,15 @@ public sealed class MapToolViewModel : ReactiveObject
 
         NewUniverseTabCommand = ReactiveCommand.Create(() => { NewUniverseTab(); });
         ShowBridgesTabCommand = ReactiveCommand.Create(() => { ShowBridgesTab(); });
+        ShowRouteTabCommand   = ReactiveCommand.Create(() => { ShowRouteTab(); });
+        ShowJumpPlannerTabCommand = ReactiveCommand.Create(() => { ShowJumpPlannerTab(); });
+
+        // The avoid list is ringed on every map, whoever changed it.
+        RouteAvoidList.Changed += () => Dispatcher.UIThread.Post(() =>
+        {
+            var ids = RouteAvoidList.Ids;
+            foreach (var tab in AllTabs.OfType<UniverseTabViewModel>()) tab.Map.Avoided = ids;
+        });
 
         // Typing refreshes the suggestions; picking one opens it. Throttled: each keystroke is a
         // query.
@@ -129,6 +149,63 @@ public sealed class MapToolViewModel : ReactiveObject
 
     public bool HasBridges => _bridges is not null;
 
+    public ReactiveCommand<Unit, Unit> ShowRouteTabCommand       { get; }
+    public ReactiveCommand<Unit, Unit> ShowJumpPlannerTabCommand { get; }
+
+    public bool HasRoutes      => _routes is not null;
+    public bool HasJumpPlanner => _jumpPlanner is not null;
+
+    /// <summary>The route planner tab: one, brought forward if open.</summary>
+    public RouteTabViewModel? ShowRouteTab()
+    {
+        if (_routes is null) return null;
+        if (AllTabs.OfType<RouteTabViewModel>().FirstOrDefault() is { } open)
+        {
+            SelectedTab = open;
+            return open;
+        }
+        var tab = new RouteTabViewModel(this, _routes, _map, _db, _stats);
+        Add(tab);
+        return tab;
+    }
+
+    /// <summary>The capital jump planner, which was a tool of its own: one tab, brought forward if open.</summary>
+    public JumpPlannerTabViewModel? ShowJumpPlannerTab()
+    {
+        if (_jumpPlanner is null) return null;
+        if (AllTabs.OfType<JumpPlannerTabViewModel>().FirstOrDefault() is { } open)
+        {
+            SelectedTab = open;
+            return open;
+        }
+        var tab = new JumpPlannerTabViewModel(this, _jumpPlanner);
+        Add(tab);
+        return tab;
+    }
+
+    /// <summary>The route drawn on the map tabs. Kept so a map opened afterwards shows it too.</summary>
+    private IReadOnlyList<MapRouteStep>? _route;
+
+    /// <summary>
+    /// Draws a route on every map tab. With <paramref name="focus"/>, also brings forward the map
+    /// used last (or opens one) and frames the route on it — the "Show on map" button; without,
+    /// the maps are only kept in step with the route last planned.
+    /// </summary>
+    public void ShowRouteOnMap(RoutePlan plan, bool focus = true)
+    {
+        _route = plan.NoRoute ? null
+               : plan.Steps.Select(s => new MapRouteStep(s.SystemId, s.RegionId, s.Hop is RouteHop.Bridge or RouteHop.Wormhole)).ToList();
+        foreach (var t in AllTabs.OfType<UniverseTabViewModel>()) t.Map.Route = _route;
+        if (!focus || _route is null) return;
+
+        var tab = AllTabs.OfType<UniverseTabViewModel>().MaxBy(t => t.LastActive) ?? NewUniverseTab();
+        SelectedTab = tab;
+        var ids = _route.Select(s => s.SystemId).ToList();
+        if (tab.Map.Graph is not null) tab.Map.FocusSystems(ids);
+        else tab.Map.WhenAnyValue(m => m.Graph).Where(g => g is not null).Take(1)
+                .Subscribe(_ => Dispatcher.UIThread.Post(() => tab.Map.FocusSystems(ids)));
+    }
+
     /// <summary>The jump bridges tab: there is only ever one, brought forward if open.</summary>
     public BridgesTabViewModel? ShowBridgesTab()
     {
@@ -155,6 +232,7 @@ public sealed class MapToolViewModel : ReactiveObject
         Add(tab);
         if (_snapshot is { } live) tab.ApplyLive(live);
         map.Bridges = _bridgeLines;
+        map.Route   = _route;
         return tab;
     }
 
@@ -354,6 +432,9 @@ public sealed class MapToolViewModel : ReactiveObject
     // ── Live ─────────────────────────────────────────────────────────────────
 
     private LiveMapSnapshot? _snapshot;
+
+    /// <summary>Who is where, as last read — for the route planner's hostiles column.</summary>
+    public LiveMapSnapshot? Snapshot => _snapshot;
     private CancellationTokenSource? _liveCts;
 
     /// <summary>Starts reading who is where while the tool is on screen, and stops when it is
@@ -675,6 +756,19 @@ public sealed class UniverseTabViewModel : MapTabViewModel
         _live = live;
         if (Map.Graph is { } graph) Map.Markers = MapToolViewModel.BuildMarkers(live, graph);
     }
+}
+
+
+
+/// <summary>The capital jump planner, moved into the map tool from a tool of its own.</summary>
+public sealed class JumpPlannerTabViewModel : MapTabViewModel
+{
+    public JumpPlannerTabViewModel(MapToolViewModel tool, JumpPlannerViewModel planner) : base(tool) => Planner = planner;
+
+    public JumpPlannerViewModel Planner { get; }
+
+    public override string TabTitle => MapText.JumpPlannerTab;
+    public override string TabGlyph => "⤴";
 }
 
 /// <summary>One system's page.</summary>

@@ -1503,6 +1503,17 @@
 
           <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
             <StackPanel Margin="14" Spacing="10">
+              <TextBlock Text="{x:Static loc:SettingsText.EveScoutHeading}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
+              <TextBlock TextWrapping="Wrap" FontSize="11.5" Foreground="{DynamicResource TextMutedBrush}"
+                         Text="{x:Static loc:SettingsText.EveScoutNote}" />
+              <CheckBox IsChecked="{Binding EveScoutEnabled}" Content="{x:Static loc:SettingsText.EveScoutPoll}"
+                        FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
+              <TextBlock Text="{Binding EveScoutStatus}" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" />
+            </StackPanel>
+          </Border>
+
+          <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
+            <StackPanel Margin="14" Spacing="10">
               <TextBlock Text="{x:Static loc:SettingsText.History}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
 
               <TextBlock Text="{Binding Status}" FontSize="12" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap" />

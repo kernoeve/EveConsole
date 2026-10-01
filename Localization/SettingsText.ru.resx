@@ -3343,4 +3343,19 @@ EVE Console сразу перезапустится, потому что баз�
   <data name="DiscordErrHttp" xml:space="preserve">
     <value>Discord отклонил запрос (HTTP {0}): {1}</value>
   </data>
+  <data name="EveScoutHeading" xml:space="preserve">
+    <value>Thera и Turnur</value>
+  </data>
+  <data name="EveScoutNote" xml:space="preserve">
+    <value>Соединения червоточин из Thera и Turnur, которые раз в пять минут считываются с EVE-Scout для планировщика маршрутов. При отключении сохранённые соединения удаляются: они закрываются за несколько часов, и старый список вёл бы через уже исчезнувшие червоточины.</value>
+  </data>
+  <data name="EveScoutPoll" xml:space="preserve">
+    <value>Считывать соединения Thera и Turnur с EVE-Scout</value>
+  </data>
+  <data name="EveScoutRead" xml:space="preserve">
+    <value>Соединений: {0}, считано в {1:t}</value>
+  </data>
+  <data name="EveScoutRefused" xml:space="preserve">
+    <value>EVE-Scout ответил {0}; последний список сохраняется до следующего чтения.</value>
+  </data>
 </root>

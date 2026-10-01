@@ -3365,6 +3365,7 @@ public class App : Application
                     // structures, never stored). Mirrored for PostgreSQL in PostgresSchema.
                     """CREATE TABLE IF NOT EXISTS "ManualJumpBridges" ("Id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "FromSystemId" INTEGER NOT NULL DEFAULT 0, "ToSystemId" INTEGER NOT NULL DEFAULT 0, "Note" TEXT NOT NULL DEFAULT '', "CreatedAt" TEXT NOT NULL DEFAULT '')""",
                     """CREATE UNIQUE INDEX IF NOT EXISTS "IX_ManualJumpBridges_Pair" ON "ManualJumpBridges" ("FromSystemId", "ToSystemId")""",
+                    """CREATE TABLE IF NOT EXISTS "EveScoutConnections" ("Id" TEXT NOT NULL PRIMARY KEY, "HubSystemId" INTEGER NOT NULL DEFAULT 0, "HubSystemName" TEXT NOT NULL DEFAULT '', "HubSignature" TEXT NOT NULL DEFAULT '', "OtherSystemId" INTEGER NOT NULL DEFAULT 0, "OtherSystemName" TEXT NOT NULL DEFAULT '', "OtherSignature" TEXT NOT NULL DEFAULT '', "OtherRegionId" INTEGER NULL, "OtherRegionName" TEXT NOT NULL DEFAULT '', "OtherClass" TEXT NOT NULL DEFAULT '', "WormholeType" TEXT NOT NULL DEFAULT '', "MaxShipSize" TEXT NOT NULL DEFAULT '', "ExpiresAt" TEXT NULL, "ReadAt" TEXT NOT NULL DEFAULT '')""",
 
                     """CREATE TABLE IF NOT EXISTS "IntelReportCharacters" ("IntelReportId" INTEGER NOT NULL, "CharacterId" INTEGER NOT NULL, "CharacterName" TEXT NOT NULL DEFAULT '', PRIMARY KEY ("IntelReportId", "CharacterId"))""",
                     """CREATE INDEX IF NOT EXISTS "IX_IntelReportCharacters_CharacterId" ON "IntelReportCharacters" ("CharacterId")""",
@@ -3808,6 +3809,7 @@ public class App : Application
             // run over the same hour at the same time.
             Start("map stats backfill", () => Services.GetRequiredService<MapStatsBackfillService>().Start());
             Start("map stats polling",  () => Services.GetRequiredService<MapStatsPollingService>().Start());
+            Start("EVE-Scout",          () => Services.GetRequiredService<EveScoutService>().Start());
 
             // Links pending orders to stock, jobs and the contracts that deliver them.
             Start("order fulfilment",   () => Services.GetRequiredService<OrderFulfilmentService>().Start());
@@ -3878,6 +3880,7 @@ public class App : Application
                 Halt("database backup",     Services.GetRequiredService<DatabaseBackupService>(),     s => s.StopAsync()),
                 Halt("name backfill",       Services.GetRequiredService<EntityNameBackfillService>(), s => s.StopAsync()),
                 Halt("map stats polling",   Services.GetRequiredService<MapStatsPollingService>(),    s => s.StopAsync()),
+                Halt("EVE-Scout",           Services.GetRequiredService<EveScoutService>(),           s => s.StopAsync()),
                 Halt("order fulfilment",    Services.GetRequiredService<OrderFulfilmentService>(),    s => s.StopAsync()),
                 Halt("store mail",          Services.GetRequiredService<StoreMailService>(),          s => s.StopAsync()),
                 Halt("web stores",          Services.GetRequiredService<EveConsole.Services.WebStore.WebStoreSyncService>(), s => s.StopAsync()),
@@ -4307,6 +4310,13 @@ public class App : Application
         services.AddSingleton<MapStatsService>();
         services.AddSingleton<MapStatsBackfillService>();
         services.AddSingleton<MapStatsPollingService>();
+        services.AddSingleton<EveScoutService>();
+        services.AddHttpClient("eve-scout", c =>
+        {
+            c.BaseAddress = new Uri(EveScoutService.BaseUrl);
+            c.DefaultRequestHeaders.Add("User-Agent", $"EveConsole/{AppVersion.Number} (+https://github.com/kernoeve/EveConsole)");
+            c.Timeout = TimeSpan.FromSeconds(30);
+        });
         services.AddSingleton<SystemViewService>();
 
         // Alarms. Nothing is defined out of the box — every alarm is one the user (or the agent

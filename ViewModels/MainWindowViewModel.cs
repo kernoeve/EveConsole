@@ -695,6 +695,16 @@ public class MainWindowViewModel : ReactiveObject
 
     public void OpenTool(string toolId)
     {
+        // Tools of their own once, tabs of the map tool now: a saved tab, the agent and old links
+        // still name them.
+        if (toolId is "jump_planner" or "route_planner")
+        {
+            OpenTool("universe");
+            if (toolId == "jump_planner") MapVm.ShowJumpPlannerTab();
+            else                          MapVm.ShowRouteTab();
+            return;
+        }
+
         var existing = OpenTabs.FirstOrDefault(t => t.Id == toolId);
         if (existing is not null)
         {
@@ -724,7 +734,6 @@ public class MainWindowViewModel : ReactiveObject
             "universe"        => (ShellText.TabUniverse,        MapVm,             true),
             "alarms"          => (ShellText.TabAlarms,          AlarmsVm,          true),
             "scheduler"       => (ShellText.TabScheduler,       SchedulerVm,       true),
-            "jump_planner"    => (ShellText.NavJumpPlanner,    JumpPlannerVm,     true),
             "trade"           => (ShellText.TabTrade,           TradeOpportunitiesVm,     true),
             "industry_opps"   => (ShellText.TabIndustryOpps,   IndustryOpportunitiesVm,  true),
             "market_levels"   => (ShellText.NavMarketLevels,   MarketLevelVm,            true),
@@ -943,7 +952,9 @@ public class MainWindowViewModel : ReactiveObject
         LpStoreService                  lpStoreService,
         LpValueService                  lpValueService,
         SchedulerService                schedulerService,
-        ScheduledBlockRenderer          blockRenderer)
+        ScheduledBlockRenderer          blockRenderer,
+        EveScoutService                 eveScout,
+        SystemGraph                     systemGraph)
     {
         AlarmActions = alarmActions;
         _uiLinks        = uiLinks;
@@ -959,7 +970,7 @@ public class MainWindowViewModel : ReactiveObject
         GameLogSettingsVm = new GameLogSettingsViewModel(monitoringSettings, gameLogImport);
         ChatLogSettingsVm = new ChatLogSettingsViewModel(monitoringSettings, chatLogImport, intelService);
         ZkbSettingsVm     = new ZkillboardSettingsViewModel(zkillboardSettings, zkbPolling, zkbFirehose, zkbBackfill, zkbPost);
-        MapStatsSettingsVm = new MapStatsSettingsViewModel(mapStatsSettings, mapStatsBackfill, mapStatsPolling, mapStatsService);
+        MapStatsSettingsVm = new MapStatsSettingsViewModel(mapStatsSettings, mapStatsBackfill, mapStatsPolling, mapStatsService, eveScout);
         AlertSettingsVm   = new AlertSettingsViewModel(dbFactory.CreateDbContext());
         OverviewVm        = new OverviewViewModel(dbFactory.CreateDbContext(), AlertSettingsVm, errorLogger, newsService, appPrefs, corpActivityService, dbFactory, esi, standingBuyOrderService, indyFacilityCheck);
         CharacterVm       = new CharacterViewModel(auth, esi, dbFactory.CreateDbContext(), errorLogger);
@@ -1111,15 +1122,17 @@ public class MainWindowViewModel : ReactiveObject
                 _ = ItemBrowserVm.NavigateToItemCommand.Execute(typeId).Subscribe();
             },
         };
+        // The jump planner and the route planner are tabs of the map tool.
+        JumpPlannerVm          = new JumpPlannerViewModel(jumpPlanner);
+        var jumpBridges        = new JumpBridgeService(dbFactory, esi.GetSovSystemsAsync, corpActivityService);
         MapVm                  = new MapToolViewModel(
             universeMapService, mapStatsService, appPrefs, NewSystemPage,
-            new LiveIntelService(dbFactory, corpActivityService), errorLogger,
-            new JumpBridgeService(dbFactory, esi.GetSovSystemsAsync, corpActivityService));
+            new LiveIntelService(dbFactory, corpActivityService), errorLogger, jumpBridges,
+            new RoutePlannerService(dbFactory, systemGraph, jumpBridges, esi, eveScout),
+            JumpPlannerVm, dbFactory);
         AlarmsVm               = new AlarmsViewModel(dbFactory, alarmService, alarmSounds, alarmMute);
         SchedulerVm            = new SchedulerViewModel(dbFactory, schedulerService, blockRenderer, slackService, discordService,
                                                         corpActivityService, salePostingService, errorLogger);
-        JumpPlannerVm          = new JumpPlannerViewModel(jumpPlanner);
-
         // Parks are added, deleted and renamed in Indy Parks but chosen in the Production
         // Calculator and the Worklist's Industry tab, which each fill their dropdown only once.
         IndyParksVm.ParksChanged += () =>
@@ -1297,7 +1310,6 @@ public class MainWindowViewModel : ReactiveObject
             [
                 new NavItem("structure_browser", ShellText.NavStructureBrowser),
                 new NavItem("universe",          ShellText.NavUniverseMap),
-                new NavItem("jump_planner",      ShellText.NavJumpPlanner),
             ]),
             new(ShellText.NavGroupIndustry,
             [

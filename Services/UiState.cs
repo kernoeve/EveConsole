@@ -28,6 +28,7 @@ public static class UiState
     public const string UniverseOverlay      = "universe.overlay";
     public const string UniverseSidePanel    = "universe.side_panel";
     public const string UniverseBridges      = "universe.bridges";
+    public const string RouteAvoid           = "route.avoid";
     public const string OverviewPeriodHours  = "overview.period_hours";
     public const string MarketSource         = "itembrowser.market_source";
     public const string CollapsedGroups      = "invlevels.collapsed_groups";

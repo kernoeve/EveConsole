@@ -3337,4 +3337,19 @@ L'application va redémarrer.</value>
   <data name="DiscordErrHttp" xml:space="preserve">
     <value>Discord a refusé (HTTP {0}) : {1}</value>
   </data>
+  <data name="EveScoutHeading" xml:space="preserve">
+    <value>Thera et Turnur</value>
+  </data>
+  <data name="EveScoutNote" xml:space="preserve">
+    <value>Connexions de trous de ver depuis Thera et Turnur, lues sur EVE-Scout toutes les cinq minutes, pour le planificateur d'itinéraire. Désactiver cette option supprime les connexions enregistrées : elles se ferment en quelques heures, et une ancienne liste ferait passer par des trous qui n'existent plus.</value>
+  </data>
+  <data name="EveScoutPoll" xml:space="preserve">
+    <value>Lire les connexions de Thera et Turnur sur EVE-Scout</value>
+  </data>
+  <data name="EveScoutRead" xml:space="preserve">
+    <value>{0} connexions, lues à {1:t}</value>
+  </data>
+  <data name="EveScoutRefused" xml:space="preserve">
+    <value>EVE-Scout a répondu {0} ; la dernière liste est conservée jusqu'à la prochaine lecture.</value>
+  </data>
 </root>

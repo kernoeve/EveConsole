@@ -105,6 +105,16 @@
             <views:JumpBridgesView />
           </Panel>
         </DataTemplate>
+        <DataTemplate DataType="vm:RouteTabViewModel">
+          <Panel IsVisible="{Binding IsSelected}">
+            <views:RoutePlannerView />
+          </Panel>
+        </DataTemplate>
+        <DataTemplate DataType="vm:JumpPlannerTabViewModel">
+          <Panel IsVisible="{Binding IsSelected}">
+            <views:JumpPlannerView DataContext="{Binding Planner}" />
+          </Panel>
+        </DataTemplate>
         <DataTemplate DataType="vm:SystemTabViewModel">
           <Panel IsVisible="{Binding IsSelected}">
             <views:SystemPageView DataContext="{Binding Page}" />
