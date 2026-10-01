@@ -724,6 +724,9 @@
   <data name="CheckIntelNote" xml:space="preserve">
     <value>감시 대상 주변에서 누군가 파일럿을 보고하면 발생합니다. 대상은 도킹 해제 중인 내 캐릭터, 위치와 관계없는 내 캐릭터, 또는 항성계 목록이며, 각각 점프 범위를 지정합니다. 설정 → 채팅 로그에서 이미 분석 중인 인텔 채널을 읽습니다.</value>
   </data>
+  <data name="CheckIntelKillsNote" xml:space="preserve">
+    <value>공격자 중에 적 파일럿이 있는 킬도 포함됩니다. 킬은 공격자가 그 항성계에 있었음을 알려 줍니다.</value>
+  </data>
   <data name="CheckShipUndock" xml:space="preserve">
     <value>함선 도킹 해제</value>
   </data>
@@ -1014,6 +1017,9 @@
   </data>
   <data name="SaidSentence" xml:space="preserve">
     <value>{0}.</value>
+  </data>
+  <data name="IntelSaidOnKill" xml:space="preserve">
+    <value>킬에서 확인됨</value>
   </data>
   <data name="UnknownSystem" xml:space="preserve">
     <value>알 수 없는 항성계</value>
