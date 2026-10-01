@@ -485,7 +485,7 @@
     <value>Carpetas de registros</value>
   </data>
   <data name="LeaveTheListEmptyNote" xml:space="preserve">
-    <value>Deja la lista vacía para usar automáticamente la carpeta local. Añade una ruta de red (\\MACHINE\share\Gamelogs) para importar registros de clientes de EVE que se ejecutan en otros ordenadores: no hace falta instalar nada en ellos.</value>
+    <value>La carpeta de registros de juego de EVE de este equipo se lee siempre que se encuentra. Añade una ruta de red (\\MACHINE\share\Gamelogs) para importar además registros de clientes de EVE que se ejecutan en otros equipos; no hace falta instalar nada en ellos.</value>
   </data>
   <data name="Detect" xml:space="preserve">
     <value>Detectar</value>
@@ -539,7 +539,7 @@
     <value>Importar registros de chat</value>
   </data>
   <data name="LeaveTheListEmptyNote2" xml:space="preserve">
-    <value>Deja la lista vacía para usar automáticamente la carpeta local. Añade una ruta de red (\\MACHINE\share\Chatlogs) para importar registros de clientes de EVE que se ejecutan en otros ordenadores: no hace falta instalar nada en ellos. La detección de canales de abajo solo ve los canales de las carpetas configuradas aquí.</value>
+    <value>La carpeta de registros de chat de EVE de este equipo se lee siempre que se encuentra. Añade una ruta de red (\\MACHINE\share\Chatlogs) para importar además registros de clientes de EVE que se ejecutan en otros equipos; no hace falta instalar nada en ellos. La búsqueda de canales de abajo ve los canales de todas las carpetas que se leen.</value>
   </data>
   <data name="ChannelsToStore" xml:space="preserve">
     <value>Canales que guardar</value>
@@ -3351,5 +3351,8 @@ La aplicación se reiniciará.</value>
   </data>
   <data name="EveScoutRefused" xml:space="preserve">
     <value>EVE-Scout respondió {0}; se conserva la última lista hasta la próxima lectura.</value>
+  </data>
+  <data name="LogsFolderThisComputer" xml:space="preserve">
+    <value>✓ {0}  (este equipo)</value>
   </data>
 </root>

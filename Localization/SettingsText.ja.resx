@@ -485,7 +485,7 @@
     <value>ログフォルダー</value>
   </data>
   <data name="LeaveTheListEmptyNote" xml:space="preserve">
-    <value>一覧を空のままにすると、ローカルのフォルダーが自動的に使われます。ネットワークパス（\\MACHINE\share\Gamelogs）を追加すると、他のコンピューターで動作しているEVEクライアントのログを取り込めます — そのコンピューターには何もインストールする必要はありません。</value>
+    <value>このコンピューター自身のEVEゲームログフォルダーは、見つかれば常に読み込まれます。ネットワークパス（\\MACHINE\share\Gamelogs）を追加すると、他のコンピューターで動作しているEVEクライアントのログも取り込めます — そのコンピューターには何もインストールする必要はありません。</value>
   </data>
   <data name="Detect" xml:space="preserve">
     <value>検出</value>
@@ -539,7 +539,7 @@
     <value>チャットログを取り込む</value>
   </data>
   <data name="LeaveTheListEmptyNote2" xml:space="preserve">
-    <value>一覧を空のままにすると、ローカルのフォルダーが自動的に使われます。ネットワークパス（\\MACHINE\share\Chatlogs）を追加すると、他のコンピューターで動作しているEVEクライアントのログを取り込めます — そのコンピューターには何もインストールする必要はありません。下のチャンネル検出で見つかるのは、ここで設定したフォルダーのチャンネルだけです。</value>
+    <value>このコンピューター自身のEVEチャットログフォルダーは、見つかれば常に読み込まれます。ネットワークパス（\\MACHINE\share\Chatlogs）を追加すると、他のコンピューターで動作しているEVEクライアントのログも取り込めます — そのコンピューターには何もインストールする必要はありません。下のチャンネル検出は、読み込み中のすべてのフォルダーのチャンネルを対象にします。</value>
   </data>
   <data name="ChannelsToStore" xml:space="preserve">
     <value>保存するチャンネル</value>
@@ -3348,5 +3348,8 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
   </data>
   <data name="EveScoutRefused" xml:space="preserve">
     <value>EVE-Scoutの応答は{0}でした。次に読み取るまで前回の一覧を使います。</value>
+  </data>
+  <data name="LogsFolderThisComputer" xml:space="preserve">
+    <value>✓ {0}  （このコンピューター）</value>
   </data>
 </root>

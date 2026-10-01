@@ -485,7 +485,7 @@
     <value>Dossiers des journaux</value>
   </data>
   <data name="LeaveTheListEmptyNote" xml:space="preserve">
-    <value>Laissez la liste vide pour utiliser automatiquement le dossier local. Ajoutez un chemin réseau (\\MACHINE\share\Gamelogs) pour importer les journaux de clients EVE exécutés sur d'autres ordinateurs — rien n'a besoin d'y être installé.</value>
+    <value>Le dossier des journaux de jeu EVE de cet ordinateur est toujours lu lorsqu'il est trouvé. Ajoutez un chemin réseau (\\MACHINE\share\Gamelogs) pour importer en plus les journaux de clients EVE exécutés sur d'autres ordinateurs — rien n'a besoin d'y être installé.</value>
   </data>
   <data name="Detect" xml:space="preserve">
     <value>Détecter</value>
@@ -539,7 +539,7 @@
     <value>Importer les journaux de discussion</value>
   </data>
   <data name="LeaveTheListEmptyNote2" xml:space="preserve">
-    <value>Laissez la liste vide pour utiliser automatiquement le dossier local. Ajoutez un chemin réseau (\\MACHINE\share\Chatlogs) pour importer les journaux de clients EVE exécutés sur d'autres ordinateurs — rien n'a besoin d'y être installé. La découverte des canaux ci-dessous ne voit que les canaux des dossiers configurés ici.</value>
+    <value>Le dossier des journaux de discussion EVE de cet ordinateur est toujours lu lorsqu'il est trouvé. Ajoutez un chemin réseau (\\MACHINE\share\Chatlogs) pour importer en plus les journaux de clients EVE exécutés sur d'autres ordinateurs — rien n'a besoin d'y être installé. La découverte des canaux ci-dessous voit les canaux de tous les dossiers lus.</value>
   </data>
   <data name="ChannelsToStore" xml:space="preserve">
     <value>Canaux à enregistrer</value>
@@ -3351,5 +3351,8 @@ L'application va redémarrer.</value>
   </data>
   <data name="EveScoutRefused" xml:space="preserve">
     <value>EVE-Scout a répondu {0} ; la dernière liste est conservée jusqu'à la prochaine lecture.</value>
+  </data>
+  <data name="LogsFolderThisComputer" xml:space="preserve">
+    <value>✓ {0}  (cet ordinateur)</value>
   </data>
 </root>

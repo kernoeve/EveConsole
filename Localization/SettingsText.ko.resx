@@ -485,7 +485,7 @@
     <value>로그 폴더</value>
   </data>
   <data name="LeaveTheListEmptyNote" xml:space="preserve">
-    <value>목록을 비워 두면 로컬 폴더를 자동으로 사용합니다. 다른 컴퓨터에서 실행 중인 EVE 클라이언트의 로그를 가져오려면 네트워크 경로(\\MACHINE\share\Gamelogs)를 추가하십시오 — 그 컴퓨터에는 아무것도 설치할 필요가 없습니다.</value>
+    <value>이 컴퓨터의 EVE 게임 로그 폴더는 찾을 수 있으면 항상 읽습니다. 네트워크 경로(\\MACHINE\share\Gamelogs)를 추가하면 다른 컴퓨터에서 실행 중인 EVE 클라이언트의 로그도 가져옵니다. 해당 컴퓨터에는 아무것도 설치할 필요가 없습니다.</value>
   </data>
   <data name="Detect" xml:space="preserve">
     <value>감지</value>
@@ -539,7 +539,7 @@
     <value>채팅 로그 가져오기</value>
   </data>
   <data name="LeaveTheListEmptyNote2" xml:space="preserve">
-    <value>목록을 비워 두면 로컬 폴더를 자동으로 사용합니다. 다른 컴퓨터에서 실행 중인 EVE 클라이언트의 로그를 가져오려면 네트워크 경로(\\MACHINE\share\Chatlogs)를 추가하십시오 — 그 컴퓨터에는 아무것도 설치할 필요가 없습니다. 아래의 채널 찾기는 여기에 설정된 폴더의 채널만 찾습니다.</value>
+    <value>이 컴퓨터의 EVE 채팅 로그 폴더는 찾을 수 있으면 항상 읽습니다. 네트워크 경로(\\MACHINE\share\Chatlogs)를 추가하면 다른 컴퓨터에서 실행 중인 EVE 클라이언트의 로그도 가져옵니다. 해당 컴퓨터에는 아무것도 설치할 필요가 없습니다. 아래 채널 검색은 읽고 있는 모든 폴더의 채널을 봅니다.</value>
   </data>
   <data name="ChannelsToStore" xml:space="preserve">
     <value>저장할 채널</value>
@@ -3348,5 +3348,8 @@ SQLite 데이터베이스는 읽기만 하고 변경하지 않습니다. 데이�
   </data>
   <data name="EveScoutRefused" xml:space="preserve">
     <value>EVE-Scout 응답 {0}. 다음에 읽을 때까지 마지막 목록을 유지합니다.</value>
+  </data>
+  <data name="LogsFolderThisComputer" xml:space="preserve">
+    <value>✓ {0}  (이 컴퓨터)</value>
   </data>
 </root>

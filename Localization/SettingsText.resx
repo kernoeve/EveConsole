@@ -611,7 +611,7 @@
     <comment>Text in SettingsWindow.</comment>
   </data>
   <data name="LeaveTheListEmptyNote" xml:space="preserve">
-    <value>Leave the list empty to use the local folder automatically. Add a network path (\\MACHINE\share\Gamelogs) to import logs from EVE clients running on other computers — nothing needs to be installed on them.</value>
+    <value>This computer's own EVE game log folder is always read when it can be found. Add a network path (\\MACHINE\share\Gamelogs) to also import logs from EVE clients running on other computers — nothing needs to be installed on them.</value>
     <comment>Note in SettingsWindow.</comment>
   </data>
   <data name="Detect" xml:space="preserve">
@@ -683,7 +683,7 @@
     <comment>Button or option in SettingsWindow.</comment>
   </data>
   <data name="LeaveTheListEmptyNote2" xml:space="preserve">
-    <value>Leave the list empty to use the local folder automatically. Add a network path (\\MACHINE\share\Chatlogs) to import logs from EVE clients running on other computers — nothing needs to be installed on them. Channel discovery below only sees channels from the folder(s) configured here.</value>
+    <value>This computer's own EVE chat log folder is always read when it can be found. Add a network path (\\MACHINE\share\Chatlogs) to also import logs from EVE clients running on other computers — nothing needs to be installed on them. Channel discovery below sees channels from every folder being read.</value>
     <comment>Note in SettingsWindow.</comment>
   </data>
   <data name="ChannelsToStore" xml:space="preserve">
@@ -4422,5 +4422,9 @@ The application will restart.</value>
   <data name="EveScoutRefused" xml:space="preserve">
     <value>EVE-Scout answered {0}; the last list is kept until the next read.</value>
     <comment>Settings → Map Data, under the EVE-Scout tick box, when the read failed. {0} is an HTTP status code.</comment>
+  </data>
+  <data name="LogsFolderThisComputer" xml:space="preserve">
+    <value>✓ {0}  (this computer)</value>
+    <comment>Game/Chat Logs tab, the folders being read: this computer's own EVE log folder, found automatically. {0} is the folder's path.</comment>
   </data>
 </root>

@@ -485,7 +485,7 @@
     <value>日志文件夹</value>
   </data>
   <data name="LeaveTheListEmptyNote" xml:space="preserve">
-    <value>列表留空则自动使用本地文件夹。添加网络路径（\\MACHINE\share\Gamelogs）可导入其他电脑上运行的 EVE 客户端的日志——那些电脑上无需安装任何东西。</value>
+    <value>只要能找到，本计算机自己的 EVE 游戏日志文件夹始终会被读取。添加网络路径（\\MACHINE\share\Gamelogs）可额外导入在其他计算机上运行的 EVE 客户端的日志——无需在那些计算机上安装任何东西。</value>
   </data>
   <data name="Detect" xml:space="preserve">
     <value>检测</value>
@@ -539,7 +539,7 @@
     <value>导入聊天日志</value>
   </data>
   <data name="LeaveTheListEmptyNote2" xml:space="preserve">
-    <value>列表留空则自动使用本地文件夹。添加网络路径（\\MACHINE\share\Chatlogs）可导入其他电脑上运行的 EVE 客户端的日志——那些电脑上无需安装任何东西。下方的频道发现只能看到此处配置的文件夹中的频道。</value>
+    <value>只要能找到，本计算机自己的 EVE 聊天日志文件夹始终会被读取。添加网络路径（\\MACHINE\share\Chatlogs）可额外导入在其他计算机上运行的 EVE 客户端的日志——无需在那些计算机上安装任何东西。下方的频道发现会查看所有正在读取的文件夹中的频道。</value>
   </data>
   <data name="ChannelsToStore" xml:space="preserve">
     <value>要存储的频道</value>
@@ -3348,5 +3348,8 @@ SQLite 数据库只会被读取，不会被修改。大型数据库需要一些�
   </data>
   <data name="EveScoutRefused" xml:space="preserve">
     <value>EVE-Scout 返回 {0}；在下次读取前保留上一份列表。</value>
+  </data>
+  <data name="LogsFolderThisComputer" xml:space="preserve">
+    <value>✓ {0}（此计算机）</value>
   </data>
 </root>

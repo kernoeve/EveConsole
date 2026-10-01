@@ -224,10 +224,13 @@ public class GameLogSettingsViewModel : ReactiveObject
     private string DescribeResolvedPaths()
     {
         var resolved = _settings.ResolveDirectories();
+        var local    = MonitoringSettings.DefaultGameLogDirectory();
         return resolved.Count == 0
             ? SettingsText.GameLogNoFolder
             : string.Join("\n", resolved.Select(d =>
-                Directory.Exists(d) ? "✓ " + d : string.Format(SettingsText.LogsFolderUnreachable, d)));
+                MonitoringSettings.IsLocalDefault(d, local) ? string.Format(SettingsText.LogsFolderThisComputer, d)
+                : Directory.Exists(d) ? "✓ " + d
+                : string.Format(SettingsText.LogsFolderUnreachable, d)));
     }
 
     private async Task AddDirectoryAsync()
