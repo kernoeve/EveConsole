@@ -428,6 +428,35 @@ public class UniverseViewModel : ReactiveObject
 
     public IReadOnlyDictionary<int, MapHoleMark>? VisibleStorms => _showStorms ? _storms : null;
 
+    private IReadOnlyDictionary<int, MapCampaignMark>? _campaigns;
+    /// <summary>Sovereignty campaign marks per system and region, pushed in by the map tool.</summary>
+    public IReadOnlyDictionary<int, MapCampaignMark>? Campaigns
+    {
+        get => _campaigns;
+        set { this.RaiseAndSetIfChanged(ref _campaigns, value); this.RaisePropertyChanged(nameof(VisibleCampaigns)); }
+    }
+
+    private bool _campaignsAvailable;
+    public bool CampaignsAvailable
+    {
+        get => _campaignsAvailable;
+        set => this.RaiseAndSetIfChanged(ref _campaignsAvailable, value);
+    }
+
+    private bool _showCampaigns = UiState.GetBool(UiState.UniverseCampaigns, true);
+    public bool ShowCampaigns
+    {
+        get => _showCampaigns;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _showCampaigns, value);
+            UiState.SetBool(UiState.UniverseCampaigns, value);
+            this.RaisePropertyChanged(nameof(VisibleCampaigns));
+        }
+    }
+
+    public IReadOnlyDictionary<int, MapCampaignMark>? VisibleCampaigns => _showCampaigns ? _campaigns : null;
+
     public IReadOnlyDictionary<int, MapHoleMark>? VisibleHoles     => _showHoles ? _holes : null;
     public IReadOnlyList<MapHoleLink>?            VisibleHoleLinks => _showHoles ? _holeLinks : null;
 

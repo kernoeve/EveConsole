@@ -954,7 +954,8 @@ public class MainWindowViewModel : ReactiveObject
         SchedulerService                schedulerService,
         ScheduledBlockRenderer          blockRenderer,
         EveScoutService                 eveScout,
-        SystemGraph                     systemGraph)
+        SystemGraph                     systemGraph,
+        SovCampaignService              sovCampaigns)
     {
         AlarmActions = alarmActions;
         _uiLinks        = uiLinks;
@@ -1129,7 +1130,7 @@ public class MainWindowViewModel : ReactiveObject
             universeMapService, mapStatsService, appPrefs, NewSystemPage,
             new LiveIntelService(dbFactory, corpActivityService), errorLogger, jumpBridges,
             new RoutePlannerService(dbFactory, systemGraph, jumpBridges, esi, eveScout),
-            JumpPlannerVm, dbFactory, eveScout);
+            JumpPlannerVm, dbFactory, eveScout, sovCampaigns);
         AlarmsVm               = new AlarmsViewModel(dbFactory, alarmService, alarmSounds, alarmMute);
         SchedulerVm            = new SchedulerViewModel(dbFactory, schedulerService, blockRenderer, slackService, discordService,
                                                         corpActivityService, salePostingService, errorLogger);

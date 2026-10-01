@@ -42,6 +42,7 @@ public sealed class MapToolViewModel : ReactiveObject
     private readonly JumpPlannerViewModel?      _jumpPlanner;
     private readonly IDbContextFactory<AppDbContext>? _db;
     private readonly EveScoutService?           _eveScout;
+    private readonly SovCampaignService?        _campaigns;
 
     public static readonly TimeSpan LiveEvery    = TimeSpan.FromSeconds(5);
     public static readonly TimeSpan OverlayEvery = TimeSpan.FromSeconds(60);
@@ -58,9 +59,11 @@ public sealed class MapToolViewModel : ReactiveObject
         RoutePlannerService?      routes  = null,
         JumpPlannerViewModel?     jumpPlanner = null,
         IDbContextFactory<AppDbContext>? db = null,
-        EveScoutService?          eveScout = null)
+        EveScoutService?          eveScout = null,
+        SovCampaignService?       campaigns = null)
     {
         _eveScout      = eveScout;
+        _campaigns     = campaigns;
         if (eveScout is not null) eveScout.Changed += () => _ = ReloadHolesAsync();
         _errors        = errors;
         _bridges       = bridges;
@@ -83,6 +86,7 @@ public sealed class MapToolViewModel : ReactiveObject
         ShowBridgesTabCommand = ReactiveCommand.Create(() => { ShowBridgesTab(); });
         ShowRouteTabCommand   = ReactiveCommand.Create(() => { ShowRouteTab(); });
         ShowJumpPlannerTabCommand = ReactiveCommand.Create(() => { ShowJumpPlannerTab(); });
+        ShowCampaignsTabCommand   = ReactiveCommand.Create(() => { ShowCampaignsTab(); });
 
         // The avoid list is ringed on every map, whoever changed it.
         RouteAvoidList.Changed += () => Dispatcher.UIThread.Post(() =>
@@ -159,6 +163,77 @@ public sealed class MapToolViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> ShowJumpPlannerTabCommand { get; }
 
     public bool HasRoutes      => _routes is not null;
+    public bool HasCampaigns   => _campaigns is not null;
+
+    public ReactiveCommand<Unit, Unit> ShowCampaignsTabCommand { get; }
+
+    /// <summary>The sovereignty campaigns tab: one, brought forward if open.</summary>
+    public CampaignsTabViewModel? ShowCampaignsTab()
+    {
+        if (_campaigns is null) return null;
+        if (AllTabs.OfType<CampaignsTabViewModel>().FirstOrDefault() is { } open)
+        {
+            SelectedTab = open;
+            return open;
+        }
+        var tab = new CampaignsTabViewModel(this);
+        Add(tab);
+        tab.Show(_campaignList);
+        _ = ReloadCampaignsAsync();
+        return tab;
+    }
+
+    // ── Sovereignty campaigns ────────────────────────────────────────────────
+
+    private IReadOnlyList<SovCampaign> _campaignList = [];
+
+    /// <summary>Reads the campaigns (at most once a minute; the service keeps the last) and puts
+    /// them on every map and the campaigns tab.</summary>
+    public async Task ReloadCampaignsAsync()
+    {
+        if (_campaigns is null) return;
+        try
+        {
+            var list = await Task.Run(() => _campaigns.GetAsync());
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                _campaignList = list;
+                foreach (var t in AllTabs.OfType<UniverseTabViewModel>()) t.ApplyCampaigns(list, true);
+                foreach (var t in AllTabs.OfType<CampaignsTabViewModel>()) t.Show(list);
+            });
+        }
+        catch (Exception ex) { _errors?.Log(nameof(MapToolViewModel), "sov campaigns", ex); }
+    }
+
+    /// <summary>
+    /// Campaign marks for one map: one on each campaign's system, ringed once its fight has
+    /// started, and one on each region holding any, for the zoomed-out tier.
+    /// </summary>
+    internal static Dictionary<int, MapCampaignMark> BuildCampaigns(IReadOnlyList<SovCampaign> campaigns, MapGraph graph)
+    {
+        var marks = new Dictionary<int, MapCampaignMark>();
+        if (campaigns.Count == 0) return marks;
+        var now     = DateTimeOffset.UtcNow;
+        var nodes   = graph.Nodes.Where(n => !n.IsRegion || !graph.IsContinuous).GroupBy(n => n.Id).ToDictionary(g => g.Key, g => g.First());
+        var regions = graph.Nodes.Where(n => n.IsRegion && graph.IsContinuous).GroupBy(n => n.RegionId).ToDictionary(g => g.Key, g => g.First());
+
+        foreach (var g in campaigns.GroupBy(c => c.SystemId))
+            if (nodes.TryGetValue(g.Key, out var node))
+                marks[g.Key] = new MapCampaignMark(string.Format(MapText.CampaignTitle, node.Label),
+                    string.Join("\n", g.Select(c => CampaignText.Line(c, now) + "\n" + CampaignText.Times(c))),
+                    g.Any(c => c.IsRunning(now)));
+
+        foreach (var region in regions.Values)
+        {
+            var inside = campaigns.Where(c => c.RegionId == region.RegionId).ToList();
+            if (inside.Count == 0) continue;
+            marks[region.Id] = new MapCampaignMark(string.Format(MapText.CampaignRegionTitle, region.Label),
+                string.Join("\n", inside.Select(c => string.Format(MapText.CampaignRegionLine,
+                    SdeNames.SolarSystem(c.SystemId, c.SystemName), CampaignText.Line(c, now)))),
+                inside.Any(c => c.IsRunning(now)));
+        }
+        return marks;
+    }
     public bool HasJumpPlanner => _jumpPlanner is not null;
 
     /// <summary>The route planner tab: one, brought forward if open.</summary>
@@ -245,6 +320,7 @@ public sealed class MapToolViewModel : ReactiveObject
         map.Routes  = _routeList;
         map.ClearRoutesRequested = ClearAllRoutes;
         tab.ApplyHoles(_holeList, _stormList, _eveScout?.Enabled == true);
+        tab.ApplyCampaigns(_campaignList, _campaigns is not null);
         return tab;
     }
 
@@ -525,6 +601,7 @@ public sealed class MapToolViewModel : ReactiveObject
     {
         var overlayDue = DateTimeOffset.UtcNow + OverlayEvery;
         var pagesDue   = DateTimeOffset.UtcNow + PageEvery;
+        await ReloadCampaignsAsync();
         await ReloadBridgesAsync();
         using var timer = new PeriodicTimer(LiveEvery);
         do
@@ -559,6 +636,7 @@ public sealed class MapToolViewModel : ReactiveObject
                     foreach (var map in maps) await Task.Run(map.RefreshLiveOverlayAsync, ct);
                     await ReloadBridgesAsync();
                     await ReloadHolesAsync();
+                    await ReloadCampaignsAsync();
                 }
             }
             catch (OperationCanceledException) when (ct.IsCancellationRequested) { return; }
@@ -675,10 +753,11 @@ public sealed class MapToolViewModel : ReactiveObject
         }
         var holes  = _holeList.Where(c => c.HubSystemId == systemId || c.OtherSystemId == systemId).ToList();
         var storms = _stormList.Where(s => s.SystemId == systemId).ToList();
+        var fights = _campaignList.Where(c => c.SystemId == systemId).ToList();
         var live   = _snapshot;
         return new SystemMapExtras(zone, bridges, holes,
             live?.Hostiles.GetValueOrDefault(systemId),
-            live?.Own.GetValueOrDefault(systemId) ?? [], storms);
+            live?.Own.GetValueOrDefault(systemId) ?? [], storms, fights);
     }
 
     /// <summary>
@@ -928,6 +1007,7 @@ public sealed class UniverseTabViewModel : MapTabViewModel
            {
                if (_live is { } live) ApplyLive(live);
                if (_holes is { } holes) ApplyHoles(holes, _storms, Map.HolesAvailable);
+               ApplyCampaigns(_campaigns, Map.CampaignsAvailable);
            });
     }
 
@@ -939,6 +1019,16 @@ public sealed class UniverseTabViewModel : MapTabViewModel
     private LiveMapSnapshot? _live;
     private IReadOnlyList<EveConsole.Models.EveScoutConnection>? _holes;
     private IReadOnlyList<EveConsole.Models.EveScoutStorm>       _storms = [];
+
+    private IReadOnlyList<SovCampaign> _campaigns = [];
+
+    /// <summary>Puts the sovereignty campaigns on this map, as soon as it can place them. UI thread.</summary>
+    public void ApplyCampaigns(IReadOnlyList<SovCampaign> campaigns, bool available)
+    {
+        _campaigns = campaigns;
+        Map.CampaignsAvailable = available;
+        if (Map.Graph is { } graph) Map.Campaigns = MapToolViewModel.BuildCampaigns(campaigns, graph);
+    }
 
     /// <summary>Puts Thera and Turnur's holes and the storms on this map, as soon as it can place
     /// them. UI thread.</summary>

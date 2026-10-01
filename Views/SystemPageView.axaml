@@ -160,6 +160,12 @@
           </StackPanel>
 
           <StackPanel Orientation="Horizontal"
+                      IsVisible="{Binding Campaign, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+            <TextBlock Classes="hlabel" Text="{x:Static loc:MapText.SysCampaignLabel}" Margin="0 0 6 0" />
+            <TextBlock Classes="hvalue" Text="{Binding Campaign}" Foreground="#DC2626" FontWeight="SemiBold"
+                       TextWrapping="Wrap" MaxWidth="1000" />
+          </StackPanel>
+          <StackPanel Orientation="Horizontal"
                       IsVisible="{Binding Weather, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
             <TextBlock Classes="hlabel" Text="{x:Static loc:MapText.SysWeatherLabel}" Margin="0 0 6 0" />
             <TextBlock Classes="hvalue" Text="{Binding Weather}" Foreground="#F5B83D" />

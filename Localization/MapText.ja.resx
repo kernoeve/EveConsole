@@ -2099,4 +2099,100 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   <data name="SysWeatherLabel" xml:space="preserve">
     <value>天候</value>
   </data>
+  <data name="CampaignsToggle" xml:space="preserve">
+    <value>ソブリンティ戦</value>
+  </data>
+  <data name="TipCampaignsToggle" xml:space="preserve">
+    <value>ソブリンティ戦を表示:予定地に⚔、戦闘開始後は赤い輪</value>
+  </data>
+  <data name="LegendCampaigns" xml:space="preserve">
+    <value>ソブリンティ戦(⚔)。開始後は赤い輪。カーソルを合わせると対象、防衛側、開始時刻、スコアを表示。</value>
+  </data>
+  <data name="CampaignsTab" xml:space="preserve">
+    <value>ソブリンティ戦</value>
+  </data>
+  <data name="TipCampaignsTab" xml:space="preserve">
+    <value>進行中・予定のすべてのソブリンティ戦(ESIより)</value>
+  </data>
+  <data name="CampaignKindIhub" xml:space="preserve">
+    <value>ソブリンティハブ</value>
+  </data>
+  <data name="CampaignKindTcu" xml:space="preserve">
+    <value>領有権主張ユニット</value>
+  </data>
+  <data name="CampaignKindStation" xml:space="preserve">
+    <value>ステーション</value>
+  </data>
+  <data name="CampaignKindFreeport" xml:space="preserve">
+    <value>フリーポート</value>
+  </data>
+  <data name="DurationHm" xml:space="preserve">
+    <value>{0}時間{1:00}分</value>
+  </data>
+  <data name="DurationM" xml:space="preserve">
+    <value>{0}分</value>
+  </data>
+  <data name="CampaignRunning" xml:space="preserve">
+    <value>開始から{0}</value>
+  </data>
+  <data name="CampaignStartsIn" xml:space="preserve">
+    <value>開始まで{0}</value>
+  </data>
+  <data name="CampaignAt" xml:space="preserve">
+    <value>EVE {0:yyyy-MM-dd HH:mm} · ローカル {1:g}</value>
+  </data>
+  <data name="CampaignScores" xml:space="preserve">
+    <value>防衛側{0:0}% · 攻撃側{1:0}%</value>
+  </data>
+  <data name="CampaignLine" xml:space="preserve">
+    <value>{0} · {1} · 防衛: {2}</value>
+  </data>
+  <data name="CampaignTitle" xml:space="preserve">
+    <value>{0}のソブリンティ戦</value>
+  </data>
+  <data name="CampaignRegionTitle" xml:space="preserve">
+    <value>{0}のソブリンティ戦</value>
+  </data>
+  <data name="CampaignRegionLine" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="CampaignsAllRegions" xml:space="preserve">
+    <value>すべてのリージョン</value>
+  </data>
+  <data name="CampaignsRegionLabel" xml:space="preserve">
+    <value>リージョン</value>
+  </data>
+  <data name="CampaignsNone" xml:space="preserve">
+    <value>現在ソブリンティ戦はありません。</value>
+  </data>
+  <data name="CampaignsSummary" xml:space="preserve">
+    <value>ソブリンティ戦: {0} · 進行中: {1}</value>
+  </data>
+  <data name="CampaignStateRunning" xml:space="preserve">
+    <value>進行中</value>
+  </data>
+  <data name="CampaignStateScheduled" xml:space="preserve">
+    <value>予定</value>
+  </data>
+  <data name="ColCampaignState" xml:space="preserve">
+    <value>状態</value>
+  </data>
+  <data name="ColCampaignWhen" xml:space="preserve">
+    <value>時期</value>
+  </data>
+  <data name="ColCampaignStart" xml:space="preserve">
+    <value>開始</value>
+  </data>
+  <data name="ColCampaignKind" xml:space="preserve">
+    <value>対象</value>
+  </data>
+  <data name="ColCampaignDefender" xml:space="preserve">
+    <value>防衛側</value>
+  </data>
+  <data name="ColCampaignScores" xml:space="preserve">
+    <value>スコア</value>
+  </data>
+  <data name="SysCampaignLabel" xml:space="preserve">
+    <value>ソブリンティ戦</value>
+  </data>
 </root>

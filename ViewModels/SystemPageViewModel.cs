@@ -1381,6 +1381,10 @@ public class SystemPageViewModel : ReactiveObject
     /// <summary>The capsuleer's characters here now; "" for none.</summary>
     public string OwnNow { get => _ownNow; private set => this.RaiseAndSetIfChanged(ref _ownNow, value); }
 
+    private string _campaign = "";
+    /// <summary>The sovereignty campaign here, scheduled or running; "" for none.</summary>
+    public string Campaign { get => _campaign; private set => this.RaiseAndSetIfChanged(ref _campaign, value); }
+
     private string _weather = "";
     /// <summary>The metaliminal storm reported here, as EVE-Scout lists it; "" for none.</summary>
     public string Weather { get => _weather; private set => this.RaiseAndSetIfChanged(ref _weather, value); }
@@ -1419,6 +1423,9 @@ public class SystemPageViewModel : ReactiveObject
                 ? string.Format(MapText.SysHostilesNow, h.Count,
                     string.Join(", ", h.Pilots.Take(8).Select(p => p.Ship is { Length: > 0 } ship ? $"{p.Name} ({ship})" : p.Name))
                     + (h.Count > 8 ? ", …" : ""))
+                : "";
+            Campaign = extras.Campaigns is { Count: > 0 } fights
+                ? string.Join("  ·  ", fights.Select(c => $"{CampaignText.Line(c, DateTimeOffset.UtcNow)} · {CampaignText.Times(c)}"))
                 : "";
             Weather = extras.Storms is { Count: > 0 } storms
                 ? string.Join(" · ", storms.Select(MapToolViewModel.StormLine))

@@ -2141,4 +2141,100 @@ Kein Hauptstadtsystem, daher keine Zone</value>
   <data name="SysWeatherLabel" xml:space="preserve">
     <value>Wetter</value>
   </data>
+  <data name="CampaignsToggle" xml:space="preserve">
+    <value>Souveränitätskämpfe</value>
+  </data>
+  <data name="TipCampaignsToggle" xml:space="preserve">
+    <value>Souveränitätskämpfe zeigen: ⚔ wo einer angesetzt ist, ein roter Ring sobald gekämpft wird</value>
+  </data>
+  <data name="LegendCampaigns" xml:space="preserve">
+    <value>Souveränitätskampf (⚔); roter Ring sobald er begonnen hat. Für Struktur, Verteidiger, Beginn und Stand darüberfahren.</value>
+  </data>
+  <data name="CampaignsTab" xml:space="preserve">
+    <value>Souveränitätskämpfe</value>
+  </data>
+  <data name="TipCampaignsTab" xml:space="preserve">
+    <value>Alle laufenden und kommenden Souveränitätskämpfe, von ESI</value>
+  </data>
+  <data name="CampaignKindIhub" xml:space="preserve">
+    <value>Souveränitäts-Hub</value>
+  </data>
+  <data name="CampaignKindTcu" xml:space="preserve">
+    <value>Territorial Claim Unit</value>
+  </data>
+  <data name="CampaignKindStation" xml:space="preserve">
+    <value>Station</value>
+  </data>
+  <data name="CampaignKindFreeport" xml:space="preserve">
+    <value>Freeport</value>
+  </data>
+  <data name="DurationHm" xml:space="preserve">
+    <value>{0} h {1:00} min</value>
+  </data>
+  <data name="DurationM" xml:space="preserve">
+    <value>{0} min</value>
+  </data>
+  <data name="CampaignRunning" xml:space="preserve">
+    <value>läuft seit {0}</value>
+  </data>
+  <data name="CampaignStartsIn" xml:space="preserve">
+    <value>beginnt in {0}</value>
+  </data>
+  <data name="CampaignAt" xml:space="preserve">
+    <value>EVE {0:yyyy-MM-dd HH:mm} · lokal {1:g}</value>
+  </data>
+  <data name="CampaignScores" xml:space="preserve">
+    <value>Verteidiger {0:0} % · Angreifer {1:0} %</value>
+  </data>
+  <data name="CampaignLine" xml:space="preserve">
+    <value>{0} · {1} · verteidigt von {2}</value>
+  </data>
+  <data name="CampaignTitle" xml:space="preserve">
+    <value>Souveränitätskampf in {0}</value>
+  </data>
+  <data name="CampaignRegionTitle" xml:space="preserve">
+    <value>Souveränitätskämpfe in {0}</value>
+  </data>
+  <data name="CampaignRegionLine" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="CampaignsAllRegions" xml:space="preserve">
+    <value>Alle Regionen</value>
+  </data>
+  <data name="CampaignsRegionLabel" xml:space="preserve">
+    <value>Region</value>
+  </data>
+  <data name="CampaignsNone" xml:space="preserve">
+    <value>Derzeit keine Souveränitätskämpfe.</value>
+  </data>
+  <data name="CampaignsSummary" xml:space="preserve">
+    <value>Kämpfe: {0} · laufend: {1}</value>
+  </data>
+  <data name="CampaignStateRunning" xml:space="preserve">
+    <value>Läuft</value>
+  </data>
+  <data name="CampaignStateScheduled" xml:space="preserve">
+    <value>Angesetzt</value>
+  </data>
+  <data name="ColCampaignState" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="ColCampaignWhen" xml:space="preserve">
+    <value>Wann</value>
+  </data>
+  <data name="ColCampaignStart" xml:space="preserve">
+    <value>Beginn</value>
+  </data>
+  <data name="ColCampaignKind" xml:space="preserve">
+    <value>Struktur</value>
+  </data>
+  <data name="ColCampaignDefender" xml:space="preserve">
+    <value>Verteidiger</value>
+  </data>
+  <data name="ColCampaignScores" xml:space="preserve">
+    <value>Stand</value>
+  </data>
+  <data name="SysCampaignLabel" xml:space="preserve">
+    <value>Kampf</value>
+  </data>
 </root>

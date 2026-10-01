@@ -66,7 +66,7 @@
     <!-- ── Toolbar ──────────────────────────────────────────────────── -->
     <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="12 8"
             BorderThickness="0 0 0 1" BorderBrush="{DynamicResource BorderSubtleBrush}">
-      <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto,Auto,Auto,Auto,Auto">
+      <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto,Auto,Auto,Auto,Auto,Auto">
         <TextBlock Grid.Column="0" Text="{x:Static loc:MapText.OverlayLabel}" Classes="flabel"
                    VerticalAlignment="Center" Margin="0 0 6 0" />
         <ComboBox Grid.Column="1" ItemsSource="{Binding OverlayModes}"
@@ -97,7 +97,10 @@
         <ToggleButton Grid.Column="7" IsChecked="{Binding ShowStorms}" Content="{x:Static loc:MapText.StormsToggle}"
                       ToolTip.Tip="{x:Static loc:MapText.TipStormsToggle}" IsVisible="{Binding HolesAvailable}"
                       Padding="10 4" FontSize="11" Margin="12 0 0 0" />
-        <ToggleButton Grid.Column="8" IsChecked="{Binding ShowSidePanel}" Content="{x:Static loc:MapText.SidePanel}"
+        <ToggleButton Grid.Column="8" IsChecked="{Binding ShowCampaigns}" Content="{x:Static loc:MapText.CampaignsToggle}"
+                      ToolTip.Tip="{x:Static loc:MapText.TipCampaignsToggle}" IsVisible="{Binding CampaignsAvailable}"
+                      Padding="10 4" FontSize="11" Margin="12 0 0 0" />
+        <ToggleButton Grid.Column="9" IsChecked="{Binding ShowSidePanel}" Content="{x:Static loc:MapText.SidePanel}"
                       ToolTip.Tip="{x:Static loc:MapText.TipSidePanel}"
                       Padding="10 4" FontSize="11" Margin="12 0 0 0" />
       </Grid>
@@ -145,6 +148,7 @@
                       Avoided="{Binding Avoided}"
                       Holes="{Binding VisibleHoles}"
                       Storms="{Binding VisibleStorms}"
+                      Campaigns="{Binding VisibleCampaigns}"
                       HoleLinks="{Binding VisibleHoleLinks}"
                       ContextRequested="OnMapContextRequested"
                       Camera="{Binding Camera, Mode=TwoWay}"
@@ -292,6 +296,14 @@
                            HorizontalAlignment="Center" VerticalAlignment="Center" />
               </Border>
               <TextBlock Text="{x:Static loc:MapText.LegendStorms}" FontSize="10.5" TextWrapping="Wrap"
+                         Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" MaxWidth="170" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="7" IsVisible="{Binding CampaignsAvailable}">
+              <Border Width="13" Height="13" CornerRadius="3" Background="#DC2626" VerticalAlignment="Center">
+                <TextBlock Text="⚔" FontSize="9" FontWeight="Bold" Foreground="White"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Border>
+              <TextBlock Text="{x:Static loc:MapText.LegendCampaigns}" FontSize="10.5" TextWrapping="Wrap"
                          Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" MaxWidth="170" />
             </StackPanel>
           </StackPanel>

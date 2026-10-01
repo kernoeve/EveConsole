@@ -2141,4 +2141,100 @@ Sin sistema capital, así que sin zona</value>
   <data name="SysWeatherLabel" xml:space="preserve">
     <value>Clima</value>
   </data>
+  <data name="CampaignsToggle" xml:space="preserve">
+    <value>Campañas de soberanía</value>
+  </data>
+  <data name="TipCampaignsToggle" xml:space="preserve">
+    <value>Mostrar campañas de soberanía: ⚔ donde hay una programada, un anillo rojo cuando se está luchando</value>
+  </data>
+  <data name="LegendCampaigns" xml:space="preserve">
+    <value>Campaña de soberanía (⚔); anillo rojo cuando ha empezado. Pasa el ratón para ver estructura, defensor, inicio y puntuación.</value>
+  </data>
+  <data name="CampaignsTab" xml:space="preserve">
+    <value>Campañas de soberanía</value>
+  </data>
+  <data name="TipCampaignsTab" xml:space="preserve">
+    <value>Todas las campañas de soberanía en curso y próximas, de ESI</value>
+  </data>
+  <data name="CampaignKindIhub" xml:space="preserve">
+    <value>Centro de soberanía</value>
+  </data>
+  <data name="CampaignKindTcu" xml:space="preserve">
+    <value>Unidad de reclamación territorial</value>
+  </data>
+  <data name="CampaignKindStation" xml:space="preserve">
+    <value>Estación</value>
+  </data>
+  <data name="CampaignKindFreeport" xml:space="preserve">
+    <value>Puerto franco</value>
+  </data>
+  <data name="DurationHm" xml:space="preserve">
+    <value>{0} h {1:00} min</value>
+  </data>
+  <data name="DurationM" xml:space="preserve">
+    <value>{0} min</value>
+  </data>
+  <data name="CampaignRunning" xml:space="preserve">
+    <value>en curso desde hace {0}</value>
+  </data>
+  <data name="CampaignStartsIn" xml:space="preserve">
+    <value>empieza en {0}</value>
+  </data>
+  <data name="CampaignAt" xml:space="preserve">
+    <value>EVE {0:yyyy-MM-dd HH:mm} · local {1:g}</value>
+  </data>
+  <data name="CampaignScores" xml:space="preserve">
+    <value>defensor {0:0} % · atacantes {1:0} %</value>
+  </data>
+  <data name="CampaignLine" xml:space="preserve">
+    <value>{0} · {1} · defendida por {2}</value>
+  </data>
+  <data name="CampaignTitle" xml:space="preserve">
+    <value>Campaña de soberanía en {0}</value>
+  </data>
+  <data name="CampaignRegionTitle" xml:space="preserve">
+    <value>Campañas de soberanía en {0}</value>
+  </data>
+  <data name="CampaignRegionLine" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="CampaignsAllRegions" xml:space="preserve">
+    <value>Todas las regiones</value>
+  </data>
+  <data name="CampaignsRegionLabel" xml:space="preserve">
+    <value>Región</value>
+  </data>
+  <data name="CampaignsNone" xml:space="preserve">
+    <value>No hay campañas de soberanía ahora mismo.</value>
+  </data>
+  <data name="CampaignsSummary" xml:space="preserve">
+    <value>Campañas: {0} · en curso: {1}</value>
+  </data>
+  <data name="CampaignStateRunning" xml:space="preserve">
+    <value>En curso</value>
+  </data>
+  <data name="CampaignStateScheduled" xml:space="preserve">
+    <value>Programada</value>
+  </data>
+  <data name="ColCampaignState" xml:space="preserve">
+    <value>Estado</value>
+  </data>
+  <data name="ColCampaignWhen" xml:space="preserve">
+    <value>Cuándo</value>
+  </data>
+  <data name="ColCampaignStart" xml:space="preserve">
+    <value>Inicio</value>
+  </data>
+  <data name="ColCampaignKind" xml:space="preserve">
+    <value>Estructura</value>
+  </data>
+  <data name="ColCampaignDefender" xml:space="preserve">
+    <value>Defensor</value>
+  </data>
+  <data name="ColCampaignScores" xml:space="preserve">
+    <value>Puntuación</value>
+  </data>
+  <data name="SysCampaignLabel" xml:space="preserve">
+    <value>Campaña</value>
+  </data>
 </root>

@@ -49,6 +49,10 @@ public sealed record MapBridgeLine(int FromId, int ToId, string Title, string De
 /// <summary>A wormhole mark on a node: the glyph shown (Θ for Thera, T for Turnur), and its hover.</summary>
 public sealed record MapHoleMark(string Glyph, string Title, string Detail);
 
+/// <summary>A sovereignty campaign mark on a node, and its hover. <paramref name="Running"/>: the
+/// fight has started, and the node is ringed.</summary>
+public sealed record MapCampaignMark(string Title, string Detail, bool Running);
+
 /// <summary>A wormhole drawn as a line between two systems on the map — Turnur's, since Thera is
 /// not on it.</summary>
 public sealed record MapHoleLink(int FromId, int ToId);
@@ -147,6 +151,16 @@ public class MapCanvas : Control
         set => SetValue(HolesProperty, value);
     }
 
+    /// <summary>Sovereignty campaigns per node id (systems, and regions zoomed out).</summary>
+    public static readonly StyledProperty<IReadOnlyDictionary<int, MapCampaignMark>?> CampaignsProperty =
+        AvaloniaProperty.Register<MapCanvas, IReadOnlyDictionary<int, MapCampaignMark>?>(nameof(Campaigns));
+
+    public IReadOnlyDictionary<int, MapCampaignMark>? Campaigns
+    {
+        get => GetValue(CampaignsProperty);
+        set => SetValue(CampaignsProperty, value);
+    }
+
     /// <summary>Metaliminal storms per node id (systems, and regions zoomed out).</summary>
     public static readonly StyledProperty<IReadOnlyDictionary<int, MapHoleMark>?> StormsProperty =
         AvaloniaProperty.Register<MapCanvas, IReadOnlyDictionary<int, MapHoleMark>?>(nameof(Storms));
@@ -227,7 +241,7 @@ public class MapCanvas : Control
 
     static MapCanvas()
     {
-        AffectsRender<MapCanvas>(GraphProperty, OverlayProperty, SelectedIdProperty, BadgesProperty, MarkersProperty, BridgesProperty, RoutesProperty, AvoidedProperty, HolesProperty, HoleLinksProperty, StormsProperty);
+        AffectsRender<MapCanvas>(GraphProperty, OverlayProperty, SelectedIdProperty, BadgesProperty, MarkersProperty, BridgesProperty, RoutesProperty, AvoidedProperty, HolesProperty, HoleLinksProperty, StormsProperty, CampaignsProperty);
     }
 
     public MapCanvas()
@@ -772,6 +786,11 @@ public class MapCanvas : Control
                     ? box
                     : new Rect(p.X - NodeRadius, p.Y - NodeRadius, NodeRadius * 2, NodeRadius * 2), useBoxes));
 
+            if (Campaigns?.TryGetValue(n.Id, out var campaign) == true)
+                _pendingCampaigns.Add((campaign, useBoxes && _nodeRects.TryGetValue(n.Id, out var cbox)
+                    ? cbox
+                    : new Rect(p.X - NodeRadius, p.Y - NodeRadius, NodeRadius * 2, NodeRadius * 2), useBoxes));
+
             if (Storms?.TryGetValue(n.Id, out var storm) == true)
                 _pendingStorms.Add((storm, useBoxes && _nodeRects.TryGetValue(n.Id, out var sbox)
                     ? sbox
@@ -807,6 +826,8 @@ public class MapCanvas : Control
         _pendingHoles.Clear();
         foreach (var (storm, anchor, isBox) in _pendingStorms) DrawStorm(ctx, storm, anchor, isBox);
         _pendingStorms.Clear();
+        foreach (var (campaign, anchor, isBox) in _pendingCampaigns) DrawCampaign(ctx, campaign, anchor, isBox);
+        _pendingCampaigns.Clear();
 
         // A badge tooltip wins: the cursor is on the mark, so that is what the question is about.
         if (_badgeHover is { } badge)  DrawTooltipBox(ctx, badge.Title, badge.Detail, badge.Rows);
@@ -1204,6 +1225,32 @@ public class MapCanvas : Control
     private readonly List<(MapMarkers Marks, Rect Anchor, bool IsBox)> _pendingMarks = new();
     private readonly List<(MapHoleMark Hole, Rect Anchor, bool IsBox)> _pendingHoles = new();
     private readonly List<(MapHoleMark Storm, Rect Anchor, bool IsBox)> _pendingStorms = new();
+    private readonly List<(MapCampaignMark Campaign, Rect Anchor, bool IsBox)> _pendingCampaigns = new();
+
+    private static readonly ImmutableSolidColorBrush CampaignBrush = new(Color.Parse("#DC2626"));
+    private static readonly IPen CampaignRingPen = new ImmutablePen(new ImmutableSolidColorBrush(Color.Parse("#E6B91C1C")), 3.5);
+
+    /// <summary>
+    /// A red tag with ⚔ at the node's lower right — the other corners are the wormhole's and the
+    /// storm's — and, once the fight has started, a solid red ring round the node: solid, where
+    /// the avoid list's ring is dashed. Hover for the campaign.
+    /// </summary>
+    private void DrawCampaign(DrawingContext ctx, MapCampaignMark c, Rect anchor, bool isBox)
+    {
+        if (c.Running)
+        {
+            if (isBox) ctx.DrawRectangle(null, CampaignRingPen, anchor.Inflate(5), 6, 6);
+            else       ctx.DrawEllipse(null, CampaignRingPen, anchor.Center, anchor.Width / 2 + 6, anchor.Height / 2 + 6);
+        }
+        var text = new FormattedText("⚔", CultureInfo.CurrentCulture, FlowDirection.LeftToRight, BoldFace, 9.5, MarkInk);
+        var w    = Math.Max(13, text.Width + 6);
+        var x    = isBox ? anchor.Right - w / 2 : anchor.Right + 1;
+        var y    = isBox ? anchor.Bottom - 6 : anchor.Bottom + 2;
+        var rect = new Rect(x, y, w, 13);
+        ctx.DrawRectangle(CampaignBrush, MarkPen, new RoundedRect(rect, 3));
+        ctx.DrawText(text, new Point(rect.Center.X - text.Width / 2, rect.Center.Y - text.Height / 2));
+        _badgeTips.Add((rect.Inflate(2), c.Title, c.Detail, null));
+    }
 
     private static readonly ImmutableSolidColorBrush StormBrush = new(Color.Parse("#F5B83D"));
     private static readonly IBrush StormInk = new ImmutableSolidColorBrush(Color.Parse("#2b1d00"));

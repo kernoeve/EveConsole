@@ -27,6 +27,11 @@
                 Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
                 BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" Padding="10 4" FontSize="11" />
 
+        <Button Command="{Binding ShowCampaignsTabCommand}" Content="{x:Static loc:MapText.CampaignsTab}"
+                ToolTip.Tip="{x:Static loc:MapText.TipCampaignsTab}" IsVisible="{Binding HasCampaigns}"
+                Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
+                BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" Padding="10 4" FontSize="11" />
+
         <Button Command="{Binding ShowBridgesTabCommand}" Content="{x:Static loc:MapText.JumpBridgesTab}"
                 ToolTip.Tip="{x:Static loc:MapText.TipJumpBridgesTab}" IsVisible="{Binding HasBridges}"
                 Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"

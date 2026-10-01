@@ -2099,4 +2099,100 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   <data name="SysWeatherLabel" xml:space="preserve">
     <value>날씨</value>
   </data>
+  <data name="CampaignsToggle" xml:space="preserve">
+    <value>소버린티 전투</value>
+  </data>
+  <data name="TipCampaignsToggle" xml:space="preserve">
+    <value>소버린티 전투 표시: 예정된 곳에 ⚔, 전투가 시작되면 빨간 고리</value>
+  </data>
+  <data name="LegendCampaigns" xml:space="preserve">
+    <value>소버린티 전투(⚔). 시작되면 빨간 고리. 마우스를 올리면 구조물, 방어 측, 시작 시각, 점수를 표시합니다.</value>
+  </data>
+  <data name="CampaignsTab" xml:space="preserve">
+    <value>소버린티 전투</value>
+  </data>
+  <data name="TipCampaignsTab" xml:space="preserve">
+    <value>진행 중이거나 예정된 모든 소버린티 전투 (ESI 기준)</value>
+  </data>
+  <data name="CampaignKindIhub" xml:space="preserve">
+    <value>소버린티 허브</value>
+  </data>
+  <data name="CampaignKindTcu" xml:space="preserve">
+    <value>영유권 주장 유닛</value>
+  </data>
+  <data name="CampaignKindStation" xml:space="preserve">
+    <value>정거장</value>
+  </data>
+  <data name="CampaignKindFreeport" xml:space="preserve">
+    <value>자유항</value>
+  </data>
+  <data name="DurationHm" xml:space="preserve">
+    <value>{0}시간 {1:00}분</value>
+  </data>
+  <data name="DurationM" xml:space="preserve">
+    <value>{0}분</value>
+  </data>
+  <data name="CampaignRunning" xml:space="preserve">
+    <value>진행 {0}째</value>
+  </data>
+  <data name="CampaignStartsIn" xml:space="preserve">
+    <value>{0} 후 시작</value>
+  </data>
+  <data name="CampaignAt" xml:space="preserve">
+    <value>EVE {0:yyyy-MM-dd HH:mm} · 로컬 {1:g}</value>
+  </data>
+  <data name="CampaignScores" xml:space="preserve">
+    <value>방어 {0:0}% · 공격 {1:0}%</value>
+  </data>
+  <data name="CampaignLine" xml:space="preserve">
+    <value>{0} · {1} · 방어: {2}</value>
+  </data>
+  <data name="CampaignTitle" xml:space="preserve">
+    <value>{0}의 소버린티 전투</value>
+  </data>
+  <data name="CampaignRegionTitle" xml:space="preserve">
+    <value>{0}의 소버린티 전투</value>
+  </data>
+  <data name="CampaignRegionLine" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="CampaignsAllRegions" xml:space="preserve">
+    <value>모든 지역</value>
+  </data>
+  <data name="CampaignsRegionLabel" xml:space="preserve">
+    <value>지역</value>
+  </data>
+  <data name="CampaignsNone" xml:space="preserve">
+    <value>현재 소버린티 전투가 없습니다.</value>
+  </data>
+  <data name="CampaignsSummary" xml:space="preserve">
+    <value>전투: {0} · 진행 중: {1}</value>
+  </data>
+  <data name="CampaignStateRunning" xml:space="preserve">
+    <value>진행 중</value>
+  </data>
+  <data name="CampaignStateScheduled" xml:space="preserve">
+    <value>예정</value>
+  </data>
+  <data name="ColCampaignState" xml:space="preserve">
+    <value>상태</value>
+  </data>
+  <data name="ColCampaignWhen" xml:space="preserve">
+    <value>시기</value>
+  </data>
+  <data name="ColCampaignStart" xml:space="preserve">
+    <value>시작</value>
+  </data>
+  <data name="ColCampaignKind" xml:space="preserve">
+    <value>구조물</value>
+  </data>
+  <data name="ColCampaignDefender" xml:space="preserve">
+    <value>방어 측</value>
+  </data>
+  <data name="ColCampaignScores" xml:space="preserve">
+    <value>점수</value>
+  </data>
+  <data name="SysCampaignLabel" xml:space="preserve">
+    <value>전투</value>
+  </data>
 </root>

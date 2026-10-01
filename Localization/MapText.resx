@@ -2851,4 +2851,132 @@ No capital system, so no zone</value>
     <value>Weather</value>
     <comment>System page header: label of a metaliminal storm in the system.</comment>
   </data>
+  <data name="CampaignsToggle" xml:space="preserve">
+    <value>Sov campaigns</value>
+    <comment>Map toolbar toggle: shows sovereignty campaigns.</comment>
+  </data>
+  <data name="TipCampaignsToggle" xml:space="preserve">
+    <value>Show sovereignty campaigns: ⚔ where one is scheduled, a red ring once it is being fought</value>
+    <comment>Tooltip of the Sov campaigns toggle.</comment>
+  </data>
+  <data name="LegendCampaigns" xml:space="preserve">
+    <value>Sovereignty campaign (⚔); a red ring once it has started. Hover for the structure, defender, start and scores.</value>
+    <comment>Map legend, live marks.</comment>
+  </data>
+  <data name="CampaignsTab" xml:space="preserve">
+    <value>Sov campaigns</value>
+    <comment>Map tool: the sovereignty campaigns tab and the button that opens it.</comment>
+  </data>
+  <data name="TipCampaignsTab" xml:space="preserve">
+    <value>Every sovereignty campaign now and coming, from ESI</value>
+    <comment>Tooltip of the Sov campaigns button.</comment>
+  </data>
+  <data name="CampaignKindIhub" xml:space="preserve">
+    <value>Sovereignty Hub</value>
+    <comment>A campaign over a Sovereignty Hub (ESI event type ihub_defense).</comment>
+  </data>
+  <data name="CampaignKindTcu" xml:space="preserve">
+    <value>Territorial Claim Unit</value>
+    <comment>A campaign over a TCU (tcu_defense).</comment>
+  </data>
+  <data name="CampaignKindStation" xml:space="preserve">
+    <value>Station</value>
+    <comment>A campaign over an outpost station (station_defense).</comment>
+  </data>
+  <data name="CampaignKindFreeport" xml:space="preserve">
+    <value>Freeport</value>
+    <comment>A freeport campaign (station_freeport).</comment>
+  </data>
+  <data name="DurationHm" xml:space="preserve">
+    <value>{0} h {1:00} m</value>
+    <comment>A span of hours and minutes. {0} hours, {1} minutes.</comment>
+  </data>
+  <data name="DurationM" xml:space="preserve">
+    <value>{0} m</value>
+    <comment>A span of minutes.</comment>
+  </data>
+  <data name="CampaignRunning" xml:space="preserve">
+    <value>running for {0}</value>
+    <comment>A campaign that has started. {0} how long ago (DurationHm/DurationM).</comment>
+  </data>
+  <data name="CampaignStartsIn" xml:space="preserve">
+    <value>starts in {0}</value>
+    <comment>A campaign to come. {0} how long until it starts.</comment>
+  </data>
+  <data name="CampaignAt" xml:space="preserve">
+    <value>EVE {0:yyyy-MM-dd HH:mm} · local {1:g}</value>
+    <comment>A campaign's start: {0} in EVE time (UTC), {1} on this machine's clock.</comment>
+  </data>
+  <data name="CampaignScores" xml:space="preserve">
+    <value>defender {0:0}% · attackers {1:0}%</value>
+    <comment>A campaign's scores, in percent.</comment>
+  </data>
+  <data name="CampaignLine" xml:space="preserve">
+    <value>{0} · {1} · defended by {2}</value>
+    <comment>One campaign. {0} the structure, {1} when (CampaignRunning/CampaignStartsIn), {2} the defending alliance.</comment>
+  </data>
+  <data name="CampaignTitle" xml:space="preserve">
+    <value>Sovereignty campaign in {0}</value>
+    <comment>Map hover on a campaign mark. {0} the system.</comment>
+  </data>
+  <data name="CampaignRegionTitle" xml:space="preserve">
+    <value>Sovereignty campaigns in {0}</value>
+    <comment>Map hover on a region's campaign mark. {0} the region.</comment>
+  </data>
+  <data name="CampaignRegionLine" xml:space="preserve">
+    <value>{0}: {1}</value>
+    <comment>Map hover, a region's campaigns. {0} the system, {1} the campaign (CampaignLine).</comment>
+  </data>
+  <data name="CampaignsAllRegions" xml:space="preserve">
+    <value>All regions</value>
+    <comment>Campaigns tab, region filter: no filter.</comment>
+  </data>
+  <data name="CampaignsRegionLabel" xml:space="preserve">
+    <value>Region</value>
+    <comment>Campaigns tab: label of the region filter.</comment>
+  </data>
+  <data name="CampaignsNone" xml:space="preserve">
+    <value>No sovereignty campaigns right now.</value>
+    <comment>Campaigns tab, when ESI lists none.</comment>
+  </data>
+  <data name="CampaignsSummary" xml:space="preserve">
+    <value>Campaigns: {0} · running: {1}</value>
+    <comment>Campaigns tab. {0} how many, {1} how many have started.</comment>
+  </data>
+  <data name="CampaignStateRunning" xml:space="preserve">
+    <value>Running</value>
+    <comment>Campaign state: started.</comment>
+  </data>
+  <data name="CampaignStateScheduled" xml:space="preserve">
+    <value>Scheduled</value>
+    <comment>Campaign state: not started yet.</comment>
+  </data>
+  <data name="ColCampaignState" xml:space="preserve">
+    <value>State</value>
+    <comment>Campaigns tab column.</comment>
+  </data>
+  <data name="ColCampaignWhen" xml:space="preserve">
+    <value>When</value>
+    <comment>Campaigns tab column: running for / starts in.</comment>
+  </data>
+  <data name="ColCampaignStart" xml:space="preserve">
+    <value>Starts</value>
+    <comment>Campaigns tab column: the start time.</comment>
+  </data>
+  <data name="ColCampaignKind" xml:space="preserve">
+    <value>Structure</value>
+    <comment>Campaigns tab column: what is fought over.</comment>
+  </data>
+  <data name="ColCampaignDefender" xml:space="preserve">
+    <value>Defender</value>
+    <comment>Campaigns tab column: the defending alliance.</comment>
+  </data>
+  <data name="ColCampaignScores" xml:space="preserve">
+    <value>Scores</value>
+    <comment>Campaigns tab column.</comment>
+  </data>
+  <data name="SysCampaignLabel" xml:space="preserve">
+    <value>Campaign</value>
+    <comment>System page header: label of a sovereignty campaign in the system.</comment>
+  </data>
 </root>

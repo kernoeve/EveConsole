@@ -2099,4 +2099,100 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   <data name="SysWeatherLabel" xml:space="preserve">
     <value>天气</value>
   </data>
+  <data name="CampaignsToggle" xml:space="preserve">
+    <value>主权战役</value>
+  </data>
+  <data name="TipCampaignsToggle" xml:space="preserve">
+    <value>显示主权战役：已排期处显示 ⚔，开战后加红圈</value>
+  </data>
+  <data name="LegendCampaigns" xml:space="preserve">
+    <value>主权战役（⚔）；开战后加红圈。悬停查看建筑、防守方、开始时间和比分。</value>
+  </data>
+  <data name="CampaignsTab" xml:space="preserve">
+    <value>主权战役</value>
+  </data>
+  <data name="TipCampaignsTab" xml:space="preserve">
+    <value>所有进行中和即将开始的主权战役，来自 ESI</value>
+  </data>
+  <data name="CampaignKindIhub" xml:space="preserve">
+    <value>主权枢纽</value>
+  </data>
+  <data name="CampaignKindTcu" xml:space="preserve">
+    <value>领土宣称装置</value>
+  </data>
+  <data name="CampaignKindStation" xml:space="preserve">
+    <value>空间站</value>
+  </data>
+  <data name="CampaignKindFreeport" xml:space="preserve">
+    <value>自由港</value>
+  </data>
+  <data name="DurationHm" xml:space="preserve">
+    <value>{0} 小时 {1:00} 分</value>
+  </data>
+  <data name="DurationM" xml:space="preserve">
+    <value>{0} 分</value>
+  </data>
+  <data name="CampaignRunning" xml:space="preserve">
+    <value>已进行 {0}</value>
+  </data>
+  <data name="CampaignStartsIn" xml:space="preserve">
+    <value>{0} 后开始</value>
+  </data>
+  <data name="CampaignAt" xml:space="preserve">
+    <value>EVE {0:yyyy-MM-dd HH:mm} · 本地 {1:g}</value>
+  </data>
+  <data name="CampaignScores" xml:space="preserve">
+    <value>防守方 {0:0}% · 进攻方 {1:0}%</value>
+  </data>
+  <data name="CampaignLine" xml:space="preserve">
+    <value>{0} · {1} · 防守：{2}</value>
+  </data>
+  <data name="CampaignTitle" xml:space="preserve">
+    <value>{0} 的主权战役</value>
+  </data>
+  <data name="CampaignRegionTitle" xml:space="preserve">
+    <value>{0} 的主权战役</value>
+  </data>
+  <data name="CampaignRegionLine" xml:space="preserve">
+    <value>{0}：{1}</value>
+  </data>
+  <data name="CampaignsAllRegions" xml:space="preserve">
+    <value>所有星域</value>
+  </data>
+  <data name="CampaignsRegionLabel" xml:space="preserve">
+    <value>星域</value>
+  </data>
+  <data name="CampaignsNone" xml:space="preserve">
+    <value>当前没有主权战役。</value>
+  </data>
+  <data name="CampaignsSummary" xml:space="preserve">
+    <value>战役：{0} · 进行中：{1}</value>
+  </data>
+  <data name="CampaignStateRunning" xml:space="preserve">
+    <value>进行中</value>
+  </data>
+  <data name="CampaignStateScheduled" xml:space="preserve">
+    <value>已排期</value>
+  </data>
+  <data name="ColCampaignState" xml:space="preserve">
+    <value>状态</value>
+  </data>
+  <data name="ColCampaignWhen" xml:space="preserve">
+    <value>时间</value>
+  </data>
+  <data name="ColCampaignStart" xml:space="preserve">
+    <value>开始</value>
+  </data>
+  <data name="ColCampaignKind" xml:space="preserve">
+    <value>建筑</value>
+  </data>
+  <data name="ColCampaignDefender" xml:space="preserve">
+    <value>防守方</value>
+  </data>
+  <data name="ColCampaignScores" xml:space="preserve">
+    <value>比分</value>
+  </data>
+  <data name="SysCampaignLabel" xml:space="preserve">
+    <value>战役</value>
+  </data>
 </root>

@@ -4312,6 +4312,7 @@ public class App : Application
         services.AddSingleton<MapStatsBackfillService>();
         services.AddSingleton<MapStatsPollingService>();
         services.AddSingleton<EveScoutService>();
+        services.AddSingleton<SovCampaignService>();
         services.AddHttpClient("eve-scout", c =>
         {
             c.BaseAddress = new Uri(EveScoutService.BaseUrl);

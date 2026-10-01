@@ -110,6 +110,11 @@
             <views:RoutePlannerView />
           </Panel>
         </DataTemplate>
+        <DataTemplate DataType="vm:CampaignsTabViewModel">
+          <Panel IsVisible="{Binding IsSelected}">
+            <views:CampaignsView />
+          </Panel>
+        </DataTemplate>
         <DataTemplate DataType="vm:JumpPlannerTabViewModel">
           <Panel IsVisible="{Binding IsSelected}">
             <views:JumpPlannerView DataContext="{Binding Planner}" />
