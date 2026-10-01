@@ -1840,6 +1840,11 @@ public class FitTabViewModel : ReactiveObject
                 TankLayer.Armor  => FittingText.DetailRepairArmor,
                 _                => FittingText.DetailRepairHull,
             }, rep.PerSecond));
+            // A Reactive Armor Hardener: where it settles against the chosen damage.
+            if (e.AdaptedResonances(m) is { } adapted)
+                parts.Add(string.Format(FittingText.DetailAdapted, string.Join(" / ",
+                    new[] { FittingText.ColEm, FittingText.ColTh, FittingText.ColKin, FittingText.ColExp }
+                        .Zip(adapted, (type, resonance) => $"{type} {(1 - resonance) * 100:0.#}%"))));
             snap.ModuleDetail[i] = string.Join(" · ", parts);
         }
         return snap;

@@ -255,16 +255,31 @@ public sealed class DogmaEngine
     /// effect that reacts to the ship's state reads, so it does not react to itself. Not cached.
     /// </summary>
     public double ValueExcluding(DogmaItem item, int attributeId, DogmaItem excluded) =>
-        Compute(item, attributeId, excluded);
+        Compute(item, attributeId, m => m.Source == excluded);
 
-    private double Compute(DogmaItem item, int attributeId, DogmaItem? excluded = null)
+    /// <summary>The attribute computed afresh without the modifications <paramref name="skip"/>
+    /// picks out — for an effect that tries states of its own against the ship
+    /// (<see cref="AdaptiveArmor"/>). Not cached.</summary>
+    internal double Recompute(DogmaItem item, int attributeId, Func<Modification, bool> skip) =>
+        Compute(item, attributeId, skip);
+
+    private readonly Dictionary<DogmaItem, AdaptiveArmor> _adaptive = new();
+    internal void AddAdaptive(DogmaItem module, AdaptiveArmor adaptive) => _adaptive[module] = adaptive;
+
+    /// <summary>For an active Reactive Armor Hardener: the resistances it settles at against
+    /// <see cref="DamageProfile"/> — EM, thermal, kinetic, explosive, as resonances (1 − resistance).
+    /// Null for any other module.</summary>
+    public IReadOnlyList<double>? AdaptedResonances(DogmaItem module) =>
+        _adaptive.TryGetValue(module, out var a) ? a.Settled : null;
+
+    private double Compute(DogmaItem item, int attributeId, Func<Modification, bool>? skip = null)
     {
         var info  = Data.Attributes.GetValueOrDefault(attributeId);
         var value = BaseValue(item, attributeId);
 
         if (_mods.TryGetValue((item, attributeId), out var all))
         {
-            var mods = excluded is null ? all : all.Where(m => m.Source != excluded).ToList();
+            var mods = skip is null ? all : all.Where(m => !skip(m)).ToList();
             // Resolve every amount first; each is itself an attribute of its source.
             var resolved = mods.Select(m => (m, amount: m.Amount?.Invoke() ?? Value(m.Source, m.ModifyingAttributeId))).ToList();
 

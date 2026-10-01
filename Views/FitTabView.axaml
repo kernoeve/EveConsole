@@ -230,11 +230,11 @@
           <TextBlock Text="{Binding DamageTypesText}" Classes="line" />
 
           <TextBlock Text="{x:Static loc:FittingText.DefenseHeading}" Classes="section" />
-          <!-- The damage the tank is judged against. Even damage unless chosen; remembered. -->
+          <!-- The damage the tank is judged against, and a Reactive Armor Hardener adapts to. Even damage unless chosen; remembered. -->
           <Grid ColumnDefinitions="Auto,*" Margin="0 0 0 6">
             <TextBlock Text="{x:Static loc:FittingText.Against}" Classes="line" VerticalAlignment="Center" Margin="0 0 8 0" />
             <ComboBox Grid.Column="1" ItemsSource="{Binding DamageProfiles}" SelectedItem="{Binding SelectedProfile}"
-                      HorizontalAlignment="Stretch" FontSize="11" />
+                      HorizontalAlignment="Stretch" FontSize="11" ToolTip.Tip="{x:Static loc:FittingText.TipAgainst}" />
           </Grid>
           <Grid ColumnDefinitions="*,*,*,*" Margin="0 0 0 6" IsVisible="{Binding IsCustomProfile}"
                 ToolTip.Tip="{x:Static loc:FittingText.TipCustomProfile}">

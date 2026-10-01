@@ -541,11 +541,17 @@
   <data name="DetailRepairHull" xml:space="preserve">
     <value>船体{0:N1} HP/s</value>
   </data>
+  <data name="DetailAdapted" xml:space="preserve">
+    <value>収束値 {0}</value>
+  </data>
   <data name="DefenseHeading" xml:space="preserve">
     <value>防衛</value>
   </data>
   <data name="Against" xml:space="preserve">
     <value>想定ダメージ</value>
+  </data>
+  <data name="TipAgainst" xml:space="preserve">
+    <value>タンクを評価する想定ダメージ。リアクティブアーマーハードナーもこれに適応します</value>
   </data>
   <data name="ProfileEven" xml:space="preserve">
     <value>均等（各25%）</value>
@@ -572,7 +578,7 @@
     <value>{0:N0} EHP</value>
   </data>
   <data name="TipEhp" xml:space="preserve">
-    <value>4種類のダメージを均等に受けた場合の実効HP</value>
+    <value>上で選んだ想定ダメージに対する実効HP</value>
   </data>
   <data name="ColHp" xml:space="preserve">
     <value>HP</value>

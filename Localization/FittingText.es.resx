@@ -547,11 +547,17 @@
   <data name="DetailRepairHull" xml:space="preserve">
     <value>{0:N1} PV/s de estructura</value>
   </data>
+  <data name="DetailAdapted" xml:space="preserve">
+    <value>se ajusta a {0}</value>
+  </data>
   <data name="DefenseHeading" xml:space="preserve">
     <value>Defensa</value>
   </data>
   <data name="Against" xml:space="preserve">
     <value>Contra</value>
+  </data>
+  <data name="TipAgainst" xml:space="preserve">
+    <value>El daño contra el que se evalúa el tanque, y al que se adapta un Endurecedor de blindaje reactivo</value>
   </data>
   <data name="ProfileEven" xml:space="preserve">
     <value>Uniforme (25 % cada uno)</value>
@@ -578,7 +584,7 @@
     <value>{0:N0} PVE</value>
   </data>
   <data name="TipEhp" xml:space="preserve">
-    <value>PV efectivos contra daño uniforme de los cuatro tipos</value>
+    <value>PV efectivos contra el daño elegido arriba</value>
   </data>
   <data name="ColHp" xml:space="preserve">
     <value>PV</value>

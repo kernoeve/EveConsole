@@ -5,11 +5,11 @@ namespace EveConsole.Services.Fitting;
 /// with no modifiers although they change attributes in game.
 /// </summary>
 /// <remarks>
-/// <para>Handled: propulsion modules, T3 subsystem slots and hardpoints, and the missile and drone
-/// skills whose bonus the SDE scales by level but applies to nothing.</para>
+/// <para>Handled: propulsion modules, T3 subsystem slots and hardpoints, the missile and drone
+/// skills whose bonus the SDE scales by level but applies to nothing, and a Reactive Armor
+/// Hardener's adaptation (<see cref="AdaptiveArmor"/>).</para>
 ///
-/// <para>Not handled yet, by decision, and contributing nothing until they are: a Reactive Armor
-/// Hardener's adaptation, command bursts, doomsdays, bubble generators, MJD signature bloom and
+/// <para>Not handled yet, by decision, and contributing nothing until they are: command bursts, doomsdays, bubble generators, MJD signature bloom and
 /// the other active effects of that kind.</para>
 /// </remarks>
 internal static class EffectHandlers
@@ -66,6 +66,7 @@ internal static class EffectHandlers
         {
             case "moduleBonusAfterburner":    Propulsion(engine, item, blooms: false); return true;
             case "moduleBonusMicrowarpdrive": Propulsion(engine, item, blooms: true);  return true;
+            case "adaptiveArmorHardener":     engine.AddAdaptive(item, AdaptiveArmor.Register(engine, item)); return true;
         }
         return false;
     }

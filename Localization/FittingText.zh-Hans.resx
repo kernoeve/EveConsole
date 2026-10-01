@@ -541,11 +541,17 @@
   <data name="DetailRepairHull" xml:space="preserve">
     <value>结构 {0:N1} HP/s</value>
   </data>
+  <data name="DetailAdapted" xml:space="preserve">
+    <value>稳定于 {0}</value>
+  </data>
   <data name="DefenseHeading" xml:space="preserve">
     <value>防御</value>
   </data>
   <data name="Against" xml:space="preserve">
     <value>针对</value>
+  </data>
+  <data name="TipAgainst" xml:space="preserve">
+    <value>评估坦度所针对的伤害，反应式装甲增强器也会据此调整</value>
   </data>
   <data name="ProfileEven" xml:space="preserve">
     <value>均匀（各 25%）</value>
@@ -572,7 +578,7 @@
     <value>{0:N0} 有效 HP</value>
   </data>
   <data name="TipEhp" xml:space="preserve">
-    <value>四种伤害类型均等时的有效 HP</value>
+    <value>针对上方所选伤害的有效 HP</value>
   </data>
   <data name="ColHp" xml:space="preserve">
     <value>HP</value>

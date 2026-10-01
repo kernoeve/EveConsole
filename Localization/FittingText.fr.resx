@@ -547,11 +547,17 @@
   <data name="DetailRepairHull" xml:space="preserve">
     <value>{0:N1} PV/s de structure</value>
   </data>
+  <data name="DetailAdapted" xml:space="preserve">
+    <value>se stabilise à {0}</value>
+  </data>
   <data name="DefenseHeading" xml:space="preserve">
     <value>Défense</value>
   </data>
   <data name="Against" xml:space="preserve">
     <value>Contre</value>
+  </data>
+  <data name="TipAgainst" xml:space="preserve">
+    <value>Les dégâts contre lesquels la défense est évaluée, et auxquels s'adapte un Renforcement de blindage réactif</value>
   </data>
   <data name="ProfileEven" xml:space="preserve">
     <value>Uniforme (25 % chacun)</value>
@@ -578,7 +584,7 @@
     <value>{0:N0} EHP</value>
   </data>
   <data name="TipEhp" xml:space="preserve">
-    <value>PV effectifs contre des dégâts répartis également entre les quatre types</value>
+    <value>PV effectifs contre les dégâts choisis ci-dessus</value>
   </data>
   <data name="ColHp" xml:space="preserve">
     <value>PV</value>

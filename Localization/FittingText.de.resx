@@ -547,11 +547,17 @@
   <data name="DetailRepairHull" xml:space="preserve">
     <value>{0:N1} Struktur-HP/s</value>
   </data>
+  <data name="DetailAdapted" xml:space="preserve">
+    <value>stellt sich ein auf {0}</value>
+  </data>
   <data name="DefenseHeading" xml:space="preserve">
     <value>Verteidigung</value>
   </data>
   <data name="Against" xml:space="preserve">
     <value>Gegen</value>
+  </data>
+  <data name="TipAgainst" xml:space="preserve">
+    <value>Der Schaden, gegen den der Tank bewertet wird – und an den sich ein reaktiver Panzerungshärter anpasst</value>
   </data>
   <data name="ProfileEven" xml:space="preserve">
     <value>Gleichmäßig (je 25 %)</value>
@@ -578,7 +584,7 @@
     <value>{0:N0} EHP</value>
   </data>
   <data name="TipEhp" xml:space="preserve">
-    <value>Effektive HP gegen gleichmäßigen Schaden aller vier Schadensarten</value>
+    <value>Effektive HP gegen den oben gewählten Schaden</value>
   </data>
   <data name="ColHp" xml:space="preserve">
     <value>HP</value>

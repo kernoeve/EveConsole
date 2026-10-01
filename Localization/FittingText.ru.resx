@@ -559,11 +559,17 @@
   <data name="DetailRepairHull" xml:space="preserve">
     <value>Корпус: {0:N1} ед. пр./с</value>
   </data>
+  <data name="DetailAdapted" xml:space="preserve">
+    <value>устанавливается на {0}</value>
+  </data>
   <data name="DefenseHeading" xml:space="preserve">
     <value>Оборона</value>
   </data>
   <data name="Against" xml:space="preserve">
     <value>Против</value>
+  </data>
+  <data name="TipAgainst" xml:space="preserve">
+    <value>Урон, по которому оценивается танк и к которому подстраивается реактивный укрепитель брони</value>
   </data>
   <data name="ProfileEven" xml:space="preserve">
     <value>Равномерный (по 25%)</value>
@@ -590,7 +596,7 @@
     <value>{0:N0} эфф. ЗП</value>
   </data>
   <data name="TipEhp" xml:space="preserve">
-    <value>Эффективный запас прочности при равном уроне всех четырёх типов</value>
+    <value>Эффективный запас прочности против выбранного выше урона</value>
   </data>
   <data name="ColHp" xml:space="preserve">
     <value>ЗП</value>

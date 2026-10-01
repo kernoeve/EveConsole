@@ -728,6 +728,10 @@
     <value>{0:N1} hull HP/s</value>
     <comment>Fitting tool, under a hull repairer: the hull (structure) it repairs per second. {0} is the number; HP/s is hit points per second.</comment>
   </data>
+  <data name="DetailAdapted" xml:space="preserve">
+    <value>settles at {0}</value>
+    <comment>Fitting tool, under a Reactive Armor Hardener: the resistances it ends up at against the chosen damage. {0} is a list such as "EM 0% / Th 10.5% / Kin 12% / Exp 37.5%", built from the resistance table's column heads.</comment>
+  </data>
   <data name="DefenseHeading" xml:space="preserve">
     <value>DEFENSE</value>
     <comment>Fitting tool, figures: heading of the fit's tank. Upper case in English.</comment>
@@ -735,6 +739,10 @@
   <data name="Against" xml:space="preserve">
     <value>Against</value>
     <comment>Fitting tool, DEFENSE: label before the damage profile pick list — the damage the tank is measured against.</comment>
+  </data>
+  <data name="TipAgainst" xml:space="preserve">
+    <value>The damage the tank is judged against — and that a Reactive Armor Hardener adapts to</value>
+    <comment>Fitting tool, DEFENSE: tooltip on the damage profile pick list. A Reactive Armor Hardener is a module whose resistances shift toward the damage taken.</comment>
   </data>
   <data name="ProfileEven" xml:space="preserve">
     <value>Even (25% each)</value>
@@ -769,8 +777,8 @@
     <comment>Fitting tool, DEFENSE: the fit's effective hit points, in large type. EHP is the usual abbreviation.</comment>
   </data>
   <data name="TipEhp" xml:space="preserve">
-    <value>Effective HP against even damage of all four types</value>
-    <comment>Fitting tool, DEFENSE: tooltip on the effective hit points.</comment>
+    <value>Effective HP against the damage chosen above</value>
+    <comment>Fitting tool, DEFENSE: tooltip on the effective hit points, which are worked out against the damage profile chosen in the pick list above.</comment>
   </data>
   <data name="ColHp" xml:space="preserve">
     <value>HP</value>

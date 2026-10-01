@@ -541,11 +541,17 @@
   <data name="DetailRepairHull" xml:space="preserve">
     <value>선체 {0:N1} HP/s</value>
   </data>
+  <data name="DetailAdapted" xml:space="preserve">
+    <value>수렴 {0}</value>
+  </data>
   <data name="DefenseHeading" xml:space="preserve">
     <value>방어</value>
   </data>
   <data name="Against" xml:space="preserve">
     <value>기준 피해</value>
+  </data>
+  <data name="TipAgainst" xml:space="preserve">
+    <value>탱킹을 평가하는 기준 피해이며, 반응성 장갑 강화장치도 이 피해에 적응합니다</value>
   </data>
   <data name="ProfileEven" xml:space="preserve">
     <value>균등 (각 25%)</value>
@@ -572,7 +578,7 @@
     <value>{0:N0} EHP</value>
   </data>
   <data name="TipEhp" xml:space="preserve">
-    <value>네 가지 피해 유형을 균등하게 받을 때의 실질 내구도</value>
+    <value>위에서 선택한 기준 피해에 대한 실질 내구도</value>
   </data>
   <data name="ColHp" xml:space="preserve">
     <value>HP</value>
