@@ -3341,10 +3341,10 @@ La aplicación se reiniciará.</value>
     <value>Thera y Turnur</value>
   </data>
   <data name="EveScoutNote" xml:space="preserve">
-    <value>Conexiones de agujeros de gusano desde Thera y Turnur, leídas de EVE-Scout cada cinco minutos, para el planificador de rutas. Al desactivarlo se borran las conexiones guardadas: se cierran en pocas horas, y una lista antigua llevaría por agujeros que ya no existen.</value>
+    <value>Conexiones de agujeros de gusano desde Thera y Turnur, leídas de EVE-Scout cada cinco minutos para el mapa y el planificador de rutas, y tormentas metaliminales, leídas cada hora. Al desactivarlo se borra lo guardado: los agujeros se cierran en horas y las tormentas se mueven, y una lista antigua engañaría.</value>
   </data>
   <data name="EveScoutPoll" xml:space="preserve">
-    <value>Leer las conexiones de Thera y Turnur desde EVE-Scout</value>
+    <value>Leer conexiones de Thera/Turnur y tormentas desde EVE-Scout</value>
   </data>
   <data name="EveScoutRead" xml:space="preserve">
     <value>{0} conexiones, leídas a las {1:t}</value>

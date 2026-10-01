@@ -1272,9 +1272,6 @@
   <data name="LegendNotFwSpace" xml:space="preserve">
     <value>Вне зоны войн</value>
   </data>
-  <data name="TipOpenRegionForIncursions" xml:space="preserve">
-    <value>Откройте сектор, чтобы увидеть вторжения</value>
-  </data>
   <data name="NodeNoIncursion" xml:space="preserve">
     <value>Нет вторжения</value>
   </data>
@@ -2164,5 +2161,68 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   </data>
   <data name="ColLeft" xml:space="preserve">
     <value>Осталось</value>
+  </data>
+  <data name="OverlaySovStandings" xml:space="preserve">
+    <value>Суверенитет по репутации</value>
+  </data>
+  <data name="StandingOwn" xml:space="preserve">
+    <value>Свои</value>
+  </data>
+  <data name="StandingExcellent" xml:space="preserve">
+    <value>Отличная</value>
+  </data>
+  <data name="StandingGood" xml:space="preserve">
+    <value>Хорошая</value>
+  </data>
+  <data name="StandingNeutral" xml:space="preserve">
+    <value>Нейтральная</value>
+  </data>
+  <data name="StandingBad" xml:space="preserve">
+    <value>Плохая</value>
+  </data>
+  <data name="StandingTerrible" xml:space="preserve">
+    <value>Ужасная</value>
+  </data>
+  <data name="NodeStanding" xml:space="preserve">
+    <value>{0} · {1} ({2:+0.0;-0.0;0.0})</value>
+  </data>
+  <data name="LegendStandingCount" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="LegendStandingNote" xml:space="preserve">
+    <value>По контактам ваших персонажей, корпораций и альянсов; мнение альянса важнее мнения корпорации, а оно — мнения персонажа.</value>
+  </data>
+  <data name="IncursionLine" xml:space="preserve">
+    <value>{0}: {1} · {2:0}% · {3}</value>
+  </data>
+  <data name="SysIncursionLabel" xml:space="preserve">
+    <value>Инкурсия</value>
+  </data>
+  <data name="SysIncursionLine" xml:space="preserve">
+    <value>{0} · влияние {1:0}% · {2} · сбор в {3}</value>
+  </data>
+  <data name="SysIncursionStagingHere" xml:space="preserve">
+    <value>этой системе</value>
+  </data>
+  <data name="StormsToggle" xml:space="preserve">
+    <value>Штормы</value>
+  </data>
+  <data name="TipStormsToggle" xml:space="preserve">
+    <value>Показать металиминальные штормы из списка EVE-Scout</value>
+  </data>
+  <data name="LegendStorms" xml:space="preserve">
+    <value>Металиминальный шторм (⚡) по сообщениям EVE-Scout. Наведите курсор, чтобы увидеть вид.</value>
+  </data>
+  <data name="StormTitle" xml:space="preserve">
+    <value>Погода в {0}</value>
+  </data>
+  <data name="StormRegionTitle" xml:space="preserve">
+    <value>Штормы в {0}</value>
+  </data>
+  <data name="StormLine" xml:space="preserve">
+    <value>{0} · здесь {1} ч</value>
+  </data>
+  <data name="SysWeatherLabel" xml:space="preserve">
+    <value>Погода</value>
   </data>
 </root>

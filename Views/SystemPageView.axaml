@@ -153,6 +153,18 @@
                        Foreground="{Binding AdmColor}" FontWeight="SemiBold" />
           </StackPanel>
 
+          <StackPanel Orientation="Horizontal"
+                      IsVisible="{Binding IncursionText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+            <TextBlock Classes="hlabel" Text="{x:Static loc:MapText.SysIncursionLabel}" Margin="0 0 6 0" />
+            <TextBlock Classes="hvalue" Text="{Binding IncursionText}" Foreground="{Binding IncursionColor}" FontWeight="SemiBold" />
+          </StackPanel>
+
+          <StackPanel Orientation="Horizontal"
+                      IsVisible="{Binding Weather, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+            <TextBlock Classes="hlabel" Text="{x:Static loc:MapText.SysWeatherLabel}" Margin="0 0 6 0" />
+            <TextBlock Classes="hvalue" Text="{Binding Weather}" Foreground="#F5B83D" />
+          </StackPanel>
+
           <!-- From the map: the Ansiblex zone, and who is placed here now. -->
           <StackPanel Orientation="Horizontal" IsVisible="{Binding HasZone}">
             <TextBlock Classes="hlabel" Text="{x:Static loc:MapText.SysZoneLabel}" Margin="0 0 6 0" />

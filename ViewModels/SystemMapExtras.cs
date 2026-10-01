@@ -17,7 +17,8 @@ public sealed record SystemMapExtras(
     IReadOnlyList<JumpBridge>           Bridges,
     IReadOnlyList<EveScoutConnection>   Holes,
     SystemHostiles?                     Hostiles,
-    IReadOnlyList<OwnPilot>             Own);
+    IReadOnlyList<OwnPilot>             Own,
+    IReadOnlyList<EveScoutStorm>?       Storms = null);
 
 /// <summary>A jump bridge out of the system on its page: where it goes, its gate here, and who
 /// may jump each way, at what zone.</summary>

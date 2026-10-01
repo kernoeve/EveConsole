@@ -65,7 +65,11 @@ public class MapStatsSettingsViewModel : ReactiveObject
             if (_eveScout is null) return;
             _ = Task.Run(async () =>
             {
-                try { if (v) await _eveScout.PollOnceAsync(); else await _eveScout.ClearAsync(); }
+                try
+                {
+                    if (v) { await _eveScout.PollOnceAsync(); await _eveScout.PollStormsAsync(); }
+                    else   await _eveScout.ClearAsync();
+                }
                 catch (Exception ex) { Avalonia.Threading.Dispatcher.UIThread.Post(() => Status = string.Format(CommonText.ErrorWithMessage, ex.Message)); }
             });
         });

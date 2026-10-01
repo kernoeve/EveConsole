@@ -836,6 +836,22 @@ public static class PostgresSchema
         )
         """,
 
+        // Metaliminal storms from EVE-Scout's observations, replaced whole on each read.
+        """
+        CREATE TABLE IF NOT EXISTS "EveScoutStorms" (
+            "Id"            TEXT        NOT NULL PRIMARY KEY,
+            "SystemId"      INTEGER     NOT NULL DEFAULT 0,
+            "SystemName"    TEXT        NOT NULL DEFAULT '',
+            "RegionId"      INTEGER     NULL,
+            "RegionName"    TEXT        NOT NULL DEFAULT '',
+            "StormType"     TEXT        NOT NULL DEFAULT '',
+            "DisplayName"   TEXT        NOT NULL DEFAULT '',
+            "HoursInSystem" INTEGER     NOT NULL DEFAULT 0,
+            "ReportedAt"    TIMESTAMPTZ NOT NULL,
+            "ReadAt"        TIMESTAMPTZ NOT NULL
+        )
+        """,
+
         // ── Hoboleaks build info ─────────────────────────────────────────────
         //
         // Revision arrived after PostgreSQL support and reached servers only through the Hobo

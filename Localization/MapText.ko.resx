@@ -1254,9 +1254,6 @@
   <data name="LegendNotFwSpace" xml:space="preserve">
     <value>팩션 전쟁 지역 아님</value>
   </data>
-  <data name="TipOpenRegionForIncursions" xml:space="preserve">
-    <value>인커젼을 보려면 지역을 여십시오</value>
-  </data>
   <data name="NodeNoIncursion" xml:space="preserve">
     <value>인커젼 없음</value>
   </data>
@@ -2038,5 +2035,68 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   </data>
   <data name="ColLeft" xml:space="preserve">
     <value>남은 시간</value>
+  </data>
+  <data name="OverlaySovStandings" xml:space="preserve">
+    <value>소버린티 스탠딩</value>
+  </data>
+  <data name="StandingOwn" xml:space="preserve">
+    <value>내 소속</value>
+  </data>
+  <data name="StandingExcellent" xml:space="preserve">
+    <value>매우 좋음</value>
+  </data>
+  <data name="StandingGood" xml:space="preserve">
+    <value>좋음</value>
+  </data>
+  <data name="StandingNeutral" xml:space="preserve">
+    <value>중립</value>
+  </data>
+  <data name="StandingBad" xml:space="preserve">
+    <value>나쁨</value>
+  </data>
+  <data name="StandingTerrible" xml:space="preserve">
+    <value>매우 나쁨</value>
+  </data>
+  <data name="NodeStanding" xml:space="preserve">
+    <value>{0} · {1} ({2:+0.0;-0.0;0.0})</value>
+  </data>
+  <data name="LegendStandingCount" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="LegendStandingNote" xml:space="preserve">
+    <value>내 캐릭터, 코퍼레이션, 얼라이언스의 연락처 기준. 얼라이언스 설정이 코퍼레이션보다, 코퍼레이션이 캐릭터보다 우선합니다.</value>
+  </data>
+  <data name="IncursionLine" xml:space="preserve">
+    <value>{0}: {1} · {2:0}% · {3}</value>
+  </data>
+  <data name="SysIncursionLabel" xml:space="preserve">
+    <value>인커젼</value>
+  </data>
+  <data name="SysIncursionLine" xml:space="preserve">
+    <value>{0} · 영향력 {1:0}% · {2} · 거점 {3}</value>
+  </data>
+  <data name="SysIncursionStagingHere" xml:space="preserve">
+    <value>이 항성계</value>
+  </data>
+  <data name="StormsToggle" xml:space="preserve">
+    <value>폭풍</value>
+  </data>
+  <data name="TipStormsToggle" xml:space="preserve">
+    <value>EVE-Scout에 등록된 메타리미널 폭풍 표시</value>
+  </data>
+  <data name="LegendStorms" xml:space="preserve">
+    <value>메타리미널 폭풍(⚡), EVE-Scout 보고 기준. 마우스를 올리면 종류를 표시합니다.</value>
+  </data>
+  <data name="StormTitle" xml:space="preserve">
+    <value>{0}의 날씨</value>
+  </data>
+  <data name="StormRegionTitle" xml:space="preserve">
+    <value>{0}의 폭풍</value>
+  </data>
+  <data name="StormLine" xml:space="preserve">
+    <value>{0} · 이곳에 {1}시간째</value>
+  </data>
+  <data name="SysWeatherLabel" xml:space="preserve">
+    <value>날씨</value>
   </data>
 </root>

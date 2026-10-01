@@ -1678,10 +1678,6 @@ Owned by {3}</value>
     <value>Not FW space</value>
     <comment>Map legend, faction warfare overlay: systems outside faction warfare. FW is faction warfare.</comment>
   </data>
-  <data name="TipOpenRegionForIncursions" xml:space="preserve">
-    <value>Open a region to see incursions</value>
-    <comment>Map tooltip on a region, incursion overlay.</comment>
-  </data>
   <data name="NodeNoIncursion" xml:space="preserve">
     <value>No incursion</value>
     <comment>Map tooltip on a system, incursion overlay.</comment>
@@ -2770,5 +2766,89 @@ No capital system, so no zone</value>
   <data name="ColLeft" xml:space="preserve">
     <value>Left</value>
     <comment>Column: how long a wormhole has left.</comment>
+  </data>
+  <data name="OverlaySovStandings" xml:space="preserve">
+    <value>Sovereignty standings</value>
+    <comment>Map overlay: each claimed system coloured by your standing towards its holder.</comment>
+  </data>
+  <data name="StandingOwn" xml:space="preserve">
+    <value>Yours</value>
+    <comment>Standing band: the holder is one of your own alliances or corporations.</comment>
+  </data>
+  <data name="StandingExcellent" xml:space="preserve">
+    <value>Excellent</value>
+    <comment>Standing band: +5 and above (the game's dark blue).</comment>
+  </data>
+  <data name="StandingGood" xml:space="preserve">
+    <value>Good</value>
+    <comment>Standing band: above 0, below +5.</comment>
+  </data>
+  <data name="StandingNeutral" xml:space="preserve">
+    <value>Neutral</value>
+    <comment>Standing band: 0, or no contact set.</comment>
+  </data>
+  <data name="StandingBad" xml:space="preserve">
+    <value>Bad</value>
+    <comment>Standing band: below 0, above -5.</comment>
+  </data>
+  <data name="StandingTerrible" xml:space="preserve">
+    <value>Terrible</value>
+    <comment>Standing band: -5 and below.</comment>
+  </data>
+  <data name="NodeStanding" xml:space="preserve">
+    <value>{0} · {1} ({2:+0.0;-0.0;0.0})</value>
+    <comment>Map hover, Sovereignty standings. {0} the holder, {1} the band, {2} the standing.</comment>
+  </data>
+  <data name="LegendStandingCount" xml:space="preserve">
+    <value>{0}: {1}</value>
+    <comment>Map legend, Sovereignty standings. {0} the band, {1} how many systems.</comment>
+  </data>
+  <data name="LegendStandingNote" xml:space="preserve">
+    <value>From your characters', corporations' and alliances' contacts; the alliance's say wins over the corporation's, and that over a character's.</value>
+    <comment>Map legend note, Sovereignty standings.</comment>
+  </data>
+  <data name="IncursionLine" xml:space="preserve">
+    <value>{0}: {1} · {2:0}% · {3}</value>
+    <comment>Map hover, a region's incursions. {0} the constellation, {1} the state, {2} influence in percent, {3} the faction.</comment>
+  </data>
+  <data name="SysIncursionLabel" xml:space="preserve">
+    <value>Incursion</value>
+    <comment>System page header: label of the incursion in this constellation.</comment>
+  </data>
+  <data name="SysIncursionLine" xml:space="preserve">
+    <value>{0} · {1:0}% influence · {2} · staging in {3}</value>
+    <comment>System page header. {0} the state, {1} influence in percent, {2} the faction, {3} the staging system (or SysIncursionStagingHere).</comment>
+  </data>
+  <data name="SysIncursionStagingHere" xml:space="preserve">
+    <value>this system</value>
+    <comment>System page: the incursion stages in the system shown.</comment>
+  </data>
+  <data name="StormsToggle" xml:space="preserve">
+    <value>Storms</value>
+    <comment>Map toolbar toggle: shows metaliminal storms reported to EVE-Scout.</comment>
+  </data>
+  <data name="TipStormsToggle" xml:space="preserve">
+    <value>Show metaliminal storms, as EVE-Scout lists them</value>
+    <comment>Tooltip of the Storms toggle. EVE-Scout is a proper name.</comment>
+  </data>
+  <data name="LegendStorms" xml:space="preserve">
+    <value>Metaliminal storm (⚡), as reported to EVE-Scout. Hover for its kind.</value>
+    <comment>Map legend, live marks.</comment>
+  </data>
+  <data name="StormTitle" xml:space="preserve">
+    <value>Weather in {0}</value>
+    <comment>Map hover on a storm mark. {0} the system.</comment>
+  </data>
+  <data name="StormRegionTitle" xml:space="preserve">
+    <value>Storms in {0}</value>
+    <comment>Map hover on a region's storm mark. {0} the region.</comment>
+  </data>
+  <data name="StormLine" xml:space="preserve">
+    <value>{0} · here {1} h</value>
+    <comment>A storm. {0} its kind as EVE-Scout names it (English), {1} hours it has been in the system.</comment>
+  </data>
+  <data name="SysWeatherLabel" xml:space="preserve">
+    <value>Weather</value>
+    <comment>System page header: label of a metaliminal storm in the system.</comment>
   </data>
 </root>

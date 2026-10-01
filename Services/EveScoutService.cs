@@ -54,6 +54,10 @@ public sealed class EveScoutService(
         _cts = null;
     }
 
+    /// <summary>The observations list may be cached an hour, and storms sit for many.</summary>
+    private static readonly TimeSpan StormEvery = TimeSpan.FromHours(1);
+    private DateTimeOffset _stormsDue;
+
     private async Task RunAsync(CancellationToken ct)
     {
         while (!ct.IsCancellationRequested)
@@ -61,6 +65,17 @@ public sealed class EveScoutService(
             try { if (settings.EveScoutEnabled) await PollOnceAsync(ct); }
             catch (OperationCanceledException) { }
             catch (Exception ex) { errors?.Log("EveScout", "poll", ex); }
+
+            try
+            {
+                if (settings.EveScoutEnabled && DateTimeOffset.UtcNow >= _stormsDue)
+                {
+                    await PollStormsAsync(ct);
+                    _stormsDue = DateTimeOffset.UtcNow + StormEvery;
+                }
+            }
+            catch (OperationCanceledException) { }
+            catch (Exception ex) { errors?.Log("EveScout", "storms", ex); }
 
             try { await Task.Delay(Interval, ct); }
             catch (OperationCanceledException) { break; }
@@ -141,12 +156,81 @@ public sealed class EveScoutService(
         return rows.Count;
     }
 
-    /// <summary>Deletes every stored connection. What switching the poll off does.</summary>
+    // ── Storms ───────────────────────────────────────────────────────────────
+
+    private sealed class ObservationDto
+    {
+        [JsonPropertyName("id")]                   public string         Id            { get; set; } = "";
+        [JsonPropertyName("created_at")]           public DateTimeOffset CreatedAt     { get; set; }
+        [JsonPropertyName("observation_type")]     public string         Type          { get; set; } = "";
+        [JsonPropertyName("observation_category")] public string         Category      { get; set; } = "";
+        [JsonPropertyName("display_name")]         public string?        DisplayName   { get; set; }
+        [JsonPropertyName("hours_in_system")]      public int?           HoursInSystem { get; set; }
+        [JsonPropertyName("system_id")]            public int            SystemId      { get; set; }
+        [JsonPropertyName("system_name")]          public string?        SystemName    { get; set; }
+        [JsonPropertyName("region_id")]            public int?           RegionId      { get; set; }
+        [JsonPropertyName("region_name")]          public string?        RegionName    { get; set; }
+    }
+
+    /// <summary>Reads the metaliminal storms EVE-Scout lists and replaces what is stored.
+    /// Other observations (a sighting of Tom's shuttle) are not storms and are left out.</summary>
+    public async Task<int> PollStormsAsync(CancellationToken ct = default)
+    {
+        var client = httpFactory.CreateClient("eve-scout");
+        using var resp = await client.GetAsync("v2/public/observations", ct);
+        if (!resp.IsSuccessStatusCode)
+        {
+            errors?.Log("EveScout", "storms", $"EVE-Scout answered {(int)resp.StatusCode}");
+            return 0;
+        }
+        var list = await resp.Content.ReadFromJsonAsync<List<ObservationDto>>(ct) ?? [];
+        var now  = DateTimeOffset.UtcNow;
+        var rows = list
+            .Where(o => o.Category == "storm" && o.SystemId > 0 && o.Id.Length > 0)
+            .DistinctBy(o => o.Id)
+            .Select(o => new EveScoutStorm
+            {
+                Id            = o.Id,
+                SystemId      = o.SystemId,
+                SystemName    = o.SystemName ?? "",
+                RegionId      = o.RegionId,
+                RegionName    = o.RegionName ?? "",
+                StormType     = o.Type,
+                DisplayName   = o.DisplayName ?? o.Type,
+                HoursInSystem = o.HoursInSystem ?? 0,
+                ReportedAt    = o.CreatedAt,
+                ReadAt        = now,
+            })
+            .ToList();
+
+        await using (var db = await dbFactory.CreateDbContextAsync(ct))
+        {
+            if (!settings.EveScoutEnabled) return 0;
+            await using var tx = await db.Database.BeginTransactionAsync(ct);
+            db.EveScoutStorms.RemoveRange(await db.EveScoutStorms.ToListAsync(ct));
+            await db.SaveChangesAsync(ct);
+            db.EveScoutStorms.AddRange(rows);
+            await db.SaveChangesAsync(ct);
+            await tx.CommitAsync(ct);
+        }
+        Changed?.Invoke();
+        return rows.Count;
+    }
+
+    public async Task<List<EveScoutStorm>> GetStormsAsync(CancellationToken ct = default)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        return await db.EveScoutStorms.AsNoTracking().ToListAsync(ct);
+    }
+
+    /// <summary>Deletes every stored connection and storm. What switching the poll off does.</summary>
     public async Task ClearAsync(CancellationToken ct = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         db.EveScoutConnections.RemoveRange(await db.EveScoutConnections.ToListAsync(ct));
+        db.EveScoutStorms.RemoveRange(await db.EveScoutStorms.ToListAsync(ct));
         await db.SaveChangesAsync(ct);
+        _stormsDue = default;
         (LastCount, LastRead, LastRefused) = (0, null, null);
         Changed?.Invoke();
     }

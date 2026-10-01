@@ -67,6 +67,26 @@ public class SystemViewService(
         int    PodKills1h,
         int    PodKills24h);
 
+    /// <summary>An incursion in a constellation, as the latest snapshot has it, with the names
+    /// the page shows (English; the page puts them in the interface language).</summary>
+    public sealed record IncursionInfo(
+        string State, double Influence, bool HasBoss, int StagingSystemId, string StagingName, int FactionId, string FactionName);
+
+    /// <summary>The incursion in this constellation now, or null. Incursions are a
+    /// constellation's, so every system in it is affected.</summary>
+    public async Task<IncursionInfo?> GetIncursionAsync(int constellationId, CancellationToken ct = default)
+    {
+        if (constellationId == 0) return null;
+        var all = await stats.GetLatestIncursionsAsync(ct);
+        if (!all.TryGetValue(constellationId, out var i)) return null;
+        using var db = dbFactory.CreateDbContext();
+        var staging = await db.SdeSolarSystems.AsNoTracking().Where(s => s.SolarSystemId == i.StagingSystemId)
+                              .Select(s => s.Name).FirstOrDefaultAsync(ct) ?? "";
+        var faction = await db.SdeFactions.AsNoTracking().Where(f => f.FactionId == i.FactionId)
+                              .Select(f => f.Name).FirstOrDefaultAsync(ct) ?? "";
+        return new IncursionInfo(i.State, i.Influence, i.HasBoss, i.StagingSystemId, staging, i.FactionId, faction);
+    }
+
     public async Task<SystemHeader?> GetHeaderAsync(int systemId, CancellationToken ct = default)
     {
         using var db = dbFactory.CreateDbContext();

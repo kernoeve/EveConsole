@@ -3338,10 +3338,10 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
     <value>TheraとTurnur</value>
   </data>
   <data name="EveScoutNote" xml:space="preserve">
-    <value>TheraとTurnurからのワームホール接続を、ルートプランナー用に5分ごとにEVE-Scoutから読み取ります。オフにすると保存済みの接続は削除されます。接続は数時間で閉じるため、古い一覧では存在しないホールを通るルートになってしまいます。</value>
+    <value>TheraとTurnurからのワームホール接続を、マップとルートプランナー用に5分ごとにEVE-Scoutから読み取り、メタリミナルストームは1時間ごとに読み取ります。オフにすると保存済みのデータは削除されます。ホールは数時間で閉じ、ストームは移動するため、古い一覧は誤解を招きます。</value>
   </data>
   <data name="EveScoutPoll" xml:space="preserve">
-    <value>TheraとTurnurの接続をEVE-Scoutから読み取る</value>
+    <value>Thera/Turnurの接続とストームをEVE-Scoutから読み取る</value>
   </data>
   <data name="EveScoutRead" xml:space="preserve">
     <value>{0}件の接続、{1:t}に読み取り</value>

@@ -122,6 +122,7 @@ public class AppDbContext : DbContext
     public DbSet<IntelReport>          IntelReports          => Set<IntelReport>();
     public DbSet<ManualJumpBridge>     ManualJumpBridges     => Set<ManualJumpBridge>();
     public DbSet<EveScoutConnection>   EveScoutConnections   => Set<EveScoutConnection>();
+    public DbSet<EveScoutStorm>        EveScoutStorms        => Set<EveScoutStorm>();
     public DbSet<IntelReportCharacter> IntelReportCharacters => Set<IntelReportCharacter>();
     public DbSet<CharacterAffiliation> CharacterAffiliations  => Set<CharacterAffiliation>();
     public DbSet<NameLookupMiss>       NameLookupMisses       => Set<NameLookupMiss>();
@@ -1216,6 +1217,10 @@ public class AppDbContext : DbContext
         mb.Entity<EveScoutConnection>(e => {
             e.HasKey(x => x.Id);
             e.ToTable("EveScoutConnections"); });
+
+        mb.Entity<EveScoutStorm>(e => {
+            e.HasKey(x => x.Id);
+            e.ToTable("EveScoutStorms"); });
 
         mb.Entity<ManualJumpBridge>(e => {
             e.HasKey(x => x.Id);

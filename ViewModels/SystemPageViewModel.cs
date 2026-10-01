@@ -761,6 +761,7 @@ public class SystemPageViewModel : ReactiveObject
         var indexHist  = await _svc.GetIndustryHistoryAsync(systemId);
         var agents     = await _svc.GetAgentsAsync(systemId);
         var intel      = await _svc.GetIntelAsync(systemId);
+        var incursion  = await _svc.GetIncursionAsync(header.ConstellationId);
 
         // The kill list is the same query and the same row type the Kills tool uses, so the
         // formatting and icons match the rest of the app rather than being reinvented here. By
@@ -771,6 +772,7 @@ public class SystemPageViewModel : ReactiveObject
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
             ApplyHeader(header);
+            ApplyIncursion(incursion, header.SystemId);
 
             Fill(SovStructures, sovStructs.Select(s => new SovStructureVm(s)));
             Fill(Events,     events.Select(e => new SystemEventVm(e)));
@@ -1233,6 +1235,7 @@ public class SystemPageViewModel : ReactiveObject
             var header     = await _svc.GetHeaderAsync(_systemId);
             if (header is null) return;
             var intel      = await _svc.GetIntelAsync(_systemId);
+            var incursion  = await _svc.GetIncursionAsync(header.ConstellationId);
             var sovStructs = await _svc.GetSovStructuresAsync(_systemId);
             var hourly     = await _svc.GetHourlyHistoryAsync(_systemId);
             var killPage   = await _kills.GetListAsync(0, 50, solarSystemId: _systemId);
@@ -1242,6 +1245,7 @@ public class SystemPageViewModel : ReactiveObject
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 ApplyHeader(header);
+                ApplyIncursion(incursion, header.SystemId);
 
                 added.AddRange(Merge(Intel, [.. intel.Select(i => new IntelRowVm(i))], r => r.Key, (a, b) => a.Signature == b.Signature));
                 HasIntel = intel.Count > 0;
@@ -1316,6 +1320,40 @@ public class SystemPageViewModel : ReactiveObject
         return added;
     }
 
+    // ── Incursion ────────────────────────────────────────────────────────────
+
+    private string _incursionText = "";
+    /// <summary>The incursion in this system's constellation, or "" for none.</summary>
+    public string IncursionText { get => _incursionText; private set => this.RaiseAndSetIfChanged(ref _incursionText, value); }
+
+    private string _incursionColor = "#c8543f";
+    public string IncursionColor { get => _incursionColor; private set => this.RaiseAndSetIfChanged(ref _incursionColor, value); }
+
+    private void ApplyIncursion(SystemViewService.IncursionInfo? i, int systemId)
+    {
+        if (i is null) { IncursionText = ""; return; }
+        var state = i.State.ToLowerInvariant() switch
+        {
+            "established" => MapText.IncursionEstablished,
+            "mobilizing"  => MapText.IncursionMobilizing,
+            "withdrawing" => MapText.IncursionWithdrawing,
+            _             => i.State,
+        };
+        IncursionColor = i.State.ToLowerInvariant() switch
+        {
+            "established" => "#c8543f",
+            "mobilizing"  => "#e0913c",
+            _             => "#9a7a5a",
+        };
+        // The state leads the line, so it takes a capital where the language has them.
+        if (state.Length > 0) state = char.ToUpper(state[0], System.Globalization.CultureInfo.CurrentCulture) + state[1..];
+        IncursionText = string.Format(MapText.SysIncursionLine, state, i.Influence * 100,
+                            SdeNames.Faction(i.FactionId, i.FactionName),
+                            i.StagingSystemId == systemId ? MapText.SysIncursionStagingHere
+                                                          : SdeNames.SolarSystem(i.StagingSystemId, i.StagingName))
+                      + (i.HasBoss ? " · " + MapText.NodeBossUp : "");
+    }
+
     // ── From the map: zone, bridges, Thera and Turnur, who is here now ─────────
 
     /// <summary>Set by the map tool: what it knows about a system that the system service does
@@ -1342,6 +1380,10 @@ public class SystemPageViewModel : ReactiveObject
     private string _ownNow = "";
     /// <summary>The capsuleer's characters here now; "" for none.</summary>
     public string OwnNow { get => _ownNow; private set => this.RaiseAndSetIfChanged(ref _ownNow, value); }
+
+    private string _weather = "";
+    /// <summary>The metaliminal storm reported here, as EVE-Scout lists it; "" for none.</summary>
+    public string Weather { get => _weather; private set => this.RaiseAndSetIfChanged(ref _weather, value); }
 
     private bool _hasBridges;
     public bool HasBridges { get => _hasBridges; private set => this.RaiseAndSetIfChanged(ref _hasBridges, value); }
@@ -1377,6 +1419,9 @@ public class SystemPageViewModel : ReactiveObject
                 ? string.Format(MapText.SysHostilesNow, h.Count,
                     string.Join(", ", h.Pilots.Take(8).Select(p => p.Ship is { Length: > 0 } ship ? $"{p.Name} ({ship})" : p.Name))
                     + (h.Count > 8 ? ", …" : ""))
+                : "";
+            Weather = extras.Storms is { Count: > 0 } storms
+                ? string.Join(" · ", storms.Select(MapToolViewModel.StormLine))
                 : "";
             OwnNow = extras.Own.Count > 0
                 ? string.Format(MapText.SysOwnNow, string.Join(", ", extras.Own.Select(o => o.Name)))

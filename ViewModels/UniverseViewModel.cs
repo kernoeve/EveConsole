@@ -111,6 +111,8 @@ public class UniverseViewModel : ReactiveObject
             new(MapText.OverlaySovereigntyAdm,        "adm",            "Sovereignty ADM"),
             // Ansiblex zones: each claimed system by its distance from its holder's capital.
             new(MapText.OverlaySovZones,              "sovzones",       "Sovereignty zones"),
+            // Each claimed system by what the capsuleer's side thinks of its holder.
+            new(MapText.OverlaySovStandings,          "sovstandings",   "Sovereignty standings"),
             new(MapText.OverlayIndustryManufacturing, "industry:manufacturing",                   "Industry — manufacturing"),
             new(MapText.OverlayIndustryReactions,     "industry:reaction",                        "Industry — reactions"),
             new(MapText.OverlayIndustryMeResearch,    "industry:researching_material_efficiency", "Industry — ME research"),
@@ -403,6 +405,28 @@ public class UniverseViewModel : ReactiveObject
             this.RaisePropertyChanged(nameof(VisibleHoleLinks));
         }
     }
+
+    private IReadOnlyDictionary<int, MapHoleMark>? _storms;
+    /// <summary>Metaliminal storm marks per system and region, pushed in by the map tool.</summary>
+    public IReadOnlyDictionary<int, MapHoleMark>? Storms
+    {
+        get => _storms;
+        set { this.RaiseAndSetIfChanged(ref _storms, value); this.RaisePropertyChanged(nameof(VisibleStorms)); }
+    }
+
+    private bool _showStorms = UiState.GetBool(UiState.UniverseStorms, true);
+    public bool ShowStorms
+    {
+        get => _showStorms;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _showStorms, value);
+            UiState.SetBool(UiState.UniverseStorms, value);
+            this.RaisePropertyChanged(nameof(VisibleStorms));
+        }
+    }
+
+    public IReadOnlyDictionary<int, MapHoleMark>? VisibleStorms => _showStorms ? _storms : null;
 
     public IReadOnlyDictionary<int, MapHoleMark>? VisibleHoles     => _showHoles ? _holes : null;
     public IReadOnlyList<MapHoleLink>?            VisibleHoleLinks => _showHoles ? _holeLinks : null;
@@ -868,6 +892,10 @@ public class UniverseViewModel : ReactiveObject
                 await BuildSovZonesOverlayAsync(g, styles, legend, byRegion);
                 break;
 
+            case "sovstandings":
+                await BuildSovStandingsOverlayAsync(g, styles, legend, byRegion);
+                break;
+
             case { } k when k.StartsWith("industry:"):
                 await BuildIndustryOverlayAsync(g, styles, legend, k[9..], byRegion);
                 break;
@@ -1086,6 +1114,78 @@ public class UniverseViewModel : ReactiveObject
         var held = sov.Values.Count(s => s.AllianceId is not null);
         legend.Add(new LegendEntryVm(string.Format(MapText.LegendSovSummary, ranked.Count, held), unclaimed));
         legend.Add(new LegendEntryVm(MapText.LegendUnclaimedNpc, unclaimed));
+    }
+
+    /// <summary>
+    /// Sovereignty by standing: each claimed system in the game's standing colours by what the
+    /// capsuleer's side thinks of its holder — the holder's alliance, else its corporation —
+    /// with the capsuleer's own space green. NPC and unclaimed space stay grey.
+    /// </summary>
+    private async Task BuildSovStandingsOverlayAsync(
+        MapGraph g, Dictionary<int, MapNodeStyle> styles, List<LegendEntryVm> legend, bool byRegion)
+    {
+        if (_stats is null) return;
+        var sov       = await _stats.GetSovereigntyOverlayAsync();
+        var standings = await _stats.GetStandingsAsync();
+        var corps     = await _stats.GetLatestSovereigntyAsync();
+
+        var unclaimed = Color.Parse("#3a3a48");
+        var bands = new (string Label, Color Fill)[]
+        {
+            (MapText.StandingOwn,       Color.Parse("#3fb950")),
+            (MapText.StandingExcellent, Color.Parse("#1f5fd6")),
+            (MapText.StandingGood,      Color.Parse("#5aa2ff")),
+            (MapText.StandingNeutral,   Color.Parse("#7b7b8c")),
+            (MapText.StandingBad,       Color.Parse("#f08a2e")),
+            (MapText.StandingTerrible,  Color.Parse("#e5484d")),
+        };
+        var counts = new int[bands.Length];
+
+        foreach (var n in g.Nodes)
+        {
+            if (byRegion)
+            {
+                styles[n.Id] = new MapNodeStyle(unclaimed, Detail: MapText.TipOpenRegionForSovereignty);
+                continue;
+            }
+            if (!sov.TryGetValue(n.Id, out var s) || s.AllianceId is not { } alliance)
+            {
+                var holder = s is not null && s.Holder.Length > 0
+                    ? s.FactionId is { } faction ? SdeNames.Faction(faction, s.Holder) : s.Holder
+                    : null;
+                styles[n.Id] = new MapNodeStyle(unclaimed, Caption: holder, Detail: holder ?? MapText.SovUnclaimed);
+                continue;
+            }
+
+            var corp = corps.TryGetValue(n.Id, out var row) ? row.CorporationId : null;
+            int band;
+            double? value = null;
+            if (standings.OwnAlliances.Contains(alliance) || corp is { } c0 && standings.OwnCorporations.Contains(c0)) band = 0;
+            else
+            {
+                value = standings.Standing.TryGetValue(alliance, out var a) ? a
+                      : corp is { } c && standings.Standing.TryGetValue(c, out var cs) ? cs : null;
+                band = value switch
+                {
+                    >= 5   => 1,
+                    > 0    => 2,
+                    <= -5  => 5,
+                    < 0    => 4,
+                    _      => 3,
+                };
+            }
+            counts[band]++;
+            styles[n.Id] = new MapNodeStyle(bands[band].Fill,
+                Caption: ShortHolder(s.Holder),
+                Detail: value is { } v
+                    ? string.Format(MapText.NodeStanding, s.Holder, bands[band].Label, v)
+                    : $"{s.Holder} · {bands[band].Label}");
+        }
+
+        for (var i = 0; i < bands.Length; i++)
+            legend.Add(new LegendEntryVm(string.Format(MapText.LegendStandingCount, bands[i].Label, counts[i]), bands[i].Fill));
+        legend.Add(new LegendEntryVm(MapText.LegendUnclaimedNpc, unclaimed));
+        legend.Add(new LegendEntryVm(MapText.LegendStandingNote, unclaimed));
     }
 
     /// <summary>
@@ -1355,9 +1455,11 @@ public class UniverseViewModel : ReactiveObject
     {
         if (_stats is null) return;
 
-        var inc     = await _stats.GetLatestIncursionsAsync();
-        var quiet   = Color.Parse("#2a2a34");
-        var staging = Color.Parse("#ff4f4f");
+        var inc      = await _stats.GetLatestIncursionsAsync();
+        var factions = await _stats.GetFactionNamesAsync();
+        var places   = await _stats.GetConstellationPlacesAsync(inc.Keys);
+        var quiet    = Color.Parse("#2a2a34");
+        var staging  = Color.Parse("#ff4f4f");
 
         var stateColor = new Dictionary<string, Color>(StringComparer.OrdinalIgnoreCase)
         {
@@ -1366,13 +1468,34 @@ public class UniverseViewModel : ReactiveObject
             ["withdrawing"] = Color.Parse("#9a7a5a"),
         };
 
+        string Faction(int id) => SdeNames.Faction(id, factions.GetValueOrDefault(id, ""));
+        string Line(EveConsole.Models.MapIncursion i) =>
+            string.Format(MapText.IncursionLine,
+                places.TryGetValue(i.ConstellationId, out var p) ? SdeNames.Constellation(i.ConstellationId, p.Name) : "",
+                IncursionStateLabel(i.State), i.Influence * 100, Faction(i.FactionId))
+            + (i.HasBoss ? " · " + MapText.NodeBossUp : "");
+        // The worst first: an established incursion is the one to know about.
+        static int Rank(string state) => state.ToLowerInvariant() switch { "established" => 0, "mobilizing" => 1, "withdrawing" => 2, _ => 3 };
+
         foreach (var n in g.Nodes)
         {
-            if (byRegion || n.ConstellationId == 0 || !inc.TryGetValue(n.ConstellationId, out var i))
+            // Zoomed out: each region with incursions in it, coloured by the most advanced one,
+            // its hover listing them all.
+            if (byRegion)
             {
-                styles[n.Id] = new MapNodeStyle(quiet, Detail: byRegion
-                    ? MapText.TipOpenRegionForIncursions
-                    : MapText.NodeNoIncursion);
+                var here = inc.Values.Where(i => places.TryGetValue(i.ConstellationId, out var p) && p.RegionId == n.RegionId)
+                                     .OrderBy(i => Rank(i.State)).ToList();
+                styles[n.Id] = here.Count == 0
+                    ? new MapNodeStyle(quiet, Detail: MapText.NodeNoIncursion)
+                    : new MapNodeStyle(stateColor.GetValueOrDefault(here[0].State, quiet),
+                          Caption: IncursionStateLabel(here[0].State),
+                          Detail: string.Join("\n", here.Select(Line)));
+                continue;
+            }
+
+            if (n.ConstellationId == 0 || !inc.TryGetValue(n.ConstellationId, out var i))
+            {
+                styles[n.Id] = new MapNodeStyle(quiet, Detail: MapText.NodeNoIncursion);
                 continue;
             }
 
@@ -1383,7 +1506,8 @@ public class UniverseViewModel : ReactiveObject
                 Detail: IncursionStateLabel(i.State) +
                         (isStaging ? " · " + MapText.NodeStagingSystem : "") +
                         " · " + string.Format(MapText.NodeInfluence, i.Influence * 100) +
-                        (i.HasBoss ? " · " + MapText.NodeBossUp : ""));
+                        (i.HasBoss ? " · " + MapText.NodeBossUp : "") +
+                        " · " + Faction(i.FactionId));
         }
 
         legend.Add(new LegendEntryVm(MapText.LegendStagingSystem, staging));

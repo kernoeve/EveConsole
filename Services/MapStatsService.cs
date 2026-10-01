@@ -376,6 +376,42 @@ public class MapStatsService(IDbContextFactory<AppDbContext> dbFactory, AppError
             });
     }
 
+    /// <summary>The capsuleer's own alliances and corporations, and their standing towards
+    /// other alliances and corporations.</summary>
+    public sealed record StandingsView(
+        IReadOnlySet<long> OwnAlliances, IReadOnlySet<long> OwnCorporations, IReadOnlyDictionary<long, double> Standing);
+
+    /// <summary>
+    /// What the capsuleer's side thinks of each alliance and corporation, from the contact lists
+    /// polled for every character, corporation and alliance. The highest level that says
+    /// anything wins — an alliance's contacts over a corporation's over a character's, as in the
+    /// game — and where several at that level disagree, the lowest: a sov map coloured blue on
+    /// one pilot's private say-so would be the dangerous mistake.
+    /// </summary>
+    public async Task<StandingsView> GetStandingsAsync(CancellationToken ct = default)
+    {
+        using var db = dbFactory.CreateDbContext();
+        var chars = await db.Characters.AsNoTracking().Select(c => new { c.CorporationId, c.AllianceId }).ToListAsync(ct);
+        var contacts = await db.EsiContacts.AsNoTracking()
+            .Where(c => c.ContactType == "alliance" || c.ContactType == "corporation")
+            .Select(c => new { c.OwnerType, c.ContactId, c.Standing })
+            .ToListAsync(ct);
+
+        static int Level(string ownerType) => ownerType switch { "alliance" => 0, "corporation" => 1, _ => 2 };
+        var standing = contacts
+            .GroupBy(c => c.ContactId)
+            .ToDictionary(g => g.Key, g =>
+            {
+                var top = g.Min(c => Level(c.OwnerType));
+                return (double)g.Where(c => Level(c.OwnerType) == top).Min(c => c.Standing);
+            });
+
+        return new StandingsView(
+            chars.Where(c => c.AllianceId is > 0).Select(c => (long)c.AllianceId!.Value).ToHashSet(),
+            chars.Where(c => c.CorporationId > 0).Select(c => (long)c.CorporationId).ToHashSet(),
+            standing);
+    }
+
     /// <summary>Most recent cost index per system for one industry activity.</summary>
     public async Task<Dictionary<int, double>> GetLatestIndustryAsync(
         string activity, CancellationToken ct = default)
@@ -420,6 +456,18 @@ public class MapStatsService(IDbContextFactory<AppDbContext> dbFactory, AppError
     }
 
     /// <summary>Faction id to name, from the SDE.</summary>
+    /// <summary>Where each of these constellations is, and its English name: the region tier of
+    /// the incursion overlay groups incursions by region.</summary>
+    public async Task<Dictionary<int, (int RegionId, string Name)>> GetConstellationPlacesAsync(
+        IReadOnlyCollection<int> constellationIds, CancellationToken ct = default)
+    {
+        using var db = dbFactory.CreateDbContext();
+        var ids = constellationIds.ToList();
+        return await db.SdeConstellations.AsNoTracking()
+            .Where(c => ids.Contains(c.ConstellationId))
+            .ToDictionaryAsync(c => c.ConstellationId, c => (c.RegionId, c.Name), ct);
+    }
+
     public async Task<Dictionary<int, string>> GetFactionNamesAsync(CancellationToken ct = default)
     {
         using var db = dbFactory.CreateDbContext();

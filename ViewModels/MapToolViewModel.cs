@@ -244,7 +244,7 @@ public sealed class MapToolViewModel : ReactiveObject
         map.Bridges = _bridgeLines;
         map.Routes  = _routeList;
         map.ClearRoutesRequested = ClearAllRoutes;
-        tab.ApplyHoles(_holeList, _eveScout?.Enabled == true);
+        tab.ApplyHoles(_holeList, _stormList, _eveScout?.Enabled == true);
         return tab;
     }
 
@@ -588,6 +588,7 @@ public sealed class MapToolViewModel : ReactiveObject
     // ── Thera and Turnur ─────────────────────────────────────────────────────
 
     private IReadOnlyList<EveConsole.Models.EveScoutConnection> _holeList = [];
+    private IReadOnlyList<EveConsole.Models.EveScoutStorm>      _stormList = [];
 
     /// <summary>Reads the stored EVE-Scout list and puts it on every map. Off, or empty: no marks.</summary>
     public async Task ReloadHolesAsync()
@@ -596,15 +597,48 @@ public sealed class MapToolViewModel : ReactiveObject
         try
         {
             var enabled = _eveScout.Enabled;
-            var list = enabled ? await Task.Run(() => _eveScout.GetOpenAsync()) : [];
+            var list   = enabled ? await Task.Run(() => _eveScout.GetOpenAsync()) : [];
+            var storms = enabled ? await Task.Run(() => _eveScout.GetStormsAsync()) : [];
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                _holeList = list;
-                foreach (var tab in AllTabs.OfType<UniverseTabViewModel>()) tab.ApplyHoles(list, enabled);
+                _holeList  = list;
+                _stormList = storms;
+                foreach (var tab in AllTabs.OfType<UniverseTabViewModel>()) tab.ApplyHoles(list, storms, enabled);
             });
         }
         catch (Exception ex) { _errors?.Log(nameof(MapToolViewModel), "wormholes", ex); }
     }
+
+    /// <summary>
+    /// Storm marks for one map: a ⚡ on each system with a storm, and on each region holding any,
+    /// for the zoomed-out tier. The storm's own name is EVE-Scout's (English).
+    /// </summary>
+    internal static Dictionary<int, MapHoleMark> BuildStorms(IReadOnlyList<EveConsole.Models.EveScoutStorm> storms, MapGraph graph)
+    {
+        var marks = new Dictionary<int, MapHoleMark>();
+        if (storms.Count == 0) return marks;
+        var nodes   = graph.Nodes.Where(n => !n.IsRegion || !graph.IsContinuous).GroupBy(n => n.Id).ToDictionary(g => g.Key, g => g.First());
+        var regions = graph.Nodes.Where(n => n.IsRegion && graph.IsContinuous).GroupBy(n => n.RegionId).ToDictionary(g => g.Key, g => g.First());
+
+        foreach (var g in storms.GroupBy(s => s.SystemId))
+            if (nodes.TryGetValue(g.Key, out var node))
+                marks[g.Key] = new MapHoleMark("⚡", string.Format(MapText.StormTitle, node.Label),
+                    string.Join("\n", g.Select(StormLine)));
+
+        foreach (var region in regions.Values)
+        {
+            var inside = storms.Where(s => nodes.TryGetValue(s.SystemId, out var n) && n.RegionId == region.RegionId).ToList();
+            if (inside.Count == 0) continue;
+            marks[region.Id] = new MapHoleMark("⚡", string.Format(MapText.StormRegionTitle, region.Label),
+                string.Join("\n", inside.Select(s => string.Format(MapText.HoleRegionLine,
+                    SdeNames.SolarSystem(s.SystemId, s.SystemName), s.DisplayName))));
+        }
+        return marks;
+    }
+
+    /// <summary>One storm, as its hover and the system page say it.</summary>
+    internal static string StormLine(EveConsole.Models.EveScoutStorm s) =>
+        string.Format(MapText.StormLine, s.DisplayName, s.HoursInSystem);
 
     /// <summary>The largest ship a hole takes, in the interface language (EVE-Scout's size word).</summary>
     internal static string HoleSize(string size) => size.ToLowerInvariant() switch
@@ -639,11 +673,12 @@ public sealed class MapToolViewModel : ReactiveObject
             var list = _bridgeList ?? await Task.Run(() => _bridges.GetAsync(ct), ct);
             bridges = [.. list.Bridges.Where(b => b.SystemA == systemId || b.SystemB == systemId)];
         }
-        var holes = _holeList.Where(c => c.HubSystemId == systemId || c.OtherSystemId == systemId).ToList();
-        var live  = _snapshot;
+        var holes  = _holeList.Where(c => c.HubSystemId == systemId || c.OtherSystemId == systemId).ToList();
+        var storms = _stormList.Where(s => s.SystemId == systemId).ToList();
+        var live   = _snapshot;
         return new SystemMapExtras(zone, bridges, holes,
             live?.Hostiles.GetValueOrDefault(systemId),
-            live?.Own.GetValueOrDefault(systemId) ?? []);
+            live?.Own.GetValueOrDefault(systemId) ?? [], storms);
     }
 
     /// <summary>
@@ -892,7 +927,7 @@ public sealed class UniverseTabViewModel : MapTabViewModel
            .Subscribe(_ =>
            {
                if (_live is { } live) ApplyLive(live);
-               if (_holes is { } holes) ApplyHoles(holes, Map.HolesAvailable);
+               if (_holes is { } holes) ApplyHoles(holes, _storms, Map.HolesAvailable);
            });
     }
 
@@ -903,17 +938,22 @@ public sealed class UniverseTabViewModel : MapTabViewModel
 
     private LiveMapSnapshot? _live;
     private IReadOnlyList<EveConsole.Models.EveScoutConnection>? _holes;
+    private IReadOnlyList<EveConsole.Models.EveScoutStorm>       _storms = [];
 
-    /// <summary>Puts Thera and Turnur's holes on this map, as soon as it can place them. UI thread.</summary>
-    public void ApplyHoles(IReadOnlyList<EveConsole.Models.EveScoutConnection> holes, bool available)
+    /// <summary>Puts Thera and Turnur's holes and the storms on this map, as soon as it can place
+    /// them. UI thread.</summary>
+    public void ApplyHoles(IReadOnlyList<EveConsole.Models.EveScoutConnection> holes,
+                           IReadOnlyList<EveConsole.Models.EveScoutStorm> storms, bool available)
     {
-        _holes = holes;
+        _holes  = holes;
+        _storms = storms;
         Map.HolesAvailable = available;
         if (Map.Graph is { } graph)
         {
             var (marks, links) = MapToolViewModel.BuildHoles(holes, graph);
             Map.Holes     = marks;
             Map.HoleLinks = links;
+            Map.Storms    = MapToolViewModel.BuildStorms(storms, graph);
         }
     }
 

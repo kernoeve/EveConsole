@@ -147,6 +147,16 @@ public class MapCanvas : Control
         set => SetValue(HolesProperty, value);
     }
 
+    /// <summary>Metaliminal storms per node id (systems, and regions zoomed out).</summary>
+    public static readonly StyledProperty<IReadOnlyDictionary<int, MapHoleMark>?> StormsProperty =
+        AvaloniaProperty.Register<MapCanvas, IReadOnlyDictionary<int, MapHoleMark>?>(nameof(Storms));
+
+    public IReadOnlyDictionary<int, MapHoleMark>? Storms
+    {
+        get => GetValue(StormsProperty);
+        set => SetValue(StormsProperty, value);
+    }
+
     /// <summary>Wormholes between two systems the map shows, drawn as dashed lines.</summary>
     public static readonly StyledProperty<IReadOnlyList<MapHoleLink>?> HoleLinksProperty =
         AvaloniaProperty.Register<MapCanvas, IReadOnlyList<MapHoleLink>?>(nameof(HoleLinks));
@@ -217,7 +227,7 @@ public class MapCanvas : Control
 
     static MapCanvas()
     {
-        AffectsRender<MapCanvas>(GraphProperty, OverlayProperty, SelectedIdProperty, BadgesProperty, MarkersProperty, BridgesProperty, RoutesProperty, AvoidedProperty, HolesProperty, HoleLinksProperty);
+        AffectsRender<MapCanvas>(GraphProperty, OverlayProperty, SelectedIdProperty, BadgesProperty, MarkersProperty, BridgesProperty, RoutesProperty, AvoidedProperty, HolesProperty, HoleLinksProperty, StormsProperty);
     }
 
     public MapCanvas()
@@ -762,6 +772,11 @@ public class MapCanvas : Control
                     ? box
                     : new Rect(p.X - NodeRadius, p.Y - NodeRadius, NodeRadius * 2, NodeRadius * 2), useBoxes));
 
+            if (Storms?.TryGetValue(n.Id, out var storm) == true)
+                _pendingStorms.Add((storm, useBoxes && _nodeRects.TryGetValue(n.Id, out var sbox)
+                    ? sbox
+                    : new Rect(p.X - NodeRadius, p.Y - NodeRadius, NodeRadius * 2, NodeRadius * 2), useBoxes));
+
             if (Holes?.TryGetValue(n.Id, out var hole) == true)
                 _pendingHoles.Add((hole, useBoxes && _nodeRects.TryGetValue(n.Id, out var hbox)
                     ? hbox
@@ -790,6 +805,8 @@ public class MapCanvas : Control
         _pendingMarks.Clear();
         foreach (var (hole, anchor, isBox) in _pendingHoles) DrawHole(ctx, hole, anchor, isBox);
         _pendingHoles.Clear();
+        foreach (var (storm, anchor, isBox) in _pendingStorms) DrawStorm(ctx, storm, anchor, isBox);
+        _pendingStorms.Clear();
 
         // A badge tooltip wins: the cursor is on the mark, so that is what the question is about.
         if (_badgeHover is { } badge)  DrawTooltipBox(ctx, badge.Title, badge.Detail, badge.Rows);
@@ -1186,6 +1203,24 @@ public class MapCanvas : Control
 
     private readonly List<(MapMarkers Marks, Rect Anchor, bool IsBox)> _pendingMarks = new();
     private readonly List<(MapHoleMark Hole, Rect Anchor, bool IsBox)> _pendingHoles = new();
+    private readonly List<(MapHoleMark Storm, Rect Anchor, bool IsBox)> _pendingStorms = new();
+
+    private static readonly ImmutableSolidColorBrush StormBrush = new(Color.Parse("#F5B83D"));
+    private static readonly IBrush StormInk = new ImmutableSolidColorBrush(Color.Parse("#2b1d00"));
+
+    /// <summary>An amber tag with ⚡ at the node's upper left — the wormhole tag takes the upper
+    /// right. Hover for the storm.</summary>
+    private void DrawStorm(DrawingContext ctx, MapHoleMark s, Rect anchor, bool isBox)
+    {
+        var text = new FormattedText(s.Glyph, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, BoldFace, 9.5, StormInk);
+        var w    = Math.Max(13, text.Width + 6);
+        var x    = isBox ? anchor.Left - w / 2 : anchor.Left - w - 1;
+        var y    = isBox ? anchor.Top - 7 : anchor.Top - 15;
+        var rect = new Rect(x, y, w, 13);
+        ctx.DrawRectangle(StormBrush, MarkPen, new RoundedRect(rect, 3));
+        ctx.DrawText(text, new Point(rect.Center.X - text.Width / 2, rect.Center.Y - text.Height / 2));
+        _badgeTips.Add((rect.Inflate(2), s.Title, s.Detail, null));
+    }
 
     private static readonly ImmutableSolidColorBrush HoleBrush = new(Color.Parse("#2DD4BF"));
     private static readonly IBrush HoleInk = new ImmutableSolidColorBrush(Color.Parse("#062925"));

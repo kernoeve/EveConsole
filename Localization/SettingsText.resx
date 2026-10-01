@@ -4408,11 +4408,11 @@ The application will restart.</value>
     <comment>Settings → Map Data: heading of the EVE-Scout section. Thera and Turnur are solar systems.</comment>
   </data>
   <data name="EveScoutNote" xml:space="preserve">
-    <value>Wormhole connections from Thera and Turnur, read from EVE-Scout every five minutes, for the route planner. Switching this off deletes the stored connections: they close within hours, and an old list would route through holes that are gone.</value>
+    <value>Wormhole connections from Thera and Turnur, read from EVE-Scout every five minutes for the map and the route planner, and metaliminal storms, read hourly. Switching this off deletes what is stored: holes close within hours and storms move, and an old list would mislead.</value>
     <comment>Settings → Map Data, under the EVE-Scout heading. EVE-Scout is a proper name.</comment>
   </data>
   <data name="EveScoutPoll" xml:space="preserve">
-    <value>Read Thera and Turnur connections from EVE-Scout</value>
+    <value>Read Thera/Turnur connections and storms from EVE-Scout</value>
     <comment>Settings → Map Data: tick box that turns the EVE-Scout poll on or off.</comment>
   </data>
   <data name="EveScoutRead" xml:space="preserve">

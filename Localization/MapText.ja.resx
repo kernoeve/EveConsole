@@ -1254,9 +1254,6 @@
   <data name="LegendNotFwSpace" xml:space="preserve">
     <value>国家間戦争の宙域外</value>
   </data>
-  <data name="TipOpenRegionForIncursions" xml:space="preserve">
-    <value>リージョンを開くとインカージョンが表示されます</value>
-  </data>
   <data name="NodeNoIncursion" xml:space="preserve">
     <value>インカージョンなし</value>
   </data>
@@ -2038,5 +2035,68 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   </data>
   <data name="ColLeft" xml:space="preserve">
     <value>残り</value>
+  </data>
+  <data name="OverlaySovStandings" xml:space="preserve">
+    <value>ソブリンティ(スタンディング)</value>
+  </data>
+  <data name="StandingOwn" xml:space="preserve">
+    <value>自分</value>
+  </data>
+  <data name="StandingExcellent" xml:space="preserve">
+    <value>非常に良好</value>
+  </data>
+  <data name="StandingGood" xml:space="preserve">
+    <value>良好</value>
+  </data>
+  <data name="StandingNeutral" xml:space="preserve">
+    <value>中立</value>
+  </data>
+  <data name="StandingBad" xml:space="preserve">
+    <value>悪い</value>
+  </data>
+  <data name="StandingTerrible" xml:space="preserve">
+    <value>非常に悪い</value>
+  </data>
+  <data name="NodeStanding" xml:space="preserve">
+    <value>{0} · {1} ({2:+0.0;-0.0;0.0})</value>
+  </data>
+  <data name="LegendStandingCount" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="LegendStandingNote" xml:space="preserve">
+    <value>キャラクター、コーポレーション、アライアンスのコンタクトから算出。アライアンスの設定がコーポレーションより、コーポレーションがキャラクターより優先されます。</value>
+  </data>
+  <data name="IncursionLine" xml:space="preserve">
+    <value>{0}: {1} · {2:0}% · {3}</value>
+  </data>
+  <data name="SysIncursionLabel" xml:space="preserve">
+    <value>インカージョン</value>
+  </data>
+  <data name="SysIncursionLine" xml:space="preserve">
+    <value>{0} · 影響力{1:0}% · {2} · 拠点{3}</value>
+  </data>
+  <data name="SysIncursionStagingHere" xml:space="preserve">
+    <value>このシステム</value>
+  </data>
+  <data name="StormsToggle" xml:space="preserve">
+    <value>ストーム</value>
+  </data>
+  <data name="TipStormsToggle" xml:space="preserve">
+    <value>EVE-Scoutが掲載しているメタリミナルストームを表示</value>
+  </data>
+  <data name="LegendStorms" xml:space="preserve">
+    <value>メタリミナルストーム(⚡)。EVE-Scoutへの報告による。カーソルを合わせると種類を表示。</value>
+  </data>
+  <data name="StormTitle" xml:space="preserve">
+    <value>{0}の天候</value>
+  </data>
+  <data name="StormRegionTitle" xml:space="preserve">
+    <value>{0}のストーム</value>
+  </data>
+  <data name="StormLine" xml:space="preserve">
+    <value>{0} · この地に{1}時間</value>
+  </data>
+  <data name="SysWeatherLabel" xml:space="preserve">
+    <value>天候</value>
   </data>
 </root>

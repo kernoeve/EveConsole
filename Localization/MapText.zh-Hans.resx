@@ -1254,9 +1254,6 @@
   <data name="LegendNotFwSpace" xml:space="preserve">
     <value>非势力战争区域</value>
   </data>
-  <data name="TipOpenRegionForIncursions" xml:space="preserve">
-    <value>打开星域以查看入侵</value>
-  </data>
   <data name="NodeNoIncursion" xml:space="preserve">
     <value>无入侵</value>
   </data>
@@ -2038,5 +2035,68 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   </data>
   <data name="ColLeft" xml:space="preserve">
     <value>剩余</value>
+  </data>
+  <data name="OverlaySovStandings" xml:space="preserve">
+    <value>主权声望</value>
+  </data>
+  <data name="StandingOwn" xml:space="preserve">
+    <value>己方</value>
+  </data>
+  <data name="StandingExcellent" xml:space="preserve">
+    <value>极好</value>
+  </data>
+  <data name="StandingGood" xml:space="preserve">
+    <value>良好</value>
+  </data>
+  <data name="StandingNeutral" xml:space="preserve">
+    <value>中立</value>
+  </data>
+  <data name="StandingBad" xml:space="preserve">
+    <value>差</value>
+  </data>
+  <data name="StandingTerrible" xml:space="preserve">
+    <value>极差</value>
+  </data>
+  <data name="NodeStanding" xml:space="preserve">
+    <value>{0} · {1}（{2:+0.0;-0.0;0.0}）</value>
+  </data>
+  <data name="LegendStandingCount" xml:space="preserve">
+    <value>{0}：{1}</value>
+  </data>
+  <data name="LegendStandingNote" xml:space="preserve">
+    <value>根据你的角色、军团和联盟的联系人；联盟的设置优先于军团，军团优先于角色。</value>
+  </data>
+  <data name="IncursionLine" xml:space="preserve">
+    <value>{0}：{1} · {2:0}% · {3}</value>
+  </data>
+  <data name="SysIncursionLabel" xml:space="preserve">
+    <value>入侵</value>
+  </data>
+  <data name="SysIncursionLine" xml:space="preserve">
+    <value>{0} · 影响力 {1:0}% · {2} · 集结于 {3}</value>
+  </data>
+  <data name="SysIncursionStagingHere" xml:space="preserve">
+    <value>本星系</value>
+  </data>
+  <data name="StormsToggle" xml:space="preserve">
+    <value>风暴</value>
+  </data>
+  <data name="TipStormsToggle" xml:space="preserve">
+    <value>显示 EVE-Scout 列出的超限风暴</value>
+  </data>
+  <data name="LegendStorms" xml:space="preserve">
+    <value>超限风暴（⚡），来自 EVE-Scout 的报告。悬停查看类型。</value>
+  </data>
+  <data name="StormTitle" xml:space="preserve">
+    <value>{0} 的天气</value>
+  </data>
+  <data name="StormRegionTitle" xml:space="preserve">
+    <value>{0} 的风暴</value>
+  </data>
+  <data name="StormLine" xml:space="preserve">
+    <value>{0} · 在此 {1} 小时</value>
+  </data>
+  <data name="SysWeatherLabel" xml:space="preserve">
+    <value>天气</value>
   </data>
 </root>

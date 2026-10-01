@@ -1260,9 +1260,6 @@ Besitzer: {3}</value>
   <data name="LegendNotFwSpace" xml:space="preserve">
     <value>Kein FK-Gebiet</value>
   </data>
-  <data name="TipOpenRegionForIncursions" xml:space="preserve">
-    <value>Öffnen Sie eine Region, um die Übergriffe zu sehen</value>
-  </data>
   <data name="NodeNoIncursion" xml:space="preserve">
     <value>Kein Übergriff</value>
   </data>
@@ -2080,5 +2077,68 @@ Kein Hauptstadtsystem, daher keine Zone</value>
   </data>
   <data name="ColLeft" xml:space="preserve">
     <value>Verbleibend</value>
+  </data>
+  <data name="OverlaySovStandings" xml:space="preserve">
+    <value>Souveränität nach Ansehen</value>
+  </data>
+  <data name="StandingOwn" xml:space="preserve">
+    <value>Eigene</value>
+  </data>
+  <data name="StandingExcellent" xml:space="preserve">
+    <value>Ausgezeichnet</value>
+  </data>
+  <data name="StandingGood" xml:space="preserve">
+    <value>Gut</value>
+  </data>
+  <data name="StandingNeutral" xml:space="preserve">
+    <value>Neutral</value>
+  </data>
+  <data name="StandingBad" xml:space="preserve">
+    <value>Schlecht</value>
+  </data>
+  <data name="StandingTerrible" xml:space="preserve">
+    <value>Schrecklich</value>
+  </data>
+  <data name="NodeStanding" xml:space="preserve">
+    <value>{0} · {1} ({2:+0.0;-0.0;0.0})</value>
+  </data>
+  <data name="LegendStandingCount" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="LegendStandingNote" xml:space="preserve">
+    <value>Aus den Kontakten Ihrer Charaktere, Corporations und Allianzen; das Wort der Allianz zählt vor dem der Corporation, und das vor dem eines Charakters.</value>
+  </data>
+  <data name="IncursionLine" xml:space="preserve">
+    <value>{0}: {1} · {2:0} % · {3}</value>
+  </data>
+  <data name="SysIncursionLabel" xml:space="preserve">
+    <value>Incursion</value>
+  </data>
+  <data name="SysIncursionLine" xml:space="preserve">
+    <value>{0} · {1:0} % Einfluss · {2} · Sammelpunkt in {3}</value>
+  </data>
+  <data name="SysIncursionStagingHere" xml:space="preserve">
+    <value>diesem System</value>
+  </data>
+  <data name="StormsToggle" xml:space="preserve">
+    <value>Stürme</value>
+  </data>
+  <data name="TipStormsToggle" xml:space="preserve">
+    <value>Metaliminale Stürme zeigen, wie EVE-Scout sie auflistet</value>
+  </data>
+  <data name="LegendStorms" xml:space="preserve">
+    <value>Metaliminaler Sturm (⚡), an EVE-Scout gemeldet. Für die Art darüberfahren.</value>
+  </data>
+  <data name="StormTitle" xml:space="preserve">
+    <value>Wetter in {0}</value>
+  </data>
+  <data name="StormRegionTitle" xml:space="preserve">
+    <value>Stürme in {0}</value>
+  </data>
+  <data name="StormLine" xml:space="preserve">
+    <value>{0} · hier seit {1} h</value>
+  </data>
+  <data name="SysWeatherLabel" xml:space="preserve">
+    <value>Wetter</value>
   </data>
 </root>
