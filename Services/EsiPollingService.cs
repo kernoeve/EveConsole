@@ -1954,7 +1954,76 @@ public class EsiPollingService : ReactiveObject
             IsBlocked   = c.IsBlocked ?? false,
         }));
         await db.SaveChangesAsync(ct);
+
+        await FetchAllianceContactsAsync(charId, db, ct);
         return FromResult(r);
+    }
+
+    // When each alliance's contacts were last read, and one gate per alliance: every member
+    // character's contacts poll offers to read them, and only the first in a while needs to.
+    private static readonly ConcurrentDictionary<long, DateTimeOffset> _allianceContactsRead = new();
+    private static readonly ConcurrentDictionary<long, SemaphoreSlim>  _allianceContactsGate = new();
+    private static readonly TimeSpan AllianceContactsEvery = TimeSpan.FromMinutes(5);
+
+    /// <summary>
+    /// The alliance's contacts, read through one of its member characters, stored with
+    /// <c>OwnerType = "alliance"</c> beside the characters' and corporations' own.
+    ///
+    /// <para>⚠️ Where coalition standings live. Blues are usually set once, on the alliance, not
+    /// on every pilot or corporation — and only character and corporation contacts were read, so
+    /// an ally blue only by the alliance's standing showed on the live map as hostile, and the
+    /// intel alarm would have called them in as they killed a target. Everything that asks "is
+    /// this one blue" reads EsiContacts by standing, whoever set it, so these count at once.</para>
+    ///
+    /// <para>Best effort, and never the character poll's failure: a character without the
+    /// alliance scope (granted with the others since it was added) or a refused read leaves
+    /// the alliance's stored contacts as they were.</para>
+    ///
+    /// <para>⚠️ Replaced in one transaction. Deleting and then inserting left a moment with no
+    /// alliance blues at all, and a map or alarm reading then would see every ally as hostile.</para>
+    /// </summary>
+    private async Task FetchAllianceContactsAsync(long charId, AppDbContext db, CancellationToken ct)
+    {
+        var allianceId = await db.Characters.AsNoTracking()
+            .Where(c => c.Id == charId).Select(c => c.AllianceId).FirstOrDefaultAsync(ct);
+        if (allianceId is not > 0) return;
+        long alliance = allianceId.Value;
+
+        var gate = _allianceContactsGate.GetOrAdd(alliance, _ => new SemaphoreSlim(1, 1));
+        if (!await gate.WaitAsync(0, ct)) return;   // another member is reading them now
+        try
+        {
+            if (_allianceContactsRead.TryGetValue(alliance, out var last)
+                && DateTimeOffset.UtcNow - last < AllianceContactsEvery)
+                return;
+
+            var r = await _esi.ExecuteAllPagesAsync<EsiContactData>(charId,
+                $"alliances/{alliance}/contacts/", ct);
+            if (!r.IsSuccess || r.Data is null) return;
+
+            await using var tx = await db.Database.BeginTransactionAsync(ct);
+            await db.EsiContacts
+                .Where(c => c.OwnerId == alliance && c.OwnerType == "alliance")
+                .ExecuteDeleteAsync(ct);
+            db.EsiContacts.AddRange(r.Data.Select(c => new ContactEntry
+            {
+                OwnerId     = alliance,
+                OwnerType   = "alliance",
+                ContactId   = c.ContactId,
+                ContactType = c.ContactType,
+                Standing    = c.Standing,
+            }));
+            await db.SaveChangesAsync(ct);
+            await tx.CommitAsync(ct);
+
+            _allianceContactsRead[alliance] = DateTimeOffset.UtcNow;
+        }
+        catch (OperationCanceledException) { throw; }
+        catch (Exception ex)
+        {
+            _errorLogger?.Log(nameof(EsiPollingService), $"alliance contacts for {alliance}", ex.Message);
+        }
+        finally { gate.Release(); }
     }
 
     private async Task<PollingResult> FetchKillMailsAsync(long charId, AppDbContext db, CancellationToken ct)
