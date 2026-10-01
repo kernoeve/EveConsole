@@ -232,6 +232,14 @@
     <value>PILOT</value>
     <comment>Fitting tool, above a fit: label before the pilot pick list — whose skills the numbers are worked out with. Upper case in English.</comment>
   </data>
+  <data name="ModeLabel" xml:space="preserve">
+    <value>MODE</value>
+    <comment>Fitting tool, above a tactical destroyer's fit: label before the pick list of its modes (Defense, Propulsion, Sharpshooter). Upper case in English, like PILOT.</comment>
+  </data>
+  <data name="TipMode" xml:space="preserve">
+    <value>The tactical mode the ship is in — its bonuses are in the numbers</value>
+    <comment>Fitting tool: tooltip on the tactical mode pick list of a tactical destroyer.</comment>
+  </data>
   <data name="TipPilot" xml:space="preserve">
     <value>Whose skills the numbers are calculated with</value>
     <comment>Fitting tool, above a fit: tooltip on the pilot pick list.</comment>

@@ -175,6 +175,12 @@
   <data name="PilotLabel" xml:space="preserve">
     <value>飞行员</value>
   </data>
+  <data name="ModeLabel" xml:space="preserve">
+    <value>模式</value>
+  </data>
+  <data name="TipMode" xml:space="preserve">
+    <value>舰船所处的战术模式，其加成已计入各项数值</value>
+  </data>
   <data name="TipPilot" xml:space="preserve">
     <value>按谁的技能计算各项数值</value>
   </data>

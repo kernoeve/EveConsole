@@ -178,6 +178,33 @@ public sealed class DogmaData
     public int AttrId(string name) => AttributesByName.TryGetValue(name, out var a) ? a.Id
         : throw new KeyNotFoundException($"dogma attribute '{name}' is not in the SDE");
 
+    /// <summary>The SDE's group of tactical modes ("Ship Modifiers"): Svipul Defense Mode and the like.</summary>
+    public const int GroupShipModifiers = 1306;
+
+    private List<(int Id, string Name)>? _modeTypes;
+
+    /// <summary>
+    /// The modes <paramref name="hullTypeId"/> switches between — the "Ship Modifiers" named after it,
+    /// "Svipul Defense Mode" and its like, the name being all that ties a mode to its hull in the SDE —
+    /// in the order the SDE numbers them: the first (Defense, or the Anhinga's Primary) is where a
+    /// fit starts. Loaded, ready to use. Empty for a hull without modes.
+    /// </summary>
+    public async Task<IReadOnlyList<int>> ModesForAsync(int hullTypeId, CancellationToken ct = default)
+    {
+        if (_modeTypes is null)
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync(ct);
+            _modeTypes = (await db.SdeTypes.AsNoTracking().Where(t => t.GroupId == GroupShipModifiers)
+                    .Select(t => new { t.TypeId, t.Name }).ToListAsync(ct))
+                .OrderBy(t => t.TypeId).Select(t => (t.TypeId, t.Name)).ToList();
+        }
+        await LoadTypesAsync([hullTypeId], ct);
+        if (!TryType(hullTypeId, out var hull)) return [];
+        var ids = _modeTypes.Where(m => m.Name.StartsWith(hull.Name + " ", StringComparison.Ordinal)).Select(m => m.Id).ToList();
+        await LoadTypesAsync(ids, ct);
+        return ids;
+    }
+
     /// <summary>
     /// The effect a module cycles when the SDE marks none as its default: its one active or
     /// targeted effect with a duration. Jump portal generators are like this — without it they

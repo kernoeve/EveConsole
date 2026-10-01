@@ -175,6 +175,12 @@
   <data name="PilotLabel" xml:space="preserve">
     <value>パイロット</value>
   </data>
+  <data name="ModeLabel" xml:space="preserve">
+    <value>モード</value>
+  </data>
+  <data name="TipMode" xml:space="preserve">
+    <value>艦船の戦術モード。そのボーナスは数値に反映されます</value>
+  </data>
   <data name="TipPilot" xml:space="preserve">
     <value>数値の計算に使うスキルの持ち主</value>
   </data>

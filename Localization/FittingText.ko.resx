@@ -175,6 +175,12 @@
   <data name="PilotLabel" xml:space="preserve">
     <value>파일럿</value>
   </data>
+  <data name="ModeLabel" xml:space="preserve">
+    <value>모드</value>
+  </data>
+  <data name="TipMode" xml:space="preserve">
+    <value>함선의 전술 모드 — 그 보너스가 수치에 반영됩니다</value>
+  </data>
   <data name="TipPilot" xml:space="preserve">
     <value>수치를 계산할 때 스킬을 적용할 파일럿</value>
   </data>

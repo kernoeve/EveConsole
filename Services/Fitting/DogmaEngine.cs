@@ -1,6 +1,6 @@
 namespace EveConsole.Services.Fitting;
 
-public enum DogmaItemKind { Character, Skill, Ship, Module, Rig, Subsystem, Charge, Drone, Fighter, Implant, Booster }
+public enum DogmaItemKind { Character, Skill, Ship, Module, Rig, Subsystem, Charge, Drone, Fighter, Implant, Booster, Mode }
 
 /// <summary>One item taking part in a calculation: the ship, a module, a skill, a drone stack…</summary>
 public sealed class DogmaItem
@@ -89,6 +89,9 @@ public sealed class DogmaEngine
     public DamageProfile DamageProfile { get; }
     public DogmaItem Character { get; }
     public DogmaItem Ship      { get; }
+    /// <summary>A tactical destroyer's mode: part of the hull, its effects passive and never
+    /// stacking-penalized, as a subsystem's are not. Null for a hull without modes.</summary>
+    public DogmaItem? Mode     { get; }
     public IReadOnlyList<DogmaItem> Skills   { get; }
     public IReadOnlyList<DogmaItem> Modules  { get; }   // incl. rigs and subsystems, fit order
     public IReadOnlyList<DogmaItem> Charges  { get; }
@@ -123,6 +126,8 @@ public sealed class DogmaEngine
             }).ToList();
 
         Ship = new DogmaItem { Kind = DogmaItemKind.Ship, Type = data.Type(fit.ShipTypeId) };
+        if (fit.ModeTypeId is { } mode && data.TryType(mode, out var modeType))
+            Mode = new DogmaItem { Kind = DogmaItemKind.Mode, Type = modeType };
 
         var modules = new List<DogmaItem>();
         var charges = new List<DogmaItem>();
@@ -195,6 +200,7 @@ public sealed class DogmaEngine
         yield return Character;
         foreach (var s in Skills)   yield return s;
         yield return Ship;
+        if (Mode is not null) yield return Mode;
         foreach (var m in Modules)  yield return m;
         foreach (var c in Charges)  yield return c;
         foreach (var d in Drones)   yield return d;
@@ -340,7 +346,7 @@ public sealed class DogmaEngine
     {
         if (m.PenalizedOverride is { } forced) return forced;
         if (target is null || target.Stackable) return false;
-        if (m.Source.Kind is DogmaItemKind.Character or DogmaItemKind.Skill) return false;
+        if (m.Source.Kind is DogmaItemKind.Character or DogmaItemKind.Skill or DogmaItemKind.Mode) return false;
         return !PenaltyExemptCategories.Contains(m.Source.Type.CategoryId);
     }
 

@@ -68,6 +68,12 @@ public static class EftFormat
         {
             if (!ids.TryGetValue(e.Name, out var id)) { unknown.Add(e.Name); continue; }
             var type = data.Type(id);
+            // A tactical destroyer's mode, written as a line of its own; another hull's is not this fit's.
+            if (type.GroupId == DogmaData.GroupShipModifiers && !e.Stack)
+            {
+                if ((await data.ModesForAsync(shipId, ct)).Contains(id)) fit.ModeTypeId = id; else unknown.Add(e.Name);
+                continue;
+            }
             switch (type.CategoryId)
             {
                 case DogmaData.CategoryDrone when e.Stack:
@@ -122,6 +128,8 @@ public static class EftFormat
                 sb.Append('\n');
             }
         }
+        // A tactical destroyer's mode: a line of its own after the slots, as fitting tools write it.
+        if (fit.ModeTypeId is { } mode) sb.Append('\n').Append(Name(mode)).Append('\n');
         // Drones, then fighters, each a block of "name xN" — a fighter line per squadron.
         bool IsFighter(FitDrone d) => data.TryType(d.TypeId, out var t) && t.CategoryId == DogmaData.CategoryFighter;
         foreach (var block in new[] { fit.Drones.Where(d => !IsFighter(d)).ToList(), fit.Drones.Where(IsFighter).ToList() })

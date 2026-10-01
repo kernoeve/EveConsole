@@ -32,6 +32,11 @@
           <ComboBox DockPanel.Dock="Right" ItemsSource="{Binding SkillSources}" SelectedItem="{Binding SelectedSkillSource}"
                     MinWidth="150" FontSize="12" ToolTip.Tip="{x:Static loc:FittingText.TipPilot}" />
           <TextBlock DockPanel.Dock="Right" Text="{x:Static loc:FittingText.PilotLabel}" Classes="section" Margin="8 0 6 0" VerticalAlignment="Center" />
+          <!-- A tactical destroyer's mode; only for hulls that have them. -->
+          <ComboBox DockPanel.Dock="Right" ItemsSource="{Binding Modes}" SelectedItem="{Binding SelectedMode}" IsVisible="{Binding HasModes}"
+                    MinWidth="150" FontSize="12" ToolTip.Tip="{x:Static loc:FittingText.TipMode}" />
+          <TextBlock DockPanel.Dock="Right" Text="{x:Static loc:FittingText.ModeLabel}" Classes="section" Margin="8 0 6 0" VerticalAlignment="Center"
+                     IsVisible="{Binding HasModes}" />
           <TextBlock Text="{Binding ShipName}" Classes="big" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
         </DockPanel>
         <Grid Grid.Row="1" Grid.Column="1">

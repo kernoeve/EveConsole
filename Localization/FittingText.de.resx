@@ -175,6 +175,12 @@
   <data name="PilotLabel" xml:space="preserve">
     <value>Pilot</value>
   </data>
+  <data name="ModeLabel" xml:space="preserve">
+    <value>Modus</value>
+  </data>
+  <data name="TipMode" xml:space="preserve">
+    <value>Der taktische Modus des Schiffs – seine Boni sind in den Werten enthalten</value>
+  </data>
   <data name="TipPilot" xml:space="preserve">
     <value>Mit wessen Skills die Werte berechnet werden</value>
   </data>

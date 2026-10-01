@@ -297,6 +297,12 @@ public sealed class FinderGroupNode(int id, string name, HashSet<int> expanded) 
     }
 }
 
+/// <summary>A tactical mode in the pick list: its type, and its name as shown.</summary>
+public sealed record ModeOption(int TypeId, string Name)
+{
+    public override string ToString() => Name;
+}
+
 public sealed record DamageProfileOption(string Key, string Name, DamageProfile? Profile)
 {
     public bool IsCustom => Profile is null;
@@ -1104,6 +1110,7 @@ public class FitTabViewModel : ReactiveObject
     public async Task StartAsync(CatalogEntry hull)
     {
         SetShip(hull.TypeId);
+        await LoadModesAsync(null);
         FitName = string.Format(FittingText.NewFitName, hull.DisplayName);
         RebuildSlots();
         await RecalculateAsync(CancellationToken.None);
@@ -1151,6 +1158,44 @@ public class FitTabViewModel : ReactiveObject
     {
         if (_gameSource is not null) await UpdateInGameAsync();
         else if (_loadedSavedId is { } id) await SaveToAppAsync(id);
+    }
+
+    // ── Tactical mode ───────────────────────────────────────────────────────────
+
+    private int? _modeTypeId;
+    /// <summary>The modes the hull switches between (a tactical destroyer's); empty for any other.</summary>
+    public ObservableCollection<ModeOption> Modes { get; } = [];
+    public bool HasModes => Modes.Count > 0;
+
+    /// <summary>The mode the fit is in. The game keeps no mode in a saved fitting, so a fit from
+    /// the game starts in the hull's first; EFT carries it.</summary>
+    public ModeOption? SelectedMode
+    {
+        get => Modes.FirstOrDefault(m => m.TypeId == _modeTypeId);
+        set
+        {
+            // A detaching ComboBox sets null; that is not a choice.
+            if (value is null || value.TypeId == _modeTypeId) { this.RaisePropertyChanged(); return; }
+            _modeTypeId = value.TypeId;
+            this.RaisePropertyChanged();
+            this.RaisePropertyChanged(nameof(TabDirty));
+            ScheduleRecalc();
+        }
+    }
+
+    /// <summary>The hull's modes, and <paramref name="wanted"/> chosen if it is one of them, else the first.</summary>
+    private async Task LoadModesAsync(int? wanted)
+    {
+        Modes.Clear();
+        _modeTypeId = null;
+        if (_data is not null && _shipTypeId != 0)
+        {
+            var ids = await _data.ModesForAsync(_shipTypeId);
+            foreach (var id in ids) Modes.Add(new ModeOption(id, SdeNames.Type(id, _data.Type(id).Name)));
+            _modeTypeId = wanted is { } w && ids.Contains(w) ? w : ids.Count > 0 ? ids[0] : null;
+        }
+        this.RaisePropertyChanged(nameof(HasModes));
+        this.RaisePropertyChanged(nameof(SelectedMode));
     }
 
     // ── Header: hull, name, pilot ───────────────────────────────────────────────
@@ -1436,6 +1481,7 @@ public class FitTabViewModel : ReactiveObject
         _shipTypeId = 0; ShipName = ""; ShipIcon = null; ShipRender = null; SelectedModule = null; FitName = "";
         _modules.Clear(); Drones.Clear(); Implants.Clear(); Cargo.Clear();
         _lastEngine = null;
+        _modeTypeId = null; Modes.Clear(); this.RaisePropertyChanged(nameof(HasModes));
         SetOrigin(null, null);
         this.RaisePropertyChanged(nameof(HasShip));
         RebuildSlots();
@@ -1906,7 +1952,7 @@ public class FitTabViewModel : ReactiveObject
 
     public FitDefinition CurrentFit()
     {
-        var fit = new FitDefinition { ShipTypeId = _shipTypeId, Name = FitName };
+        var fit = new FitDefinition { ShipTypeId = _shipTypeId, Name = FitName, ModeTypeId = _modeTypeId };
         fit.Modules.AddRange(_modules.Select(m => new FitModule(m.TypeId, m.State, m.Charge?.TypeId)));
         fit.Drones.AddRange(Drones.Select(d => new FitDrone(d.TypeId, d.Count, d.Active,
             d.IsFighter ? d.Abilities.Where(a => a.IsOn).Select(a => a.Ability.EffectId).ToList() : null)));
@@ -2258,6 +2304,7 @@ public class FitTabViewModel : ReactiveObject
         await _data.LoadTypesAsync(fit.AllTypeIds());
         NewFit(announce: false);
         SetShip(fit.ShipTypeId);
+        await LoadModesAsync(fit.ModeTypeId);
         FitName = fit.Name;
         foreach (var m in fit.Modules) await AddModuleAsync(m.TypeId, m.State, m.ChargeTypeId);
         // Launched counts are a starting point; the first calculation trims them to what the pilot

@@ -175,6 +175,12 @@
   <data name="PilotLabel" xml:space="preserve">
     <value>Piloto</value>
   </data>
+  <data name="ModeLabel" xml:space="preserve">
+    <value>Modo</value>
+  </data>
+  <data name="TipMode" xml:space="preserve">
+    <value>El modo táctico de la nave: sus bonificaciones están en las cifras</value>
+  </data>
   <data name="TipPilot" xml:space="preserve">
     <value>El piloto con cuyas habilidades se calculan las cifras</value>
   </data>

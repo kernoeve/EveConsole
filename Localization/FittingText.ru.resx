@@ -175,6 +175,12 @@
   <data name="PilotLabel" xml:space="preserve">
     <value>Пилот</value>
   </data>
+  <data name="ModeLabel" xml:space="preserve">
+    <value>Режим</value>
+  </data>
+  <data name="TipMode" xml:space="preserve">
+    <value>Тактический режим корабля — его бонусы учтены в показателях</value>
+  </data>
   <data name="TipPilot" xml:space="preserve">
     <value>С чьими навыками рассчитываются показатели</value>
   </data>

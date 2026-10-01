@@ -24,9 +24,13 @@ public sealed class FitDefinition
     public List<int>       Implants { get; } = [];
     public List<int>       Boosters { get; } = [];
     public List<(int TypeId, int Quantity)> Cargo { get; } = [];
+    /// <summary>A tactical destroyer's mode (a "Ship Modifiers" type such as Svipul Defense Mode),
+    /// for a hull that has them; null for any other.</summary>
+    public int? ModeTypeId { get; set; }
 
     public IEnumerable<int> AllTypeIds() =>
         new[] { ShipTypeId }
+            .Concat(ModeTypeId is { } mode ? [mode] : Array.Empty<int>())
             .Concat(Modules.Select(m => m.TypeId))
             .Concat(Modules.Where(m => m.ChargeTypeId is not null).Select(m => m.ChargeTypeId!.Value))
             .Concat(Drones.Select(d => d.TypeId))
