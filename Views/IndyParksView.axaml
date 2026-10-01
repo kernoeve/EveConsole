@@ -150,7 +150,12 @@
                                FontSize="11" Watermark="{x:Static loc:IndustryText.HintSystem}">
                 <AutoCompleteBox.ItemTemplate>
                   <DataTemplate x:DataType="services:SdeSystemResult">
-                    <TextBlock Text="{Binding DisplayName}" />
+                    <!-- The region beside the system, as every system picker shows it. -->
+                    <Grid ColumnDefinitions="*,Auto" MinWidth="220">
+                      <TextBlock Grid.Column="0" Text="{Binding DisplayName}" />
+                      <TextBlock Grid.Column="1" Text="{Binding RegionLabel}" FontSize="10" Margin="10 0 0 0"
+                                 Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+                    </Grid>
                   </DataTemplate>
                 </AutoCompleteBox.ItemTemplate>
               </AutoCompleteBox>
@@ -248,7 +253,12 @@
                                          FontSize="12" Padding="8 4">
                           <AutoCompleteBox.ItemTemplate>
                             <DataTemplate x:DataType="services:SdeSystemResult">
-                              <TextBlock Text="{Binding DisplayName}" />
+                              <!-- The region beside the system, as every system picker shows it. -->
+                              <Grid ColumnDefinitions="*,Auto" MinWidth="220">
+                                <TextBlock Grid.Column="0" Text="{Binding DisplayName}" />
+                                <TextBlock Grid.Column="1" Text="{Binding RegionLabel}" FontSize="10" Margin="10 0 0 0"
+                                           Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+                              </Grid>
                             </DataTemplate>
                           </AutoCompleteBox.ItemTemplate>
                         </AutoCompleteBox>

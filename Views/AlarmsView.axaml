@@ -127,9 +127,13 @@
           <!-- A type-ahead suggestion: the name in the interface language, and the English the
                alarm stores beside it when the two differ. Picking one puts the English in the box. -->
           <DataTemplate x:Key="NameSuggestionTemplate" x:DataType="vm:AlarmNameSuggestion">
-            <Grid ColumnDefinitions="*,Auto">
+            <Grid ColumnDefinitions="*,Auto,Auto">
               <TextBlock Grid.Column="0" Text="{Binding Shown}" />
               <TextBlock Grid.Column="1" Text="{Binding English}" IsVisible="{Binding IsTranslated}"
+                         FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
+                         Margin="12 0 0 0" VerticalAlignment="Center" />
+              <!-- A system's region, as every system picker shows it. -->
+              <TextBlock Grid.Column="2" Text="{Binding Region}"
                          FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
                          Margin="12 0 0 0" VerticalAlignment="Center" />
             </Grid>
@@ -291,7 +295,7 @@
               <ItemsControl ItemsSource="{Binding Fields}">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate x:DataType="vm:AlarmFieldVm">
-                    <StackPanel Margin="0 0 0 8" IsVisible="{Binding !IsStage}">
+                    <StackPanel Margin="0 0 0 8" IsVisible="{Binding IsInForm}">
                       <TextBlock Classes="flabel" Text="{Binding Label}" />
 
                       <TextBox Text="{Binding Text}" IsVisible="{Binding IsText}"

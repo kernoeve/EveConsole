@@ -1509,4 +1509,273 @@
   <data name="ReagentSuperionicIcePerHour" xml:space="preserve">
     <value>초이온성 아이스 {0:N0}/시간</value>
   </data>
+  <data name="SearchConstellationIn" xml:space="preserve">
+    <value>성좌 · {0}</value>
+  </data>
+  <data name="LiveMarksLabel" xml:space="preserve">
+    <value>실시간 표시</value>
+  </data>
+  <data name="LiveMarkHostiles" xml:space="preserve">
+    <value>최근 5분 동안 인텔 또는 킬 메일로 이곳에서 확인된 적대 세력입니다. 마우스를 올리면 누가 무엇을 타고 있는지 표시합니다.</value>
+  </data>
+  <data name="LiveMarkOwn" xml:space="preserve">
+    <value>이곳에서 접속 중인 내 캐릭터입니다. 마우스를 올리면 함선과 정박 여부를 표시합니다.</value>
+  </data>
+  <data name="TipMapTab" xml:space="preserve">
+    <value>막대를 따라 끌면 순서를 바꾸고, 오른쪽 절반으로 끌면 탭 두 개를 나란히 봅니다.</value>
+  </data>
+  <data name="TipCloseMapTab" xml:space="preserve">
+    <value>이 탭 닫기</value>
+  </data>
+  <data name="NewUniverseTab" xml:space="preserve">
+    <value>+ 새 지도</value>
+  </data>
+  <data name="TipNewUniverseTab" xml:space="preserve">
+    <value>뉴에덴 지도를 새 탭으로 엽니다.</value>
+  </data>
+  <data name="HintSystemConstellationRegion" xml:space="preserve">
+    <value>항성계, 성좌 또는 지역</value>
+  </data>
+  <data name="TipMapSearch" xml:space="preserve">
+    <value>선택한 항목을 새 탭으로 엽니다. 항성계 페이지 또는 성좌나 지역에 맞춘 지도입니다.</value>
+  </data>
+  <data name="EmptyMapToolHint" xml:space="preserve">
+    <value>열린 탭이 없습니다. + 새 지도로 지도를 추가하거나 항성계, 성좌 또는 지역을 검색하십시오.</value>
+  </data>
+  <data name="DropSideBySide" xml:space="preserve">
+    <value>여기에 놓으면 탭 두 개를 나란히 봅니다</value>
+  </data>
+  <data name="LiveHostilesTitle" xml:space="preserve">
+    <value>{1}의 적대 세력: {0}</value>
+  </data>
+  <data name="LiveOwnTitle" xml:space="preserve">
+    <value>{1}의 내 캐릭터: {0}</value>
+  </data>
+  <data name="LiveSystemCount" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="LiveHostileLine" xml:space="preserve">
+    <value>{0} — {1} · {2} · {3}</value>
+  </data>
+  <data name="LiveShipUnknown" xml:space="preserve">
+    <value>함선 알 수 없음</value>
+  </data>
+  <data name="LiveJustNow" xml:space="preserve">
+    <value>방금</value>
+  </data>
+  <data name="LiveMinutesAgo" xml:space="preserve">
+    <value>{0}분 전</value>
+  </data>
+  <data name="LiveSourceKillmail" xml:space="preserve">
+    <value>킬 메일</value>
+  </data>
+  <data name="LiveSourceIntel" xml:space="preserve">
+    <value>인텔</value>
+  </data>
+  <data name="LiveSourceIntelNoVisual" xml:space="preserve">
+    <value>인텔, NV</value>
+  </data>
+  <data name="LiveMore" xml:space="preserve">
+    <value>…외 {0}명</value>
+  </data>
+  <data name="LiveUnidentified" xml:space="preserve">
+    <value>+{0}명 이름 없음</value>
+  </data>
+  <data name="LiveOwnLine" xml:space="preserve">
+    <value>{0} — {1} · {2}</value>
+  </data>
+  <data name="LiveInSpace" xml:space="preserve">
+    <value>비행 중</value>
+  </data>
+  <data name="LiveDockedAt" xml:space="preserve">
+    <value>{0}에 정박 중</value>
+  </data>
+  <data name="LiveDocked" xml:space="preserve">
+    <value>정박 중</value>
+  </data>
+  <data name="LiveCharacterId" xml:space="preserve">
+    <value>캐릭터 {0}</value>
+  </data>
+  <data name="SidePanel" xml:space="preserve">
+    <value>세부 정보</value>
+  </data>
+  <data name="TipSidePanel" xml:space="preserve">
+    <value>오른쪽의 세부 정보와 범례를 표시하거나 숨깁니다.</value>
+  </data>
+  <data name="JumpBridgesTab" xml:space="preserve">
+    <value>점프 브릿지</value>
+  </data>
+  <data name="TipJumpBridgesTab" xml:space="preserve">
+    <value>ESI로 확인하거나 직접 추가한 모든 점프 브릿지와 추가하기</value>
+  </data>
+  <data name="JumpBridgesToggle" xml:space="preserve">
+    <value>점프 브릿지</value>
+  </data>
+  <data name="TipJumpBridgesToggle" xml:space="preserve">
+    <value>지도에 점프 브릿지를 표시하거나 숨깁니다.</value>
+  </data>
+  <data name="BridgeTitle" xml:space="preserve">
+    <value>점프 브릿지: {0} ⇄ {1}</value>
+  </data>
+  <data name="BridgeFuelUntil" xml:space="preserve">
+    <value>연료 {0}까지</value>
+  </data>
+  <data name="BridgeOneGate" xml:space="preserve">
+    <value>ESI에서는 {0}의 게이트만 보입니다</value>
+  </data>
+  <data name="BridgeAddedByHand" xml:space="preserve">
+    <value>직접 추가</value>
+  </data>
+  <data name="BridgesSummary" xml:space="preserve">
+    <value>점프 브릿지: {0} · ESI: {1} · 직접 추가: {2}</value>
+  </data>
+  <data name="BridgesNote" xml:space="preserve">
+    <value>ESI의 브릿지는 토큰을 추가한 코퍼레이션의 안시블렉스이며, 이름("A » B")이 가리키는 곳으로 이어집니다. 나머지(다른 코퍼레이션과 동맹의 브릿지)는 직접 추가하십시오. 여기서는 직접 추가한 브릿지만 삭제할 수 있습니다.</value>
+  </data>
+  <data name="BridgesNone" xml:space="preserve">
+    <value>아직 알려진 점프 브릿지가 없습니다.</value>
+  </data>
+  <data name="BridgesUnreadLabel" xml:space="preserve">
+    <value>이름으로 목적지를 알 수 없는 게이트</value>
+  </data>
+  <data name="BridgeUnreadLine" xml:space="preserve">
+    <value>{0} ({1})</value>
+  </data>
+  <data name="BridgeNoName" xml:space="preserve">
+    <value>(이름 없음)</value>
+  </data>
+  <data name="BridgeColFrom" xml:space="preserve">
+    <value>항성계</value>
+  </data>
+  <data name="BridgeColTo" xml:space="preserve">
+    <value>항성계</value>
+  </data>
+  <data name="BridgeColSource" xml:space="preserve">
+    <value>출처</value>
+  </data>
+  <data name="BridgeColFuel" xml:space="preserve">
+    <value>연료</value>
+  </data>
+  <data name="BridgeColGates" xml:space="preserve">
+    <value>게이트</value>
+  </data>
+  <data name="BridgeSourceEsiBoth" xml:space="preserve">
+    <value>ESI, 게이트 둘 다</value>
+  </data>
+  <data name="BridgeSourceEsiOne" xml:space="preserve">
+    <value>ESI, 게이트 하나</value>
+  </data>
+  <data name="BridgeSourceManual" xml:space="preserve">
+    <value>직접 추가</value>
+  </data>
+  <data name="BridgeSourceBoth" xml:space="preserve">
+    <value>ESI 및 직접 추가</value>
+  </data>
+  <data name="BridgeFuelDays" xml:space="preserve">
+    <value>{0}일 ({1})</value>
+  </data>
+  <data name="TipOpenSystemTab" xml:space="preserve">
+    <value>이 항성계를 탭으로 열기</value>
+  </data>
+  <data name="TipRemoveBridge" xml:space="preserve">
+    <value>이 브릿지 삭제</value>
+  </data>
+  <data name="AddBridgeLabel" xml:space="preserve">
+    <value>브릿지 추가</value>
+  </data>
+  <data name="HintBridgeFrom" xml:space="preserve">
+    <value>한쪽 끝(항성계)</value>
+  </data>
+  <data name="HintBridgeTo" xml:space="preserve">
+    <value>다른 쪽 끝(항성계)</value>
+  </data>
+  <data name="HintBridgeNote" xml:space="preserve">
+    <value>메모(선택)</value>
+  </data>
+  <data name="AddBridge" xml:space="preserve">
+    <value>추가</value>
+  </data>
+  <data name="BridgePickBoth" xml:space="preserve">
+    <value>양쪽 끝의 항성계를 선택하십시오.</value>
+  </data>
+  <data name="BridgeAdded" xml:space="preserve">
+    <value>{0} ⇄ {1}을(를) 추가했습니다.</value>
+  </data>
+  <data name="BridgeNotAdded" xml:space="preserve">
+    <value>이미 목록에 있는 브릿지이거나 양쪽 끝이 같은 항성계입니다.</value>
+  </data>
+  <data name="PasteBridgesLabel" xml:space="preserve">
+    <value>목록 붙여넣기</value>
+  </data>
+  <data name="HintPasteBridges" xml:space="preserve">
+    <value>한 줄에 브릿지 하나. 예:
+QZ-X77 » XQ1-Z2 - Home run
+XQ1-Z2 &lt;-&gt; 9-97XQ
+또는 다른 도구의 내보내기 형식</value>
+  </data>
+  <data name="ImportBridges" xml:space="preserve">
+    <value>가져오기</value>
+  </data>
+  <data name="BridgesImported" xml:space="preserve">
+    <value>추가 {0} · 이미 있음 {1} · 읽지 못함 {2}(상자에 남음)</value>
+  </data>
+  <data name="LegendJumpBridge" xml:space="preserve">
+    <value>점프 브릿지 — 각 절반은 해당 끝의 구역 색상, ESI에서 게이트가 하나만 보이면 흐리게 표시</value>
+  </data>
+  <data name="BridgeAllianceId" xml:space="preserve">
+    <value>얼라이언스 {0}</value>
+  </data>
+  <data name="BridgeDirectionLine" xml:space="preserve">
+    <value>{0} → {1}: {2} · {3}</value>
+  </data>
+  <data name="BridgeZoneFree" xml:space="preserve">
+    <value>구역 1(수도에서 {0:0.0}광년), 무료</value>
+  </data>
+  <data name="BridgeZoneCost" xml:space="preserve">
+    <value>구역 {0}(수도에서 {1:0.0}광년), 캐패시터 {2}배</value>
+  </data>
+  <data name="BridgeZoneNoCapital" xml:space="preserve">
+    <value>구역 알 수 없음(얼라이언스에 수도 항성계가 없음)</value>
+  </data>
+  <data name="BridgeNoSov" xml:space="preserve">
+    <value>{0} → {1}: {0}의 소버린티를 가진 곳이 없어 이 방향으로는 아무도 점프할 수 없습니다</value>
+  </data>
+  <data name="BridgeSovUnknown" xml:space="preserve">
+    <value>점프 가능 대상을 읽지 못했습니다. 현재 소버린티 데이터를 사용할 수 없습니다.</value>
+  </data>
+  <data name="BridgesRulesNote" xml:space="preserve">
+    <value>2026년 9월 22일부터 브릿지는 점프가 시작되는 항성계의 소버린티를 가진 얼라이언스만 사용할 수 있으며, 캐피탈 함선은 사용할 수 없습니다(로퀄과 화물선 제외). 점프마다 브릿지의 캐패시터를 소모하며, 해당 얼라이언스의 수도에서 도착 지점이 멀수록 더 많이 소모합니다. 5광년 이내는 무료(구역 1), 이후 5광년마다 함선 기본 비용의 2배, 6배, 9배, 15배입니다.</value>
+  </data>
+  <data name="OverlaySovZones" xml:space="preserve">
+    <value>소버린티 구역</value>
+  </data>
+  <data name="SovZoneCaption" xml:space="preserve">
+    <value>Z{0} · {1}</value>
+  </data>
+  <data name="NodeSovZone" xml:space="preserve">
+    <value>{0}
+구역 {1}: 수도에서 {2:0.0}광년, {3}</value>
+  </data>
+  <data name="NodeSovNoCapital" xml:space="preserve">
+    <value>{0}
+수도 항성계가 없어 구역 없음</value>
+  </data>
+  <data name="LegendZone1" xml:space="preserve">
+    <value>Z1: 5광년 이내, 무료</value>
+  </data>
+  <data name="LegendZone2" xml:space="preserve">
+    <value>Z2: 5–10광년, 2배</value>
+  </data>
+  <data name="LegendZone3" xml:space="preserve">
+    <value>Z3: 10–15광년, 6배</value>
+  </data>
+  <data name="LegendZone4" xml:space="preserve">
+    <value>Z4: 15–20광년, 9배</value>
+  </data>
+  <data name="LegendZone5" xml:space="preserve">
+    <value>Z5: 20광년 초과, 15배</value>
+  </data>
+  <data name="LegendZoneNoCapital" xml:space="preserve">
+    <value>보유자에게 수도 항성계가 없음</value>
+  </data>
 </root>

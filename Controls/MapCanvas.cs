@@ -4,6 +4,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
 using Avalonia.Media.Immutable;
 using Avalonia.Threading;
 using EveConsole.Services;
@@ -20,6 +21,34 @@ namespace EveConsole.Controls;
 /// measuring (constellation, security, kill count). Shown under the dot at low zoom.</param>
 /// <param name="Detail">Longer text for the hover tooltip.</param>
 public sealed record MapNodeStyle(Color Fill, string? Caption = null, string? Detail = null);
+
+/// <summary>
+/// Live marks on one node: hostiles believed to be there now, and the user's own characters.
+/// Each carries the text its hover shows, so the canvas stays ignorant of intel.
+/// </summary>
+public sealed record MapMarkers(
+    int Hostiles, string? HostileTitle, string? HostileDetail,
+    int Own,      string? OwnTitle,     string? OwnDetail,
+    IReadOnlyList<MapMarkRow>? HostileRows = null,
+    IReadOnlyList<MapMarkRow>? OwnRows     = null);
+
+/// <summary>One line of a mark's hover: the pilot's portrait in front of it, and the ship's icon
+/// just before the ship's name in it.</summary>
+/// <param name="ShipAt">Where in <see cref="Text"/> the ship's name starts, so the icon goes
+/// beside the name whichever order a language puts the words in; -1 for no ship.</param>
+public sealed record MapMarkRow(string Text, long CharacterId = 0, int ShipTypeId = 0, int ShipAt = -1);
+
+/// <summary>A jump bridge drawn as an arc between two systems, and what its hover says.</summary>
+/// <param name="Complete">Both gates are known; false draws it fainter.</param>
+/// <param name="ZoneFrom">The zone of the half at <see cref="FromId"/>: the zone a jump landing
+/// there is in. 0 when not known, drawn in the plain bridge colour.</param>
+/// <param name="ZoneTo">The same for the half at <see cref="ToId"/>.</param>
+public sealed record MapBridgeLine(int FromId, int ToId, string Title, string Detail, bool Complete,
+                                   int ZoneFrom = 0, int ZoneTo = 0);
+
+/// <summary>Where the view is looking: the world point at its centre and the zoom. Held by the
+/// view model so a tab keeps its place when the view is rebuilt.</summary>
+public sealed record MapCamera(double CenterX, double CenterY, double Scale);
 
 /// <summary>
 /// Pan/zoom node-and-link map, drawn directly rather than with one visual per node — a region
@@ -73,6 +102,43 @@ public class MapCanvas : Control
     public static readonly StyledProperty<ICommand?> ActivateCommandProperty =
         AvaloniaProperty.Register<MapCanvas, ICommand?>(nameof(ActivateCommand));
 
+    /// <summary>Hostiles and own characters per node id (systems, and regions on the zoomed-out
+    /// tier). Drawn on every form of node — dot, box, region — since "somebody is there" matters
+    /// at any zoom.</summary>
+    /// <summary>Jump bridges, drawn as arcs between their systems once the map shows systems.</summary>
+    public static readonly StyledProperty<IReadOnlyList<MapBridgeLine>?> BridgesProperty =
+        AvaloniaProperty.Register<MapCanvas, IReadOnlyList<MapBridgeLine>?>(nameof(Bridges));
+
+    public IReadOnlyList<MapBridgeLine>? Bridges
+    {
+        get => GetValue(BridgesProperty);
+        set => SetValue(BridgesProperty, value);
+    }
+
+    public static readonly StyledProperty<IReadOnlyDictionary<int, MapMarkers>?> MarkersProperty =
+        AvaloniaProperty.Register<MapCanvas, IReadOnlyDictionary<int, MapMarkers>?>(nameof(Markers));
+
+    public IReadOnlyDictionary<int, MapMarkers>? Markers
+    {
+        get => GetValue(MarkersProperty);
+        set => SetValue(MarkersProperty, value);
+    }
+
+    /// <summary>
+    /// The view's position, two-way. Written back after every pan, zoom and framing, and applied
+    /// when set from outside — so a map tab rebuilt after moving to the other side of a split, or
+    /// after switching tabs, comes back where it was instead of re-framing all of New Eden.
+    /// </summary>
+    public static readonly StyledProperty<MapCamera?> CameraProperty =
+        AvaloniaProperty.Register<MapCanvas, MapCamera?>(
+            nameof(Camera), defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
+
+    public MapCamera? Camera
+    {
+        get => GetValue(CameraProperty);
+        set => SetValue(CameraProperty, value);
+    }
+
     public MapGraph? Graph
     {
         get => GetValue(GraphProperty);
@@ -99,7 +165,7 @@ public class MapCanvas : Control
 
     static MapCanvas()
     {
-        AffectsRender<MapCanvas>(GraphProperty, OverlayProperty, SelectedIdProperty, BadgesProperty);
+        AffectsRender<MapCanvas>(GraphProperty, OverlayProperty, SelectedIdProperty, BadgesProperty, MarkersProperty, BridgesProperty);
     }
 
     public MapCanvas()
@@ -258,9 +324,9 @@ public class MapCanvas : Control
     /// carries no text, so without this the only way to learn it is the legend — and a legend you
     /// have to look away to read is one you stop reading.</para>
     /// </summary>
-    private readonly List<(Rect Rect, string Title, string Detail)> _badgeTips = new();
+    private readonly List<(Rect Rect, string Title, string Detail, IReadOnlyList<MapMarkRow>? Rows)> _badgeTips = new();
 
-    private (string Title, string Detail)? _badgeHover;
+    private (string Title, string Detail, IReadOnlyList<MapMarkRow>? Rows)? _badgeHover;
 
     /// <summary>Same, for system boxes. Only populated while the boxes are being drawn.</summary>
     private readonly Dictionary<int, Rect> _nodeRects = new();
@@ -273,8 +339,19 @@ public class MapCanvas : Control
         base.OnPropertyChanged(change);
         if (change.Property == GraphProperty)
         {
-            _needsFit = true;
-            _hover    = null;
+            // A graph arriving for a view that already has a place (a rebuilt tab, a refresh)
+            // keeps it; only a view with none yet frames the whole graph.
+            _needsFit      = Camera is null;
+            _fitScaleStale = true;
+            _hover         = null;
+        }
+        else if (change.Property == CameraProperty && !_publishingCamera && Camera is { } cam)
+        {
+            _cx       = cam.CenterX;
+            _cy       = cam.CenterY;
+            _scale    = cam.Scale;
+            _needsFit = false;
+            InvalidateVisual();
         }
         else if (change.Property == FocusBoundsProperty && FocusBounds is { } area)
         {
@@ -288,6 +365,20 @@ public class MapCanvas : Control
 
     /// <summary>Area waiting to be framed on the next paint.</summary>
     private Rect? _pendingFocus;
+
+    /// <summary>The fit scale bounds the zoom, so it is needed even when the view was restored
+    /// from a camera rather than fitted. Worked out on the next paint, which knows the bounds.</summary>
+    private bool _fitScaleStale = true;
+
+    private bool _publishingCamera;
+
+    /// <summary>Hands the current position back to the view model.</summary>
+    private void PublishCamera()
+    {
+        _publishingCamera = true;
+        try { SetCurrentValue(CameraProperty, new MapCamera(_cx, _cy, _scale)); }
+        finally { _publishingCamera = false; }
+    }
 
     /// <summary>Centres on an area and zooms so it fills most of the view.</summary>
     private void ApplyFocus(Rect area)
@@ -306,12 +397,26 @@ public class MapCanvas : Control
         // Cleared so the same region can be asked for again, and so a later pan is not snapped
         // back on the next repaint.
         SetCurrentValue(FocusBoundsProperty, null);
+        PublishCamera();
     }
 
     /// <summary>Frames the entire graph with a small margin. Deferred to render time because it
     /// needs the final bounds, which are not known when the graph is assigned.</summary>
     private void Fit()
     {
+        if (!ComputeFit(out var cx, out var cy)) return;
+        _cx       = cx;
+        _cy       = cy;
+        _scale    = _fitScale;
+        _needsFit = false;
+        PublishCamera();
+    }
+
+    /// <summary>The framing of the whole graph, and <see cref="_fitScale"/> with it, without
+    /// moving the view.</summary>
+    private bool ComputeFit(out double cx, out double cy)
+    {
+        cx = cy = 0;
         var g = Graph;
         // On a continuous map, frame the regions: their extent is the cluster, and fitting to
         // every system would open at a zoom where the system tier is already showing.
@@ -319,7 +424,7 @@ public class MapCanvas : Control
             ? g.Nodes.Where(n => n.Tier == 0).ToList()
             : g?.Nodes;
 
-        if (nodes is null || nodes.Count == 0 || Bounds.Width <= 0 || Bounds.Height <= 0) return;
+        if (nodes is null || nodes.Count == 0 || Bounds.Width <= 0 || Bounds.Height <= 0) return false;
 
         double minX = double.MaxValue, maxX = double.MinValue;
         double minY = double.MaxValue, maxY = double.MinValue;
@@ -331,8 +436,8 @@ public class MapCanvas : Control
             if (n.Y > maxY) maxY = n.Y;
         }
 
-        _cx = (minX + maxX) / 2;
-        _cy = (minY + maxY) / 2;
+        cx = (minX + maxX) / 2;
+        cy = (minY + maxY) / 2;
 
         // A single-node graph, or one collapsed onto a line, has no extent on some axis;
         // fall back to a scale that at least puts it on screen rather than dividing by zero.
@@ -344,8 +449,8 @@ public class MapCanvas : Control
         if (double.IsInfinity(_fitScale) || _fitScale <= 0 || _fitScale == double.MaxValue)
             _fitScale = 1;
 
-        _scale    = _fitScale;
-        _needsFit = false;
+        _fitScaleStale = false;
+        return true;
     }
 
     /// <summary>Reframes the whole graph. Bound to the toolbar's reset button.</summary>
@@ -517,6 +622,7 @@ public class MapCanvas : Control
             _builtBoxGraph = g;
             RebuildBoxLabels(g, overlay);
         }
+        if (_fitScaleStale) ComputeFit(out _, out _);
         if (_pendingFocus is { } area) { ApplyFocus(area); _pendingFocus = null; }
         else if (_needsFit) Fit();
 
@@ -550,6 +656,12 @@ public class MapCanvas : Control
             ctx.DrawLine(a.IsOutsideRegion || b.IsOutsideRegion ? GateEdgePen : EdgePen, pa, pb);
         }
 
+        // Jump bridges: over the gates, under the systems. Only where systems are drawn — a
+        // bridge joins two systems, and on the region tier it would join nothing on screen.
+        _bridgeHits.Clear();
+        if (Bridges is { Count: > 0 } bridges && (!g.IsContinuous || _activeTier == 1))
+            DrawBridges(ctx, bridges);
+
         // How much room neighbouring systems have on screen decides the representation: dots
         // when they are packed together, labelled boxes once they are far enough apart. One or
         // the other, never both.
@@ -579,11 +691,23 @@ public class MapCanvas : Control
 
             if (useBoxes) DrawSystemBox(ctx, n, p, fill, style);
             else          DrawDot(ctx, n, p, fill, style, showDotLabels);
+
+            if (Markers?.TryGetValue(n.Id, out var marks) == true)
+                _pendingMarks.Add((marks, useBoxes && _nodeRects.TryGetValue(n.Id, out var box)
+                    ? box
+                    : new Rect(p.X - NodeRadius, p.Y - NodeRadius, NodeRadius * 2, NodeRadius * 2), useBoxes));
         }
 
+        // Live marks in a pass of their own, after every node: drawn with their node, a
+        // neighbour's box painted later covered them — on the region tier, where boxes crowd,
+        // most of a mark could vanish under the next region.
+        foreach (var (marks, anchor, isBox) in _pendingMarks) DrawMarkers(ctx, marks, anchor, isBox);
+        _pendingMarks.Clear();
+
         // A badge tooltip wins: the cursor is on the mark, so that is what the question is about.
-        if (_badgeHover is { } badge)  DrawTooltipBox(ctx, badge.Title, badge.Detail);
+        if (_badgeHover is { } badge)  DrawTooltipBox(ctx, badge.Title, badge.Detail, badge.Rows);
         else if (_hover is not null)   DrawTooltip(ctx, _hover);
+        else if (_bridgeHover is { } bridge) DrawTooltipBox(ctx, bridge.Title, bridge.Detail);
     }
 
     /// <summary>Faint enough to sit under the map without competing with it. Everything drawn
@@ -795,7 +919,7 @@ public class MapCanvas : Control
             // reliably hittable, and a mark that needs a steady hand to read is a mark nobody
             // reads. The drawn size stays honest to the rank; only the catch area grows.
             var entry = DockLegend.First(d => d.Dock == b.Dock);
-            _badgeTips.Add((bar.Inflate(new Thickness(0, 4)), entry.Label, entry.Detail));
+            _badgeTips.Add((bar.Inflate(new Thickness(0, 4)), entry.Label, entry.Detail, null));
         }
 
         // ── Below: services, one row, in fixed legend order ──
@@ -812,7 +936,167 @@ public class MapCanvas : Control
         {
             var r = new Rect(x0 + i * (size + gap), y0, size, size);
             ctx.DrawRectangle(marks[i].Brush, BadgePen, r);
-            _badgeTips.Add((r, marks[i].Label, marks[i].Detail));
+            _badgeTips.Add((r, marks[i].Label, marks[i].Detail, null));
+        }
+    }
+
+    // ── Jump bridges ─────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Ansiblex zone colours, index = zone (0 = not known): blue for free through red for 15×.
+    /// One table for the bridge halves, the Sovereignty zones overlay and its legend, so the
+    /// three always agree.
+    /// </summary>
+    internal static readonly Color[] ZoneColors =
+    [
+        Color.Parse("#c084fc"),   // not known — the plain bridge violet
+        Color.Parse("#3b82f6"),   // 1: within 5 ly, free
+        Color.Parse("#22c55e"),   // 2: 2×
+        Color.Parse("#eab308"),   // 3: 6×
+        Color.Parse("#f97316"),   // 4: 9×
+        Color.Parse("#ef4444"),   // 5: 15×
+    ];
+
+    private static readonly Dictionary<(int Zone, bool Faint), IPen> BridgePens = new();
+
+    /// <summary>A dashed pen in a zone's colour; fainter and sparser for a one-ended bridge.</summary>
+    private static IPen BridgePen(int zone, bool faint)
+    {
+        zone = zone is >= 0 and <= 5 ? zone : 0;
+        if (BridgePens.TryGetValue((zone, faint), out var pen)) return pen;
+        var c = ZoneColors[zone];
+        pen = faint
+            ? new ImmutablePen(new ImmutableSolidColorBrush(Color.FromArgb(0x80, c.R, c.G, c.B)), 1.4, new ImmutableDashStyle([2, 4], 0))
+            : new ImmutablePen(new ImmutableSolidColorBrush(c), 1.8, new ImmutableDashStyle([4, 3], 0));
+        BridgePens[(zone, faint)] = pen;
+        return pen;
+    }
+
+    private static readonly IPen BridgeHoverPen = new ImmutablePen(
+        new ImmutableSolidColorBrush(Color.Parse("#e9d5ff")), 2.6);
+
+    /// <summary>Points along each drawn arc, for hovering one.</summary>
+    private readonly List<(MapBridgeLine Line, Point[] Points)> _bridgeHits = new();
+    private MapBridgeLine? _bridgeHover;
+
+    /// <summary>
+    /// An arc rather than a straight line, so a bridge never lies along the gates between the
+    /// same two systems, and two bridges from one system fan apart. Bowed to one side by a fifth
+    /// of its length.
+    /// </summary>
+    private void DrawBridges(DrawingContext ctx, IReadOnlyList<MapBridgeLine> bridges)
+    {
+        foreach (var b in bridges)
+        {
+            if (!_byId.TryGetValue(b.FromId, out var from) || !_byId.TryGetValue(b.ToId, out var to)) continue;
+            var pa = ToScreen(from.X, from.Y);
+            var pb = ToScreen(to.X, to.Y);
+
+            if ((pa.X < -200 && pb.X < -200) || (pa.Y < -200 && pb.Y < -200) ||
+                (pa.X > Bounds.Width + 200 && pb.X > Bounds.Width + 200) ||
+                (pa.Y > Bounds.Height + 200 && pb.Y > Bounds.Height + 200)) continue;
+
+            var mid = new Point((pa.X + pb.X) / 2, (pa.Y + pb.Y) / 2);
+            var dx  = pb.X - pa.X;
+            var dy  = pb.Y - pa.Y;
+            var control = new Point(mid.X - dy * 0.2, mid.Y + dx * 0.2);
+
+            // Two halves, split at the middle of the curve: each end's half in the zone a jump
+            // landing there is in, since a bridge's two directions can cost differently.
+            var m     = new Point(0.25 * pa.X + 0.5 * control.X + 0.25 * pb.X, 0.25 * pa.Y + 0.5 * control.Y + 0.25 * pb.Y);
+            var nearA = new Point((pa.X + control.X) / 2, (pa.Y + control.Y) / 2);
+            var nearB = new Point((control.X + pb.X) / 2, (control.Y + pb.Y) / 2);
+            var hover = ReferenceEquals(b, _bridgeHover);
+            DrawHalf(ctx, pa, nearA, m, hover ? BridgeHoverPen : BridgePen(b.ZoneFrom, !b.Complete));
+            DrawHalf(ctx, m, nearB, pb, hover ? BridgeHoverPen : BridgePen(b.ZoneTo,   !b.Complete));
+
+            var points = new Point[17];
+            for (var i = 0; i <= 16; i++)
+            {
+                var t = i / 16.0;
+                var u = 1 - t;
+                points[i] = new Point(u * u * pa.X + 2 * u * t * control.X + t * t * pb.X,
+                                      u * u * pa.Y + 2 * u * t * control.Y + t * t * pb.Y);
+            }
+            _bridgeHits.Add((b, points));
+        }
+    }
+
+    private static void DrawHalf(DrawingContext ctx, Point from, Point control, Point to, IPen pen)
+    {
+        var geo = new StreamGeometry();
+        using (var s = geo.Open())
+        {
+            s.BeginFigure(from, false);
+            s.QuadraticBezierTo(control, to);
+            s.EndFigure(false);
+        }
+        ctx.DrawGeometry(null, pen, geo);
+    }
+
+    /// <summary>The bridge whose arc passes within a few pixels of the pointer.</summary>
+    private MapBridgeLine? BridgeAt(Point p)
+    {
+        const double reach = 5;
+        foreach (var (line, pts) in _bridgeHits)
+            for (var i = 1; i < pts.Length; i++)
+                if (DistanceToSegment(p, pts[i - 1], pts[i]) <= reach) return line;
+        return null;
+    }
+
+    private static double DistanceToSegment(Point p, Point a, Point b)
+    {
+        var dx = b.X - a.X;
+        var dy = b.Y - a.Y;
+        var len = dx * dx + dy * dy;
+        var t = len == 0 ? 0 : Math.Clamp(((p.X - a.X) * dx + (p.Y - a.Y) * dy) / len, 0, 1);
+        var x = a.X + t * dx - p.X;
+        var y = a.Y + t * dy - p.Y;
+        return Math.Sqrt(x * x + y * y);
+    }
+
+    // ── Live markers ─────────────────────────────────────────────────────────
+    //
+    // ⚠️ Drawn after the node, in screen space, so they stay the same size at every zoom and
+    // sit on top of whatever is under them. Hostiles are a round red mark on the right, own
+    // characters a square mark on the left: shape and side as well as colour, so the two never
+    // read as each other.
+
+    private readonly List<(MapMarkers Marks, Rect Anchor, bool IsBox)> _pendingMarks = new();
+
+    private static readonly IBrush MarkInk = new ImmutableSolidColorBrush(Color.Parse("#ffffff"));
+    private static readonly IPen   MarkPen = new ImmutablePen(new ImmutableSolidColorBrush(Color.Parse("#0b0b10")), 1.5);
+
+    private void DrawMarkers(DrawingContext ctx, MapMarkers m, Rect anchor, bool isBox)
+    {
+        // Beside a box, vertically centred, clear of the docking bar above it and the services
+        // below. Above a dot, where its label (to the right) does not run.
+        var y = isBox ? anchor.Center.Y : anchor.Top - 5;
+
+        if (m.Hostiles > 0)
+        {
+            var text = new FormattedText(m.Hostiles.ToString(CultureInfo.CurrentCulture), CultureInfo.CurrentCulture,
+                FlowDirection.LeftToRight, BoldFace, 9.5, MarkInk);
+            var r  = Math.Max(7.5, text.Width / 2 + 4);
+            var cx = isBox ? anchor.Right + r + 3 : anchor.Right + r - 3;
+            var c  = new Point(cx, y);
+            ctx.DrawEllipse(Palette.Bad, MarkPen, c, r, r);
+            ctx.DrawText(text, new Point(c.X - text.Width / 2, c.Y - text.Height / 2));
+            if (m.HostileTitle is { } title)
+                _badgeTips.Add((new Rect(c.X - r - 2, c.Y - r - 2, r * 2 + 4, r * 2 + 4), title, m.HostileDetail ?? "", m.HostileRows));
+        }
+
+        if (m.Own > 0)
+        {
+            var text = new FormattedText(m.Own.ToString(CultureInfo.CurrentCulture), CultureInfo.CurrentCulture,
+                FlowDirection.LeftToRight, BoldFace, 9.5, MarkInk);
+            var half = Math.Max(7, text.Width / 2 + 3.5);
+            var cx   = isBox ? anchor.Left - half - 3 : anchor.Left - half + 3;
+            var rect = new Rect(cx - half, y - 7, half * 2, 14);
+            ctx.DrawRectangle(Palette.Info, MarkPen, new RoundedRect(rect, 2));
+            ctx.DrawText(text, new Point(cx - text.Width / 2, y - text.Height / 2));
+            if (m.OwnTitle is { } title)
+                _badgeTips.Add((rect.Inflate(2), title, m.OwnDetail ?? "", m.OwnRows));
         }
     }
 
@@ -853,10 +1137,19 @@ public class MapCanvas : Control
     }
 
     /// <summary>The tooltip itself, shared by nodes and badges so both look and place the same.</summary>
-    private void DrawTooltipBox(DrawingContext ctx, string titleText, string? detail)
+    private void DrawTooltipBox(DrawingContext ctx, string titleText, string? detail,
+                                IReadOnlyList<MapMarkRow>? rows = null)
     {
         var title = new FormattedText(titleText, CultureInfo.CurrentCulture,
             FlowDirection.LeftToRight, Face, 11.5, TipTextBrush);
+
+        // Rows with pictures replace the plain body when a mark supplies them.
+        if (rows is { Count: > 0 })
+        {
+            DrawRowsTooltip(ctx, title, rows);
+            return;
+        }
+
         var body = string.IsNullOrEmpty(detail) ? null : new FormattedText(
             detail, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Face, 10.5, LabelBrush);
 
@@ -876,6 +1169,89 @@ public class MapCanvas : Control
         ctx.DrawRectangle(TipBackBrush, TipPen, rect);
         ctx.DrawText(title, new Point(x + pad, y + pad));
         if (body is not null) ctx.DrawText(body, new Point(x + pad, y + pad + title.Height + 3));
+    }
+
+    // ── Pictures in the mark hovers ──────────────────────────────────────────
+
+    private const double RowIcon = 20;
+
+    /// <summary>A mark's hover as rows: portrait, ship icon, then the line.</summary>
+    private void DrawRowsTooltip(DrawingContext ctx, FormattedText title, IReadOnlyList<MapMarkRow> rows)
+    {
+        const double pad = 7, gap = 4, rowGap = 2;
+
+        FormattedText Text(string s) => new(s, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Face, 10.5, LabelBrush);
+
+        // Each line in two parts round the ship's icon: what comes before the ship's name, and
+        // the name onwards. A line without a ship is one part, with no icon.
+        var parts = rows.Select(r => r.ShipTypeId > 0 && r.ShipAt >= 0 && r.ShipAt <= r.Text.Length
+                ? (Before: Text(r.Text[..r.ShipAt]), After: Text(r.Text[r.ShipAt..]), Icon: true)
+                : (Before: Text(r.Text), After: (FormattedText?)null, Icon: false))
+            .ToList();
+        double LineWidth((FormattedText Before, FormattedText? After, bool Icon) p) =>
+            p.Before.Width + (p.Icon ? gap + RowIcon + gap : 0) + (p.After?.Width ?? 0);
+
+        // The portrait's slot is kept on every row, picture or not, so the text starts in one column.
+        var textX = RowIcon + gap * 2;
+        var rowH  = Math.Max(RowIcon, parts.Max(p => p.Before.Height)) + rowGap;
+        var w = Math.Max(title.Width, textX + parts.Max(LineWidth)) + pad * 2;
+        var h = title.Height + 4 + rowH * rows.Count + pad * 2;
+
+        var x = _hoverAt.X + 14;
+        var y = _hoverAt.Y + 14;
+        if (x + w > Bounds.Width)  x = _hoverAt.X - w - 14;
+        if (y + h > Bounds.Height) y = _hoverAt.Y - h - 14;
+        x = Math.Max(0, x);
+        y = Math.Max(0, y);
+
+        ctx.DrawRectangle(TipBackBrush, TipPen, new RoundedRect(new Rect(x, y, w, h), 3));
+        ctx.DrawText(title, new Point(x + pad, y + pad));
+
+        var top = y + pad + title.Height + 4;
+        for (var i = 0; i < rows.Count; i++)
+        {
+            var ry = top + i * rowH;
+            var lx = x + pad;
+            if (rows[i].CharacterId > 0 &&
+                Picture($"https://images.evetech.net/characters/{rows[i].CharacterId}/portrait?size=32") is { } portrait)
+                ctx.DrawImage(portrait, new Rect(lx, ry, RowIcon, RowIcon));
+
+            var (before, after, icon) = parts[i];
+            var tx = lx + textX;
+            var ty = ry + (RowIcon - before.Height) / 2;
+            ctx.DrawText(before, new Point(tx, ty));
+            if (!icon || after is null) continue;
+
+            // The ship's icon, just before its name.
+            var ix = tx + before.Width + gap;
+            if (Picture($"https://images.evetech.net/types/{rows[i].ShipTypeId}/icon?size=32") is { } ship)
+                ctx.DrawImage(ship, new Rect(ix, ry, RowIcon, RowIcon));
+            ctx.DrawText(after, new Point(ix + RowIcon + gap, ty));
+        }
+    }
+
+    /// <summary>Pictures already fetched, shared by every map. A miss starts the fetch (through
+    /// the app's image cache, on disk as well) and repaints this map when it lands; until then
+    /// the slot is left empty rather than holding the hover up.</summary>
+    private static readonly Dictionary<string, Bitmap> Pictures = new();
+    private static readonly HashSet<string> Fetching = new();
+
+    private Bitmap? Picture(string url)
+    {
+        if (Pictures.TryGetValue(url, out var bitmap)) return bitmap;
+        if (!Fetching.Add(url)) return null;
+
+        _ = EveImageCache.GetAsync(url).ContinueWith(t => Dispatcher.UIThread.Post(() =>
+        {
+            Fetching.Remove(url);
+            // A failure is not remembered: the next hover asks again.
+            if (t.IsCompletedSuccessfully && t.Result is { } fetched)
+            {
+                Pictures[url] = fetched;
+                InvalidateVisual();
+            }
+        }), TaskScheduler.Default);
+        return null;
     }
 
     // ── Interaction ──────────────────────────────────────────────────────────
@@ -958,18 +1334,21 @@ public class MapCanvas : Control
 
         // Badges first. They sit outside the box so they never overlap a node's own hit area,
         // but the cursor being on one means the question is about the mark, not the system.
-        (string Title, string Detail)? badge = null;
+        (string Title, string Detail, IReadOnlyList<MapMarkRow>? Rows)? badge = null;
         foreach (var t in _badgeTips)
-            if (t.Rect.Contains(pos)) { badge = (t.Title, t.Detail); break; }
+            if (t.Rect.Contains(pos)) { badge = (t.Title, t.Detail, t.Rows); break; }
 
         var hit = badge is null ? HitTest(pos) : null;
+        var bridgeHit = badge is null && hit is null ? BridgeAt(pos) : null;
         _hoverAt = pos;
 
         var badgeChanged = badge?.Title != _badgeHover?.Title;
         _badgeHover = badge;
+        var bridgeChanged = !ReferenceEquals(bridgeHit, _bridgeHover);
+        _bridgeHover = bridgeHit;
 
-        if (badgeChanged || !ReferenceEquals(hit, _hover)) { _hover = hit; InvalidateVisual(); }
-        else if (hit is not null || badge is not null) InvalidateVisual();   // glue it to the cursor
+        if (badgeChanged || bridgeChanged || !ReferenceEquals(hit, _hover)) { _hover = hit; InvalidateVisual(); }
+        else if (hit is not null || badge is not null || bridgeHit is not null) InvalidateVisual();   // glue it to the cursor
     }
 
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
@@ -980,17 +1359,29 @@ public class MapCanvas : Control
         _dragging = false;
         e.Pointer.Capture(null);
 
-        if (_dragMoved) return;
+        if (_dragMoved) { PublishCamera(); return; }
 
         var hit = HitTest(e.GetPosition(this));
         if (hit is not null) SelectedId = hit.Id;
     }
 
+    /// <summary>A hover belongs to where the pointer was on the old layout; after a resize (a
+    /// split opening or closing) it would be drawn where nothing is under the pointer.</summary>
+    protected override void OnSizeChanged(SizeChangedEventArgs e)
+    {
+        base.OnSizeChanged(e);
+        _hover       = null;
+        _badgeHover  = null;
+        _bridgeHover = null;
+    }
+
     protected override void OnPointerExited(PointerEventArgs e)
     {
         base.OnPointerExited(e);
-        if (_hover is null) return;
-        _hover = null;
+        if (_hover is null && _badgeHover is null && _bridgeHover is null) return;
+        _hover       = null;
+        _badgeHover  = null;
+        _bridgeHover = null;
         InvalidateVisual();
     }
 
@@ -1013,6 +1404,7 @@ public class MapCanvas : Control
         _cy = wy - (pos.Y - Bounds.Height / 2) / _scale;
 
         e.Handled = true;
+        PublishCamera();
         InvalidateVisual();
     }
 }

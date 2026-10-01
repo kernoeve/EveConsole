@@ -102,7 +102,16 @@
         <StackPanel Grid.Column="2">
           <TextBlock Classes="flabel" Text="{x:Static loc:MapText.SystemLabel}" />
           <AutoCompleteBox Text="{Binding SystemText}" ItemsSource="{Binding SystemSuggestions}"
-                           FilterMode="Contains" MinimumPrefixLength="0" Watermark="{x:Static loc:MapText.HintAny}" />
+                           FilterMode="Contains" MinimumPrefixLength="0" Watermark="{x:Static loc:MapText.HintAny}">            <AutoCompleteBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:PickOption">
+                <!-- The region beside the system, as every system picker shows it. -->
+                <Grid ColumnDefinitions="*,Auto" MinWidth="200">
+                  <TextBlock Grid.Column="0" Text="{Binding Label}" />
+                  <TextBlock Grid.Column="1" Text="{Binding Detail}" FontSize="10" Margin="10 0 0 0"
+                             Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+                </Grid>
+              </DataTemplate>
+            </AutoCompleteBox.ItemTemplate>          </AutoCompleteBox>
         </StackPanel>
         <StackPanel Grid.Column="3">
           <TextBlock Classes="flabel" Text="{x:Static loc:MapText.TypeLabel}" />
@@ -340,7 +349,16 @@
                                        FilterMode="None" MinimumPrefixLength="2"
                                        IsEnabled="{Binding CanEditIdentity}"
                                        Margin="0" FontSize="11.5"
-                                       Watermark="{x:Static loc:MapText.HintTypeTwoLettersOf}" />
+                                       Watermark="{x:Static loc:MapText.HintTypeTwoLettersOf}">                            <AutoCompleteBox.ItemTemplate>
+                              <DataTemplate x:DataType="vm:PickOption">
+                                <!-- The region beside the system, as every system picker shows it. -->
+                                <Grid ColumnDefinitions="*,Auto" MinWidth="200">
+                                  <TextBlock Grid.Column="0" Text="{Binding Label}" />
+                                  <TextBlock Grid.Column="1" Text="{Binding Detail}" FontSize="10" Margin="10 0 0 0"
+                                             Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+                                </Grid>
+                              </DataTemplate>
+                            </AutoCompleteBox.ItemTemplate>                      </AutoCompleteBox>
                     </StackPanel>
                     <StackPanel Grid.Column="1" Margin="6 0 0 0">
                       <TextBlock Classes="flabel" Text="{x:Static loc:MapText.TypeLabel}" />

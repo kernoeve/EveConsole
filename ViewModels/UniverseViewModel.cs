@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Media;
@@ -87,15 +88,18 @@ public class UniverseViewModel : ReactiveObject
     /// the same thing as last time, not to be reset to Security.</summary>
     // Local: which overlay is showing is a fact about this window, not about the map.
 
+    /// <summary>Each claimed system's Ansiblex zone, for the Sovereignty zones overlay.</summary>
+    private readonly Func<System.Threading.CancellationToken, Task<IReadOnlyDictionary<int, SystemZone>>>? _zones;
+
     public UniverseViewModel(
         UniverseMapService     map,
-        MapStatsService?       stats      = null,
-        SystemPageViewModel?   systemPage = null,
-        AppPreferencesService? prefs      = null)
+        MapStatsService?       stats = null,
+        AppPreferencesService? prefs = null,
+        Func<System.Threading.CancellationToken, Task<IReadOnlyDictionary<int, SystemZone>>>? zones = null)
     {
-        _map       = map;
-        _stats     = stats;
-        SystemPage = systemPage;
+        _map   = map;
+        _stats = stats;
+        _zones = zones;
 
         // The label shown, the key saved and switched on, and the English name the AI agent asks
         // for it by (see OverlayModeVm).
@@ -105,6 +109,8 @@ public class UniverseViewModel : ReactiveObject
             new(MapText.OverlayConstellation,         "constellation",  "Constellation"),   // regions, at universe level
             new(MapText.OverlaySovereignty,           "sovereignty",    "Sovereignty"),
             new(MapText.OverlaySovereigntyAdm,        "adm",            "Sovereignty ADM"),
+            // Ansiblex zones: each claimed system by its distance from its holder's capital.
+            new(MapText.OverlaySovZones,              "sovzones",       "Sovereignty zones"),
             new(MapText.OverlayIndustryManufacturing, "industry:manufacturing",                   "Industry — manufacturing"),
             new(MapText.OverlayIndustryReactions,     "industry:reaction",                        "Industry — reactions"),
             new(MapText.OverlayIndustryMeResearch,    "industry:researching_material_efficiency", "Industry — ME research"),
@@ -147,8 +153,6 @@ public class UniverseViewModel : ReactiveObject
         _selectedOverlay = OverlayModes.FirstOrDefault(m => m.Key == savedKey) ?? OverlayModes[0];
 
         DrillDownCommand  = ReactiveCommand.CreateFromTask<int>(DrillDownAsync);
-        OpenSystemCommand = ReactiveCommand.CreateFromTask<int>(ShowSystemAsync);
-        OpenSystemCommand.ThrownExceptions.Subscribe(ex => Status = string.Format(CommonText.ErrorWithMessage, ex.Message));
         GoUniverseCommand = ReactiveCommand.CreateFromTask(ShowUniverseAsync);
         RefreshCommand    = ReactiveCommand.CreateFromTask(RefreshAsync);
 
@@ -170,20 +174,6 @@ public class UniverseViewModel : ReactiveObject
             }))
             .Subscribe();
 
-        // Typing refreshes the suggestions; picking one navigates. Throttled because it hits
-        // the database on every keystroke.
-        this.WhenAnyValue(x => x.RegionSearch)
-            .Skip(1)
-            .Throttle(TimeSpan.FromMilliseconds(180))
-            .SelectMany(t => Guarded(() => RefreshSuggestionsAsync(t)))
-            .Subscribe();
-
-        this.WhenAnyValue(x => x.SelectedPlace)
-            .Skip(1)
-            .Where(p => p is not null)
-            .SelectMany(p => Guarded(() => GoToPlaceAsync(p!)))
-            .Subscribe();
-
         // Selecting a node just updates the detail pane; drilling down is a double-click.
         this.WhenAnyValue(x => x.SelectedId)
             .Skip(1)
@@ -191,8 +181,15 @@ public class UniverseViewModel : ReactiveObject
             .SelectMany(_ => Guarded(LoadDetailAsync))
             .Subscribe();
 
-        _ = Guarded(ShowUniverseAsync).Subscribe();
+        _initialLoad = Guarded(ShowUniverseAsync).ToTask();
     }
+
+    /// <summary>
+    /// The first load, started by the constructor. Framing a region waits for it rather than
+    /// loading again: a tab opened on a region would otherwise have that load finish afterwards
+    /// and throw the framing away.
+    /// </summary>
+    private readonly Task _initialLoad;
 
     /// <summary>
     /// Runs work without ever letting it break the calling pipeline: an Rx pipeline that sees an
@@ -226,17 +223,8 @@ public class UniverseViewModel : ReactiveObject
     public MapLevel Level
     {
         get => _level;
-        private set
-        {
-            this.RaiseAndSetIfChanged(ref _level, value);
-            // Drives which half of the view is showing, so it must follow every level change
-            // rather than only the ones that open a system.
-            this.RaisePropertyChanged(nameof(IsSystemLevel));
-            this.RaisePropertyChanged(nameof(IsMapLevel));
-        }
+        private set => this.RaiseAndSetIfChanged(ref _level, value);
     }
-
-    public bool IsMapLevel => Level != MapLevel.System;
 
     private MapGraph? _graph;
     public MapGraph? Graph
@@ -312,64 +300,104 @@ public class UniverseViewModel : ReactiveObject
         }
     }
 
-    /// <summary>Suggestions for the jump box — regions and systems together.</summary>
-    public ObservableCollection<PlaceMatch> Places { get; } = [];
-
-    private PlaceMatch? _selectedPlace;
-    public PlaceMatch? SelectedPlace
-    {
-        get => _selectedPlace;
-        set => this.RaiseAndSetIfChanged(ref _selectedPlace, value);
-    }
-
-    private async Task RefreshSuggestionsAsync(string text)
-    {
-        // Finds what the map shows as well as the English that gets pasted in from elsewhere.
-        var matches = await _map.SearchPlacesAsync(text, shownNames: true);
-        await OnUiAsync(() => Replace(Places, matches));
-    }
-
-    /// <summary>A region opens its map; a system opens its page directly, which means the jump
-    /// box can reach any system without hunting for the right region first.</summary>
-    private async Task GoToPlaceAsync(PlaceMatch place)
-    {
-        if (place.SystemId > 0)
-        {
-            // The breadcrumb needs the region behind it, so that is established first.
-            if (_regionId != place.RegionId) await ShowRegionAsync(place.RegionId);
-            await ShowSystemAsync(place.SystemId);
-        }
-        else
-        {
-            await ShowRegionAsync(place.RegionId);
-        }
-    }
-
-    private string _regionSearch = "";
-    public string RegionSearch
-    {
-        get => _regionSearch;
-        set => this.RaiseAndSetIfChanged(ref _regionSearch, value);
-    }
-
     public ReactiveCommand<int,  Unit> DrillDownCommand  { get; }
-    public ReactiveCommand<int,  Unit> OpenSystemCommand { get; }
     public ReactiveCommand<Unit, Unit> GoUniverseCommand { get; }
     public ReactiveCommand<Unit, Unit> RefreshCommand    { get; }
 
     private int    _regionId;
     private string _regionName = "";
-    private int    _systemId;
-    private string _systemName = "";
     private List<RegionSummary> _regions = [];
 
-    // ── System page ──────────────────────────────────────────────────────────
+    // ── In the map tool ──────────────────────────────────────────────────────
 
-    public bool IsSystemLevel => Level == MapLevel.System;
+    /// <summary>
+    /// Opens a system's page. Set by the map tool, which opens it in a tab of its own — the map
+    /// stays where it was, in its own tab, instead of being replaced by the page.
+    /// </summary>
+    public Action<int>? OpenSystemRequested { get; set; }
 
-    /// <summary>The system page owns its own state; this view model only decides when it is
-    /// shown and which system it is showing.</summary>
-    public SystemPageViewModel? SystemPage { get; }
+    /// <summary>What the tab is called: New Eden, or the region or constellation it was last
+    /// framed on.</summary>
+    private string _title = MapText.CrumbUniverse;
+    public string Title
+    {
+        get => _title;
+        private set => this.RaiseAndSetIfChanged(ref _title, value);
+    }
+
+    /// <summary>
+    /// Whether the details and legend on the right are shown. Hidden, the map takes the whole
+    /// tab — worth most on one side of a split. Each tab has its own; the last choice is what a
+    /// new tab starts with.
+    /// </summary>
+    private bool _showSidePanel = UiState.GetBool(UiState.UniverseSidePanel, true);
+    public bool ShowSidePanel
+    {
+        get => _showSidePanel;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _showSidePanel, value);
+            UiState.SetBool(UiState.UniverseSidePanel, value);
+        }
+    }
+
+    /// <summary>Whether jump bridges are drawn. On by default; the last choice is kept.</summary>
+    private bool _showBridges = UiState.GetBool(UiState.UniverseBridges, true);
+    public bool ShowBridges
+    {
+        get => _showBridges;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _showBridges, value);
+            UiState.SetBool(UiState.UniverseBridges, value);
+            this.RaisePropertyChanged(nameof(VisibleBridges));
+        }
+    }
+
+    /// <summary>Every known jump bridge, pushed in by the map tool.</summary>
+    private IReadOnlyList<MapBridgeLine>? _bridges;
+    public IReadOnlyList<MapBridgeLine>? Bridges
+    {
+        get => _bridges;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _bridges, value);
+            this.RaisePropertyChanged(nameof(VisibleBridges));
+        }
+    }
+
+    /// <summary>What the canvas draws: the bridges, or none while they are switched off.</summary>
+    public IReadOnlyList<MapBridgeLine>? VisibleBridges => _showBridges ? _bridges : null;
+    /// <summary>Hostiles and own characters, per system and per region. Pushed in by the map
+    /// tool, which reads them once for every open tab.</summary>
+    private IReadOnlyDictionary<int, MapMarkers>? _markers;
+    public IReadOnlyDictionary<int, MapMarkers>? Markers
+    {
+        get => _markers;
+        set => this.RaiseAndSetIfChanged(ref _markers, value);
+    }
+
+    /// <summary>Where this tab's map is looking. Kept here, not in the canvas, so the tab keeps
+    /// its place when its view is rebuilt.</summary>
+    private MapCamera? _camera;
+    public MapCamera? Camera
+    {
+        get => _camera;
+        set => this.RaiseAndSetIfChanged(ref _camera, value);
+    }
+
+    /// <summary>
+    /// Re-reads the overlay if it measures something that changes minute to minute — intel and
+    /// kills. Called on a timer by the map tool; the others (security, sovereignty, industry) are
+    /// left alone rather than rebuilt for nothing.
+    /// </summary>
+    public Task RefreshLiveOverlayAsync()
+    {
+        var key = SelectedOverlay.Key;
+        return key.StartsWith("intel", StringComparison.Ordinal) || key.StartsWith("km:", StringComparison.Ordinal)
+            ? ReapplyOverlayAsync()
+            : Task.CompletedTask;
+    }
 
     // ── Navigation ───────────────────────────────────────────────────────────
 
@@ -390,6 +418,9 @@ public class UniverseViewModel : ReactiveObject
 
         await OnUiAsync(() =>
         {
+            // Back to all of New Eden: the view is framed afresh, not left where it was.
+            Camera     = null;
+            Title      = MapText.CrumbUniverse;
             Level      = MapLevel.Universe;
             Graph      = graph;
             Overlay    = styles;
@@ -471,6 +502,7 @@ public class UniverseViewModel : ReactiveObject
     /// one shown.</param>
     public async Task FocusRegionAsync(string regionName)
     {
+        await _initialLoad;
         if (Level != MapLevel.Universe || Graph is not { IsContinuous: true })
             await ShowUniverseAsync();
 
@@ -494,6 +526,7 @@ public class UniverseViewModel : ReactiveObject
             FocusBounds = null;
             FocusBounds = new Rect(minX, minY, w, h);
             Status      = string.Format(MapText.StatusPlaceSystems, members[0].RegionLabel, members.Count);
+            Title       = members[0].RegionLabel;
         });
     }
 
@@ -525,6 +558,7 @@ public class UniverseViewModel : ReactiveObject
     {
         if (constellationName.Length == 0) return;
 
+        await _initialLoad;
         if (Level != MapLevel.Universe || Graph is not { IsContinuous: true })
             await ShowUniverseAsync();
 
@@ -546,6 +580,7 @@ public class UniverseViewModel : ReactiveObject
             FocusBounds = null;
             FocusBounds = new Rect(minX, minY, w, h);
             Status      = string.Format(MapText.StatusPlaceSystems, members[0].ConstellationLabel, members.Count);
+            Title       = members[0].ConstellationLabel;
         });
     }
 
@@ -571,54 +606,11 @@ public class UniverseViewModel : ReactiveObject
             return;
         }
 
-        // Remember which region the system sits in, so the breadcrumb can offer it on the way
-        // back even though the route down never passed through a region map.
-        if (node is { RegionName.Length: > 0 } &&
-            _regions.FirstOrDefault(r => r.Name == node.RegionName) is { } home)
-        {
-            _regionId   = home.RegionId;
-            _regionName = home.Name;
-        }
-
-        await ShowSystemAsync(id);
-    }
-
-    /// <summary>
-    /// Opens the system page. The map is replaced rather than shown alongside: at this level
-    /// there is no graph left to draw, and the breadcrumb is what gets you back.
-    /// </summary>
-    public async Task ShowSystemAsync(int systemId)
-    {
-        await OnUiAsync(() => Status = MapText.StatusLoadingSystem);
-
-        if (SystemPage is null)
-        {
-            await OnUiAsync(() => Status = MapText.StatusSystemViewUnavailable);
-            return;
-        }
-
-        var name = await _map.GetSystemDetailAsync(systemId);
-        if (name is null)
-        {
+        // The page opens in a tab of its own; this map stays as it is.
+        if (node is not null && OpenSystemRequested is { } open)
+            await OnUiAsync(() => open(id));
+        else if (node is null)
             await OnUiAsync(() => Status = MapText.StatusSystemNotFound);
-            return;
-        }
-
-        await SystemPage.LoadAsync(systemId);
-
-        await OnUiAsync(() =>
-        {
-            _systemId   = systemId;
-            _systemName = name.Name;
-            // The system may have been reached without passing through its region — from search,
-            // or from another tool — so the region crumb is set from the system rather than left
-            // pointing at whatever region was last browsed.
-            _regionId   = name.RegionId;
-            _regionName = name.Region;
-            Level       = MapLevel.System;
-            BuildCrumbs();
-            Status = $"{SdeNames.SolarSystem(systemId, name.Name)} · {SdeNames.Region(name.RegionId, name.Region)}";
-        });
     }
 
     private async Task RefreshAsync()
@@ -655,11 +647,6 @@ public class UniverseViewModel : ReactiveObject
             Crumbs.Add(new CrumbVm(SdeNames.Region(_regionId, name), Level == MapLevel.Region,
                                    () => FocusRegionAsync(name)));
         }
-
-        if (Level != MapLevel.System) return;
-
-        var systemId = _systemId;
-        Crumbs.Add(new CrumbVm(SdeNames.SolarSystem(systemId, _systemName), true, () => ShowSystemAsync(systemId)));
     }
 
     private static void Replace<T>(ObservableCollection<T> target, IEnumerable<T> items)
@@ -783,6 +770,10 @@ public class UniverseViewModel : ReactiveObject
 
             case "adm":
                 await BuildAdmOverlayAsync(g, styles, legend, byRegion);
+                break;
+
+            case "sovzones":
+                await BuildSovZonesOverlayAsync(g, styles, legend, byRegion);
                 break;
 
             case { } k when k.StartsWith("industry:"):
@@ -1002,6 +993,56 @@ public class UniverseViewModel : ReactiveObject
 
         var held = sov.Values.Count(s => s.AllianceId is not null);
         legend.Add(new LegendEntryVm(string.Format(MapText.LegendSovSummary, ranked.Count, held), unclaimed));
+        legend.Add(new LegendEntryVm(MapText.LegendUnclaimedNpc, unclaimed));
+    }
+
+    /// <summary>
+    /// Ansiblex zones: each claimed system coloured by how far it lies from its holder's capital
+    /// system — the zone a bridge jump landing there is charged at since 2026-09-22 — with the
+    /// zone and the holder in the caption. The colours are the bridge halves' own.
+    /// </summary>
+    private async Task BuildSovZonesOverlayAsync(
+        MapGraph g, Dictionary<int, MapNodeStyle> styles, List<LegendEntryVm> legend, bool byRegion)
+    {
+        if (_zones is null) return;
+        var zones = await _zones(System.Threading.CancellationToken.None);
+
+        var unclaimed = Color.Parse("#3a3a48");
+        var noCapital = Color.Parse("#6b6b80");
+
+        foreach (var n in g.Nodes)
+        {
+            // A region has no single holder or zone; the overlay is read system by system.
+            if (byRegion)
+            {
+                styles[n.Id] = new MapNodeStyle(unclaimed, Detail: MapText.TipOpenRegionForSovereignty);
+                continue;
+            }
+
+            if (!zones.TryGetValue(n.Id, out var z))
+            {
+                styles[n.Id] = new MapNodeStyle(unclaimed, Detail: MapText.SovUnclaimed);
+                continue;
+            }
+
+            var holder = z.AllianceName;
+            styles[n.Id] = z.Zone == 0
+                ? new MapNodeStyle(noCapital,
+                    Caption: string.Format(MapText.SovZoneCaption, "?", ShortHolder(holder)),
+                    Detail:  string.Format(MapText.NodeSovNoCapital, holder))
+                : new MapNodeStyle(MapCanvas.ZoneColors[z.Zone],
+                    Caption: string.Format(MapText.SovZoneCaption, z.Zone, ShortHolder(holder)),
+                    Detail:  string.Format(MapText.NodeSovZone, holder, z.Zone, z.DistanceLy ?? 0,
+                                           SdeNames.SolarSystem(z.CapitalSystemId, z.CapitalName),
+                                           JumpBridgeService.ZoneMultiplier(z.Zone)));
+        }
+
+        legend.Add(new LegendEntryVm(MapText.LegendZone1, MapCanvas.ZoneColors[1]));
+        legend.Add(new LegendEntryVm(MapText.LegendZone2, MapCanvas.ZoneColors[2]));
+        legend.Add(new LegendEntryVm(MapText.LegendZone3, MapCanvas.ZoneColors[3]));
+        legend.Add(new LegendEntryVm(MapText.LegendZone4, MapCanvas.ZoneColors[4]));
+        legend.Add(new LegendEntryVm(MapText.LegendZone5, MapCanvas.ZoneColors[5]));
+        legend.Add(new LegendEntryVm(MapText.LegendZoneNoCapital, noCapital));
         legend.Add(new LegendEntryVm(MapText.LegendUnclaimedNpc, unclaimed));
     }
 

@@ -965,7 +965,7 @@
     <comment>Alarm editor, Check pick list: the check that fires on a sighting reported in an intel channel.</comment>
   </data>
   <data name="CheckIntelNote" xml:space="preserve">
-    <value>Fires when someone reports a pilot in a system you are watching. Give a list of systems, or one system and a jump range to cover everything around it. Reads the intel channels already being parsed under Settings → Chat Logs.</value>
+    <value>Fires when someone reports a pilot near what you are watching: your characters while they are undocked, your characters wherever they are, or a list of systems, each with a range in jumps. Reads the intel channels already being parsed under Settings → Chat Logs.</value>
     <comment>Alarm editor, under the Check pick list when Intel report is picked. "Settings → Chat Logs" names the place in the Settings window.</comment>
   </data>
   <data name="CheckShipUndock" xml:space="preserve">
@@ -1029,24 +1029,16 @@
     <comment>Alarm editor, Intel report check: label of the solar systems to watch.</comment>
   </data>
   <data name="IntelSystemsNote" xml:space="preserve">
-    <value>Comma-separated system names to watch, e.g. "{0}, {1}". May be left empty if a jump range is given instead.</value>
-    <comment>Alarm editor, Intel report check, under Systems. {0} and {1} are two systems' names, filled in as the game names them in the interface language (Jita, Amarr).</comment>
-  </data>
-  <data name="IntelWithinJumpsLabel" xml:space="preserve">
-    <value>Within jumps of</value>
-    <comment>Alarm editor, Intel report check: label of the one system whose neighbourhood is watched.</comment>
-  </data>
-  <data name="IntelWithinJumpsNote" xml:space="preserve">
-    <value>Optional. A system name; everything within the jump range below is watched. Combined with the list above rather than replacing it.</value>
-    <comment>Alarm editor, Intel report check, under Within jumps of.</comment>
+    <value>Systems to watch, e.g. {0} or {1}. Add each one; with Jumps at 0, only these systems are watched.</value>
+    <comment>Alarm editor, Intel report check, under Systems (shown when Watch around is Systems). {0} and {1} are two systems' names, filled in as the game names them in the interface language (Jita, Amarr). "Jumps" is the setting below it (IntelJumpsLabel).</comment>
   </data>
   <data name="IntelJumpsLabel" xml:space="preserve">
     <value>Jumps</value>
-    <comment>Alarm editor, Intel report check: label of the number of gate jumps to watch around that system.</comment>
+    <comment>Alarm editor, Intel report check: label of the number of gate jumps to watch around each character or system.</comment>
   </data>
   <data name="IntelJumpsNote" xml:space="preserve">
-    <value>How many gate jumps out from 'within_jumps_of' to watch. 0 means that system only. Capped at 15 — past that it stops being a neighbourhood.</value>
-    <comment>Alarm editor, Intel report check, under Jumps. 'within_jumps_of' is the setting shown above as "Within jumps of".</comment>
+    <value>How many gate jumps out from each character or system to watch. 0 means their own system only. Capped at 15 — past that it stops being a neighbourhood.</value>
+    <comment>Alarm editor, Intel report check, under Jumps.</comment>
   </data>
   <data name="IntelMinPlayersLabel" xml:space="preserve">
     <value>Min players</value>
@@ -1847,5 +1839,45 @@
   <data name="RunPostedPartDiscord" xml:space="preserve">
     <value>Posted {0} of {1} messages ({2:N0} characters); Discord refused the next: {3}.</value>
     <comment>Scheduler, the result of a Discord task's run whose message went in parts and not all arrived. {0} is the parts posted, {1} how many there were, {2} the characters posted, {3} the error.</comment>
+  </data>
+  <data name="IntelAroundLabel" xml:space="preserve">
+    <value>Watch around</value>
+    <comment>Alarm editor, Intel report check: label of the choice of what the jump range is drawn around.</comment>
+  </data>
+  <data name="IntelAroundNote" xml:space="preserve">
+    <value>Undocked characters: wherever your online characters are in space; docked ones are not watched. Characters: wherever they are while online, docked or not. Systems: the systems listed below.</value>
+    <comment>Alarm editor, Intel report check, under Watch around. The three names are the choices (OptionUndockedCharacters, OptionCharacters, OptionSystems).</comment>
+  </data>
+  <data name="OptionUndockedCharacters" xml:space="preserve">
+    <value>Undocked characters</value>
+    <comment>Alarm editor, Intel report check, Watch around: the capsuleer's own characters while online and in space.</comment>
+  </data>
+  <data name="OptionCharacters" xml:space="preserve">
+    <value>Characters</value>
+    <comment>Alarm editor, Intel report check, Watch around: the capsuleer's own characters while online, docked or not.</comment>
+  </data>
+  <data name="OptionSystems" xml:space="preserve">
+    <value>Systems</value>
+    <comment>Alarm editor, Intel report check, Watch around: a list of solar systems.</comment>
+  </data>
+  <data name="IntelCharactersLabel" xml:space="preserve">
+    <value>Characters</value>
+    <comment>Alarm editor, Intel report check: label of the list of the capsuleer's own characters to watch around.</comment>
+  </data>
+  <data name="IntelCharactersNote" xml:space="preserve">
+    <value>Optional. Your own characters to watch around; leave empty for all of them. Only characters that are online count.</value>
+    <comment>Alarm editor, Intel report check, under Characters.</comment>
+  </data>
+  <data name="IntelSaidWhereIs" xml:space="preserve">
+    <value>where {0} is</value>
+    <comment>Spoken, in IntelSaidReportedAt: the hostiles are in the same system as one of the capsuleer's characters. {0} is that character's name.</comment>
+  </data>
+  <data name="IntelSaidJumpsFromOne" xml:space="preserve">
+    <value>{0} jump from {1}</value>
+    <comment>Spoken, in IntelSaidReportedAt: how many gate jumps from one of the capsuleer's characters. {0} is the number of jumps, {1} the character's name.</comment>
+  </data>
+  <data name="IntelSaidJumpsFromOther" xml:space="preserve">
+    <value>{0} jumps from {1}</value>
+    <comment>Spoken, in IntelSaidReportedAt: how many gate jumps from one of the capsuleer's characters. {0} is the number of jumps, {1} the character's name.</comment>
   </data>
 </root>

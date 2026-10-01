@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace EveConsole.Models;
@@ -542,7 +542,8 @@ public record EsiCorpStructureEntry(
     [property: JsonPropertyName("fuel_expires")]         DateTimeOffset? FuelExpires,
     [property: JsonPropertyName("next_reinforce_apply")] DateTimeOffset? NextReinforceApply,
     [property: JsonPropertyName("next_reinforce_hour")]  int?            NextReinforceHour,
-    [property: JsonPropertyName("reinforce_hour")]       int?            ReinforceHour
+    [property: JsonPropertyName("reinforce_hour")]       int?            ReinforceHour,
+    [property: JsonPropertyName("name")]                 string?         Name = null
 );
 
 public record EsiCorpStarbaseEntry(

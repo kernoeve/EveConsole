@@ -328,10 +328,11 @@ public static class AppKnowledge
         Cargo, Fuel, Fighters and Industry Jobs.
 
         ### Universe Map
-        A drill-down map: New Eden, then a region, then a system page. Overlays colour systems by
-        security, kills, jumps, industry indices, sovereignty, stations, planetary output and
-        intel sightings. The system page has tabs for its celestials, kills, industry indices,
-        graphs and intel.
+        Tabs of maps and system pages, two side by side if dragged apart. Overlays colour systems
+        by security, kills, jumps, industry indices, sovereignty, stations, planetary output and
+        intel. Live marks show hostiles placed in the last 5 minutes by intel or killmails, and
+        the user's online characters. A system page has tabs for its celestials, kills, industry
+        indices, graphs and intel.
 
         ### Jump Planner
         Plans a capital jump route. Pick a jump-capable hull, Jump Drive Calibration and Jump Fuel

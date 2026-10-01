@@ -1551,4 +1551,273 @@ Propriétaire : {3}</value>
   <data name="ReagentSuperionicIcePerHour" xml:space="preserve">
     <value>{0:N0}/h Glace superionique</value>
   </data>
+  <data name="SearchConstellationIn" xml:space="preserve">
+    <value>Constellation · {0}</value>
+  </data>
+  <data name="LiveMarksLabel" xml:space="preserve">
+    <value>Marques en direct</value>
+  </data>
+  <data name="LiveMarkHostiles" xml:space="preserve">
+    <value>Hostiles signalés ici au cours des 5 dernières minutes, par les renseignements ou un rapport de victime. Survolez pour voir qui ils sont et ce qu'ils pilotent.</value>
+  </data>
+  <data name="LiveMarkOwn" xml:space="preserve">
+    <value>Vos personnages connectés ici. Survolez pour voir leurs vaisseaux et s'ils sont amarrés.</value>
+  </data>
+  <data name="TipMapTab" xml:space="preserve">
+    <value>Faites glisser le long de la barre pour réordonner, ou sur la moitié droite pour voir deux onglets côte à côte.</value>
+  </data>
+  <data name="TipCloseMapTab" xml:space="preserve">
+    <value>Fermer cet onglet</value>
+  </data>
+  <data name="NewUniverseTab" xml:space="preserve">
+    <value>+ Nouvelle carte</value>
+  </data>
+  <data name="TipNewUniverseTab" xml:space="preserve">
+    <value>Ouvrir une carte de New Eden dans un nouvel onglet</value>
+  </data>
+  <data name="HintSystemConstellationRegion" xml:space="preserve">
+    <value>système, constellation ou région</value>
+  </data>
+  <data name="TipMapSearch" xml:space="preserve">
+    <value>Ouvre votre choix dans un nouvel onglet : la page d'un système, ou une carte cadrée sur la constellation ou la région.</value>
+  </data>
+  <data name="EmptyMapToolHint" xml:space="preserve">
+    <value>Aucun onglet ouvert. Ajoutez une carte avec + Nouvelle carte, ou recherchez un système, une constellation ou une région.</value>
+  </data>
+  <data name="DropSideBySide" xml:space="preserve">
+    <value>Déposez ici pour voir deux onglets côte à côte</value>
+  </data>
+  <data name="LiveHostilesTitle" xml:space="preserve">
+    <value>Hostiles dans {1} : {0}</value>
+  </data>
+  <data name="LiveOwnTitle" xml:space="preserve">
+    <value>Vos personnages dans {1} : {0}</value>
+  </data>
+  <data name="LiveSystemCount" xml:space="preserve">
+    <value>{0} : {1}</value>
+  </data>
+  <data name="LiveHostileLine" xml:space="preserve">
+    <value>{0} — {1} · {2} · {3}</value>
+  </data>
+  <data name="LiveShipUnknown" xml:space="preserve">
+    <value>vaisseau inconnu</value>
+  </data>
+  <data name="LiveJustNow" xml:space="preserve">
+    <value>à l'instant</value>
+  </data>
+  <data name="LiveMinutesAgo" xml:space="preserve">
+    <value>il y a {0} min</value>
+  </data>
+  <data name="LiveSourceKillmail" xml:space="preserve">
+    <value>rapport de victime</value>
+  </data>
+  <data name="LiveSourceIntel" xml:space="preserve">
+    <value>renseignements</value>
+  </data>
+  <data name="LiveSourceIntelNoVisual" xml:space="preserve">
+    <value>renseignements, NV</value>
+  </data>
+  <data name="LiveMore" xml:space="preserve">
+    <value>…et {0} de plus</value>
+  </data>
+  <data name="LiveUnidentified" xml:space="preserve">
+    <value>+{0} sans nom</value>
+  </data>
+  <data name="LiveOwnLine" xml:space="preserve">
+    <value>{0} — {1} · {2}</value>
+  </data>
+  <data name="LiveInSpace" xml:space="preserve">
+    <value>dans l'espace</value>
+  </data>
+  <data name="LiveDockedAt" xml:space="preserve">
+    <value>amarré à {0}</value>
+  </data>
+  <data name="LiveDocked" xml:space="preserve">
+    <value>amarré</value>
+  </data>
+  <data name="LiveCharacterId" xml:space="preserve">
+    <value>Personnage {0}</value>
+  </data>
+  <data name="SidePanel" xml:space="preserve">
+    <value>Détails</value>
+  </data>
+  <data name="TipSidePanel" xml:space="preserve">
+    <value>Afficher ou masquer les détails et la légende à droite</value>
+  </data>
+  <data name="JumpBridgesTab" xml:space="preserve">
+    <value>Ponts de saut</value>
+  </data>
+  <data name="TipJumpBridgesTab" xml:space="preserve">
+    <value>Tous les ponts de saut connus — par ESI ou ajoutés à la main — et en ajouter</value>
+  </data>
+  <data name="JumpBridgesToggle" xml:space="preserve">
+    <value>Ponts de saut</value>
+  </data>
+  <data name="TipJumpBridgesToggle" xml:space="preserve">
+    <value>Afficher ou masquer les ponts de saut sur la carte</value>
+  </data>
+  <data name="BridgeTitle" xml:space="preserve">
+    <value>Pont de saut : {0} ⇄ {1}</value>
+  </data>
+  <data name="BridgeFuelUntil" xml:space="preserve">
+    <value>carburant jusqu'au {0}</value>
+  </data>
+  <data name="BridgeOneGate" xml:space="preserve">
+    <value>ESI ne montre que la porte de {0}</value>
+  </data>
+  <data name="BridgeAddedByHand" xml:space="preserve">
+    <value>Ajouté à la main</value>
+  </data>
+  <data name="BridgesSummary" xml:space="preserve">
+    <value>Ponts de saut : {0} · par ESI : {1} · à la main : {2}</value>
+  </data>
+  <data name="BridgesNote" xml:space="preserve">
+    <value>Les ponts connus par ESI sont les Ansiblex des corporations dont vous avez ajouté un jeton, et mènent là où leur nom l'indique (« A » B »). Ajoutez le reste à la main : les ponts d'autres corporations et des alliés. Seuls les ponts ajoutés à la main peuvent être supprimés ici.</value>
+  </data>
+  <data name="BridgesNone" xml:space="preserve">
+    <value>Aucun pont de saut connu pour l'instant.</value>
+  </data>
+  <data name="BridgesUnreadLabel" xml:space="preserve">
+    <value>Portes dont le nom ne dit pas où elles mènent</value>
+  </data>
+  <data name="BridgeUnreadLine" xml:space="preserve">
+    <value>{0} (dans {1})</value>
+  </data>
+  <data name="BridgeNoName" xml:space="preserve">
+    <value>(sans nom)</value>
+  </data>
+  <data name="BridgeColFrom" xml:space="preserve">
+    <value>Système</value>
+  </data>
+  <data name="BridgeColTo" xml:space="preserve">
+    <value>Système</value>
+  </data>
+  <data name="BridgeColSource" xml:space="preserve">
+    <value>Source</value>
+  </data>
+  <data name="BridgeColFuel" xml:space="preserve">
+    <value>Carburant</value>
+  </data>
+  <data name="BridgeColGates" xml:space="preserve">
+    <value>Portes</value>
+  </data>
+  <data name="BridgeSourceEsiBoth" xml:space="preserve">
+    <value>ESI, les deux portes</value>
+  </data>
+  <data name="BridgeSourceEsiOne" xml:space="preserve">
+    <value>ESI, une porte</value>
+  </data>
+  <data name="BridgeSourceManual" xml:space="preserve">
+    <value>À la main</value>
+  </data>
+  <data name="BridgeSourceBoth" xml:space="preserve">
+    <value>ESI et à la main</value>
+  </data>
+  <data name="BridgeFuelDays" xml:space="preserve">
+    <value>{0} jours ({1})</value>
+  </data>
+  <data name="TipOpenSystemTab" xml:space="preserve">
+    <value>Ouvrir ce système dans un onglet</value>
+  </data>
+  <data name="TipRemoveBridge" xml:space="preserve">
+    <value>Supprimer ce pont</value>
+  </data>
+  <data name="AddBridgeLabel" xml:space="preserve">
+    <value>Ajouter un pont</value>
+  </data>
+  <data name="HintBridgeFrom" xml:space="preserve">
+    <value>une extrémité (système)</value>
+  </data>
+  <data name="HintBridgeTo" xml:space="preserve">
+    <value>l'autre extrémité (système)</value>
+  </data>
+  <data name="HintBridgeNote" xml:space="preserve">
+    <value>note (facultatif)</value>
+  </data>
+  <data name="AddBridge" xml:space="preserve">
+    <value>Ajouter</value>
+  </data>
+  <data name="BridgePickBoth" xml:space="preserve">
+    <value>Choisissez un système pour chaque extrémité.</value>
+  </data>
+  <data name="BridgeAdded" xml:space="preserve">
+    <value>{0} ⇄ {1} ajouté.</value>
+  </data>
+  <data name="BridgeNotAdded" xml:space="preserve">
+    <value>Ce pont est déjà dans la liste, ou les deux extrémités sont le même système.</value>
+  </data>
+  <data name="PasteBridgesLabel" xml:space="preserve">
+    <value>Coller une liste</value>
+  </data>
+  <data name="HintPasteBridges" xml:space="preserve">
+    <value>Un pont par ligne, par exemple :
+QZ-X77 » XQ1-Z2 - Home run
+XQ1-Z2 &lt;-&gt; 9-97XQ
+ou tels qu'un autre outil les exporte</value>
+  </data>
+  <data name="ImportBridges" xml:space="preserve">
+    <value>Importer</value>
+  </data>
+  <data name="BridgesImported" xml:space="preserve">
+    <value>Ajoutés {0} · déjà connus {1} · non lus {2} (laissés dans la zone)</value>
+  </data>
+  <data name="LegendJumpBridge" xml:space="preserve">
+    <value>Pont de saut — chaque moitié dans la couleur de zone de son extrémité ; plus pâle si ESI ne montre qu'une porte</value>
+  </data>
+  <data name="BridgeAllianceId" xml:space="preserve">
+    <value>Alliance {0}</value>
+  </data>
+  <data name="BridgeDirectionLine" xml:space="preserve">
+    <value>{0} → {1} : {2} · {3}</value>
+  </data>
+  <data name="BridgeZoneFree" xml:space="preserve">
+    <value>zone 1 ({0:0.0} al de la capitale), gratuit</value>
+  </data>
+  <data name="BridgeZoneCost" xml:space="preserve">
+    <value>zone {0} ({1:0.0} al de la capitale), {2}× capaciteur</value>
+  </data>
+  <data name="BridgeZoneNoCapital" xml:space="preserve">
+    <value>zone inconnue (l'alliance n'a pas de système capitale)</value>
+  </data>
+  <data name="BridgeNoSov" xml:space="preserve">
+    <value>{0} → {1} : personne ne détient la souveraineté dans {0}, donc personne ne peut sauter dans ce sens</value>
+  </data>
+  <data name="BridgeSovUnknown" xml:space="preserve">
+    <value>Impossible de savoir qui peut sauter : les données de souveraineté ne sont pas disponibles pour l'instant.</value>
+  </data>
+  <data name="BridgesRulesNote" xml:space="preserve">
+    <value>Depuis le 22 septembre 2026, un pont ne peut être utilisé que par l'alliance qui détient la souveraineté là où le saut commence, et pas par les vaisseaux capitaux (sauf Rorquals et cargos). Chaque saut consomme le capaciteur du pont, d'autant plus que le saut aboutit loin de la capitale de cette alliance : gratuit jusqu'à 5 al (zone 1), puis 2×, 6×, 9× et 15× le coût de base du vaisseau tous les 5 al.</value>
+  </data>
+  <data name="OverlaySovZones" xml:space="preserve">
+    <value>Zones de souveraineté</value>
+  </data>
+  <data name="SovZoneCaption" xml:space="preserve">
+    <value>Z{0} · {1}</value>
+  </data>
+  <data name="NodeSovZone" xml:space="preserve">
+    <value>{0}
+Zone {1} : {2:0.0} al de la capitale, {3}</value>
+  </data>
+  <data name="NodeSovNoCapital" xml:space="preserve">
+    <value>{0}
+Pas de système capitale, donc pas de zone</value>
+  </data>
+  <data name="LegendZone1" xml:space="preserve">
+    <value>Z1 : jusqu'à 5 al, gratuit</value>
+  </data>
+  <data name="LegendZone2" xml:space="preserve">
+    <value>Z2 : 5–10 al, 2×</value>
+  </data>
+  <data name="LegendZone3" xml:space="preserve">
+    <value>Z3 : 10–15 al, 6×</value>
+  </data>
+  <data name="LegendZone4" xml:space="preserve">
+    <value>Z4 : 15–20 al, 9×</value>
+  </data>
+  <data name="LegendZone5" xml:space="preserve">
+    <value>Z5 : au-delà de 20 al, 15×</value>
+  </data>
+  <data name="LegendZoneNoCapital" xml:space="preserve">
+    <value>Le détenteur n'a pas de système capitale</value>
+  </data>
 </root>

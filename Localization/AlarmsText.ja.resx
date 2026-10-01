@@ -722,7 +722,7 @@
     <value>インテル報告</value>
   </data>
   <data name="CheckIntelNote" xml:space="preserve">
-    <value>監視中のシステムでパイロットが報告されたときに発動します。システムの一覧を指定するか、1つのシステムとジャンプ範囲を指定して周辺全体を対象にします。「設定 → チャットログ」ですでに解析しているインテルチャンネルを読み取ります。</value>
+    <value>監視対象の周辺でパイロットが報告されたときに発動します。対象は、出港中の自分のキャラクター、居場所を問わない自分のキャラクター、またはシステムの一覧で、それぞれにジャンプ範囲を指定します。「設定 → チャットログ」ですでに解析しているインテルチャンネルを読み取ります。</value>
   </data>
   <data name="CheckShipUndock" xml:space="preserve">
     <value>艦船の出港</value>
@@ -770,19 +770,13 @@
     <value>システム</value>
   </data>
   <data name="IntelSystemsNote" xml:space="preserve">
-    <value>監視するシステム名をカンマ区切りで指定します（例：「{0}, {1}」）。代わりにジャンプ範囲を指定する場合は空欄でもかまいません。</value>
-  </data>
-  <data name="IntelWithinJumpsLabel" xml:space="preserve">
-    <value>ジャンプ範囲の起点</value>
-  </data>
-  <data name="IntelWithinJumpsNote" xml:space="preserve">
-    <value>任意。システム名を指定すると、下のジャンプ範囲内がすべて監視されます。上の一覧を置き換えるのではなく、組み合わせて使われます。</value>
+    <value>監視するシステムです（例：{0}、{1}）。1つずつ追加します。ジャンプ数が0の場合は、これらのシステムのみを監視します。</value>
   </data>
   <data name="IntelJumpsLabel" xml:space="preserve">
     <value>ジャンプ数</value>
   </data>
   <data name="IntelJumpsNote" xml:space="preserve">
-    <value>「ジャンプ範囲の起点」から、スターゲートで何ジャンプ先まで監視するかです。0はそのシステムのみです。上限は15です — それ以上は周辺とは言えなくなるためです。</value>
+    <value>各キャラクターまたはシステムから、スターゲートで何ジャンプ先まで監視するかです。0はそのシステムのみです。上限は15です — それ以上は周辺とは言えなくなるためです。</value>
   </data>
   <data name="IntelMinPlayersLabel" xml:space="preserve">
     <value>最少人数</value>
@@ -1359,5 +1353,32 @@
   </data>
   <data name="RunPostedPartDiscord" xml:space="preserve">
     <value>{1}件中{0}件のメッセージ（{2:N0}文字）を投稿しましたが、次のメッセージはDiscordに拒否されました：{3}。</value>
+  </data>
+  <data name="IntelAroundLabel" xml:space="preserve">
+    <value>監視の基準</value>
+  </data>
+  <data name="IntelAroundNote" xml:space="preserve">
+    <value>出港中のキャラクター：オンラインのキャラクターが宇宙空間にいる場所。ドッキング中のキャラクターは監視しません。キャラクター：オンラインの間、ドッキング中かどうかにかかわらずその居場所。システム：下に並べたシステム。</value>
+  </data>
+  <data name="OptionUndockedCharacters" xml:space="preserve">
+    <value>出港中のキャラクター</value>
+  </data>
+  <data name="OptionCharacters" xml:space="preserve">
+    <value>キャラクター</value>
+  </data>
+  <data name="OptionSystems" xml:space="preserve">
+    <value>システム</value>
+  </data>
+  <data name="IntelCharactersLabel" xml:space="preserve">
+    <value>キャラクター</value>
+  </data>
+  <data name="IntelCharactersNote" xml:space="preserve">
+    <value>任意。周辺を監視する自分のキャラクターです。空欄にするとすべてのキャラクターが対象です。オンラインのキャラクターのみが対象です。</value>
+  </data>
+  <data name="IntelSaidWhereIs" xml:space="preserve">
+    <value>{0}がいるシステム</value>
+  </data>
+  <data name="IntelSaidJumpsFromOther" xml:space="preserve">
+    <value>{1}から{0}ジャンプ</value>
   </data>
 </root>

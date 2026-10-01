@@ -1,4 +1,4 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
@@ -2552,7 +2552,18 @@
                            AsyncPopulator="{Binding ScopePlacePopulator}"
                            FilterMode="None" MinimumPrefixLength="2"
                            MinimumPopulateDelay="0:0:0.35" MaxDropDownHeight="300"
-                           FontSize="11" Watermark="{x:Static loc:WorklistText.HintTypeTwoCharacters}"/>
+                           FontSize="11" Watermark="{x:Static loc:WorklistText.HintTypeTwoCharacters}">
+            <AutoCompleteBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:ScopePlaceOption">
+                <!-- A system's region beside it, as every system picker shows it. -->
+                <Grid ColumnDefinitions="*,Auto" MinWidth="220">
+                  <TextBlock Grid.Column="0" Text="{Binding Shown}" />
+                  <TextBlock Grid.Column="1" Text="{Binding Region}" FontSize="10" Margin="10 0 0 0"
+                             Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+                </Grid>
+              </DataTemplate>
+            </AutoCompleteBox.ItemTemplate>
+          </AutoCompleteBox>
           <CheckBox Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2" VerticalAlignment="Center"
                     Content="{x:Static loc:WorklistText.IncludeNonPersonalCorpAssets}" FontSize="11"
                     IsChecked="{Binding IncludeNonPersonalCorps}"
