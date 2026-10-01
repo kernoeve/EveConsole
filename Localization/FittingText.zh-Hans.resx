@@ -577,6 +577,9 @@
   <data name="DetailRepairHull" xml:space="preserve">
     <value>结构 {0:N1} HP/s</value>
   </data>
+  <data name="DetailBreacherPods" xml:space="preserve">
+    <value>运行时突破者座舱伤害 {0:0}%</value>
+  </data>
   <data name="DetailAdapted" xml:space="preserve">
     <value>稳定于 {0}</value>
   </data>
@@ -678,6 +681,9 @@
   </data>
   <data name="NavLine" xml:space="preserve">
     <value>朝向时间 {0:0.00} 秒    信号半径 {1:N0} m    跃迁速度 {2:0.##} AU/s</value>
+  </data>
+  <data name="NavLineNoWarp" xml:space="preserve">
+    <value>朝向时间 {0:0.00} 秒    信号半径 {1:N0} m    无法跃迁</value>
   </data>
   <data name="MassLine" xml:space="preserve">
     <value>质量 {0:N0} kg    惯性调整系数 {1:0.###}</value>

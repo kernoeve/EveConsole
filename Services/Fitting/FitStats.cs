@@ -127,6 +127,9 @@ public sealed class FitStats
     public double AlignTime   => -Math.Log(0.25) * Agility * Mass / 1_000_000;
     public double Signature   => Ship("signatureRadius");
     public double WarpSpeed   => Ship("warpSpeedMultiplier") * Ship("baseWarpSpeed");
+    /// <summary>Whether the ship can warp: nothing on it holding it (a doomsday firing) beyond what
+    /// its warp core stabilizers outweigh.</summary>
+    public bool   CanWarp     => Ship("warpScrambleStatus") <= 0;
     public double TargetRange => Ship("maxTargetRange");
     public double ScanResolution => Ship("scanResolution");
     /// <summary>The ship's limit and the pilot's, whichever is lower.</summary>

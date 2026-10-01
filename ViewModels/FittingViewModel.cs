@@ -357,6 +357,7 @@ public sealed class FitSnapshot
     public double FighterSustained;
     public Dictionary<int, string> DroneDetail = new();    // by drone/squadron index
     public double Speed, Align, Signature, Warp, Mass, Agility;
+    public bool   CanWarp = true;
     public double Range, ScanRes, MaxTargets, Sensor;
     /// <summary>The strongest sensor's attribute, which says its type (radar, ladar…).</summary>
     public string SensorAttribute = "";
@@ -2050,7 +2051,7 @@ public class FitTabViewModel : ReactiveObject
             Calib = s.CalibrationUsed, CalibOut = s.Calibration,
             TurretsOut = s.TurretHardpoints, LaunchersOut = s.LauncherHardpoints,
             DroneBay = s.DroneBayUsed, DroneBayOut = s.DroneBay, Bandwidth = s.DroneBandwidthUsed, BandwidthOut = s.DroneBandwidth,
-            Speed = s.MaxVelocity, Align = s.AlignTime, Signature = s.Signature, Warp = s.WarpSpeed, Mass = s.Mass, Agility = s.Agility,
+            Speed = s.MaxVelocity, Align = s.AlignTime, Signature = s.Signature, Warp = s.WarpSpeed, CanWarp = s.CanWarp, Mass = s.Mass, Agility = s.Agility,
             Range = s.TargetRange, ScanRes = s.ScanResolution, MaxTargets = s.MaxLockedTargets,
         };
         foreach (var slot in new[] { FitSlot.High, FitSlot.Mid, FitSlot.Low, FitSlot.Rig, FitSlot.Subsystem, FitSlot.Service })
@@ -2118,6 +2119,9 @@ public class FitTabViewModel : ReactiveObject
                 TankLayer.Armor  => FittingText.DetailRepairArmor,
                 _                => FittingText.DetailRepairHull,
             }, rep.PerSecond));
+            // Breach Control: what it does to breacher pod damage while it runs, which no figure here shows.
+            if (e.Data.Attribute("breacherPodActivatedDamageReceivedPercentage")?.Id is { } breach && m.Type.Attr(breach) is { } breachPct)
+                parts.Add(string.Format(FittingText.DetailBreacherPods, breachPct));
             // A Reactive Armor Hardener: where it settles against the chosen damage.
             if (e.AdaptedResonances(m) is { } adapted)
                 parts.Add(string.Format(FittingText.DetailAdapted, string.Join(" / ",
@@ -2189,7 +2193,9 @@ public class FitTabViewModel : ReactiveObject
     public string DamageTypesText => Stats is { } s && s.WeaponDps.Total + s.DroneDps.Total + s.FighterDps.Total > 0
         ? DamageMix(s.WeaponDps + s.DroneDps + s.FighterDps) : "";
     public string SpeedText       => Stats is { } s ? $"{s.Speed:N0} m/s" : "";
-    public string NavText         => Stats is { } s ? string.Format(FittingText.NavLine, s.Align, s.Signature, s.Warp) : "";
+    public string NavText         => Stats is not { } s ? ""
+        : s.CanWarp ? string.Format(FittingText.NavLine, s.Align, s.Signature, s.Warp)
+        : string.Format(FittingText.NavLineNoWarp, s.Align, s.Signature);
     public string MassText        => Stats is { } s ? string.Format(FittingText.MassLine, s.Mass, s.Agility) : "";
     public string TargetingText   => Stats is { } s ? string.Format(FittingText.TargetingLine, s.Range / 1000, s.ScanRes, s.MaxTargets) : "";
     /// <summary>The strongest sensor, by its type.</summary>

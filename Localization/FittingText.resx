@@ -776,6 +776,10 @@
     <value>{0:N1} hull HP/s</value>
     <comment>Fitting tool, under a hull repairer: the hull (structure) it repairs per second. {0} is the number; HP/s is hit points per second.</comment>
   </data>
+  <data name="DetailBreacherPods" xml:space="preserve">
+    <value>breacher pod damage {0:0}% while running</value>
+    <comment>Fitting tool, under Breach Control: how much of the damage breacher pods do it takes while running. {0} is a percentage change, such as -90.</comment>
+  </data>
   <data name="DetailAdapted" xml:space="preserve">
     <value>settles at {0}</value>
     <comment>Fitting tool, under a Reactive Armor Hardener: the resistances it ends up at against the chosen damage. {0} is a list such as "EM 0% / Th 10.5% / Kin 12% / Exp 37.5%", built from the resistance table's column heads.</comment>
@@ -911,6 +915,10 @@
   <data name="NavLine" xml:space="preserve">
     <value>Align {0:0.00} s    Signature {1:N0} m    Warp {2:0.##} AU/s</value>
     <comment>Fitting tool, NAVIGATION: {0} seconds to align for warp, {1} the signature radius in metres, {2} the warp speed in AU per second. Four spaces separate the parts in English.</comment>
+  </data>
+  <data name="NavLineNoWarp" xml:space="preserve">
+    <value>Align {0:0.00} s    Signature {1:N0} m    Cannot warp</value>
+    <comment>Fitting tool, NAVIGATION: as NavLine, when something running on the ship (a doomsday firing) keeps it from warping. {0} seconds to align, {1} signature radius in metres.</comment>
   </data>
   <data name="MassLine" xml:space="preserve">
     <value>Mass {0:N0} kg    Inertia {1:0.###}</value>

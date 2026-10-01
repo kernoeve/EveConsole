@@ -577,6 +577,9 @@
   <data name="DetailRepairHull" xml:space="preserve">
     <value>船体{0:N1} HP/s</value>
   </data>
+  <data name="DetailBreacherPods" xml:space="preserve">
+    <value>稼働中の突入ポッドダメージ {0:0}%</value>
+  </data>
   <data name="DetailAdapted" xml:space="preserve">
     <value>収束値 {0}</value>
   </data>
@@ -678,6 +681,9 @@
   </data>
   <data name="NavLine" xml:space="preserve">
     <value>軸合わせ{0:0.00}秒    シグネチャ{1:N0} m    ワープ{2:0.##} AU/s</value>
+  </data>
+  <data name="NavLineNoWarp" xml:space="preserve">
+    <value>軸合わせ{0:0.00}秒    シグネチャ{1:N0} m    ワープ不可</value>
   </data>
   <data name="MassLine" xml:space="preserve">
     <value>質量{0:N0} kg    慣性乗数{1:0.###}</value>

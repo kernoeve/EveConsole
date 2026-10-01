@@ -369,14 +369,16 @@ public sealed class DogmaEngine
     /// follows its module; everything else is passive and always on.</summary>
     public static bool Runs(DogmaItem item, int category)
     {
-        const int passive = 0, active = 1, online = 4, overload = 5;
+        const int passive = 0, active = 1, target = 2, online = 4, overload = 5;
         return item.Kind switch
         {
             DogmaItemKind.Module => category switch
             {
                 passive  => true,
                 online   => item.State >= ModuleState.Online,
-                active   => item.State >= ModuleState.Active,
+                // A targeted effect runs while the module does; what it does to the target is not
+                // part of a fit (its target domain resolves to nothing), what it does to the ship is.
+                active or target => item.State >= ModuleState.Active,
                 overload => item.State >= ModuleState.Overheated,
                 _        => false,
             },

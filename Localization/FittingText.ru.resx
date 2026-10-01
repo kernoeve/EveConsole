@@ -595,6 +595,9 @@
   <data name="DetailRepairHull" xml:space="preserve">
     <value>Корпус: {0:N1} ед. пр./с</value>
   </data>
+  <data name="DetailBreacherPods" xml:space="preserve">
+    <value>урон от брешь-капсул {0:0}% во время работы</value>
+  </data>
   <data name="DetailAdapted" xml:space="preserve">
     <value>устанавливается на {0}</value>
   </data>
@@ -696,6 +699,9 @@
   </data>
   <data name="NavLine" xml:space="preserve">
     <value>Разгон: {0:0.00} с    Сигнатура: {1:N0} м    Варп: {2:0.##} а. е./с</value>
+  </data>
+  <data name="NavLineNoWarp" xml:space="preserve">
+    <value>Разгон: {0:0.00} с    Сигнатура: {1:N0} м    Варп невозможен</value>
   </data>
   <data name="MassLine" xml:space="preserve">
     <value>Масса: {0:N0} кг    Инертность: {1:0.###}</value>

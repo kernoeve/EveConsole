@@ -206,7 +206,19 @@ public static class EftFormat
     /// they start online and are switched on by hand.
     /// </summary>
     public static ModuleState DefaultState(DogmaData data, DogmaTypeInfo type) =>
-        CanActivate(data, type) && !StartsOnline.Contains(type.GroupId) ? ModuleState.Active : ModuleState.Online;
+        CanActivate(data, type) && !StartsOnline.Contains(type.GroupId) && !IsOneOff(data, type) ? ModuleState.Active : ModuleState.Online;
+
+    /// <summary>
+    /// A module used once in a while rather than kept running — a micro jump drive or field
+    /// generator, an Emergency Hull Energizer, a doomsday, Breach Control — whose effect on its
+    /// own ship lasts only while it is used. Fitted, it starts on but not running, so the fit is
+    /// shown as it flies; switched on, it shows what using it does.
+    /// </summary>
+    private static bool IsOneOff(DogmaData data, DogmaTypeInfo type) =>
+        type.DefaultEffectId is { } id && data.Effects.TryGetValue(id, out var e)
+        && (e.Name is "microJumpDrive" or "microJumpPortalDrive" or "microJumpPortalDriveCapital" or "emergencyHullEnergizer"
+                   or "moduleBonusBreacherPodDamageControl" or "debuffLance"
+            || e.Name.StartsWith("doomsday", StringComparison.Ordinal) || e.Name.StartsWith("superWeapon", StringComparison.Ordinal));
 
     /// <summary>Cloaking Device and Cynosural Field Generator (standard, covert and industrial).</summary>
     private static readonly HashSet<int> StartsOnline = [330, 658];
