@@ -1869,6 +1869,103 @@ public class App : Application
                     )
                     """);
 
+                // ── Planetary Industry: colony layouts ──────────────────────────────
+                // One colony replaced whole, in one transaction, whenever the colony list
+                // reports a new last_update. Mirrored for PostgreSQL in PostgresSchema.
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "EsiPlanetaryLayouts" (
+                        "CharacterId" INTEGER NOT NULL,
+                        "PlanetId"    INTEGER NOT NULL,
+                        "LastUpdate"  TEXT    NOT NULL,
+                        "FetchedAt"   TEXT    NOT NULL,
+                        CONSTRAINT "PK_EsiPlanetaryLayouts" PRIMARY KEY ("CharacterId", "PlanetId")
+                    )
+                    """);
+
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "EsiPlanetaryPins" (
+                        "CharacterId"            INTEGER NOT NULL,
+                        "PlanetId"               INTEGER NOT NULL,
+                        "PinId"                  INTEGER NOT NULL,
+                        "TypeId"                 INTEGER NOT NULL DEFAULT 0,
+                        "SchematicId"            INTEGER NULL,
+                        "InstallTime"            TEXT    NULL,
+                        "ExpiryTime"             TEXT    NULL,
+                        "LastCycleStart"         TEXT    NULL,
+                        "Latitude"               REAL    NOT NULL DEFAULT 0,
+                        "Longitude"              REAL    NOT NULL DEFAULT 0,
+                        "ExtractorProductTypeId" INTEGER NULL,
+                        "ExtractorCycleTime"     INTEGER NULL,
+                        "ExtractorQtyPerCycle"   INTEGER NULL,
+                        "ExtractorHeadRadius"    REAL    NULL,
+                        "ExtractorHeadCount"     INTEGER NOT NULL DEFAULT 0,
+                        CONSTRAINT "PK_EsiPlanetaryPins" PRIMARY KEY ("CharacterId", "PlanetId", "PinId")
+                    )
+                    """);
+
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "EsiPlanetaryPinContents" (
+                        "CharacterId" INTEGER NOT NULL,
+                        "PlanetId"    INTEGER NOT NULL,
+                        "PinId"       INTEGER NOT NULL,
+                        "TypeId"      INTEGER NOT NULL,
+                        "Amount"      INTEGER NOT NULL DEFAULT 0,
+                        CONSTRAINT "PK_EsiPlanetaryPinContents" PRIMARY KEY ("CharacterId", "PlanetId", "PinId", "TypeId")
+                    )
+                    """);
+
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "EsiPlanetaryRoutes" (
+                        "CharacterId"      INTEGER NOT NULL,
+                        "PlanetId"         INTEGER NOT NULL,
+                        "RouteId"          INTEGER NOT NULL,
+                        "SourcePinId"      INTEGER NOT NULL DEFAULT 0,
+                        "DestinationPinId" INTEGER NOT NULL DEFAULT 0,
+                        "ContentTypeId"    INTEGER NOT NULL DEFAULT 0,
+                        "Quantity"         REAL    NOT NULL DEFAULT 0,
+                        "Waypoints"        TEXT    NOT NULL DEFAULT '',
+                        CONSTRAINT "PK_EsiPlanetaryRoutes" PRIMARY KEY ("CharacterId", "PlanetId", "RouteId")
+                    )
+                    """);
+
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "EsiPlanetaryLinks" (
+                        "CharacterId"      INTEGER NOT NULL,
+                        "PlanetId"         INTEGER NOT NULL,
+                        "SourcePinId"      INTEGER NOT NULL,
+                        "DestinationPinId" INTEGER NOT NULL,
+                        "LinkLevel"        INTEGER NOT NULL DEFAULT 0,
+                        CONSTRAINT "PK_EsiPlanetaryLinks" PRIMARY KEY ("CharacterId", "PlanetId", "SourcePinId", "DestinationPinId")
+                    )
+                    """);
+
+                // What left and arrived between two snapshots of a colony, and the tax rate each
+                // planet was learned to charge from it. See PiTaxLearning.
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "PiColonyMovements" (
+                        "Id"          INTEGER NOT NULL CONSTRAINT "PK_PiColonyMovements" PRIMARY KEY AUTOINCREMENT,
+                        "CharacterId" INTEGER NOT NULL DEFAULT 0,
+                        "PlanetId"    INTEGER NOT NULL DEFAULT 0,
+                        "FromUpdate"  TEXT    NOT NULL DEFAULT '',
+                        "ToUpdate"    TEXT    NOT NULL DEFAULT '',
+                        "TypeId"      INTEGER NOT NULL DEFAULT 0,
+                        "Removed"     INTEGER NOT NULL DEFAULT 0,
+                        "Added"       INTEGER NOT NULL DEFAULT 0
+                    )
+                    """);
+
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "PiPlanetTaxRates" (
+                        "PlanetId"    INTEGER NOT NULL CONSTRAINT "PK_PiPlanetTaxRates" PRIMARY KEY,
+                        "Rate"        REAL    NOT NULL DEFAULT 0,
+                        "LearnedAt"   TEXT    NOT NULL DEFAULT '',
+                        "JournalId"   INTEGER NOT NULL DEFAULT 0,
+                        "CharacterId" INTEGER NOT NULL DEFAULT 0,
+                        "Source"      TEXT    NOT NULL DEFAULT '',
+                        "Units"       INTEGER NOT NULL DEFAULT 0
+                    )
+                    """);
+
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "EsiAgentResearch" (
                         "CharacterId"     INTEGER NOT NULL,
@@ -2665,7 +2762,8 @@ public class App : Application
                         "IncludeCorpAssets"     INTEGER NOT NULL DEFAULT 1,
                         "IncludePersonalAssets" INTEGER NOT NULL DEFAULT 1,
                         "Note"                  TEXT    NOT NULL DEFAULT '',
-                        "SkillQueue"            INTEGER NOT NULL DEFAULT 1
+                        "SkillQueue"            INTEGER NOT NULL DEFAULT 1,
+                        "PlanetaryIndustry"     INTEGER NOT NULL DEFAULT 1
                     )
                     """);
                 db.Database.ExecuteSqlRaw("""
@@ -2677,6 +2775,10 @@ public class App : Application
                 // column with no default would silence every character's skill queue on upgrade,
                 // which is the opposite of what clearing a box is for.
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "WorklistIndyChars" ADD COLUMN "SkillQueue" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+
+                // The PI box, on by default for the same reason: every character already listed
+                // keeps doing PI until somebody clears it. Mirrored for PostgreSQL in PostgresSchema.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "WorklistIndyChars" ADD COLUMN "PlanetaryIndustry" INTEGER NOT NULL DEFAULT 1"""); } catch { }
 
                 // Added after the rules table shipped on this branch, so it needs its own ALTER —
                 // CREATE TABLE IF NOT EXISTS will not add a column to a table that already exists.
@@ -4135,6 +4237,10 @@ public class App : Application
         // Decides whether this process does background work at all. Registered beside the
         // services it gates, though nothing resolves it until startup wires the lease events.
         services.AddSingleton<WorkerLease>();
+        // Planetary Industry: tax defaults and per-planet rates, and the one door the PI tool,
+        // its alerts and its worklist tasks read colonies through.
+        services.AddSingleton<EveConsole.Services.Pi.PiTaxService>();
+        services.AddSingleton<EveConsole.Services.Pi.PiService>();
         services.AddSingleton<EsiPollingService>();
         services.AddSingleton<NetWorthService>();
         services.AddSingleton<TypePriceHistoryService>();

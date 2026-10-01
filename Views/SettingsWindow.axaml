@@ -307,8 +307,47 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
+
+                  <!-- Planetary Industry: cleared, the character is not in the PI tool at all. -->
+                  <DataGridTemplateColumn Header="{x:Static loc:SettingsText.ColPi}" Width="70" SortMemberPath="PlanetaryIndustry"
+                                          IsReadOnly="True" ClipboardContentBinding="{Binding PlanetaryIndustry}">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:IndyCharRow">
+                        <CheckBox IsChecked="{Binding PlanetaryIndustry, Mode=TwoWay}" FontSize="11" MinHeight="0"
+                                  HorizontalAlignment="Center"
+                                  ToolTip.Tip="{x:Static loc:SettingsText.TipCharacterDoesPi}" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                 </DataGrid.Columns>
               </DataGrid>
+            </StackPanel>
+          </Border>
+
+          <!-- Planetary Industry tax: what a planet is charged until its own rate is learned. -->
+          <Border Background="{DynamicResource SurfaceHeaderBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+                  CornerRadius="4" Padding="12 10">
+            <StackPanel Spacing="8" DataContext="{Binding PiVm}">
+              <TextBlock Text="{x:Static loc:SettingsText.PiTaxTitle}" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" FontSize="12" />
+              <TextBlock FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
+                         Text="{x:Static loc:SettingsText.PiTaxNote}" />
+              <Grid ColumnDefinitions="Auto,8,Auto,8,Auto" RowDefinitions="Auto,6,Auto">
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static loc:SettingsText.PiTaxCustomsDefault}"
+                           FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                <NumericUpDown Grid.Row="0" Grid.Column="2" Value="{Binding CustomsTaxPercent}"
+                               Minimum="0" Maximum="100" Increment="0.5" FormatString="0.##"
+                               FontSize="12" Width="120" VerticalAlignment="Center" />
+                <TextBlock Grid.Row="0" Grid.Column="4" Text="%" FontSize="12"
+                           Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="{x:Static loc:SettingsText.PiTaxSkyhookDefault}"
+                           FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                <NumericUpDown Grid.Row="2" Grid.Column="2" Value="{Binding SkyhookTaxPercent}"
+                               Minimum="0" Maximum="100" Increment="0.5" FormatString="0.##"
+                               FontSize="12" Width="120" VerticalAlignment="Center" />
+                <TextBlock Grid.Row="2" Grid.Column="4" Text="%" FontSize="12"
+                           Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" />
+              </Grid>
+              <TextBlock Text="{Binding Status}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
             </StackPanel>
           </Border>
         </StackPanel>

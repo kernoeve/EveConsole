@@ -157,6 +157,18 @@ public class WorklistIndyChar
     public bool SkillQueue    { get; set; } = true;
 
     /// <summary>
+    /// Whether this character does Planetary Industry.
+    ///
+    /// <para>On by default, the same as <see cref="SkillQueue"/>. Cleared, the character is not in
+    /// the PI tool at all, raises no PI alerts or tasks, and its colony layouts are not polled.
+    /// Read through PiCharacters, which is the one place that answers "who does PI".</para>
+    ///
+    /// <para>⚠️ Absence means on, for the same reason as SkillQueue: a character with no row here
+    /// has never been configured, which is not the same as being switched off.</para>
+    /// </summary>
+    public bool PlanetaryIndustry { get; set; } = true;
+
+    /// <summary>
     /// Unused. Kept only so existing rows still load — nothing reads these.
     ///
     /// <para>They used to gate, per character, whether corp or personal stock counted for that

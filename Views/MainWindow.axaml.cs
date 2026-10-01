@@ -674,6 +674,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                                                vm.CorpTop10SettingsVm, dbVm, vm.SlackSettingsVm, vm.DiscordSettingsVm,
                                                vm.GameLogSettingsVm, vm.ChatLogSettingsVm, vm.ZkbSettingsVm,
                                                vm.MapStatsSettingsVm, vm.OtherSettingsVm, vm.DataRetentionVm,
+                                               // Over the shared preferences, which are already in memory.
+                                               new PiSettingsViewModel(new EveConsole.Services.Pi.PiTaxService(vm.AppPrefs)),
                                                vm.TtsService, vm.SpeechInputService, vm.HotkeyService);
         var settingsWin = new SettingsWindow { DataContext = settingsVm };
         settingsWin.WireDatabase(dbVm, this);

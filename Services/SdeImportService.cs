@@ -459,6 +459,15 @@ public class SdeImportService
             // And the descriptions, which are read a row at a time rather than loaded: see SdeText.
             // A new table too, with the same consequence.
             """CREATE TABLE IF NOT EXISTS "SdeTexts" ("Kind" INTEGER NOT NULL, "Id" INTEGER NOT NULL, "Lang" TEXT NOT NULL, "Text" TEXT NOT NULL DEFAULT '', CONSTRAINT "PK_SdeTexts" PRIMARY KEY ("Kind", "Id", "Lang"))""",
+
+            // ── Planetary Industry ──────────────────────────────────────────────
+            // Which processors run each schematic (planetSchematics.yaml's pins, which the import
+            // used to drop), and the raw resources each planet type yields (derived — the SDE has
+            // no such table; see DerivePlanetTypeResources). New tables, so on an existing
+            // database the fingerprint grows and the import that fills them starts on its own.
+            // Mirrored for PostgreSQL in PostgresSchema.
+            """CREATE TABLE IF NOT EXISTS "SdePlanetSchematicPins" ("SchematicId" INTEGER NOT NULL, "PinTypeId" INTEGER NOT NULL, CONSTRAINT "PK_SdePlanetSchematicPins" PRIMARY KEY ("SchematicId", "PinTypeId"))""",
+            """CREATE TABLE IF NOT EXISTS "SdePlanetTypeResources" ("PlanetTypeId" INTEGER NOT NULL, "ResourceTypeId" INTEGER NOT NULL, "PlanetType" TEXT NOT NULL DEFAULT '', CONSTRAINT "PK_SdePlanetTypeResources" PRIMARY KEY ("PlanetTypeId", "ResourceTypeId"))""",
         };
         foreach (var sql in creates)
             db.Database.ExecuteSqlRaw(sql);
@@ -1733,8 +1742,18 @@ public class SdeImportService
             (kv.Value.types ?? []).Select(t => new SdePlanetSchematicType
                 { SchematicId = kv.Key, TypeId = t.Key, IsInput = t.Value.isInput, Quantity = t.Value.quantity }))
             .DistinctBy(x => (x.SchematicId, x.TypeId));
+        // Which processor types can run each schematic. Same file, and dropped until PI needed it.
+        var pins = raw.SelectMany(kv =>
+            (kv.Value.pins ?? []).Select(pin => new SdePlanetSchematicPin { SchematicId = kv.Key, PinTypeId = pin }))
+            .DistinctBy(x => (x.SchematicId, x.PinTypeId));
         await SaveBatchesAsync(db, db.SdePlanetSchematics,     schematics, SettingsText.ImportStagePiSchematics,      raw.Count, p, 0.975, 0.985, ct);
-        await SaveBatchesAsync(db, db.SdePlanetSchematicTypes, types,      SettingsText.ImportStagePiSchematicTypes,  -1,        p, 0.985, 0.987, ct);
+        await SaveBatchesAsync(db, db.SdePlanetSchematicTypes, types,      SettingsText.ImportStagePiSchematicTypes,  -1,        p, 0.985, 0.986, ct);
+        await SaveBatchesAsync(db, db.SdePlanetSchematicPins,  pins,       SettingsText.ImportStagePiSchematicTypes,  -1,        p, 0.986, 0.9865, ct);
+
+        // The raw resources each planet type yields, which the SDE has no table for: derived from
+        // the types and dogma already written by the stages before this one.
+        var resources = await Pi.PiStaticDataLoader.DerivePlanetTypeResourcesAsync(db, ct);
+        await SaveBatchesAsync(db, db.SdePlanetTypeResources,  resources,  SettingsText.ImportStagePiSchematicTypes,  -1,        p, 0.9865, 0.987, ct);
         await SaveNamesAsync(db, SdeNameKind.PlanetSchematic, raw.Select(kv => ((long)kv.Key, kv.Value.name ?? kv.Value.nameID)), p, 0.987, ct);
     }
 
@@ -2891,6 +2910,8 @@ public class SdeImportService
         public LocalizedName?                         name      { get; set; }
         public LocalizedName?                         nameID    { get; set; }
         public Dictionary<int, PiSchematicTypeYaml>? types     { get; set; }
+        // The processor types that can run it.
+        public List<int>?                             pins      { get; set; }
     }
     private class PiSchematicTypeYaml
     {
