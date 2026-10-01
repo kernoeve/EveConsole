@@ -6,9 +6,16 @@
              xmlns:views="using:EveConsole.Views"
              xmlns:loc="using:EveConsole.Localization"
              x:Class="EveConsole.Views.FitTabView"
-             x:DataType="vm:FitTabViewModel">
+             x:DataType="vm:FitTabViewModel"
+             DragDrop.AllowDrop="True">
 
-  <!-- Styled by the fitting tool it sits in (FittingView). -->
+  <!-- Styled by the fitting tool it sits in (FittingView). Items from the finder are dropped on a
+       slot, on the ring or in the list (see the code-behind); a row being dropped on is marked. -->
+  <UserControl.Styles>
+    <Style Selector="Border.droptarget">
+      <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}" />
+    </Style>
+  </UserControl.Styles>
 
   <!-- One fit: hull and pilot, the ring and the module list, and its numbers. -->
   <Grid ColumnDefinitions="*,340" Background="{DynamicResource SurfaceBaseBrush}">

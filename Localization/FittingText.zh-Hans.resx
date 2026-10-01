@@ -10,6 +10,12 @@
   <data name="ItemsHeading" xml:space="preserve">
     <value>物品</value>
   </data>
+  <data name="FinderUnlistedGroup" xml:space="preserve">
+    <value>未在市场上架</value>
+  </data>
+  <data name="FinderDragHint" xml:space="preserve">
+    <value>双击物品添加，或将其拖到槽位上。</value>
+  </data>
   <data name="FilterAll" xml:space="preserve">
     <value>全部</value>
   </data>
@@ -735,6 +741,15 @@
   </data>
   <data name="StatusLoadedCharge" xml:space="preserve">
     <value>已装填 {0}。</value>
+  </data>
+  <data name="StatusWrongSlot" xml:space="preserve">
+    <value>{0} 不能装在该槽位。</value>
+  </data>
+  <data name="StatusCannotLoad" xml:space="preserve">
+    <value>{0} 无法装填 {1}。</value>
+  </data>
+  <data name="StatusReplaced" xml:space="preserve">
+    <value>已用 {0} 替换 {1}。</value>
   </data>
   <data name="StatusLoadedChargeInModulesOther" xml:space="preserve">
     <value>已在 {0} 个装备中装填 {1}。</value>

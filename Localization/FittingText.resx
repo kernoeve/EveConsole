@@ -12,6 +12,14 @@
     <value>Items</value>
     <comment>Fitting tool: heading of the item list on the left, from which modules, charges, drones and the rest are added to a fit. Other texts point to the list by this name ("Add modules from Items").</comment>
   </data>
+  <data name="FinderUnlistedGroup" xml:space="preserve">
+    <value>Not on the market</value>
+    <comment>Fitting tool, item list: the group, at the end of the tree of market groups, holding items the market does not list.</comment>
+  </data>
+  <data name="FinderDragHint" xml:space="preserve">
+    <value>Double-click an item to add it, or drag it onto a slot.</value>
+    <comment>Fitting tool, under the item list: how to put an item on the fit. A slot is a place on the ship a module goes, on the ring or in the list below it.</comment>
+  </data>
   <data name="FilterAll" xml:space="preserve">
     <value>All</value>
     <comment>Fitting tool, item list: the category pick list — every kind of item. Short.</comment>
@@ -987,6 +995,18 @@
   <data name="StatusLoadedCharge" xml:space="preserve">
     <value>Loaded {0}.</value>
     <comment>Fitting tool, status line: a charge was loaded into one module. {0} is the charge's name.</comment>
+  </data>
+  <data name="StatusWrongSlot" xml:space="preserve">
+    <value>{0} does not go in that slot.</value>
+    <comment>Fitting tool, status line: an item was dragged onto a slot of the wrong kind (a mid-slot module onto a high slot, say). {0} is the item's name.</comment>
+  </data>
+  <data name="StatusCannotLoad" xml:space="preserve">
+    <value>{0} cannot load {1}.</value>
+    <comment>Fitting tool, status line: a charge was dragged onto a module that does not take it. {0} is the module's name, {1} the charge's.</comment>
+  </data>
+  <data name="StatusReplaced" xml:space="preserve">
+    <value>{0} replaces {1}.</value>
+    <comment>Fitting tool, status line: an item was dragged onto a fitted module and took its place. {0} is the new item's name, {1} the one it replaced.</comment>
   </data>
   <data name="StatusLoadedChargeInModulesOne" xml:space="preserve">
     <value>Loaded {1} in {0} module.</value>

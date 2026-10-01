@@ -12,7 +12,9 @@ public enum CatalogKind { Hull, Module, Rig, Subsystem, Charge, Drone, Fighter, 
 /// <summary>One thing the fitting tool can put on a fit, as the finder lists it.</summary>
 /// <param name="Name">The SDE's English name: what fits are stored, exported and matched by.</param>
 /// <param name="GroupName">Likewise English.</param>
-public sealed record CatalogEntry(int TypeId, string Name, int GroupId, string GroupName, CatalogKind Kind, FitSlot Slot, int? MetaGroupId)
+/// <param name="MarketGroupId">Where the market lists it — what the finder groups by when nothing is typed.</param>
+public sealed record CatalogEntry(int TypeId, string Name, int GroupId, string GroupName, CatalogKind Kind, FitSlot Slot, int? MetaGroupId,
+    int? MarketGroupId = null)
 {
     /// <summary>The item's name in the interface language, for showing. Display only.</summary>
     public string DisplayName      => SdeNames.Type(TypeId, Name);
@@ -58,12 +60,17 @@ public sealed class FittingCatalog
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private readonly Dictionary<int, IReadOnlyList<CatalogEntry>> _chargesByGroup = new();
 
-    private FittingCatalog(DogmaData data, IDbContextFactory<AppDbContext> dbFactory, List<CatalogEntry> entries)
+    /// <summary>The market's groups, by id: each one's parent and English name.</summary>
+    public IReadOnlyDictionary<int, (int? ParentId, string Name)> MarketGroups { get; }
+
+    private FittingCatalog(DogmaData data, IDbContextFactory<AppDbContext> dbFactory, List<CatalogEntry> entries,
+        Dictionary<int, (int? ParentId, string Name)> marketGroups)
     {
-        _data      = data;
-        _dbFactory = dbFactory;
-        Entries    = entries;
-        _byId      = entries.ToDictionary(e => e.TypeId);
+        _data        = data;
+        _dbFactory   = dbFactory;
+        Entries      = entries;
+        _byId        = entries.ToDictionary(e => e.TypeId);
+        MarketGroups = marketGroups;
     }
 
     public CatalogEntry? Find(int typeId) => _byId.GetValueOrDefault(typeId);
@@ -74,7 +81,10 @@ public sealed class FittingCatalog
         var rows = await (from t in db.SdeTypes.AsNoTracking()
                           join g in db.SdeGroups.AsNoTracking() on t.GroupId equals g.GroupId
                           where t.Published
-                          select new { t.TypeId, t.Name, t.GroupId, GroupName = g.Name, g.CategoryId, t.MetaGroupId }).ToListAsync(ct);
+                          select new { t.TypeId, t.Name, t.GroupId, GroupName = g.Name, g.CategoryId, t.MetaGroupId, t.MarketGroupId }).ToListAsync(ct);
+        var marketGroups = (await db.SdeMarketGroups.AsNoTracking()
+                .Select(m => new { m.MarketGroupId, m.ParentGroupId, m.Name }).ToListAsync(ct))
+            .ToDictionary(m => m.MarketGroupId, m => (m.ParentGroupId, m.Name));
 
         // The slot a module takes is one of its effects; read them for every module at once.
         var slotEffects = new Dictionary<int, FitSlot>();
@@ -106,7 +116,7 @@ public sealed class FittingCatalog
                                             => slot == FitSlot.Rig ? CatalogKind.Rig : CatalogKind.Module,
                 _                           => CatalogKind.Item,
             };
-            return new CatalogEntry(r.TypeId, r.Name, r.GroupId, r.GroupName, kind, slot, r.MetaGroupId);
+            return new CatalogEntry(r.TypeId, r.Name, r.GroupId, r.GroupName, kind, slot, r.MetaGroupId, r.MarketGroupId);
         })
         // A module with no slot cannot be fitted (fleet-only and deprecated items); it can still be carried.
         .Select(e => e.Kind is CatalogKind.Module or CatalogKind.Rig && e.Slot == FitSlot.None ? e with { Kind = CatalogKind.Item } : e);
@@ -114,7 +124,7 @@ public sealed class FittingCatalog
         // In the order of the names the finder shows. Waits (once, briefly) for the interface
         // language's names, so the list is not sorted by the English it would then stop showing.
         await SdeNames.EnsureLoadedAsync(ct);
-        return new FittingCatalog(data, dbFactory, entries.OrderBy(e => e.DisplayName, StringComparer.CurrentCulture).ToList());
+        return new FittingCatalog(data, dbFactory, entries.OrderBy(e => e.DisplayName, StringComparer.CurrentCulture).ToList(), marketGroups);
     }
 
     /// <summary>Entries whose name or group contains every word of <paramref name="text"/>, as

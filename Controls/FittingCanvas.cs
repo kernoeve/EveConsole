@@ -412,7 +412,21 @@ public class FittingCanvas : Control
 
     // ── Interaction ──────────────────────────────────────────────────────────
 
-    private FittingSlot? SlotAt(Point p)
+    private FittingSlot? _dropSlot;
+    /// <summary>The slot something is being dragged over, outlined as a hovered one is; null for none.</summary>
+    public FittingSlot? DropSlot
+    {
+        get => _dropSlot;
+        set
+        {
+            if (ReferenceEquals(_dropSlot, value)) return;
+            _dropSlot = value;
+            InvalidateVisual();
+        }
+    }
+
+    /// <summary>The slot drawn at <paramref name="p"/>, in this control's coordinates; null between slots.</summary>
+    public FittingSlot? SlotAt(Point p)
     {
         foreach (var (slot, rect) in _placed)
             if (rect.Contains(p)) return slot;
@@ -541,7 +555,7 @@ public class FittingCanvas : Control
             if (SelectedTag is not null && Equals(slot.Tag, SelectedTag))
                 ctx.DrawRectangle(null, SelectedPen, new RoundedRect(rect.Inflate(3), 5));
 
-            if (ReferenceEquals(slot, _hover))
+            if (ReferenceEquals(slot, _hover) || ReferenceEquals(slot, _dropSlot))
                 ctx.DrawRectangle(null, HoverPen, new RoundedRect(rect.Inflate(2), 4));
         }
 

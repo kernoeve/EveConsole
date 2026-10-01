@@ -76,8 +76,39 @@ public partial class FittingView : UserControl
         Dispatcher.UIThread.Post(() => { HullPicker.SelectedItem = null; HullPicker.Text = ""; });
     }
 
+    /// <summary>Double-clicking an item adds it. In the tree, double-clicking a group only opens it.</summary>
     private void OnResultDoubleTapped(object? sender, TappedEventArgs e)
     {
-        if (Vm is { SelectedResult: { } entry } vm) _ = vm.AddAsync(entry);
+        if (Vm is { } vm && (e.Source as Control)?.DataContext is CatalogEntry entry) _ = vm.AddAsync(entry);
+    }
+
+    // ── Dragging an item onto the fit ──
+
+    /// <summary>The drag-and-drop format carrying an item from the finder, within this app only.</summary>
+    public const string ItemFormat = "EveConsole.FitItem";
+
+    private CatalogEntry? _pressedEntry;
+    private Point _pressedAt;
+
+    private void OnEntryPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (sender is not Control { DataContext: CatalogEntry entry } c || !e.GetCurrentPoint(c).Properties.IsLeftButtonPressed) return;
+        _pressedEntry = entry;
+        _pressedAt    = e.GetPosition(this);
+    }
+
+    private void OnEntryReleased(object? sender, PointerReleasedEventArgs e) => _pressedEntry = null;
+
+    /// <summary>Past a few pixels with the button held, the item is dragged; the fit's slots take it.</summary>
+    private async void OnEntryMoved(object? sender, PointerEventArgs e)
+    {
+        if (_pressedEntry is not { } entry) return;
+        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) { _pressedEntry = null; return; }
+        var d = e.GetPosition(this) - _pressedAt;
+        if (Math.Abs(d.X) < 6 && Math.Abs(d.Y) < 6) return;
+        _pressedEntry = null;
+        var data = new DataObject();
+        data.Set(ItemFormat, entry);
+        await DragDrop.DoDragDrop(e, data, DragDropEffects.Copy);
     }
 }

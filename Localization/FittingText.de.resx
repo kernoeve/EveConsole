@@ -10,6 +10,12 @@
   <data name="ItemsHeading" xml:space="preserve">
     <value>Gegenstände</value>
   </data>
+  <data name="FinderUnlistedGroup" xml:space="preserve">
+    <value>Nicht auf dem Markt</value>
+  </data>
+  <data name="FinderDragHint" xml:space="preserve">
+    <value>Doppelklick auf ein Element fügt es hinzu, oder auf einen Slot ziehen.</value>
+  </data>
   <data name="FilterAll" xml:space="preserve">
     <value>Alle</value>
   </data>
@@ -741,6 +747,15 @@
   </data>
   <data name="StatusLoadedCharge" xml:space="preserve">
     <value>{0} geladen.</value>
+  </data>
+  <data name="StatusWrongSlot" xml:space="preserve">
+    <value>{0} passt nicht in diesen Slot.</value>
+  </data>
+  <data name="StatusCannotLoad" xml:space="preserve">
+    <value>{0} kann {1} nicht laden.</value>
+  </data>
+  <data name="StatusReplaced" xml:space="preserve">
+    <value>{0} ersetzt {1}.</value>
   </data>
   <data name="StatusLoadedChargeInModulesOne" xml:space="preserve">
     <value>{1} in {0} Modul geladen.</value>

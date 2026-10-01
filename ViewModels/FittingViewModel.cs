@@ -260,6 +260,43 @@ public sealed class FittingCargoRowVm : ReactiveObject
 /// <summary>A damage profile to judge the tank against: even, one type, or the user's own mix.
 /// <paramref name="Key"/> is what the choice is remembered by, the same in every language;
 /// <paramref name="Name"/> is shown.</summary>
+/// <summary>A market group in the item finder's tree: the groups under it, then its items.</summary>
+public sealed class FinderGroupNode(int id, string name, HashSet<int> expanded) : ReactiveObject
+{
+    public int    Id   { get; } = id;
+    public string Name { get; } = name;
+    public List<FinderGroupNode> Groups { get; } = [];
+    public List<CatalogEntry>    Items  { get; } = [];
+
+    /// <summary>What the tree shows under it: groups by name, then items.</summary>
+    public IReadOnlyList<object> Children { get; private set; } = [];
+    /// <summary>Items in it and every group under it.</summary>
+    public int Count { get; private set; }
+    public string Label => $"{Name} ({Count:N0})";
+
+    /// <summary>Open or closed, remembered by group while the finder is rebuilt.</summary>
+    public bool IsExpanded
+    {
+        get => expanded.Contains(Id);
+        set
+        {
+            if (value == IsExpanded) return;
+            if (value) expanded.Add(Id); else expanded.Remove(Id);
+            this.RaisePropertyChanged();
+        }
+    }
+
+    /// <summary>Done adding: sorts, counts, and opens everything when <paramref name="openAll"/>.</summary>
+    internal void Seal(bool openAll)
+    {
+        var groups = Groups.OrderBy(g => g.Name, StringComparer.CurrentCulture).ToList();
+        foreach (var g in groups) g.Seal(openAll);
+        Count    = Items.Count + groups.Sum(g => g.Count);
+        Children = [.. groups, .. Items];
+        if (openAll) expanded.Add(Id);
+    }
+}
+
 public sealed record DamageProfileOption(string Key, string Name, DamageProfile? Profile)
 {
     public bool IsCustom => Profile is null;
@@ -668,9 +705,38 @@ public class FittingViewModel : ReactiveObject
     private CatalogEntry? _selectedResult;
     public CatalogEntry? SelectedResult { get => _selectedResult; set => this.RaiseAndSetIfChanged(ref _selectedResult, value); }
 
+    /// <summary>With nothing typed, the finder shows what there is as the market groups it, only
+    /// those with something in them; typing turns it into a list of what matches.</summary>
+    public ObservableCollection<FinderGroupNode> FinderGroups { get; } = [];
+
+    private bool _isBrowsing = true;
+    public bool IsBrowsing { get => _isBrowsing; private set => this.RaiseAndSetIfChanged(ref _isBrowsing, value); }
+
+    private object? _selectedTreeItem;
+    /// <summary>The tree's selection: a group, or an item, which becomes <see cref="SelectedResult"/>.</summary>
+    public object? SelectedTreeItem
+    {
+        get => _selectedTreeItem;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _selectedTreeItem, value);
+            if (value is CatalogEntry entry) SelectedResult = entry;
+        }
+    }
+
+    /// <summary>The market groups opened in the tree, kept while the tree is rebuilt for another
+    /// slot, category or hull.</summary>
+    private readonly HashSet<int> _expandedGroups = [];
+
+    /// <summary>A tree no larger than this opens fully: a hull's subsystems, say.</summary>
+    private const int OpenTreeUpTo = 30;
+
+    private int _searchRun;
+
     internal async Task RunSearchAsync()
     {
         if (Catalog is null || Data is null) return;
+        var run = ++_searchRun;
         HashSet<CatalogKind>? kinds = KindFilter switch
         {
             "Modules"    => [CatalogKind.Module],
@@ -683,15 +749,15 @@ public class FittingViewModel : ReactiveObject
             "Other items" => [CatalogKind.Item],
             _            => null,
         };
-        // An empty search with no category would list seven thousand items; ask for a word first,
-        // unless a category narrows it.
-        if (SearchText.Trim().Length < 2 && kinds is null) { SearchResults.Clear(); return; }
-        if (kinds is not null && SearchText.Trim().Length == 0 && FinderSlot is null && kinds.Contains(CatalogKind.Module)) { SearchResults.Clear(); return; }
+        var text     = SearchText.Trim();
+        var browsing = text.Length == 0;
+        // One letter with no category would match most of the game; wait for a second.
+        if (!browsing && text.Length < 2 && kinds is null) { IsBrowsing = false; SearchResults.Clear(); return; }
 
-        var found = Catalog.Search(SearchText, kinds)
+        var found = Catalog.Search(text, kinds)
             .Where(f => f.Kind != CatalogKind.Hull)
             .Where(f => FinderSlot is not { } only || f.Slot == only)
-            .Take(400).ToList();
+            .ToList();
         if (FitsOnly && SelectedTab?.LastEngine is { } engine)
         {
             // Slot and rig-size rules only; a full slot does not hide what could go in it.
@@ -699,15 +765,70 @@ public class FittingViewModel : ReactiveObject
             var shipSlots = new FitStats(engine);
             found = found.Where(f => f.Kind switch
             {
-                CatalogKind.Module or CatalogKind.Rig => shipSlots.Slots(f.Slot) > 0 && RigSizeFits(engine, f.TypeId) && HullAllows(engine, f.TypeId),
+                CatalogKind.Module or CatalogKind.Rig => shipSlots.Slots(f.Slot) > 0 && SameKindOfHull(engine, f.TypeId)
+                                                         && RigSizeFits(engine, f.TypeId) && HullAllows(engine, f.TypeId),
                 CatalogKind.Subsystem => FitsHull(engine, f.TypeId),
                 _ => true,
             }).ToList();
         }
+        if (run != _searchRun) return;   // a newer search has started
         _searchedHull = SelectedTab?.ShipTypeId ?? 0;
-        SearchResults.Clear();
-        foreach (var f in found.Take(200)) SearchResults.Add(f);
+        IsBrowsing = browsing;
+        if (browsing)
+        {
+            SearchResults.Clear();
+            BuildTree(found);
+        }
+        else
+        {
+            FinderGroups.Clear();
+            SearchResults.Clear();
+            foreach (var f in found.Take(200)) SearchResults.Add(f);
+        }
     }
+
+    /// <summary>
+    /// The market groups holding <paramref name="found"/>, nested as the market nests them, each
+    /// with its groups and then its items. A group with nothing under it is left out; a single
+    /// group at the top ("Ship Equipment") is skipped to show what is in it; what the market
+    /// does not list goes in a group of its own at the end.
+    /// </summary>
+    private void BuildTree(IReadOnlyList<CatalogEntry> found)
+    {
+        var market = Catalog!.MarketGroups;
+        var nodes  = new Dictionary<int, FinderGroupNode>();
+        var roots  = new List<FinderGroupNode>();
+
+        FinderGroupNode NodeFor(int id)
+        {
+            if (nodes.TryGetValue(id, out var node)) return node;
+            var (parent, name) = market[id];
+            node = new FinderGroupNode(id, SdeNames.MarketGroup(id, name), _expandedGroups);
+            nodes[id] = node;
+            if (parent is { } p && market.ContainsKey(p)) NodeFor(p).Groups.Add(node);
+            else roots.Add(node);
+            return node;
+        }
+
+        var unlisted = new FinderGroupNode(0, FittingText.FinderUnlistedGroup, _expandedGroups);
+        foreach (var e in found)   // already in the order of the names shown
+            (e.MarketGroupId is { } m && market.ContainsKey(m) ? NodeFor(m) : unlisted).Items.Add(e);
+
+        // One market group at the top ("Ship Equipment") is a click that shows nothing; open it.
+        roots = roots.OrderBy(r => r.Name, StringComparer.CurrentCulture).ToList();
+        while (roots.Count == 1 && roots[0].Items.Count == 0 && roots[0].Groups.Count > 0)
+            roots = roots[0].Groups.OrderBy(r => r.Name, StringComparer.CurrentCulture).ToList();
+        if (unlisted.Items.Count > 0) roots.Add(unlisted);
+
+        var openAll = found.Count <= OpenTreeUpTo;
+        foreach (var r in roots) r.Seal(openAll);
+        FinderGroups.Clear();
+        foreach (var r in roots) FinderGroups.Add(r);
+    }
+
+    /// <summary>Structure modules go on structures, and ship modules on ships.</summary>
+    private bool SameKindOfHull(DogmaEngine e, int typeId) =>
+        (Data!.Type(typeId).CategoryId == DogmaData.CategoryStructureModule) == (e.Ship.Type.CategoryId == DogmaData.CategoryStructure);
 
     private bool RigSizeFits(DogmaEngine e, int typeId)
     {
@@ -755,9 +876,12 @@ public class FittingViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> ClearFinderSlotCommand => _clearFinderSlot ??= ReactiveCommand.Create(() => { FinderSlot = null; });
     private ReactiveCommand<Unit, Unit>? _clearFinderSlot;
 
-    /// <summary>An empty slot was clicked on the ring: list what could go in it.</summary>
+    /// <summary>An empty slot was clicked on the ring: show what could go in it, by market group —
+    /// so whatever was typed in the search goes.</summary>
     internal void PointFinderAt(FitSlot slot)
     {
+        _searchText = "";
+        this.RaisePropertyChanged(nameof(SearchText));
         _finderSlot = slot;
         this.RaisePropertyChanged(nameof(FinderSlot));
         this.RaisePropertyChanged(nameof(FinderSlotText));
@@ -1010,6 +1134,81 @@ public class FitTabViewModel : ReactiveObject
     /// <summary>The module row the user last clicked — where a charge picked in the finder goes.</summary>
     private FittingModuleRowVm? _selectedModule;
     public FittingModuleRowVm? SelectedModule { get => _selectedModule; set => this.RaiseAndSetIfChanged(ref _selectedModule, value); }
+
+    /// <summary>
+    /// Whether <paramref name="entry"/> could be dropped on <paramref name="row"/> (null: on the fit
+    /// anywhere else, which adds it as a double-click does) — the quick answer a drag shows while
+    /// it is over a slot. A module, rig or subsystem takes a slot of its kind, empty or filled; a
+    /// charge, a fitted module that loads it. The full fitting rules are checked on the drop.
+    /// </summary>
+    public bool CanDrop(CatalogEntry entry, FittingModuleRowVm? row) => row is null || entry.Kind switch
+    {
+        CatalogKind.Module or CatalogKind.Rig or CatalogKind.Subsystem => entry.Slot == row.Slot,
+        CatalogKind.Charge => !row.IsEmpty && row.Charges.Any(c => c.TypeId == entry.TypeId),
+        CatalogKind.Hull   => false,
+        _                  => true,
+    };
+
+    /// <summary>
+    /// <paramref name="entry"/> dropped on <paramref name="row"/>, or on the fit elsewhere (null).
+    /// On an empty slot it is fitted there; on a filled one it takes that module's place, keeping
+    /// its charge when it can load it, and the module goes back if the new one may not be fitted.
+    /// A charge is loaded into the module it is dropped on. Anything else is added as usual.
+    /// </summary>
+    public async Task DropAsync(CatalogEntry entry, FittingModuleRowVm? row)
+    {
+        if (row is null || entry.Kind is not (CatalogKind.Module or CatalogKind.Rig or CatalogKind.Subsystem or CatalogKind.Charge))
+        {
+            if (entry.Kind != CatalogKind.Hull) await AddAsync(entry);
+            return;
+        }
+        if (!CanDrop(entry, row))
+        {
+            Status = entry.Kind == CatalogKind.Charge
+                ? (row.IsEmpty ? string.Format(FittingText.StatusNothingCanLoad, entry.DisplayName)
+                               : string.Format(FittingText.StatusCannotLoad, row.DisplayName, entry.DisplayName))
+                : string.Format(FittingText.StatusWrongSlot, entry.DisplayName);
+            return;
+        }
+        if (entry.Kind == CatalogKind.Charge)
+        {
+            SelectedModule = row;
+            row.Charge = row.Charges.First(c => c.TypeId == entry.TypeId);
+            Status = string.Format(FittingText.StatusLoadedCharge, entry.DisplayName);
+            return;
+        }
+        if (row.IsEmpty) { await AddAsync(entry); return; }
+        await ReplaceAsync(row, entry);
+    }
+
+    /// <summary>Puts <paramref name="entry"/> where <paramref name="old"/> is, if the fit allows it without <paramref name="old"/>.</summary>
+    private async Task ReplaceAsync(FittingModuleRowVm old, CatalogEntry entry)
+    {
+        if (_data is null || _catalog is null) return;
+        await _data.LoadTypesAsync([entry.TypeId]);
+        var at = _modules.IndexOf(old);
+        if (at < 0) return;
+        _modules.RemoveAt(at);
+        _recalcCts?.Cancel();
+        await RecalculateAsync(CancellationToken.None);
+        if (_lastEngine is { } engine && await _catalog.WhyNotAsync(engine, entry.TypeId) is { } why)
+        {
+            _modules.Insert(at, old);
+            RebuildSlots();
+            ScheduleRecalc();
+            Status = why;
+            return;
+        }
+        await AddModuleAsync(entry.TypeId, EftFormat.DefaultState(_data, _data.Type(entry.TypeId)), null);
+        var row = _modules[^1];
+        _modules.RemoveAt(_modules.Count - 1);
+        _modules.Insert(at, row);
+        if (old.Charge is { } charge && row.Charges.FirstOrDefault(c => c.TypeId == charge.TypeId) is { } same) row.Charge = same;
+        if (SelectedModule == old) SelectedModule = row;
+        RebuildSlots();
+        ScheduleRecalc();
+        Status = string.Format(FittingText.StatusReplaced, entry.DisplayName, old.DisplayName);
+    }
 
     public async Task AddAsync(CatalogEntry entry)
     {

@@ -10,6 +10,12 @@
   <data name="ItemsHeading" xml:space="preserve">
     <value>Предметы</value>
   </data>
+  <data name="FinderUnlistedGroup" xml:space="preserve">
+    <value>Нет на рынке</value>
+  </data>
+  <data name="FinderDragHint" xml:space="preserve">
+    <value>Дважды щёлкните предмет, чтобы добавить, или перетащите его в разъём.</value>
+  </data>
   <data name="FilterAll" xml:space="preserve">
     <value>Все</value>
   </data>
@@ -753,6 +759,15 @@
   </data>
   <data name="StatusLoadedCharge" xml:space="preserve">
     <value>Заряжено: {0}.</value>
+  </data>
+  <data name="StatusWrongSlot" xml:space="preserve">
+    <value>{0} не подходит для этого разъёма.</value>
+  </data>
+  <data name="StatusCannotLoad" xml:space="preserve">
+    <value>{0} не может зарядить {1}.</value>
+  </data>
+  <data name="StatusReplaced" xml:space="preserve">
+    <value>{1} заменён на {0}.</value>
   </data>
   <data name="StatusLoadedChargeInModulesOne" xml:space="preserve">
     <value>Заряд {1} загружен в {0} модуль.</value>

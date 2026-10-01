@@ -10,6 +10,12 @@
   <data name="ItemsHeading" xml:space="preserve">
     <value>アイテム</value>
   </data>
+  <data name="FinderUnlistedGroup" xml:space="preserve">
+    <value>マーケット外</value>
+  </data>
+  <data name="FinderDragHint" xml:space="preserve">
+    <value>アイテムをダブルクリックで追加、またはスロットにドラッグします。</value>
+  </data>
   <data name="FilterAll" xml:space="preserve">
     <value>すべて</value>
   </data>
@@ -735,6 +741,15 @@
   </data>
   <data name="StatusLoadedCharge" xml:space="preserve">
     <value>{0}を装填しました。</value>
+  </data>
+  <data name="StatusWrongSlot" xml:space="preserve">
+    <value>{0}はそのスロットに装着できません。</value>
+  </data>
+  <data name="StatusCannotLoad" xml:space="preserve">
+    <value>{0}には{1}を装填できません。</value>
+  </data>
+  <data name="StatusReplaced" xml:space="preserve">
+    <value>{1}を{0}に交換しました。</value>
   </data>
   <data name="StatusLoadedChargeInModulesOther" xml:space="preserve">
     <value>{0}個のモジュールに{1}を装填しました。</value>

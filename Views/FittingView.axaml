@@ -143,21 +143,54 @@
                   HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
                   ToolTip.Tip="{x:Static loc:FittingText.TipAddToCargo}" />
         </Grid>
-        <!-- Names in the interface language; the list's search matches them and the English. -->
-        <ListBox ItemsSource="{Binding SearchResults}" SelectedItem="{Binding SelectedResult}"
-                 DoubleTapped="OnResultDoubleTapped"
-                 Background="Transparent" BorderThickness="0">
-          <ListBox.ItemTemplate>
-            <DataTemplate x:DataType="fit:CatalogEntry">
-              <Grid ColumnDefinitions="*,Auto" ToolTip.Tip="{Binding DisplayGroupName}">
-                <TextBlock Grid.Column="0" Text="{Binding DisplayName}" FontSize="12" TextTrimming="CharacterEllipsis"
-                           Foreground="{DynamicResource TextPrimaryBrush}" />
-                <TextBlock Grid.Column="1" Text="{Binding SlotLabel}" FontSize="10" Margin="8 0 0 0"
-                           Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
-              </Grid>
-            </DataTemplate>
-          </ListBox.ItemTemplate>
-        </ListBox>
+        <TextBlock DockPanel.Dock="Bottom" Text="{x:Static loc:FittingText.FinderDragHint}" FontSize="10" TextWrapping="Wrap"
+                   Foreground="{DynamicResource TextFaintBrush}" Margin="0 6 0 0" />
+        <!-- Nothing typed: what there is, in the market's groups (only those with something in
+             them). Something typed: a list of what matches, in the interface language or English.
+             Either way an item is added by double-clicking it or dragging it onto the fit. -->
+        <Panel>
+          <TreeView x:Name="FinderTree" IsVisible="{Binding IsBrowsing}" ItemsSource="{Binding FinderGroups}"
+                    SelectedItem="{Binding SelectedTreeItem}" DoubleTapped="OnResultDoubleTapped"
+                    Background="Transparent" BorderThickness="0">
+            <TreeView.Styles>
+              <!-- A group's open state is the view model's, so a rebuilt tree keeps it; an item has none. -->
+              <Style Selector="TreeViewItem">
+                <Setter Property="IsExpanded" Value="{ReflectionBinding IsExpanded, Mode=TwoWay, FallbackValue=False}" />
+                <Setter Property="Padding" Value="0 1" />
+                <Setter Property="MinHeight" Value="22" />
+              </Style>
+            </TreeView.Styles>
+            <TreeView.DataTemplates>
+              <TreeDataTemplate DataType="vm:FinderGroupNode" ItemsSource="{Binding Children}">
+                <TextBlock Text="{Binding Label}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" />
+              </TreeDataTemplate>
+              <DataTemplate DataType="fit:CatalogEntry">
+                <Grid ColumnDefinitions="*,Auto" Background="Transparent" ToolTip.Tip="{Binding DisplayGroupName}"
+                      PointerPressed="OnEntryPressed" PointerMoved="OnEntryMoved" PointerReleased="OnEntryReleased">
+                  <TextBlock Grid.Column="0" Text="{Binding DisplayName}" FontSize="12" TextTrimming="CharacterEllipsis"
+                             Foreground="{DynamicResource TextPrimaryBrush}" />
+                  <TextBlock Grid.Column="1" Text="{Binding SlotLabel}" FontSize="10" Margin="8 0 0 0"
+                             Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
+                </Grid>
+              </DataTemplate>
+            </TreeView.DataTemplates>
+          </TreeView>
+          <ListBox IsVisible="{Binding !IsBrowsing}" ItemsSource="{Binding SearchResults}" SelectedItem="{Binding SelectedResult}"
+                   DoubleTapped="OnResultDoubleTapped"
+                   Background="Transparent" BorderThickness="0">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="fit:CatalogEntry">
+                <Grid ColumnDefinitions="*,Auto" Background="Transparent" ToolTip.Tip="{Binding DisplayGroupName}"
+                      PointerPressed="OnEntryPressed" PointerMoved="OnEntryMoved" PointerReleased="OnEntryReleased">
+                  <TextBlock Grid.Column="0" Text="{Binding DisplayName}" FontSize="12" TextTrimming="CharacterEllipsis"
+                             Foreground="{DynamicResource TextPrimaryBrush}" />
+                  <TextBlock Grid.Column="1" Text="{Binding SlotLabel}" FontSize="10" Margin="8 0 0 0"
+                             Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
+                </Grid>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </Panel>
       </DockPanel>
     </Border>
 
