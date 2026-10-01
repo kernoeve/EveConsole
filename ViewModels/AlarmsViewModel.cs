@@ -1131,12 +1131,16 @@ public sealed class AlarmsViewModel : ReactiveObject
         }
 
         // A field shown only for some choices follows that choice as it changes — and as an
-        // existing alarm's config sets it, since that goes through the same Text.
+        // existing alarm's config sets it, since that goes through the same Text. A checkbox
+        // has no Text: its choice is "true" or "false", from the tick.
         foreach (var field in Fields.Where(f => f.ShowIfField is not null))
         {
             if (Fields.FirstOrDefault(f => f.Name == field.ShowIfField) is not { } choice) continue;
-            choice.WhenAnyValue(c => c.Text).Subscribe(value =>
-                field.Applies = field.ShowIfValues!.Contains(value, StringComparer.OrdinalIgnoreCase));
+            choice.WhenAnyValue(c => c.Text, c => c.Flag).Subscribe(v =>
+            {
+                var value = choice.IsBoolean ? (v.Item2 ? "true" : "false") : v.Item1;
+                field.Applies = field.ShowIfValues!.Contains(value, StringComparer.OrdinalIgnoreCase);
+            });
         }
 
         // ⚠️ Rebuilt here, with the fields, and not only when the condition changes: reopening

@@ -4,6 +4,7 @@ using System.Text.Json;
 using EveConsole.Data;
 using EveConsole.Localization;
 using EveConsole.Models;
+using EveConsole.Monitoring;
 using Microsoft.EntityFrameworkCore;
 
 namespace EveConsole.Alarms.Conditions;
@@ -35,6 +36,11 @@ namespace EveConsole.Alarms.Conditions;
 /// after the landing, for good: a pilot who docked is awake, and the undock that follows in
 /// the same system is an ordinary undock, the other mode's business.</para>
 ///
+/// <para>Stopping the ship after an undock ends that episode too, unless unticked: the danger
+/// is drifting off the undock, and a stopped ship does not drift — besides, somebody pressed
+/// it. Only the game log says so ("Ship stopping"), so it needs the log folder of the client
+/// the character is on; without it the stages run as before.</para>
+///
 /// <para>Repeat and cooldown do not apply to a staged alarm; the stages are its cadence.</para>
 /// </summary>
 public sealed class ShipAdriftCondition : IAlarmCondition
@@ -45,6 +51,16 @@ public sealed class ShipAdriftCondition : IAlarmCondition
     private const int DefaultStage2 = 240;
     private const int DefaultStage3 = 300;
     private const int DefaultSnooze = 30;
+
+    /// <summary>
+    /// How long before the undock stamp a stop still counts. The stamp is the location poll
+    /// seeing the character in space: one second's poll behind ESI's five-second cache, so up to
+    /// about six seconds after the undock — and no stop comes sooner than seven seconds after
+    /// one, the squeeze being about ten. The other way, a stop pressed on the way in to dock was
+    /// at least twelve seconds before the next undock in every log read. Five sits between.
+    /// A slow poll can only make a stop miss, and the alarm then fires as it always did.
+    /// </summary>
+    private static readonly TimeSpan StopSlack = TimeSpan.FromSeconds(5);
 
     private const int CapsuleGroupId   = 29;
     private const int AttrJumpFuelType = 866;   // a hull with this dogma attribute has a jump drive
@@ -60,7 +76,8 @@ public sealed class ShipAdriftCondition : IAlarmCondition
         "space — the thirty seconds after a jump. Docking, leaving the " +
         "system or logging off ends it. Pressing the dialog's button, or replying anything at all " +
         "to the agent, quiets it for a while; when that lapses and the ship is still there, the " +
-        "stages start over. Each stage has its own actions — TTS direct or the agent to say the stage's " +
+        "stages start over. Stopping the ship after the undock (the game log's \"Ship stopping\") ends " +
+        "it too, unless unticked. Each stage has its own actions — TTS direct or the agent to say the stage's " +
         "line, a dialog, a sound that repeats until acknowledged. Repeat and cooldown do not apply.";
 
     public int Stages => StageCount;
@@ -79,6 +96,16 @@ public sealed class ShipAdriftCondition : IAlarmCondition
                               "still in space; only hulls with a jump drive are watched, and an empty " +
                               "Flying list means all of them. Unticked: the clock starts at an undock, " +
                               "any hull, and Flying must name what to watch.",
+            },
+            stop_ends = new
+            {
+                type        = "boolean",
+                @default    = true,
+                title       = "Stopping the ship ends it",
+                description = "Ticked: a \"Ship stopping\" in the game log after the undock ends that " +
+                              "undock's alarm — a stopped ship does not drift off the undock, and " +
+                              "somebody pressed it. Needs that client's game logs being read.",
+                show_if     = new Dictionary<string, string[]> { ["arrivals"] = ["false"] },
             },
             ships = new
             {
@@ -138,6 +165,7 @@ public sealed class ShipAdriftCondition : IAlarmCondition
     public AlarmFieldText? ScreenField(string property) => property switch
     {
         "arrivals"       => new(AlarmsText.AdriftArrivalsLabel, AlarmsText.AdriftArrivalsNote),
+        "stop_ends"      => new(AlarmsText.AdriftStopEndsLabel, AlarmsText.AdriftStopEndsNote),
         // Examples as the game names them in the interface language: names the box takes.
         "ships"          => new(AlarmsText.FlyingLabel,         string.Format(AlarmsText.AdriftShipsNote,
                                 SdeNames.Type(28844, "Rhea"), SdeNames.Group(513, "Freighter"),
@@ -161,6 +189,7 @@ public sealed class ShipAdriftCondition : IAlarmCondition
             sb.Append(" — ").Append(string.Join(", ", stages.Select(s => $"{s.Seconds}s")))
               .Append(arrivals ? " after landing" : " after undock");
         sb.Append($"; quiet {Snooze(config)} min after a reply");
+        if (!arrivals && StopEnds(config)) sb.Append("; stopping the ship ends it");
         return sb.ToString();
 
         static string Few(List<string> items) =>
@@ -299,6 +328,11 @@ public sealed class ShipAdriftCondition : IAlarmCondition
         var adrift = arrivals
             ? inSpace.Where(s => s.SystemChangedAt != null && s.PreviousSystemId != null && s.SolarSystemId != null && !DockedSinceLanding(s)).ToList()
             : inSpace.Where(s => s.UndockedAt != null && s.UndockedSystemId != null && s.SolarSystemId == s.UndockedSystemId).ToList();
+        if (!arrivals && StopEnds(config) && adrift.Count > 0)
+        {
+            var stopped = await StoppedSinceUndockAsync(db, adrift, ct);
+            adrift = adrift.Where(s => !stopped.Contains(s.CharacterId)).ToList();
+        }
         if (adrift.Count == 0) return [];
 
         var typeIds = adrift.Select(s => s.ShipTypeId!.Value).Distinct().ToList();
@@ -407,6 +441,27 @@ public sealed class ShipAdriftCondition : IAlarmCondition
         return matches;
     }
 
+    /// <summary>
+    /// The characters whose game log says "Ship stopping" since their undock — less
+    /// <see cref="StopSlack"/>, for the poll's lag behind the undock itself.
+    /// </summary>
+    private static async Task<HashSet<long>> StoppedSinceUndockAsync(
+        AppDbContext db, IReadOnlyList<CharacterStatus> undocked, CancellationToken ct)
+    {
+        var from    = undocked.ToDictionary(s => s.CharacterId, s => s.UndockedAt!.Value - StopSlack);
+        var ids     = from.Keys.ToList();
+        var since   = GameLogRules.FormatTimestamp(from.Values.Min());
+        var stops   = await db.GameLogEvents.AsNoTracking()
+            .Where(e => e.CharacterId != null && ids.Contains(e.CharacterId.Value)
+                     && e.Kind == GameLogRules.KindShipStopped && string.Compare(e.OccurredAt, since) >= 0)
+            .Select(e => new { CharacterId = e.CharacterId!.Value, e.OccurredAt })
+            .ToListAsync(ct);
+
+        // OccurredAt is ISO-8601 UTC to the second, so it compares as text against the same format.
+        return stops.Where(e => string.CompareOrdinal(e.OccurredAt, GameLogRules.FormatTimestamp(from[e.CharacterId])) >= 0)
+                    .Select(e => e.CharacterId).ToHashSet();
+    }
+
     /// <summary>Whether a stargate joins the two systems. A jump drive lands where none does.</summary>
     private static Task<bool> AdjacentAsync(AppDbContext db, int fromId, int toId, CancellationToken ct)
         => (from a in db.SdeStargates.AsNoTracking()
@@ -434,6 +489,18 @@ public sealed class ShipAdriftCondition : IAlarmCondition
                    && s.UndockedSystemId is not null && s.SolarSystemId == s.UndockedSystemId;
         var landing = s.SystemChangedAt is { } c && EpisodeKey(c) == episode && !DockedSinceLanding(s);
         if (!undock && !landing) return false;
+
+        // A stop since the undock ends it here as it does in the evaluation, or a sound set to
+        // repeat would carry on after the pilot had answered it by stopping.
+        if (undock && !landing)
+        {
+            var json = await db.Alarms.AsNoTracking().Where(a => a.Id == alarmId)
+                .Select(a => a.ConditionJson).FirstOrDefaultAsync(ct);
+            using var config = JsonDocument.Parse(string.IsNullOrWhiteSpace(json) ? "{}" : json);
+            if (!ReadBool(config.RootElement, "arrivals") && StopEnds(config.RootElement)
+                && (await StoppedSinceUndockAsync(db, [s], ct)).Count > 0)
+                return false;
+        }
 
         var snooze = await db.AlarmSnoozes.AsNoTracking()
             .FirstOrDefaultAsync(x => x.AlarmId == alarmId && x.ScopeKey == scopeKey, ct);
@@ -490,6 +557,11 @@ public sealed class ShipAdriftCondition : IAlarmCondition
                 list.Add((i, seconds));
         return list;
     }
+
+    /// <summary>On unless unticked: alarms saved before the option existed have it on.</summary>
+    private static bool StopEnds(JsonElement config) =>
+        !(config.ValueKind == JsonValueKind.Object && config.TryGetProperty("stop_ends", out var p)
+          && p.ValueKind == JsonValueKind.False);
 
     private static int Snooze(JsonElement config)
         => ReadInt(config, "snooze_minutes") is { } m && m > 0 ? m : DefaultSnooze;

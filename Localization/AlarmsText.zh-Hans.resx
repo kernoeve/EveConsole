@@ -1387,4 +1387,10 @@
   <data name="IntelSaidJumpsFromOther" xml:space="preserve">
     <value>距离 {1} {0} 跳</value>
   </data>
+  <data name="AdriftStopEndsLabel" xml:space="preserve">
+    <value>停船即结束</value>
+  </data>
+  <data name="AdriftStopEndsNote" xml:space="preserve">
+    <value>勾选：出站后停船会结束此次出站的警报——停下的舰船不会从出站点漂走，而且有人按下了停止。此信息读取自游戏日志，因此必须读取该客户端的游戏日志文件夹（设置 → 游戏日志）；否则各阶段照常进行。</value>
+  </data>
 </root>

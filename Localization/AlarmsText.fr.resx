@@ -1417,4 +1417,10 @@
   <data name="IntelSaidJumpsFromOther" xml:space="preserve">
     <value>à {0} sauts de {1}</value>
   </data>
+  <data name="AdriftStopEndsLabel" xml:space="preserve">
+    <value>Arrêter le vaisseau y met fin</value>
+  </data>
+  <data name="AdriftStopEndsNote" xml:space="preserve">
+    <value>Coché : arrêter le vaisseau après le désamarrage met fin à l'alarme de ce désamarrage — un vaisseau arrêté ne dérive pas loin du point de désamarrage, et quelqu'un a appuyé sur stop. Lu dans le journal de jeu : le dossier des journaux de jeu de ce client doit donc être lu (Paramètres → Journaux de jeu) ; sans lui, les étapes se déroulent comme avant.</value>
+  </data>
 </root>

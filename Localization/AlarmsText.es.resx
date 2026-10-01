@@ -1417,4 +1417,10 @@
   <data name="IntelSaidJumpsFromOther" xml:space="preserve">
     <value>a {0} saltos de {1}</value>
   </data>
+  <data name="AdriftStopEndsLabel" xml:space="preserve">
+    <value>Detener la nave lo termina</value>
+  </data>
+  <data name="AdriftStopEndsNote" xml:space="preserve">
+    <value>Marcado: detener la nave después de desatracar termina la alarma de ese desatraque; una nave detenida no se aleja a la deriva del punto de desatraque, y alguien pulsó detener. Se lee del registro de juego, así que debe leerse la carpeta de registros de juego de ese cliente (Ajustes → Registros de juego); sin ella, las etapas siguen como antes.</value>
+  </data>
 </root>

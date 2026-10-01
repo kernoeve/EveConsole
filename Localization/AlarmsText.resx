@@ -1888,4 +1888,12 @@
     <value>{0} jumps from {1}</value>
     <comment>Spoken, in IntelSaidReportedAt: how many gate jumps from one of the capsuleer's characters. {0} is the number of jumps, {1} the character's name.</comment>
   </data>
+  <data name="AdriftStopEndsLabel" xml:space="preserve">
+    <value>Stopping the ship ends it</value>
+    <comment>Alarm editor, Undocked too long check: a checkbox, shown when Jump arrivals is unticked.</comment>
+  </data>
+  <data name="AdriftStopEndsNote" xml:space="preserve">
+    <value>Ticked: stopping the ship after the undock ends that undock's alarm — a stopped ship does not drift off the undock, and somebody pressed stop. Read from the game log, so that client's game log folder must be read (Settings → Game Logs); without it the stages run as before.</value>
+    <comment>Alarm editor, Undocked too long check, beside the Stopping the ship ends it checkbox.</comment>
+  </data>
 </root>

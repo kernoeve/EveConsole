@@ -1387,4 +1387,10 @@
   <data name="IntelSaidJumpsFromOther" xml:space="preserve">
     <value>{1}から{0}ジャンプ</value>
   </data>
+  <data name="AdriftStopEndsLabel" xml:space="preserve">
+    <value>艦船を停止すると終了</value>
+  </data>
+  <data name="AdriftStopEndsNote" xml:space="preserve">
+    <value>チェックあり：出港後に艦船を停止すると、その出港のアラームは終了します — 停止した艦船は出港地点から漂流せず、誰かが停止を押したことになります。ゲームログから読み取るため、そのクライアントのゲームログフォルダーが読み込まれている必要があります（設定 → ゲームログ）。読み込まれていない場合、ステージはこれまでどおり進みます。</value>
+  </data>
 </root>

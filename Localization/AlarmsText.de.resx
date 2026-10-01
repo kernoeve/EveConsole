@@ -1417,4 +1417,10 @@
   <data name="IntelSaidJumpsFromOther" xml:space="preserve">
     <value>{0} Sprünge von {1} entfernt</value>
   </data>
+  <data name="AdriftStopEndsLabel" xml:space="preserve">
+    <value>Anhalten des Schiffs beendet ihn</value>
+  </data>
+  <data name="AdriftStopEndsNote" xml:space="preserve">
+    <value>Angekreuzt: Wird das Schiff nach dem Abdocken angehalten, endet der Alarm für dieses Abdocken – ein angehaltenes Schiff treibt nicht vom Abdockpunkt weg, und jemand hat auf Stopp gedrückt. Wird aus dem Spielprotokoll gelesen, daher muss der Spielprotokollordner dieses Clients gelesen werden (Einstellungen → Spielprotokolle); ohne ihn laufen die Stufen wie bisher.</value>
+  </data>
 </root>

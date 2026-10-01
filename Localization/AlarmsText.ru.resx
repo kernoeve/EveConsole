@@ -1477,4 +1477,10 @@
   <data name="IntelSaidJumpsFromMany" xml:space="preserve">
     <value>в {0} прыжках от {1}</value>
   </data>
+  <data name="AdriftStopEndsLabel" xml:space="preserve">
+    <value>Остановка корабля завершает его</value>
+  </data>
+  <data name="AdriftStopEndsNote" xml:space="preserve">
+    <value>Отмечено: остановка корабля после выхода из дока завершает тревогу этого выхода — остановленный корабль не дрейфует от точки выхода, и кто-то нажал «стоп». Читается из игрового журнала, поэтому папка игровых журналов этого клиента должна читаться (Настройки → Игровые журналы); без неё этапы идут как прежде.</value>
+  </data>
 </root>

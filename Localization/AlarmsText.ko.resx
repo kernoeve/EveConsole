@@ -1387,4 +1387,10 @@
   <data name="IntelSaidJumpsFromOther" xml:space="preserve">
     <value>{1}에게서 점프 {0}회 거리</value>
   </data>
+  <data name="AdriftStopEndsLabel" xml:space="preserve">
+    <value>함선을 정지하면 종료</value>
+  </data>
+  <data name="AdriftStopEndsNote" xml:space="preserve">
+    <value>체크: 출항 후 함선을 정지하면 그 출항의 알람이 끝납니다. 정지한 함선은 출항 지점에서 떠내려가지 않고, 누군가 정지를 눌렀다는 뜻입니다. 게임 로그에서 읽으므로 해당 클라이언트의 게임 로그 폴더를 읽고 있어야 합니다(설정 → 게임 로그). 그렇지 않으면 단계가 이전처럼 진행됩니다.</value>
+  </data>
 </root>

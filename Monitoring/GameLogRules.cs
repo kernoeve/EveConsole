@@ -32,7 +32,8 @@ namespace EveConsole.Monitoring;
 ///
 /// Confirmed NOT PRESENT in game logs, so don't go looking:
 ///   • Mining yield — no (mining) channel, no ore lines anywhere. ESI ledger only.
-///   • Docking — undocking IS logged, docking is not. ESI /location/ only.
+///   • Docking — undocking IS logged, docking is not. ESI /location/ only. And only an
+///     undock from an NPC station is: leaving a player structure writes no line at all.
 ///   • Kill confirmations — no destroyed/wreck lines. Damage only.
 ///   • Login/logout — ESI /online/ only.
 /// ─────────────────────────────────────────────────────────────────────────────
@@ -54,6 +55,7 @@ public static class GameLogRules
     public const string KindUnitsMined       = "industry.units_mined";
     public const string KindJumped           = "movement.jumped";
     public const string KindUndocked         = "movement.undocked";
+    public const string KindShipStopped      = "movement.ship_stopped";
     public const string KindUnmatched        = "unmatched";
 
     /// <summary>[ 2024.11.13 01:30:53 ] (channel) rest</summary>
@@ -118,6 +120,14 @@ public static class GameLogRules
     /// <summary>"Jumping from QZ-X77 to XQ1-Z2"</summary>
     private static readonly Regex JumpRx = new(
         @"^Jumping\s+from\s+(?<from>.+?)\s+to\s+(?<to>.+?)\s*$", Opts);
+
+    /// <summary>
+    /// "Ship stopping" — the pilot pressed stop. Never written on its own: of 335 logged undocks,
+    /// 258 had no stop at all, and where one followed it was 7 s or more later (the undock
+    /// squeeze is about 10 s, and a stop pressed during it says "Can't do that while undocking"
+    /// instead). What the wake-up alarm takes as proof somebody is at the keyboard.
+    /// </summary>
+    private static readonly Regex ShipStoppingRx = new(@"^Ship\s+stopping\.?\s*$", Opts);
 
     /// <summary>"Undocking from Jita IV - Moon 4 - Caldari Navy Assembly Plant to Jita solar system."</summary>
     private static readonly Regex UndockRx = new(
@@ -221,6 +231,9 @@ public static class GameLogRules
             r.ToSystem     = undock.Groups["sys"].Value.Trim();
             return r;
         }
+
+        if (ShipStoppingRx.IsMatch(body))
+            return Row(KindShipStopped);
 
         // ── (combat) ─────────────────────────────────────────────────────────
         if (line.Channel.Equals("combat", StringComparison.OrdinalIgnoreCase))
