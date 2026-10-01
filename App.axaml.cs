@@ -370,6 +370,12 @@ public class App : Application
             polling.CharacterUndocked += characterId =>
                 _ = Services.GetRequiredService<AlarmService>().TriggerAsync("ship_undock");
 
+            // An intel alarm around characters watches wherever they are, so an undock or a jump
+            // changes what it watches: evaluated then, so a hostile already reported next door
+            // is heard on arrival rather than at the alarm's next interval.
+            polling.CharacterMoved += characterId =>
+                _ = Services.GetRequiredService<AlarmService>().TriggerAsync("intel");
+
             // And a store order's state is worked out by the fulfilment pass — which the store
             // mail runs the moment it books an order — so the store-order alarms follow the pass.
             // The web sites do NOT follow the pass: it runs every half minute and after every
@@ -3535,6 +3541,18 @@ public class App : Application
                     db.SaveChanges();
                 }
                 catch (Exception ex) { Services.GetRequiredService<AppErrorLogger>().Log("Alarms", "upgrading ship_undock alarms", ex); }
+
+                // Intel report alarms saved before they could watch characters (a comma list and
+                // one ranged system) are rewritten to "around Systems", once, so they go on
+                // watching their systems rather than turning into the new default.
+                try
+                {
+                    foreach (var alarm in db.Alarms.Where(a => a.ConditionType == "intel").ToList())
+                        if (EveConsole.Alarms.Conditions.IntelCondition.UpgradeConfig(alarm.ConditionJson) is { } upgraded)
+                            alarm.ConditionJson = upgraded;
+                    db.SaveChanges();
+                }
+                catch (Exception ex) { Services.GetRequiredService<AppErrorLogger>().Log("Alarms", "upgrading intel alarms", ex); }
 
                 try { AssetLocations.FillMissing(db); }
                 catch (Exception ex) { Services.GetRequiredService<AppErrorLogger>().Log("AssetLocations", "FillMissing", ex); }

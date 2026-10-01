@@ -722,7 +722,7 @@
     <value>情报报告</value>
   </data>
   <data name="CheckIntelNote" xml:space="preserve">
-    <value>当有人报告你所监视的星系中出现飞行员时触发。可以给出一组星系，也可以给出一个星系和跳数范围，以覆盖其周边的所有星系。读取的是已在“设置 → 聊天日志”中解析的情报频道。</value>
+    <value>当有人报告你所监视的对象附近出现飞行员时触发：出站中的你的角色、任意位置的你的角色，或一组星系，每项都有一个跳数范围。读取的是已在“设置 → 聊天日志”中解析的情报频道。</value>
   </data>
   <data name="CheckShipUndock" xml:space="preserve">
     <value>舰船出站</value>
@@ -770,19 +770,13 @@
     <value>星系</value>
   </data>
   <data name="IntelSystemsNote" xml:space="preserve">
-    <value>要监视的星系名称，用逗号分隔，例如“{0}, {1}”。如果改为给出跳数范围，此处可以留空。</value>
-  </data>
-  <data name="IntelWithinJumpsLabel" xml:space="preserve">
-    <value>中心星系</value>
-  </data>
-  <data name="IntelWithinJumpsNote" xml:space="preserve">
-    <value>可选。一个星系名称；距其在下方跳数范围内的所有星系都会被监视。与上方的列表合并，而不是取代它。</value>
+    <value>要监视的星系，例如 {0} 或 {1}。逐个添加；跳数为 0 时只监视这些星系。</value>
   </data>
   <data name="IntelJumpsLabel" xml:space="preserve">
     <value>跳数</value>
   </data>
   <data name="IntelJumpsNote" xml:space="preserve">
-    <value>从“中心星系”向外经星门监视的跳数。0 表示只监视该星系本身。上限为 15——再远就不算周边了。</value>
+    <value>从每个角色或星系向外经星门监视的跳数。0 表示只监视其所在的星系。上限为 15——再远就不算周边了。</value>
   </data>
   <data name="IntelMinPlayersLabel" xml:space="preserve">
     <value>最少人数</value>
@@ -1359,5 +1353,32 @@
   </data>
   <data name="RunPostedPartDiscord" xml:space="preserve">
     <value>已发布 {1} 条消息中的 {0} 条（{2:N0} 个字符）；Discord 拒绝了下一条：{3}。</value>
+  </data>
+  <data name="IntelAroundLabel" xml:space="preserve">
+    <value>监视范围中心</value>
+  </data>
+  <data name="IntelAroundNote" xml:space="preserve">
+    <value>已出站角色：你在线的角色在太空中的所在位置；停靠中的角色不监视。角色：在线期间所在的位置，无论是否停靠。星系：下方列出的星系。</value>
+  </data>
+  <data name="OptionUndockedCharacters" xml:space="preserve">
+    <value>已出站角色</value>
+  </data>
+  <data name="OptionCharacters" xml:space="preserve">
+    <value>角色</value>
+  </data>
+  <data name="OptionSystems" xml:space="preserve">
+    <value>星系</value>
+  </data>
+  <data name="IntelCharactersLabel" xml:space="preserve">
+    <value>角色</value>
+  </data>
+  <data name="IntelCharactersNote" xml:space="preserve">
+    <value>可选。要监视其周边的你自己的角色；留空则为全部角色。只计算在线的角色。</value>
+  </data>
+  <data name="IntelSaidWhereIs" xml:space="preserve">
+    <value>就在 {0} 所在的星系</value>
+  </data>
+  <data name="IntelSaidJumpsFromOther" xml:space="preserve">
+    <value>距离 {1} {0} 跳</value>
   </data>
 </root>

@@ -515,6 +515,13 @@ public class EsiPollingService : ReactiveObject
     /// </summary>
     public event Action<long>? CharacterUndocked;
 
+    /// <summary>
+    /// Raised, with the character id, once a pass has seen that character change system or
+    /// undock — after the pass, like <see cref="CharacterUndocked"/>. What lets an intel alarm
+    /// drawn around characters look again the moment what it watches has moved.
+    /// </summary>
+    public event Action<long>? CharacterMoved;
+
     /// <summary>Raised, with the endpoint key, after every successful poll of a character or
     /// corporation endpoint. What lets the fulfilment pass run the moment jobs, contracts or
     /// assets have arrived rather than at its own next interval.</summary>
@@ -528,6 +535,7 @@ public class EsiPollingService : ReactiveObject
     }
 
     private readonly ConcurrentDictionary<long, bool> _undockSeen = new();
+    private readonly ConcurrentDictionary<long, bool> _moveSeen   = new();
 
     private async Task ProcessCharacterAsync(Character character, DateTimeOffset now, CancellationToken ct)
     {
@@ -640,14 +648,20 @@ public class EsiPollingService : ReactiveObject
     private bool ErrorLimited()
         => Interlocked.Read(ref _errorLimitBlockedUntilTicks) is var bt and > 0 && DateTimeOffset.UtcNow.UtcTicks < bt;
 
-    /// <summary>Fires <see cref="CharacterUndocked"/> once for a pass that saw the undock — after
-    /// the pass, so the ship poll that follows the location poll has had its turn.</summary>
+    /// <summary>Fires <see cref="CharacterUndocked"/> and <see cref="CharacterMoved"/> once for a
+    /// pass that saw the undock or the move — after the pass, so the ship poll that follows the
+    /// location poll has had its turn.</summary>
     private void RaiseUndockIfSeen(long characterId)
     {
         if (_undockSeen.TryRemove(characterId, out _) && CharacterUndocked is { } undocked)
         {
             try { undocked(characterId); }
             catch (Exception ex) { _errorLogger.Log("EsiPollingService", $"undock of {characterId}", ex); }
+        }
+        if (_moveSeen.TryRemove(characterId, out _) && CharacterMoved is { } moved)
+        {
+            try { moved(characterId); }
+            catch (Exception ex) { _errorLogger.Log("EsiPollingService", $"move of {characterId}", ex); }
         }
     }
 
@@ -1767,6 +1781,7 @@ public class EsiPollingService : ReactiveObject
                 status.UndockedShipItemId = status.ShipItemId;
                 status.UndockedShipName   = status.ShipName;
                 _undockSeen[charId]       = true;
+                _moveSeen[charId]         = true;
             }
 
             // A change of system is travel, whatever carried them; where from is kept so the
@@ -1775,6 +1790,7 @@ public class EsiPollingService : ReactiveObject
             {
                 status.SystemChangedAt  = DateTimeOffset.UtcNow;
                 status.PreviousSystemId = previous;
+                _moveSeen[charId]       = true;
             }
 
             status.SolarSystemId     = r.Data.SolarSystemId;

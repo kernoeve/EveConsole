@@ -293,6 +293,7 @@ public sealed class ManageAlarmsTool : IAgentTool
         {
             return Error($"The condition configuration was rejected: {ex.Message}");
         }
+        if (condition.NormaliseConfig(conditionJson) is { } normalised) conditionJson = normalised;
 
         var repeat = string.Equals(Str(input, "repeat"), "one_shot", StringComparison.OrdinalIgnoreCase)
             ? AlarmRepeat.OneShot

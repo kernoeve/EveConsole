@@ -725,7 +725,7 @@
     <value>Rapport de renseignements</value>
   </data>
   <data name="CheckIntelNote" xml:space="preserve">
-    <value>Se déclenche quand quelqu'un signale un pilote dans un système que vous surveillez. Indiquez une liste de systèmes, ou un système et une portée en sauts pour couvrir tout ce qui l'entoure. Lit les canaux de renseignements déjà analysés dans Paramètres → Journaux de discussion.</value>
+    <value>Se déclenche quand quelqu'un signale un pilote près de ce que vous surveillez : vos personnages quand ils sont appareillés, vos personnages où qu'ils soient, ou une liste de systèmes, chacun avec une portée en sauts. Lit les canaux de renseignements déjà analysés dans Paramètres → Journaux de discussion.</value>
   </data>
   <data name="CheckShipUndock" xml:space="preserve">
     <value>Appareillage d'un vaisseau</value>
@@ -773,19 +773,13 @@
     <value>Systèmes</value>
   </data>
   <data name="IntelSystemsNote" xml:space="preserve">
-    <value>Noms des systèmes à surveiller, séparés par des virgules, p. ex. « {0}, {1} ». Peut rester vide si une portée en sauts est indiquée à la place.</value>
-  </data>
-  <data name="IntelWithinJumpsLabel" xml:space="preserve">
-    <value>Dans un rayon autour de</value>
-  </data>
-  <data name="IntelWithinJumpsNote" xml:space="preserve">
-    <value>Facultatif. Un nom de système ; tout ce qui se trouve dans la portée en sauts ci-dessous est surveillé. S'ajoute à la liste ci-dessus au lieu de la remplacer.</value>
+    <value>Systèmes à surveiller, p. ex. {0} ou {1}. Ajoutez-les un par un ; avec Sauts à 0, seuls ces systèmes sont surveillés.</value>
   </data>
   <data name="IntelJumpsLabel" xml:space="preserve">
     <value>Sauts</value>
   </data>
   <data name="IntelJumpsNote" xml:space="preserve">
-    <value>Nombre de sauts par portail stellaire à surveiller autour de « within_jumps_of ». 0 signifie ce système uniquement. Limité à 15 — au-delà, ce n'est plus un voisinage.</value>
+    <value>Nombre de sauts par portail stellaire à surveiller autour de chaque personnage ou système. 0 signifie leur propre système uniquement. Limité à 15 — au-delà, ce n'est plus un voisinage.</value>
   </data>
   <data name="IntelMinPlayersLabel" xml:space="preserve">
     <value>Joueurs min.</value>
@@ -1386,5 +1380,35 @@
   </data>
   <data name="RunPostedPartDiscord" xml:space="preserve">
     <value>{0} message(s) publié(s) sur {1} ({2:N0} caractères) ; Discord a refusé le suivant : {3}.</value>
+  </data>
+  <data name="IntelAroundLabel" xml:space="preserve">
+    <value>Surveiller autour de</value>
+  </data>
+  <data name="IntelAroundNote" xml:space="preserve">
+    <value>Personnages appareillés : là où vos personnages connectés se trouvent dans l'espace ; ceux à quai ne sont pas surveillés. Personnages : là où ils se trouvent tant qu'ils sont connectés, à quai ou non. Systèmes : les systèmes listés ci-dessous.</value>
+  </data>
+  <data name="OptionUndockedCharacters" xml:space="preserve">
+    <value>Personnages appareillés</value>
+  </data>
+  <data name="OptionCharacters" xml:space="preserve">
+    <value>Personnages</value>
+  </data>
+  <data name="OptionSystems" xml:space="preserve">
+    <value>Systèmes</value>
+  </data>
+  <data name="IntelCharactersLabel" xml:space="preserve">
+    <value>Personnages</value>
+  </data>
+  <data name="IntelCharactersNote" xml:space="preserve">
+    <value>Facultatif. Vos propres personnages autour desquels surveiller ; laissez vide pour tous. Seuls les personnages connectés comptent.</value>
+  </data>
+  <data name="IntelSaidWhereIs" xml:space="preserve">
+    <value>là où se trouve {0}</value>
+  </data>
+  <data name="IntelSaidJumpsFromOne" xml:space="preserve">
+    <value>à {0} saut de {1}</value>
+  </data>
+  <data name="IntelSaidJumpsFromOther" xml:space="preserve">
+    <value>à {0} sauts de {1}</value>
   </data>
 </root>
