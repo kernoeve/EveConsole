@@ -466,6 +466,9 @@
   <data name="CargoLine" xml:space="preserve">
     <value>Fracht {0:N1} / {1:N0} m³</value>
   </data>
+  <data name="CargoLineNoLimit" xml:space="preserve">
+    <value>Fracht {0:N1} m³</value>
+  </data>
   <data name="DroneLine" xml:space="preserve">
     <value>Drohnenhangar {0:0} / {1:0} m³    Bandbreite {2:0} / {3:0} Mbit/s</value>
   </data>
@@ -687,6 +690,9 @@
   </data>
   <data name="NavLine" xml:space="preserve">
     <value>Ausrichten {0:0.00} s    Signatur {1:N0} m    Warp {2:0.##} AE/s</value>
+  </data>
+  <data name="NavLineStructure" xml:space="preserve">
+    <value>Signatur {0:N0} m</value>
   </data>
   <data name="NavLineNoWarp" xml:space="preserve">
     <value>Ausrichten {0:0.00} s    Signatur {1:N0} m    Kein Warp möglich</value>

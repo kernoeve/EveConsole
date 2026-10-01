@@ -269,12 +269,20 @@ public sealed class FitStats
     /// <summary>Seconds for the shield to recharge from empty to full, as the game quotes it.</summary>
     public double ShieldRechargeSeconds => Ship("shieldRechargeRate") / 1000;
 
+    /// <summary>A recharge time this long is the SDE's way of saying "never": Upwell structures carry
+    /// 999,999,999,999 ms. Anything past a year is treated as no passive recharge at all.</summary>
+    private const double NeverRechargesSeconds = 365 * 24 * 3600;
+    public bool HasPassiveShieldRecharge => ShieldRechargeSeconds is > 0 and < NeverRechargesSeconds;
+
+    /// <summary>An Upwell structure rather than a ship: it does not move, and its holds have no capacity in the SDE.</summary>
+    public bool IsStructure => _e.Ship.Type.CategoryId == DogmaData.CategoryStructure;
+
     /// <summary>
     /// Shield regeneration at its peak, in HP/s. Shields recharge along the same curve as the
     /// capacitor, fastest at 25%: 2.5 × capacity ÷ recharge time. This is the number a passive
     /// shield tank is built around.
     /// </summary>
-    public double PassiveShieldRegen => ShieldRechargeSeconds > 0 ? 2.5 * Ship("shieldCapacity") / ShieldRechargeSeconds : 0;
+    public double PassiveShieldRegen => HasPassiveShieldRecharge ? 2.5 * Ship("shieldCapacity") / ShieldRechargeSeconds : 0;
 
     /// <summary>
     /// Every active repair module: shield boosters, armor and hull repairers, and their ancillary

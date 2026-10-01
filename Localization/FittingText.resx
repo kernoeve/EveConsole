@@ -620,6 +620,10 @@
     <value>Cargo {0:N1} / {1:N0} m³</value>
     <comment>Fitting tool, figures: {0} the volume the cargo takes up, {1} the cargo hold's capacity, in cubic metres.</comment>
   </data>
+  <data name="CargoLineNoLimit" xml:space="preserve">
+    <value>Cargo {0:N1} m³</value>
+    <comment>Fitting tool, RESOURCES, for an Upwell structure: the volume of what the fit carries (fuel, ammunition). {0} is cubic metres. Structures' holds have no set size, so there is no limit after it.</comment>
+  </data>
   <data name="DroneLine" xml:space="preserve">
     <value>Drone bay {0:0} / {1:0} m³    Bandwidth {2:0} / {3:0} Mbit/s</value>
     <comment>Fitting tool, figures: {0} the volume of drones in the drone bay, {1} its capacity; {2} the drone bandwidth the launched drones use, {3} the ship's. Four spaces separate the parts in English.</comment>
@@ -915,6 +919,10 @@
   <data name="NavLine" xml:space="preserve">
     <value>Align {0:0.00} s    Signature {1:N0} m    Warp {2:0.##} AU/s</value>
     <comment>Fitting tool, NAVIGATION: {0} seconds to align for warp, {1} the signature radius in metres, {2} the warp speed in AU per second. Four spaces separate the parts in English.</comment>
+  </data>
+  <data name="NavLineStructure" xml:space="preserve">
+    <value>Signature {0:N0} m</value>
+    <comment>Fitting tool, NAVIGATION, for an Upwell structure, which does not move: only its signature radius. {0} is metres.</comment>
   </data>
   <data name="NavLineNoWarp" xml:space="preserve">
     <value>Align {0:0.00} s    Signature {1:N0} m    Cannot warp</value>

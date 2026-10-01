@@ -300,7 +300,8 @@
 
           <!-- What the tank gets back: passive regeneration for a shield tank, and the modules
                of an active one, each raw and as effective HP against even damage. -->
-          <TextBlock Text="{Binding RegenText}" Classes="line" Margin="0 6 0 0" />
+          <TextBlock Text="{Binding RegenText}" Classes="line" Margin="0 6 0 0"
+                     IsVisible="{Binding RegenText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
           <TextBlock Text="{Binding RepairText}" Classes="line" IsVisible="{Binding HasRepairs}" Margin="0 2 0 0" />
 
           <TextBlock Text="{x:Static loc:FittingText.CapacitorHeading}" Classes="section" />
@@ -314,9 +315,10 @@
           <TextBlock Text="{Binding CapFlowText}" Classes="line" />
 
           <TextBlock Text="{x:Static loc:FittingText.NavigationHeading}" Classes="section" />
-          <TextBlock Text="{Binding SpeedText}" Classes="big" />
+          <!-- A structure does not move: its signature is all that is left here. -->
+          <TextBlock Text="{Binding SpeedText}" Classes="big" IsVisible="{Binding ShowsMovement}" />
           <TextBlock Text="{Binding NavText}" Classes="line" />
-          <TextBlock Text="{Binding MassText}" Classes="line" />
+          <TextBlock Text="{Binding MassText}" Classes="line" IsVisible="{Binding ShowsMovement}" />
 
           <TextBlock Text="{x:Static loc:FittingText.TargetingHeading}" Classes="section" />
           <TextBlock Text="{Binding TargetingText}" Classes="line" />

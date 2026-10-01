@@ -358,6 +358,8 @@ public sealed class FitSnapshot
     public Dictionary<int, string> DroneDetail = new();    // by drone/squadron index
     public double Speed, Align, Signature, Warp, Mass, Agility;
     public bool   CanWarp = true;
+    /// <summary>An Upwell structure: no navigation but its signature, and holds with no set capacity.</summary>
+    public bool   IsStructure;
     public double Range, ScanRes, MaxTargets, Sensor;
     /// <summary>The strongest sensor's attribute, which says its type (radar, ladar…).</summary>
     public string SensorAttribute = "";
@@ -2051,7 +2053,7 @@ public class FitTabViewModel : ReactiveObject
             Calib = s.CalibrationUsed, CalibOut = s.Calibration,
             TurretsOut = s.TurretHardpoints, LaunchersOut = s.LauncherHardpoints,
             DroneBay = s.DroneBayUsed, DroneBayOut = s.DroneBay, Bandwidth = s.DroneBandwidthUsed, BandwidthOut = s.DroneBandwidth,
-            Speed = s.MaxVelocity, Align = s.AlignTime, Signature = s.Signature, Warp = s.WarpSpeed, CanWarp = s.CanWarp, Mass = s.Mass, Agility = s.Agility,
+            Speed = s.MaxVelocity, Align = s.AlignTime, Signature = s.Signature, Warp = s.WarpSpeed, CanWarp = s.CanWarp, IsStructure = s.IsStructure, Mass = s.Mass, Agility = s.Agility,
             Range = s.TargetRange, ScanRes = s.ScanResolution, MaxTargets = s.MaxLockedTargets,
         };
         foreach (var slot in new[] { FitSlot.High, FitSlot.Mid, FitSlot.Low, FitSlot.Rig, FitSlot.Subsystem, FitSlot.Service })
@@ -2144,8 +2146,11 @@ public class FitTabViewModel : ReactiveObject
     public bool   CalibOver       => Stats is { } s && s.Calib > s.CalibOut + 1e-9;
     public string HardpointsText  => Stats is { } s ? string.Format(FittingText.Hardpoints, s.Turrets, s.TurretsOut, s.Launchers, s.LaunchersOut) : "";
     public bool   HardpointsOver  => Stats is { } s && (s.Turrets > s.TurretsOut || s.Launchers > s.LaunchersOut);
-    public string CargoText       => Stats is { } s ? string.Format(FittingText.CargoLine, s.Cargo, s.CargoOut) : "";
-    public bool   CargoOver       => Stats is { } s && s.Cargo > s.CargoOut + 1e-9;
+    public string CargoText       => Stats is not { } s ? ""
+        : s.IsStructure && s.CargoOut <= 0 ? string.Format(FittingText.CargoLineNoLimit, s.Cargo)
+        : string.Format(FittingText.CargoLine, s.Cargo, s.CargoOut);
+    /// <summary>More in the hold than it takes — never on a structure, whose holds the SDE gives no size.</summary>
+    public bool   CargoOver       => Stats is { } s && !(s.IsStructure && s.CargoOut <= 0) && s.Cargo > s.CargoOut + 1e-9;
     public string DroneText       => Stats is { } s ? string.Format(FittingText.DroneLine, s.DroneBay, s.DroneBayOut, s.Bandwidth, s.BandwidthOut) : "";
     public bool   DroneOver       => Stats is { } s && (s.DroneBay > s.DroneBayOut + 1e-9 || s.Bandwidth > s.BandwidthOut + 1e-9);
     /// <summary>A carrier has no drone bay; the drone line shows only where there is one, or drones in it.</summary>
@@ -2193,7 +2198,10 @@ public class FitTabViewModel : ReactiveObject
     public string DamageTypesText => Stats is { } s && s.WeaponDps.Total + s.DroneDps.Total + s.FighterDps.Total > 0
         ? DamageMix(s.WeaponDps + s.DroneDps + s.FighterDps) : "";
     public string SpeedText       => Stats is { } s ? $"{s.Speed:N0} m/s" : "";
+    /// <summary>Speed, align, warp, mass and inertia — a ship's; a structure shows only its signature.</summary>
+    public bool   ShowsMovement   => Stats is not { IsStructure: true };
     public string NavText         => Stats is not { } s ? ""
+        : s.IsStructure ? string.Format(FittingText.NavLineStructure, s.Signature)
         : s.CanWarp ? string.Format(FittingText.NavLine, s.Align, s.Signature, s.Warp)
         : string.Format(FittingText.NavLineNoWarp, s.Align, s.Signature);
     public string MassText        => Stats is { } s ? string.Format(FittingText.MassLine, s.Mass, s.Agility) : "";
@@ -2228,7 +2236,7 @@ public class FitTabViewModel : ReactiveObject
         foreach (var p in new[] { nameof(CpuText), nameof(CpuFraction), nameof(CpuOver), nameof(PowerText), nameof(PowerFraction), nameof(PowerOver),
                      nameof(CalibText), nameof(CalibFraction), nameof(CalibOver), nameof(HardpointsText), nameof(HardpointsOver), nameof(DroneText), nameof(DroneOver), nameof(HasDroneBay), nameof(HasFighterBay), nameof(FighterText), nameof(FighterOver), nameof(CargoText), nameof(CargoOver),
                      nameof(TankRows), nameof(EhpText), nameof(RegenText), nameof(RepairText), nameof(HasRepairs), nameof(CapText), nameof(CapStateText), nameof(CapStable), nameof(CapFlowText),
-                     nameof(DpsText), nameof(DpsSplitText), nameof(DpsSplitTip), nameof(DamageTypesText), nameof(SpeedText), nameof(NavText), nameof(MassText),
+                     nameof(DpsText), nameof(DpsSplitText), nameof(DpsSplitTip), nameof(DamageTypesText), nameof(SpeedText), nameof(NavText), nameof(MassText), nameof(ShowsMovement),
                      nameof(TargetingText), nameof(SensorText) })
             this.RaisePropertyChanged(p);
     }
