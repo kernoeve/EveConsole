@@ -24,6 +24,104 @@ public sealed record PiEconomics(double OutputValuePerDay, double InputCostPerDa
             forecast.ImportChargesPerDay);
 }
 
+/// <summary>Output thrown away, valued at market.</summary>
+public sealed record PiValuedLoss(PiLoss Loss, double Value);
+
+/// <summary>Output idle factories did not make, valued at market.</summary>
+public sealed record PiValuedIdle(PiIdle Idle, double Value);
+
+/// <summary>
+/// A colony's money over its period (<see cref="PiPeriodForecast"/>): what it could make against
+/// what it will, by the same rules and prices as <see cref="PiEconomics"/> — output value − input
+/// cost − import charges − export charges.
+///
+/// <para><b>Potential</b> is the period's steady flows × its length. <b>Forecast</b> is the
+/// simulation: what reaches storage of the types the colony exports, less the brought-in input
+/// its factories used (at market plus the import charge) and the export charge on what reached
+/// storage. Destroyed and idle are at market, gross: see <see cref="PiPeriodForecast"/> for how
+/// they add up to the difference, roughly.</para>
+/// </summary>
+public sealed class PiPeriodEconomics
+{
+    public required PiPeriodForecast Period { get; init; }
+
+    public long   PotentialUnits       { get; init; }
+    public double PotentialOutputValue { get; init; }
+    public double PotentialInputCost   { get; init; }
+    public double PotentialCharges     { get; init; }
+    public double PotentialProfit => PotentialOutputValue - PotentialInputCost - PotentialCharges;
+
+    public long   ForecastUnits       { get; init; }
+    public double ForecastOutputValue { get; init; }
+    public double ForecastInputCost   { get; init; }
+    public double ForecastCharges     { get; init; }
+    public double ForecastProfit => ForecastOutputValue - ForecastInputCost - ForecastCharges;
+
+    /// <summary>Potential less forecast.</summary>
+    public double Shortfall => PotentialProfit - ForecastProfit;
+
+    /// <summary>Forecast as a share of potential; null when there is no profit to measure against.</summary>
+    public double? Efficiency => PotentialProfit > 0 ? ForecastProfit / PotentialProfit : null;
+
+    /// <summary>Products thrown away, and raw material overflowing storage, apart.</summary>
+    public IReadOnlyList<PiValuedLoss> Destroyed   { get; init; } = [];
+    public IReadOnlyList<PiValuedLoss> RawOverflow { get; init; } = [];
+    /// <summary>Schematics whose factories waited beyond what the potential counts on.</summary>
+    public IReadOnlyList<PiValuedIdle> Idle        { get; init; } = [];
+
+    public double DestroyedValue   => Destroyed.Sum(d => d.Value);
+    public double RawOverflowValue => RawOverflow.Sum(d => d.Value);
+    /// <summary>⚠️ Final products only: an idle lower tier also idles the tier above it, and
+    /// counting both would count one loss twice.</summary>
+    public double IdleValue => Idle.Where(i => i.Idle.IsFinal).Sum(i => i.Value);
+
+    /// <summary>The period's units, per exported type: potential, then forecast.</summary>
+    public IReadOnlyDictionary<int, (double Potential, long Forecast)> ByType { get; init; }
+        = new Dictionary<int, (double, long)>();
+
+    public static PiPeriodEconomics For(PiColonyForecast forecast, IReadOnlyDictionary<int, double> prices)
+    {
+        var p    = forecast.Period;
+        var days = p.Days;
+        var rate = forecast.Rate?.Rate;
+        var tier = p.Flows.Where(f => f.Tier is not null).ToDictionary(f => f.TypeId, f => f.Tier!.Value);
+
+        double Price(int type) => prices.GetValueOrDefault(type);
+        double Export(int type) => rate is { } r && tier.TryGetValue(type, out var t) ? PiCharges.ExportPerUnit(t, r) : 0;
+        double Import(int type) => rate is { } r && tier.TryGetValue(type, out var t) ? PiCharges.ImportPerUnit(t, r) : 0;
+
+        var output = p.OutputUnits;
+        var potentialByType = p.Flows.Where(f => p.ExportTypes.Contains(f.TypeId))
+            .ToDictionary(f => f.TypeId, f => f.ExportedPerDay * days);
+
+        return new PiPeriodEconomics
+        {
+            Period               = p,
+            PotentialUnits       = (long)Math.Round(potentialByType.Values.Sum()),
+            PotentialOutputValue = p.Flows.Sum(f => f.ExportedPerDay * days * Price(f.TypeId)),
+            PotentialInputCost   = p.Flows.Sum(f => f.ImportedPerDay * days * Price(f.TypeId)),
+            PotentialCharges     = p.Flows.Sum(f => f.ExportedPerDay * days * Export(f.TypeId)
+                                                  + f.ImportedPerDay * days * Import(f.TypeId)),
+
+            ForecastUnits       = output.Values.Sum(),
+            ForecastOutputValue = output.Sum(kv => kv.Value * Price(kv.Key)),
+            ForecastInputCost   = p.InputsConsumed.Sum(kv => kv.Value * Price(kv.Key)),
+            ForecastCharges     = output.Sum(kv => kv.Value * Export(kv.Key))
+                                + p.InputsConsumed.Sum(kv => kv.Value * Import(kv.Key)),
+
+            Destroyed   = p.Losses.Where(l => l.Kind == PiLossKind.Product)
+                .Select(l => new PiValuedLoss(l, l.Units * Price(l.TypeId))).ToList(),
+            RawOverflow = p.Losses.Where(l => l.Kind == PiLossKind.Raw)
+                .Select(l => new PiValuedLoss(l, l.Units * Price(l.TypeId))).ToList(),
+            Idle        = p.Idle.Where(i => i.MissedUnits > 0)
+                .Select(i => new PiValuedIdle(i, i.MissedUnits * Price(i.OutputTypeId))).ToList(),
+
+            ByType = potentialByType.Keys.Union(output.Keys).Order()
+                .ToDictionary(t => t, t => (potentialByType.GetValueOrDefault(t), output.GetValueOrDefault(t))),
+        };
+    }
+}
+
 /// <summary>One colony with everything the PI tool shows about it.</summary>
 public sealed record PiColonyStatus(
     long CharacterId,
@@ -49,6 +147,10 @@ public sealed record PiColonyStatus(
     /// <summary>The system's region and its English name, the fallback for the region shown.</summary>
     public int    RegionId   { get; init; }
     public string RegionName { get; init; } = "";
+
+    /// <summary>Potential against forecast over the period ahead; null on a status built without
+    /// prices.</summary>
+    public PiPeriodEconomics? Period { get; init; }
 }
 
 /// <summary>A colony slot as the colony list has it, read or not.</summary>
@@ -179,7 +281,12 @@ public sealed class PiService(IDbContextFactory<AppDbContext> dbFactory, PiTaxSe
             .Select(l => PiEngine.Forecast(l, sd, at, rates.GetValueOrDefault(l.PlanetId)))
             .ToList();
 
-        var typeIds = forecasts.SelectMany(f => f.Flows.Select(x => x.TypeId)).Distinct().ToList();
+        var typeIds = forecasts
+            .SelectMany(f => f.Flows.Select(x => x.TypeId)
+                .Concat(f.Period.Flows.Select(x => x.TypeId))
+                .Concat(f.Period.Losses.Select(l => l.TypeId))
+                .Concat(f.Period.Idle.Select(i => i.OutputTypeId)))
+            .Distinct().ToList();
         var prices  = await TypeValuation.PricesAsync(db, typeIds, ct).ConfigureAwait(false);
 
         return forecasts
@@ -199,6 +306,7 @@ public sealed class PiService(IDbContextFactory<AppDbContext> dbFactory, PiTaxSe
                     PlanetTypeName = planetTypeNames.GetValueOrDefault(planetTypeId, ""),
                     RegionId       = regionId,
                     RegionName     = regionName,
+                    Period         = PiPeriodEconomics.For(f, prices),
                 };
             })
             .ToList();

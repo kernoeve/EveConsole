@@ -26,7 +26,10 @@ using Microsoft.EntityFrameworkCore;
 //  P1, a full launchpad, an idle processor, an expired extractor; then the per-planet tax rate
 //  learned from constructed journal entries, in memory and through a throwaway SQLite database;
 //  then the PI worklist tasks — which colony gets which, hauls grouped by system, characters with
-//  the PI box cleared left out — on constructed colonies and through the same database.
+//  the PI box cleared left out — on constructed colonies and through the same database; then a
+//  typical extractor planet hour by hour against a half-hour hand model, with a full launchpad
+//  and overflowing storage, and the potential, forecast, destroyed and idle output over its
+//  period and over a factory planet's next 30 days.
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ⚠️ SQLite, pinned, before anything reads the engine — the database section below must never
@@ -631,6 +634,370 @@ Check("skills: Command Center Upgrades 4 allows level 4", new PiSkills(1, 0, 4).
     Check("attention: old data is Attention", PiColonyAttention.For(colonies[6].Forecast, t).State == PiColonyState.Attention);
 }
 
+// ── 12. A typical extractor planet ──────────────────────────────────────────────────
+//
+// Built the way an extractor planet usually is: two extractors on 2-hour cycles for a week (84
+// cycles, four heads each), each into its own storage facility; each storage feeding two basic
+// industry facilities (3,000 raw → 20 P1 every 30 minutes); all four sending their P1 to one
+// launchpad. The snapshot is taken two minutes after the programs were set, with everything
+// empty. Ids and types are invented.
+//
+// Every expected number is worked out here without the engine: the yields by the published
+// formula written out again (and pinned to values computed apart from this program), the
+// factories by a half-hour clock (ChainModel, below) rather than an event queue. Every event on
+// this colony falls on one half-hour grid — the first extractor cycle ends on it, and both cycle
+// times are whole multiples of it — so a clock sees exactly what the engine should.
+{
+    const int RawA = 110, RawB = 111, ProdA = 210, ProdB = 211;
+    const int SchemA = 1011, SchemB = 1012;
+    const int SmallStorageType = 7, SmallPadType = 8;
+    const long Room = 2_400_000;          // 12,000 m³ of raw at 0.005 m³
+    const long SmallRoom = 20_000;        // 100 m³
+
+    var sdx = new PiStaticData
+    {
+        PinTypes = new Dictionary<int, PiPinType>
+        {
+            [CcType]           = new(CcType,           PiPinKind.CommandCenter,        500,    PiProcessorTier.None),
+            [EcuType]          = new(EcuType,          PiPinKind.ExtractorControlUnit, 0,      PiProcessorTier.None),
+            [BasicType]        = new(BasicType,        PiPinKind.Processor,            0,      PiProcessorTier.Basic),
+            [StorageType]      = new(StorageType,      PiPinKind.Storage,              12_000, PiProcessorTier.None),
+            [PadType]          = new(PadType,          PiPinKind.Launchpad,            10_000, PiProcessorTier.None),
+            [SmallStorageType] = new(SmallStorageType, PiPinKind.Storage,              100,    PiProcessorTier.None),
+            [SmallPadType]     = new(SmallPadType,     PiPinKind.Launchpad,            19.5,   PiProcessorTier.None),  // 102 P1
+        },
+        Commodities = new Dictionary<int, PiCommodity>
+        {
+            [RawA]  = new(RawA,  PiTier.P0, 0.005),
+            [RawB]  = new(RawB,  PiTier.P0, 0.005),
+            [ProdA] = new(ProdA, PiTier.P1, 0.19),
+            [ProdB] = new(ProdB, PiTier.P1, 0.19),
+        },
+        Schematics = new Dictionary<int, PiSchematic>
+        {
+            [SchemA] = new(SchemA, "Basic A", 1800, [new PiSchematicInput(RawA, 3000)], ProdA, 20),
+            [SchemB] = new(SchemB, "Basic B", 1800, [new PiSchematicInput(RawB, 3000)], ProdB, 20),
+        },
+    };
+
+    var snap    = new DateTimeOffset(2026, 9, 14, 8, 0, 0, TimeSpan.Zero);
+    var install = snap.AddMinutes(-2);
+    var stop    = install.AddHours(168);
+    DateTimeOffset Tick(int k) => install.AddHours(2).AddMinutes(30.0 * k);   // the grid: first cycle end, then every 30 min
+
+    // Pins 1..10: command center; extractors A and B; storage 1 and 2; factories 1, 2 (B) and
+    // 3, 4 (A); the launchpad.
+    PiColonyLayout Typical(int storageType = StorageType, int padType = PadType, DateTimeOffset? stopB = null) => new()
+    {
+        CharacterId = 1, PlanetId = 4_000_001, PlanetType = "barren", LastUpdate = snap, UpgradeLevel = 4,
+        Pins =
+        [
+            Pin(1, CcType),
+            Pin(2, EcuType) with { InstallTime = install, ExpiryTime = stop, Extractor = new PiLayoutExtractor(RawA, 7200, 4417, 4) },
+            Pin(3, EcuType) with { InstallTime = install, ExpiryTime = stopB ?? stop, Extractor = new PiLayoutExtractor(RawB, 7200, 4552, 4) },
+            Pin(4, storageType),
+            Pin(5, storageType),
+            Pin(6, BasicType) with { SchematicId = SchemB },
+            Pin(7, BasicType) with { SchematicId = SchemB },
+            Pin(8, BasicType) with { SchematicId = SchemA },
+            Pin(9, BasicType) with { SchematicId = SchemA },
+            Pin(10, padType),
+        ],
+        Routes =
+        [
+            new PiLayoutRoute(1, 2, 4, RawA, 63_600),
+            new PiLayoutRoute(2, 3, 5, RawB, 65_544),
+            new PiLayoutRoute(3, 4, 8, RawA, 3000),
+            new PiLayoutRoute(4, 4, 9, RawA, 3000),
+            new PiLayoutRoute(5, 5, 6, RawB, 3000),
+            new PiLayoutRoute(6, 5, 7, RawB, 3000),
+            new PiLayoutRoute(7, 6, 10, ProdB, 20),
+            new PiLayoutRoute(8, 7, 10, ProdB, 20),
+            new PiLayoutRoute(9, 8, 10, ProdA, 20),
+            new PiLayoutRoute(10, 9, 10, ProdA, 20),
+        ],
+    };
+
+    // CCP's published extraction formula, written out again: the engine's own copy is what is
+    // under test, so it is not called for the expected values.
+    static long Published(int q, int cycleSeconds, int i)
+    {
+        var w     = cycleSeconds / 900.0;
+        var t     = (i + 0.5) * w;
+        var decay = q / (1 + t * 0.012);
+        var phase = Math.Pow(q, 0.7);
+        var noise = Math.Max((Math.Cos(phase + t / 12) + Math.Cos(phase / 2 + t * 0.2) + Math.Cos(t * 0.5)) / 3, 0);
+        var v     = w * decay * (1 + 0.8 * noise);
+        var whole = (long)Math.Floor(v);
+        return Math.Max(0, v == whole ? whole - 1 : whole);
+    }
+    var outA = Enumerable.Range(0, 84).Select(i => Published(4417, 7200, i)).ToArray();
+    var outB = Enumerable.Range(0, 84).Select(i => Published(4552, 7200, i)).ToArray();
+    // Pinned: computed apart from this program, from the same published formula.
+    Check("typical: the yields by the published formula",
+          outA.Take(5).SequenceEqual([33_717L, 41_544, 36_738, 35_026, 26_177]) && outA[^1] == 3_919 && outA.Sum() == 924_747
+          && outB.Take(5).SequenceEqual([47_848L, 44_340, 29_367, 31_627, 31_291]) && outB[^1] == 4_887 && outB.Sum() == 957_027,
+          $"A {string.Join(",", outA.Take(5))} … {outA.Sum()}; B {string.Join(",", outB.Take(5))} … {outB.Sum()}");
+
+    var chains = new[]
+    {
+        (Name: "A", Extractor: 2L, Out: outA, Storage: 4L, Factories: new[] { 8L, 9L }, Raw: RawA, Prod: ProdA),
+        (Name: "B", Extractor: 3L, Out: outB, Storage: 5L, Factories: new[] { 6L, 7L }, Raw: RawB, Prod: ProdB),
+    };
+
+    // ── The colony hour by hour: +3 h and +30 h ──
+    foreach (var hours in new[] { 3, 30 })
+    {
+        var at   = snap.AddHours(hours);
+        var f    = PiEngine.Forecast(Typical(), sdx, at);
+        var done = (int)((at - install).TotalSeconds / 7200);
+        Check($"typical +{hours}h: whole cycles since install", done == (hours == 3 ? 1 : 15), $"{done}");
+
+        foreach (var c in chains)
+        {
+            var label = $"typical +{hours}h, chain {c.Name}";
+            var x = f.Extractors.Single(e => e.PinId == c.Extractor);
+            Check($"{label}: extractor cycles done", x.CyclesDone == done && x.TotalCycles == 84, $"{x.CyclesDone}/{x.TotalCycles}");
+            Check($"{label}: extractor output so far", x.OutputDone == c.Out.Take(done).Sum(), $"{x.OutputDone} vs {c.Out.Take(done).Sum()}");
+
+            var m = ChainModel.Run(c.Out, install, snap, at, Room, snap, stop);
+            var facs = c.Factories.Select(id => f.Factories.Single(p => p.PinId == id)).ToList();
+            Check($"{label}: each factory's cycles", facs[0].CyclesCompleted == m.Cycles[0] && facs[1].CyclesCompleted == m.Cycles[1],
+                  $"{facs[0].CyclesCompleted}, {facs[1].CyclesCompleted} vs {m.Cycles[0]}, {m.Cycles[1]}");
+            var stored = f.Storage.Single(s => s.PinId == c.Storage).ContentsAt.GetValueOrDefault(c.Raw);
+            Check($"{label}: raw left in storage", stored == m.Storage, $"{stored} vs {m.Storage}");
+
+            // Conservation: everything extracted is in storage, in a factory's hopper, or was used
+            // — 3,000 for every cycle started.
+            var starts  = facs.Sum(p => p.CyclesCompleted + (p.StateAt == PiFactoryState.Running ? 1 : 0));
+            var hoppers = facs.Sum(p => p.BufferAt.GetValueOrDefault(c.Raw));
+            Check($"{label}: raw conserved", stored + hoppers + 3000L * starts == x.OutputDone && starts == m.Starts.Sum(),
+                  $"{stored} + {hoppers} + 3000 × {starts} vs {x.OutputDone}");
+            var onPad = f.Storage.Single(s => s.PinId == 10).ContentsAt.GetValueOrDefault(c.Prod);
+            Check($"{label}: P1 on the launchpad is 20 per cycle of both factories",
+                  onPad == 20L * (facs[0].CyclesCompleted + facs[1].CyclesCompleted) && onPad == m.Made, $"{onPad} vs {m.Made}");
+        }
+        Check($"typical +{hours}h: nothing destroyed", f.LostAt.Count == 0, string.Join(",", f.LostAt));
+    }
+
+    // By hand at +3 h: the first cycle lands at +1 h 58 m; both factories start then, again at
+    // +2 h 28 m and +2 h 58 m — two cycles finished each, six sets of 3,000 drawn.
+    {
+        var f = PiEngine.Forecast(Typical(), sdx, snap.AddHours(3));
+        Check("typical +3h by hand: two cycles per factory",
+              f.Factories.All(p => p.CyclesCompleted == 2 && p.StateAt == PiFactoryState.Running));
+        Check("typical +3h by hand: storage holds the first cycle less six sets",
+              f.Storage.Single(s => s.PinId == 4).ContentsAt.GetValueOrDefault(RawA) == 33_717 - 6 * 3000
+              && f.Storage.Single(s => s.PinId == 5).ContentsAt.GetValueOrDefault(RawB) == 47_848 - 6 * 3000);
+        Check("typical +3h by hand: 80 of each P1 on the launchpad",
+              f.Storage.Single(s => s.PinId == 10).ContentsAt is var pad && pad.GetValueOrDefault(ProdA) == 80 && pad.GetValueOrDefault(ProdB) == 80);
+    }
+
+    // ── The period: until the extractors stop ──
+    var rate   = new PiChargeRate(0.10, PiChargeKind.CustomsOffice);    // P1 export 40 a unit
+    var prices = new Dictionary<int, double> { [RawA] = 3, [RawB] = 4, [ProdA] = 450, [ProdB] = 520 };
+    {
+        var f   = PiEngine.Forecast(Typical(), sdx, snap, rate);
+        var per = f.Period;
+        var w   = (stop - snap).TotalSeconds;
+        Check("typical period: from now until the extractors stop", per.UntilExtractorsStop && per.From == snap && per.To == stop,
+              $"{per.From} – {per.To}, until stop {per.UntilExtractorsStop}");
+        Check("typical period: the colony exports its P1 and nothing else",
+              per.ExportTypes.Count == 2 && per.ExportTypes.Contains(ProdA) && per.ExportTypes.Contains(ProdB),
+              string.Join(",", per.ExportTypes));
+        Check("typical period: nothing destroyed, nothing brought in", per.Losses.Count == 0 && per.InputsConsumed.Count == 0);
+
+        var money = PiPeriodEconomics.For(f, prices);
+        var totalUnits = 0.0;
+        double expectShort = 0, expectPotential = 0, expectForecast = 0;
+        foreach (var c in chains)
+        {
+            var label = $"typical period, chain {c.Name}";
+            var price = prices[c.Prod];
+            var m = ChainModel.Run(c.Out, install, snap, stop, Room, snap, stop);
+
+            // Potential: every cycle of the program ends in the period; 3,000 raw make 20 P1, and
+            // the factories can take more than the extractor gives, so all of it becomes P1.
+            var potential = c.Out.Sum() / 150.0;
+            var forecast  = 20L * m.CyclesInPeriod.Sum();
+            Check($"{label}: potential units", Near(money.ByType[c.Prod].Potential, potential),
+                  $"{money.ByType[c.Prod].Potential} vs {potential}");
+            Check($"{label}: forecast units are what reached the launchpad", per.OutputUnits[c.Prod] == forecast
+                  && per.Delivered.GetValueOrDefault(c.Prod) == forecast, $"{per.OutputUnits[c.Prod]} vs {forecast}");
+            Check($"{label}: all the raw that landed in storage", per.Delivered.GetValueOrDefault(c.Raw) == c.Out.Sum()
+                  && per.TakenFromStorage.GetValueOrDefault(c.Raw) == c.Out.Sum() - m.Storage,
+                  $"{per.Delivered.GetValueOrDefault(c.Raw)} in, {per.TakenFromStorage.GetValueOrDefault(c.Raw)} out");
+
+            // Idle: the factories wait for the extractor, mostly by design — the potential runs
+            // them at the share of full rate the extraction allows (a day's supply over 288,000).
+            var share = c.Out.Sum() / (w / 86_400) / 288_000;
+            var idle  = per.Idle.Single(i => i.OutputTypeId == c.Prod);
+            var expected = 2 * (1 - share) * w;
+            var missed   = (long)Math.Floor(Math.Max(0, m.IdleSeconds - expected) / 1800 * 20 + 0.5);
+            Check($"{label}: idle time, both factories", idle.Factories == 2 && Near(idle.IdleSeconds, m.IdleSeconds),
+                  $"{idle.IdleSeconds} vs {m.IdleSeconds}");
+            Check($"{label}: idle the supply explains", Near(idle.ExpectedIdleSeconds, expected), $"{idle.ExpectedIdleSeconds} vs {expected}");
+            Check($"{label}: output idle factories did not make", idle.MissedUnits == missed && idle.IsFinal, $"{idle.MissedUnits} vs {missed}");
+            // How the numbers add up: nothing is destroyed, so the shortfall in units is the idle
+            // output — here the raw of the last cycles, landing as the period closes.
+            Check($"{label}: potential − forecast = idle output", Math.Abs(potential - forecast - idle.MissedUnits) <= 1,
+                  $"{potential} − {forecast} vs {idle.MissedUnits}");
+
+            totalUnits      += potential;
+            expectPotential += potential * (price - 40);
+            expectForecast  += forecast * (price - 40);
+            expectShort     += missed * (price - 40);
+        }
+        Check("typical period: potential profit", Near(money.PotentialProfit, expectPotential), $"{money.PotentialProfit} vs {expectPotential}");
+        Check("typical period: forecast profit", Near(money.ForecastProfit, expectForecast), $"{money.ForecastProfit} vs {expectForecast}");
+        Check("typical period: efficiency", money.Efficiency is { } e && Near(e, expectForecast / expectPotential), $"{money.Efficiency}");
+        Check("typical period: the shortfall is the idle output less its charges",
+              Math.Abs(money.Shortfall - expectShort) <= 520, $"{money.Shortfall} vs {expectShort}");
+        Check("typical period: nothing destroyed in the money either", money.Destroyed.Count == 0 && money.RawOverflow.Count == 0
+              && money.PotentialUnits == (long)Math.Round(totalUnits));
+        Check("typical period: a healthy colony is OK", PiColonyAttention.For(f, PiThresholds.Default) is { State: PiColonyState.Ok, OutputDestroyed: false, RawOverflow: false });
+
+        // Later in the program the potential is what is still to come, not the program's average:
+        // from +30 h, the cycles from the sixteenth on.
+        var later = PiEngine.Forecast(Typical(), sdx, snap.AddHours(30), rate);
+        Check("typical period from +30h: the potential is the cycles still to come",
+              Near(PiPeriodEconomics.For(later, prices).ByType[ProdA].Potential, outA.Skip(15).Sum() / 150.0),
+              $"{PiPeriodEconomics.For(later, prices).ByType[ProdA].Potential} vs {outA.Skip(15).Sum() / 150.0}");
+
+        // Extractors stopping at different times: the colony makes something until the last stops.
+        var staggered = PiEngine.Forecast(Typical(stopB: install.AddHours(120)), sdx, snap);
+        Check("typical period: ends when the last extractor stops", staggered.Period.To == stop, $"{staggered.Period.To}");
+
+        var stopped = PiEngine.Forecast(Typical(), sdx, stop.AddHours(1)).Period;
+        Check("typical period: stopped extractors leave nothing to forecast", stopped.IsEmpty && stopped.UntilExtractorsStop
+              && stopped.Losses.Count == 0 && stopped.Delivered.Count == 0);
+
+        // The factories use up all the raw at their share of full rate: never an output, at any
+        // moment of the program — however the doubles of "supply less what was used" round.
+        var rawAsOutput = Enumerable.Range(0, 168)
+            .Select(h => PiEngine.Forecast(Typical(), sdx, snap.AddHours(h).AddMinutes(17 * h % 60)))
+            .Where(x => x.Period.ExportTypes.Contains(RawA) || x.Period.ExportTypes.Contains(RawB)
+                     || PiHauls.OutputTypes(x).Contains(RawA) || PiHauls.OutputTypes(x).Contains(RawB))
+            .Select(x => x.At)
+            .ToList();
+        Check("typical period: raw is never an output", rawAsOutput.Count == 0,
+              $"{rawAsOutput.Count} moments, first {rawAsOutput.FirstOrDefault()}");
+    }
+
+    // ── A full launchpad: the factories keep running and taking input; P1 is destroyed ──
+    {
+        var at     = snap.AddHours(30);
+        var normal = PiEngine.Forecast(Typical(), sdx, at);
+        var small  = PiEngine.Forecast(Typical(padType: SmallPadType), sdx, at);
+        Check("full launchpad: every factory runs exactly as with room",
+              small.Factories.Zip(normal.Factories).All(p => p.First.CyclesCompleted == p.Second.CyclesCompleted
+                                                         && p.First.StateAt == p.Second.StateAt)
+              && small.Factories.Sum(p => p.CyclesCompleted) > 20,
+              string.Join(",", small.Factories.Select(p => p.CyclesCompleted)));
+        Check("full launchpad: the factories keep drawing raw",
+              chains.All(c => small.Storage.Single(s => s.PinId == c.Storage).ContentsAt.GetValueOrDefault(c.Raw)
+                           == normal.Storage.Single(s => s.PinId == c.Storage).ContentsAt.GetValueOrDefault(c.Raw)));
+        var held = small.Storage.Single(s => s.PinId == 10).ContentsAt.Values.Sum();
+        var made = 20L * small.Factories.Sum(p => p.CyclesCompleted);
+        Check("full launchpad: holds what fits", held == 102, $"{held}");
+        Check("full launchpad: P1 held + destroyed = P1 made",
+              held + small.LostAt.GetValueOrDefault(ProdA) + small.LostAt.GetValueOrDefault(ProdB) == made,
+              $"{held} + {small.LostAt.GetValueOrDefault(ProdA)} + {small.LostAt.GetValueOrDefault(ProdB)} vs {made}");
+
+        // The period: room for 80 after the first round of cycles, 22 more in the second — the
+        // first loss at the second round, for both products, charged to the launchpad.
+        var f   = PiEngine.Forecast(Typical(padType: SmallPadType), sdx, snap, rate);
+        var per = f.Period;
+        var madeInPeriod = 20L * chains.Sum(c => ChainModel.Run(c.Out, install, snap, stop, Room, snap, stop).CyclesInPeriod.Sum());
+        Check("full launchpad period: destroyed P1, at the launchpad, from the second round",
+              per.Losses.Count == 2 && per.Losses.All(l => l is { Kind: PiLossKind.Product, PinId: 10, PinKind: PiPinKind.Launchpad, NoRoute: false }
+                                                         && l.Since == Tick(2) && l.PinTypeId == SmallPadType),
+              string.Join("; ", per.Losses.Select(l => $"{l.TypeId}@{l.PinId} {l.Units} from {l.Since}")));
+        Check("full launchpad period: destroyed = made − what fits", per.Losses.Sum(l => l.Units) == madeInPeriod - 102,
+              $"{per.Losses.Sum(l => l.Units)} vs {madeInPeriod - 102}");
+        var money = PiPeriodEconomics.For(f, prices);
+        Check("full launchpad period: destroyed valued at market",
+              Near(money.DestroyedValue, per.Losses.Sum(l => l.Units * prices[l.TypeId])) && money.ForecastUnits == 102,
+              $"{money.DestroyedValue}, forecast {money.ForecastUnits}");
+        var a = PiColonyAttention.For(f, PiThresholds.Default);
+        Check("full launchpad: the status says output will be destroyed, and from when",
+              a.OutputDestroyedFrom == Tick(2) && !a.RawOverflow && a.State != PiColonyState.Ok, $"{a.OutputDestroyedFrom}");
+    }
+
+    // ── Raw overflow: storage too small for the first, richest cycles ──
+    {
+        var at = snap.AddHours(30);
+        var f  = PiEngine.Forecast(Typical(storageType: SmallStorageType), sdx, at);
+        foreach (var c in chains)
+        {
+            var label = $"raw overflow, chain {c.Name}";
+            var m = ChainModel.Run(c.Out, install, snap, at, SmallRoom, snap, stop);
+            Check($"{label}: lost when storage is full", f.LostAt.GetValueOrDefault(c.Raw) == m.LostRaw && m.LostRaw > 0,
+                  $"{f.LostAt.GetValueOrDefault(c.Raw)} vs {m.LostRaw}");
+            var facs   = c.Factories.Select(id => f.Factories.Single(p => p.PinId == id)).ToList();
+            var stored = f.Storage.Single(s => s.PinId == c.Storage).ContentsAt.GetValueOrDefault(c.Raw);
+            Check($"{label}: factories and storage as by hand", facs[0].CyclesCompleted == m.Cycles[0]
+                  && facs[1].CyclesCompleted == m.Cycles[1] && stored == m.Storage,
+                  $"{facs[0].CyclesCompleted}, {facs[1].CyclesCompleted}, {stored} vs {m.Cycles[0]}, {m.Cycles[1]}, {m.Storage}");
+            var starts  = facs.Sum(p => p.CyclesCompleted + (p.StateAt == PiFactoryState.Running ? 1 : 0));
+            var hoppers = facs.Sum(p => p.BufferAt.GetValueOrDefault(c.Raw));
+            Check($"{label}: raw conserved, counting what was destroyed",
+                  stored + hoppers + 3000L * starts + f.LostAt.GetValueOrDefault(c.Raw) == c.Out.Take(15).Sum());
+        }
+
+        var per = PiEngine.Forecast(Typical(storageType: SmallStorageType), sdx, snap, rate).Period;
+        foreach (var c in chains)
+        {
+            var m    = ChainModel.Run(c.Out, install, snap, stop, SmallRoom, snap, stop);
+            var loss = per.Losses.SingleOrDefault(l => l.TypeId == c.Raw);
+            Check($"raw overflow period, chain {c.Name}: raw lost at its storage from the first cycle",
+                  loss is { Kind: PiLossKind.Raw, PinKind: PiPinKind.Storage } && loss.PinId == c.Storage
+                  && loss.Since == Tick(0) && loss.Units == m.LostRawInPeriod,
+                  loss is null ? "none" : $"{loss.Units} vs {m.LostRawInPeriod} at {loss.PinId} from {loss.Since}");
+        }
+        Check("raw overflow period: no product lost", per.Losses.All(l => l.Kind == PiLossKind.Raw));
+        var a = PiColonyAttention.For(PiEngine.Forecast(Typical(storageType: SmallStorageType), sdx, snap, rate), PiThresholds.Default);
+        Check("raw overflow: the status says why", a.RawOverflowFrom == Tick(0) && !a.OutputDestroyed && a.State == PiColonyState.Attention,
+              $"{a.RawOverflowFrom} {a.State}");
+    }
+}
+
+// ── 13. A factory planet's period: next 30 days ─────────────────────────────────────
+//
+// The factory planet of section 3 from 10 hours on: its storage has room for 50 more Z (full at
+// 20 hours), and its Y runs out at 50 hours. Destroyed and idle account for the whole shortfall.
+{
+    var at  = H(t0, 10);
+    var f   = PiEngine.Forecast(FactoryPlanet(), sd, at, new PiChargeRate(0.10, PiChargeKind.CustomsOffice));
+    var per = f.Period;
+    Check("factory period: the next 30 days", !per.UntilExtractorsStop && per.From == at && per.To == at.AddDays(30),
+          $"{per.From} – {per.To}");
+    var loss = per.Losses.SingleOrDefault();
+    // Completions at 21..50 hours: thirty cycles of 5 Z with nowhere to go.
+    Check("factory period: Z destroyed at the full storage from 21 hours",
+          loss is { TypeId: Z, PinId: 5, Kind: PiLossKind.Product, Units: 150 } && loss.Since == H(t0, 21),
+          loss is null ? "none" : $"{loss.TypeId}@{loss.PinId} {loss.Units} from {loss.Since}");
+    var idle = per.Idle.Single();
+    // Waiting from 50 hours to the end, 730 hours: 680 hours, at 5 Z an hour.
+    Check("factory period: idle once Y is gone", Near(idle.IdleSeconds, 680 * 3600.0) && idle.ExpectedIdleSeconds == 0
+          && idle.MissedUnits == 3400, $"{idle.IdleSeconds / 3600} h, expected {idle.ExpectedIdleSeconds}, missed {idle.MissedUnits}");
+    // Cycles started after the period opens: 11..49 hours.
+    Check("factory period: brought-in input used", per.InputsConsumed.GetValueOrDefault(X) == 39 * 40
+          && per.InputsConsumed.GetValueOrDefault(Y) == 39 * 40, string.Join(",", per.InputsConsumed));
+    Check("factory period: Z kept is what storage had room for", per.OutputUnits.GetValueOrDefault(Z) == 50);
+
+    var money = PiPeriodEconomics.For(f, new Dictionary<int, double> { [X] = 100, [Y] = 150, [Z] = 20_000 });
+    Check("factory period: potential is 30 days of the steady day",
+          Near(money.PotentialProfit, 30 * (2_400_000 - 240_000 - 86_400 - 38_400.0)), $"{money.PotentialProfit}");
+    // 50 Z at 20,000 less 720 export; 1,560 each of X (100) and Y (150), each plus a 20 import charge.
+    Check("factory period: forecast", Near(money.ForecastProfit, 50 * (20_000 - 720) - 1560 * (100 + 20) - 1560 * (150 + 20.0)),
+          $"{money.ForecastProfit}");
+    Check("factory period: potential − forecast in units = destroyed + idle",
+          Near(money.ByType[Z].Potential - money.ByType[Z].Forecast, (loss?.Units ?? 0) + idle.MissedUnits),
+          $"{money.ByType[Z].Potential} − {money.ByType[Z].Forecast} vs {loss?.Units} + {idle.MissedUnits}");
+    Check("factory period: the status says output will be destroyed", PiColonyAttention.For(f, PiThresholds.Default).OutputDestroyedFrom == H(t0, 21));
+}
+
 // ── 10. Through a database ──────────────────────────────────────────────────────────
 //
 // A throwaway SQLite file built from the model: two snapshots of one colony stored the way the
@@ -766,6 +1133,83 @@ finally
 Console.WriteLine($"PI engine check: {checks} check(s), {failures.Count} failure(s).");
 foreach (var f in failures) Console.WriteLine(f);
 return failures.Count == 0 ? 0 : 1;
+
+/// <summary>
+/// One raw → P1 chain of the typical extractor planet, by hand: an extractor's cycles into one
+/// storage, two factories drawing 3,000 from it in route order and making 20 P1 in 30 minutes.
+/// A half-hour clock, not an event queue, so it checks the engine rather than repeating it.
+/// Within a tick: the extractor's cycle lands, then cycles finish, then idle factories draw and
+/// start — the order the engine documents.
+/// </summary>
+sealed class ChainModel
+{
+    public long Extracted, Storage, LostRaw, LostRawInPeriod, Made;
+    public readonly long[] Buffer = new long[2];
+    public readonly int[]  Cycles = new int[2], Starts = new int[2], CyclesInPeriod = new int[2];
+    public readonly bool[] Running = new bool[2];
+    /// <summary>Both factories' waiting for input within the period, in seconds.</summary>
+    public double IdleSeconds;
+
+    /// <param name="room">Units of raw the storage holds.</param>
+    /// <param name="until">The last moment run; the period's idle is only complete when this is
+    /// the period's end or later.</param>
+    public static ChainModel Run(long[] outputs, DateTimeOffset install, DateTimeOffset snapshot, DateTimeOffset until,
+                                 long room, DateTimeOffset periodFrom, DateTimeOffset periodTo)
+    {
+        var m = new ChainModel();
+        DateTimeOffset?[] idleSince = [snapshot, snapshot];   // empty at the snapshot: waiting from then
+
+        bool InPeriod(DateTimeOffset t) => t > periodFrom && t <= periodTo;
+        void Idle(DateTimeOffset a, DateTimeOffset b)
+        {
+            var from = a > periodFrom ? a : periodFrom;
+            var to   = b < periodTo ? b : periodTo;
+            if (to > from) m.IdleSeconds += (to - from).TotalSeconds;
+        }
+
+        for (var k = 0; ; k++)
+        {
+            var t = install.AddHours(2).AddMinutes(30.0 * k);
+            if (t > until) break;
+
+            if (k % 4 == 0 && k / 4 < outputs.Length)
+            {
+                var o    = outputs[k / 4];
+                var take = Math.Min(o, room - m.Storage);
+                m.Extracted += o;
+                m.Storage   += take;
+                m.LostRaw   += o - take;
+                if (InPeriod(t)) m.LostRawInPeriod += o - take;
+            }
+
+            for (var i = 0; i < 2; i++)
+                if (m.Running[i])
+                {
+                    m.Running[i] = false;
+                    m.Cycles[i]++;
+                    m.Made += 20;
+                    if (InPeriod(t)) m.CyclesInPeriod[i]++;
+                }
+
+            for (var i = 0; i < 2; i++)
+            {
+                var take = Math.Min(3000 - m.Buffer[i], m.Storage);
+                m.Storage   -= take;
+                m.Buffer[i] += take;
+                if (m.Buffer[i] < 3000) { idleSince[i] ??= t; continue; }
+                m.Buffer[i]  = 0;
+                m.Running[i] = true;
+                m.Starts[i]++;
+                if (idleSince[i] is { } since) Idle(since, t);
+                idleSince[i] = null;
+            }
+        }
+
+        for (var i = 0; i < 2; i++)
+            if (idleSince[i] is { } since) Idle(since, periodTo);
+        return m;
+    }
+}
 
 /// <summary>A context per call over the throwaway database, as the app's factory gives them.</summary>
 sealed class CheckDbFactory(DbContextOptions<AppDbContext> options) : IDbContextFactory<AppDbContext>

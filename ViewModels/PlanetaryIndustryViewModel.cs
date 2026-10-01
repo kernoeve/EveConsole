@@ -209,7 +209,9 @@ public sealed class PlanetaryIndustryViewModel : ReactiveObject, IPeriodicRefres
             .Concat(f.Extractors.Where(x => x.ProductTypeId is not null).Select(x => x.ProductTypeId!.Value))
             .Concat(f.Storage.SelectMany(s => s.ContentsAt.Keys.Append(s.TypeId)))
             .Concat(f.Factories.Select(p => p.TypeId))
-            .Concat(f.Factories.Where(p => p.OutputTypeId is not null).Select(p => p.OutputTypeId!.Value));
+            .Concat(f.Factories.Where(p => p.OutputTypeId is not null).Select(p => p.OutputTypeId!.Value))
+            .Concat(f.Period.Losses.SelectMany(l => new[] { l.TypeId, l.PinTypeId }))
+            .Concat(f.Period.Idle.Select(i => i.OutputTypeId));
 
     /// <summary>"22 colonies · 3 extractors stopped · 2 need hauling · 1 inputs low".</summary>
     private static string SummaryOf(IReadOnlyList<PiColonyRowVm> rows)
@@ -289,6 +291,12 @@ public sealed class PiColonyRowVm : ReactiveObject
     public string ProfitText   { get; }
     public string ProfitTip    { get; }
     public double ProfitPerDay => Colony.Economics.ProfitPerDay;
+
+    /// <summary>Forecast profit over the colony's period as a share of its potential.</summary>
+    public string EfficiencyText  { get; }
+    public string EfficiencyTip   { get; }
+    public IBrush EfficiencyColor { get; }
+    public double EfficiencySort  { get; }
 
     public DateTimeOffset NextActionSort => Attention.NextActionAt ?? DateTimeOffset.MaxValue;
 
@@ -389,6 +397,36 @@ public sealed class PiColonyRowVm : ReactiveObject
         ProfitTip  = string.Format(PiText.TipProfit, MarketFmt.Isk(c.Economics.OutputValuePerDay),
                                    MarketFmt.Isk(c.Economics.InputCostPerDay),
                                    MarketFmt.Isk(c.Economics.ExportChargesPerDay + c.Economics.ImportChargesPerDay));
+
+        // Efficiency: a narrow column of its own rather than more in the profit tooltip — it is
+        // the number to sort by when asking which colony is wasting the most.
+        if (c.Period is { } p)
+        {
+            var window = PiPeriodText.Window(p.Period);
+            if (p.Efficiency is { } share)
+            {
+                EfficiencyText = string.Format(PiText.Percent, (share * 100).ToString("0"));
+                EfficiencyTip  = string.Format(PiText.TipEfficiency, window, MarketFmt.Isk(p.ForecastProfit), MarketFmt.Isk(p.PotentialProfit));
+                if (p.DestroyedValue > 0 || p.IdleValue > 0)
+                    EfficiencyTip += "\n" + string.Format(PiText.TipEfficiencyShort, MarketFmt.Isk(p.Shortfall),
+                                                          MarketFmt.Isk(p.DestroyedValue), MarketFmt.Isk(p.IdleValue));
+                // Product destroyed is waste the owner can stop; anything else under potential is
+                // worth a look.
+                EfficiencyColor = p.Destroyed.Count > 0 ? Palette.Bad : share < 0.95 ? Palette.Warn : Palette.TextPrimary;
+                EfficiencySort  = share;
+            }
+            else
+            {
+                EfficiencyText  = "";
+                EfficiencyTip   = string.Format(PiText.TipEfficiencyNone, window);
+                EfficiencyColor = Palette.TextFaint;
+                EfficiencySort  = -1;
+            }
+        }
+        else
+        {
+            EfficiencyText = ""; EfficiencyTip = ""; EfficiencyColor = Palette.TextFaint; EfficiencySort = -1;
+        }
     }
 
     public static string KindName(PiColonyKind kind) => kind switch
@@ -408,6 +446,8 @@ public sealed class PiColonyRowVm : ReactiveObject
         if (a.StorageFilling)     why.Add(PiText.ReasonStorageFilling);
         if (a.InputsOut)          why.Add(PiText.ReasonInputsOut);
         if (a.InputsLow)          why.Add(PiText.ReasonInputsLow);
+        if (a.OutputDestroyedFrom is { } destroyed) why.Add(string.Format(PiText.ReasonOutputDestroyed, PiFormat.When(destroyed)));
+        if (a.RawOverflowFrom is { } overflow)      why.Add(string.Format(PiText.ReasonRawOverflow, PiFormat.When(overflow)));
         if (a.Stale)              why.Add(PiText.ReasonStale);
         return why.Count == 0 ? PiText.ReasonNothingDue : string.Join("\n", why);
     }
@@ -514,6 +554,10 @@ public sealed class PiColonyDetailVm
     public bool HasExtractors => Extractors.Count > 0;
     public bool HasProcessors => Processors.Count > 0;
 
+    /// <summary>Potential against forecast over the period ahead; null on an empty colony.</summary>
+    public PiPeriodVm? Period { get; }
+    public bool HasPeriod => Period is not null;
+
     public string OutputValueText   { get; }
     public string InputCostText     { get; }
     public string ExportChargesText { get; }
@@ -540,6 +584,8 @@ public sealed class PiColonyDetailVm
 
         var (cpu, power) = PiCommandCenter.At(f.Layout.UpgradeLevel);
         CommandCenterText = string.Format(PiText.DetailCommandCenter, f.Layout.UpgradeLevel, c.MaxUpgradeLevel, cpu, power);
+
+        Period = c.Period is { } period && f.Kind != PiColonyKind.Empty ? new PiPeriodVm(period, sd, Name) : null;
 
         Extractors = f.Extractors.Select(x => new PiExtractorVm(x, now, Name)).ToList();
 
@@ -572,6 +618,105 @@ public sealed class PiColonyDetailVm
 
     private static string CollectorName(PiChargeKind kind)
         => kind == PiChargeKind.Skyhook ? PiText.Skyhook : PiText.CustomsOffice;
+}
+
+/// <summary>The period a colony's potential and forecast cover, in words.</summary>
+public static class PiPeriodText
+{
+    /// <summary>"Until the extractors stop, Oct 8, 13:23", "Next 30 days, to Oct 31, 12:00", or
+    /// "The extractors have stopped".</summary>
+    public static string Window(PiPeriodForecast p)
+        => p.UntilExtractorsStop
+            ? p.IsEmpty ? PiText.WindowStopped : string.Format(PiText.WindowUntilStop, PiFormat.When(p.To))
+            : Plurals.Format(PiText.ResourceManager, nameof(PiText.WindowNextDaysOther), (long)Math.Round(p.Days), PiFormat.When(p.To));
+}
+
+/// <summary>One line under destroyed, raw overflow or idle.</summary>
+public sealed record PiPeriodLineVm(string Text, IBrush Color);
+
+/// <summary>
+/// The Colony tab's "what it could make against what it will" section: potential, forecast, the
+/// shortfall, and the lines that explain it — products destroyed, raw material overflowing,
+/// factories waiting.
+/// </summary>
+public sealed class PiPeriodVm
+{
+    public string Heading { get; }
+    /// <summary>The extractors have stopped: no numbers, only that.</summary>
+    public bool   IsStopped  { get; }
+    public bool   HasNumbers => !IsStopped;
+
+    public string PotentialText { get; }
+    public string ForecastText  { get; }
+    public string UnitsTip      { get; }
+    public string ShortText     { get; }
+    public IBrush ShortColor    { get; }
+
+    public string DestroyedText   { get; }
+    public string RawOverflowText { get; }
+    public string IdleText        { get; }
+    public IReadOnlyList<PiPeriodLineVm> Destroyed   { get; }
+    public IReadOnlyList<PiPeriodLineVm> RawOverflow { get; }
+    public IReadOnlyList<PiPeriodLineVm> Idle        { get; }
+    public bool HasDestroyed   => Destroyed.Count > 0;
+    public bool HasRawOverflow => RawOverflow.Count > 0;
+    public bool HasIdle        => Idle.Count > 0;
+    public bool NothingLost    => HasNumbers && !HasDestroyed && !HasRawOverflow && !HasIdle;
+
+    public PiPeriodVm(PiPeriodEconomics e, PiStaticData sd, Func<int, string> name)
+    {
+        var p = e.Period;
+        Heading   = PiPeriodText.Window(p);
+        IsStopped = p.IsEmpty;
+
+        string Units(long n) => Plurals.Format(PiText.ResourceManager, nameof(PiText.OutputUnitsOther), n);
+        string Quantity(long n, int type) => string.Format(PiText.QuantityOf, n.ToString("N0"), name(type));
+
+        PotentialText = string.Format(PiText.IskAndUnits, MarketFmt.Isk(e.PotentialProfit), Units(e.PotentialUnits));
+        ForecastText  = e.Efficiency is { } share
+            ? string.Format(PiText.IskUnitsAndShare, MarketFmt.Isk(e.ForecastProfit), Units(e.ForecastUnits),
+                            string.Format(PiText.Percent, (share * 100).ToString("0")))
+            : string.Format(PiText.IskAndUnits, MarketFmt.Isk(e.ForecastProfit), Units(e.ForecastUnits));
+        UnitsTip = string.Join("\n", e.ByType.Select(kv => string.Format(PiText.TipUnitsByType,
+            Math.Round(kv.Value.Potential).ToString("N0"), kv.Value.Forecast.ToString("N0"), name(kv.Key))));
+        ShortText  = string.Format(PiText.IskAmount, MarketFmt.Isk(Math.Max(0, e.Shortfall)));
+        ShortColor = e.Shortfall > 0 && e.Efficiency is < 0.95 ? Palette.Warn : Palette.TextPrimary;
+
+        // Final products thrown away: the bad colour — that is ISK lost for want of a haul.
+        DestroyedText = string.Format(PiText.IskAndUnits, MarketFmt.Isk(e.DestroyedValue), Units(e.Destroyed.Sum(d => d.Loss.Units)));
+        Destroyed = e.Destroyed
+            .Select(d => new PiPeriodLineVm(string.Format(d.Loss.NoRoute ? PiText.DestroyedNoRoute : PiText.DestroyedFull,
+                    Quantity(d.Loss.Units, d.Loss.TypeId), MarketFmt.Isk(d.Value), name(d.Loss.PinTypeId), PiFormat.When(d.Loss.Since)),
+                Palette.Bad))
+            .ToList();
+
+        // Raw overflow is quieter: no product was lost, the program is larger than the colony uses.
+        RawOverflowText = string.Format(PiText.IskAndUnits, MarketFmt.Isk(e.RawOverflowValue), Units(e.RawOverflow.Sum(d => d.Loss.Units)));
+        RawOverflow = e.RawOverflow
+            .Select(d => new PiPeriodLineVm(string.Format(PiText.RawOverflowLine,
+                    Quantity(d.Loss.Units, d.Loss.TypeId), MarketFmt.Isk(d.Value), name(d.Loss.PinTypeId), PiFormat.When(d.Loss.Since)),
+                Palette.TextSecondary))
+            .ToList();
+
+        IdleText = string.Format(PiText.IskAndUnits, MarketFmt.Isk(e.IdleValue),
+                                 Units(e.Idle.Where(i => i.Idle.IsFinal).Sum(i => i.Idle.MissedUnits)));
+        Idle = e.Idle
+            .Select(i =>
+            {
+                var x = i.Idle;
+                var schematic = sd.Schematics.TryGetValue(x.SchematicId, out var s) ? PiNames.Schematic(x.SchematicId, s.Name) : name(x.OutputTypeId);
+                var factories = Plurals.Format(PiText.ResourceManager, nameof(PiText.FactoriesOther), x.Factories);
+                var waited    = PiFormat.Duration(TimeSpan.FromSeconds(x.IdleSeconds));
+                var text = x.ExpectedIdleSeconds >= 60
+                    ? string.Format(PiText.IdleLineExpected, schematic, factories, waited,
+                                    PiFormat.Duration(TimeSpan.FromSeconds(x.ExpectedIdleSeconds)),
+                                    Quantity(x.MissedUnits, x.OutputTypeId), MarketFmt.Isk(i.Value))
+                    : string.Format(PiText.IdleLine, schematic, factories, waited,
+                                    Quantity(x.MissedUnits, x.OutputTypeId), MarketFmt.Isk(i.Value));
+                return new PiPeriodLineVm(text, Palette.Warn);
+            })
+            .ToList();
+    }
 }
 
 /// <summary>One extractor: its program, and a bar per cycle with the current one marked.</summary>

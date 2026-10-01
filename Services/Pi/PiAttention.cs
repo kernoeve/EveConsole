@@ -44,10 +44,21 @@ public sealed record PiColonyAttention
     /// <summary>Older than the staleness setting: the estimates above are no longer trustworthy.</summary>
     public bool Stale { get; init; }
 
+    /// <summary>When something a factory made is first thrown away within the colony's period
+    /// (estimated): its storage or launchpad has no room. Null when nothing is.</summary>
+    public DateTimeOffset? OutputDestroyedFrom { get; init; }
+    public bool OutputDestroyed => OutputDestroyedFrom is not null;
+
+    /// <summary>When raw material first overflows storage within the period (estimated):
+    /// extraction outpaces the factories.</summary>
+    public DateTimeOffset? RawOverflowFrom { get; init; }
+    public bool RawOverflow => RawOverflowFrom is not null;
+
     public PiColonyState State =>
-        ExtractorsStopped || StorageFull || InputsOut                 ? PiColonyState.Action
-        : ExtractorsStopping || StorageFilling || InputsLow || Stale ? PiColonyState.Attention
-        :                                                               PiColonyState.Ok;
+        ExtractorsStopped || StorageFull || InputsOut ? PiColonyState.Action
+        : ExtractorsStopping || StorageFilling || InputsLow || Stale || OutputDestroyed || RawOverflow
+                                                      ? PiColonyState.Attention
+        :                                               PiColonyState.Ok;
 
     /// <summary>The soonest of the three clocks, for sorting by what needs doing first; null when
     /// none of them runs out within the horizon.</summary>
@@ -77,6 +88,8 @@ public sealed record PiColonyAttention
             InputsLow        = empty is { } e2 && e2 > now && e2 <= now + t.InputLead,
             DataAge          = f.DataAge,
             Stale            = f.DataAge > t.StaleAfter,
+            OutputDestroyedFrom = f.Period.Losses.Where(l => l.Kind == PiLossKind.Product).Min(l => (DateTimeOffset?)l.Since),
+            RawOverflowFrom     = f.Period.Losses.Where(l => l.Kind == PiLossKind.Raw).Min(l => (DateTimeOffset?)l.Since),
         };
     }
 }

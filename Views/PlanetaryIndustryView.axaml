@@ -176,6 +176,15 @@
                 </DataTemplate>
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
+            <DataGridTemplateColumn Header="{x:Static loc:PiText.ColEfficiency}" Width="Auto" MinWidth="70" SortMemberPath="EfficiencySort"
+                                    ClipboardContentBinding="{Binding EfficiencyText}">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:PiColonyRowVm">
+                  <TextBlock Text="{Binding EfficiencyText}" Foreground="{Binding EfficiencyColor}" ToolTip.Tip="{Binding EfficiencyTip}"
+                             TextAlignment="Right" VerticalAlignment="Center" Margin="4 0 8 0" />
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
             <DataGridTemplateColumn Header="{x:Static loc:PiText.ColProfit}" Width="*" MinWidth="100" SortMemberPath="ProfitPerDay"
                                     ClipboardContentBinding="{Binding ProfitText}">
               <DataGridTemplateColumn.CellTemplate>
@@ -203,6 +212,79 @@
               <TextBlock Text="{Binding Subtitle}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" />
               <TextBlock Text="{Binding AgeText}" FontSize="11" Foreground="{Binding AgeColor}" TextWrapping="Wrap" />
             </StackPanel>
+
+            <!-- What it could make against what it will, and why the difference: estimated. -->
+            <Border Classes="section" IsVisible="{Binding HasPeriod}">
+              <StackPanel Spacing="6" DataContext="{Binding Period}" x:DataType="vm:PiPeriodVm">
+                <TextBlock Classes="heading" Text="{Binding Heading}" />
+                <TextBlock Text="{x:Static loc:PiText.PeriodStoppedNote}" IsVisible="{Binding IsStopped}" FontSize="11"
+                           Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap" />
+
+                <Grid ColumnDefinitions="Auto,16,*" RowDefinitions="Auto,4,Auto,4,Auto" IsVisible="{Binding HasNumbers}">
+                  <TextBlock Grid.Row="0" Grid.Column="0" Classes="label" Text="{x:Static loc:PiText.PeriodPotential}"
+                             ToolTip.Tip="{x:Static loc:PiText.TipPeriodPotential}" />
+                  <TextBlock Grid.Row="0" Grid.Column="2" Classes="value" Text="{Binding PotentialText}" TextWrapping="Wrap"
+                             ToolTip.Tip="{Binding UnitsTip}" />
+                  <TextBlock Grid.Row="2" Grid.Column="0" Classes="label" Text="{x:Static loc:PiText.PeriodForecast}"
+                             ToolTip.Tip="{x:Static loc:PiText.TipPeriodForecast}" />
+                  <TextBlock Grid.Row="2" Grid.Column="2" Classes="value" Text="{Binding ForecastText}" TextWrapping="Wrap"
+                             ToolTip.Tip="{Binding UnitsTip}" />
+                  <TextBlock Grid.Row="4" Grid.Column="0" Classes="label" Text="{x:Static loc:PiText.PeriodShort}" FontWeight="SemiBold" />
+                  <TextBlock Grid.Row="4" Grid.Column="2" Classes="value" Text="{Binding ShortText}" Foreground="{Binding ShortColor}"
+                             FontWeight="SemiBold" />
+                </Grid>
+
+                <!-- Products destroyed: the bad colour. -->
+                <StackPanel Spacing="2" IsVisible="{Binding HasDestroyed}" Margin="0 4 0 0">
+                  <StackPanel Orientation="Horizontal" Spacing="16">
+                    <TextBlock Classes="label" Text="{x:Static loc:PiText.PeriodDestroyed}" Foreground="{DynamicResource BadBrush}" />
+                    <TextBlock Classes="value" Text="{Binding DestroyedText}" Foreground="{DynamicResource BadBrush}" />
+                  </StackPanel>
+                  <ItemsControl ItemsSource="{Binding Destroyed}" Margin="12 0 0 0">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:PiPeriodLineVm">
+                        <TextBlock Text="{Binding Text}" Foreground="{Binding Color}" FontSize="11" TextWrapping="Wrap" />
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+
+                <!-- Factories waiting for input: the warning colour. -->
+                <StackPanel Spacing="2" IsVisible="{Binding HasIdle}" Margin="0 4 0 0">
+                  <StackPanel Orientation="Horizontal" Spacing="16">
+                    <TextBlock Classes="label" Text="{x:Static loc:PiText.PeriodIdle}" Foreground="{DynamicResource WarnBrush}" />
+                    <TextBlock Classes="value" Text="{Binding IdleText}" Foreground="{DynamicResource WarnBrush}" />
+                  </StackPanel>
+                  <ItemsControl ItemsSource="{Binding Idle}" Margin="12 0 0 0">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:PiPeriodLineVm">
+                        <TextBlock Text="{Binding Text}" Foreground="{Binding Color}" FontSize="11" TextWrapping="Wrap" />
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+
+                <!-- Raw overflow: quieter — nothing made was lost; the program outruns the factories. -->
+                <StackPanel Spacing="2" IsVisible="{Binding HasRawOverflow}" Margin="0 4 0 0">
+                  <StackPanel Orientation="Horizontal" Spacing="16">
+                    <TextBlock Classes="label" Text="{x:Static loc:PiText.PeriodRawOverflow}" />
+                    <TextBlock Classes="value" Text="{Binding RawOverflowText}" Foreground="{DynamicResource TextSecondaryBrush}" />
+                  </StackPanel>
+                  <ItemsControl ItemsSource="{Binding RawOverflow}" Margin="12 0 0 0">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:PiPeriodLineVm">
+                        <TextBlock Text="{Binding Text}" Foreground="{Binding Color}" FontSize="11" TextWrapping="Wrap" />
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+
+                <TextBlock Text="{x:Static loc:PiText.PeriodNothingLost}" IsVisible="{Binding NothingLost}" FontSize="11"
+                           Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" />
+                <TextBlock Text="{x:Static loc:PiText.PeriodNote}" IsVisible="{Binding HasNumbers}" FontSize="11"
+                           Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap" Margin="0 4 0 0" />
+              </StackPanel>
+            </Border>
 
             <!-- Command center -->
             <Border Classes="section">

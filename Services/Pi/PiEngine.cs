@@ -100,6 +100,108 @@ public sealed record PiFlow(
     // Made and not used on the colony: it piles up and has to be taken off.
     double ExportedPerDay);
 
+/// <summary>What kind of thing was thrown away.</summary>
+public enum PiLossKind
+{
+    /// <summary>Something a factory made — on a finished colony, the product it exists for.</summary>
+    Product,
+    /// <summary>Raw material (P0) an extractor brought up and storage had no room for: extraction
+    /// outpaces the factories, the sign of a program larger than the colony can use.</summary>
+    Raw,
+}
+
+/// <summary>Output of one type thrown away at one pin within a period.</summary>
+/// <param name="PinId">The pin that turned it away — the storage or launchpad it was routed to
+/// (the first route for that type) — or, with <paramref name="NoRoute"/>, the pin that made it.</param>
+/// <param name="NoRoute">The maker has no route for the type at all: nowhere to send it.</param>
+/// <param name="Since">The first moment within the period it was thrown away there.</param>
+public sealed record PiLoss(int TypeId, PiTier? Tier, PiLossKind Kind, long PinId, int PinTypeId, PiPinKind PinKind,
+                            bool NoRoute, long Units, DateTimeOffset Since);
+
+/// <summary>
+/// The factories running one schematic, and the time they spent waiting for input within a
+/// period.
+/// </summary>
+/// <param name="IdleSeconds">Waiting for a full set of input, summed over the factories.</param>
+/// <param name="ExpectedIdleSeconds">The waiting the potential already counts on: where the
+/// input is made on the colony and there is not enough of it, the steady flows run these factories
+/// at a share of full rate (<see cref="PiEngine.Flows"/>), and the rest of the time they wait by
+/// design — an extractor planet's factories are built for the program's first, richest cycles.
+/// Zero where the input is brought in.</param>
+/// <param name="IsFinal">Its output is one the colony exports, not one it uses itself.</param>
+public sealed record PiIdle(int SchematicId, int OutputTypeId, int OutputQuantity, int CycleSeconds, int Factories,
+                            double IdleSeconds, double ExpectedIdleSeconds, int CyclesCompleted, bool IsFinal)
+{
+    /// <summary>Waiting beyond what the potential counts on: the part that costs output.</summary>
+    public double ExcessIdleSeconds => Math.Max(0, IdleSeconds - ExpectedIdleSeconds);
+
+    /// <summary>What the factories would have made in <see cref="ExcessIdleSeconds"/>, to the
+    /// nearest unit (the time is summed over factories, so a cycle may be shared between them).</summary>
+    public long MissedUnits => CycleSeconds > 0
+        ? (long)Math.Floor(ExcessIdleSeconds / CycleSeconds * OutputQuantity + 0.5)
+        : 0;
+}
+
+/// <summary>
+/// One colony over a period ahead, two ways: what it <b>could</b> make running as built (the
+/// steady flows over the period) and what the simulation says it <b>will</b> — and where the
+/// difference goes.
+///
+/// <para><b>The period.</b> An extractor planet's runs from the forecast's moment until its
+/// extractors stop (the latest program end): idle after that is expected, and re-running them is
+/// a task of its own. A factory planet's — or an extractor planet's whose programs run past the
+/// horizon — is the horizon, 30 days.</para>
+///
+/// <para><b>How the numbers relate.</b> Potential − forecast ≈ destroyed + idle (final products
+/// only). Destroyed output was made and thrown away; idle output was never made. Neither line is
+/// exact: what remains is part-finished cycles at both ends of the period, stock still in storage
+/// at the end of it (an extractor's last cycle lands as the period closes), the input cost and
+/// charges that output which was never made or never kept would have carried, and — on a chain —
+/// an idle lower tier, whose missing output also idles the tier above, so only the final tier's
+/// idle is a loss of its own.</para>
+/// </summary>
+public sealed class PiPeriodForecast
+{
+    public static readonly PiPeriodForecast Empty = new();
+
+    public DateTimeOffset From { get; init; }
+    public DateTimeOffset To   { get; init; }
+
+    /// <summary>Ends when the extractors stop; false for the horizon.</summary>
+    public bool UntilExtractorsStop { get; init; }
+
+    public TimeSpan Length => To > From ? To - From : TimeSpan.Zero;
+    public double   Days   => Length.TotalDays;
+
+    /// <summary>No time to forecast: the extractors have already stopped.</summary>
+    public bool IsEmpty => Length <= TimeSpan.Zero;
+
+    /// <summary>
+    /// The potential: the colony's steady flows per day, worked as <see cref="PiEngine.Flows"/>
+    /// does, with each extractor at what it yields within the period — its exact remaining cycles,
+    /// not its whole program's average, which the decay puts above what is left.
+    /// </summary>
+    public IReadOnlyList<PiFlow> Flows { get; init; } = [];
+
+    /// <summary>The types the colony makes and does not use: what it exports.</summary>
+    public IReadOnlyCollection<int> ExportTypes { get; init; } = [];
+
+    /// <summary>Units of each type that reached storage, launchpads or the command center.</summary>
+    public IReadOnlyDictionary<int, long> Delivered        { get; init; } = new Dictionary<int, long>();
+    /// <summary>Units of each type factories took back out of them.</summary>
+    public IReadOnlyDictionary<int, long> TakenFromStorage { get; init; } = new Dictionary<int, long>();
+    /// <summary>Units of each brought-in type factories used: input for each cycle started.</summary>
+    public IReadOnlyDictionary<int, long> InputsConsumed   { get; init; } = new Dictionary<int, long>();
+
+    public IReadOnlyList<PiLoss> Losses { get; init; } = [];
+    public IReadOnlyList<PiIdle> Idle   { get; init; } = [];
+
+    /// <summary>The forecast's output: of each type the colony exports, what is left in storage
+    /// for taking off — what reached it less what factories took back.</summary>
+    public IReadOnlyDictionary<int, long> OutputUnits => ExportTypes
+        .ToDictionary(t => t, t => Math.Max(0, Delivered.GetValueOrDefault(t) - TakenFromStorage.GetValueOrDefault(t)));
+}
+
 /// <summary>Everything the engine says about one colony at one moment.</summary>
 public sealed class PiColonyForecast
 {
@@ -131,6 +233,10 @@ public sealed class PiColonyForecast
     /// <summary>Output thrown away by the forecast's moment because there was nowhere to put it,
     /// by type.</summary>
     public IReadOnlyDictionary<int, long> LostAt { get; init; } = new Dictionary<int, long>();
+
+    /// <summary>The period ahead from <see cref="At"/>: potential against forecast, destroyed and
+    /// idle output.</summary>
+    public PiPeriodForecast Period { get; init; } = PiPeriodForecast.Empty;
 
     /// <summary>The rate the charges below are worked at.</summary>
     public PiChargeRate? Rate { get; init; }
@@ -184,6 +290,13 @@ public sealed class PiColonyForecast
 /// processors at full rate where their input is brought in, and scaled down where it is made on
 /// the colony and there is not enough of it. They are what hauling quantities and profit are
 /// worked from.</para>
+///
+/// <para><b>The period</b> (<see cref="PiPeriodForecast"/>) sets the two against each other over
+/// the time ahead: the steady flows as the potential, and the same simulation run, counting what
+/// reaches storage, what is thrown away and where, and how long each factory waits for input.
+/// ⚠️ Game rule: output with nowhere to go is destroyed and stops nothing — a factory keeps taking
+/// input and running while its product is thrown away. A factory stops only for want of
+/// input.</para>
 /// </summary>
 public static class PiEngine
 {
@@ -255,14 +368,19 @@ public static class PiEngine
     {
         var kind       = Classify(layout, sd);
         var t0         = layout.LastUpdate;
-        var horizonEnd = (at > t0 ? at : t0) + (horizon ?? DefaultHorizon);
+        // Nothing before the snapshot is known, so neither the horizon nor the period can start
+        // earlier than it.
+        var from       = at > t0 ? at : t0;
+        var horizonEnd = from + (horizon ?? DefaultHorizon);
 
         var extractors = layout.Pins
             .Where(p => KindOf(p, sd) == PiPinKind.ExtractorControlUnit)
             .Select(p => Program(p, sd, at))
             .ToList();
 
-        var sim = new Simulation(layout, sd, extractors, t0, horizonEnd);
+        var (to, untilStop) = PeriodEnd(kind, extractors, from, horizonEnd);
+
+        var sim = new Simulation(layout, sd, extractors, t0, horizonEnd, from, to);
         var snap = sim.Run(at);
 
         var flows = Flows(layout, sd, extractors);
@@ -290,9 +408,82 @@ public static class PiEngine
             Inputs     = inputs,
             Flows      = flows,
             LostAt     = snap.Lost,
+            Period     = Period(layout, sd, extractors, sim, from, to, untilStop),
             Rate       = rate,
             Charges    = rate is null ? [] : ChargesFor(flows, rate.Rate),
         };
+    }
+
+    /// <summary>
+    /// Where the period ends: when an extractor planet's extractors stop — the latest program end,
+    /// since the colony makes something until the last one stops — unless that is past the
+    /// horizon; the horizon otherwise. An extractor planet whose extractors have all stopped has an
+    /// empty period.
+    /// </summary>
+    private static (DateTimeOffset To, bool UntilExtractorsStop) PeriodEnd(
+        PiColonyKind kind, IReadOnlyList<PiExtractorProgram> extractors, DateTimeOffset from, DateTimeOffset horizonEnd)
+    {
+        if (kind != PiColonyKind.Extractor) return (horizonEnd, false);
+        var last = extractors.Where(x => x.ExpiryTime is not null).Max(x => x.ExpiryTime);
+        if (last is not { } stop || stop > horizonEnd) return (horizonEnd, false);
+        return (stop > from ? stop : from, true);
+    }
+
+    private static PiPeriodForecast Period(PiColonyLayout layout, PiStaticData sd,
+                                           IReadOnlyList<PiExtractorProgram> extractors, Simulation sim,
+                                           DateTimeOffset from, DateTimeOffset to, bool untilStop)
+    {
+        var length = to > from ? (to - from).TotalSeconds : 0;
+        var days   = length / 86_400;
+
+        // Each extractor at what it yields within the period: the cycles that end in it.
+        var inPeriod = extractors
+            .Select(x => x with { PerDay = days > 0 ? OutputBetween(x, from, to) / days : 0 })
+            .ToList();
+        var flows  = Flows(layout, sd, inPeriod, out var shares);
+        var export = flows.Where(f => f.ExportedPerDay > 0 && f.ImportedPerDay <= 0).Select(f => f.TypeId).ToHashSet();
+
+        var idle = sim.FactoryPins
+            .GroupBy(p => p.Schematic!.SchematicId)
+            .OrderBy(g => g.Key)
+            .Select(g =>
+            {
+                var s     = g.First().Schematic!;
+                var share = shares.GetValueOrDefault(s.SchematicId, 1);
+                return new PiIdle(s.SchematicId, s.OutputTypeId, s.OutputQuantity, s.CycleSeconds, g.Count(),
+                                  g.Sum(p => p.IdleSeconds), g.Count() * (1 - share) * length,
+                                  g.Sum(p => p.CyclesInPeriod), export.Contains(s.OutputTypeId));
+            })
+            .ToList();
+
+        return new PiPeriodForecast
+        {
+            From                = from,
+            To                  = to,
+            UntilExtractorsStop = untilStop,
+            Flows               = flows,
+            ExportTypes         = export,
+            Delivered           = sim.Delivered,
+            TakenFromStorage    = sim.Taken,
+            InputsConsumed      = sim.Consumed,
+            Losses              = sim.LossesIn(sd),
+            Idle                = idle,
+        };
+    }
+
+    /// <summary>An extractor's output from the cycles that end after <paramref name="from"/> and
+    /// by <paramref name="to"/>.</summary>
+    private static long OutputBetween(PiExtractorProgram x, DateTimeOffset from, DateTimeOffset to)
+    {
+        if (!x.YieldKnown || x.InstallTime is not { } install || x.CycleSeconds <= 0) return 0;
+        long sum = 0;
+        for (var i = 0; i < x.CycleOutputs.Count; i++)
+        {
+            var ends = install.AddSeconds((double)(i + 1) * x.CycleSeconds);
+            if (ends > to) break;
+            if (ends > from) sum += x.CycleOutputs[i];
+        }
+        return sum;
     }
 
     /// <summary>Charges per unit and per day for every type that crosses the planet's edge.</summary>
@@ -318,7 +509,16 @@ public static class PiEngine
     /// </summary>
     public static IReadOnlyList<PiFlow> Flows(PiColonyLayout layout, PiStaticData sd,
                                               IReadOnlyList<PiExtractorProgram>? extractors = null)
+        => Flows(layout, sd, extractors, out _);
+
+    /// <param name="shares">The share of full rate each schematic runs at — below 1 only where its
+    /// input is made on the colony and there is not enough of it.</param>
+    private static IReadOnlyList<PiFlow> Flows(PiColonyLayout layout, PiStaticData sd,
+                                               IReadOnlyList<PiExtractorProgram>? extractors,
+                                               out Dictionary<int, double> shares)
     {
+        var fractions = new Dictionary<int, double>();
+        shares = fractions;
         extractors ??= layout.Pins
             .Where(p => KindOf(p, sd) == PiPinKind.ExtractorControlUnit)
             .Select(p => Program(p, sd, layout.LastUpdate))
@@ -367,6 +567,7 @@ public static class PiEngine
                 var runs     = RunsPerDay(f);
                 var fraction = f.Inputs.Where(i => local.Contains(i.TypeId))
                     .Select(i => share[i.TypeId]).DefaultIfEmpty(1).Min();
+                fractions[f.SchematicId] = fraction;
 
                 foreach (var input in f.Inputs)
                 {
@@ -394,10 +595,15 @@ public static class PiEngine
                 produced.GetValueOrDefault(t),
                 consumed.GetValueOrDefault(t),
                 imported.GetValueOrDefault(t),
-                Math.Max(0, supply.GetValueOrDefault(t))))
+                Leftover(supply.GetValueOrDefault(t))))
             .ToList();
 
         static double RunsPerDay(PiSchematic s) => s.CycleSeconds > 0 ? 86_400.0 / s.CycleSeconds : 0;
+
+        // ⚠️ Supply less what a scaled-down tier used is zero in arithmetic and a few 1e-11 in
+        // doubles: without this, raw material the factories use up entirely reads as "exported"
+        // — an output type, a haul line of nothing, and stock counted as output.
+        static double Leftover(double left) => left > 1e-6 ? left : 0;
     }
 
     // ── The simulation ──────────────────────────────────────────────────────────────────
@@ -424,6 +630,9 @@ public static class PiEngine
         public int Cycles;
         public DateTimeOffset? FullAt;
         public double UsedAtStart;
+        // Within the period: time spent waiting for input, and cycles finished.
+        public double IdleSeconds;
+        public int CyclesInPeriod;
     }
 
     private sealed class Simulation
@@ -439,15 +648,30 @@ public static class PiEngine
         private readonly Dictionary<int, long> _initialTotals = [];
         private readonly Dictionary<int, long> _lost = [];
 
+        // The period (from, to]: what happens after its first moment and by its last. A cycle
+        // finishing at the very start belongs to the moment before; one finishing as it closes, to it.
+        private readonly DateTimeOffset _from, _to;
+        private readonly Dictionary<(int Type, long Pin, bool NoRoute), (long Units, DateTimeOffset Since)> _periodLost = [];
+
         /// <summary>When each type made nowhere on the colony first stopped a processor.</summary>
         public Dictionary<int, DateTimeOffset> RunsOut { get; } = [];
 
+        /// <summary>Within the period: into storage, taken back out by factories, and brought-in
+        /// input used.</summary>
+        public Dictionary<int, long> Delivered { get; } = [];
+        public Dictionary<int, long> Taken     { get; } = [];
+        public Dictionary<int, long> Consumed  { get; } = [];
+
+        public IReadOnlyList<SimPin> FactoryPins => _factories;
+
         public long InitialTotal(int type) => _initialTotals.GetValueOrDefault(type);
 
+        private bool InPeriod(DateTimeOffset t) => t > _from && t <= _to;
+
         public Simulation(PiColonyLayout layout, PiStaticData sd, IReadOnlyList<PiExtractorProgram> extractors,
-                          DateTimeOffset t0, DateTimeOffset end)
+                          DateTimeOffset t0, DateTimeOffset end, DateTimeOffset from, DateTimeOffset to)
         {
-            _sd = sd; _t0 = t0; _end = end;
+            _sd = sd; _t0 = t0; _end = end; _from = from; _to = to;
 
             foreach (var p in layout.Pins)
             {
@@ -555,11 +779,16 @@ public static class PiEngine
                     {
                         f.Running = false;
                         f.Cycles++;
+                        if (InPeriod(t)) f.CyclesInPeriod++;
                         Deliver(f.Source.PinId, f.Schematic!.OutputTypeId, f.Schematic.OutputQuantity, t);
                     }
 
                 StartIdle(t);
             }
+
+            // Still waiting when the run ends: waiting to the end of the period.
+            foreach (var f in _factories)
+                if (!f.Running && f.IdleSince is { } since) AddIdle(f, since, _to);
 
             snap ??= Take(at);
 
@@ -584,13 +813,19 @@ public static class PiEngine
             foreach (var input in s.Inputs)
             {
                 var have = f.Stock.GetValueOrDefault(input.TypeId);
-                if (have < input.Quantity) have += Pull(f, input.TypeId, input.Quantity - have);
+                if (have < input.Quantity) have += Pull(f, input.TypeId, input.Quantity - have, t);
                 if (have < input.Quantity) short_.Add(input.TypeId);
             }
 
             if (short_.Count == 0)
             {
-                foreach (var input in s.Inputs) Take(f, input.TypeId, input.Quantity);
+                foreach (var input in s.Inputs)
+                {
+                    Take(f, input.TypeId, input.Quantity);
+                    if (!_local.Contains(input.TypeId) && InPeriod(t))
+                        Consumed[input.TypeId] = Consumed.GetValueOrDefault(input.TypeId) + input.Quantity;
+                }
+                if (f.IdleSince is { } since) AddIdle(f, since, t);
                 f.Running   = true;
                 f.RunEnds   = t.AddSeconds(s.CycleSeconds);
                 f.IdleSince = null;
@@ -607,7 +842,16 @@ public static class PiEngine
 
         /// <summary>Moves up to <paramref name="want"/> of a type into a processor from the
         /// storage routed to it.</summary>
-        private long Pull(SimPin f, int type, long want)
+        /// <summary>Adds the part of a wait from <paramref name="since"/> to <paramref name="until"/>
+        /// that falls in the period.</summary>
+        private void AddIdle(SimPin f, DateTimeOffset since, DateTimeOffset until)
+        {
+            var a = since > _from ? since : _from;
+            var b = until < _to ? until : _to;
+            if (b > a) f.IdleSeconds += (b - a).TotalSeconds;
+        }
+
+        private long Pull(SimPin f, int type, long want, DateTimeOffset t)
         {
             if (!_pullInto.TryGetValue(f.Source.PinId, out var routes)) return 0;
             long got = 0;
@@ -621,6 +865,7 @@ public static class PiEngine
                 Take(src, type, take);
                 Add(f, type, take);
                 got += take;
+                if (InPeriod(t)) Taken[type] = Taken.GetValueOrDefault(type) + take;
             }
             return got;
         }
@@ -629,23 +874,45 @@ public static class PiEngine
         private void Deliver(long producer, int type, long qty, DateTimeOffset t)
         {
             var remaining = qty;
-            if (_pushFrom.TryGetValue(producer, out var routes))
+            var mine = _pushFrom.TryGetValue(producer, out var routes)
+                ? routes.Where(r => r.ContentTypeId == type).ToList()
+                : [];
+            foreach (var r in mine)
             {
-                var mine = routes.Where(r => r.ContentTypeId == type).ToList();
-                foreach (var r in mine)
-                {
-                    if (remaining <= 0) break;
-                    var give = r.Quantity > 0 ? Math.Min(remaining, (long)Math.Ceiling(r.Quantity)) : remaining;
-                    remaining -= Accept(_pins[r.DestinationPinId], type, give, t);
-                }
-                foreach (var r in mine)
-                {
-                    if (remaining <= 0) break;
-                    remaining -= Accept(_pins[r.DestinationPinId], type, remaining, t);
-                }
+                if (remaining <= 0) break;
+                var give = r.Quantity > 0 ? Math.Min(remaining, (long)Math.Ceiling(r.Quantity)) : remaining;
+                remaining -= Accept(_pins[r.DestinationPinId], type, give, t);
             }
-            if (remaining > 0) _lost[type] = _lost.GetValueOrDefault(type) + remaining;
+            foreach (var r in mine)
+            {
+                if (remaining <= 0) break;
+                remaining -= Accept(_pins[r.DestinationPinId], type, remaining, t);
+            }
+            if (remaining <= 0) return;
+
+            _lost[type] = _lost.GetValueOrDefault(type) + remaining;
+            if (!InPeriod(t)) return;
+            // Charged to the pin it was meant for — the first route's: when every route turned it
+            // away, that is the one the owner set up to take it.
+            var key = mine.Count > 0 ? (type, mine[0].DestinationPinId, false) : (type, producer, true);
+            _periodLost[key] = _periodLost.TryGetValue(key, out var was)
+                ? (was.Units + remaining, was.Since)
+                : (remaining, t);
         }
+
+        /// <summary>Output thrown away within the period, per type and pin, earliest first.</summary>
+        public IReadOnlyList<PiLoss> LossesIn(PiStaticData sd)
+            => _periodLost
+                .Select(kv =>
+                {
+                    var pin  = _pins[kv.Key.Pin];
+                    var tier = sd.TierOf(kv.Key.Type);
+                    return new PiLoss(kv.Key.Type, tier, tier == PiTier.P0 ? PiLossKind.Raw : PiLossKind.Product,
+                                      kv.Key.Pin, pin.Source.TypeId, pin.Kind, kv.Key.NoRoute,
+                                      kv.Value.Units, kv.Value.Since);
+                })
+                .OrderBy(l => l.Since).ThenBy(l => l.TypeId).ThenBy(l => l.PinId)
+                .ToList();
 
         private long Accept(SimPin dest, int type, long qty, DateTimeOffset t)
         {
@@ -658,6 +925,7 @@ public static class PiEngine
                 var fits = vol > 0 ? (long)Math.Floor(free / vol + 1e-9) : qty;
                 var take = Math.Max(0, Math.Min(qty, fits));
                 Add(dest, type, take);
+                if (take > 0 && InPeriod(t)) Delivered[type] = Delivered.GetValueOrDefault(type) + take;
                 // Full: it turned some away, or has no room left for another unit of this.
                 if (take < qty || dest.Capacity - Used(dest) < vol) dest.FullAt ??= t;
                 return take;

@@ -608,4 +608,140 @@
     <value>skyhook</value>
     <comment>PI tool, Colony tab: the sovereignty structure that taxes goods in null-sec. Use the game's word, lower case where your language allows it inside a sentence.</comment>
   </data>
+  <data name="ColEfficiency" xml:space="preserve">
+    <value>Efficiency</value>
+    <comment>PI tool, Colonies tab, column header: the forecast profit as a percentage of what the colony could make in the same period. Short: the column is narrow.</comment>
+  </data>
+  <data name="TipEfficiency" xml:space="preserve">
+    <value>{0}: the forecast is {1} ISK of a potential {2} ISK.</value>
+    <comment>Tooltip in the PI tool, Efficiency column. {0} is the period, e.g. "Until the extractors stop, Oct 8, 13:23" or "Next 30 days, to Oct 31, 12:00". {1} and {2} are ISK amounts, e.g. "7.50B".</comment>
+  </data>
+  <data name="TipEfficiencyShort" xml:space="preserve">
+    <value>Short by {0} ISK: {1} ISK destroyed for lack of room, {2} ISK not made by factories waiting for input.</value>
+    <comment>Tooltip in the PI tool, Efficiency column, second line. {0}, {1} and {2} are ISK amounts.</comment>
+  </data>
+  <data name="TipEfficiencyNone" xml:space="preserve">
+    <value>{0}: no profit to measure the forecast against.</value>
+    <comment>Tooltip in the PI tool, Efficiency column, when the colony makes no profit in the period. {0} is the period, as in TipEfficiency.</comment>
+  </data>
+  <data name="WindowUntilStop" xml:space="preserve">
+    <value>Until the extractors stop, {0}</value>
+    <comment>PI tool: the period a forecast covers on an extractor planet. {0} is a date and time, e.g. "Oct 8, 13:23". Used as a heading and inside other sentences.</comment>
+  </data>
+  <data name="WindowNextDaysOne" xml:space="preserve">
+    <value>Next {0} day, to {1}</value>
+    <comment>PI tool: the period a forecast covers. {0} is a number of days, {1} a date and time. Used as a heading and inside other sentences.</comment>
+  </data>
+  <data name="WindowNextDaysOther" xml:space="preserve">
+    <value>Next {0} days, to {1}</value>
+    <comment>PI tool: the period a forecast covers. {0} is a number of days, {1} a date and time. Used as a heading and inside other sentences.</comment>
+  </data>
+  <data name="WindowStopped" xml:space="preserve">
+    <value>The extractors have stopped</value>
+    <comment>PI tool: heading for the forecast section of an extractor planet whose extractors have all finished their programs. Also used inside other sentences.</comment>
+  </data>
+  <data name="PeriodStoppedNote" xml:space="preserve">
+    <value>Nothing more is extracted until they are restarted, so there is nothing to forecast.</value>
+    <comment>PI tool, Colony tab, under the heading "The extractors have stopped".</comment>
+  </data>
+  <data name="PeriodPotential" xml:space="preserve">
+    <value>Potential</value>
+    <comment>PI tool, Colony tab, label: the profit the colony could make in the period, running as built.</comment>
+  </data>
+  <data name="PeriodForecast" xml:space="preserve">
+    <value>Forecast</value>
+    <comment>PI tool, Colony tab, label: the profit the simulation says the colony will make in the period.</comment>
+  </data>
+  <data name="PeriodShort" xml:space="preserve">
+    <value>Short by</value>
+    <comment>PI tool, Colony tab, label: potential less forecast, in ISK.</comment>
+  </data>
+  <data name="PeriodDestroyed" xml:space="preserve">
+    <value>Destroyed</value>
+    <comment>PI tool, Colony tab, label: products thrown away because their storage or launchpad had no room. In the game, output with nowhere to go is destroyed.</comment>
+  </data>
+  <data name="PeriodRawOverflow" xml:space="preserve">
+    <value>Raw overflow</value>
+    <comment>PI tool, Colony tab, label: raw material from the extractors thrown away because storage was full. Short.</comment>
+  </data>
+  <data name="PeriodIdle" xml:space="preserve">
+    <value>Idle factories</value>
+    <comment>PI tool, Colony tab, label: output factories did not make while waiting for input.</comment>
+  </data>
+  <data name="TipPeriodPotential" xml:space="preserve">
+    <value>The colony running as built for the whole period: its output at market prices, less the input it is brought and the import and export charges.</value>
+    <comment>Tooltip in the PI tool, Colony tab, on the Potential line.</comment>
+  </data>
+  <data name="TipPeriodForecast" xml:space="preserve">
+    <value>What reaches storage and launchpads in the simulated period, at market prices, less the input the factories use and the charges.</value>
+    <comment>Tooltip in the PI tool, Colony tab, on the Forecast line.</comment>
+  </data>
+  <data name="IskAmount" xml:space="preserve">
+    <value>{0} ISK</value>
+    <comment>PI tool: an amount of ISK. {0} is the amount, e.g. "7.50B".</comment>
+  </data>
+  <data name="IskAndUnits" xml:space="preserve">
+    <value>{0} ISK · {1}</value>
+    <comment>PI tool, Colony tab: {0} is an ISK amount, {1} a number of units, e.g. "12,000 units of output".</comment>
+  </data>
+  <data name="IskUnitsAndShare" xml:space="preserve">
+    <value>{0} ISK · {1} · {2} of the potential</value>
+    <comment>PI tool, Colony tab, the Forecast line: {0} an ISK amount, {1} a number of units, e.g. "12,000 units of output", {2} a percentage, e.g. "75%".</comment>
+  </data>
+  <data name="OutputUnitsOne" xml:space="preserve">
+    <value>{0:N0} unit of output</value>
+    <comment>PI tool, Colony tab: units of what the colony exports. {0} is the number.</comment>
+  </data>
+  <data name="OutputUnitsOther" xml:space="preserve">
+    <value>{0:N0} units of output</value>
+    <comment>PI tool, Colony tab: units of what the colony exports. {0} is the number.</comment>
+  </data>
+  <data name="TipUnitsByType" xml:space="preserve">
+    <value>Potential {0}, forecast {1}: {2}</value>
+    <comment>Tooltip line in the PI tool, Colony tab, one per item the colony exports. {0} and {1} are numbers of units, {2} the item's name.</comment>
+  </data>
+  <data name="DestroyedFull" xml:space="preserve">
+    <value>{0}, worth {1} ISK — {2} is full; destroyed from {3}</value>
+    <comment>PI tool, Colony tab, one line under "Destroyed". {0} a quantity of an item, e.g. "1,200 × Water", {1} an ISK amount, {2} the storage or launchpad's name, {3} a date and time (estimated).</comment>
+  </data>
+  <data name="DestroyedNoRoute" xml:space="preserve">
+    <value>{0}, worth {1} ISK — {2} has no route for it; destroyed from {3}</value>
+    <comment>PI tool, Colony tab, one line under "Destroyed": the factory that made it sends it nowhere. {0} a quantity of an item, {1} an ISK amount, {2} the factory's name, {3} a date and time (estimated).</comment>
+  </data>
+  <data name="RawOverflowLine" xml:space="preserve">
+    <value>{0}, worth {1} ISK — {2} is full from {3}: extraction outpaces the factories</value>
+    <comment>PI tool, Colony tab, one line under "Raw overflow". {0} a quantity of a raw material, {1} an ISK amount, {2} the storage facility's name, {3} a date and time (estimated).</comment>
+  </data>
+  <data name="IdleLine" xml:space="preserve">
+    <value>{0} ({1}): waiting for input {2} — {3}, worth {4} ISK, not made</value>
+    <comment>PI tool, Colony tab, one line under "Idle factories". {0} a schematic's name, {1} a number of factories, e.g. "2 factories", {2} a length of time, e.g. "3d 4h", {3} a quantity of an item, {4} an ISK amount.</comment>
+  </data>
+  <data name="IdleLineExpected" xml:space="preserve">
+    <value>{0} ({1}): waiting for input {2}, {3} of it expected because the extractors cannot keep them busy — {4}, worth {5} ISK, not made</value>
+    <comment>PI tool, Colony tab, one line under "Idle factories". {0} a schematic's name, {1} a number of factories, {2} and {3} lengths of time, {4} a quantity of an item, {5} an ISK amount.</comment>
+  </data>
+  <data name="FactoriesOne" xml:space="preserve">
+    <value>{0} factory</value>
+    <comment>PI tool, Colony tab: a number of factories (planetary processors). {0} is the number.</comment>
+  </data>
+  <data name="FactoriesOther" xml:space="preserve">
+    <value>{0} factories</value>
+    <comment>PI tool, Colony tab: a number of factories (planetary processors). {0} is the number.</comment>
+  </data>
+  <data name="PeriodNothingLost" xml:space="preserve">
+    <value>Nothing is destroyed, and no factory waits for input longer than its supply explains.</value>
+    <comment>PI tool, Colony tab, under the potential and forecast when there is nothing to list.</comment>
+  </data>
+  <data name="PeriodNote" xml:space="preserve">
+    <value>Estimated, replayed from the last time the colony was opened in game. The shortfall is roughly what is destroyed plus what idle factories do not make; the rest is part-finished cycles and stock still in storage when the period ends.</value>
+    <comment>PI tool, Colony tab, a note under the potential and forecast.</comment>
+  </data>
+  <data name="ReasonOutputDestroyed" xml:space="preserve">
+    <value>Output will be destroyed from {0}: there is no room for it.</value>
+    <comment>Tooltip line on the PI tool's status chip. {0} is a date and time (estimated).</comment>
+  </data>
+  <data name="ReasonRawOverflow" xml:space="preserve">
+    <value>Raw material will overflow storage from {0}: extraction outpaces the factories.</value>
+    <comment>Tooltip line on the PI tool's status chip. {0} is a date and time (estimated).</comment>
+  </data>
 </root>
