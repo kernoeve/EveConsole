@@ -724,6 +724,9 @@
   <data name="CheckIntelNote" xml:space="preserve">
     <value>当有人报告你所监视的对象附近出现飞行员时触发：出站中的你的角色、任意位置的你的角色，或一组星系，每项都有一个跳数范围。读取的是已在“设置 → 聊天日志”中解析的情报频道。</value>
   </data>
+  <data name="CheckIntelKillsNote" xml:space="preserve">
+    <value>攻击者中有敌对飞行员的击毁也会计入：一次击毁说明其攻击者当时就在该星系。</value>
+  </data>
   <data name="CheckShipUndock" xml:space="preserve">
     <value>舰船出站</value>
   </data>
@@ -1014,6 +1017,9 @@
   </data>
   <data name="SaidSentence" xml:space="preserve">
     <value>{0}。</value>
+  </data>
+  <data name="IntelSaidOnKill" xml:space="preserve">
+    <value>在一次击毁中出现</value>
   </data>
   <data name="UnknownSystem" xml:space="preserve">
     <value>未知星系</value>

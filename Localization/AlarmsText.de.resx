@@ -727,6 +727,9 @@
   <data name="CheckIntelNote" xml:space="preserve">
     <value>Löst aus, wenn jemand einen Piloten in der Nähe dessen meldet, was Sie überwachen: Ihre Charaktere, solange sie abgedockt sind, Ihre Charaktere, wo immer sie sind, oder eine Liste von Systemen, jeweils mit einer Reichweite in Sprüngen. Liest die Intel-Kanäle, die bereits unter Einstellungen → Chatprotokolle ausgewertet werden.</value>
   </data>
+  <data name="CheckIntelKillsNote" xml:space="preserve">
+    <value>Abschüsse dort mit feindlichen Piloten unter den Angreifern zählen ebenfalls: Ein Abschuss verortet seine Angreifer in diesem System.</value>
+  </data>
   <data name="CheckShipUndock" xml:space="preserve">
     <value>Schiff dockt ab</value>
   </data>
@@ -1029,6 +1032,9 @@
   </data>
   <data name="SaidSentence" xml:space="preserve">
     <value>{0}.</value>
+  </data>
+  <data name="IntelSaidOnKill" xml:space="preserve">
+    <value>Bei einem Abschuss gesehen</value>
   </data>
   <data name="UnknownSystem" xml:space="preserve">
     <value>einem unbekannten System</value>

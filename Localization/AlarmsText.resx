@@ -968,6 +968,10 @@
     <value>Fires when someone reports a pilot near what you are watching: your characters while they are undocked, your characters wherever they are, or a list of systems, each with a range in jumps. Reads the intel channels already being parsed under Settings → Chat Logs.</value>
     <comment>Alarm editor, under the Check pick list when Intel report is picked. "Settings → Chat Logs" names the place in the Settings window.</comment>
   </data>
+  <data name="CheckIntelKillsNote" xml:space="preserve">
+    <value>Kills there with hostile pilots among the attackers count too: a kill places its attackers in that system.</value>
+    <comment>Alarm editor, under the Check pick list when Intel report is picked; follows CheckIntelNote as its next sentence. A kill (a killmail) whose attackers include hostile pilots counts as a sighting of them. Hostile = not yours and not at positive standing.</comment>
+  </data>
   <data name="CheckShipUndock" xml:space="preserve">
     <value>Ship undocks</value>
     <comment>Alarm editor, Check pick list: the check that fires when one of your characters undocks.</comment>
@@ -1371,6 +1375,10 @@
   <data name="SaidSentence" xml:space="preserve">
     <value>{0}.</value>
     <comment>Spoken: a sentence that is only names, or a note copied from an intel report. {0} is that text; only the full stop is translated.</comment>
+  </data>
+  <data name="IntelSaidOnKill" xml:space="preserve">
+    <value>Seen on a kill</value>
+    <comment>Spoken by an intel alarm after the hostiles' count, hulls and names, when they were seen as attackers on a kill rather than reported in a channel. Goes into SaidSentence ("{0}."), so no full stop here.</comment>
   </data>
   <data name="UnknownSystem" xml:space="preserve">
     <value>an unknown system</value>

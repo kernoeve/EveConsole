@@ -64,7 +64,8 @@ public sealed class IntelCondition : IAlarmCondition
         "Fires when someone reports a pilot within a jump range of what you are watching: your " +
         "characters while they are undocked (the default), named characters wherever they are, " +
         "or a list of systems. A range of 0 watches just those systems. Reads the intel " +
-        "channels already being parsed under Settings → Chat Logs.";
+        "channels already being parsed under Settings → Chat Logs, and kills there with hostile " +
+        "pilots among the attackers, which place those pilots in the system.";
 
     public object ParameterSchema => new
     {
@@ -126,7 +127,7 @@ public sealed class IntelCondition : IAlarmCondition
 
     // The editor's words; the three above are the agent's and stay English.
     public string ScreenName        => AlarmsText.CheckIntel;
-    public string ScreenDescription => AlarmsText.CheckIntelNote;
+    public string ScreenDescription => Sentences.Join(AlarmsText.CheckIntelNote, AlarmsText.CheckIntelKillsNote);
 
     public AlarmFieldText? ScreenField(string property) => property switch
     {
@@ -287,12 +288,11 @@ public sealed class IntelCondition : IAlarmCondition
                     r.IsDBNull(6) ? 0 : r.GetInt32(6)));
         }
 
-        if (reports.Count == 0) return [];
-
         // Named pilots and their hulls, kept apart: the announcement says the hulls first, the
         // names after, and a name with the hull in brackets could do neither.
         var pilots = new Dictionary<long, List<string>>();
         var hulls  = new Dictionary<long, List<string>>();
+        if (reports.Count > 0)
         await using (var cmd = conn.CreateCommand())
         {
             cmd.CommandText = AppDb.CaseInsensitiveLike($"""
@@ -367,6 +367,116 @@ public sealed class IntelCondition : IAlarmCondition
             });
         }
 
+        matches.AddRange(await KillMatchesAsync(ctx, watched, ctx.Now - lookback, minimum, jumps, distances, nearest, ct));
+        return matches;
+    }
+
+    /// <summary>
+    /// Kills in the watched systems with hostile pilots among the attackers, as sightings of
+    /// those pilots.
+    ///
+    /// <para>⚠️ A kill is intel. Its attackers were in that system at that moment — the exact
+    /// pilots and hulls, where a report may name neither — and a gang that kills its way through
+    /// without anyone typing in the channel used to raise nothing at all. The same rules as the
+    /// live map (<see cref="LiveIntelService"/>): hostile means not ours and not blue, NPC
+    /// attackers are nobody, and the victim is not a sighting (a loss takes a pilot off the
+    /// map). "Only no-visual" does not apply: a kill is never NV.</para>
+    ///
+    /// <para>Keyed like a report — system, five-minute slice, the pilots' names — so the same
+    /// gang reported in the channel and seen on a kill in the same minutes is one alert.</para>
+    /// </summary>
+    private static async Task<List<AlarmMatch>> KillMatchesAsync(
+        AlarmEvaluationContext ctx, HashSet<int> watched, DateTimeOffset since, int minimum, int jumps,
+        IReadOnlyDictionary<int, int> distances, IReadOnlyDictionary<int, string> nearest, CancellationToken ct)
+    {
+        await using var db = await ctx.DbFactory.CreateDbContextAsync(ct);
+        var systems = watched.ToList();
+
+        // ⚠️ Raw SQL for the time: SQLite cannot translate a DateTimeOffset comparison in LINQ.
+        var kills = await db.KillMailDetails
+            .FromSqlRaw("""SELECT * FROM "KillMailDetails" WHERE "KillMailTime" >= {0}""", since)
+            .AsNoTracking()
+            .Where(k => systems.Contains(k.SolarSystemId))
+            .Select(k => new { k.KillMailId, k.KillMailTime, k.SolarSystemId })
+            .ToListAsync(ct);
+        if (kills.Count == 0) return [];
+
+        var killIds = kills.Select(k => k.KillMailId).ToList();
+        var attackers = await db.KillMailAttackers.AsNoTracking()
+            .Where(a => killIds.Contains(a.KillMailId) && a.CharacterId != null)
+            .Select(a => new { a.KillMailId, CharacterId = a.CharacterId!.Value, a.CorporationId, a.AllianceId, a.ShipTypeId })
+            .ToListAsync(ct);
+
+        var friendly = await LiveIntelService.FriendlyAsync(db, ct);
+        var hostile = attackers
+            .Where(a => !friendly.Characters.Contains(a.CharacterId)
+                     && !(a.CorporationId is > 0 && friendly.Corporations.Contains(a.CorporationId.Value))
+                     && !(a.AllianceId    is > 0 && friendly.Alliances.Contains(a.AllianceId.Value)))
+            .ToLookup(a => a.KillMailId);
+        if (!kills.Any(k => hostile[k.KillMailId].Any())) return [];
+
+        // Names as the app knows them; a pilot it has not met yet is counted but not named.
+        var pilotIds = hostile.SelectMany(g => g).Select(a => a.CharacterId).Distinct().ToList();
+        var names = (await db.UniverseNames.AsNoTracking()
+                .Where(n => pilotIds.Contains(n.EntityId))
+                .Select(n => new { n.EntityId, n.Name })
+                .ToListAsync(ct))
+            .GroupBy(n => n.EntityId)
+            .ToDictionary(g => g.Key, g => g.First().Name);
+
+        var shipIds = hostile.SelectMany(g => g).Where(a => a.ShipTypeId is > 0).Select(a => a.ShipTypeId!.Value).Distinct().ToList();
+        var shipNames = await db.SdeTypes.AsNoTracking()
+            .Where(t => shipIds.Contains(t.TypeId))
+            .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct);
+        var killSystems = kills.Select(k => k.SolarSystemId).Distinct().ToList();
+        var systemNames = await db.SdeSolarSystems.AsNoTracking()
+            .Where(s => killSystems.Contains(s.SolarSystemId))
+            .ToDictionaryAsync(s => s.SolarSystemId, s => s.Name, ct);
+
+        var matches = new List<AlarmMatch>();
+        foreach (var k in kills.OrderByDescending(k => k.KillMailTime))
+        {
+            var gang = hostile[k.KillMailId].ToList();
+            var count = gang.Select(a => a.CharacterId).Distinct().Count();
+            if (count == 0 || count < minimum) continue;
+
+            var pilotNames = gang.Select(a => names.GetValueOrDefault(a.CharacterId))
+                .Where(n => !string.IsNullOrWhiteSpace(n)).Select(n => n!).Distinct().ToList();
+            var hullNames = gang.Where(a => a.ShipTypeId is > 0)
+                .Select(a => SdeNames.Type(a.ShipTypeId!.Value, shipNames.GetValueOrDefault(a.ShipTypeId!.Value) ?? ""))
+                .Where(h => h.Length > 0).Distinct().ToList();
+            var system = SdeNames.SolarSystem(k.SolarSystemId, systemNames.GetValueOrDefault(k.SolarSystemId) ?? "");
+            var at     = k.KillMailTime.UtcDateTime;
+
+            var near     = nearest.GetValueOrDefault(k.SolarSystemId);
+            var jumpsOut = (jumps > 0 || near is not null) && distances.TryGetValue(k.SolarSystemId, out var d) ? d : (int?)null;
+            var from = near is null || jumpsOut is not { } hops ? ""
+                     : hops == 0 ? $" (where {near} is)"
+                     : $" ({hops} jump{(hops == 1 ? "" : "s")} from {near})";
+            var who = pilotNames.Count > 0
+                ? " — " + string.Join(", ", pilotNames.Take(5)) + (pilotNames.Count > 5 ? $", +{pilotNames.Count - 5}" : "")
+                : "";
+            var headline = count == 1 ? "1 pilot" : $"{count} pilots";
+
+            matches.Add(new AlarmMatch(
+                MatchKey(k.SolarSystemId, at, pilotNames, count),
+                $"{headline} on a kill in {system}{from}{who}")
+            {
+                Detail = new Dictionary<string, object?>
+                {
+                    ["killmail_id"] = k.KillMailId,
+                    ["system"]      = system,
+                    ["system_id"]   = k.SolarSystemId,
+                    ["count"]       = count,
+                    ["pilots"]      = pilotNames,
+                    ["hulls"]       = hullNames,
+                    ["note"]        = AlarmsText.IntelSaidOnKill,
+                    ["jumps"]       = jumpsOut,
+                    ["near"]        = near,
+                    ["at"]          = at,
+                },
+            });
+        }
         return matches;
     }
 
