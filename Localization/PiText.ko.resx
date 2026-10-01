@@ -439,4 +439,97 @@
   <data name="Skyhook" xml:space="preserve">
     <value>스카이훅</value>
   </data>
+  <data name="ColEfficiency" xml:space="preserve">
+    <value>효율</value>
+  </data>
+  <data name="TipEfficiency" xml:space="preserve">
+    <value>{0}: 예상 이익은 최대 가능 이익 {2} ISK 중 {1} ISK입니다.</value>
+  </data>
+  <data name="TipEfficiencyShort" xml:space="preserve">
+    <value>{0} ISK 부족: 공간 부족으로 소멸한 양 {1} ISK, 투입 자원을 기다리는 제조시설이 만들지 못한 양 {2} ISK.</value>
+  </data>
+  <data name="TipEfficiencyNone" xml:space="preserve">
+    <value>{0}: 예상 이익과 비교할 이익이 없습니다.</value>
+  </data>
+  <data name="WindowUntilStop" xml:space="preserve">
+    <value>추출기 정지까지, {0}</value>
+  </data>
+  <data name="WindowNextDaysOther" xml:space="preserve">
+    <value>향후 {0}일, {1}까지</value>
+  </data>
+  <data name="WindowStopped" xml:space="preserve">
+    <value>추출기가 정지했습니다</value>
+  </data>
+  <data name="PeriodStoppedNote" xml:space="preserve">
+    <value>추출기를 다시 시작하기 전에는 더 이상 추출되지 않으므로 예상할 내용이 없습니다.</value>
+  </data>
+  <data name="PeriodPotential" xml:space="preserve">
+    <value>최대 가능</value>
+  </data>
+  <data name="PeriodForecast" xml:space="preserve">
+    <value>예상</value>
+  </data>
+  <data name="PeriodShort" xml:space="preserve">
+    <value>부족분</value>
+  </data>
+  <data name="PeriodDestroyed" xml:space="preserve">
+    <value>소멸</value>
+  </data>
+  <data name="PeriodRawOverflow" xml:space="preserve">
+    <value>원재료 초과</value>
+  </data>
+  <data name="PeriodIdle" xml:space="preserve">
+    <value>대기 중인 제조시설</value>
+  </data>
+  <data name="TipPeriodPotential" xml:space="preserve">
+    <value>콜로니가 현재 구성대로 기간 내내 가동할 때의 금액입니다: 생산품을 거래소 가격으로 계산한 값에서 수입하는 투입 자원과 수입·수출 관세를 뺀 것입니다.</value>
+  </data>
+  <data name="TipPeriodForecast" xml:space="preserve">
+    <value>시뮬레이션한 기간 동안 저장시설과 발사시설에 도달하는 양을 거래소 가격으로 계산한 값에서 제조시설이 쓰는 투입 자원과 관세를 뺀 금액입니다.</value>
+  </data>
+  <data name="IskAmount" xml:space="preserve">
+    <value>{0} ISK</value>
+  </data>
+  <data name="IskAndUnits" xml:space="preserve">
+    <value>{0} ISK · {1}</value>
+  </data>
+  <data name="IskUnitsAndShare" xml:space="preserve">
+    <value>{0} ISK · {1} · 최대 가능의 {2}</value>
+  </data>
+  <data name="OutputUnitsOther" xml:space="preserve">
+    <value>생산품 {0:N0}유닛</value>
+  </data>
+  <data name="TipUnitsByType" xml:space="preserve">
+    <value>최대 가능 {0}, 예상 {1}: {2}</value>
+  </data>
+  <data name="DestroyedFull" xml:space="preserve">
+    <value>{0}, {1} ISK 상당 — {2}이(가) 가득 참. {3}부터 소멸</value>
+  </data>
+  <data name="DestroyedNoRoute" xml:space="preserve">
+    <value>{0}, {1} ISK 상당 — {2}에 이를 보낼 경로가 없음. {3}부터 소멸</value>
+  </data>
+  <data name="RawOverflowLine" xml:space="preserve">
+    <value>{0}, {1} ISK 상당 — {3}부터 {2}이(가) 가득 참: 추출 속도가 제조시설을 앞지름</value>
+  </data>
+  <data name="IdleLine" xml:space="preserve">
+    <value>{0} ({1}): 투입 자원 대기 {2} — {3}, {4} ISK 상당, 생산하지 못함</value>
+  </data>
+  <data name="IdleLineExpected" xml:space="preserve">
+    <value>{0} ({1}): 투입 자원 대기 {2}, 그중 {3}은(는) 추출기가 가동 상태를 유지시키지 못해 예상된 대기 — {4}, {5} ISK 상당, 생산하지 못함</value>
+  </data>
+  <data name="FactoriesOther" xml:space="preserve">
+    <value>제조시설 {0}개</value>
+  </data>
+  <data name="PeriodNothingLost" xml:space="preserve">
+    <value>소멸하는 것이 없으며, 공급으로 설명되는 시간보다 오래 투입 자원을 기다리는 제조시설도 없습니다.</value>
+  </data>
+  <data name="PeriodNote" xml:space="preserve">
+    <value>게임에서 콜로니를 마지막으로 열었던 시점부터 다시 계산한 추정치입니다. 부족분은 대략 소멸한 양과 대기 중인 제조시설이 만들지 못한 양을 합한 것이며, 나머지는 기간이 끝날 때 완료되지 않은 사이클과 저장시설에 남아 있는 재고입니다.</value>
+  </data>
+  <data name="ReasonOutputDestroyed" xml:space="preserve">
+    <value>{0}부터 생산품이 소멸합니다: 둘 공간이 없습니다.</value>
+  </data>
+  <data name="ReasonRawOverflow" xml:space="preserve">
+    <value>{0}부터 원재료가 저장시설에 다 들어가지 못하고 넘칩니다: 추출 속도가 제조시설을 앞지릅니다.</value>
+  </data>
 </root>

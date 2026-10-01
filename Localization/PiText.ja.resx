@@ -439,4 +439,97 @@
   <data name="Skyhook" xml:space="preserve">
     <value>スカイフック</value>
   </data>
+  <data name="ColEfficiency" xml:space="preserve">
+    <value>効率</value>
+  </data>
+  <data name="TipEfficiency" xml:space="preserve">
+    <value>{0}：予測は潜在利益{2} ISKのうち{1} ISKです。</value>
+  </data>
+  <data name="TipEfficiencyShort" xml:space="preserve">
+    <value>不足{0} ISK：空きがなく破棄された分が{1} ISK、投入資源待ちの工場が作れなかった分が{2} ISKです。</value>
+  </data>
+  <data name="TipEfficiencyNone" xml:space="preserve">
+    <value>{0}：この期間は利益がないため、予測と比べる基準がありません。</value>
+  </data>
+  <data name="WindowUntilStop" xml:space="preserve">
+    <value>エクストラクター停止まで（{0}）</value>
+  </data>
+  <data name="WindowNextDaysOther" xml:space="preserve">
+    <value>今後{0}日間（{1}まで）</value>
+  </data>
+  <data name="WindowStopped" xml:space="preserve">
+    <value>エクストラクターは停止しています</value>
+  </data>
+  <data name="PeriodStoppedNote" xml:space="preserve">
+    <value>再開するまでは何も抽出されないため、予測するものはありません。</value>
+  </data>
+  <data name="PeriodPotential" xml:space="preserve">
+    <value>潜在利益</value>
+  </data>
+  <data name="PeriodForecast" xml:space="preserve">
+    <value>予測</value>
+  </data>
+  <data name="PeriodShort" xml:space="preserve">
+    <value>不足額</value>
+  </data>
+  <data name="PeriodDestroyed" xml:space="preserve">
+    <value>破棄</value>
+  </data>
+  <data name="PeriodRawOverflow" xml:space="preserve">
+    <value>原料あふれ</value>
+  </data>
+  <data name="PeriodIdle" xml:space="preserve">
+    <value>待機中の工場</value>
+  </data>
+  <data name="TipPeriodPotential" xml:space="preserve">
+    <value>コロニーが期間中ずっと今の構成のまま稼働した場合：産出物をマーケット価格で評価した額から、持ち込む投入資源と輸出入税を引いたものです。</value>
+  </data>
+  <data name="TipPeriodForecast" xml:space="preserve">
+    <value>シミュレーションした期間に保管施設と発射台へ届くものをマーケット価格で評価した額から、工場が使う投入資源と税を引いたものです。</value>
+  </data>
+  <data name="IskAmount" xml:space="preserve">
+    <value>{0} ISK</value>
+  </data>
+  <data name="IskAndUnits" xml:space="preserve">
+    <value>{0} ISK · {1}</value>
+  </data>
+  <data name="IskUnitsAndShare" xml:space="preserve">
+    <value>{0} ISK · {1} · 潜在利益の{2}</value>
+  </data>
+  <data name="OutputUnitsOther" xml:space="preserve">
+    <value>産出物{0:N0}個</value>
+  </data>
+  <data name="TipUnitsByType" xml:space="preserve">
+    <value>潜在{0}個、予測{1}個：{2}</value>
+  </data>
+  <data name="DestroyedFull" xml:space="preserve">
+    <value>{0}（{1} ISK相当）— {2}が満杯のため、{3}から破棄</value>
+  </data>
+  <data name="DestroyedNoRoute" xml:space="preserve">
+    <value>{0}（{1} ISK相当）— {2}にはその送り先のルートがないため、{3}から破棄</value>
+  </data>
+  <data name="RawOverflowLine" xml:space="preserve">
+    <value>{0}（{1} ISK相当）— {2}が{3}から満杯：抽出が工場の処理を上回っています</value>
+  </data>
+  <data name="IdleLine" xml:space="preserve">
+    <value>{0}（{1}）：投入資源待ち{2} — {3}（{4} ISK相当）が未生産</value>
+  </data>
+  <data name="IdleLineExpected" xml:space="preserve">
+    <value>{0}（{1}）：投入資源待ち{2}、うち{3}は、エクストラクターが工場を稼働させ続けられないため見込まれる分 — {4}（{5} ISK相当）が未生産</value>
+  </data>
+  <data name="FactoriesOther" xml:space="preserve">
+    <value>工場{0}基</value>
+  </data>
+  <data name="PeriodNothingLost" xml:space="preserve">
+    <value>破棄されるものはなく、供給で説明できる以上に投入資源を待つ工場もありません。</value>
+  </data>
+  <data name="PeriodNote" xml:space="preserve">
+    <value>推定値です。ゲーム内でコロニーを最後に開いた時点から再計算しています。不足額は、おおよそ破棄された分と待機中の工場が作れなかった分の合計です。残りは、途中のサイクルと、期間の終わりに保管施設へ残っている在庫です。</value>
+  </data>
+  <data name="ReasonOutputDestroyed" xml:space="preserve">
+    <value>{0}から産出物が破棄されます：空きがありません。</value>
+  </data>
+  <data name="ReasonRawOverflow" xml:space="preserve">
+    <value>{0}から原料が保管施設からあふれます：抽出が工場の処理を上回っています。</value>
+  </data>
 </root>

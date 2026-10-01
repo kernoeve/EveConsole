@@ -457,4 +457,106 @@
   <data name="Skyhook" xml:space="preserve">
     <value>gancho</value>
   </data>
+  <data name="ColEfficiency" xml:space="preserve">
+    <value>Eficiencia</value>
+  </data>
+  <data name="TipEfficiency" xml:space="preserve">
+    <value>{0}: la previsión es de {1} ISK sobre un potencial de {2} ISK.</value>
+  </data>
+  <data name="TipEfficiencyShort" xml:space="preserve">
+    <value>Faltan {0} ISK: {1} ISK destruidos por falta de espacio, {2} ISK no producidos por fábricas a la espera de suministro.</value>
+  </data>
+  <data name="TipEfficiencyNone" xml:space="preserve">
+    <value>{0}: no hay beneficio con el que comparar la previsión.</value>
+  </data>
+  <data name="WindowUntilStop" xml:space="preserve">
+    <value>Hasta que se detengan los extractores, el {0}</value>
+  </data>
+  <data name="WindowNextDaysOne" xml:space="preserve">
+    <value>Próximo {0} día, hasta el {1}</value>
+  </data>
+  <data name="WindowNextDaysOther" xml:space="preserve">
+    <value>Próximos {0} días, hasta el {1}</value>
+  </data>
+  <data name="WindowStopped" xml:space="preserve">
+    <value>Los extractores se han detenido</value>
+  </data>
+  <data name="PeriodStoppedNote" xml:space="preserve">
+    <value>No se extrae nada más hasta que se reinicien, así que no hay nada que prever.</value>
+  </data>
+  <data name="PeriodPotential" xml:space="preserve">
+    <value>Potencial</value>
+  </data>
+  <data name="PeriodForecast" xml:space="preserve">
+    <value>Previsión</value>
+  </data>
+  <data name="PeriodShort" xml:space="preserve">
+    <value>Diferencia</value>
+  </data>
+  <data name="PeriodDestroyed" xml:space="preserve">
+    <value>Destruido</value>
+  </data>
+  <data name="PeriodRawOverflow" xml:space="preserve">
+    <value>Exceso de materia prima</value>
+  </data>
+  <data name="PeriodIdle" xml:space="preserve">
+    <value>Fábricas sin actividad</value>
+  </data>
+  <data name="TipPeriodPotential" xml:space="preserve">
+    <value>La colonia funcionando tal como está construida durante todo el período: su producción a precios de mercado, menos el suministro que se le trae y los impuestos de importación y exportación.</value>
+  </data>
+  <data name="TipPeriodForecast" xml:space="preserve">
+    <value>Lo que llega a los almacenes y plataformas de lanzamiento en el período simulado, a precios de mercado, menos el suministro que usan las fábricas y los impuestos.</value>
+  </data>
+  <data name="IskAmount" xml:space="preserve">
+    <value>{0} ISK</value>
+  </data>
+  <data name="IskAndUnits" xml:space="preserve">
+    <value>{0} ISK · {1}</value>
+  </data>
+  <data name="IskUnitsAndShare" xml:space="preserve">
+    <value>{0} ISK · {1} · {2} del potencial</value>
+  </data>
+  <data name="OutputUnitsOne" xml:space="preserve">
+    <value>{0:N0} unidad de producción</value>
+  </data>
+  <data name="OutputUnitsOther" xml:space="preserve">
+    <value>{0:N0} unidades de producción</value>
+  </data>
+  <data name="TipUnitsByType" xml:space="preserve">
+    <value>Potencial {0}, previsión {1}: {2}</value>
+  </data>
+  <data name="DestroyedFull" xml:space="preserve">
+    <value>{0}, por valor de {1} ISK: {2} está lleno; destruido desde el {3}</value>
+  </data>
+  <data name="DestroyedNoRoute" xml:space="preserve">
+    <value>{0}, por valor de {1} ISK: {2} no tiene ruta para ello; destruido desde el {3}</value>
+  </data>
+  <data name="RawOverflowLine" xml:space="preserve">
+    <value>{0}, por valor de {1} ISK: {2} está lleno desde el {3}; la extracción supera a las fábricas</value>
+  </data>
+  <data name="IdleLine" xml:space="preserve">
+    <value>{0} ({1}): esperando suministro durante {2}; {3}, por valor de {4} ISK, sin producir</value>
+  </data>
+  <data name="IdleLineExpected" xml:space="preserve">
+    <value>{0} ({1}): esperando suministro durante {2}, de los cuales {3} previstos porque los extractores no pueden mantenerlas ocupadas; {4}, por valor de {5} ISK, sin producir</value>
+  </data>
+  <data name="FactoriesOne" xml:space="preserve">
+    <value>{0} fábrica</value>
+  </data>
+  <data name="FactoriesOther" xml:space="preserve">
+    <value>{0} fábricas</value>
+  </data>
+  <data name="PeriodNothingLost" xml:space="preserve">
+    <value>No se destruye nada y ninguna fábrica espera suministro más tiempo del que explica su abastecimiento.</value>
+  </data>
+  <data name="PeriodNote" xml:space="preserve">
+    <value>Estimación, reproducida desde la última vez que se abrió la colonia en el juego. La diferencia es, aproximadamente, lo que se destruye más lo que las fábricas sin actividad no producen; el resto son ciclos a medias y existencias que aún están en el almacén al terminar el período.</value>
+  </data>
+  <data name="ReasonOutputDestroyed" xml:space="preserve">
+    <value>La producción se destruirá desde el {0}: no hay espacio para ella.</value>
+  </data>
+  <data name="ReasonRawOverflow" xml:space="preserve">
+    <value>La materia prima desbordará el almacén desde el {0}: la extracción supera a las fábricas.</value>
+  </data>
 </root>

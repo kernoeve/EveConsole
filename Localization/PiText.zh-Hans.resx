@@ -439,4 +439,97 @@
   <data name="Skyhook" xml:space="preserve">
     <value>天钩</value>
   </data>
+  <data name="ColEfficiency" xml:space="preserve">
+    <value>效率</value>
+  </data>
+  <data name="TipEfficiency" xml:space="preserve">
+    <value>{0}：预测为 {1} ISK，潜在值为 {2} ISK。</value>
+  </data>
+  <data name="TipEfficiencyShort" xml:space="preserve">
+    <value>缺口 {0} ISK：因空间不足销毁 {1} ISK，因工厂等待原料而未生产 {2} ISK。</value>
+  </data>
+  <data name="TipEfficiencyNone" xml:space="preserve">
+    <value>{0}：没有利润，无从衡量预测值。</value>
+  </data>
+  <data name="WindowUntilStop" xml:space="preserve">
+    <value>直到采集器停止：{0}</value>
+  </data>
+  <data name="WindowNextDaysOther" xml:space="preserve">
+    <value>未来 {0} 天，至 {1}</value>
+  </data>
+  <data name="WindowStopped" xml:space="preserve">
+    <value>采集器已停止</value>
+  </data>
+  <data name="PeriodStoppedNote" xml:space="preserve">
+    <value>在重新启动之前不会再有任何采集，因此没有可预测的内容。</value>
+  </data>
+  <data name="PeriodPotential" xml:space="preserve">
+    <value>潜在</value>
+  </data>
+  <data name="PeriodForecast" xml:space="preserve">
+    <value>预测</value>
+  </data>
+  <data name="PeriodShort" xml:space="preserve">
+    <value>缺口</value>
+  </data>
+  <data name="PeriodDestroyed" xml:space="preserve">
+    <value>销毁</value>
+  </data>
+  <data name="PeriodRawOverflow" xml:space="preserve">
+    <value>原材料溢出</value>
+  </data>
+  <data name="PeriodIdle" xml:space="preserve">
+    <value>空闲工厂</value>
+  </data>
+  <data name="TipPeriodPotential" xml:space="preserve">
+    <value>殖民地在整个期间内按现有布局运行：按市场价格计算的产出，减去运入的原料以及进出口税。</value>
+  </data>
+  <data name="TipPeriodForecast" xml:space="preserve">
+    <value>模拟期间内实际到达储藏设施和发射平台的产出，按市场价格计算，减去工厂消耗的原料和税费。</value>
+  </data>
+  <data name="IskAmount" xml:space="preserve">
+    <value>{0} ISK</value>
+  </data>
+  <data name="IskAndUnits" xml:space="preserve">
+    <value>{0} ISK · {1}</value>
+  </data>
+  <data name="IskUnitsAndShare" xml:space="preserve">
+    <value>{0} ISK · {1} · 占潜在值的 {2}</value>
+  </data>
+  <data name="OutputUnitsOther" xml:space="preserve">
+    <value>{0:N0} 单位产出</value>
+  </data>
+  <data name="TipUnitsByType" xml:space="preserve">
+    <value>潜在 {0}，预测 {1}：{2}</value>
+  </data>
+  <data name="DestroyedFull" xml:space="preserve">
+    <value>{0}，价值 {1} ISK——{2} 已满；自 {3} 起销毁</value>
+  </data>
+  <data name="DestroyedNoRoute" xml:space="preserve">
+    <value>{0}，价值 {1} ISK——{2} 没有它的路线；自 {3} 起销毁</value>
+  </data>
+  <data name="RawOverflowLine" xml:space="preserve">
+    <value>{0}，价值 {1} ISK——{2} 自 {3} 起已满：采集速度超过工厂的处理速度</value>
+  </data>
+  <data name="IdleLine" xml:space="preserve">
+    <value>{0}（{1}）：等待原料 {2}——{3}，价值 {4} ISK，未生产</value>
+  </data>
+  <data name="IdleLineExpected" xml:space="preserve">
+    <value>{0}（{1}）：等待原料 {2}，其中 {3} 属预计，因为采集器无法让它们保持运转——{4}，价值 {5} ISK，未生产</value>
+  </data>
+  <data name="FactoriesOther" xml:space="preserve">
+    <value>{0} 个工厂</value>
+  </data>
+  <data name="PeriodNothingLost" xml:space="preserve">
+    <value>没有任何产出被销毁，也没有工厂等待原料的时间超出其供应所能解释的范围。</value>
+  </data>
+  <data name="PeriodNote" xml:space="preserve">
+    <value>预计值，根据该殖民地最近一次在游戏中被打开时的数据推演。缺口大致等于被销毁的产出加上空闲工厂未能生产的部分；其余是未完成的周期，以及期间结束时仍留在储藏设施中的库存。</value>
+  </data>
+  <data name="ReasonOutputDestroyed" xml:space="preserve">
+    <value>产出将自 {0} 起被销毁：没有空间存放。</value>
+  </data>
+  <data name="ReasonRawOverflow" xml:space="preserve">
+    <value>原材料将自 {0} 起溢出储藏设施：采集速度超过工厂的处理速度。</value>
+  </data>
 </root>

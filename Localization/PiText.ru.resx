@@ -493,4 +493,124 @@
   <data name="Skyhook" xml:space="preserve">
     <value>подъёмник</value>
   </data>
+  <data name="ColEfficiency" xml:space="preserve">
+    <value>Эффект.</value>
+  </data>
+  <data name="TipEfficiency" xml:space="preserve">
+    <value>{0}: прогноз — {1} ISK из возможных {2} ISK.</value>
+  </data>
+  <data name="TipEfficiencyShort" xml:space="preserve">
+    <value>Не хватает {0} ISK: {1} ISK уничтожено из-за нехватки места, {2} ISK не выпущено комплексами, ожидавшими материалы.</value>
+  </data>
+  <data name="TipEfficiencyNone" xml:space="preserve">
+    <value>{0}: прибыли нет, не с чем сравнивать прогноз.</value>
+  </data>
+  <data name="WindowUntilStop" xml:space="preserve">
+    <value>До остановки экстракторов, {0}</value>
+  </data>
+  <data name="WindowNextDaysOne" xml:space="preserve">
+    <value>Ближайший {0} день, до {1}</value>
+  </data>
+  <data name="WindowNextDaysOther" xml:space="preserve">
+    <value>Ближайшие {0} дня, до {1}</value>
+  </data>
+  <data name="WindowNextDaysFew" xml:space="preserve">
+    <value>Ближайшие {0} дня, до {1}</value>
+  </data>
+  <data name="WindowNextDaysMany" xml:space="preserve">
+    <value>Ближайшие {0} дней, до {1}</value>
+  </data>
+  <data name="WindowStopped" xml:space="preserve">
+    <value>Экстракторы остановлены</value>
+  </data>
+  <data name="PeriodStoppedNote" xml:space="preserve">
+    <value>Пока их не запустят снова, ничего больше не добывается, так что прогнозировать нечего.</value>
+  </data>
+  <data name="PeriodPotential" xml:space="preserve">
+    <value>Потенциал</value>
+  </data>
+  <data name="PeriodForecast" xml:space="preserve">
+    <value>Прогноз</value>
+  </data>
+  <data name="PeriodShort" xml:space="preserve">
+    <value>Не хватает</value>
+  </data>
+  <data name="PeriodDestroyed" xml:space="preserve">
+    <value>Уничтожено</value>
+  </data>
+  <data name="PeriodRawOverflow" xml:space="preserve">
+    <value>Переполнение сырья</value>
+  </data>
+  <data name="PeriodIdle" xml:space="preserve">
+    <value>Простаивающие комплексы</value>
+  </data>
+  <data name="TipPeriodPotential" xml:space="preserve">
+    <value>Колония, работающая в нынешнем виде весь период: её продукция по рыночным ценам минус ввозимые материалы и налоги на импорт и экспорт.</value>
+  </data>
+  <data name="TipPeriodForecast" xml:space="preserve">
+    <value>Что за смоделированный период попадает в хранилища и на стартовые площадки, по рыночным ценам, минус материалы, которые расходуют комплексы, и налоги.</value>
+  </data>
+  <data name="IskAmount" xml:space="preserve">
+    <value>{0} ISK</value>
+  </data>
+  <data name="IskAndUnits" xml:space="preserve">
+    <value>{0} ISK · {1}</value>
+  </data>
+  <data name="IskUnitsAndShare" xml:space="preserve">
+    <value>{0} ISK · {1} · {2} от потенциала</value>
+  </data>
+  <data name="OutputUnitsOne" xml:space="preserve">
+    <value>{0:N0} единица продукции</value>
+  </data>
+  <data name="OutputUnitsOther" xml:space="preserve">
+    <value>{0:N0} единицы продукции</value>
+  </data>
+  <data name="OutputUnitsFew" xml:space="preserve">
+    <value>{0:N0} единицы продукции</value>
+  </data>
+  <data name="OutputUnitsMany" xml:space="preserve">
+    <value>{0:N0} единиц продукции</value>
+  </data>
+  <data name="TipUnitsByType" xml:space="preserve">
+    <value>Потенциал {0}, прогноз {1}: {2}</value>
+  </data>
+  <data name="DestroyedFull" xml:space="preserve">
+    <value>{0}, стоимостью {1} ISK — {2}: нет места; уничтожается с {3}</value>
+  </data>
+  <data name="DestroyedNoRoute" xml:space="preserve">
+    <value>{0}, стоимостью {1} ISK — {2}: нет маршрута для продукции; уничтожается с {3}</value>
+  </data>
+  <data name="RawOverflowLine" xml:space="preserve">
+    <value>{0}, стоимостью {1} ISK — {2}: заполнено с {3}, добыча опережает производство</value>
+  </data>
+  <data name="IdleLine" xml:space="preserve">
+    <value>{0} ({1}): простой из-за нехватки материалов — {2}; не выпущено: {3}, стоимостью {4} ISK</value>
+  </data>
+  <data name="IdleLineExpected" xml:space="preserve">
+    <value>{0} ({1}): простой из-за нехватки материалов — {2}, из них {3} — ожидаемо: экстракторы не могут загрузить комплексы работой; не выпущено: {4}, стоимостью {5} ISK</value>
+  </data>
+  <data name="FactoriesOne" xml:space="preserve">
+    <value>{0} комплекс</value>
+  </data>
+  <data name="FactoriesOther" xml:space="preserve">
+    <value>{0} комплекса</value>
+  </data>
+  <data name="FactoriesFew" xml:space="preserve">
+    <value>{0} комплекса</value>
+  </data>
+  <data name="FactoriesMany" xml:space="preserve">
+    <value>{0} комплексов</value>
+  </data>
+  <data name="PeriodNothingLost" xml:space="preserve">
+    <value>Ничего не уничтожается, и ни один комплекс не простаивает дольше, чем объясняется его снабжением.</value>
+  </data>
+  <data name="PeriodNote" xml:space="preserve">
+    <value>Оценка: расчёт с момента, когда колонию в последний раз открывали в игре. Разница между потенциалом и прогнозом — это примерно уничтоженное плюс то, что не выпустили простаивающие комплексы; остальное — незавершённые циклы и запасы, оставшиеся в хранилищах к концу периода.</value>
+  </data>
+  <data name="ReasonOutputDestroyed" xml:space="preserve">
+    <value>Продукция будет уничтожаться с {0}: для неё нет места.</value>
+  </data>
+  <data name="ReasonRawOverflow" xml:space="preserve">
+    <value>Сырьё будет переполнять хранилище с {0}: добыча опережает производство.</value>
+  </data>
 </root>
