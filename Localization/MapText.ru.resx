@@ -2114,4 +2114,55 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   <data name="TipShowOnMap" xml:space="preserve">
     <value>Рисовать маршрут на вкладках карты вселенной</value>
   </data>
+  <data name="SysZoneLabel" xml:space="preserve">
+    <value>Зона Ansiblex</value>
+  </data>
+  <data name="SysZoneLine" xml:space="preserve">
+    <value>Зона {0} · {1:0.0} св. л. от столицы {2} · прыжковые мосты с прибытием сюда: {3}</value>
+  </data>
+  <data name="SysZoneFree" xml:space="preserve">
+    <value>бесплатно</value>
+  </data>
+  <data name="SysZoneCost" xml:space="preserve">
+    <value>×{0} конденсатора</value>
+  </data>
+  <data name="SysZoneNone" xml:space="preserve">
+    <value>У владельца нет столичной системы, поэтому зоны нет</value>
+  </data>
+  <data name="SysNowLabel" xml:space="preserve">
+    <value>Сейчас</value>
+  </data>
+  <data name="SysHostilesNow" xml:space="preserve">
+    <value>Врагов замечено здесь за последние 5 минут — {0}: {1}</value>
+  </data>
+  <data name="SysOwnNow" xml:space="preserve">
+    <value>Ваши персонажи здесь: {0}</value>
+  </data>
+  <data name="SysBridgesLabel" xml:space="preserve">
+    <value>Прыжковые мосты</value>
+  </data>
+  <data name="SysWormholesLabel" xml:space="preserve">
+    <value>Thera и Turnur</value>
+  </data>
+  <data name="ColLeadsTo" xml:space="preserve">
+    <value>Ведёт в</value>
+  </data>
+  <data name="ColGate" xml:space="preserve">
+    <value>Мост здесь</value>
+  </data>
+  <data name="ColAccess" xml:space="preserve">
+    <value>Кто может прыгать</value>
+  </data>
+  <data name="ColSigHere" xml:space="preserve">
+    <value>Сигнатура здесь</value>
+  </data>
+  <data name="ColSigFar" xml:space="preserve">
+    <value>Другая сторона</value>
+  </data>
+  <data name="ColUpTo" xml:space="preserve">
+    <value>До</value>
+  </data>
+  <data name="ColLeft" xml:space="preserve">
+    <value>Осталось</value>
+  </data>
 </root>

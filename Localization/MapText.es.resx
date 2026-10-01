@@ -2030,4 +2030,55 @@ Sin sistema capital, así que sin zona</value>
   <data name="TipShowOnMap" xml:space="preserve">
     <value>Dibuja la ruta en las pestañas del mapa del universo</value>
   </data>
+  <data name="SysZoneLabel" xml:space="preserve">
+    <value>Zona del Ansiblex</value>
+  </data>
+  <data name="SysZoneLine" xml:space="preserve">
+    <value>Zona {0} · {1:0.0} al de {2}, la capital · puentes de salto que llegan aquí: {3}</value>
+  </data>
+  <data name="SysZoneFree" xml:space="preserve">
+    <value>gratis</value>
+  </data>
+  <data name="SysZoneCost" xml:space="preserve">
+    <value>{0}× condensador</value>
+  </data>
+  <data name="SysZoneNone" xml:space="preserve">
+    <value>El titular no tiene sistema capital, así que no hay zona</value>
+  </data>
+  <data name="SysNowLabel" xml:space="preserve">
+    <value>Ahora</value>
+  </data>
+  <data name="SysHostilesNow" xml:space="preserve">
+    <value>{0} hostiles situados aquí en los últimos 5 minutos: {1}</value>
+  </data>
+  <data name="SysOwnNow" xml:space="preserve">
+    <value>Tus personajes aquí: {0}</value>
+  </data>
+  <data name="SysBridgesLabel" xml:space="preserve">
+    <value>Puentes de salto</value>
+  </data>
+  <data name="SysWormholesLabel" xml:space="preserve">
+    <value>Thera y Turnur</value>
+  </data>
+  <data name="ColLeadsTo" xml:space="preserve">
+    <value>Lleva a</value>
+  </data>
+  <data name="ColGate" xml:space="preserve">
+    <value>Puente aquí</value>
+  </data>
+  <data name="ColAccess" xml:space="preserve">
+    <value>Quién puede saltar</value>
+  </data>
+  <data name="ColSigHere" xml:space="preserve">
+    <value>Firma aquí</value>
+  </data>
+  <data name="ColSigFar" xml:space="preserve">
+    <value>Otro lado</value>
+  </data>
+  <data name="ColUpTo" xml:space="preserve">
+    <value>Hasta</value>
+  </data>
+  <data name="ColLeft" xml:space="preserve">
+    <value>Restante</value>
+  </data>
 </root>

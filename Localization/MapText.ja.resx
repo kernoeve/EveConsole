@@ -1988,4 +1988,55 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   <data name="TipShowOnMap" xml:space="preserve">
     <value>ユニバースマップのタブにルートを描く</value>
   </data>
+  <data name="SysZoneLabel" xml:space="preserve">
+    <value>アンシブレックスゾーン</value>
+  </data>
+  <data name="SysZoneLine" xml:space="preserve">
+    <value>ゾーン{0} · 首都{2}から{1:0.0}光年 · ここに着くジャンプブリッジ: {3}</value>
+  </data>
+  <data name="SysZoneFree" xml:space="preserve">
+    <value>無料</value>
+  </data>
+  <data name="SysZoneCost" xml:space="preserve">
+    <value>キャパシタ{0}倍</value>
+  </data>
+  <data name="SysZoneNone" xml:space="preserve">
+    <value>保有者に首都システムがないため、ゾーンはありません</value>
+  </data>
+  <data name="SysNowLabel" xml:space="preserve">
+    <value>現在</value>
+  </data>
+  <data name="SysHostilesNow" xml:space="preserve">
+    <value>過去5分間にここで確認された敵対者{0}人: {1}</value>
+  </data>
+  <data name="SysOwnNow" xml:space="preserve">
+    <value>ここにいる自分のキャラクター: {0}</value>
+  </data>
+  <data name="SysBridgesLabel" xml:space="preserve">
+    <value>ジャンプブリッジ</value>
+  </data>
+  <data name="SysWormholesLabel" xml:space="preserve">
+    <value>TheraとTurnur</value>
+  </data>
+  <data name="ColLeadsTo" xml:space="preserve">
+    <value>行き先</value>
+  </data>
+  <data name="ColGate" xml:space="preserve">
+    <value>ここのブリッジ</value>
+  </data>
+  <data name="ColAccess" xml:space="preserve">
+    <value>使用可能な者</value>
+  </data>
+  <data name="ColSigHere" xml:space="preserve">
+    <value>ここのシグネチャ</value>
+  </data>
+  <data name="ColSigFar" xml:space="preserve">
+    <value>向こう側</value>
+  </data>
+  <data name="ColUpTo" xml:space="preserve">
+    <value>最大</value>
+  </data>
+  <data name="ColLeft" xml:space="preserve">
+    <value>残り</value>
+  </data>
 </root>

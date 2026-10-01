@@ -1988,4 +1988,55 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   <data name="TipShowOnMap" xml:space="preserve">
     <value>在宇宙地图标签页上绘制路线</value>
   </data>
+  <data name="SysZoneLabel" xml:space="preserve">
+    <value>Ansiblex 区</value>
+  </data>
+  <data name="SysZoneLine" xml:space="preserve">
+    <value>{0} 区 · 距首都 {2} {1:0.0} 光年 · 跳桥落在此处：{3}</value>
+  </data>
+  <data name="SysZoneFree" xml:space="preserve">
+    <value>免费</value>
+  </data>
+  <data name="SysZoneCost" xml:space="preserve">
+    <value>{0} 倍电容</value>
+  </data>
+  <data name="SysZoneNone" xml:space="preserve">
+    <value>持有者没有首都星系，因此没有分区</value>
+  </data>
+  <data name="SysNowLabel" xml:space="preserve">
+    <value>当前</value>
+  </data>
+  <data name="SysHostilesNow" xml:space="preserve">
+    <value>过去 5 分钟在此发现 {0} 名敌对：{1}</value>
+  </data>
+  <data name="SysOwnNow" xml:space="preserve">
+    <value>你在此的角色：{0}</value>
+  </data>
+  <data name="SysBridgesLabel" xml:space="preserve">
+    <value>跳桥</value>
+  </data>
+  <data name="SysWormholesLabel" xml:space="preserve">
+    <value>Thera 和 Turnur</value>
+  </data>
+  <data name="ColLeadsTo" xml:space="preserve">
+    <value>通往</value>
+  </data>
+  <data name="ColGate" xml:space="preserve">
+    <value>此处跳桥</value>
+  </data>
+  <data name="ColAccess" xml:space="preserve">
+    <value>可跳者</value>
+  </data>
+  <data name="ColSigHere" xml:space="preserve">
+    <value>此处信号</value>
+  </data>
+  <data name="ColSigFar" xml:space="preserve">
+    <value>对面</value>
+  </data>
+  <data name="ColUpTo" xml:space="preserve">
+    <value>最大</value>
+  </data>
+  <data name="ColLeft" xml:space="preserve">
+    <value>剩余</value>
+  </data>
 </root>

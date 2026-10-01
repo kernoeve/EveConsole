@@ -45,6 +45,7 @@ public sealed class MapToolViewModel : ReactiveObject
 
     public static readonly TimeSpan LiveEvery    = TimeSpan.FromSeconds(5);
     public static readonly TimeSpan OverlayEvery = TimeSpan.FromSeconds(60);
+    public static readonly TimeSpan PageEvery    = TimeSpan.FromSeconds(30);
 
     public MapToolViewModel(
         UniverseMapService        map,
@@ -249,7 +250,9 @@ public sealed class MapToolViewModel : ReactiveObject
 
     private SystemTabViewModel NewSystemTab(int systemId)
     {
-        var tab = new SystemTabViewModel(this, _newSystemPage(), systemId);
+        var page = _newSystemPage();
+        page.ExtrasSource = LoadExtrasAsync;
+        var tab = new SystemTabViewModel(this, page, systemId);
         Add(tab);
         _ = tab.LoadAsync();
         return tab;
@@ -521,6 +524,7 @@ public sealed class MapToolViewModel : ReactiveObject
     private async Task LiveLoopAsync(CancellationToken ct)
     {
         var overlayDue = DateTimeOffset.UtcNow + OverlayEvery;
+        var pagesDue   = DateTimeOffset.UtcNow + PageEvery;
         await ReloadBridgesAsync();
         using var timer = new PeriodicTimer(LiveEvery);
         do
@@ -533,6 +537,16 @@ public sealed class MapToolViewModel : ReactiveObject
                     _snapshot = snapshot;
                     foreach (var tab in AllTabs.OfType<UniverseTabViewModel>()) tab.ApplyLive(snapshot);
                 });
+
+                if (DateTimeOffset.UtcNow >= pagesDue)
+                {
+                    pagesDue = DateTimeOffset.UtcNow + PageEvery;
+                    // Only a page on screen: a tab behind another one is refreshed when it is
+                    // next shown, rather than read every 30 s for nobody.
+                    var pages = await Dispatcher.UIThread.InvokeAsync(() =>
+                        AllTabs.OfType<SystemTabViewModel>().Where(t => t.IsSelected).Select(t => t.Page).ToList());
+                    foreach (var page in pages) await Task.Run(page.RefreshAsync, ct);
+                }
 
                 if (DateTimeOffset.UtcNow >= overlayDue)
                 {
@@ -592,6 +606,46 @@ public sealed class MapToolViewModel : ReactiveObject
         catch (Exception ex) { _errors?.Log(nameof(MapToolViewModel), "wormholes", ex); }
     }
 
+    /// <summary>The largest ship a hole takes, in the interface language (EVE-Scout's size word).</summary>
+    internal static string HoleSize(string size) => size.ToLowerInvariant() switch
+    {
+        "small"   => MapText.ShipSizeSmall,
+        "medium"  => MapText.ShipSizeMedium,
+        "large"   => MapText.ShipSizeLarge,
+        "xlarge"  => MapText.ShipSizeXLarge,
+        "capital" => MapText.ShipSizeCapital,
+        _         => size,
+    };
+
+    /// <summary>How long a hole has left, in whole hours; "" when EVE-Scout does not say.</summary>
+    internal static string HoleLeft(DateTimeOffset? expires) =>
+        expires is not { } end ? ""
+        : (end - DateTimeOffset.UtcNow).TotalHours < 1 ? MapText.HoleUnderHour
+        : string.Format(MapText.HoleHoursLeft, (int)(end - DateTimeOffset.UtcNow).TotalHours);
+
+    /// <summary>
+    /// What a system page shows from the map: the system's Ansiblex zone, its jump bridges, its
+    /// Thera and Turnur holes, and who is placed there now. From what the map already holds
+    /// where it can; the zones are the bridge service's, cached half an hour.
+    /// </summary>
+    public async Task<SystemMapExtras> LoadExtrasAsync(int systemId, CancellationToken ct)
+    {
+        SystemZone? zone = null;
+        IReadOnlyList<JumpBridge> bridges = [];
+        if (_bridges is not null)
+        {
+            var zones = await Task.Run(() => _bridges.GetZonesAsync(ct), ct);
+            zone = zones.TryGetValue(systemId, out var z) ? z : null;
+            var list = _bridgeList ?? await Task.Run(() => _bridges.GetAsync(ct), ct);
+            bridges = [.. list.Bridges.Where(b => b.SystemA == systemId || b.SystemB == systemId)];
+        }
+        var holes = _holeList.Where(c => c.HubSystemId == systemId || c.OtherSystemId == systemId).ToList();
+        var live  = _snapshot;
+        return new SystemMapExtras(zone, bridges, holes,
+            live?.Hostiles.GetValueOrDefault(systemId),
+            live?.Own.GetValueOrDefault(systemId) ?? []);
+    }
+
     /// <summary>
     /// The marks and lines for one map: a mark on every system with a hole to Thera or Turnur,
     /// one on Turnur listing all of its own, a summary on each region for the zoomed-out tier, and
@@ -614,19 +668,8 @@ public sealed class MapToolViewModel : ReactiveObject
             (cs.Any(IsThera) ? "Θ" : "") + (cs.Any(c => !IsThera(c)) ? "T" : "");
         string Hub(EveConsole.Models.EveScoutConnection c) => SdeNames.SolarSystem(c.HubSystemId, c.HubSystemName);
         string Other(EveConsole.Models.EveScoutConnection c) => SdeNames.SolarSystem(c.OtherSystemId, c.OtherSystemName);
-        string Size(string s) => s.ToLowerInvariant() switch
-        {
-            "small"   => MapText.ShipSizeSmall,
-            "medium"  => MapText.ShipSizeMedium,
-            "large"   => MapText.ShipSizeLarge,
-            "xlarge"  => MapText.ShipSizeXLarge,
-            "capital" => MapText.ShipSizeCapital,
-            _         => s,
-        };
-        string Left(EveConsole.Models.EveScoutConnection c) =>
-            c.ExpiresAt is not { } end ? ""
-            : (end - now).TotalHours < 1 ? MapText.HoleUnderHour
-            : string.Format(MapText.HoleHoursLeft, (int)(end - now).TotalHours);
+        string Size(string s) => HoleSize(s);
+        string Left(EveConsole.Models.EveScoutConnection c) => HoleLeft(c.ExpiresAt);
 
         // Each system with holes: what they are, seen from that system.
         foreach (var g in holes.GroupBy(c => c.OtherSystemId))
@@ -929,6 +972,8 @@ public sealed class SystemTabViewModel : MapTabViewModel
         Page     = page;
         SystemId = systemId;
         page.WhenAnyValue(p => p.Name).Subscribe(_ => this.RaisePropertyChanged(nameof(TabTitle)));
+        this.WhenAnyValue(t => t.IsSelected).Skip(1).Where(s => s)
+            .Subscribe(shown => _ = Task.Run(page.RefreshAsync));
     }
 
     public SystemPageViewModel Page     { get; }

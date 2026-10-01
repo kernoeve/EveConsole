@@ -2030,4 +2030,55 @@ Kein Hauptstadtsystem, daher keine Zone</value>
   <data name="TipShowOnMap" xml:space="preserve">
     <value>Die Route auf den Tabs der Universumskarte zeichnen</value>
   </data>
+  <data name="SysZoneLabel" xml:space="preserve">
+    <value>Ansiblex-Zone</value>
+  </data>
+  <data name="SysZoneLine" xml:space="preserve">
+    <value>Zone {0} · {1:0.0} Lj von {2}, der Hauptstadt · Sprungbrücken mit Ziel hier: {3}</value>
+  </data>
+  <data name="SysZoneFree" xml:space="preserve">
+    <value>kostenlos</value>
+  </data>
+  <data name="SysZoneCost" xml:space="preserve">
+    <value>{0}× Kondensator</value>
+  </data>
+  <data name="SysZoneNone" xml:space="preserve">
+    <value>Der Inhaber hat kein Hauptstadtsystem, daher keine Zone</value>
+  </data>
+  <data name="SysNowLabel" xml:space="preserve">
+    <value>Jetzt</value>
+  </data>
+  <data name="SysHostilesNow" xml:space="preserve">
+    <value>{0} Feinde in den letzten 5 Minuten hier gemeldet: {1}</value>
+  </data>
+  <data name="SysOwnNow" xml:space="preserve">
+    <value>Ihre Charaktere hier: {0}</value>
+  </data>
+  <data name="SysBridgesLabel" xml:space="preserve">
+    <value>Sprungbrücken</value>
+  </data>
+  <data name="SysWormholesLabel" xml:space="preserve">
+    <value>Thera und Turnur</value>
+  </data>
+  <data name="ColLeadsTo" xml:space="preserve">
+    <value>Führt nach</value>
+  </data>
+  <data name="ColGate" xml:space="preserve">
+    <value>Brücke hier</value>
+  </data>
+  <data name="ColAccess" xml:space="preserve">
+    <value>Wer springen darf</value>
+  </data>
+  <data name="ColSigHere" xml:space="preserve">
+    <value>Signatur hier</value>
+  </data>
+  <data name="ColSigFar" xml:space="preserve">
+    <value>Andere Seite</value>
+  </data>
+  <data name="ColUpTo" xml:space="preserve">
+    <value>Bis</value>
+  </data>
+  <data name="ColLeft" xml:space="preserve">
+    <value>Verbleibend</value>
+  </data>
 </root>

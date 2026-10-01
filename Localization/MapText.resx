@@ -2703,4 +2703,72 @@ No capital system, so no zone</value>
     <value>Draw the route on the Universe Map's tabs</value>
     <comment>Tooltip of the Show on map tick box (route planner and jump planner).</comment>
   </data>
+  <data name="SysZoneLabel" xml:space="preserve">
+    <value>Ansiblex zone</value>
+    <comment>System page header: label of the system's Ansiblex zone.</comment>
+  </data>
+  <data name="SysZoneLine" xml:space="preserve">
+    <value>Zone {0} · {1:0.0} ly from {2}, the capital · jump bridges landing here: {3}</value>
+    <comment>System page header. {0} the zone (1–5), {1} light-years from the holding alliance's capital, {2} the capital system, {3} SysZoneFree or SysZoneCost.</comment>
+  </data>
+  <data name="SysZoneFree" xml:space="preserve">
+    <value>free</value>
+    <comment>System page: a jump bridge landing in zone 1 uses no capacitor.</comment>
+  </data>
+  <data name="SysZoneCost" xml:space="preserve">
+    <value>{0}× capacitor</value>
+    <comment>System page: a jump bridge landing here costs the ship's base cost times {0}.</comment>
+  </data>
+  <data name="SysZoneNone" xml:space="preserve">
+    <value>The holder has no capital system, so no zone</value>
+    <comment>System page header, Ansiblex zone.</comment>
+  </data>
+  <data name="SysNowLabel" xml:space="preserve">
+    <value>Now</value>
+    <comment>System page header: label of who is placed in the system now.</comment>
+  </data>
+  <data name="SysHostilesNow" xml:space="preserve">
+    <value>{0} hostiles placed here in the last 5 minutes: {1}</value>
+    <comment>System page header. {0} how many, {1} their names with ships.</comment>
+  </data>
+  <data name="SysOwnNow" xml:space="preserve">
+    <value>Your characters here: {0}</value>
+    <comment>System page header. {0} their names.</comment>
+  </data>
+  <data name="SysBridgesLabel" xml:space="preserve">
+    <value>Jump bridges</value>
+    <comment>System page, Overview: the jump bridges from this system.</comment>
+  </data>
+  <data name="SysWormholesLabel" xml:space="preserve">
+    <value>Thera and Turnur</value>
+    <comment>System page, Overview: Thera and Turnur wormholes in this system, from EVE-Scout.</comment>
+  </data>
+  <data name="ColLeadsTo" xml:space="preserve">
+    <value>Leads to</value>
+    <comment>Column: the system a jump bridge or wormhole leads to.</comment>
+  </data>
+  <data name="ColGate" xml:space="preserve">
+    <value>Gate here</value>
+    <comment>Column: the jump bridge's gate in this system.</comment>
+  </data>
+  <data name="ColAccess" xml:space="preserve">
+    <value>Who may jump</value>
+    <comment>Column: each way across a jump bridge, who may use it and its zone.</comment>
+  </data>
+  <data name="ColSigHere" xml:space="preserve">
+    <value>Signature here</value>
+    <comment>Column: the wormhole's signature in this system.</comment>
+  </data>
+  <data name="ColSigFar" xml:space="preserve">
+    <value>Far side</value>
+    <comment>Column: the wormhole's signature at the other end.</comment>
+  </data>
+  <data name="ColUpTo" xml:space="preserve">
+    <value>Up to</value>
+    <comment>Column: the largest ship a wormhole takes.</comment>
+  </data>
+  <data name="ColLeft" xml:space="preserve">
+    <value>Left</value>
+    <comment>Column: how long a wormhole has left.</comment>
+  </data>
 </root>

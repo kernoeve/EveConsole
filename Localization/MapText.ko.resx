@@ -1988,4 +1988,55 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   <data name="TipShowOnMap" xml:space="preserve">
     <value>유니버스 지도 탭에 경로 그리기</value>
   </data>
+  <data name="SysZoneLabel" xml:space="preserve">
+    <value>앤시블렉스 구역</value>
+  </data>
+  <data name="SysZoneLine" xml:space="preserve">
+    <value>구역 {0} · 수도 {2}에서 {1:0.0}광년 · 여기 도착하는 점프 브릿지: {3}</value>
+  </data>
+  <data name="SysZoneFree" xml:space="preserve">
+    <value>무료</value>
+  </data>
+  <data name="SysZoneCost" xml:space="preserve">
+    <value>캐패시터 {0}배</value>
+  </data>
+  <data name="SysZoneNone" xml:space="preserve">
+    <value>보유자에게 수도 항성계가 없어 구역이 없습니다</value>
+  </data>
+  <data name="SysNowLabel" xml:space="preserve">
+    <value>현재</value>
+  </data>
+  <data name="SysHostilesNow" xml:space="preserve">
+    <value>최근 5분간 여기서 확인된 적대 {0}명: {1}</value>
+  </data>
+  <data name="SysOwnNow" xml:space="preserve">
+    <value>여기 있는 내 캐릭터: {0}</value>
+  </data>
+  <data name="SysBridgesLabel" xml:space="preserve">
+    <value>점프 브릿지</value>
+  </data>
+  <data name="SysWormholesLabel" xml:space="preserve">
+    <value>Thera 및 Turnur</value>
+  </data>
+  <data name="ColLeadsTo" xml:space="preserve">
+    <value>목적지</value>
+  </data>
+  <data name="ColGate" xml:space="preserve">
+    <value>여기 브릿지</value>
+  </data>
+  <data name="ColAccess" xml:space="preserve">
+    <value>사용 가능 대상</value>
+  </data>
+  <data name="ColSigHere" xml:space="preserve">
+    <value>여기 시그니처</value>
+  </data>
+  <data name="ColSigFar" xml:space="preserve">
+    <value>건너편</value>
+  </data>
+  <data name="ColUpTo" xml:space="preserve">
+    <value>최대</value>
+  </data>
+  <data name="ColLeft" xml:space="preserve">
+    <value>남은 시간</value>
+  </data>
 </root>
