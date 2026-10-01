@@ -307,11 +307,11 @@
   <data name="ChartAhead" xml:space="preserve">
     <value>待进行</value>
   </data>
-  <data name="ChartCycle" xml:space="preserve">
-    <value>周期</value>
-  </data>
   <data name="ChartUnits" xml:space="preserve">
     <value>数量</value>
+  </data>
+  <data name="ChartCycleWindow" xml:space="preserve">
+    <value>{0}～{1}</value>
   </data>
   <data name="SectionProcessors" xml:space="preserve">
     <value>工厂（预计）</value>

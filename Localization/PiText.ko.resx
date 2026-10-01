@@ -307,11 +307,11 @@
   <data name="ChartAhead" xml:space="preserve">
     <value>예정</value>
   </data>
-  <data name="ChartCycle" xml:space="preserve">
-    <value>사이클</value>
-  </data>
   <data name="ChartUnits" xml:space="preserve">
     <value>유닛</value>
+  </data>
+  <data name="ChartCycleWindow" xml:space="preserve">
+    <value>{0} – {1}</value>
   </data>
   <data name="SectionProcessors" xml:space="preserve">
     <value>제조시설 (추정)</value>

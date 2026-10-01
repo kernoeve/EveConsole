@@ -7,6 +7,7 @@ using EveConsole.Localization;
 using EveConsole.Services;
 using EveConsole.Services.Pi;
 using LiveChartsCore;
+using LiveChartsCore.Defaults;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
 using ReactiveUI;
@@ -593,31 +594,47 @@ public sealed class PiExtractorVm
             ? (x.ExpiryTime is { } stopped ? string.Format(PiText.ExtractorStopped, PiFormat.Relative(stopped, now)) : PiText.Stopped, Palette.Bad)
             : (x.ExpiryTime is { } stops ? string.Format(PiText.ExtractorStops, PiFormat.Relative(stops, now)) : "", Palette.TextSecondary);
 
-        HasChart = x.YieldKnown && x.CycleOutputs.Count > 0;
-        if (!HasChart) { Series = []; XAxes = []; YAxes = []; return; }
+        HasChart = x.YieldKnown && x.CycleOutputs.Count > 0 && x.InstallTime is not null && x.CycleSeconds > 0;
+        if (!HasChart) { Series = []; XAxes = []; YAxes = []; Sections = []; return; }
 
-        // Three series over the same bars: cycles done, the one running, the ones to come. One
-        // colour each, and the running one its own, so "where the program is" reads at a glance.
-        var n       = x.CycleOutputs.Count;
-        var done    = new long?[n];
-        var current = new long?[n];
-        var ahead   = new long?[n];
-        for (var i = 0; i < n; i++)
+        // ⚠️ A timeline, not a row of cycle numbers: "cycle 37" says nothing about when to log in,
+        // a date does. Each bar sits across its own cycle's window in local time — the program
+        // starts at install and every cycle is the same length — so the axis reads in days (or
+        // hours, for a short program), the bar under the "now" line is the one running, and the
+        // hover gives the window the bar covers.
+        var begin = x.InstallTime!.Value.ToLocalTime().DateTime;
+        var cycle = TimeSpan.FromSeconds(x.CycleSeconds);
+        DateTime CycleStart(int i) => begin + cycle * i;
+
+        var done    = new List<DateTimePoint>();
+        var current = new List<DateTimePoint>();
+        var ahead   = new List<DateTimePoint>();
+        for (var i = 0; i < x.CycleOutputs.Count; i++)
         {
-            if (i < x.CyclesDone)                       done[i]    = x.CycleOutputs[i];
-            else if (i == x.CyclesDone && !x.IsExpired) current[i] = x.CycleOutputs[i];
-            else                                        ahead[i]   = x.CycleOutputs[i];
+            var point = new DateTimePoint(CycleStart(i) + cycle / 2, x.CycleOutputs[i]);
+            if (i < x.CyclesDone)                       done.Add(point);
+            else if (i == x.CyclesDone && !x.IsExpired) current.Add(point);
+            else                                        ahead.Add(point);
         }
 
-        ColumnSeries<long?> Bars(string title, long?[] values, string token) => new()
+        // The window a bar covers, for its hover: from the start of its cycle to the end.
+        string Window(DateTimePoint p)
+        {
+            var from = p.DateTime - cycle / 2;
+            return string.Format(PiText.ChartCycleWindow, from.ToString(CommonText.DateMonthDayTime),
+                                 (from + cycle).ToString("t", System.Globalization.CultureInfo.CurrentCulture));
+        }
+
+        ColumnSeries<DateTimePoint> Bars(string title, List<DateTimePoint> values, string token) => new()
         {
             Name               = title,
             Values             = values,
             Fill               = new SolidColorPaint(Palette.Sk(token)),
             Stroke             = null,
             IgnoresBarPosition = true,
-            Padding            = 0,
+            Padding            = 1,
             MaxBarWidth        = 14,
+            XToolTipLabelFormatter = pt => pt.Model is { } m ? Window(m) : "",
             YToolTipLabelFormatter = pt => pt.Coordinate.PrimaryValue.ToString("N0"),
         };
 
@@ -627,18 +644,29 @@ public sealed class PiExtractorVm
             Bars(PiText.ChartCurrent, current, "Warn"),
             Bars(PiText.ChartAhead,   ahead,   "TextFaint"),
         ];
+
+        // Days along the bottom for a program of two days or more — every second day past ten —
+        // and hours for a shorter one. The column width is one cycle.
+        var span = cycle * x.CycleOutputs.Count;
+        var (step, format) = span >= TimeSpan.FromDays(10) ? (TimeSpan.FromDays(2), CommonText.DateMonthDay)
+                           : span >= TimeSpan.FromDays(2)  ? (TimeSpan.FromDays(1), CommonText.DateMonthDay)
+                           : span >= TimeSpan.FromHours(12) ? (TimeSpan.FromHours(6), "t")
+                           :                                  (TimeSpan.FromHours(1), "t");
         XAxes =
         [
-            new Axis
+            new DateTimeAxis(cycle, d => d.ToString(format, System.Globalization.CultureInfo.CurrentCulture))
             {
-                Name            = PiText.ChartCycle,
-                NamePaint       = ChartPaint.Labels,
                 LabelsPaint     = ChartPaint.Labels,
                 SeparatorsPaint = ChartPaint.Separators,
-                Labeler         = v => (v + 1).ToString("0"),
-                MinStep         = 1,
+                TextSize        = 11,
+                MinStep         = step.Ticks,
+                MinLimit        = begin.Ticks,
+                MaxLimit        = (begin + span).Ticks,
             },
         ];
+
+        // A few round steps up the side, so the labels never crowd a short chart.
+        var top = x.CycleOutputs.Max();
         YAxes =
         [
             new Axis
@@ -647,11 +675,37 @@ public sealed class PiExtractorVm
                 NamePaint       = ChartPaint.Labels,
                 LabelsPaint     = ChartPaint.Labels,
                 SeparatorsPaint = ChartPaint.Separators,
+                TextSize        = 11,
                 Labeler         = v => v.ToString("N0"),
                 MinLimit        = 0,
+                MinStep         = NiceStep(top / 3.0),
             },
         ];
+
+        // Now, as a line across the timeline, while the program runs.
+        var nowLocal = now.ToLocalTime().DateTime;
+        Sections = !x.IsExpired && nowLocal >= begin && nowLocal <= begin + span
+            ? [new RectangularSection
+              {
+                  Xi     = nowLocal.Ticks,
+                  Xj     = nowLocal.Ticks,
+                  Stroke = new SolidColorPaint(Palette.Sk("Warn")) { StrokeThickness = 1.5f },
+              }]
+            : [];
         ChartPaint.TrackAxesOf(this);
+    }
+
+    /// <summary>The marker for "now" on the timeline, or none.</summary>
+    public RectangularSection[] Sections { get; }
+
+    /// <summary>1, 2 or 5 times a power of ten, at least <paramref name="rough"/>.</summary>
+    private static double NiceStep(double rough)
+    {
+        if (rough <= 1) return 1;
+        var power = Math.Pow(10, Math.Floor(Math.Log10(rough)));
+        foreach (var m in new[] { 1.0, 2.0, 5.0, 10.0 })
+            if (m * power >= rough) return m * power;
+        return 10 * power;
     }
 }
 

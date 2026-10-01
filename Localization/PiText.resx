@@ -432,13 +432,13 @@
     <value>To come</value>
     <comment>PI tool, extractor chart: cycles still to come.</comment>
   </data>
-  <data name="ChartCycle" xml:space="preserve">
-    <value>Cycle</value>
-    <comment>PI tool, extractor chart, axis title.</comment>
-  </data>
   <data name="ChartUnits" xml:space="preserve">
     <value>Units</value>
     <comment>PI tool, extractor chart, axis title: units extracted per cycle.</comment>
+  </data>
+  <data name="ChartCycleWindow" xml:space="preserve">
+    <value>{0} – {1}</value>
+    <comment>PI tool, extractor timeline chart, the hover over one bar: the time window of that extraction cycle. {0} is its start date and time (e.g. "Oct 1, 13:23"), {1} its end time (e.g. "15:23"). Only the dash and spacing are translated.</comment>
   </data>
   <data name="SectionProcessors" xml:space="preserve">
     <value>Factories (estimated)</value>

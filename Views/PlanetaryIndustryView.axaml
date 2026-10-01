@@ -97,7 +97,7 @@
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
             <DataGridTextColumn Header="{x:Static loc:PiText.ColType}" Binding="{Binding PlanetType}" Width="80" SortMemberPath="PlanetType" />
-            <DataGridTextColumn Header="{x:Static loc:PiText.ColKind}" Binding="{Binding KindText}" Width="80" SortMemberPath="KindText" />
+            <DataGridTextColumn Header="{x:Static loc:PiText.ColKind}" Binding="{Binding KindText}" Width="Auto" MinWidth="80" SortMemberPath="KindText" />
             <DataGridTemplateColumn Header="{x:Static loc:PiText.ColCc}" Width="60" SortMemberPath="CcLevel"
                                     ClipboardContentBinding="{Binding CcLevelText}">
               <DataGridTemplateColumn.CellTemplate>
@@ -219,6 +219,7 @@
                         </StackPanel>
                         <lvc:CartesianChart Grid.Column="1" Height="170" IsVisible="{Binding HasChart}"
                                             Series="{Binding Series}" XAxes="{Binding XAxes}" YAxes="{Binding YAxes}"
+                                            Sections="{Binding Sections}"
                                             TooltipPosition="Top" LegendPosition="Hidden" />
                       </Grid>
                     </DataTemplate>
@@ -259,7 +260,7 @@
                           Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
                           CanUserReorderColumns="False">
                   <DataGrid.Columns>
-                    <DataGridTextColumn Header="{x:Static loc:PiText.ColPin}" Binding="{Binding KindText}" Width="110" />
+                    <DataGridTextColumn Header="{x:Static loc:PiText.ColPin}" Binding="{Binding KindText}" Width="Auto" MinWidth="110" />
                     <DataGridTemplateColumn Header="{x:Static loc:PiText.ColFill}" Width="130" SortMemberPath="Fill"
                                             ClipboardContentBinding="{Binding FillText}">
                       <DataGridTemplateColumn.CellTemplate>

@@ -325,11 +325,11 @@
   <data name="ChartAhead" xml:space="preserve">
     <value>Pendientes</value>
   </data>
-  <data name="ChartCycle" xml:space="preserve">
-    <value>Ciclo</value>
-  </data>
   <data name="ChartUnits" xml:space="preserve">
     <value>Unidades</value>
+  </data>
+  <data name="ChartCycleWindow" xml:space="preserve">
+    <value>{0} – {1}</value>
   </data>
   <data name="SectionProcessors" xml:space="preserve">
     <value>Fábricas (estimación)</value>
