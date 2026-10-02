@@ -28,9 +28,11 @@ public partial class EveMailView : UserControl
 
     private EveMailService GetSvc()
     {
+        // Every window that shows tools — the main one and those tabs are dragged out into — has
+        // the main view model as its DataContext.
         var win = TopLevel.GetTopLevel(this) as Window;
         if (win?.DataContext is MainWindowViewModel mwvm) return mwvm.MailSvc;
-        if (win is EveMailWindow eww)                    return eww.MailSvc;
+        if (MainWindow.Current?.DataContext is MainWindowViewModel main) return main.MailSvc;
         throw new InvalidOperationException("EveMailService not available.");
     }
 

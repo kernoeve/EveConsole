@@ -2929,6 +2929,9 @@ La aplicación se reiniciará.</value>
   <data name="ImportStageDogmaEffects" xml:space="preserve">
     <value>Efectos de Dogma</value>
   </data>
+  <data name="ImportStageDogmaEffectModifiers" xml:space="preserve">
+    <value>Modificadores de efectos de Dogma</value>
+  </data>
   <data name="ImportStageTypeDogma" xml:space="preserve">
     <value>Dogma de tipos</value>
   </data>
@@ -2937,6 +2940,12 @@ La aplicación se reiniciará.</value>
   </data>
   <data name="ImportStageTypeDogmaEffects" xml:space="preserve">
     <value>Efectos de Dogma de tipos</value>
+  </data>
+  <data name="ImportStageFighterAbilities" xml:space="preserve">
+    <value>Habilidades de cazas</value>
+  </data>
+  <data name="ImportStageFleetBoosts" xml:space="preserve">
+    <value>Bonificaciones de flota</value>
   </data>
   <data name="ImportStageBlueprints" xml:space="preserve">
     <value>Planos</value>

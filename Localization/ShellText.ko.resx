@@ -13,6 +13,9 @@
   <data name="NavGroupStructures" xml:space="preserve">
     <value>구조물 / 항법</value>
   </data>
+  <data name="NavGroupShips" xml:space="preserve">
+    <value>함선</value>
+  </data>
   <data name="NavGroupIndustry" xml:space="preserve">
     <value>산업</value>
   </data>
@@ -66,6 +69,9 @@
   </data>
   <data name="NavProductionCalc" xml:space="preserve">
     <value>생산 계산기</value>
+  </data>
+  <data name="NavFitting" xml:space="preserve">
+    <value>피팅</value>
   </data>
   <data name="NavPriceOverrides" xml:space="preserve">
     <value>가격 수동 지정</value>
@@ -153,6 +159,30 @@
   </data>
   <data name="TabUniverse" xml:space="preserve">
     <value>우주 지도</value>
+  </data>
+  <data name="DropToSplit" xml:space="preserve">
+    <value>여기에 놓으면 두 도구를 나란히 표시합니다</value>
+  </data>
+  <data name="DropToDetach" xml:space="preserve">
+    <value>놓으면 별도의 창에서 엽니다</value>
+  </data>
+  <data name="TipToggleNav" xml:space="preserve">
+    <value>탐색 표시/숨기기</value>
+  </data>
+  <data name="MenuCloseTab" xml:space="preserve">
+    <value>닫기</value>
+  </data>
+  <data name="MenuCloseOtherTabs" xml:space="preserve">
+    <value>다른 탭 닫기</value>
+  </data>
+  <data name="MenuCloseAllTabs" xml:space="preserve">
+    <value>모든 탭 닫기</value>
+  </data>
+  <data name="MenuCloseOtherTabsSide" xml:space="preserve">
+    <value>이쪽의 다른 탭 닫기</value>
+  </data>
+  <data name="MenuCloseAllTabsSide" xml:space="preserve">
+    <value>이쪽의 모든 탭 닫기</value>
   </data>
   <data name="TabAlarms" xml:space="preserve">
     <value>알람</value>

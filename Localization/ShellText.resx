@@ -16,6 +16,10 @@
     <value>Structures / Navigation</value>
     <comment>Navigation group.</comment>
   </data>
+  <data name="NavGroupShips" xml:space="preserve">
+    <value>Ships</value>
+    <comment>Navigation menu: the heading of the group holding the fitting tool. Short: a menu heading.</comment>
+  </data>
   <data name="NavGroupIndustry" xml:space="preserve">
     <value>Industry</value>
     <comment>Navigation group.</comment>
@@ -81,6 +85,10 @@
   </data>
   <data name="NavProductionCalc" xml:space="preserve">
     <value>Production Calc</value>
+  </data>
+  <data name="NavFitting" xml:space="preserve">
+    <value>Fitting</value>
+    <comment>Navigation menu, under Ships: the fitting tool, where a ship is fitted with modules and its figures worked out. Also its tab's title. Short: a menu entry.</comment>
   </data>
   <data name="NavPriceOverrides" xml:space="preserve">
     <value>Price Overrides</value>
@@ -175,6 +183,38 @@
   <data name="TabUniverse" xml:space="preserve">
     <value>Universe</value>
     <comment>Tab title for the Universe Map.</comment>
+  </data>
+  <data name="DropToSplit" xml:space="preserve">
+    <value>Drop here to see two tools side by side</value>
+    <comment>Main window: shown over the right half of the window while a tab is dragged; dropping the tab there splits the window in two, one tool per half.</comment>
+  </data>
+  <data name="DropToDetach" xml:space="preserve">
+    <value>Release to open in its own window</value>
+    <comment>Main window: shown over a tool while its tab is dragged down into it; letting go there opens the tool in a window of its own.</comment>
+  </data>
+  <data name="TipToggleNav" xml:space="preserve">
+    <value>Show or hide the navigation</value>
+    <comment>Main window, title bar: tooltip on the ☰ button that shows or hides the list of tools on the left.</comment>
+  </data>
+  <data name="MenuCloseTab" xml:space="preserve">
+    <value>Close</value>
+    <comment>Main window and windows of tabs: right-click menu on a tab. Closes the tab clicked.</comment>
+  </data>
+  <data name="MenuCloseOtherTabs" xml:space="preserve">
+    <value>Close other tabs</value>
+    <comment>Main window and windows of tabs: right-click menu on a tab. Closes every tab in the window except the one clicked (the Overview always stays).</comment>
+  </data>
+  <data name="MenuCloseAllTabs" xml:space="preserve">
+    <value>Close all tabs</value>
+    <comment>Main window and windows of tabs: right-click menu on a tab. Closes every tab in the window (the Overview always stays; a separate window closes).</comment>
+  </data>
+  <data name="MenuCloseOtherTabsSide" xml:space="preserve">
+    <value>Close other tabs on this side</value>
+    <comment>Main window and windows of tabs: right-click menu on a tab. When the window is split in two halves: closes every tab on the clicked tab's half except it.</comment>
+  </data>
+  <data name="MenuCloseAllTabsSide" xml:space="preserve">
+    <value>Close all tabs on this side</value>
+    <comment>Main window and windows of tabs: right-click menu on a tab. When the window is split in two halves: closes every tab on the clicked tab's half.</comment>
   </data>
   <data name="TabAlarms" xml:space="preserve">
     <value>Alarms</value>

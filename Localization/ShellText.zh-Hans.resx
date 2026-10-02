@@ -13,6 +13,9 @@
   <data name="NavGroupStructures" xml:space="preserve">
     <value>建筑 / 导航</value>
   </data>
+  <data name="NavGroupShips" xml:space="preserve">
+    <value>舰船</value>
+  </data>
   <data name="NavGroupIndustry" xml:space="preserve">
     <value>工业</value>
   </data>
@@ -66,6 +69,9 @@
   </data>
   <data name="NavProductionCalc" xml:space="preserve">
     <value>生产计算器</value>
+  </data>
+  <data name="NavFitting" xml:space="preserve">
+    <value>装配</value>
   </data>
   <data name="NavPriceOverrides" xml:space="preserve">
     <value>价格覆盖</value>
@@ -153,6 +159,30 @@
   </data>
   <data name="TabUniverse" xml:space="preserve">
     <value>星图</value>
+  </data>
+  <data name="DropToSplit" xml:space="preserve">
+    <value>拖放到此处以并排查看两个工具</value>
+  </data>
+  <data name="DropToDetach" xml:space="preserve">
+    <value>松开以在单独的窗口中打开</value>
+  </data>
+  <data name="TipToggleNav" xml:space="preserve">
+    <value>显示或隐藏导航</value>
+  </data>
+  <data name="MenuCloseTab" xml:space="preserve">
+    <value>关闭</value>
+  </data>
+  <data name="MenuCloseOtherTabs" xml:space="preserve">
+    <value>关闭其他标签页</value>
+  </data>
+  <data name="MenuCloseAllTabs" xml:space="preserve">
+    <value>关闭所有标签页</value>
+  </data>
+  <data name="MenuCloseOtherTabsSide" xml:space="preserve">
+    <value>关闭这一侧的其他标签页</value>
+  </data>
+  <data name="MenuCloseAllTabsSide" xml:space="preserve">
+    <value>关闭这一侧的所有标签页</value>
   </data>
   <data name="TabAlarms" xml:space="preserve">
     <value>警报</value>

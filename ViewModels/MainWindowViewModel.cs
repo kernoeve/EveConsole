@@ -233,6 +233,7 @@ public class MainWindowViewModel : ReactiveObject
     public IndustryOpportunitiesViewModel IndustryOpportunitiesVm { get; }
     public IndyParksViewModel             IndyParksVm            { get; }
     public ProductionCalculatorViewModel  ProductionCalcVm       { get; }
+    public FittingViewModel               FittingVm              { get; }
     public PriceOverrideViewModel         PriceOverrideVm        { get; }
     public StructureBrowserViewModel      StructureBrowserVm     { get; }
     public PlanetaryIndustryViewModel     PlanetaryIndustryVm    { get; }
@@ -682,26 +683,131 @@ public class MainWindowViewModel : ReactiveObject
     // ── Navigation ────────────────────────────────────────────────────────────
 
     public IReadOnlyList<NavGroup>       NavGroups { get; }
-    public ObservableCollection<ToolTab> OpenTabs  { get; } = new();
 
     private readonly NavItem[] _allNavItems;
 
-    private ToolTab? _selectedTab;
+    // ── Tabs: the main window's, and the windows tabs are dragged out into ───
+
+    /// <summary>The main window's tabs.</summary>
+    public TabWorkspace Main { get; } = new(isMain: true);
+
+    /// <summary>Every window a tab has been dragged out into, each with tabs of its own. The main
+    /// window opens a window for each one added and closes it when it is removed.</summary>
+    public ObservableCollection<TabWorkspace> Hosts { get; } = [];
+
+    public IEnumerable<TabWorkspace> Workspaces => Hosts.Prepend(Main);
+
+    // The main window's own, as it and the agent read them.
+    public ToolPane LeftPane  => Main.LeftPane;
+    public ToolPane RightPane => Main.RightPane;
+    public bool     IsSplit   => Main.IsSplit;
+    public ToolPane ActivePane { get => Main.ActivePane; set => Main.ActivePane = value; }
+    public ToolTab? OtherSideTab => Main.OtherSideTab;
+    /// <summary>The main window's tabs.</summary>
+    public IEnumerable<ToolTab> OpenTabs => Main.OpenTabs;
+    /// <summary>Every tab, in every window.</summary>
+    public IEnumerable<ToolTab> AllTabs  => Workspaces.SelectMany(w => w.OpenTabs);
+
+    /// <summary>The tool being worked in in the main window. Setting it shows a tab wherever it
+    /// is — bringing its window forward if that is not the main one.</summary>
     public ToolTab? SelectedTab
     {
-        get => _selectedTab;
-        set => this.RaiseAndSetIfChanged(ref _selectedTab, value);
+        get => Main.SelectedTab;
+        set { if (value is not null) Show(value); }
+    }
+
+    public TabWorkspace? WorkspaceOf(ToolTab tab) => Workspaces.FirstOrDefault(w => w.Contains(tab));
+    public ToolPane?     PaneOf(ToolTab tab)      => WorkspaceOf(tab)?.PaneOf(tab);
+
+    /// <summary>Asks the view to bring a window of tabs forward.</summary>
+    public event Action<TabWorkspace>? ShowWorkspaceRequested;
+
+    /// <summary>Shows <paramref name="tab"/> in whichever window holds it.</summary>
+    public void Show(ToolTab tab)
+    {
+        if (WorkspaceOf(tab) is not { } ws) return;
+        ws.SelectedTab = tab;
+        if (!ws.IsMain) ShowWorkspaceRequested?.Invoke(ws);
+        this.RaisePropertyChanged(nameof(SelectedTab));
+    }
+
+    /// <summary>
+    /// Puts <paramref name="tab"/> on <paramref name="to"/>, in this window or another, before
+    /// position <paramref name="index"/> (at the end when null). A window left with no tabs closes.
+    /// The Overview stays in the main window.
+    /// </summary>
+    public void MoveTab(ToolTab tab, ToolPane to, int? index = null)
+    {
+        if (WorkspaceOf(tab) is not { } from || to.Workspace is not { } dest) return;
+        if (from == dest) { from.Move(tab, to, index); return; }
+        if (!CanLeaveMain(tab) && !dest.IsMain) return;
+        from.Remove(tab);
+        dest.Add(tab, to, index);
+        DropIfEmpty(from);
+        this.RaisePropertyChanged(nameof(SelectedTab));
+    }
+
+    /// <summary>Any tool but the Overview can go to a window of its own.</summary>
+    public static bool CanLeaveMain(ToolTab tab) => tab.Id != "overview";
+
+    /// <summary>Takes <paramref name="tab"/> out into a window of its own; the view opens the window.</summary>
+    public TabWorkspace? DetachTab(ToolTab tab)
+    {
+        if (!CanLeaveMain(tab) || WorkspaceOf(tab) is not { } from) return null;
+        from.Remove(tab);
+        var ws = new TabWorkspace(isMain: false);
+        ws.Add(tab);
+        Hosts.Add(ws);
+        DropIfEmpty(from);
+        this.RaisePropertyChanged(nameof(SelectedTab));
+        return ws;
+    }
+
+    /// <summary>A window of tabs was closed: its tools close with it, as closing a tab does.</summary>
+    public void CloseWorkspace(TabWorkspace ws)
+    {
+        if (ws.IsMain) return;
+        foreach (var tab in ws.OpenTabs.ToList())
+        {
+            ws.Remove(tab);
+            var navItem = _allNavItems.FirstOrDefault(i => i.ToolId == tab.Id);
+            if (navItem is not null) navItem.IsOpen = false;
+        }
+        Hosts.Remove(ws);
+    }
+
+    private void DropIfEmpty(TabWorkspace ws)
+    {
+        if (!ws.IsMain && ws.IsEmpty) Hosts.Remove(ws);
     }
 
     public ReactiveCommand<string,  Unit> OpenToolCommand { get; }
     public ReactiveCommand<ToolTab, Unit> CloseTabCommand { get; }
 
+    private const string NavVisibleKey = "nav.visible";
+    private bool _isNavVisible = ReadNavVisible();
+    private static bool ReadNavVisible() { try { return UiState.GetBool(NavVisibleKey, true); } catch { return true; } }
+
+    /// <summary>The navigation on the left, hidden to give the tools the width. Remembered on this
+    /// machine; the button at the left of the title bar brings it back.</summary>
+    public bool IsNavVisible
+    {
+        get => _isNavVisible;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _isNavVisible, value);
+            try { UiState.SetBool(NavVisibleKey, value); } catch { }
+        }
+    }
+    public ReactiveCommand<Unit, Unit> ToggleNavCommand => _toggleNav ??= ReactiveCommand.Create(() => { IsNavVisible = !IsNavVisible; });
+    private ReactiveCommand<Unit, Unit>? _toggleNav;
+
     public void OpenTool(string toolId)
     {
-        var existing = OpenTabs.FirstOrDefault(t => t.Id == toolId);
+        var existing = AllTabs.FirstOrDefault(t => t.Id == toolId);
         if (existing is not null)
         {
-            SelectedTab = existing;
+            Show(existing);
             // Returning to an already-open tab has to refresh too, or an alarm that fired while
             // the tab sat in the background shows nothing until something else triggers a load.
             if (toolId == "alarms")    _ = AlarmsVm.LoadAsync();
@@ -722,6 +828,7 @@ public class MainWindowViewModel : ReactiveObject
             "industry"   => (ShellText.NavIndustryJobs,   IndustryBrowserVm,        true),
             "indy_parks" => (ShellText.NavIndyParks,      IndyParksVm,              true),
             "prod_calc"  => (ShellText.NavProductionCalc, ProductionCalcVm,         true),
+            "fitting"    => (ShellText.NavFitting,        FittingVm,                true),
             "price_overrides" => (ShellText.NavPriceOverrides, PriceOverrideVm,     true),
             "structure_browser" => (ShellText.NavStructureBrowser, StructureBrowserVm, true),
             "planetary_industry" => (ShellText.NavPlanetaryIndustry, PlanetaryIndustryVm, true),
@@ -768,8 +875,8 @@ public class MainWindowViewModel : ReactiveObject
         // not a visibility check — see IPeriodicRefresh.
         if (vm is IPeriodicRefresh periodic) periodic.AutoRefreshEnabled = true;
         var tab = new ToolTab(toolId, title, vm, canClose);
-        OpenTabs.Add(tab);
-        SelectedTab = tab;
+        Main.Add(tab);
+        this.RaisePropertyChanged(nameof(SelectedTab));
 
         // Loaded on open rather than at construction — nothing else needs the alarm list, and
         // a fresh read also picks up anything the agent created since the tab was last shown.
@@ -816,51 +923,39 @@ public class MainWindowViewModel : ReactiveObject
     /// open — an empty one of these would have no content and no reason to exist.</para>
     ///
     /// <para>⚠️ Marshalled to the UI thread by the caller's Dispatcher.Invoke. Agent tools run on
-    /// a background thread and OpenTabs is bound to the tab strip.</para>
+    /// a background thread and the panes' tabs are bound to the tab strips.</para>
     /// </summary>
     public string OpenAgentTab(string title, object viewModel)
     {
         var id  = AgentTabPrefix + Interlocked.Increment(ref _agentTabCounter);
         var tab = new ToolTab(id, title, viewModel, canClose: true);
-        OpenTabs.Add(tab);
-        SelectedTab = tab;
+        Main.Add(tab);
+        this.RaisePropertyChanged(nameof(SelectedTab));
         return id;
     }
 
     public void CloseTab(ToolTab tab)
     {
-        if (!tab.CanClose) return;
-        bool wasSelected = SelectedTab == tab;
-        OpenTabs.Remove(tab);
+        if (!tab.CanClose || WorkspaceOf(tab) is not { } ws) return;
+        ws.Remove(tab);
 
         var navItem = _allNavItems.FirstOrDefault(i => i.ToolId == tab.Id);
         if (navItem is not null) navItem.IsOpen = false;
-
-        if (wasSelected)
-            SelectedTab = OpenTabs.FirstOrDefault(t => t.Id == "overview") ?? OpenTabs.FirstOrDefault();
+        DropIfEmpty(ws);
+        this.RaisePropertyChanged(nameof(SelectedTab));
     }
 
-    // Called when a tab is detached into a floating window — removes it from the
-    // strip but keeps the nav-item dot lit (the tool is still "open").
-    public void MarkToolDetached(string toolId)
+    /// <summary>
+    /// Closes the tabs on <paramref name="tab"/>'s side of its window — the whole window when it is
+    /// not split — all of them, or all but <paramref name="tab"/>. The Overview stays; a window of
+    /// tabs left with none closes.
+    /// </summary>
+    public void CloseTabsBeside(ToolTab tab, bool keepIt)
     {
-        var tab = OpenTabs.FirstOrDefault(t => t.Id == toolId);
-        if (tab is not null)
-        {
-            bool wasSelected = SelectedTab == tab;
-            OpenTabs.Remove(tab);
-            if (wasSelected)
-                SelectedTab = OpenTabs.FirstOrDefault(t => t.Id == "overview") ?? OpenTabs.FirstOrDefault();
-        }
-        var navItem = _allNavItems.FirstOrDefault(i => i.ToolId == toolId);
-        if (navItem is not null) navItem.IsOpen = true;
-    }
-
-    // Called when a detached window closes — extinguishes the nav-item dot.
-    public void MarkToolReattached(string toolId)
-    {
-        var navItem = _allNavItems.FirstOrDefault(i => i.ToolId == toolId);
-        if (navItem is not null) navItem.IsOpen = false;
+        if (WorkspaceOf(tab) is not { } ws || ws.PaneOf(tab) is not { } pane) return;
+        foreach (var t in pane.Tabs.Where(t => t.CanClose && !(keepIt && t == tab)).ToList())
+            CloseTab(t);
+        if (keepIt) Show(tab);
     }
 
     // ── Constructor ───────────────────────────────────────────────────────────
@@ -951,6 +1046,9 @@ public class MainWindowViewModel : ReactiveObject
         ScheduledBlockRenderer          blockRenderer,
         EveConsole.Services.Pi.PiService piService)
     {
+        // The main window's selection, as those who ask the main view model for it see it.
+        Main.WhenAnyValue(w => w.SelectedTab).Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedTab)));
+
         AlarmActions = alarmActions;
         _uiLinks        = uiLinks;
         OtherSettingsVm = new OtherSettingsViewModel(uiLinks);
@@ -1000,14 +1098,19 @@ public class MainWindowViewModel : ReactiveObject
         NetWorthVm        = new NetWorthViewModel(dbFactory);
         IncomeExpenseVm   = new IncomeExpenseViewModel(dbFactory, errorLogger);
         MarketVm          = new MarketSettingsViewModel(dbFactory.CreateDbContext(), dbFactory, marketPricing, esi, CharacterVm.Characters, buildCostService);
-        var fittingsService = new FittingsService(esi, dbFactory);
+        var fittingsService = new FittingsService(esi);
+        FittingVm         = new FittingViewModel(dbFactory, fittingsService, CharacterVm.Characters, esi);
+        // When an SDE import finishes — by hand, or the one a schema change starts by itself — the
+        // fitting tool reads the new game data; one that loaded during the import gets its second try.
+        SdeVm.WhenAnyValue(x => x.IsBusy).Skip(1).Where(busy => !busy)
+            .Subscribe(idle => _ = FittingVm.ReloadGameDataAsync());
         MarketLevelVm     = new MarketLevelViewModel(marketLevelService, dbFactory, fittingsService,
-            CharacterVm.Characters, CharacterVm.Corporations, batchAddService, prodCalcService);
+            CharacterVm.Characters, batchAddService, prodCalcService);
         // appPrefs is the constructor parameter, not the AppPrefs property — that is not assigned
         // until far below this line, and passing it here handed the view model a null.
         InvLevelVm        = new InvLevelViewModel(invLevelService, dbFactory, appPrefs,
             batchAddService, prodCalcService, fittingsService,
-            CharacterVm.Characters, CharacterVm.Corporations);
+            CharacterVm.Characters);
         SalePostingVm     = new SalePostingViewModel(salePostingService, dbFactory, batchAddService, slackService, exportFormat, discordService);
         StoresVm          = new StoresViewModel(dbFactory, salePostingService, storeMailService, orderLabels, errorLogger, webStoreSync, workerLease, cloudflareDeploy);
 
@@ -1293,25 +1396,29 @@ public class MainWindowViewModel : ReactiveObject
 
         NavGroup[] groups =
         [
-            new(ShellText.NavGroupGeneral,
+            new("general", ShellText.NavGroupGeneral,
             [
                 new NavItem("overview",    ShellText.NavOverview),
                 new NavItem("worklist",    ShellText.NavWorklist),
                 new NavItem("characters",  ShellText.NavCharacters),
             ]),
-            new(ShellText.NavGroupAssets,
+            new("assets", ShellText.NavGroupAssets,
             [
                 new NavItem("assets",     ShellText.NavAssets),
                 new NavItem("items",      ShellText.NavItemBrowser),
                 new NavItem("inv_levels", ShellText.NavInventoryLevels),
             ]),
-            new(ShellText.NavGroupStructures,
+            new("ships", ShellText.NavGroupShips,
+            [
+                new NavItem("fitting", ShellText.NavFitting),
+            ]),
+            new("structures", ShellText.NavGroupStructures,
             [
                 new NavItem("structure_browser", ShellText.NavStructureBrowser),
                 new NavItem("universe",          ShellText.NavUniverseMap),
                 new NavItem("jump_planner",      ShellText.NavJumpPlanner),
             ]),
-            new(ShellText.NavGroupIndustry,
+            new("industry", ShellText.NavGroupIndustry,
             [
                 new NavItem("industry",      ShellText.NavIndustryJobs),
                 new NavItem("indy_parks",    ShellText.NavIndyParks),
@@ -1320,7 +1427,7 @@ public class MainWindowViewModel : ReactiveObject
                 new NavItem("price_overrides", ShellText.NavPriceOverrides),
                 new NavItem("industry_opps", ShellText.NavIndustryOpportunities),
             ]),
-            new(ShellText.NavGroupMarket,
+            new("market", ShellText.NavGroupMarket,
             [
                 new NavItem("market_viewer", ShellText.NavMarketOverview),
                 new NavItem("item_valuation", ShellText.NavItemValuation),
@@ -1334,25 +1441,25 @@ public class MainWindowViewModel : ReactiveObject
                 new NavItem("sale_posting",  ShellText.NavSalePosting),
                 new NavItem("stores",        ShellText.NavStores),
             ]),
-            new(ShellText.NavGroupFinance,
+            new("finance", ShellText.NavGroupFinance,
             [
                 new NavItem("net_worth",     ShellText.NavNetWorth),
                 new NavItem("income_expense",ShellText.NavIncomeExpense),
                 new NavItem("wallet",        ShellText.NavWallet),
             ]),
-            new(ShellText.NavGroupCorp,
+            new("corp", ShellText.NavGroupCorp,
             [
                 new NavItem("corp_activity", ShellText.NavCorpActivity),
                 new NavItem("killmails",     ShellText.NavKillmails),
                 new NavItem("player_entities", ShellText.NavPlayerEntities),
                 new NavItem("npc_entities",    ShellText.NavNpcEntities),
             ]),
-            new(ShellText.NavGroupCommunication,
+            new("communication", ShellText.NavGroupCommunication,
             [
                 new NavItem("eve_mail", ShellText.NavEveMail),
                 new NavItem("notifications", ShellText.NavNotifications),
             ]),
-            new(ShellText.NavGroupData,
+            new("data", ShellText.NavGroupData,
             [
                 // Alarms is reached from the alarm light beside the settings gear, not from
                 // here — it is a status indicator first and a tool second.

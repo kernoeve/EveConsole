@@ -1345,6 +1345,24 @@ public class EsiClient
         catch (Exception ex) { return (0, ex.Message, null); }
     }
 
+    /// <summary>Authenticated DELETE. Returns the status code, 0 when nothing was sent or the call failed.</summary>
+    internal async Task<int> DeleteAuthAsync(long characterId, string path, CancellationToken ct)
+    {
+        try
+        {
+            var token = await EnsureValidTokenAsync(characterId, ct);
+            using var request = new HttpRequestMessage(HttpMethod.Delete, path);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.AccessToken);
+
+            HttpResponseMessage response;
+            using (await AcquireSlotAsync(ct))
+                response = await _http.SendAsync(request, ct);
+            return (int)response.StatusCode;
+        }
+        catch (OperationCanceledException) { throw; }
+        catch { return 0; }
+    }
+
     /// <summary>
     /// Authenticated PUT with JSON body. Returns true on 2xx.
     /// </summary>

@@ -217,9 +217,6 @@
   <data name="FitBadgePersonal" xml:space="preserve">
     <value>Л</value>
   </data>
-  <data name="FitBadgeCorp" xml:space="preserve">
-    <value>К</value>
-  </data>
   <data name="FetchingFits" xml:space="preserve">
     <value>Загрузка оснасток из ESI…</value>
   </data>

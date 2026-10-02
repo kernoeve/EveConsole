@@ -1,0 +1,380 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:EveConsole.ViewModels"
+             xmlns:fit="using:EveConsole.Services.Fitting"
+             xmlns:ctl="using:EveConsole.Controls"
+             xmlns:views="using:EveConsole.Views"
+             xmlns:loc="using:EveConsole.Localization"
+             xmlns:sys="clr-namespace:System;assembly=System.Runtime"
+             x:Class="EveConsole.Views.FitTabView"
+             x:DataType="vm:FitTabViewModel"
+             DragDrop.AllowDrop="True">
+
+  <!-- Styled by the fitting tool it sits in (FittingView). Items from the finder are dropped on a
+       slot, on the ring or in the list (see the code-behind); a row being dropped on is marked. -->
+  <UserControl.Styles>
+    <Style Selector="Border.droptarget">
+      <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}" />
+    </Style>
+  </UserControl.Styles>
+
+  <!-- One fit: hull and pilot, the ring and the module list, and its numbers. -->
+  <Grid ColumnDefinitions="*,340" Background="{DynamicResource SurfaceBaseBrush}">
+    <DockPanel Grid.Column="0" Margin="14 10">
+
+      <!-- Hull, name, pilot -->
+      <!-- Two rows so it still fits at half width, beside another fit. -->
+      <Grid DockPanel.Dock="Top" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" Margin="0 0 0 8">
+        <Border Grid.RowSpan="3" Width="64" Height="64" Margin="0 0 12 0" CornerRadius="3" VerticalAlignment="Top"
+                Background="{DynamicResource SurfaceRaisedBrush}">
+          <Image Source="{Binding ShipIcon}" Width="64" Height="64" />
+        </Border>
+        <DockPanel Grid.Column="1" Margin="0 0 0 6">
+          <ComboBox DockPanel.Dock="Right" ItemsSource="{Binding SkillSources}" SelectedItem="{Binding SelectedSkillSource}"
+                    MinWidth="150" FontSize="12" ToolTip.Tip="{x:Static loc:FittingText.TipPilot}" />
+          <TextBlock DockPanel.Dock="Right" Text="{x:Static loc:FittingText.PilotLabel}" Classes="section" Margin="8 0 6 0" VerticalAlignment="Center" />
+          <!-- A tactical destroyer's mode; only for hulls that have them. -->
+          <ComboBox DockPanel.Dock="Right" ItemsSource="{Binding Modes}" SelectedItem="{Binding SelectedMode}" IsVisible="{Binding HasModes}"
+                    MinWidth="150" FontSize="12" ToolTip.Tip="{x:Static loc:FittingText.TipMode}" />
+          <TextBlock DockPanel.Dock="Right" Text="{x:Static loc:FittingText.ModeLabel}" Classes="section" Margin="8 0 6 0" VerticalAlignment="Center"
+                     IsVisible="{Binding HasModes}" />
+          <TextBlock Text="{Binding ShipName}" Classes="big" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+        </DockPanel>
+        <Grid Grid.Row="1" Grid.Column="1">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" MaxWidth="360" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+          </Grid.ColumnDefinitions>
+          <TextBox Text="{Binding FitName}" Watermark="{x:Static loc:FittingText.FitNameWatermark}" FontSize="12" />
+          <Button Grid.Column="1" Classes="tool" Content="{x:Static loc:FittingText.CopyEft}" Command="{Binding CopyEftCommand}" Margin="6 0 0 0"
+                  ToolTip.Tip="{x:Static loc:FittingText.TipCopyEft}" />
+          <!-- Save writes back where the fit came from, without asking; Save As asks where. -->
+          <Button Grid.Column="2" Classes="tool" Content="{x:Static loc:FittingText.SaveFit}" Command="{Binding SaveCommand}" Margin="6 0 0 0"
+                  ToolTip.Tip="{x:Static loc:FittingText.TipSaveFit}" ToolTip.ShowOnDisabled="True" />
+          <Button Grid.Column="3" Classes="tool" Content="{x:Static loc:FittingText.SaveFitAs}" Command="{Binding SaveAsCommand}" Margin="6 0 0 0"
+                  ToolTip.Tip="{x:Static loc:FittingText.TipSaveFitAs}" />
+        </Grid>
+        <!-- Where Save writes: EVE Console, a character's fittings in the game, or nowhere yet. -->
+        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding SaveLocationText}" FontSize="11" Margin="0 4 0 0"
+                   Foreground="{DynamicResource InfoBrush}" ToolTip.Tip="{Binding GameSourceText}" />
+      </Grid>
+
+      <Grid RowDefinitions="3*,Auto,2*">
+        <!-- The ring: slots around the hull, as in the game. Click a module to switch it,
+             right-click for more; click an empty slot to look for something to put there. -->
+        <ctl:FittingCanvas Grid.Row="0" x:Name="Ring" MinHeight="260" MaxSlotSize="40"
+                           Slots="{Binding RingSlots}" HullRender="{Binding ShipRender}"
+                           SelectedTag="{Binding SelectedModule}" SlotClickedCommand="{Binding RingSlotClickedCommand}" />
+        <GridSplitter Grid.Row="1" Height="5" Background="{DynamicResource BorderSubtleBrush}" ResizeDirection="Rows" />
+      <ScrollViewer Grid.Row="2">
+        <StackPanel>
+          <ItemsControl ItemsSource="{Binding SlotGroups}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:FittingSlotGroupVm">
+                <StackPanel Margin="0 0 0 6">
+                  <TextBlock Text="{Binding Title}" Classes="section" Classes.over="{Binding Over}" />
+                  <ItemsControl ItemsSource="{Binding Rows}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:FittingModuleRowVm">
+                        <Border Background="Transparent" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="0 0 0 1"
+                                Padding="2 3" PointerPressed="OnRowPressed">
+                          <Panel>
+                            <TextBlock Text="{Binding EmptyText}" IsVisible="{Binding IsEmpty}" FontSize="11"
+                                       Foreground="{DynamicResource TextFaintBrush}" Margin="78 4 0 4" />
+                            <Grid ColumnDefinitions="Auto,Auto,*,Auto,70,Auto" IsVisible="{Binding !IsEmpty}">
+                              <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="3" Width="74" VerticalAlignment="Center">
+                                <Button Classes="state" IsVisible="{Binding CanToggle}"
+                                        Classes.off="{Binding IsOff}" Classes.active="{Binding IsActive}" Classes.heated="{Binding IsHeated}"
+                                        Content="{Binding StateLabel}" ToolTip.Tip="{Binding StateTip}"
+                                        Command="{Binding CycleStateCommand}" />
+                                <!-- Overheat is its own switch, as in the game; shown only where the
+                                     module can be overheated. -->
+                                <Button Classes="heat" Classes.on="{Binding IsHeated}" IsVisible="{Binding CanOverheat}"
+                                        Content="{x:Static loc:FittingText.HeatButton}" ToolTip.Tip="{Binding HeatTip}" Command="{Binding HeatCommand}" />
+                              </StackPanel>
+                              <Image Grid.Column="1" Source="{Binding Icon}" Width="32" Height="32" Margin="6 0" />
+                              <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding DisplayName}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}"
+                                           TextTrimming="CharacterEllipsis" />
+                                <TextBlock Text="{Binding Detail}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap" />
+                              </StackPanel>
+                              <ComboBox Grid.Column="3" IsVisible="{Binding HasCharges}" ItemsSource="{Binding Charges}"
+                                        SelectedItem="{Binding Charge}" PlaceholderText="{x:Static loc:FittingText.NoCharge}" MinWidth="200" MaxWidth="260"
+                                        FontSize="11" VerticalAlignment="Center" Margin="6 0" />
+                              <TextBlock Grid.Column="4" Text="{Binding Price}" FontSize="11" HorizontalAlignment="Right"
+                                         VerticalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}"
+                                         ToolTip.Tip="{x:Static loc:FittingText.TipModuleValue}" />
+                              <Button Grid.Column="5" Classes="remove" Content="✕" Command="{Binding RemoveCommand}"
+                                      ToolTip.Tip="{x:Static loc:FittingText.Remove}" VerticalAlignment="Center" />
+                            </Grid>
+                          </Panel>
+                        </Border>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <TextBlock Text="{x:Static loc:FittingText.DronesHeading}" Classes="section" IsVisible="{Binding HasShip}" />
+          <ItemsControl ItemsSource="{Binding Drones}">
+            <ItemsControl.ItemTemplate>
+              <!-- A drone stack (in the bay, launched), or a fighter squadron (its size, whether it
+                   is in a tube, and its abilities underneath). -->
+              <DataTemplate x:DataType="vm:FittingDroneRowVm">
+                <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="0 0 0 1" Padding="2 3">
+                  <StackPanel>
+                    <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto,70,Auto">
+                      <Image Grid.Column="0" Source="{Binding Icon}" Width="32" Height="32" Margin="78 0 6 0" />
+                      <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding DisplayName}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" />
+                        <!-- A squadron's line runs long (abilities, speed, propulsion): wrapped, not cut off. -->
+                        <TextBlock Text="{Binding Detail}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
+                                   IsVisible="{Binding Detail, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                      </StackPanel>
+
+                      <TextBlock Grid.Column="2" Text="{x:Static loc:FittingText.InBay}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" Margin="6 0 4 0"
+                                 IsVisible="{Binding !IsFighter}" />
+                      <NumericUpDown Grid.Column="3" Value="{Binding CountValue}" Minimum="1" Maximum="500" Increment="1"
+                                     FormatString="0" Width="56" FontSize="11" IsVisible="{Binding !IsFighter}" />
+                      <TextBlock Grid.Column="4" Text="{x:Static loc:FittingText.Launched}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" Margin="8 0 4 0"
+                                 IsVisible="{Binding !IsFighter}" />
+                      <NumericUpDown Grid.Column="5" Value="{Binding ActiveValue}" Minimum="0" Maximum="500" Increment="1"
+                                     FormatString="0" Width="56" FontSize="11" IsVisible="{Binding !IsFighter}" />
+
+                      <TextBlock Grid.Column="2" Text="{Binding ClassLabel}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" Margin="6 0 4 0"
+                                 IsVisible="{Binding IsFighter}" />
+                      <NumericUpDown Grid.Column="3" Value="{Binding CountValue}" Minimum="1" Maximum="{Binding MaxSquadron}" Increment="1"
+                                     FormatString="0" Width="56" FontSize="11" IsVisible="{Binding IsFighter}"
+                                     ToolTip.Tip="{Binding SquadronTip}" />
+                      <CheckBox Grid.Column="5" IsChecked="{Binding Launched}" Content="{x:Static loc:FittingText.InTube}" FontSize="10" Margin="8 0 0 0"
+                                Foreground="{DynamicResource TextMutedBrush}" IsVisible="{Binding IsFighter}"
+                                ToolTip.Tip="{x:Static loc:FittingText.TipInTube}" />
+
+                      <TextBlock Grid.Column="6" Text="{Binding Price}" FontSize="11" HorizontalAlignment="Right"
+                                 VerticalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}"
+                                 ToolTip.Tip="{x:Static loc:FittingText.TipStackValue}" />
+                      <Button Grid.Column="7" Classes="remove" Content="✕" Command="{Binding RemoveCommand}" ToolTip.Tip="{x:Static loc:FittingText.Remove}" />
+                    </Grid>
+                    <ItemsControl ItemsSource="{Binding Abilities}" IsVisible="{Binding IsFighter}" Margin="116 2 0 1">
+                      <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate><WrapPanel Orientation="Horizontal" /></ItemsPanelTemplate>
+                      </ItemsControl.ItemsPanel>
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:FighterAbilityToggleVm">
+                          <ToggleButton Classes="ability" Classes.damage="{Binding DealsDamage}" Content="{Binding Label}"
+                                        IsChecked="{Binding IsOn}" ToolTip.Tip="{Binding Tip}" Margin="0 0 4 2" />
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </StackPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <TextBlock Text="{x:Static loc:FittingText.CargoHeading}" Classes="section" IsVisible="{Binding HasShip}" />
+          <ItemsControl ItemsSource="{Binding Cargo}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:FittingCargoRowVm">
+                <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="0 0 0 1" Padding="2 3">
+                  <Grid ColumnDefinitions="Auto,*,Auto,Auto,70,Auto">
+                    <Image Grid.Column="0" Source="{Binding Icon}" Width="32" Height="32" Margin="78 0 6 0" />
+                    <TextBlock Grid.Column="1" Text="{Binding DisplayName}" FontSize="12" VerticalAlignment="Center"
+                               Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Grid.Column="2" Text="{x:Static loc:FittingText.Quantity}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" Margin="6 0 4 0" />
+                    <NumericUpDown Grid.Column="3" Value="{Binding QuantityValue}" Minimum="1" Maximum="1000000000" Increment="1"
+                                   FormatString="N0" Width="130" FontSize="11" />
+                    <TextBlock Grid.Column="4" Text="{Binding Price}" FontSize="11" HorizontalAlignment="Right"
+                               VerticalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}"
+                               ToolTip.Tip="{x:Static loc:FittingText.TipStackValue}" />
+                    <Button Grid.Column="5" Classes="remove" Content="✕" Command="{Binding RemoveCommand}" ToolTip.Tip="{x:Static loc:FittingText.Remove}" />
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <TextBlock Text="{x:Static loc:FittingText.ImplantsHeading}" Classes="section" IsVisible="{Binding HasShip}" />
+          <ItemsControl ItemsSource="{Binding Implants}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:FittingImplantRowVm">
+                <Grid ColumnDefinitions="*,Auto,Auto" Margin="78 2 0 2">
+                  <TextBlock Grid.Column="0" Text="{Binding DisplayName}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
+                  <TextBlock Grid.Column="1" Text="{Binding Kind}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" Margin="8 0" VerticalAlignment="Center" />
+                  <Button Grid.Column="2" Classes="remove" Content="✕" Command="{Binding RemoveCommand}" ToolTip.Tip="{x:Static loc:FittingText.Remove}" />
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <!-- Fleet boosts: its own bursts, and any number of other fits boosting it — their bursts
+               (the strongest of each bonus applies, as in game) and their remote repairs and
+               capacitor (which add up). Each booster with its own pilot. -->
+          <TextBlock Text="{x:Static loc:FittingText.BoostsHeading}" Classes="section" IsVisible="{Binding HasShip}"
+                     ToolTip.Tip="{x:Static loc:FittingText.TipAddBooster}" />
+          <CheckBox IsChecked="{Binding BoostsItself}" Content="{x:Static loc:FittingText.BoostSelf}" IsVisible="{Binding HasOwnBursts}"
+                    FontSize="11" Margin="78 2 0 2" Foreground="{DynamicResource TextMutedBrush}" ToolTip.Tip="{x:Static loc:FittingText.TipBoostSelf}" />
+          <ItemsControl ItemsSource="{Binding Boosters}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:BoosterRowVm">
+                <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" Margin="78 2 0 2">
+                  <CheckBox Grid.Column="0" IsChecked="{Binding IsOn}" VerticalAlignment="Center" />
+                  <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                  <TextBlock Grid.Column="2" Text="{Binding Owner}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" Margin="8 0" VerticalAlignment="Center" />
+                  <ComboBox Grid.Column="3" ItemsSource="{Binding Pilots}" SelectedItem="{Binding Pilot}" MinWidth="140" FontSize="11"
+                            VerticalAlignment="Center" ToolTip.Tip="{x:Static loc:FittingText.TipBoosterPilot}" />
+                  <Button Grid.Column="4" Classes="remove" Content="✕" Command="{Binding RemoveCommand}" ToolTip.Tip="{x:Static loc:FittingText.Remove}" />
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <Button Classes="tool" Content="{x:Static loc:FittingText.AddBooster}" Command="{Binding AddBoosterCommand}" IsVisible="{Binding HasShip}"
+                  ToolTip.Tip="{x:Static loc:FittingText.TipAddBooster}" Margin="78 4 0 4" HorizontalAlignment="Left" />
+          <ItemsControl ItemsSource="{Binding BoostLines}" IsVisible="{Binding HasBoostLines}" Margin="78 2 0 8">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="sys:String">
+                <TextBlock Text="{Binding}" FontSize="11" Foreground="{DynamicResource InfoBrush}" TextWrapping="Wrap" />
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </ScrollViewer>
+      </Grid>
+    </DockPanel>
+
+    <!-- ══ Stats ════════════════════════════════════════════════════════════ -->
+    <Border Grid.Column="1" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1 0 0 0" Padding="12 4 12 10">
+      <ScrollViewer>
+        <StackPanel IsVisible="{Binding HasStats}">
+
+          <TextBlock Text="{x:Static loc:FittingText.ResourcesHeading}" Classes="section" />
+          <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
+            <TextBlock Grid.Row="0" Text="{x:Static loc:FittingText.Cpu}" Classes="line" />
+            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding CpuText}" Classes="line" Classes.over="{Binding CpuOver}" HorizontalAlignment="Right" />
+            <ProgressBar Grid.Row="1" Grid.ColumnSpan="2" Value="{Binding CpuFraction}" Classes.over="{Binding CpuOver}" Margin="0 1 0 5" />
+            <TextBlock Grid.Row="2" Text="{x:Static loc:FittingText.Powergrid}" Classes="line" />
+            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding PowerText}" Classes="line" Classes.over="{Binding PowerOver}" HorizontalAlignment="Right" />
+            <ProgressBar Grid.Row="3" Grid.ColumnSpan="2" Value="{Binding PowerFraction}" Classes.over="{Binding PowerOver}" Margin="0 1 0 5" />
+            <TextBlock Grid.Row="4" Text="{x:Static loc:FittingText.Calibration}" Classes="line" />
+            <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding CalibText}" Classes="line" Classes.over="{Binding CalibOver}" HorizontalAlignment="Right" />
+            <ProgressBar Grid.Row="5" Grid.ColumnSpan="2" Value="{Binding CalibFraction}" Classes.over="{Binding CalibOver}" Margin="0 1 0 5" />
+          </Grid>
+          <TextBlock Text="{Binding HardpointsText}" Classes="line" Classes.over="{Binding HardpointsOver}" />
+          <TextBlock Text="{Binding DroneText}" Classes="line" Classes.over="{Binding DroneOver}" IsVisible="{Binding HasDroneBay}" />
+          <TextBlock Text="{Binding FighterText}" Classes="line" Classes.over="{Binding FighterOver}" IsVisible="{Binding HasFighterBay}" />
+          <TextBlock Text="{Binding CargoText}" Classes="line" Classes.over="{Binding CargoOver}" />
+
+          <TextBlock Text="{x:Static loc:FittingText.ValueHeading}" Classes="section" />
+          <TextBlock Text="{Binding ValueText}" Classes="big" />
+          <TextBlock Text="{Binding ValueBreakdown}" Classes="line" />
+          <TextBlock Text="{Binding ValueBasis}" Classes="line" Foreground="{DynamicResource TextFaintBrush}" />
+
+          <TextBlock Text="{x:Static loc:FittingText.OffenseHeading}" Classes="section" />
+          <TextBlock Text="{Binding DpsText}" Classes="big" />
+          <TextBlock Text="{Binding DpsSplitText}" Classes="line" ToolTip.Tip="{Binding DpsSplitTip}" />
+          <TextBlock Text="{Binding DamageTypesText}" Classes="line" />
+          <TextBlock Text="{Binding DpsExtraText}" Classes="line" ToolTip.Tip="{x:Static loc:FittingText.TipDpsReloads}"
+                     IsVisible="{Binding DpsExtraText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+          <TextBlock Text="{Binding NeutText}" Classes="line"
+                     IsVisible="{Binding NeutText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+          <!-- Doomsdays, lances, bombs and breacher pods: once in a long while, or to an area, so not DPS. -->
+          <TextBlock Text="{Binding StrikesText}" Classes="line" TextWrapping="Wrap" Margin="0 4 0 0"
+                     IsVisible="{Binding StrikesText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+          <TextBlock Text="{x:Static loc:FittingText.MiningHeading}" Classes="section" IsVisible="{Binding HasMining}" />
+          <TextBlock Text="{Binding MiningText}" Classes="line" IsVisible="{Binding HasMining}" TextWrapping="Wrap"
+                     ToolTip.Tip="{x:Static loc:FittingText.TipMining}" />
+
+          <TextBlock Text="{x:Static loc:FittingText.DefenseHeading}" Classes="section" />
+          <!-- The damage the tank is judged against, and a Reactive Armor Hardener adapts to. Even damage unless chosen; remembered. -->
+          <Grid ColumnDefinitions="Auto,*" Margin="0 0 0 6">
+            <TextBlock Text="{x:Static loc:FittingText.Against}" Classes="line" VerticalAlignment="Center" Margin="0 0 8 0" />
+            <ComboBox Grid.Column="1" ItemsSource="{Binding DamageProfiles}" SelectedItem="{Binding SelectedProfile}"
+                      HorizontalAlignment="Stretch" FontSize="11" ToolTip.Tip="{x:Static loc:FittingText.TipAgainst}" />
+          </Grid>
+          <Grid ColumnDefinitions="*,*,*,*" Margin="0 0 0 6" IsVisible="{Binding IsCustomProfile}"
+                ToolTip.Tip="{x:Static loc:FittingText.TipCustomProfile}">
+            <StackPanel Grid.Column="0" Margin="0 0 4 0">
+              <TextBlock Text="{x:Static loc:FittingText.DamageEm}" Classes="line" />
+              <NumericUpDown Value="{Binding CustomEm}" Minimum="0" Maximum="100000" Increment="5" FormatString="0.#" FontSize="11"
+                             ShowButtonSpinner="False" Padding="6 3" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Margin="0 0 4 0">
+              <TextBlock Text="{x:Static loc:FittingText.DamageThermal}" Classes="line" />
+              <NumericUpDown Value="{Binding CustomThermal}" Minimum="0" Maximum="100000" Increment="5" FormatString="0.#" FontSize="11"
+                             ShowButtonSpinner="False" Padding="6 3" />
+            </StackPanel>
+            <StackPanel Grid.Column="2" Margin="0 0 4 0">
+              <TextBlock Text="{x:Static loc:FittingText.DamageKinetic}" Classes="line" />
+              <NumericUpDown Value="{Binding CustomKinetic}" Minimum="0" Maximum="100000" Increment="5" FormatString="0.#" FontSize="11"
+                             ShowButtonSpinner="False" Padding="6 3" />
+            </StackPanel>
+            <StackPanel Grid.Column="3">
+              <TextBlock Text="{x:Static loc:FittingText.DamageExplosive}" Classes="line" />
+              <NumericUpDown Value="{Binding CustomExplosive}" Minimum="0" Maximum="100000" Increment="5" FormatString="0.#" FontSize="11"
+                             ShowButtonSpinner="False" Padding="6 3" />
+            </StackPanel>
+          </Grid>
+          <TextBlock Text="{Binding EhpText}" Classes="big" ToolTip.Tip="{x:Static loc:FittingText.TipEhp}" />
+          <!-- HP and EHP get the wider share; the four resistances are never more than "100.0%". -->
+          <Grid ColumnDefinitions="60,1.35*,*,*,*,*,1.35*" Margin="0 4 0 0">
+            <TextBlock Grid.Column="1" Text="{x:Static loc:FittingText.ColHp}"  Classes="line" HorizontalAlignment="Right" />
+            <TextBlock Grid.Column="2" Text="{x:Static loc:FittingText.ColEm}"  Classes="line" HorizontalAlignment="Right" />
+            <TextBlock Grid.Column="3" Text="{x:Static loc:FittingText.ColTh}"  Classes="line" HorizontalAlignment="Right" />
+            <TextBlock Grid.Column="4" Text="{x:Static loc:FittingText.ColKin}" Classes="line" HorizontalAlignment="Right" />
+            <TextBlock Grid.Column="5" Text="{x:Static loc:FittingText.ColExp}" Classes="line" HorizontalAlignment="Right" />
+            <TextBlock Grid.Column="6" Text="{x:Static loc:FittingText.ColEhp}" Classes="line" HorizontalAlignment="Right" />
+          </Grid>
+          <ItemsControl ItemsSource="{Binding TankRows}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:TankLayerRow">
+                <Grid ColumnDefinitions="60,1.35*,*,*,*,*,1.35*">
+                  <TextBlock Grid.Column="0" Text="{Binding Layer}"     FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" />
+                  <TextBlock Grid.Column="1" Text="{Binding Hp}"        FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Right"
+                             ToolTip.Tip="{Binding HpExact}" />
+                  <TextBlock Grid.Column="2" Text="{Binding Em}"        FontSize="11" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Right" />
+                  <TextBlock Grid.Column="3" Text="{Binding Thermal}"   FontSize="11" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Right" />
+                  <TextBlock Grid.Column="4" Text="{Binding Kinetic}"   FontSize="11" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Right" />
+                  <TextBlock Grid.Column="5" Text="{Binding Explosive}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Right" />
+                  <TextBlock Grid.Column="6" Text="{Binding Ehp}"       FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Right"
+                             ToolTip.Tip="{Binding EhpExact}" />
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <!-- What the tank gets back: passive regeneration for a shield tank, and the modules
+               of an active one, each raw and as effective HP against even damage. -->
+          <TextBlock Text="{Binding RegenText}" Classes="line" Margin="0 6 0 0"
+                     IsVisible="{Binding RegenText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+          <TextBlock Text="{Binding RepairText}" Classes="line" IsVisible="{Binding HasRepairs}" Margin="0 2 0 0" />
+
+          <TextBlock Text="{x:Static loc:FittingText.CapacitorHeading}" Classes="section" />
+          <StackPanel Orientation="Horizontal" Spacing="10">
+            <TextBlock Text="{Binding CapText}" Classes="big" />
+            <TextBlock Text="{Binding CapStateText}" FontSize="12" VerticalAlignment="Center"
+                       Foreground="{DynamicResource GoodBrush}" IsVisible="{Binding CapStable}" />
+            <TextBlock Text="{Binding CapStateText}" FontSize="12" VerticalAlignment="Center"
+                       Foreground="{DynamicResource WarnBrush}" IsVisible="{Binding !CapStable}" />
+          </StackPanel>
+          <TextBlock Text="{Binding CapFlowText}" Classes="line" />
+
+          <TextBlock Text="{x:Static loc:FittingText.NavigationHeading}" Classes="section" />
+          <!-- A structure does not move: its signature is all that is left here. -->
+          <TextBlock Text="{Binding SpeedText}" Classes="big" IsVisible="{Binding ShowsMovement}" />
+          <TextBlock Text="{Binding NavText}" Classes="line" />
+          <TextBlock Text="{Binding MassText}" Classes="line" IsVisible="{Binding ShowsMovement}" />
+
+          <TextBlock Text="{x:Static loc:FittingText.TargetingHeading}" Classes="section" />
+          <TextBlock Text="{Binding TargetingText}" Classes="line" />
+          <TextBlock Text="{Binding SensorText}" Classes="line" />
+          <TextBlock Text="{Binding LockText}" Classes="line" TextWrapping="Wrap" ToolTip.Tip="{x:Static loc:FittingText.TipLockTimes}" />
+        </StackPanel>
+      </ScrollViewer>
+    </Border>
+  </Grid>
+</UserControl>

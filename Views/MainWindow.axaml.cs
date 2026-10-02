@@ -20,25 +20,13 @@ namespace EveConsole.Views;
 
 public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 {
-    // Detached window handles
-    private CharacterViewerWindow?   _characterViewerWindow;
-    private AssetBrowserWindow?      _assetBrowserWindow;
-    private IndustryBrowserWindow?   _industryBrowserWindow;
-    private ItemBrowserWindow?       _itemBrowserWindow;
-    private EsiExplorerWindow?       _explorerWindow;
-    private CorpActivityWindow?          _corpActivityWindow;
-    private KillmailBrowserWindow?       _killmailBrowserWindow;
-    private EveMailWindow?               _eveMailWindow;
-    private WalletWindow?                _walletWindow;
-    private NetWorthWindow?              _netWorthWindow;
-    private InvLevelWindow?              _invLevelWindow;
-    private MarketLevelWindow?           _marketLevelWindow;
-    private TradeOpportunitiesWindow?    _tradeOpportunitiesWindow;
-    private IndustryOpportunitiesWindow? _industryOpportunitiesWindow;
-    private IndyParksWindow?             _indyParksWindow;
-    private ProductionCalculatorWindow?  _productionCalculatorWindow;
+    /// <summary>The windows tabs have been dragged out into, by their tabs.</summary>
+    private readonly Dictionary<TabWorkspace, ToolHostWindow> _hosts = new();
 
-    // Tab drag-to-detach state
+    /// <summary>The main window — which runs tab dragging, since it knows every window.</summary>
+    internal static MainWindow? Current { get; private set; }
+
+    // Tab drag state
     private PointerPressedEventArgs? _tabDragPressArgs;
     private ToolTab?                 _tabBeingDragged;
     private bool                     _isDraggingTab;
@@ -53,6 +41,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         // the ordinary copy. The database is named in the title bar's own hover; this is for
         // telling two windows apart before reading either.
         if (AppConfig.ProfileName is { } profile) Title = $"EVE Console — {profile}";
+        Current = this;
     }
 
     protected override void OnOpened(EventArgs e)
@@ -234,7 +223,53 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     protected override void OnDataContextChanged(EventArgs e)
     {
         base.OnDataContextChanged(e);
+        if (DataContext is MainWindowViewModel vm) WatchHosts(vm);
         if (IsVisible) TryStartup();
+    }
+
+    // ── Windows of tabs ───────────────────────────────────────────────────────
+
+    private MainWindowViewModel? _watchedHosts;
+    /// <summary>Where and how big the next window of tabs opens: where its tab was let go, the size
+    /// of the side it came from.</summary>
+    private (PixelPoint Position, Size Size)? _nextHostPlace;
+
+    /// <summary>A window for every workspace a tab is dragged out into, closed when it empties.</summary>
+    private void WatchHosts(MainWindowViewModel vm)
+    {
+        if (_watchedHosts == vm) return;
+        _watchedHosts = vm;
+        vm.Hosts.CollectionChanged += (_, e) =>
+        {
+            foreach (var ws in e.NewItems?.OfType<TabWorkspace>() ?? []) OpenHost(vm, ws);
+            foreach (var ws in e.OldItems?.OfType<TabWorkspace>() ?? [])
+                if (_hosts.Remove(ws, out var gone)) gone.Close();
+        };
+        vm.ShowWorkspaceRequested += ws =>
+        {
+            if (_hosts.TryGetValue(ws, out var w)) { if (w.WindowState == WindowState.Minimized) w.WindowState = WindowState.Normal; w.Activate(); }
+        };
+    }
+
+    private void OpenHost(MainWindowViewModel vm, TabWorkspace ws)
+    {
+        var win = new ToolHostWindow(ws) { DataContext = vm };
+        if (_nextHostPlace is { } place)
+        {
+            win.Width  = Math.Max(win.MinWidth,  place.Size.Width);
+            win.Height = Math.Max(win.MinHeight, place.Size.Height);
+            win.WindowStartupLocation = WindowStartupLocation.Manual;
+            win.Position = place.Position;
+            _nextHostPlace = null;
+        }
+        _hosts[ws] = win;
+        // Closed by its own close box: its tools close with it. (Closed because it emptied, it is
+        // no longer in the list and there is nothing to close.)
+        win.Closed += (_, _) =>
+        {
+            if (_hosts.Remove(ws)) vm.CloseWorkspace(ws);
+        };
+        win.Show();
     }
 
     // ── Agent panel width ────────────────────────────────────────────────────
@@ -356,16 +391,14 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         agentService.NavigateItemCallback = (typeId, name) =>
             Dispatcher.UIThread.Post(() =>
             {
-                if (_itemBrowserWindow?.IsVisible == true) _itemBrowserWindow.Activate();
-                else vm.OpenTool("items");
+                vm.OpenTool("items");
                 _ = vm.ItemBrowserVm.NavigateToTypeAsync(typeId, name);
             });
 
         agentService.ConfigureItemBrowserCallback = (tab, src, reg) =>
             Dispatcher.UIThread.Invoke(() =>
             {
-                if (_itemBrowserWindow?.IsVisible == true) _itemBrowserWindow.Activate();
-                else vm.OpenTool("items");
+                vm.OpenTool("items");
 
                 var ib      = vm.ItemBrowserVm;
                 var results = new List<string>();
@@ -378,64 +411,56 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         vm.TradeOpportunitiesVm.ItemNavigationRequested = (typeId, name) =>
             Dispatcher.UIThread.Post(() =>
             {
-                if (_itemBrowserWindow?.IsVisible == true) _itemBrowserWindow.Activate();
-                else vm.OpenTool("items");
+                vm.OpenTool("items");
                 _ = vm.ItemBrowserVm.NavigateToTypeAsync(typeId, name);
             });
 
         vm.IndustryOpportunitiesVm.ItemNavigationRequested = (typeId, name) =>
             Dispatcher.UIThread.Post(() =>
             {
-                if (_itemBrowserWindow?.IsVisible == true) _itemBrowserWindow.Activate();
-                else vm.OpenTool("items");
+                vm.OpenTool("items");
                 _ = vm.ItemBrowserVm.NavigateToTypeAsync(typeId, name);
             });
 
         vm.MarketLevelVm.OpenInItemBrowser = (typeId, name) =>
             Dispatcher.UIThread.Post(() =>
             {
-                if (_itemBrowserWindow?.IsVisible == true) _itemBrowserWindow.Activate();
-                else vm.OpenTool("items");
+                vm.OpenTool("items");
                 _ = vm.ItemBrowserVm.NavigateToTypeAsync(typeId, name);
             });
 
         vm.CorpActivityVm.RequestOpenInItemBrowser = (typeId, name) =>
             Dispatcher.UIThread.Post(() =>
             {
-                if (_itemBrowserWindow?.IsVisible == true) _itemBrowserWindow.Activate();
-                else vm.OpenTool("items");
+                vm.OpenTool("items");
                 _ = vm.ItemBrowserVm.NavigateToTypeAsync(typeId, name);
             });
 
         vm.InvLevelVm.OpenInItemBrowser = (typeId, name) =>
             Dispatcher.UIThread.Post(() =>
             {
-                if (_itemBrowserWindow?.IsVisible == true) _itemBrowserWindow.Activate();
-                else vm.OpenTool("items");
+                vm.OpenTool("items");
                 _ = vm.ItemBrowserVm.NavigateToTypeAsync(typeId, name);
             });
 
         vm.SalePostingVm.OpenInItemBrowser = (typeId, name) =>
             Dispatcher.UIThread.Post(() =>
             {
-                if (_itemBrowserWindow?.IsVisible == true) _itemBrowserWindow.Activate();
-                else vm.OpenTool("items");
+                vm.OpenTool("items");
                 _ = vm.ItemBrowserVm.NavigateToTypeAsync(typeId, name);
             });
 
         vm.AssetBrowserVm.OpenInItemBrowser = (typeId, name) =>
             Dispatcher.UIThread.Post(() =>
             {
-                if (_itemBrowserWindow?.IsVisible == true) _itemBrowserWindow.Activate();
-                else vm.OpenTool("items");
+                vm.OpenTool("items");
                 _ = vm.ItemBrowserVm.NavigateToTypeAsync(typeId, name);
             });
 
         agentService.FilterAssetsCallback = (location, character, item) =>
             Dispatcher.UIThread.Post(() =>
             {
-                if (_assetBrowserWindow?.IsVisible == true) _assetBrowserWindow.Activate();
-                else vm.OpenTool("assets");
+                vm.OpenTool("assets");
 
                 var filters = new List<(string Column, string Value)>();
                 if (!string.IsNullOrEmpty(location))  filters.Add(("Location Name", location!));
@@ -447,16 +472,14 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         agentService.FilterIndustryCallback = (activity, status, search, owner) =>
             Dispatcher.UIThread.Post(() =>
             {
-                if (_industryBrowserWindow?.IsVisible == true) _industryBrowserWindow.Activate();
-                else vm.OpenTool("industry");
+                vm.OpenTool("industry");
                 _ = vm.IndustryBrowserVm.ApplyAgentFilterAsync(activity, status, search, owner);
             });
 
         agentService.SelectCharacterCallback = name =>
             Dispatcher.UIThread.Post(() =>
             {
-                if (_characterViewerWindow?.IsVisible == true) _characterViewerWindow.Activate();
-                else vm.OpenTool("characters");
+                vm.OpenTool("characters");
 
                 var match = vm.CharacterViewerVm.Characters
                     .FirstOrDefault(c => c.Name.Contains(name, StringComparison.OrdinalIgnoreCase));
@@ -539,34 +562,9 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         // the rest without a word — including "background", which the agent was offered.
         if (EveConsole.Agent.AppKnowledge.Tool(name)?.Id is not { } toolId) return;
 
-        // If the tool is in a detached window, bring it forward instead.
-        Window? detached = toolId switch
-        {
-            "assets"        => _assetBrowserWindow?.IsVisible    == true ? _assetBrowserWindow    : null,
-            "industry"      => _industryBrowserWindow?.IsVisible == true ? _industryBrowserWindow : null,
-            "characters"    => _characterViewerWindow?.IsVisible == true ? _characterViewerWindow : null,
-            "items"         => _itemBrowserWindow?.IsVisible     == true ? _itemBrowserWindow     : null,
-            "data"          => _explorerWindow?.IsVisible        == true ? _explorerWindow        : null,
-            "corp_activity"  => _corpActivityWindow?.IsVisible        == true ? _corpActivityWindow        : null,
-            "killmails"      => _killmailBrowserWindow?.IsVisible     == true ? _killmailBrowserWindow     : null,
-            "eve_mail"       => _eveMailWindow?.IsVisible             == true ? _eveMailWindow             : null,
-            "wallet"         => _walletWindow?.IsVisible              == true ? _walletWindow              : null,
-            "net_worth"      => _netWorthWindow?.IsVisible            == true ? _netWorthWindow            : null,
-            "inv_levels"     => _invLevelWindow?.IsVisible            == true ? _invLevelWindow            : null,
-            "market_levels"  => _marketLevelWindow?.IsVisible         == true ? _marketLevelWindow         : null,
-            "trade"          => _tradeOpportunitiesWindow?.IsVisible  == true ? _tradeOpportunitiesWindow  : null,
-            "industry_opps"  => _industryOpportunitiesWindow?.IsVisible == true ? _industryOpportunitiesWindow : null,
-            "indy_parks"     => _indyParksWindow?.IsVisible           == true ? _indyParksWindow           : null,
-            "prod_calc"      => _productionCalculatorWindow?.IsVisible == true ? _productionCalculatorWindow : null,
-            _                => null
-        };
-
-        if (detached is not null) detached.Activate();
-        else
-        {
-            try   { vm.OpenTool(toolId); }
-            catch (ArgumentException) { /* a catalogue id the window does not know: nothing to open */ }
-        }
+        // Wherever it is — the main window or a window of its own, which comes forward.
+        try   { vm.OpenTool(toolId); }
+        catch (ArgumentException) { /* a catalogue id the window does not know: nothing to open */ }
     }
 
     // ── Title bar actions ─────────────────────────────────────────────────────
@@ -776,105 +774,168 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         var cm  = mi.GetLogicalAncestors().OfType<ContextMenu>().FirstOrDefault();
         var tab = cm?.PlacementTarget?.DataContext as ToolTab ?? vm.SelectedTab;
         if (tab is null) return;
-        DetachToolInWindow(vm, tab);
+        vm.DetachTab(tab);
     }
 
-    // ── Tab drag-to-detach ────────────────────────────────────────────────────
+    // ── Tab dragging: along a strip, to the other side, into another window, or out ──
+
+    /// <summary>
+    /// How far a tab must move before a press becomes a drag — far enough that a click on a tab
+    /// never moves it.
+    /// </summary>
+    private const double TabDragStart = 6;
+
+    /// <summary>
+    /// A point in a visual, on the screen, and back — how a tab dragged in one window finds its
+    /// place in another. Avalonia's own, except under a headless test, where every window reports
+    /// the same origin and the test supplies its own.
+    /// </summary>
+    internal static Func<Visual, Point, PixelPoint> ScreenOf = (v, p) => v.PointToScreen(p);
+    internal static Func<Visual, PixelPoint, Point> ClientOf = (v, s) => v.PointToClient(s);
+
+    private Visual? _tabDragSource;
+    private PixelPoint _tabDragStart;
+
+    /// <summary>Every window of tabs, the main one first, with its tabs' view.</summary>
+    private IEnumerable<(Window Window, WorkspaceView View)> TabWindows()
+    {
+        yield return (this, MainTabs);
+        foreach (var w in _hosts.Values) yield return (w, w.View);
+    }
+
+    /// <summary>
+    /// The window of tabs under a point on the screen: the one the tab came from if it is there,
+    /// otherwise another — the one worked in last first, as the likeliest to be on top.
+    /// </summary>
+    private (Window Window, WorkspaceView View)? WindowAt(PixelPoint screen, Window from)
+    {
+        bool Holds(Window w)
+        {
+            if (!w.IsVisible || w.WindowState == WindowState.Minimized) return false;
+            var tl = ScreenOf(w, default);
+            var br = ScreenOf(w, new Point(w.Bounds.Width, w.Bounds.Height));
+            return screen.X >= tl.X && screen.Y >= tl.Y && screen.X < br.X && screen.Y < br.Y;
+        }
+        var all = TabWindows().ToList();
+        return all.Where(x => x.Window == from && Holds(x.Window))
+                  .Concat(all.Where(x => x.Window != from && x.Window.IsActive && Holds(x.Window)))
+                  .Concat(all.Where(x => x.Window != from && Holds(x.Window)))
+                  .Select(x => ((Window, WorkspaceView)?)x).FirstOrDefault();
+    }
 
     internal void OnTabPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (!e.GetCurrentPoint(sender as Control).Properties.IsLeftButtonPressed) return;
+        if (sender is not Visual v || !e.GetCurrentPoint(v).Properties.IsLeftButtonPressed) return;
         _tabDragPressArgs = e;
         _isDraggingTab    = false;
         _tabBeingDragged  = (sender as Control)?.DataContext as ToolTab;
+        _tabDragSource    = v;
+        _tabDragStart     = ScreenOf(v, e.GetPosition(v));
     }
 
     internal void OnTabPointerMoved(object? sender, PointerEventArgs e)
     {
-        if (_tabDragPressArgs is null || _isDraggingTab) return;
-        if (!e.GetCurrentPoint(sender as Control).Properties.IsLeftButtonPressed)
+        if (_tabDragPressArgs is null || _tabBeingDragged is not { } tab || _tabDragSource is not { } src
+            || DataContext is not MainWindowViewModel vm || vm.WorkspaceOf(tab) is not { } from) return;
+        if (!e.GetCurrentPoint(src).Properties.IsLeftButtonPressed) { EndTabDrag(vm); return; }
+
+        var screen = ScreenOf(src, e.GetPosition(src));
+        if (!_isDraggingTab)
         {
-            _tabDragPressArgs = null; _tabBeingDragged = null; return;
+            if (Math.Abs(screen.X - _tabDragStart.X) < TabDragStart && Math.Abs(screen.Y - _tabDragStart.Y) < TabDragStart) return;
+            _isDraggingTab = true;
+            foreach (var (_, view) in TabWindows())
+            {
+                view.PrepareDrag();
+                if (view.Workspace is { } ws) { ws.IsDraggingTab = true; ws.IsDragSource = ws == from; }
+            }
         }
 
-        var ctrl  = sender as Control;
-        var delta = e.GetPosition(ctrl) - _tabDragPressArgs.GetPosition(ctrl);
-        if (Math.Abs(delta.Y) < 24) return;
-
-        _isDraggingTab = true;
-        var pressArgs  = _tabDragPressArgs;
-        var dragTab    = _tabBeingDragged;
-        _tabDragPressArgs = null; _tabBeingDragged = null;
-
-        if (DataContext is not MainWindowViewModel vm || dragTab is null) return;
-
-        var screenPt = this.PointToScreen(e.GetPosition(this));
-        var win      = DetachToolInWindow(vm, dragTab);
-        if (win is null) return;
-
-        win.Position = new PixelPoint(screenPt.X - 200, screenPt.Y - 15);
-        win.BeginMoveDrag(pressArgs);
+        var sourceWindow = TopLevel.GetTopLevel(src) as Window ?? this;
+        // ⚠️ Out of every window, nothing happens until the tab is let go. Acting at once — the
+        // way a tab used to leave the one window there was — would open a window of its own
+        // halfway across the gap between two windows, for a tab on its way from one to the other.
+        ShowTabDrop(tab, screen, WindowAt(screen, sourceWindow), from);
     }
 
     internal void OnTabPointerReleased(object? sender, PointerReleasedEventArgs e)
     {
-        _tabDragPressArgs = null; _tabBeingDragged = null; _isDraggingTab = false;
-    }
-
-    private Window? DetachToolInWindow(MainWindowViewModel vm, ToolTab tab)
-    {
-        Window? window = tab.Id switch
+        if (DataContext is not MainWindowViewModel vm) return;
+        if (_isDraggingTab && _tabBeingDragged is { } tab && _tabDragSource is { } src && vm.WorkspaceOf(tab) is { } from)
         {
-            "characters"    => _characterViewerWindow  = new CharacterViewerWindow  { DataContext = vm.CharacterViewerVm },
-            "assets"        => _assetBrowserWindow     = new AssetBrowserWindow     { DataContext = vm.AssetBrowserVm },
-            "industry"      => _industryBrowserWindow  = new IndustryBrowserWindow  { DataContext = vm.IndustryBrowserVm },
-            "items"         => _itemBrowserWindow      = new ItemBrowserWindow      { DataContext = vm.ItemBrowserVm },
-            "data"          => _explorerWindow         = new EsiExplorerWindow      { DataContext = vm.ExplorerVm },
-            "corp_activity"  => _corpActivityWindow        = new CorpActivityWindow        { DataContext = vm.CorpActivityVm },
-            "killmails"      => _killmailBrowserWindow     = new KillmailBrowserWindow     { DataContext = vm.KillmailBrowserVm },
-            "eve_mail"       => _eveMailWindow             = new EveMailWindow(vm.MailSvc) { DataContext = vm.EveMailVm },
-            "wallet"         => _walletWindow              = new WalletWindow              { DataContext = vm.WalletVm },
-            "net_worth"      => _netWorthWindow            = new NetWorthWindow            { DataContext = vm.NetWorthVm },
-            "inv_levels"     => _invLevelWindow            = new InvLevelWindow            { DataContext = vm.InvLevelVm },
-            "market_levels"  => _marketLevelWindow         = new MarketLevelWindow         { DataContext = vm.MarketLevelVm },
-            "trade"          => _tradeOpportunitiesWindow  = new TradeOpportunitiesWindow  { DataContext = vm.TradeOpportunitiesVm },
-            "industry_opps"  => _industryOpportunitiesWindow = new IndustryOpportunitiesWindow { DataContext = vm.IndustryOpportunitiesVm },
-            "indy_parks"     => _indyParksWindow           = new IndyParksWindow           { DataContext = vm.IndyParksVm },
-            "prod_calc"      => _productionCalculatorWindow = new ProductionCalculatorWindow { DataContext = vm.ProductionCalcVm },
-            _                => null
-        };
-        if (window is null) return null;
-
-        vm.MarkToolDetached(tab.Id);
-
-        var toolId = tab.Id;
-        window.Closed += (_, _) =>
-        {
-            switch (toolId)
+            var screen = ScreenOf(src, e.GetPosition(src));
+            var sourceWindow = TopLevel.GetTopLevel(src) as Window ?? this;
+            if (WindowAt(screen, sourceWindow) is { } over)
             {
-                case "characters":    _characterViewerWindow  = null; break;
-                case "assets":        _assetBrowserWindow     = null; break;
-                case "industry":      _industryBrowserWindow  = null; break;
-                case "items":         _itemBrowserWindow      = null; break;
-                case "data":          _explorerWindow         = null; break;
-                case "corp_activity":  _corpActivityWindow        = null; break;
-                case "killmails":      _killmailBrowserWindow     = null; break;
-                case "eve_mail":       _eveMailWindow             = null; break;
-                case "wallet":         _walletWindow              = null; break;
-                case "net_worth":      _netWorthWindow            = null; break;
-                case "inv_levels":     _invLevelWindow            = null; break;
-                case "market_levels":  _marketLevelWindow         = null; break;
-                case "trade":          _tradeOpportunitiesWindow  = null; break;
-                case "industry_opps":  _industryOpportunitiesWindow = null; break;
-                case "indy_parks":     _indyParksWindow           = null; break;
-                case "prod_calc":      _productionCalculatorWindow = null; break;
+                var at = ClientOf(over.View, screen);
+                if (over.View.DropTarget(at, tab) is { } target)
+                {
+                    vm.MoveTab(tab, target.Pane, target.Index);
+                    if (over.Window != sourceWindow) over.Window.Activate();
+                }
+                else if (over.View.Workspace == from && MainWindowViewModel.CanLeaveMain(tab)
+                         && over.View.DetachArea(tab) is { } area && area.Contains(at)
+                         && !(!from.IsMain && from.OpenTabs.Count() == 1))
+                {
+                    EndTabDrag(vm);
+                    DetachAt(vm, tab, screen, from);
+                    return;
+                }
             }
-            vm.MarkToolReattached(toolId);
-        };
-
-        window.Show();
-        return window;
+            // Let go out of every window: a window of its own, there — or, for the last tab of a
+            // window of its own, that window, moved there.
+            else if (!from.IsMain && from.OpenTabs.Count() == 1)
+                sourceWindow.Position = new PixelPoint(screen.X - 200, screen.Y - 15);
+            else if (MainWindowViewModel.CanLeaveMain(tab))
+            {
+                EndTabDrag(vm);
+                DetachAt(vm, tab, screen, from);
+                return;
+            }
+        }
+        EndTabDrag(vm);
     }
+
+    /// <summary>Opens <paramref name="tab"/> in a window of its own where it was let go, sized like
+    /// the side it came from.</summary>
+    private void DetachAt(MainWindowViewModel vm, ToolTab tab, PixelPoint screen, TabWorkspace from)
+    {
+        var fromView = TabWindows().FirstOrDefault(x => x.View.Workspace == from).View ?? MainTabs;
+        var size = from.PaneOf(tab) is { } pane ? fromView.SideOf(pane).Bounds.Size : new Size(1200, 760);
+        _nextHostPlace = (new PixelPoint(screen.X - 200, screen.Y - 15), size);
+        vm.DetachTab(tab);
+    }
+
+    /// <summary>Marks where the tab would go in the window under the pointer, and clears the rest.</summary>
+    private void ShowTabDrop(ToolTab tab, PixelPoint screen, (Window Window, WorkspaceView View)? over, TabWorkspace from)
+    {
+        foreach (var (_, view) in TabWindows())
+        {
+            if (over is { } o && o.View == view)
+            {
+                var at = ClientOf(view, screen);
+                var target = view.DropTarget(at, tab);
+                view.ShowDropTarget(target);
+                view.ShowDetachHint(target is null && view.Workspace == from && MainWindowViewModel.CanLeaveMain(tab)
+                                    && !(!from.IsMain && from.OpenTabs.Count() == 1)
+                                    && view.DetachArea(tab) is { } area && area.Contains(at) ? area : null);
+            }
+            else view.ClearMarks();
+        }
+    }
+
+    private void EndTabDrag(MainWindowViewModel vm)
+    {
+        _tabDragPressArgs = null; _tabBeingDragged = null; _tabDragSource = null; _isDraggingTab = false;
+        foreach (var (_, view) in TabWindows())
+        {
+            view.ClearMarks();
+            if (view.Workspace is { } ws) { ws.IsDraggingTab = false; ws.IsDragSource = false; }
+        }
+    }
+
+    /// <summary>The tool on the main window's side being worked in — what "the current tab" is for a screenshot.</summary>
+    private Control ActiveContent => MainTabs.ActiveContent;
 
     // ── Agent context snapshot ─────────────────────────────────────────────────
 
@@ -906,18 +967,20 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
         // By the Tool Reference's names, like the tab on screen: a tab's title is in the interface
         // language, and this is read by the model.
-        var otherTabs = vm.OpenTabs.Where(t => !ReferenceEquals(t, active)).Select(t => OnScreenName(t) ?? t.Title).ToList();
+        // Split, the other half of the window shows a second tool — on screen too, but not the one
+        // being worked in.
+        var beside = vm.OtherSideTab;
+        if (beside is not null)
+            sb.AppendLine($"Also on screen, beside it in the other half of the window: {OnScreenName(beside) ?? beside.Title}.");
+        var otherTabs = vm.OpenTabs.Where(t => !ReferenceEquals(t, active) && !ReferenceEquals(t, beside)).Select(t => OnScreenName(t) ?? t.Title).ToList();
         if (otherTabs.Count > 0)
             sb.AppendLine($"Other tabs open behind it (not on screen): {string.Join(", ", otherTabs)}");
 
-        var detached = new List<string>();
-        if (_characterViewerWindow?.IsVisible == true) detached.Add("Characters");
-        if (_assetBrowserWindow?.IsVisible    == true) detached.Add("Assets");
-        if (_industryBrowserWindow?.IsVisible == true) detached.Add("Industry");
-        if (_itemBrowserWindow?.IsVisible     == true) detached.Add("Items");
-        if (_explorerWindow?.IsVisible        == true) detached.Add("ESI Explorer");
+        // Windows of their own, each with the tools in it, the one showing first.
+        var detached = vm.Hosts.Select(ws => string.Join(" + ", ws.OpenTabs.OrderBy(t => t == ws.SelectedTab ? 0 : 1)
+            .Select(t => OnScreenName(t) ?? t.Title))).Where(x => x.Length > 0).ToList();
         if (detached.Count > 0)
-            sb.AppendLine($"Detached windows: {string.Join(", ", detached)}");
+            sb.AppendLine($"Windows of their own: {string.Join("; ", detached)}");
 
         // (open_window's own description lists every tool id. It was repeated here, in part, and a
         // small model lifted names from the list into its description of an unrelated tool.)
@@ -938,15 +1001,17 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         {
             try
             {
-                Avalonia.Visual? target = tabName switch
+                // A tool in a window of its own is captured there, showing; anything else is the
+                // main window's side being worked in.
+                Avalonia.Visual? target = ActiveContent;
+                if (vm is not null && tabName != "current"
+                    && vm.AllTabs.FirstOrDefault(t => t.Id == tabName) is { } tab
+                    && vm.WorkspaceOf(tab) is { IsMain: false } ws && _hosts.TryGetValue(ws, out var host))
                 {
-                    "assets"     when _assetBrowserWindow?.IsVisible == true    => _assetBrowserWindow,
-                    "industry"   when _industryBrowserWindow?.IsVisible == true  => _industryBrowserWindow,
-                    "characters" when _characterViewerWindow?.IsVisible == true  => _characterViewerWindow,
-                    "items"      when _itemBrowserWindow?.IsVisible == true      => _itemBrowserWindow,
-                    "data"       when _explorerWindow?.IsVisible == true         => _explorerWindow,
-                    _                                                             => MainContent,
-                };
+                    ws.SelectedTab = tab;
+                    Dispatcher.UIThread.RunJobs();
+                    target = host.View.ActiveContent;
+                }
 
                 if (target is null) return ((byte[]?)null, "Target not found.");
 

@@ -217,9 +217,6 @@
   <data name="FitBadgePersonal" xml:space="preserve">
     <value>개</value>
   </data>
-  <data name="FitBadgeCorp" xml:space="preserve">
-    <value>코</value>
-  </data>
   <data name="FetchingFits" xml:space="preserve">
     <value>ESI에서 피팅을 가져오는 중…</value>
   </data>

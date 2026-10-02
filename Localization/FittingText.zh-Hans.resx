@@ -1,0 +1,1168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TitleFitting" xml:space="preserve">
+    <value>装配</value>
+  </data>
+  <data name="ItemsHeading" xml:space="preserve">
+    <value>物品</value>
+  </data>
+  <data name="FinderUnlistedGroup" xml:space="preserve">
+    <value>未在市场上架</value>
+  </data>
+  <data name="FinderDragHint" xml:space="preserve">
+    <value>双击物品添加，或将其拖到槽位上。</value>
+  </data>
+  <data name="FilterAll" xml:space="preserve">
+    <value>全部</value>
+  </data>
+  <data name="FilterModules" xml:space="preserve">
+    <value>装备</value>
+  </data>
+  <data name="FilterRigs" xml:space="preserve">
+    <value>改装件</value>
+  </data>
+  <data name="FilterSubsystems" xml:space="preserve">
+    <value>子系统</value>
+  </data>
+  <data name="FilterCharges" xml:space="preserve">
+    <value>弹药</value>
+  </data>
+  <data name="FilterDrones" xml:space="preserve">
+    <value>无人机</value>
+  </data>
+  <data name="FilterImplants" xml:space="preserve">
+    <value>植入体</value>
+  </data>
+  <data name="FilterBoosters" xml:space="preserve">
+    <value>增效剂</value>
+  </data>
+  <data name="FilterOtherItems" xml:space="preserve">
+    <value>其他物品</value>
+  </data>
+  <data name="SearchWatermark" xml:space="preserve">
+    <value>按名称或分组搜索…</value>
+  </data>
+  <data name="FitsOnly" xml:space="preserve">
+    <value>只显示此船体可装配的</value>
+  </data>
+  <data name="TipShowEverySlot" xml:space="preserve">
+    <value>显示所有槽位</value>
+  </data>
+  <data name="AddToFit" xml:space="preserve">
+    <value>加入装配</value>
+  </data>
+  <data name="AddToCargo" xml:space="preserve">
+    <value>放入货舱</value>
+  </data>
+  <data name="TipAddToCargo" xml:space="preserve">
+    <value>将所选物品放入货舱——任何物品都可以携带</value>
+  </data>
+  <data name="FinderHigh" xml:space="preserve">
+    <value>高槽</value>
+  </data>
+  <data name="FinderMid" xml:space="preserve">
+    <value>中槽</value>
+  </data>
+  <data name="FinderLow" xml:space="preserve">
+    <value>低槽</value>
+  </data>
+  <data name="FinderService" xml:space="preserve">
+    <value>服务槽</value>
+  </data>
+  <data name="FinderRig" xml:space="preserve">
+    <value>改装件</value>
+  </data>
+  <data name="FinderSubsystem" xml:space="preserve">
+    <value>子系统</value>
+  </data>
+  <data name="FinderCharge" xml:space="preserve">
+    <value>弹药</value>
+  </data>
+  <data name="FinderDrone" xml:space="preserve">
+    <value>无人机</value>
+  </data>
+  <data name="FinderFighter" xml:space="preserve">
+    <value>铁骑舰载机</value>
+  </data>
+  <data name="KindImplant" xml:space="preserve">
+    <value>植入体</value>
+  </data>
+  <data name="KindBooster" xml:space="preserve">
+    <value>增效剂</value>
+  </data>
+  <data name="FinderOnlyHigh" xml:space="preserve">
+    <value>仅显示高槽装备</value>
+  </data>
+  <data name="FinderOnlyMid" xml:space="preserve">
+    <value>仅显示中槽装备</value>
+  </data>
+  <data name="FinderOnlyLow" xml:space="preserve">
+    <value>仅显示低槽装备</value>
+  </data>
+  <data name="FinderOnlyRig" xml:space="preserve">
+    <value>仅显示改装件槽装备</value>
+  </data>
+  <data name="FinderOnlySubsystem" xml:space="preserve">
+    <value>仅显示子系统槽装备</value>
+  </data>
+  <data name="FinderOnlyService" xml:space="preserve">
+    <value>仅显示服务槽装备</value>
+  </data>
+  <data name="ToggleItems" xml:space="preserve">
+    <value>☰ 物品</value>
+  </data>
+  <data name="TipToggleItems" xml:space="preserve">
+    <value>显示或隐藏物品列表</value>
+  </data>
+  <data name="NewFitLabel" xml:space="preserve">
+    <value>新装配</value>
+  </data>
+  <data name="HullWatermark" xml:space="preserve">
+    <value>船体——输入名称或舰船类别…</value>
+  </data>
+  <data name="PasteEft" xml:space="preserve">
+    <value>粘贴 EFT…</value>
+  </data>
+  <data name="OpenFit" xml:space="preserve">
+    <value>打开装配…</value>
+  </data>
+  <data name="TipOpenFit" xml:space="preserve">
+    <value>打开保存在 EVE Console 中的装配，或你的角色在游戏中的装配</value>
+  </data>
+  <data name="TitleOpenFit" xml:space="preserve">
+    <value>打开装配</value>
+  </data>
+  <data name="FitSearchWatermark" xml:space="preserve">
+    <value>按装配或舰体名称搜索…</value>
+  </data>
+  <data name="NoFitsMatch" xml:space="preserve">
+    <value>没有符合搜索的装配。</value>
+  </data>
+  <data name="TitleDeleteSaved" xml:space="preserve">
+    <value>删除装配</value>
+  </data>
+  <data name="ConfirmDeleteSaved" xml:space="preserve">
+    <value>要删除保存在 EVE Console 中的装配“{0}”吗？此操作无法撤销。</value>
+  </data>
+  <data name="DeleteSaved" xml:space="preserve">
+    <value>删除</value>
+  </data>
+  <data name="TipDeleteSaved" xml:space="preserve">
+    <value>删除所选装配（仅限保存在 EVE Console 中的）</value>
+  </data>
+  <data name="EmptyToolHint" xml:space="preserve">
+    <value>从船体开始新装配、粘贴装配，或从游戏或已保存的装配中打开一个。每个装配都在单独的标签页中打开。</value>
+  </data>
+  <data name="DropSideBySide" xml:space="preserve">
+    <value>拖放到此处，并排查看两个装配</value>
+  </data>
+  <data name="TabNewFit" xml:space="preserve">
+    <value>新装配</value>
+  </data>
+  <data name="TipTab" xml:space="preserve">
+    <value>拖动以调整顺序，或拖到右半边以并排查看两个装配</value>
+  </data>
+  <data name="TipTabDirty" xml:space="preserve">
+    <value>打开或保存后已更改</value>
+  </data>
+  <data name="TipCloseFit" xml:space="preserve">
+    <value>关闭此装配</value>
+  </data>
+  <data name="PilotLabel" xml:space="preserve">
+    <value>飞行员</value>
+  </data>
+  <data name="ModeLabel" xml:space="preserve">
+    <value>模式</value>
+  </data>
+  <data name="TipMode" xml:space="preserve">
+    <value>舰船所处的战术模式，其加成已计入各项数值</value>
+  </data>
+  <data name="TipPilot" xml:space="preserve">
+    <value>按谁的技能计算各项数值</value>
+  </data>
+  <data name="PilotAllV" xml:space="preserve">
+    <value>全部 V 级</value>
+  </data>
+  <data name="PilotAll0" xml:space="preserve">
+    <value>全部 0 级</value>
+  </data>
+  <data name="FitNameWatermark" xml:space="preserve">
+    <value>装配名称</value>
+  </data>
+  <data name="NewFitName" xml:space="preserve">
+    <value>新 {0}</value>
+  </data>
+  <data name="DefaultFitName" xml:space="preserve">
+    <value>{0} 装配</value>
+  </data>
+  <data name="GameFitDescription" xml:space="preserve">
+    <value>由 EVE Console 保存</value>
+  </data>
+  <data name="GameFitNoName" xml:space="preserve">
+    <value>装配</value>
+  </data>
+  <data name="CopyEft" xml:space="preserve">
+    <value>复制 EFT</value>
+  </data>
+  <data name="TipCopyEft" xml:space="preserve">
+    <value>将此装配以 EFT 文本复制到剪贴板</value>
+  </data>
+  <data name="SaveFit" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="TipSaveFit" xml:space="preserve">
+    <value>直接覆盖保存到打开它的或上次保存的装配，不再询问。从未保存过的装配请用“另存为”。</value>
+  </data>
+  <data name="SaveFitAs" xml:space="preserve">
+    <value>另存为…</value>
+  </data>
+  <data name="TipSaveFitAs" xml:space="preserve">
+    <value>选择名称和保存位置：EVE Console，或某个角色在游戏中的装配</value>
+  </data>
+  <data name="SavedInConsole" xml:space="preserve">
+    <value>已保存在 EVE Console</value>
+  </data>
+  <data name="SavedInGame" xml:space="preserve">
+    <value>已保存在 {0} 的游戏装配中</value>
+  </data>
+  <data name="NotSavedYet" xml:space="preserve">
+    <value>尚未保存</value>
+  </data>
+  <data name="TitleOverwriteFit" xml:space="preserve">
+    <value>覆盖装配</value>
+  </data>
+  <data name="ConfirmOverwriteApp" xml:space="preserve">
+    <value>EVE Console 中已保存了此舰体名为“{0}”的装配。要覆盖吗？</value>
+  </data>
+  <data name="ConfirmOverwriteGame" xml:space="preserve">
+    <value>要替换 {1} 游戏装配中的“{0}”吗？游戏无法修改装配，因此会先保存新装配，再删除旧装配。</value>
+  </data>
+  <data name="GameSource" xml:space="preserve">
+    <value>来自 {0} 在游戏中的装配：{1}</value>
+  </data>
+  <data name="SlotGroupHigh" xml:space="preserve">
+    <value>高槽  {0} / {1}</value>
+  </data>
+  <data name="SlotGroupMid" xml:space="preserve">
+    <value>中槽  {0} / {1}</value>
+  </data>
+  <data name="SlotGroupLow" xml:space="preserve">
+    <value>低槽  {0} / {1}</value>
+  </data>
+  <data name="SlotGroupRig" xml:space="preserve">
+    <value>改装件槽  {0} / {1}</value>
+  </data>
+  <data name="SlotGroupSubsystem" xml:space="preserve">
+    <value>子系统槽  {0} / {1}</value>
+  </data>
+  <data name="SlotGroupService" xml:space="preserve">
+    <value>服务槽  {0} / {1}</value>
+  </data>
+  <data name="EmptyRowHigh" xml:space="preserve">
+    <value>[空闲高槽]</value>
+  </data>
+  <data name="EmptyRowMid" xml:space="preserve">
+    <value>[空闲中槽]</value>
+  </data>
+  <data name="EmptyRowLow" xml:space="preserve">
+    <value>[空闲低槽]</value>
+  </data>
+  <data name="EmptyRowRig" xml:space="preserve">
+    <value>[空闲改装件槽]</value>
+  </data>
+  <data name="EmptyRowSubsystem" xml:space="preserve">
+    <value>[空闲子系统槽]</value>
+  </data>
+  <data name="EmptyRowService" xml:space="preserve">
+    <value>[空闲服务槽]</value>
+  </data>
+  <data name="StateOff" xml:space="preserve">
+    <value>离线</value>
+  </data>
+  <data name="StateOn" xml:space="preserve">
+    <value>在线</value>
+  </data>
+  <data name="StateAct" xml:space="preserve">
+    <value>激活</value>
+  </data>
+  <data name="StateHeat" xml:space="preserve">
+    <value>超载</value>
+  </data>
+  <data name="TipStateOffline" xml:space="preserve">
+    <value>离线——单击设为在线</value>
+  </data>
+  <data name="TipStateOnlineActivate" xml:space="preserve">
+    <value>在线——单击激活</value>
+  </data>
+  <data name="TipStateOnlineOffline" xml:space="preserve">
+    <value>在线——单击设为离线</value>
+  </data>
+  <data name="TipStateActive" xml:space="preserve">
+    <value>已激活——单击设为离线</value>
+  </data>
+  <data name="TipStateOverheated" xml:space="preserve">
+    <value>超载中——单击设为离线</value>
+  </data>
+  <data name="HeatButton" xml:space="preserve">
+    <value>超载</value>
+  </data>
+  <data name="TipHeatStop" xml:space="preserve">
+    <value>超载中——单击停止超载</value>
+  </data>
+  <data name="TipHeatStart" xml:space="preserve">
+    <value>单击开启超载</value>
+  </data>
+  <data name="NoCharge" xml:space="preserve">
+    <value>没有弹药</value>
+  </data>
+  <data name="TipModuleValue" xml:space="preserve">
+    <value>此装备的市场价值</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>移除</value>
+  </data>
+  <data name="TipChooseModule" xml:space="preserve">
+    <value>单击为此槽位选择装备</value>
+  </data>
+  <data name="StateNameOffline" xml:space="preserve">
+    <value>离线</value>
+  </data>
+  <data name="StateNameOnline" xml:space="preserve">
+    <value>在线</value>
+  </data>
+  <data name="StateNameActive" xml:space="preserve">
+    <value>已激活</value>
+  </data>
+  <data name="StateNameOverheated" xml:space="preserve">
+    <value>超载</value>
+  </data>
+  <data name="MenuPutOnline" xml:space="preserve">
+    <value>设为在线</value>
+  </data>
+  <data name="MenuPutOffline" xml:space="preserve">
+    <value>设为离线</value>
+  </data>
+  <data name="MenuActivate" xml:space="preserve">
+    <value>激活</value>
+  </data>
+  <data name="MenuDeactivate" xml:space="preserve">
+    <value>取消激活</value>
+  </data>
+  <data name="MenuOverheat" xml:space="preserve">
+    <value>超载</value>
+  </data>
+  <data name="MenuStopOverheating" xml:space="preserve">
+    <value>停止超载</value>
+  </data>
+  <data name="MenuUnload" xml:space="preserve">
+    <value>卸载 {0}</value>
+  </data>
+  <data name="DronesHeading" xml:space="preserve">
+    <value>无人机和铁骑舰载机</value>
+  </data>
+  <data name="InBay" xml:space="preserve">
+    <value>挂舱中</value>
+  </data>
+  <data name="Launched" xml:space="preserve">
+    <value>已释放</value>
+  </data>
+  <data name="InTube" xml:space="preserve">
+    <value>在发射管中</value>
+  </data>
+  <data name="TipInTube" xml:space="preserve">
+    <value>已释放——只有发射管中的中队才计入装配的伤害</value>
+  </data>
+  <data name="TipStackValue" xml:space="preserve">
+    <value>整组的市场价值</value>
+  </data>
+  <data name="ClassLight" xml:space="preserve">
+    <value>轻型</value>
+  </data>
+  <data name="ClassSupport" xml:space="preserve">
+    <value>后勤</value>
+  </data>
+  <data name="ClassHeavy" xml:space="preserve">
+    <value>重型</value>
+  </data>
+  <data name="TipSquadronLight" xml:space="preserve">
+    <value>轻型中队，最多 {0} 架</value>
+  </data>
+  <data name="TipSquadronSupport" xml:space="preserve">
+    <value>后勤中队，最多 {0} 架</value>
+  </data>
+  <data name="TipSquadronHeavy" xml:space="preserve">
+    <value>重型中队，最多 {0} 架</value>
+  </data>
+  <data name="TipSquadron" xml:space="preserve">
+    <value>中队，最多 {0} 架</value>
+  </data>
+  <data name="AbilityAttack" xml:space="preserve">
+    <value>攻击</value>
+  </data>
+  <data name="AbilityMissiles" xml:space="preserve">
+    <value>导弹</value>
+  </data>
+  <data name="AbilityBomb" xml:space="preserve">
+    <value>炸弹</value>
+  </data>
+  <data name="AbilityKamikaze" xml:space="preserve">
+    <value>自尽攻击</value>
+  </data>
+  <data name="AbilityEnergyNeutralizer" xml:space="preserve">
+    <value>能量中和</value>
+  </data>
+  <data name="AbilityStasisWebifier" xml:space="preserve">
+    <value>停滞缠绕</value>
+  </data>
+  <data name="AbilityWarpDisruptor" xml:space="preserve">
+    <value>跃迁扰断</value>
+  </data>
+  <data name="AbilityEcm" xml:space="preserve">
+    <value>ECM</value>
+  </data>
+  <data name="AbilityTackle" xml:space="preserve">
+    <value>拦截</value>
+  </data>
+  <data name="AbilityEvasiveManeuvers" xml:space="preserve">
+    <value>机动规避</value>
+  </data>
+  <data name="AbilityAfterburner" xml:space="preserve">
+    <value>加力燃烧器</value>
+  </data>
+  <data name="AbilityMicrowarpdrive" xml:space="preserve">
+    <value>微型跃迁推进器</value>
+  </data>
+  <data name="AbilityMicroJumpDrive" xml:space="preserve">
+    <value>微型跳跃引擎</value>
+  </data>
+  <data name="TipAbilityCounted" xml:space="preserve">
+    <value>{0}：开启时计入 DPS</value>
+  </data>
+  <data name="TipAbilityNoEffect" xml:space="preserve">
+    <value>{0}：不影响装配的数值</value>
+  </data>
+  <data name="CargoHeading" xml:space="preserve">
+    <value>货舱</value>
+  </data>
+  <data name="Quantity" xml:space="preserve">
+    <value>数量</value>
+  </data>
+  <data name="ImplantsHeading" xml:space="preserve">
+    <value>植入体和增效剂</value>
+  </data>
+  <data name="BoostsHeading" xml:space="preserve">
+    <value>舰队加成</value>
+  </data>
+  <data name="BoostSelf" xml:space="preserve">
+    <value>自身的指挥脉冲也作用于自己</value>
+  </data>
+  <data name="TipBoostSelf" xml:space="preserve">
+    <value>脉冲作用于范围内的所有舰队成员，包括使用者自身。单独飞行时请取消勾选。</value>
+  </data>
+  <data name="AddBooster" xml:space="preserve">
+    <value>添加加成装配…</value>
+  </data>
+  <data name="TitleAddBooster" xml:space="preserve">
+    <value>添加支援装配</value>
+  </data>
+  <data name="ConfirmAddBooster" xml:space="preserve">
+    <value>添加</value>
+  </data>
+  <data name="TipBoosterPilot" xml:space="preserve">
+    <value>用于计算此装配脉冲和远程模块的技能</value>
+  </data>
+  <data name="TipAddBooster" xml:space="preserve">
+    <value>为本装配提供支援的装配，数量不限：其运行中的指挥脉冲（同一加成取最强者），以及其远程维修器、远程护盾回充器、电容传输器和后勤无人机（累加）</value>
+  </data>
+  <data name="BoostLine" xml:space="preserve">
+    <value>{0}  {1}  · {2}</value>
+  </data>
+  <data name="AssistShield" xml:space="preserve">
+    <value>远程护盾回充  {0:N1} HP/s  · {1}</value>
+  </data>
+  <data name="AssistArmor" xml:space="preserve">
+    <value>远程装甲维修  {0:N1} HP/s  · {1}</value>
+  </data>
+  <data name="AssistHull" xml:space="preserve">
+    <value>远程结构维修  {0:N1} HP/s  · {1}</value>
+  </data>
+  <data name="AssistCapacitor" xml:space="preserve">
+    <value>电容传输  {0:N1} GJ/s  · {1}</value>
+  </data>
+  <data name="ResourcesHeading" xml:space="preserve">
+    <value>资源</value>
+  </data>
+  <data name="Cpu" xml:space="preserve">
+    <value>CPU</value>
+  </data>
+  <data name="Powergrid" xml:space="preserve">
+    <value>能量栅格</value>
+  </data>
+  <data name="Calibration" xml:space="preserve">
+    <value>校准值</value>
+  </data>
+  <data name="Hardpoints" xml:space="preserve">
+    <value>炮台 {0} / {1}    发射器 {2} / {3}</value>
+  </data>
+  <data name="CargoLine" xml:space="preserve">
+    <value>货舱 {0:N1} / {1:N0} m³</value>
+  </data>
+  <data name="CargoLineNoLimit" xml:space="preserve">
+    <value>货舱 {0:N1} m³</value>
+  </data>
+  <data name="DroneLine" xml:space="preserve">
+    <value>无人机挂舱 {0:0} / {1:0} m³    带宽 {2:0} / {3:0} Mbit/s</value>
+  </data>
+  <data name="FighterLine" xml:space="preserve">
+    <value>铁骑舰载机挂舱 {0:N0} / {1:N0} m³    发射管 {2} / {3}</value>
+  </data>
+  <data name="FighterSlotsLight" xml:space="preserve">
+    <value>轻型 {0} / {1}</value>
+  </data>
+  <data name="FighterSlotsSupport" xml:space="preserve">
+    <value>后勤 {0} / {1}</value>
+  </data>
+  <data name="FighterSlotsHeavy" xml:space="preserve">
+    <value>重型 {0} / {1}</value>
+  </data>
+  <data name="ValueHeading" xml:space="preserve">
+    <value>价值</value>
+  </data>
+  <data name="ValueHull" xml:space="preserve">
+    <value>船体 {0}</value>
+  </data>
+  <data name="ValueModules" xml:space="preserve">
+    <value>装备 {0}</value>
+  </data>
+  <data name="ValueDrones" xml:space="preserve">
+    <value>无人机 {0}</value>
+  </data>
+  <data name="ValueCargo" xml:space="preserve">
+    <value>货舱 {0}</value>
+  </data>
+  <data name="ValueImplants" xml:space="preserve">
+    <value>植入体和增效剂 {0}（属于飞行员，不计入总计）</value>
+  </data>
+  <data name="ValueNoPrices" xml:space="preserve">
+    <value>尚无市场价格——请在“设置 → 市场”中选择资产价值所用的市场。</value>
+  </data>
+  <data name="ValuePrices" xml:space="preserve">
+    <value>价格：{0}</value>
+  </data>
+  <data name="ValuePricesUnpricedOther" xml:space="preserve">
+    <value>价格：{1}——{0} 种物品没有价格</value>
+  </data>
+  <data name="PriceBasisWithMarket" xml:space="preserve">
+    <value>{0}，{1}</value>
+  </data>
+  <data name="OffenseHeading" xml:space="preserve">
+    <value>攻击</value>
+  </data>
+  <data name="MiningHeading" xml:space="preserve">
+    <value>采矿</value>
+  </data>
+  <data name="MiningOre" xml:space="preserve">
+    <value>矿石 {0:N0} m³/h</value>
+  </data>
+  <data name="MiningIce" xml:space="preserve">
+    <value>冰矿 {0:N0} m³/h</value>
+  </data>
+  <data name="MiningGas" xml:space="preserve">
+    <value>气云 {0:N0} m³/h</value>
+  </data>
+  <data name="TipMining" xml:space="preserve">
+    <value>所有采集器运行一小时，按平均计入暴击成功。残渣损失的是矿石或气云本身，而非你的收获。已计入采矿晶体、技能、加成和船体。</value>
+  </data>
+  <data name="DetailMining" xml:space="preserve">
+    <value>每 {1:0.#} 秒 {0:N1} m³</value>
+  </data>
+  <data name="DetailResidue" xml:space="preserve">
+    <value>残渣 {0:0.#}%</value>
+  </data>
+  <data name="Dps0" xml:space="preserve">
+    <value>{0:N0} DPS</value>
+  </data>
+  <data name="DpsWeapons" xml:space="preserve">
+    <value>武器 {0:N1}</value>
+  </data>
+  <data name="DpsDrones" xml:space="preserve">
+    <value>无人机 {0:N1}</value>
+  </data>
+  <data name="DpsFighters" xml:space="preserve">
+    <value>铁骑舰载机 {0:N1}</value>
+  </data>
+  <data name="DpsVolley" xml:space="preserve">
+    <value>齐射 {0:N0}</value>
+  </data>
+  <data name="DpsWithReloads" xml:space="preserve">
+    <value>含装填 {0:N1}</value>
+  </data>
+  <data name="DpsSpooled" xml:space="preserve">
+    <value>完全充能 {0:N1}（{1}后）</value>
+  </data>
+  <data name="TipDpsReloads" xml:space="preserve">
+    <value>DPS 为两次装填之间的数值。含装填时，每件武器打完一次装填的弹药后重新装填，循环往复。激光不需装填：晶体不会消耗。完全充能是熵能裂解器持续射击同一目标后达到的数值。</value>
+  </data>
+  <data name="StrikeOnce" xml:space="preserve">
+    <value>{0}：{1:N0} {2}，每 {3}</value>
+  </data>
+  <data name="StrikeOverTime" xml:space="preserve">
+    <value>{0}：每秒 {1:N0} {2}，持续 {3:0} 秒（共 {4:N0}），每 {6}</value>
+  </data>
+  <data name="StrikeBomb" xml:space="preserve">
+    <value>{0}：对 {3:0.#} 千米内所有目标造成 {1:N0} {2}，每 {4}</value>
+  </data>
+  <data name="StrikeBreacher" xml:space="preserve">
+    <value>{0}：每秒造成目标结构值的 {1:0.##}%（最多 {2:N0} HP），持续 {3:0} 秒，每 {4}</value>
+  </data>
+  <data name="NeutLine" xml:space="preserve">
+    <value>中和 {0:N1} GJ/s</value>
+  </data>
+  <data name="NosLine" xml:space="preserve">
+    <value>掠能器 {0:N1} GJ/s</value>
+  </data>
+  <data name="DamageMix" xml:space="preserve">
+    <value>电磁 {0:P0} · 热能 {1:P0} · 动能 {2:P0} · 爆炸 {3:P0}</value>
+  </data>
+  <data name="Dps1" xml:space="preserve">
+    <value>{0:N1} DPS</value>
+  </data>
+  <data name="AbilityDps" xml:space="preserve">
+    <value>{0} {1:N0} DPS</value>
+  </data>
+  <data name="AbilityAlpha" xml:space="preserve">
+    <value>{0} 单次伤害 {1:N0}</value>
+  </data>
+  <data name="TipAbilityChargesOther" xml:space="preserve">
+    <value>{0} 发弹药，每发重新装填 {1:0.#} 秒</value>
+  </data>
+  <data name="TipAbilityCooldown" xml:space="preserve">
+    <value>冷却时间 {0:0} 秒</value>
+  </data>
+  <data name="TipAbilityNotInHighSec" xml:space="preserve">
+    <value>高安不可使用</value>
+  </data>
+  <data name="TipAbilityNotInEmpire" xml:space="preserve">
+    <value>高安和低安不可使用</value>
+  </data>
+  <data name="DpsFightersSustained" xml:space="preserve">
+    <value>铁骑舰载机 {0:N1}（持续 {1:N1}）</value>
+  </data>
+  <data name="TipFighterSustained" xml:space="preserve">
+    <value>持续：每个中队作战直到开启的技能弹药耗尽，然后在发射管中重新装填并加油后再返回。往返目标的飞行时间不计入。</value>
+  </data>
+  <data name="DetailCalibration" xml:space="preserve">
+    <value>校准值 {0:0}</value>
+  </data>
+  <data name="DetailCpu" xml:space="preserve">
+    <value>CPU {0:0.##}</value>
+  </data>
+  <data name="DetailPg" xml:space="preserve">
+    <value>能量栅格 {0:0.##}</value>
+  </data>
+  <data name="DetailRepairShield" xml:space="preserve">
+    <value>护盾 {0:N1} HP/s</value>
+  </data>
+  <data name="DetailRepairArmor" xml:space="preserve">
+    <value>装甲 {0:N1} HP/s</value>
+  </data>
+  <data name="DetailWithReloads" xml:space="preserve">
+    <value>含装填 {0:N1}</value>
+  </data>
+  <data name="DetailSpooled" xml:space="preserve">
+    <value>完全充能 {0:N1}</value>
+  </data>
+  <data name="EwarWeb" xml:space="preserve">
+    <value>速度 {0:+0.#;-0.#}%</value>
+  </data>
+  <data name="EwarPoint" xml:space="preserve">
+    <value>跃迁干扰强度 {0:0.#}</value>
+  </data>
+  <data name="EwarNeut" xml:space="preserve">
+    <value>中和 {0:N1} GJ/s</value>
+  </data>
+  <data name="EwarNos" xml:space="preserve">
+    <value>吸取最多 {0:N1} GJ/s</value>
+  </data>
+  <data name="EwarJam" xml:space="preserve">
+    <value>干扰强度 {0}</value>
+  </data>
+  <data name="EwarDamp" xml:space="preserve">
+    <value>锁定距离 {0:+0.#;-0.#}% · 扫描分辨率 {1:+0.#;-0.#}%</value>
+  </data>
+  <data name="EwarTracking" xml:space="preserve">
+    <value>最佳射程 {0:+0.#;-0.#}% · 失准范围 {1:+0.#;-0.#}% · 跟踪 {2:+0.#;-0.#}%</value>
+  </data>
+  <data name="EwarGuidance" xml:space="preserve">
+    <value>导弹速度 {0:+0.#;-0.#}% · 飞行时间 {1:+0.#;-0.#}% · 爆炸速度 {2:+0.#;-0.#}% · 爆炸半径 {3:+0.#;-0.#}%</value>
+  </data>
+  <data name="EwarPaint" xml:space="preserve">
+    <value>信号半径 {0:+0.#;-0.#}%</value>
+  </data>
+  <data name="EwarRange" xml:space="preserve">
+    <value>{0:0.#} 千米 + {1:0.#} 千米</value>
+  </data>
+  <data name="EwarRangeOnly" xml:space="preserve">
+    <value>{0:0.#} 千米</value>
+  </data>
+  <data name="EwarEach" xml:space="preserve">
+    <value>每个 {0}</value>
+  </data>
+  <data name="AbilityEffect" xml:space="preserve">
+    <value>{0}：{1}</value>
+  </data>
+  <data name="AbilityKamikazeTargets" xml:space="preserve">
+    <value>仅限旗舰和堡垒</value>
+  </data>
+  <data name="FighterSpeed" xml:space="preserve">
+    <value>速度 {0:N0} m/s</value>
+  </data>
+  <data name="PropulsionBurst" xml:space="preserve">
+    <value>{0:N0} m/s，持续 {1:0} 秒</value>
+  </data>
+  <data name="PropulsionSignature" xml:space="preserve">
+    <value>信号半径 {0:+0;-0}%</value>
+  </data>
+  <data name="PropulsionJump" xml:space="preserve">
+    <value>{1:0} 秒后跃迁 {0:0.#} 千米</value>
+  </data>
+  <data name="PropulsionResists" xml:space="preserve">
+    <value>护盾抗性 {0:0}%</value>
+  </data>
+  <data name="DetailRepairHull" xml:space="preserve">
+    <value>结构 {0:N1} HP/s</value>
+  </data>
+  <data name="DetailBreacherPods" xml:space="preserve">
+    <value>运行时突破者座舱伤害 {0:0}%</value>
+  </data>
+  <data name="DetailAdapted" xml:space="preserve">
+    <value>稳定于 {0}</value>
+  </data>
+  <data name="DefenseHeading" xml:space="preserve">
+    <value>防御</value>
+  </data>
+  <data name="Against" xml:space="preserve">
+    <value>针对</value>
+  </data>
+  <data name="TipAgainst" xml:space="preserve">
+    <value>评估坦度所针对的伤害，反应式装甲增强器也会据此调整</value>
+  </data>
+  <data name="ProfileEven" xml:space="preserve">
+    <value>均匀（各 25%）</value>
+  </data>
+  <data name="ProfileCustom" xml:space="preserve">
+    <value>自定义</value>
+  </data>
+  <data name="DamageEm" xml:space="preserve">
+    <value>电磁</value>
+  </data>
+  <data name="DamageThermal" xml:space="preserve">
+    <value>热能</value>
+  </data>
+  <data name="DamageKinetic" xml:space="preserve">
+    <value>动能</value>
+  </data>
+  <data name="DamageExplosive" xml:space="preserve">
+    <value>爆炸</value>
+  </data>
+  <data name="TipCustomProfile" xml:space="preserve">
+    <value>各伤害类型的相对数值——比例任意</value>
+  </data>
+  <data name="EhpLine" xml:space="preserve">
+    <value>{0:N0} 有效 HP</value>
+  </data>
+  <data name="TipEhp" xml:space="preserve">
+    <value>针对上方所选伤害的有效 HP</value>
+  </data>
+  <data name="ColHp" xml:space="preserve">
+    <value>HP</value>
+  </data>
+  <data name="ColEm" xml:space="preserve">
+    <value>电磁</value>
+  </data>
+  <data name="ColTh" xml:space="preserve">
+    <value>热能</value>
+  </data>
+  <data name="ColKin" xml:space="preserve">
+    <value>动能</value>
+  </data>
+  <data name="ColExp" xml:space="preserve">
+    <value>爆炸</value>
+  </data>
+  <data name="ColEhp" xml:space="preserve">
+    <value>有效 HP</value>
+  </data>
+  <data name="LayerShield" xml:space="preserve">
+    <value>护盾</value>
+  </data>
+  <data name="LayerArmor" xml:space="preserve">
+    <value>装甲</value>
+  </data>
+  <data name="LayerHull" xml:space="preserve">
+    <value>结构</value>
+  </data>
+  <data name="RegenLine" xml:space="preserve">
+    <value>护盾回充峰值 {0:N1} HP/s（{1:N0} 有效 HP/s）    回充时间 {2}</value>
+  </data>
+  <data name="RepairShield" xml:space="preserve">
+    <value>护盾回充增量 {0:N1} HP/s（{1:N0} 有效 HP/s）</value>
+  </data>
+  <data name="RepairArmor" xml:space="preserve">
+    <value>装甲维修 {0:N1} HP/s（{1:N0} 有效 HP/s）</value>
+  </data>
+  <data name="RepairHull" xml:space="preserve">
+    <value>结构维修 {0:N1} HP/s（{1:N0} 有效 HP/s）</value>
+  </data>
+  <data name="RepairRemoteShield" xml:space="preserve">
+    <value>远程护盾回充 {0:N1} HP/s（{1:N0} 有效 HP/s）</value>
+  </data>
+  <data name="RepairRemoteArmor" xml:space="preserve">
+    <value>远程装甲维修 {0:N1} HP/s（{1:N0} 有效 HP/s）</value>
+  </data>
+  <data name="RepairRemoteHull" xml:space="preserve">
+    <value>远程结构维修 {0:N1} HP/s（{1:N0} 有效 HP/s）</value>
+  </data>
+  <data name="RepairCapRunsOut" xml:space="preserve">
+    <value>消耗电容的维修装备会在电容耗尽时停止（{0}）</value>
+  </data>
+  <data name="CapacitorHeading" xml:space="preserve">
+    <value>电容</value>
+  </data>
+  <data name="CapStable" xml:space="preserve">
+    <value>稳定于 {0:0.0}%</value>
+  </data>
+  <data name="CapLasts" xml:space="preserve">
+    <value>可持续 {0}</value>
+  </data>
+  <data name="CapFlow" xml:space="preserve">
+    <value>消耗 {0:0.0} GJ/s    峰值回充 {1:0.0} GJ/s</value>
+  </data>
+  <data name="CapBoosters" xml:space="preserve">
+    <value>电容注电器 +{0:0.0} GJ/s</value>
+  </data>
+  <data name="CapTransfers" xml:space="preserve">
+    <value>电容传输 +{0:0.0} GJ/s</value>
+  </data>
+  <data name="NavigationHeading" xml:space="preserve">
+    <value>导航</value>
+  </data>
+  <data name="NavLine" xml:space="preserve">
+    <value>朝向时间 {0:0.00} 秒    信号半径 {1:N0} m    跃迁速度 {2:0.##} AU/s</value>
+  </data>
+  <data name="NavLineStructure" xml:space="preserve">
+    <value>信号半径 {0:N0} m</value>
+  </data>
+  <data name="NavLineNoWarp" xml:space="preserve">
+    <value>朝向时间 {0:0.00} 秒    信号半径 {1:N0} m    无法跃迁</value>
+  </data>
+  <data name="MassLine" xml:space="preserve">
+    <value>质量 {0:N0} kg    惯性调整系数 {1:0.###}</value>
+  </data>
+  <data name="TargetingHeading" xml:space="preserve">
+    <value>锁定</value>
+  </data>
+  <data name="TargetingLine" xml:space="preserve">
+    <value>锁定范围 {0:0.#} km    扫描分辨率 {1:N0} mm    锁定数量 {2:0}</value>
+  </data>
+  <data name="LockTimes" xml:space="preserve">
+    <value>锁定：护卫舰 {0:0.0} 秒 · 巡洋舰 {1:0.0} 秒 · 战列舰 {2:0.0} 秒 · 旗舰 {3:0.0} 秒</value>
+  </data>
+  <data name="TipLockTimes" xml:space="preserve">
+    <value>以此配置的扫描分辨率，锁定信号半径相当于典型护卫舰（35 米）、巡洋舰（125 米）、战列舰（400 米）和旗舰（5,000 米）的目标所需秒数。</value>
+  </data>
+  <data name="SensorRadar" xml:space="preserve">
+    <value>雷达 {0:0.#}</value>
+  </data>
+  <data name="SensorLadar" xml:space="preserve">
+    <value>光雷达 {0:0.#}</value>
+  </data>
+  <data name="SensorMagnetometric" xml:space="preserve">
+    <value>磁力 {0:0.#}</value>
+  </data>
+  <data name="SensorGravimetric" xml:space="preserve">
+    <value>引力 {0:0.#}</value>
+  </data>
+  <data name="DurationHours" xml:space="preserve">
+    <value>{0} 小时 {1} 分</value>
+  </data>
+  <data name="DurationMinutes" xml:space="preserve">
+    <value>{0} 分 {1} 秒</value>
+  </data>
+  <data name="DurationSeconds" xml:space="preserve">
+    <value>{0:0.0} 秒</value>
+  </data>
+  <data name="StatusLoadingGameData" xml:space="preserve">
+    <value>正在加载游戏数据…</value>
+  </data>
+  <data name="StatusNoGameData" xml:space="preserve">
+    <value>尚无游戏数据——请在“设置 → SDE”中导入 SDE，然后重新打开此工具。</value>
+  </data>
+  <data name="StatusGameDataUpdating" xml:space="preserve">
+    <value>正在为装配工具更新游戏数据（进度见“设置 → SDE”）。完成后请重新打开此工具。</value>
+  </data>
+  <data name="StatusStart" xml:space="preserve">
+    <value>从船体开始新装配、粘贴装配，或从游戏或已保存的装配中打开一个。</value>
+  </data>
+  <data name="StatusLoadFailed" xml:space="preserve">
+    <value>无法加载游戏数据：{0}</value>
+  </data>
+  <data name="StatusStartFitFirst" xml:space="preserve">
+    <value>请先开始一个装配。</value>
+  </data>
+  <data name="StatusPickHullFirst" xml:space="preserve">
+    <value>请先选择船体。</value>
+  </data>
+  <data name="StatusNewFit" xml:space="preserve">
+    <value>新的 {0} 装配。请从“物品”中添加装备。</value>
+  </data>
+  <data name="StatusNewFitPickHull" xml:space="preserve">
+    <value>新装配。请选择船体。</value>
+  </data>
+  <data name="StatusImported" xml:space="preserve">
+    <value>已导入 {0}。</value>
+  </data>
+  <data name="StatusImportedUnrecognised" xml:space="preserve">
+    <value>已导入，但无法识别：{0}</value>
+  </data>
+  <data name="StatusNoCharacters" xml:space="preserve">
+    <value>没有可读取装配的角色。</value>
+  </data>
+  <data name="StatusImportedFromGame" xml:space="preserve">
+    <value>已从游戏导入 {0}。</value>
+  </data>
+  <data name="StatusOpened" xml:space="preserve">
+    <value>已打开 {0}。</value>
+  </data>
+  <data name="StatusDeleted" xml:space="preserve">
+    <value>已删除 {0}。</value>
+  </data>
+  <data name="StatusAdded" xml:space="preserve">
+    <value>已添加 {0}。</value>
+  </data>
+  <data name="StatusAddedSquadron" xml:space="preserve">
+    <value>已添加一个中队：{0} 架 {1}。</value>
+  </data>
+  <data name="StatusAlreadyPluggedIn" xml:space="preserve">
+    <value>{0} 已在使用中。</value>
+  </data>
+  <data name="StatusNothingCanLoad" xml:space="preserve">
+    <value>没有已装配的装备可以装填 {0}。</value>
+  </data>
+  <data name="StatusLoadedCharge" xml:space="preserve">
+    <value>已装填 {0}。</value>
+  </data>
+  <data name="StatusWrongSlot" xml:space="preserve">
+    <value>{0} 不能装在该槽位。</value>
+  </data>
+  <data name="StatusCannotLoad" xml:space="preserve">
+    <value>{0} 无法装填 {1}。</value>
+  </data>
+  <data name="StatusReplaced" xml:space="preserve">
+    <value>已用 {0} 替换 {1}。</value>
+  </data>
+  <data name="StatusLoadedChargeInModulesOther" xml:space="preserve">
+    <value>已在 {0} 个装备中装填 {1}。</value>
+  </data>
+  <data name="StatusInCargo" xml:space="preserve">
+    <value>{0} 已放入货舱。</value>
+  </data>
+  <data name="StatusChooseHigh" xml:space="preserve">
+    <value>请从“物品”中选择一个高槽装备。</value>
+  </data>
+  <data name="StatusChooseMid" xml:space="preserve">
+    <value>请从“物品”中选择一个中槽装备。</value>
+  </data>
+  <data name="StatusChooseLow" xml:space="preserve">
+    <value>请从“物品”中选择一个低槽装备。</value>
+  </data>
+  <data name="StatusChooseRig" xml:space="preserve">
+    <value>请从“物品”中选择一个改装件槽装备。</value>
+  </data>
+  <data name="StatusChooseSubsystem" xml:space="preserve">
+    <value>请从“物品”中选择一个子系统槽装备。</value>
+  </data>
+  <data name="StatusChooseService" xml:space="preserve">
+    <value>请从“物品”中选择一个服务槽装备。</value>
+  </data>
+  <data name="StatusCalculationFailed" xml:space="preserve">
+    <value>计算失败：{0}</value>
+  </data>
+  <data name="StatusDronesCutBack" xml:space="preserve">
+    <value>已释放的无人机和铁骑舰载机已减少到飞行员可操控、船体可释放的数量。</value>
+  </data>
+  <data name="StatusNothingToCopy" xml:space="preserve">
+    <value>尚无可复制的内容。</value>
+  </data>
+  <data name="StatusCopiedEft" xml:space="preserve">
+    <value>已将装配以 EFT 文本复制到剪贴板。</value>
+  </data>
+  <data name="StatusNothingToSave" xml:space="preserve">
+    <value>尚无可保存的内容。</value>
+  </data>
+  <data name="StatusSavedInApp" xml:space="preserve">
+    <value>已将 {0} 保存到 EVE Console。</value>
+  </data>
+  <data name="StatusGameUnreachable" xml:space="preserve">
+    <value>无法从此处访问游戏。</value>
+  </data>
+  <data name="StatusSavingToGame" xml:space="preserve">
+    <value>正在保存到 {0} 的装配…</value>
+  </data>
+  <data name="StatusSavedToGame" xml:space="preserve">
+    <value>已保存到 {0} 在游戏中的装配。</value>
+  </data>
+  <data name="StatusNotFromGame" xml:space="preserve">
+    <value>此装配不是从游戏中打开的。</value>
+  </data>
+  <data name="StatusUpdatingInGame" xml:space="preserve">
+    <value>正在更新 {0} 的装配…</value>
+  </data>
+  <data name="StatusUpdatedInGame" xml:space="preserve">
+    <value>已更新 {1} 的装配中的 {0}。</value>
+  </data>
+  <data name="StatusSavedButOldNotRemoved" xml:space="preserve">
+    <value>已保存新装配，但无法移除旧装配（HTTP {0}）。请在游戏中删除旧装配。</value>
+  </data>
+  <data name="StatusCharacterNotInApp" xml:space="preserve">
+    <value>该角色不在 EVE Console 中。</value>
+  </data>
+  <data name="StatusTokenExpired" xml:space="preserve">
+    <value>{0} 的令牌已过期——请在“设置 → ESI 令牌”中重新授权。</value>
+  </data>
+  <data name="StatusNoWriteScope" xml:space="preserve">
+    <value>{0} 尚未授予写入装配的权限范围——请在“设置 → ESI 令牌”中更新该角色。</value>
+  </data>
+  <data name="NotSavedNoPlace" xml:space="preserve">
+    <value>未保存（游戏中的装配无法容纳）：{0}。</value>
+  </data>
+  <data name="SkippedUnknownType" xml:space="preserve">
+    <value>类型 {0}</value>
+  </data>
+  <data name="TitleSaveFit" xml:space="preserve">
+    <value>保存装配</value>
+  </data>
+  <data name="SaveNameLabel" xml:space="preserve">
+    <value>名称</value>
+  </data>
+  <data name="SaveToLabel" xml:space="preserve">
+    <value>保存到</value>
+  </data>
+  <data name="SaveNote" xml:space="preserve">
+    <value>植入体属于飞行员，不属于游戏内装配的一部分。</value>
+  </data>
+  <data name="SaveConfirm" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="SaveTargetApp" xml:space="preserve">
+    <value>EVE Console（本应用）</value>
+  </data>
+  <data name="SaveTargetReplace" xml:space="preserve">
+    <value>游戏内：替换 {1} 的装配中的“{0}”</value>
+  </data>
+  <data name="SaveTargetNew" xml:space="preserve">
+    <value>游戏内：为 {0} 新建装配</value>
+  </data>
+  <data name="SaveWhyTokenExpired" xml:space="preserve">
+    <value>令牌已过期——请在“设置 → ESI 令牌”中重新授权</value>
+  </data>
+  <data name="SaveWhyNoScope" xml:space="preserve">
+    <value>未授予写入装配的权限范围——请在“设置 → ESI 令牌”中更新该角色</value>
+  </data>
+  <data name="SaveErrNoName" xml:space="preserve">
+    <value>装配需要一个名称。</value>
+  </data>
+  <data name="SaveErrNoTarget" xml:space="preserve">
+    <value>请选择保存位置。</value>
+  </data>
+  <data name="SaveErrCannotSave" xml:space="preserve">
+    <value>无法保存到该角色。</value>
+  </data>
+  <data name="TitleImportFit" xml:space="preserve">
+    <value>导入装配</value>
+  </data>
+  <data name="EftPasteNote" xml:space="preserve">
+    <value>粘贴 EFT 格式的装配——即游戏装配窗口复制出的格式，也是装配网站分享的格式。第一行指明船体：[裂谷级, 我的装配]。</value>
+  </data>
+  <data name="ImportButton" xml:space="preserve">
+    <value>导入</value>
+  </data>
+  <data name="EftErrStart" xml:space="preserve">
+    <value>EFT 装配以 [舰船, 装配名称] 开头。</value>
+  </data>
+  <data name="EftErrFirstLine" xml:space="preserve">
+    <value>EFT 装配的第一行应形如 [舰船, 装配名称]。</value>
+  </data>
+  <data name="EftErrUnknownShip" xml:space="preserve">
+    <value>未知舰船：{0}</value>
+  </data>
+  <data name="GameErrUnreachable" xml:space="preserve">
+    <value>无法访问游戏。</value>
+  </data>
+  <data name="GameErrNoScope" xml:space="preserve">
+    <value>此角色尚未授予写入装配的权限范围——请在“设置 → ESI 令牌”中重新授权。</value>
+  </data>
+  <data name="GameErrRefused" xml:space="preserve">
+    <value>游戏拒绝了该装配（HTTP {0}）。</value>
+  </data>
+  <data name="WhyNotNoSlot" xml:space="preserve">
+    <value>{0} 不能装配到槽位中。</value>
+  </data>
+  <data name="NoFreeHigh" xml:space="preserve">
+    <value>没有空闲的高槽。</value>
+  </data>
+  <data name="NoFreeMid" xml:space="preserve">
+    <value>没有空闲的中槽。</value>
+  </data>
+  <data name="NoFreeLow" xml:space="preserve">
+    <value>没有空闲的低槽。</value>
+  </data>
+  <data name="NoFreeRig" xml:space="preserve">
+    <value>没有空闲的改装件槽。</value>
+  </data>
+  <data name="NoFreeSubsystem" xml:space="preserve">
+    <value>没有空闲的子系统槽。</value>
+  </data>
+  <data name="NoFreeService" xml:space="preserve">
+    <value>没有空闲的服务槽。</value>
+  </data>
+  <data name="WhyNotNoTurret" xml:space="preserve">
+    <value>没有空闲的炮台安装座。</value>
+  </data>
+  <data name="WhyNotNoLauncher" xml:space="preserve">
+    <value>没有空闲的发射器安装座。</value>
+  </data>
+  <data name="WhyNotRigSize" xml:space="preserve">
+    <value>改装件尺寸与船体不符。</value>
+  </data>
+  <data name="WhyNotSubsystemHull" xml:space="preserve">
+    <value>此子系统属于其他船体。</value>
+  </data>
+  <data name="WhyNotSubsystemFilled" xml:space="preserve">
+    <value>该子系统位置已被占用。</value>
+  </data>
+  <data name="WhyNotHull" xml:space="preserve">
+    <value>{0} 不能装配到 {1} 上。</value>
+  </data>
+  <data name="WhyNotMaxGroup" xml:space="preserve">
+    <value>此分组最多只能装配 {0:0} 个。</value>
+  </data>
+  <data name="WhyNotMaxType" xml:space="preserve">
+    <value>此装备最多只能装配 {0:0} 个。</value>
+  </data>
+  <data name="LoadFit" xml:space="preserve">
+    <value>载入装配</value>
+  </data>
+  <data name="LegendCharacter" xml:space="preserve">
+    <value>角色</value>
+  </data>
+  <data name="TipOwnerFilter" xml:space="preserve">
+    <value>显示某个角色或 EVE Console 的装配</value>
+  </data>
+  <data name="OwnerEveryone" xml:space="preserve">
+    <value>所有人</value>
+  </data>
+</root>

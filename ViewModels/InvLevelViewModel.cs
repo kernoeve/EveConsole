@@ -566,7 +566,6 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
     private readonly ProductionCalculatorService? _prodCalc;
     private readonly FittingsService?             _fittings;
     private readonly ObservableCollection<Character>?   _characters;
-    private readonly ObservableCollection<Corporation>? _corporations;
     private readonly AppPreferencesService              _prefs;
 
     private readonly List<InvGroupRow>       _allGroups       = [];
@@ -668,8 +667,7 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
         BatchAddService?             batchSvc      = null,
         ProductionCalculatorService? prodCalc      = null,
         FittingsService?             fittings      = null,
-        ObservableCollection<Character>?   characters   = null,
-        ObservableCollection<Corporation>? corporations = null)
+        ObservableCollection<Character>?   characters   = null)
     {
         _svc          = svc;
         _dbFactory    = dbFactory;
@@ -679,7 +677,6 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
         _prodCalc     = prodCalc;
         _fittings     = fittings;
         _characters   = characters;
-        _corporations = corporations;
 
         var hasGroups = this.WhenAnyValue(x => x.HasAnyGroup);
         AddGroupCommand              = ReactiveCommand.CreateFromTask(AddGroupAsync);
@@ -824,7 +821,7 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
 
     public FitSelectorViewModel? CreateFitSelectorViewModel()
     {
-        if (_fittings == null || _characters == null || _corporations == null) return null;
+        if (_fittings == null || _characters == null) return null;
         var groupOptions = _allGroups.Select(g => new FitGroupOption(g.GroupId, g.GroupName)).ToList();
         var preselectedId = _selectedRow switch
         {
@@ -832,7 +829,7 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
             InvItemRow  i => i.GroupId,
             _             => groupOptions.Count > 0 ? groupOptions[0].GroupId : 0
         };
-        return new FitSelectorViewModel(_fittings!, _dbFactory, _characters!, _corporations!, groupOptions, preselectedId);
+        return new FitSelectorViewModel(_fittings!, _dbFactory, _characters!, groupOptions, preselectedId);
     }
 
     private async Task AddFromFitInvokeAsync()

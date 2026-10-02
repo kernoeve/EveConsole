@@ -125,6 +125,119 @@ public class SdeDogmaEffect
     public bool   IsOffensive  { get; set; }
     public bool   IsAssistance { get; set; }
     public bool   Published    { get; set; }
+
+    // ── What the fitting engine runs on ────────────────────────────────────────
+    // 0 passive, 1 active, 2 target, 3 area, 4 online, 5 overload, 6 dungeon, 7 system.
+    public int    EffectCategory           { get; set; }
+    public bool   IsWarpSafe               { get; set; }
+    public bool   DisallowAutoRepeat       { get; set; }
+    // Which of the owning item's attributes hold the cycle time, cap use, optimal, falloff,
+    // tracking and the target resistance the effect is reduced by. Null where it has none.
+    public int?   DurationAttributeId      { get; set; }
+    public int?   DischargeAttributeId     { get; set; }
+    public int?   RangeAttributeId         { get; set; }
+    public int?   FalloffAttributeId       { get; set; }
+    public int?   TrackingSpeedAttributeId { get; set; }
+    public int?   ResistanceAttributeId    { get; set; }
+    public int?   FittingUsageChanceAttributeId { get; set; }
+}
+
+/// <summary>
+/// One entry of a dogma effect's <c>modifierInfo</c>: "while this effect is on, change attribute
+/// X of whatever <see cref="Domain"/> and <see cref="Func"/> select, by attribute Y of the item
+/// carrying the effect, using <see cref="Operation"/>". The fitting engine is these rows run in
+/// order; an effect with none needs code of its own.
+/// </summary>
+/// <summary>
+/// A fighter ability as the game describes it (fighterAbilities.yaml): its name, what it does, and
+/// where it may be used. Which fighter has it, and with how many charges, is
+/// <see cref="SdeFighterTypeAbility"/>. The name and tooltip in other languages are SdeNames and
+/// SdeTexts rows.
+/// </summary>
+public class SdeFighterAbility
+{
+    public int     AbilityId         { get; set; }
+    public string  Name              { get; set; } = "";
+    public string  Tooltip           { get; set; } = "";
+    /// <summary>untargeted, itemTargeted or pointTargeted.</summary>
+    public string  TargetMode        { get; set; } = "";
+    public int?    IconId            { get; set; }
+    public bool    DisallowInHighSec { get; set; }
+    public bool    DisallowInLowSec  { get; set; }
+}
+
+/// <summary>
+/// A fleet buff as the game defines it (dbuffCollections.yaml): what a command burst, a
+/// phenomena generator or a system effect does to the ships it reaches. A burst carries only the
+/// buff's id and a value; this says which attributes the value changes, by which operation, and
+/// how several values for the same buff combine — the strongest (Maximum or Minimum) applies.
+/// Its name in other languages is an SdeNames row.
+/// </summary>
+public class SdeDbuff
+{
+    public int    DbuffId       { get; set; }
+    public string Name          { get; set; } = "";
+    /// <summary>Maximum or Minimum: which of several values for this buff applies.</summary>
+    public string AggregateMode { get; set; } = "";
+    /// <summary>The dogma operation by name: PostPercent, PostMul, ModAdd, …</summary>
+    public string Operation     { get; set; } = "";
+    /// <summary>ShowNormal, ShowInverted or Hide — how the game shows the value.</summary>
+    public string ShowInUi      { get; set; } = "";
+}
+
+/// <summary>
+/// One attribute a fleet buff changes (an entry of a dbuffCollections.yaml modifier list): on the
+/// ship itself ("item"), on everything fitted ("location"), on what is fitted of a group
+/// ("locationGroup"), or on what is fitted that requires a skill ("locationRequiredSkill").
+/// </summary>
+public class SdeDbuffModifier
+{
+    public int    DbuffId     { get; set; }
+    public int    Ordinal     { get; set; }
+    public string Kind        { get; set; } = "";
+    public int    AttributeId { get; set; }
+    public int?   GroupId     { get; set; }
+    public int?   SkillTypeId { get; set; }
+}
+
+/// <summary>
+/// One ability slot of a fighter type (fighterAbilitiesByType.yaml): the ability, and its cooldown
+/// or charges. Slot 0 is the squadron's standing weapon, slot 1 its movement ability, slot 2 its
+/// secondary — the order the game gives them, which is also how they are matched to the dogma
+/// effects that carry their numbers (see FighterAbilities).
+/// </summary>
+public class SdeFighterTypeAbility
+{
+    public int     TypeId          { get; set; }
+    public int     Slot            { get; set; }
+    public int     AbilityId       { get; set; }
+    /// <summary>Seconds before it can be used again, for abilities that have one.</summary>
+    public double? CooldownSeconds { get; set; }
+    /// <summary>Uses before the squadron must rearm, for abilities that have them.</summary>
+    public int?    ChargeCount     { get; set; }
+    /// <summary>Seconds in the tube to rearm each charge.</summary>
+    public double? RearmSeconds    { get; set; }
+}
+
+public class SdeDogmaEffectModifier
+{
+    public int     EffectId             { get; set; }
+    /// <summary>Position within the effect's list, which is the key and nothing more.</summary>
+    public int     Ordinal              { get; set; }
+    /// <summary>ItemModifier, LocationModifier, LocationGroupModifier,
+    /// LocationRequiredSkillModifier, OwnerRequiredSkillModifier or EffectStopper.</summary>
+    public string  Func                 { get; set; } = "";
+    /// <summary>itemID, shipID, charID, otherID, structureID, target or targetID.</summary>
+    public string  Domain               { get; set; } = "";
+    /// <summary>-1 pre-assign, 0 pre-multiply, 2 mod-add, 3 mod-sub, 4 post-multiply,
+    /// 5 post-divide, 6 post-percent, 7 post-assign, 9 skill-level-based. Null for EffectStopper.</summary>
+    public int?    Operation            { get; set; }
+    public int?    ModifiedAttributeId  { get; set; }
+    public int?    ModifyingAttributeId { get; set; }
+    public int?    GroupId              { get; set; }
+    public int?    SkillTypeId          { get; set; }
+    /// <summary>The effect an EffectStopper switches off.</summary>
+    public int?    StoppedEffectId      { get; set; }
 }
 
 public class SdeTypeDogmaAttribute
@@ -638,6 +751,8 @@ public enum SdeNameKind
     // nor ESI has a station's name in another language, so the import BUILDS those from the
     // station's parts, the way the game client does — see Localization/LocationNames.cs.
     Station                = 22,
+    FighterAbility         = 23,  // SdeFighterAbilities.Name
+    Dbuff                  = 24,  // SdeDbuffs.Name
 }
 
 /// <summary>
@@ -683,6 +798,7 @@ public enum SdeTextKind
     RaceDescription           = 5,  // SdeRaces.Description
     CertificateDescription    = 6,  // SdeCertificates.Description
     MetaGroupDescription      = 7,  // SdeMetaGroups.Description
+    FighterAbilityTooltip     = 8,  // SdeFighterAbilities.Tooltip
 }
 
 /// <summary>

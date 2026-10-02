@@ -3859,6 +3859,10 @@ The application will restart.</value>
     <value>Dogma Effects</value>
     <comment>Settings → SDE import progress, stage: item effects. Dogma is CCP's name for the system that defines them.</comment>
   </data>
+  <data name="ImportStageDogmaEffectModifiers" xml:space="preserve">
+    <value>Dogma Effect Modifiers</value>
+    <comment>SDE tab, the import's progress: the stage that reads how each dogma effect changes attributes (the SDE's modifierInfo), which the fitting tool calculates with. Named like the other stages (ImportStageDogmaEffects).</comment>
+  </data>
   <data name="ImportStageTypeDogma" xml:space="preserve">
     <value>Type Dogma</value>
     <comment>Settings → SDE import progress, stage: each item type's attributes and effects. Dogma is CCP's name for that system.</comment>
@@ -3870,6 +3874,14 @@ The application will restart.</value>
   <data name="ImportStageTypeDogmaEffects" xml:space="preserve">
     <value>Type Dogma Effects</value>
     <comment>Settings → SDE import progress, stage: each item type's effects.</comment>
+  </data>
+  <data name="ImportStageFighterAbilities" xml:space="preserve">
+    <value>Fighter Abilities</value>
+    <comment>Settings → SDE import progress, stage: fighter abilities, and each fighter type's ability slots.</comment>
+  </data>
+  <data name="ImportStageFleetBoosts" xml:space="preserve">
+    <value>Fleet Boosts</value>
+    <comment>Settings → SDE import progress, stage: fleet buffs — what command bursts and similar effects do to the ships they reach.</comment>
   </data>
   <data name="ImportStageBlueprints" xml:space="preserve">
     <value>Blueprints</value>
