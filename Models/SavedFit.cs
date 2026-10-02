@@ -8,5 +8,8 @@ public class SavedFit
     public string         Name       { get; set; } = "";
     public int            ShipTypeId { get; set; }
     public string         Eft        { get; set; } = "";
+    /// <summary>What EFT leaves out — module states, launched drones, squadrons in tubes — as
+    /// <see cref="Services.Fitting.FitState"/> writes it; "" for a fit saved before it was kept.</summary>
+    public string         State      { get; set; } = "";
     public DateTimeOffset UpdatedAt  { get; set; }
 }

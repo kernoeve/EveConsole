@@ -114,11 +114,8 @@ public static class EftFormat
         var sb = new System.Text.StringBuilder();
         sb.Append('[').Append(Name(fit.ShipTypeId)).Append(", ").Append(fit.Name.Length > 0 ? fit.Name : "New fit").Append("]\n");
 
-        var bySlot = fit.Modules.GroupBy(m => data.TryType(m.TypeId, out var t) ? DogmaEngine.SlotOf(data, t) : FitSlot.None)
-            .ToDictionary(g => g.Key, g => g.ToList());
-        foreach (var slot in new[] { FitSlot.Low, FitSlot.Mid, FitSlot.High, FitSlot.Rig, FitSlot.Subsystem, FitSlot.Service })
+        foreach (var mods in Racks(fit, data))
         {
-            if (!bySlot.TryGetValue(slot, out var mods)) continue;
             sb.Append('\n');
             foreach (var m in mods)
             {
@@ -131,10 +128,8 @@ public static class EftFormat
         // A tactical destroyer's mode: a line of its own after the slots, as fitting tools write it.
         if (fit.ModeTypeId is { } mode) sb.Append('\n').Append(Name(mode)).Append('\n');
         // Drones, then fighters, each a block of "name xN" — a fighter line per squadron.
-        bool IsFighter(FitDrone d) => data.TryType(d.TypeId, out var t) && t.CategoryId == DogmaData.CategoryFighter;
-        foreach (var block in new[] { fit.Drones.Where(d => !IsFighter(d)).ToList(), fit.Drones.Where(IsFighter).ToList() })
+        foreach (var block in Bays(fit, data))
         {
-            if (block.Count == 0) continue;
             sb.Append('\n');
             foreach (var d in block) sb.Append(Name(d.TypeId)).Append(" x").Append(d.Count).Append('\n');
         }
@@ -149,6 +144,24 @@ public static class EftFormat
             foreach (var (id, qty) in fit.Cargo) sb.Append(Name(id)).Append(" x").Append(qty).Append('\n');
         }
         return sb.ToString();
+    }
+
+    /// <summary>The modules as <see cref="Write"/> lists them: a rack at a time — low, mid, high,
+    /// rigs, subsystems, services — each in fit order. Reading the text back gives this order.</summary>
+    internal static IEnumerable<List<FitModule>> Racks(FitDefinition fit, DogmaData data)
+    {
+        var bySlot = fit.Modules.GroupBy(m => data.TryType(m.TypeId, out var t) ? DogmaEngine.SlotOf(data, t) : FitSlot.None)
+            .ToDictionary(g => g.Key, g => g.ToList());
+        foreach (var slot in new[] { FitSlot.Low, FitSlot.Mid, FitSlot.High, FitSlot.Rig, FitSlot.Subsystem, FitSlot.Service })
+            if (bySlot.TryGetValue(slot, out var mods)) yield return mods;
+    }
+
+    /// <summary>The drone stacks, then the fighter squadrons, as <see cref="Write"/> lists them.</summary>
+    internal static IEnumerable<List<FitDrone>> Bays(FitDefinition fit, DogmaData data)
+    {
+        bool IsFighter(FitDrone d) => data.TryType(d.TypeId, out var t) && t.CategoryId == DogmaData.CategoryFighter;
+        foreach (var block in new[] { fit.Drones.Where(d => !IsFighter(d)).ToList(), fit.Drones.Where(IsFighter).ToList() })
+            if (block.Count > 0) yield return block;
     }
 
     /// <summary>

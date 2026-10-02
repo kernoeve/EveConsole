@@ -1089,7 +1089,7 @@ public class MainWindowViewModel : ReactiveObject
         NetWorthVm        = new NetWorthViewModel(dbFactory);
         IncomeExpenseVm   = new IncomeExpenseViewModel(dbFactory, errorLogger);
         MarketVm          = new MarketSettingsViewModel(dbFactory.CreateDbContext(), dbFactory, marketPricing, esi, CharacterVm.Characters, buildCostService);
-        var fittingsService = new FittingsService(esi, dbFactory);
+        var fittingsService = new FittingsService(esi);
         FittingVm         = new FittingViewModel(dbFactory, fittingsService, CharacterVm.Characters, esi);
         // When an SDE import finishes — by hand, or the one a schema change starts by itself — the
         // fitting tool reads the new game data; one that loaded during the import gets its second try.

@@ -1050,9 +1050,14 @@ public class FittingViewModel : ReactiveObject
             await using var db = await DbFactory.CreateDbContextAsync();
             if (await db.SavedFits.AsNoTracking().FirstOrDefaultAsync(f => f.Id == id) is not { } row) return null;
             fit = (await EftFormat.ParseAsync(row.Eft, Data)).Fit;
+            // Saved here: its modules and drones as they were saved, launched or not.
+            if (!FitState.Apply(fit, row.State)) await LaunchDronesAsync(fit);
         }
-        else fit = await EftFormat.FromEsiAsync(entry.Data, Data, Catalog);
-        await LaunchDronesAsync(fit);
+        else
+        {
+            fit = await EftFormat.FromEsiAsync(entry.Data, Data, Catalog);
+            await LaunchDronesAsync(fit);
+        }
         var pilot = entry.Source == FitSource.Personal && Characters?.FirstOrDefault(c => c.Name == entry.OwnerName) is { } owner
             ? SkillSources.FirstOrDefault(p => p.CharacterId == owner.Id)
             : SkillSources.FirstOrDefault();
@@ -1110,8 +1115,9 @@ public class FittingViewModel : ReactiveObject
         var row = await db.SavedFits.AsNoTracking().FirstOrDefaultAsync(f => f.Id == id);
         if (row is null) return;
         var parsed = await EftFormat.ParseAsync(row.Eft, Data);
+        var asSaved = FitState.Apply(parsed.Fit, row.State);
         var tab = NewTab();
-        await tab.LoadFitAsync(parsed.Fit);
+        await tab.LoadFitAsync(parsed.Fit, asSaved);
         tab.FitName = row.Name;
         tab.MarkSavedInApp(row.Id);
         Status = string.Format(FittingText.StatusOpened, row.Name);
@@ -2507,8 +2513,10 @@ public class FitTabViewModel : ReactiveObject
         Status = FittingText.StatusCopiedEft;
     }
 
-    /// <summary>Replaces the fit being edited with <paramref name="fit"/>.</summary>
-    public async Task LoadFitAsync(FitDefinition fit)
+    /// <summary>Replaces the fit being edited with <paramref name="fit"/>. With
+    /// <paramref name="launchedAsSaved"/>, its drones' launched counts are what was saved, none
+    /// included; otherwise its drones are in the bay and each stack starts launched.</summary>
+    public async Task LoadFitAsync(FitDefinition fit, bool launchedAsSaved = false)
     {
         if (_data is null) return;
         await _data.LoadTypesAsync(fit.AllTypeIds());
@@ -2521,7 +2529,8 @@ public class FitTabViewModel : ReactiveObject
         // and hull allow. Squadrons start in their tubes.
         foreach (var d in fit.Drones)
             AddDrone(d.TypeId, _data.Type(d.TypeId).Name, d.Count,
-                _data.Type(d.TypeId).CategoryId == DogmaData.CategoryFighter ? d.Count : Math.Min(d.Count, d.Active > 0 ? d.Active : 5),
+                launchedAsSaved ? Math.Min(d.Count, d.Active)
+                : _data.Type(d.TypeId).CategoryId == DogmaData.CategoryFighter ? d.Count : Math.Min(d.Count, d.Active > 0 ? d.Active : 5),
                 d.Abilities);
         foreach (var i in fit.Implants) AddImplant(i, _data.Type(i).Name, false);
         foreach (var b in fit.Boosters) AddImplant(b, _data.Type(b).Name, true);
@@ -2542,7 +2551,9 @@ public class FitTabViewModel : ReactiveObject
         if (row is null) { row = new SavedFit(); db.SavedFits.Add(row); }
         row.Name       = name;
         row.ShipTypeId = _shipTypeId;
-        row.Eft        = EftFormat.Write(CurrentFit(), _data);
+        var fit        = CurrentFit();
+        row.Eft        = EftFormat.Write(fit, _data);
+        row.State      = FitState.Write(fit, _data);
         row.UpdatedAt  = DateTimeOffset.UtcNow;
         await db.SaveChangesAsync();
         SetOrigin(row.Id, null);

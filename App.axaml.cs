@@ -2311,9 +2311,11 @@ public class App : Application
                         "Name"       TEXT    NOT NULL DEFAULT '',
                         "ShipTypeId" INTEGER NOT NULL DEFAULT 0,
                         "Eft"        TEXT    NOT NULL DEFAULT '',
+                        "State"      TEXT    NOT NULL DEFAULT '',
                         "UpdatedAt"  TEXT    NOT NULL DEFAULT ''
                     )
                     """);
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SavedFits" ADD COLUMN "State" TEXT NOT NULL DEFAULT ''"""); } catch { }
                 db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_SavedFits_ShipTypeId" ON "SavedFits" ("ShipTypeId")""");
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "CorpTop10Excludes" (

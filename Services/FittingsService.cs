@@ -3,9 +3,7 @@ using System.Collections.ObjectModel;
 using System.Threading;
 using System.Threading.Tasks;
 using EveConsole.Api;
-using EveConsole.Data;
 using EveConsole.Models;
-using Microsoft.EntityFrameworkCore;
 
 namespace EveConsole.Services;
 
@@ -20,7 +18,7 @@ public record FitEntry(EsiFittingData Data, FitSource Source, string OwnerName, 
     public const string AppOwner = "EVE Console";
 }
 
-public class FittingsService(EsiClient esi, IDbContextFactory<AppDbContext> dbFactory)
+public class FittingsService(EsiClient esi)
 {
     /// <summary>Every fitting of every character that has granted the fittings read scope.</summary>
     public async Task<List<FitEntry>> FetchAllFitsAsync(

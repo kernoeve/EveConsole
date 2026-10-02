@@ -856,8 +856,12 @@ public static class PostgresSchema
             "Name"       TEXT        NOT NULL DEFAULT '',
             "ShipTypeId" INTEGER     NOT NULL DEFAULT 0,
             "Eft"        TEXT        NOT NULL DEFAULT '',
+            "State"      TEXT        NOT NULL DEFAULT '',
             "UpdatedAt"  TIMESTAMPTZ NOT NULL DEFAULT now()
         )
+        """,
+        """
+        ALTER TABLE "SavedFits" ADD COLUMN IF NOT EXISTS "State" TEXT NOT NULL DEFAULT ''
         """,
 
         // ── Corp moon-mining ledger, one row per day ─────────────────────────
