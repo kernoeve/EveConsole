@@ -390,6 +390,16 @@ public sealed class FitSnapshot
     public DamageBreakdown WeaponDps = DamageBreakdown.Zero, DroneDps = DamageBreakdown.Zero, FighterDps = DamageBreakdown.Zero, Volley = DamageBreakdown.Zero;
     /// <summary>Fighter DPS over a whole sortie, rearming in the tubes included.</summary>
     public double FighterSustained;
+    /// <summary>Weapon DPS with reloads counted; at full spool, and the seconds to reach it (0 when nothing spools).</summary>
+    public double WeaponSustained, WeaponSpooled, SpoolSeconds;
+    /// <summary>Doomsdays, lances, bombs and breacher pods, as lines to show.</summary>
+    public List<string> Strikes = [];
+    /// <summary>GJ/s the fit's neutralizers take from a target, and its nosferatus drain at most.</summary>
+    public double Neutralizing, Nosferatu;
+    /// <summary>m³ an hour of ore, ice and gas.</summary>
+    public double MiningOre, MiningIce, MiningGas;
+    /// <summary>Seconds to lock a frigate, cruiser, battleship and capital.</summary>
+    public double[] LockSeconds = [];
     public Dictionary<int, string> DroneDetail = new();    // by drone/squadron index
     public double Speed, Align, Signature, Warp, Mass, Agility;
     public bool   CanWarp = true;
@@ -1794,19 +1804,22 @@ public class FitTabViewModel : ReactiveObject
         return c;
     }
 
-    /// <summary>The fit as last loaded or saved, in EFT — what "changed" is measured against.</summary>
-    private string _baseline = "";
+    /// <summary>The fit as last loaded or saved, in EFT, and its states as EVE Console keeps them
+    /// (<see cref="FitState"/>) — what "changed" is measured against.</summary>
+    private string _baseline = "", _baselineState = "";
 
     private void MarkClean()
     {
-        _baseline = _data is null || _shipTypeId == 0 ? "" : EftFormat.Write(CurrentFit(), _data);
+        var fit = CurrentFit();
+        _baseline      = _data is null || _shipTypeId == 0 ? "" : EftFormat.Write(fit, _data);
+        _baselineState = _data is null || _shipTypeId == 0 ? "" : FitState.Write(fit, _data);
         this.RaisePropertyChanged(nameof(TabDirty));
     }
 
     /// <summary>
     /// Whether the fit has changed since it was loaded or saved. A bare hull with nothing on it is
-    /// not worth marking, and module states (on, active, overheated) are not part of any fit
-    /// format, so switching modules on and off does not count.
+    /// not worth marking. Module states and launched drones count too, as EVE Console saves them —
+    /// except on a fit from the game, whose fittings keep neither, so saving it back would not.
     /// </summary>
     public bool IsDirty
     {
@@ -1815,7 +1828,8 @@ public class FitTabViewModel : ReactiveObject
             if (_data is null || _shipTypeId == 0) return false;
             var fit = CurrentFit();
             if (fit.Modules.Count + fit.Drones.Count + fit.Cargo.Count + fit.Implants.Count + fit.Boosters.Count == 0) return false;
-            return EftFormat.Write(fit, _data) != _baseline;
+            return EftFormat.Write(fit, _data) != _baseline
+                || (_gameSource is null && FitState.Write(fit, _data) != _baselineState);
         }
     }
 
@@ -2340,6 +2354,21 @@ public class FitTabViewModel : ReactiveObject
         snap.WeaponDps = s.WeaponDps(weapons); snap.DroneDps = s.DroneDps(weapons); snap.FighterDps = s.FighterDps(weapons);
         snap.FighterSustained = s.FighterSustainedDps(weapons);
         snap.Volley = s.Volley(weapons);
+        var shooting = weapons.Where(w => w.Kind is not (WeaponKind.Drone or WeaponKind.Fighter)).ToList();
+        snap.WeaponSustained = shooting.Sum(w => w.SustainedDps.Total);
+        snap.WeaponSpooled   = shooting.Sum(w => w.SpooledDps.Total);
+        snap.SpoolSeconds    = shooting.Where(w => w.SpoolMax > 0).Select(w => w.SpoolSeconds).DefaultIfEmpty(0).Max();
+        snap.Strikes.AddRange(s.Strikes().Select(StrikeLine));
+        var ewar = s.ElectronicWarfare();
+        snap.Neutralizing = ewar.Where(w => w.Kind == EwarKind.Neutralizer).Sum(w => w.Values[0]);
+        snap.Nosferatu    = ewar.Where(w => w.Kind == EwarKind.Nosferatu).Sum(w => w.Values[0]);
+        var mining = s.Mining();
+        snap.MiningOre = mining.Where(m => m.Kind == MiningKind.Ore).Sum(m => m.PerHour);
+        snap.MiningIce = mining.Where(m => m.Kind == MiningKind.Ice).Sum(m => m.PerHour);
+        snap.MiningGas = mining.Where(m => m.Kind == MiningKind.Gas).Sum(m => m.PerHour);
+        snap.LockSeconds = [.. LockSignatures.Select(s.LockSeconds)];
+        var ewarOf   = ewar.ToDictionary(w => w.Item);
+        var miningOf = mining.ToDictionary(m => m.Item);
 
         snap.FighterBay = s.FighterBayUsed; snap.FighterBayOut = s.FighterBay;
         snap.Tubes = s.FighterTubesUsed; snap.TubesOut = s.FighterTubes;
@@ -2350,11 +2379,20 @@ public class FitTabViewModel : ReactiveObject
         {
             var d = e.Drones[i];
             var mine = weapons.Where(w => w.Item == d).ToList();
-            snap.DroneDetail[i] = d.Kind == DogmaItemKind.Fighter
-                ? string.Join(" · ", mine.Select(w => w.CycleSeconds > 0
+            var parts = new List<string>();
+            if (d.Kind == DogmaItemKind.Fighter)
+            {
+                // A kamikaze strike hurts only what can take one: capitals and citadels.
+                parts.AddRange(mine.Select(w => w.CycleSeconds > 0
                     ? string.Format(FittingText.AbilityDps, w.Label, w.Dps.Total)
-                    : string.Format(FittingText.AbilityAlpha, w.Label, w.Volley.Total)))
-                : mine.Sum(w => w.Dps.Total) is var dps and > 0 ? string.Format(FittingText.Dps1, dps) : "";
+                    : string.Format(FittingText.AbilityAlpha, w.Label, w.Volley.Total)
+                      + (w.Ability?.Kind == FighterAbilityKind.Kamikaze ? $" ({FittingText.AbilityKamikazeTargets})" : "")));
+                parts.AddRange(FighterUtility(e, d));
+            }
+            else if (mine.Sum(w => w.Dps.Total) is var dps and > 0) parts.Add(string.Format(FittingText.Dps1, dps));
+            if (ewarOf.TryGetValue(d, out var dw)) parts.Add(EwarText(dw));
+            if (miningOf.TryGetValue(d, out var dm)) parts.Add(MiningDetail(dm));
+            snap.DroneDetail[i] = string.Join(" · ", parts);
         }
 
         var sensors = new[] { "scanRadarStrength", "scanLadarStrength", "scanMagnetometricStrength", "scanGravimetricStrength" }
@@ -2372,13 +2410,24 @@ public class FitTabViewModel : ReactiveObject
                 if (e.Value(m, "cpu") is var cpu and > 0) parts.Add(string.Format(FittingText.DetailCpu, cpu));
                 if (e.Value(m, "power") is var pg and > 0) parts.Add(string.Format(FittingText.DetailPg, pg));
             }
-            if (byModule.TryGetValue(m, out var w)) parts.Add(string.Format(FittingText.Dps1, w.Dps.Total));
-            if (repairs.FirstOrDefault(r => r.Item == m) is { } rep) parts.Add(string.Format(rep.Layer switch
+            if (byModule.TryGetValue(m, out var w))
             {
-                TankLayer.Shield => FittingText.DetailRepairShield,
-                TankLayer.Armor  => FittingText.DetailRepairArmor,
-                _                => FittingText.DetailRepairHull,
-            }, rep.PerSecond));
+                parts.Add(string.Format(FittingText.Dps1, w.Dps.Total));
+                if (w.SustainedDps.Total < w.Dps.Total - 0.05) parts.Add(string.Format(FittingText.DetailWithReloads, w.SustainedDps.Total));
+                if (w.SpoolMax > 0) parts.Add(string.Format(FittingText.DetailSpooled, w.SpooledDps.Total));
+            }
+            if (repairs.FirstOrDefault(r => r.Item == m) is { } rep)
+            {
+                parts.Add(string.Format(rep.Layer switch
+                {
+                    TankLayer.Shield => FittingText.DetailRepairShield,
+                    TankLayer.Armor  => FittingText.DetailRepairArmor,
+                    _                => FittingText.DetailRepairHull,
+                }, rep.PerSecond));
+                if (rep.SustainedPerSecond < rep.PerSecond - 0.05) parts.Add(string.Format(FittingText.DetailWithReloads, rep.SustainedPerSecond));
+            }
+            if (ewarOf.TryGetValue(m, out var mw)) parts.Add(EwarText(mw));
+            if (miningOf.TryGetValue(m, out var mm)) parts.Add(MiningDetail(mm));
             // Breach Control: what it does to breacher pod damage while it runs, which no figure here shows.
             if (e.Data.Attribute("breacherPodActivatedDamageReceivedPercentage")?.Id is { } breach && m.Type.Attr(breach) is { } breachPct)
                 parts.Add(string.Format(FittingText.DetailBreacherPods, breachPct));
@@ -2390,6 +2439,100 @@ public class FitTabViewModel : ReactiveObject
             snap.ModuleDetail[i] = string.Join(" · ", parts);
         }
         return snap;
+    }
+
+    /// <summary>Signatures of a typical frigate, cruiser, battleship and capital, in m, for lock times.</summary>
+    private static readonly double[] LockSignatures = [35, 125, 400, 5000];
+
+    /// <summary>A damage type's name when there is one, else the mix of them.</summary>
+    private static string DamageKind(DamageBreakdown d)
+    {
+        var types = new[] { (d.Em, FittingText.DamageEm), (d.Thermal, FittingText.DamageThermal),
+                            (d.Kinetic, FittingText.DamageKinetic), (d.Explosive, FittingText.DamageExplosive) }.Where(t => t.Item1 > 0).ToList();
+        return types.Count == 1 ? types[0].Item2 : DamageMix(d);
+    }
+
+    private static string StrikeLine(Strike st)
+    {
+        var name = SdeNames.Type(st.Item.Type.Id, st.Item.Type.Name);
+        var every = FormatDuration(st.CycleSeconds);
+        return st.Kind switch
+        {
+            StrikeKind.Bomb => string.Format(FittingText.StrikeBomb, name, st.PerHit.Total, DamageKind(st.PerHit), st.Radius / 1000, every),
+            StrikeKind.BreacherPod => string.Format(FittingText.StrikeBreacher, name, st.HullPercentPerHit, st.MaxPerHit, st.Hits * st.HitSeconds, every),
+            _ when st.Hits > 1 => string.Format(FittingText.StrikeOverTime, name, st.PerHit.Total, DamageKind(st.PerHit),
+                st.Hits * st.HitSeconds, st.Total.Total, st.Radius, every),
+            _ => string.Format(FittingText.StrikeOnce, name, st.PerHit.Total, DamageKind(st.PerHit), every),
+        };
+    }
+
+    /// <summary>What an electronic warfare module or drone stack does, and its range.</summary>
+    private static string EwarText(Ewar w)
+    {
+        var v = w.Values;
+        var what = w.Kind switch
+        {
+            EwarKind.Web               => string.Format(FittingText.EwarWeb, v[0]),
+            EwarKind.Point             => string.Format(FittingText.EwarPoint, v[0]),
+            EwarKind.Neutralizer       => string.Format(FittingText.EwarNeut, v[0]),
+            EwarKind.Nosferatu         => string.Format(FittingText.EwarNos, v[0]),
+            EwarKind.Jammer            => string.Format(FittingText.EwarJam, JamStrengths(v)),
+            EwarKind.Damper            => string.Format(FittingText.EwarDamp, v[0], v[1]),
+            EwarKind.TrackingDisruptor => string.Format(FittingText.EwarTracking, v[0], v[1], v[2]),
+            EwarKind.GuidanceDisruptor => string.Format(FittingText.EwarGuidance, v[0], v[1], v[2], v[3]),
+            _                          => string.Format(FittingText.EwarPaint, v[0]),
+        };
+        // Strength and GJ/s are the stack's; a percentage is what each drone applies.
+        if (w.Count > 1 && w.Kind is not (EwarKind.Point or EwarKind.Neutralizer or EwarKind.Nosferatu))
+            what = string.Format(FittingText.EwarEach, what);
+        var range = w.Range <= 0 ? ""
+            : w.Falloff > 0 ? string.Format(FittingText.EwarRange, w.Range / 1000, w.Falloff / 1000)
+            : string.Format(FittingText.EwarRangeOnly, w.Range / 1000);
+        return range.Length > 0 ? what + " · " + range : what;
+    }
+
+    /// <summary>A jammer's strength: one number when it is the same against every sensor type it
+    /// jams, else each type's (radar, ladar, magnetometric, gravimetric).</summary>
+    private static string JamStrengths(IReadOnlyList<double> v)
+    {
+        var some = v.Where(x => x > 0).ToList();
+        if (some.Count == 0) return "0";
+        if (some.Distinct().Count() == 1) return some[0].ToString("0.#");
+        return string.Join(" · ", new[] { FittingText.SensorRadar, FittingText.SensorLadar, FittingText.SensorMagnetometric, FittingText.SensorGravimetric }
+            .Zip(v, (format, x) => (format, x)).Where(p => p.x > 0).Select(p => string.Format(p.format, p.x)));
+    }
+
+    private static string MiningDetail(MiningYield m) =>
+        string.Format(FittingText.DetailMining, m.PerCycle, m.CycleSeconds)
+        + (m.WastePercent > 0 ? " · " + string.Format(FittingText.DetailResidue, m.WastePercent) : "");
+
+    /// <summary>
+    /// What a squadron's utility abilities that are switched on do to a target: a web's speed cut
+    /// and a jammer's strength per fighter; a point's strength and a neutralizer's GJ/s for the
+    /// whole squadron. Only a squadron in a tube does anything.
+    /// </summary>
+    private static IEnumerable<string> FighterUtility(DogmaEngine e, DogmaItem f)
+    {
+        if (f.ActiveCount <= 0) yield break;
+        double V(string a) => e.Data.Attribute(a) is { } info ? e.Value(f, info.Id) : 0;
+        foreach (var a in FighterAbilities.Of(e.Data, f.Type))
+        {
+            if (a.Kind != FighterAbilityKind.Utility || !f.Abilities.Contains(a.EffectId)) continue;
+            var effect = e.Data.Effects[a.EffectId].Name switch
+            {
+                "fighterAbilityStasisWebifier" => string.Format(FittingText.EwarEach, string.Format(FittingText.EwarWeb, V("fighterAbilityStasisWebifierSpeedPenalty"))),
+                "fighterAbilityWarpDisruption" => string.Format(FittingText.EwarPoint, V("fighterAbilityWarpDisruptionPointStrength") * f.ActiveCount),
+                "fighterAbilityEnergyNeutralizer" when V("fighterAbilityEnergyNeutralizerDuration") is var ms and > 0
+                    => string.Format(FittingText.EwarNeut, V("fighterAbilityEnergyNeutralizerAmount") * f.ActiveCount / (ms / 1000)),
+                "fighterAbilityECM" => string.Format(FittingText.EwarEach, string.Format(FittingText.EwarJam, JamStrengths(
+                    [V("fighterAbilityECMStrengthRadar"), V("fighterAbilityECMStrengthLadar"),
+                     V("fighterAbilityECMStrengthMagnetometric"), V("fighterAbilityECMStrengthGravimetric")]))),
+                "fighterAbilityTackle" => string.Format(FittingText.EwarEach, string.Format(FittingText.EwarWeb, V("fighterAbilityTackleWebSpeedPenalty")))
+                    + " · " + string.Format(FittingText.EwarPoint, V("fighterAbilityTackleWarpDisruptionPointStrength") * f.ActiveCount),
+                _ => null,
+            };
+            if (effect is not null) yield return string.Format(FittingText.AbilityEffect, a.Label, effect);
+        }
     }
 
     // Stats as the panel shows them.
@@ -2459,6 +2602,29 @@ public class FitTabViewModel : ReactiveObject
     public string? DpsSplitTip    => Stats is { } s && HasSustained(s) ? FittingText.TipFighterSustained : null;
     public string DamageTypesText => Stats is { } s && s.WeaponDps.Total + s.DroneDps.Total + s.FighterDps.Total > 0
         ? DamageMix(s.WeaponDps + s.DroneDps + s.FighterDps) : "";
+    /// <summary>Weapon DPS with reloads counted, when that is lower, and at full spool, when anything spools.</summary>
+    public string DpsExtraText    => Stats is not { } s ? "" : string.Join("    ", new[]
+        {
+            s.WeaponSustained < s.WeaponDps.Total - 0.05 ? string.Format(FittingText.DpsWithReloads, s.WeaponSustained) : null,
+            s.SpoolSeconds > 0 ? string.Format(FittingText.DpsSpooled, s.WeaponSpooled, FormatDuration(s.SpoolSeconds)) : null,
+        }.OfType<string>());
+    /// <summary>The capacitor the fit's neutralizers and nosferatus take from a target.</summary>
+    public string NeutText        => Stats is not { } s ? "" : string.Join("    ", new[]
+        {
+            s.Neutralizing > 0 ? string.Format(FittingText.NeutLine, s.Neutralizing) : null,
+            s.Nosferatu > 0 ? string.Format(FittingText.NosLine, s.Nosferatu) : null,
+        }.OfType<string>());
+    /// <summary>Doomsdays, lances, bombs and breacher pods, a line each.</summary>
+    public string StrikesText     => Stats is { } s ? string.Join(Environment.NewLine, s.Strikes) : "";
+    public bool   HasMining       => Stats is { } s && s.MiningOre + s.MiningIce + s.MiningGas > 0;
+    public string MiningText      => Stats is not { } s ? "" : string.Join("    ", new[]
+        {
+            s.MiningOre > 0 ? string.Format(FittingText.MiningOre, s.MiningOre) : null,
+            s.MiningIce > 0 ? string.Format(FittingText.MiningIce, s.MiningIce) : null,
+            s.MiningGas > 0 ? string.Format(FittingText.MiningGas, s.MiningGas) : null,
+        }.OfType<string>());
+    public string LockText        => Stats is { LockSeconds: { Length: 4 } t }
+        ? string.Format(FittingText.LockTimes, t[0], t[1], t[2], t[3]) : "";
     public string SpeedText       => Stats is { } s ? $"{s.Speed:N0} m/s" : "";
     /// <summary>Speed, align, warp, mass and inertia — a ship's; a structure shows only its signature.</summary>
     public bool   ShowsMovement   => Stats is not { IsStructure: true };
@@ -2498,7 +2664,7 @@ public class FitTabViewModel : ReactiveObject
         foreach (var p in new[] { nameof(CpuText), nameof(CpuFraction), nameof(CpuOver), nameof(PowerText), nameof(PowerFraction), nameof(PowerOver),
                      nameof(CalibText), nameof(CalibFraction), nameof(CalibOver), nameof(HardpointsText), nameof(HardpointsOver), nameof(DroneText), nameof(DroneOver), nameof(HasDroneBay), nameof(HasFighterBay), nameof(FighterText), nameof(FighterOver), nameof(CargoText), nameof(CargoOver),
                      nameof(TankRows), nameof(HasOwnBursts), nameof(BoostLines), nameof(HasBoostLines), nameof(EhpText), nameof(RegenText), nameof(RepairText), nameof(HasRepairs), nameof(CapText), nameof(CapStateText), nameof(CapStable), nameof(CapFlowText),
-                     nameof(DpsText), nameof(DpsSplitText), nameof(DpsSplitTip), nameof(DamageTypesText), nameof(SpeedText), nameof(NavText), nameof(MassText), nameof(ShowsMovement),
+                     nameof(DpsText), nameof(DpsSplitText), nameof(DpsSplitTip), nameof(DamageTypesText), nameof(DpsExtraText), nameof(NeutText), nameof(StrikesText), nameof(HasMining), nameof(MiningText), nameof(LockText), nameof(SpeedText), nameof(NavText), nameof(MassText), nameof(ShowsMovement),
                      nameof(TargetingText), nameof(SensorText) })
             this.RaisePropertyChanged(p);
     }

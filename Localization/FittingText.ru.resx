@@ -571,6 +571,27 @@
   <data name="OffenseHeading" xml:space="preserve">
     <value>Огневая мощь</value>
   </data>
+  <data name="MiningHeading" xml:space="preserve">
+    <value>Добыча</value>
+  </data>
+  <data name="MiningOre" xml:space="preserve">
+    <value>Руда: {0:N0} м³/ч</value>
+  </data>
+  <data name="MiningIce" xml:space="preserve">
+    <value>Лёд: {0:N0} м³/ч</value>
+  </data>
+  <data name="MiningGas" xml:space="preserve">
+    <value>Газ: {0:N0} м³/ч</value>
+  </data>
+  <data name="TipMining" xml:space="preserve">
+    <value>За час при работе всех буров, с учётом критических успехов в среднем. Отходы теряются из астероида или облака, а не из добычи. Учтены кристаллы, навыки, бонусы флота и корпус.</value>
+  </data>
+  <data name="DetailMining" xml:space="preserve">
+    <value>{0:N1} м³ каждые {1:0.#} с</value>
+  </data>
+  <data name="DetailResidue" xml:space="preserve">
+    <value>отходы {0:0.#}%</value>
+  </data>
   <data name="Dps0" xml:space="preserve">
     <value>{0:N0} урона/с</value>
   </data>
@@ -585,6 +606,33 @@
   </data>
   <data name="DpsVolley" xml:space="preserve">
     <value>Залп: {0:N0}</value>
+  </data>
+  <data name="DpsWithReloads" xml:space="preserve">
+    <value>С перезарядкой: {0:N1}</value>
+  </data>
+  <data name="DpsSpooled" xml:space="preserve">
+    <value>Полный разгон: {0:N1} через {1}</value>
+  </data>
+  <data name="TipDpsReloads" xml:space="preserve">
+    <value>DPS — между перезарядками. С перезарядкой каждое орудие отстреливает заряд и перезаряжается, снова и снова. Лазеры не перезаряжаются: кристаллы не расходуются. Полный разгон — то, чего достигают энтропийные дезинтеграторы, непрерывно стреляя по одной цели.</value>
+  </data>
+  <data name="StrikeOnce" xml:space="preserve">
+    <value>{0}: {1:N0} ({2}), раз в {3}</value>
+  </data>
+  <data name="StrikeOverTime" xml:space="preserve">
+    <value>{0}: {1:N0} ({2}) в секунду в течение {3:0} с (всего {4:N0}), раз в {6}</value>
+  </data>
+  <data name="StrikeBomb" xml:space="preserve">
+    <value>{0}: {1:N0} ({2}) всему в радиусе {3:0.#} км, раз в {4}</value>
+  </data>
+  <data name="StrikeBreacher" xml:space="preserve">
+    <value>{0}: {1:0.##}% корпуса цели в секунду, до {2:N0} ед., {3:0} с, раз в {4}</value>
+  </data>
+  <data name="NeutLine" xml:space="preserve">
+    <value>Нейтрализация: {0:N1} ГДж/с</value>
+  </data>
+  <data name="NosLine" xml:space="preserve">
+    <value>Носферату: {0:N1} ГДж/с</value>
   </data>
   <data name="DamageMix" xml:space="preserve">
     <value>ЭМ {0:P0} · Терм. {1:P0} · Кин. {2:P0} · Фуг. {3:P0}</value>
@@ -639,6 +687,54 @@
   </data>
   <data name="DetailRepairArmor" xml:space="preserve">
     <value>Броня: {0:N1} ед. пр./с</value>
+  </data>
+  <data name="DetailWithReloads" xml:space="preserve">
+    <value>{0:N1} с перезарядкой</value>
+  </data>
+  <data name="DetailSpooled" xml:space="preserve">
+    <value>{0:N1} при разгоне</value>
+  </data>
+  <data name="EwarWeb" xml:space="preserve">
+    <value>Скорость {0:+0.#;-0.#}%</value>
+  </data>
+  <data name="EwarPoint" xml:space="preserve">
+    <value>Сила варп-блокировки: {0:0.#}</value>
+  </data>
+  <data name="EwarNeut" xml:space="preserve">
+    <value>Нейтрализует {0:N1} ГДж/с</value>
+  </data>
+  <data name="EwarNos" xml:space="preserve">
+    <value>Высасывает до {0:N1} ГДж/с</value>
+  </data>
+  <data name="EwarJam" xml:space="preserve">
+    <value>Сила глушения: {0}</value>
+  </data>
+  <data name="EwarDamp" xml:space="preserve">
+    <value>Дальность захвата {0:+0.#;-0.#}% · разрешение {1:+0.#;-0.#}%</value>
+  </data>
+  <data name="EwarTracking" xml:space="preserve">
+    <value>Оптимальная {0:+0.#;-0.#}% · спад {1:+0.#;-0.#}% · наводка {2:+0.#;-0.#}%</value>
+  </data>
+  <data name="EwarGuidance" xml:space="preserve">
+    <value>Скорость ракет {0:+0.#;-0.#}% · время полёта {1:+0.#;-0.#}% · скорость взрыва {2:+0.#;-0.#}% · радиус взрыва {3:+0.#;-0.#}%</value>
+  </data>
+  <data name="EwarPaint" xml:space="preserve">
+    <value>Сигнатура {0:+0.#;-0.#}%</value>
+  </data>
+  <data name="EwarRange" xml:space="preserve">
+    <value>{0:0.#} км + {1:0.#} км</value>
+  </data>
+  <data name="EwarRangeOnly" xml:space="preserve">
+    <value>{0:0.#} км</value>
+  </data>
+  <data name="EwarEach" xml:space="preserve">
+    <value>{0} каждый</value>
+  </data>
+  <data name="AbilityEffect" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="AbilityKamikazeTargets" xml:space="preserve">
+    <value>только капитальные корабли и цитадели</value>
   </data>
   <data name="DetailRepairHull" xml:space="preserve">
     <value>Корпус: {0:N1} ед. пр./с</value>
@@ -774,6 +870,12 @@
   </data>
   <data name="TargetingLine" xml:space="preserve">
     <value>Дальность: {0:0.#} км    Разрешение: {1:N0} мм    Целей: {2:0}</value>
+  </data>
+  <data name="LockTimes" xml:space="preserve">
+    <value>Захват: фрегат {0:0.0} с · крейсер {1:0.0} с · линкор {2:0.0} с · капитал {3:0.0} с</value>
+  </data>
+  <data name="TipLockTimes" xml:space="preserve">
+    <value>Секунды на захват цели с сигнатурой типичного фрегата (35 м), крейсера (125 м), линкора (400 м) и капитального корабля (5000 м) при разрешении этой сборки.</value>
   </data>
   <data name="SensorRadar" xml:space="preserve">
     <value>Радар: {0:0.#}</value>

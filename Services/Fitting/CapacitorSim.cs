@@ -16,8 +16,14 @@ public sealed record CapacitorResult(
     /// <summary>When not stable, seconds until the first activation finds too little capacitor.</summary>
     double LastsSeconds);
 
-/// <summary>One thing that draws on (or, negative, adds to) the capacitor each cycle.</summary>
-public sealed record CapacitorDrain(string Name, double Amount, double CycleSeconds);
+/// <summary>One thing that draws on (or, negative, adds to) the capacitor each cycle. A cap
+/// booster runs <paramref name="Shots"/> cycles, then stops for <paramref name="ReloadSeconds"/> to
+/// reload; null for anything that never reloads.</summary>
+public sealed record CapacitorDrain(string Name, double Amount, double CycleSeconds, int? Shots = null, double ReloadSeconds = 0)
+{
+    /// <summary>The time from one activation to the next, on average: a reload spread over the load.</summary>
+    public double AverageCycleSeconds => Shots is int n and > 0 && ReloadSeconds > 0 ? CycleSeconds + ReloadSeconds / n : CycleSeconds;
+}
 
 /// <summary>
 /// The capacitor, simulated activation by activation.
@@ -27,6 +33,8 @@ public sealed record CapacitorDrain(string Name, double Amount, double CycleSeco
 /// dC/dt = (10·Cmax/τ)·(√(C/Cmax) − C/Cmax), whose solution is
 /// √(C/Cmax) = 1 + (√(C₀/Cmax) − 1)·e^(−5t/τ). That is exact, so the simulation only needs to
 /// stop where something happens.</para>
+///
+/// <para>A cap booster stops to reload when its load is spent, as in the game.</para>
 ///
 /// <para>Every module starts at the same moment with the capacitor full — the moment a pilot
 /// switches everything on. A module that finds too little capacitor for its next cycle is where
@@ -41,8 +49,8 @@ public static class CapacitorSim
     {
         var tau  = rechargeMs / 1000;
         var peak = tau > 0 ? 2.5 * capacity / tau : 0;
-        var drain  = drains.Where(d => d.CycleSeconds > 0 && d.Amount > 0).Sum(d => d.Amount / d.CycleSeconds);
-        var inject = drains.Where(d => d.CycleSeconds > 0 && d.Amount < 0).Sum(d => -d.Amount / d.CycleSeconds);
+        var drain  = drains.Where(d => d.CycleSeconds > 0 && d.Amount > 0).Sum(d => d.Amount / d.AverageCycleSeconds);
+        var inject = drains.Where(d => d.CycleSeconds > 0 && d.Amount < 0).Sum(d => -d.Amount / d.AverageCycleSeconds);
 
         var active = drains.Where(d => d.CycleSeconds > 0 && d.Amount != 0).ToList();
         if (active.Count == 0 || capacity <= 0 || tau <= 0)
@@ -50,6 +58,7 @@ public static class CapacitorSim
 
         // Next activation time for each drain; all fire at t = 0.
         var next  = active.Select(_ => 0.0).ToArray();
+        var fired = new int[active.Count];
         var cap   = capacity;
         var now   = 0.0;
         var end   = Horizon.TotalSeconds;
@@ -81,7 +90,9 @@ public static class CapacitorSim
                         cap -= d.Amount;
                     }
                     else cap = Math.Min(capacity, cap - d.Amount);
-                    next[i] = now + d.CycleSeconds;
+                    // The last charge of a load: the cycle ends, then the reload.
+                    var reload = d.Shots is int n and > 0 && ++fired[i] % n == 0 ? d.ReloadSeconds : 0;
+                    next[i] = now + d.CycleSeconds + reload;
                 }
 
             if (now >= lowFrom) low = Math.Min(low, cap / capacity);

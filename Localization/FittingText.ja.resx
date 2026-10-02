@@ -562,6 +562,27 @@
   <data name="OffenseHeading" xml:space="preserve">
     <value>攻撃</value>
   </data>
+  <data name="MiningHeading" xml:space="preserve">
+    <value>採掘</value>
+  </data>
+  <data name="MiningOre" xml:space="preserve">
+    <value>鉱石{0:N0} m³/h</value>
+  </data>
+  <data name="MiningIce" xml:space="preserve">
+    <value>氷{0:N0} m³/h</value>
+  </data>
+  <data name="MiningGas" xml:space="preserve">
+    <value>ガス{0:N0} m³/h</value>
+  </data>
+  <data name="TipMining" xml:space="preserve">
+    <value>すべての採掘モジュールを稼働させた1時間分で、クリティカル成功を平均して含みます。残渣は岩や雲から失われる分で、得られる量からは引かれません。採掘クリスタル、スキル、ブースト、船体を考慮しています。</value>
+  </data>
+  <data name="DetailMining" xml:space="preserve">
+    <value>{1:0.#}秒ごとに{0:N1} m³</value>
+  </data>
+  <data name="DetailResidue" xml:space="preserve">
+    <value>残渣{0:0.#}%</value>
+  </data>
   <data name="Dps0" xml:space="preserve">
     <value>{0:N0} DPS</value>
   </data>
@@ -576,6 +597,33 @@
   </data>
   <data name="DpsVolley" xml:space="preserve">
     <value>一斉射撃{0:N0}</value>
+  </data>
+  <data name="DpsWithReloads" xml:space="preserve">
+    <value>リロード込み{0:N1}</value>
+  </data>
+  <data name="DpsSpooled" xml:space="preserve">
+    <value>最大スプール{0:N1}（{1}後）</value>
+  </data>
+  <data name="TipDpsReloads" xml:space="preserve">
+    <value>DPSはリロードの合間の値です。リロード込みでは、各兵器が装填分を撃ち切ってリロードすることを繰り返します。レーザーはクリスタルを消費しないためリロードしません。最大スプールは、エントロピック・ディスインテグレーターが1つの目標を撃ち続けて到達する値です。</value>
+  </data>
+  <data name="StrikeOnce" xml:space="preserve">
+    <value>{0}：{1:N0} {2}、{3}ごと</value>
+  </data>
+  <data name="StrikeOverTime" xml:space="preserve">
+    <value>{0}：毎秒{1:N0} {2}を{3:0}秒間（合計{4:N0}）、{6}ごと</value>
+  </data>
+  <data name="StrikeBomb" xml:space="preserve">
+    <value>{0}：半径{3:0.#} km内のすべてに{1:N0} {2}、{4}ごと</value>
+  </data>
+  <data name="StrikeBreacher" xml:space="preserve">
+    <value>{0}：目標の船体の{1:0.##}%を毎秒（最大{2:N0} HP）、{3:0}秒間、{4}ごと</value>
+  </data>
+  <data name="NeutLine" xml:space="preserve">
+    <value>ニュートラライズ{0:N1} GJ/s</value>
+  </data>
+  <data name="NosLine" xml:space="preserve">
+    <value>ノスフェラトゥ{0:N1} GJ/s</value>
   </data>
   <data name="DamageMix" xml:space="preserve">
     <value>EM {0:P0} · 熱{1:P0} · 運動{2:P0} · 爆発{3:P0}</value>
@@ -621,6 +669,54 @@
   </data>
   <data name="DetailRepairArmor" xml:space="preserve">
     <value>アーマー{0:N1} HP/s</value>
+  </data>
+  <data name="DetailWithReloads" xml:space="preserve">
+    <value>リロード込み{0:N1}</value>
+  </data>
+  <data name="DetailSpooled" xml:space="preserve">
+    <value>最大スプール{0:N1}</value>
+  </data>
+  <data name="EwarWeb" xml:space="preserve">
+    <value>速度{0:+0.#;-0.#}%</value>
+  </data>
+  <data name="EwarPoint" xml:space="preserve">
+    <value>ワープ妨害強度{0:0.#}</value>
+  </data>
+  <data name="EwarNeut" xml:space="preserve">
+    <value>{0:N1} GJ/sをニュートラライズ</value>
+  </data>
+  <data name="EwarNos" xml:space="preserve">
+    <value>最大{0:N1} GJ/sを吸収</value>
+  </data>
+  <data name="EwarJam" xml:space="preserve">
+    <value>ジャム強度{0}</value>
+  </data>
+  <data name="EwarDamp" xml:space="preserve">
+    <value>ロック距離{0:+0.#;-0.#}%・スキャン分解能{1:+0.#;-0.#}%</value>
+  </data>
+  <data name="EwarTracking" xml:space="preserve">
+    <value>最適射程{0:+0.#;-0.#}%・精度低下{1:+0.#;-0.#}%・追跡{2:+0.#;-0.#}%</value>
+  </data>
+  <data name="EwarGuidance" xml:space="preserve">
+    <value>ミサイル速度{0:+0.#;-0.#}%・飛翔時間{1:+0.#;-0.#}%・爆発速度{2:+0.#;-0.#}%・爆発半径{3:+0.#;-0.#}%</value>
+  </data>
+  <data name="EwarPaint" xml:space="preserve">
+    <value>シグネチャ{0:+0.#;-0.#}%</value>
+  </data>
+  <data name="EwarRange" xml:space="preserve">
+    <value>{0:0.#} km + {1:0.#} km</value>
+  </data>
+  <data name="EwarRangeOnly" xml:space="preserve">
+    <value>{0:0.#} km</value>
+  </data>
+  <data name="EwarEach" xml:space="preserve">
+    <value>各{0}</value>
+  </data>
+  <data name="AbilityEffect" xml:space="preserve">
+    <value>{0}：{1}</value>
+  </data>
+  <data name="AbilityKamikazeTargets" xml:space="preserve">
+    <value>主力艦とシタデルのみ</value>
   </data>
   <data name="DetailRepairHull" xml:space="preserve">
     <value>船体{0:N1} HP/s</value>
@@ -756,6 +852,12 @@
   </data>
   <data name="TargetingLine" xml:space="preserve">
     <value>ターゲット範囲{0:0.#} km    スキャン分解能{1:N0} mm    最大ロック数{2:0}</value>
+  </data>
+  <data name="LockTimes" xml:space="preserve">
+    <value>ロック：フリゲート{0:0.0}秒・巡洋艦{1:0.0}秒・戦艦{2:0.0}秒・主力艦{3:0.0}秒</value>
+  </data>
+  <data name="TipLockTimes" xml:space="preserve">
+    <value>この装備のスキャン分解能で、一般的なフリゲート（35 m）、巡洋艦（125 m）、戦艦（400 m）、主力艦（5,000 m）のシグネチャを持つ目標をロックする秒数です。</value>
   </data>
   <data name="SensorRadar" xml:space="preserve">
     <value>電波{0:0.#}</value>

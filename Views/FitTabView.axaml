@@ -276,6 +276,17 @@
           <TextBlock Text="{Binding DpsText}" Classes="big" />
           <TextBlock Text="{Binding DpsSplitText}" Classes="line" ToolTip.Tip="{Binding DpsSplitTip}" />
           <TextBlock Text="{Binding DamageTypesText}" Classes="line" />
+          <TextBlock Text="{Binding DpsExtraText}" Classes="line" ToolTip.Tip="{x:Static loc:FittingText.TipDpsReloads}"
+                     IsVisible="{Binding DpsExtraText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+          <TextBlock Text="{Binding NeutText}" Classes="line"
+                     IsVisible="{Binding NeutText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+          <!-- Doomsdays, lances, bombs and breacher pods: once in a long while, or to an area, so not DPS. -->
+          <TextBlock Text="{Binding StrikesText}" Classes="line" TextWrapping="Wrap" Margin="0 4 0 0"
+                     IsVisible="{Binding StrikesText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+          <TextBlock Text="{x:Static loc:FittingText.MiningHeading}" Classes="section" IsVisible="{Binding HasMining}" />
+          <TextBlock Text="{Binding MiningText}" Classes="line" IsVisible="{Binding HasMining}" TextWrapping="Wrap"
+                     ToolTip.Tip="{x:Static loc:FittingText.TipMining}" />
 
           <TextBlock Text="{x:Static loc:FittingText.DefenseHeading}" Classes="section" />
           <!-- The damage the tank is judged against, and a Reactive Armor Hardener adapts to. Even damage unless chosen; remembered. -->
@@ -360,6 +371,7 @@
           <TextBlock Text="{x:Static loc:FittingText.TargetingHeading}" Classes="section" />
           <TextBlock Text="{Binding TargetingText}" Classes="line" />
           <TextBlock Text="{Binding SensorText}" Classes="line" />
+          <TextBlock Text="{Binding LockText}" Classes="line" TextWrapping="Wrap" ToolTip.Tip="{x:Static loc:FittingText.TipLockTimes}" />
         </StackPanel>
       </ScrollViewer>
     </Border>

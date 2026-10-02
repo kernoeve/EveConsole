@@ -752,6 +752,34 @@
     <value>OFFENSE</value>
     <comment>Fitting tool, figures: heading of the fit's damage. Upper case in English.</comment>
   </data>
+  <data name="MiningHeading" xml:space="preserve">
+    <value>MINING</value>
+    <comment>Fitting tool: heading of the section with the fit's mining yield. Upper case in English, as the other headings.</comment>
+  </data>
+  <data name="MiningOre" xml:space="preserve">
+    <value>Ore {0:N0} m³/h</value>
+    <comment>Fitting tool, MINING: ore mined an hour. {0} the number of cubic metres.</comment>
+  </data>
+  <data name="MiningIce" xml:space="preserve">
+    <value>Ice {0:N0} m³/h</value>
+    <comment>Fitting tool, MINING: ice harvested an hour. {0} the number of cubic metres.</comment>
+  </data>
+  <data name="MiningGas" xml:space="preserve">
+    <value>Gas {0:N0} m³/h</value>
+    <comment>Fitting tool, MINING: gas harvested an hour. {0} the number of cubic metres.</comment>
+  </data>
+  <data name="TipMining" xml:space="preserve">
+    <value>An hour with every miner running, critical successes averaged in. Residue is lost from the rock or cloud, not from what you bring in. Mining crystals, skills, boosts and the hull are all counted.</value>
+    <comment>Fitting tool, MINING: tooltip on the yield line.</comment>
+  </data>
+  <data name="DetailMining" xml:space="preserve">
+    <value>{0:N1} m³ every {1:0.#} s</value>
+    <comment>Fitting tool, under a mining module or drone stack: what one cycle brings in and how long it takes. {0} cubic metres, {1} seconds.</comment>
+  </data>
+  <data name="DetailResidue" xml:space="preserve">
+    <value>residue {0:0.#}%</value>
+    <comment>Fitting tool, under a mining module: the chance a cycle also wastes some of the rock or cloud. {0} the percentage.</comment>
+  </data>
   <data name="Dps0" xml:space="preserve">
     <value>{0:N0} DPS</value>
     <comment>Fitting tool, OFFENSE: the fit's damage per second, in large type. DPS is the usual abbreviation of damage per second.</comment>
@@ -771,6 +799,42 @@
   <data name="DpsVolley" xml:space="preserve">
     <value>Volley {0:N0}</value>
     <comment>Fitting tool, OFFENSE: the damage of one volley of every weapon at once (alpha). {0} is the number.</comment>
+  </data>
+  <data name="DpsWithReloads" xml:space="preserve">
+    <value>With reloads {0:N1}</value>
+    <comment>Fitting tool, OFFENSE: weapon DPS with the time spent reloading counted. {0} is the number.</comment>
+  </data>
+  <data name="DpsSpooled" xml:space="preserve">
+    <value>Fully spooled {0:N1} after {1}</value>
+    <comment>Fitting tool, OFFENSE: the DPS of weapons that build up damage while they keep firing on one target (entropic disintegrators), once at their most. {0} is the DPS, {1} how long it takes (e.g. 1m 12s).</comment>
+  </data>
+  <data name="TipDpsReloads" xml:space="preserve">
+    <value>DPS is between reloads. With reloads, each weapon's load of charges is fired and then reloaded, over and over. Lasers never reload: crystals are not spent. Fully spooled is what entropic disintegrators reach after firing on one target without stopping.</value>
+    <comment>Fitting tool, OFFENSE: tooltip on the line with reload and spooled DPS.</comment>
+  </data>
+  <data name="StrikeOnce" xml:space="preserve">
+    <value>{0}: {1:N0} {2}, every {3}</value>
+    <comment>Fitting tool, OFFENSE: a doomsday that strikes once. {0} the module, {1} the damage, {2} its damage type, {3} how often it can fire (e.g. 4m 0s).</comment>
+  </data>
+  <data name="StrikeOverTime" xml:space="preserve">
+    <value>{0}: {1:N0} {2} a second for {3:0} s ({4:N0} in all), every {6}</value>
+    <comment>Fitting tool, OFFENSE: a lance, reaper or field generator, which hurts everything in its area each second. {0} the module, {1} damage a second, {2} damage type, {3} seconds it lasts, {4} the total, {6} how often it can fire. {5} (the area's radius in m) is available but not shown.</comment>
+  </data>
+  <data name="StrikeBomb" xml:space="preserve">
+    <value>{0}: {1:N0} {2} to everything within {3:0.#} km, every {4}</value>
+    <comment>Fitting tool, OFFENSE: a bomb. {0} the launcher, {1} the damage, {2} its damage type, {3} the blast radius in km, {4} how often it can launch.</comment>
+  </data>
+  <data name="StrikeBreacher" xml:space="preserve">
+    <value>{0}: {1:0.##}% of the target's hull a second, up to {2:N0} HP, for {3:0} s, every {4}</value>
+    <comment>Fitting tool, OFFENSE: a breacher pod, whose boarders damage the target's hull directly, ignoring resistances. {0} the launcher, {1} the share of hull a second, {2} the most a second, {3} seconds it lasts, {4} how often it can launch.</comment>
+  </data>
+  <data name="NeutLine" xml:space="preserve">
+    <value>Neutralizing {0:N1} GJ/s</value>
+    <comment>Fitting tool, OFFENSE: the capacitor the fit's energy neutralizers (modules and drones) take from a target each second. {0} the number.</comment>
+  </data>
+  <data name="NosLine" xml:space="preserve">
+    <value>Nosferatu {0:N1} GJ/s</value>
+    <comment>Fitting tool, OFFENSE: the capacitor the fit's nosferatus drain from a target each second, at most. {0} the number.</comment>
   </data>
   <data name="DamageMix" xml:space="preserve">
     <value>EM {0:P0} · Th {1:P0} · Kin {2:P0} · Exp {3:P0}</value>
@@ -835,6 +899,70 @@
   <data name="DetailRepairArmor" xml:space="preserve">
     <value>{0:N1} armor HP/s</value>
     <comment>Fitting tool, under an armor repairer: the armor it repairs per second. {0} is the number; HP/s is hit points per second.</comment>
+  </data>
+  <data name="DetailWithReloads" xml:space="preserve">
+    <value>{0:N1} with reloads</value>
+    <comment>Fitting tool, under a weapon or ancillary repairer: its rate with reloading counted. {0} the number.</comment>
+  </data>
+  <data name="DetailSpooled" xml:space="preserve">
+    <value>{0:N1} spooled</value>
+    <comment>Fitting tool, under an entropic disintegrator: its DPS at full spool. {0} the number.</comment>
+  </data>
+  <data name="EwarWeb" xml:space="preserve">
+    <value>Speed {0:+0.#;-0.#}%</value>
+    <comment>Fitting tool, under a stasis webifier: how it changes the target's speed. {0} the percentage, signed.</comment>
+  </data>
+  <data name="EwarPoint" xml:space="preserve">
+    <value>Warp disruption strength {0:0.#}</value>
+    <comment>Fitting tool, under a warp disruptor or scrambler: the points of warp disruption it applies. {0} the number.</comment>
+  </data>
+  <data name="EwarNeut" xml:space="preserve">
+    <value>Neutralizes {0:N1} GJ/s</value>
+    <comment>Fitting tool, under an energy neutralizer: the target's capacitor it takes each second. {0} the number.</comment>
+  </data>
+  <data name="EwarNos" xml:space="preserve">
+    <value>Drains up to {0:N1} GJ/s</value>
+    <comment>Fitting tool, under a nosferatu: the most capacitor it moves from the target to the ship each second. {0} the number.</comment>
+  </data>
+  <data name="EwarJam" xml:space="preserve">
+    <value>Jam strength {0}</value>
+    <comment>Fitting tool, under an ECM module or drone: its jamming strength. {0} is one number when it is the same against every sensor type, or each type's (Radar 3 · Ladar 3 …).</comment>
+  </data>
+  <data name="EwarDamp" xml:space="preserve">
+    <value>Lock range {0:+0.#;-0.#}% · scan res {1:+0.#;-0.#}%</value>
+    <comment>Fitting tool, under a sensor dampener: how it changes the target's lock range and scan resolution. {0} and {1} percentages, signed.</comment>
+  </data>
+  <data name="EwarTracking" xml:space="preserve">
+    <value>Optimal {0:+0.#;-0.#}% · falloff {1:+0.#;-0.#}% · tracking {2:+0.#;-0.#}%</value>
+    <comment>Fitting tool, under a tracking disruptor: how it changes the target's turrets. {0} optimal range, {1} falloff, {2} tracking, percentages, signed.</comment>
+  </data>
+  <data name="EwarGuidance" xml:space="preserve">
+    <value>Missile velocity {0:+0.#;-0.#}% · flight time {1:+0.#;-0.#}% · explosion velocity {2:+0.#;-0.#}% · explosion radius {3:+0.#;-0.#}%</value>
+    <comment>Fitting tool, under a guidance disruptor: how it changes the target's missiles. Four percentages, signed.</comment>
+  </data>
+  <data name="EwarPaint" xml:space="preserve">
+    <value>Signature {0:+0.#;-0.#}%</value>
+    <comment>Fitting tool, under a target painter: how it changes the target's signature radius. {0} the percentage, signed.</comment>
+  </data>
+  <data name="EwarRange" xml:space="preserve">
+    <value>{0:0.#} km + {1:0.#} km</value>
+    <comment>Fitting tool, under an electronic warfare module: its optimal range and falloff, in km.</comment>
+  </data>
+  <data name="EwarRangeOnly" xml:space="preserve">
+    <value>{0:0.#} km</value>
+    <comment>Fitting tool, under an electronic warfare module without falloff: its range, in km.</comment>
+  </data>
+  <data name="EwarEach" xml:space="preserve">
+    <value>{0} each</value>
+    <comment>Fitting tool, under a stack of EWAR drones or a fighter squadron: an effect each one applies. {0} the effect (e.g. 'Speed -20%').</comment>
+  </data>
+  <data name="AbilityEffect" xml:space="preserve">
+    <value>{0}: {1}</value>
+    <comment>Fitting tool, under a fighter squadron: what a utility ability does. {0} the ability's name, {1} its effect.</comment>
+  </data>
+  <data name="AbilityKamikazeTargets" xml:space="preserve">
+    <value>capitals and citadels only</value>
+    <comment>Fitting tool, under a fighter squadron with a kamikaze strike: the only targets it hurts. Shown in parentheses.</comment>
   </data>
   <data name="DetailRepairHull" xml:space="preserve">
     <value>{0:N1} hull HP/s</value>
@@ -1015,6 +1143,14 @@
   <data name="TargetingLine" xml:space="preserve">
     <value>Range {0:0.#} km    Scan res {1:N0} mm    Targets {2:0}</value>
     <comment>Fitting tool, TARGETING: {0} the targeting range in km, {1} the scan resolution in mm, {2} the most targets it can lock. Four spaces separate the parts in English.</comment>
+  </data>
+  <data name="LockTimes" xml:space="preserve">
+    <value>Lock: frigate {0:0.0} s · cruiser {1:0.0} s · battleship {2:0.0} s · capital {3:0.0} s</value>
+    <comment>Fitting tool, TARGETING: seconds to lock a typical target of each size. {0}–{3} the seconds.</comment>
+  </data>
+  <data name="TipLockTimes" xml:space="preserve">
+    <value>Seconds to lock a target with the signature of a typical frigate (35 m), cruiser (125 m), battleship (400 m) and capital (5,000 m), at this fit's scan resolution.</value>
+    <comment>Fitting tool, TARGETING: tooltip on the lock time line.</comment>
   </data>
   <data name="SensorRadar" xml:space="preserve">
     <value>Radar {0:0.#}</value>

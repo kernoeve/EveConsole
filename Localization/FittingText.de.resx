@@ -565,6 +565,27 @@
   <data name="OffenseHeading" xml:space="preserve">
     <value>Angriffsstärke</value>
   </data>
+  <data name="MiningHeading" xml:space="preserve">
+    <value>Bergbau</value>
+  </data>
+  <data name="MiningOre" xml:space="preserve">
+    <value>Erz {0:N0} m³/h</value>
+  </data>
+  <data name="MiningIce" xml:space="preserve">
+    <value>Eis {0:N0} m³/h</value>
+  </data>
+  <data name="MiningGas" xml:space="preserve">
+    <value>Gas {0:N0} m³/h</value>
+  </data>
+  <data name="TipMining" xml:space="preserve">
+    <value>Eine Stunde mit allen laufenden Bergbaumodulen, kritische Erfolge gemittelt. Rückstände gehen dem Gestein oder der Wolke verloren, nicht dem, was du einbringst. Bergbaukristalle, Skills, Boni und das Schiff sind berücksichtigt.</value>
+  </data>
+  <data name="DetailMining" xml:space="preserve">
+    <value>{0:N1} m³ alle {1:0.#} s</value>
+  </data>
+  <data name="DetailResidue" xml:space="preserve">
+    <value>Rückstand {0:0.#} %</value>
+  </data>
   <data name="Dps0" xml:space="preserve">
     <value>{0:N0} DPS</value>
   </data>
@@ -579,6 +600,33 @@
   </data>
   <data name="DpsVolley" xml:space="preserve">
     <value>Salve {0:N0}</value>
+  </data>
+  <data name="DpsWithReloads" xml:space="preserve">
+    <value>Mit Nachladen {0:N1}</value>
+  </data>
+  <data name="DpsSpooled" xml:space="preserve">
+    <value>Voll aufgeladen {0:N1} nach {1}</value>
+  </data>
+  <data name="TipDpsReloads" xml:space="preserve">
+    <value>DPS gilt zwischen dem Nachladen. Mit Nachladen wird jede Ladung abgefeuert und dann nachgeladen, immer wieder. Laser laden nie nach: Kristalle werden nicht verbraucht. Voll aufgeladen ist, was Entropie-Desintegratoren nach ununterbrochenem Feuer auf ein Ziel erreichen.</value>
+  </data>
+  <data name="StrikeOnce" xml:space="preserve">
+    <value>{0}: {1:N0} {2}, alle {3}</value>
+  </data>
+  <data name="StrikeOverTime" xml:space="preserve">
+    <value>{0}: {1:N0} {2} pro Sekunde für {3:0} s (insgesamt {4:N0}), alle {6}</value>
+  </data>
+  <data name="StrikeBomb" xml:space="preserve">
+    <value>{0}: {1:N0} {2} an allem im Umkreis von {3:0.#} km, alle {4}</value>
+  </data>
+  <data name="StrikeBreacher" xml:space="preserve">
+    <value>{0}: {1:0.##} % der Struktur des Ziels pro Sekunde, bis {2:N0} TP, für {3:0} s, alle {4}</value>
+  </data>
+  <data name="NeutLine" xml:space="preserve">
+    <value>Neutralisiert {0:N1} GJ/s</value>
+  </data>
+  <data name="NosLine" xml:space="preserve">
+    <value>Nosferatu {0:N1} GJ/s</value>
   </data>
   <data name="DamageMix" xml:space="preserve">
     <value>EM {0:P0} · Th {1:P0} · Kin {2:P0} · Exp {3:P0}</value>
@@ -627,6 +675,54 @@
   </data>
   <data name="DetailRepairArmor" xml:space="preserve">
     <value>{0:N1} Panzerungs-HP/s</value>
+  </data>
+  <data name="DetailWithReloads" xml:space="preserve">
+    <value>{0:N1} mit Nachladen</value>
+  </data>
+  <data name="DetailSpooled" xml:space="preserve">
+    <value>{0:N1} aufgeladen</value>
+  </data>
+  <data name="EwarWeb" xml:space="preserve">
+    <value>Geschwindigkeit {0:+0.#;-0.#} %</value>
+  </data>
+  <data name="EwarPoint" xml:space="preserve">
+    <value>Warpstörstärke {0:0.#}</value>
+  </data>
+  <data name="EwarNeut" xml:space="preserve">
+    <value>Neutralisiert {0:N1} GJ/s</value>
+  </data>
+  <data name="EwarNos" xml:space="preserve">
+    <value>Saugt bis {0:N1} GJ/s ab</value>
+  </data>
+  <data name="EwarJam" xml:space="preserve">
+    <value>Störstärke {0}</value>
+  </data>
+  <data name="EwarDamp" xml:space="preserve">
+    <value>Zielreichweite {0:+0.#;-0.#} % · Scanauflösung {1:+0.#;-0.#} %</value>
+  </data>
+  <data name="EwarTracking" xml:space="preserve">
+    <value>Optimal {0:+0.#;-0.#} % · Falloff {1:+0.#;-0.#} % · Nachführung {2:+0.#;-0.#} %</value>
+  </data>
+  <data name="EwarGuidance" xml:space="preserve">
+    <value>Raketengeschwindigkeit {0:+0.#;-0.#} % · Flugzeit {1:+0.#;-0.#} % · Explosionsgeschwindigkeit {2:+0.#;-0.#} % · Explosionsradius {3:+0.#;-0.#} %</value>
+  </data>
+  <data name="EwarPaint" xml:space="preserve">
+    <value>Signatur {0:+0.#;-0.#} %</value>
+  </data>
+  <data name="EwarRange" xml:space="preserve">
+    <value>{0:0.#} km + {1:0.#} km</value>
+  </data>
+  <data name="EwarRangeOnly" xml:space="preserve">
+    <value>{0:0.#} km</value>
+  </data>
+  <data name="EwarEach" xml:space="preserve">
+    <value>{0} je</value>
+  </data>
+  <data name="AbilityEffect" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="AbilityKamikazeTargets" xml:space="preserve">
+    <value>nur Großkampfschiffe und Zitadellen</value>
   </data>
   <data name="DetailRepairHull" xml:space="preserve">
     <value>{0:N1} Struktur-HP/s</value>
@@ -762,6 +858,12 @@
   </data>
   <data name="TargetingLine" xml:space="preserve">
     <value>Reichweite {0:0.#} km    Scanauflösung {1:N0} mm    Ziele {2:0}</value>
+  </data>
+  <data name="LockTimes" xml:space="preserve">
+    <value>Aufschalten: Fregatte {0:0.0} s · Kreuzer {1:0.0} s · Schlachtschiff {2:0.0} s · Großkampfschiff {3:0.0} s</value>
+  </data>
+  <data name="TipLockTimes" xml:space="preserve">
+    <value>Sekunden zum Aufschalten eines Ziels mit der Signatur einer typischen Fregatte (35 m), eines Kreuzers (125 m), eines Schlachtschiffs (400 m) und eines Großkampfschiffs (5.000 m), bei der Scanauflösung dieses Fittings.</value>
   </data>
   <data name="SensorRadar" xml:space="preserve">
     <value>Radar {0:0.#}</value>

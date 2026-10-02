@@ -36,14 +36,75 @@ public sealed record WeaponDamage(DogmaItem Item, WeaponKind Kind, DamageBreakdo
     FighterAbility? Ability = null)
 {
     public DamageBreakdown Dps => CycleSeconds > 0 ? Volley * (1 / CycleSeconds) : DamageBreakdown.Zero;
+
+    /// <summary>Shots between reloads, for a weapon that loads charges it spends; null for one that never reloads.</summary>
+    public int? Shots { get; init; }
+    /// <summary>Seconds a reload takes.</summary>
+    public double ReloadSeconds { get; init; }
+    /// <summary>DPS with reloading counted: a load's damage over the time to fire it and load the next.</summary>
+    public DamageBreakdown SustainedDps => Shots is int n and > 0 && CycleSeconds > 0 && ReloadSeconds > 0
+        ? Volley * (n / (n * CycleSeconds + ReloadSeconds)) : Dps;
+
+    /// <summary>A weapon that spools up (entropic disintegrators): the damage it adds at full spool, as a
+    /// fraction of its own (2.125 = +212.5%), and what each cycle on the same target adds towards it.</summary>
+    public double SpoolMax { get; init; }
+    public double SpoolPerCycle { get; init; }
+    public DamageBreakdown SpooledDps => Dps * (1 + SpoolMax);
+    /// <summary>Seconds of firing on one target to reach full spool.</summary>
+    public double SpoolSeconds => SpoolPerCycle > 0 ? Math.Ceiling(SpoolMax / SpoolPerCycle - 1e-9) * CycleSeconds : 0;
 }
+
+public enum StrikeKind { Doomsday, Bomb, BreacherPod }
+
+/// <summary>
+/// One use of a doomsday, lance, reaper, field generator, bomb or breacher pod:
+/// <paramref name="PerHit"/> damage <paramref name="Hits"/> times, <paramref name="HitSeconds"/>
+/// apart (0 for a single strike), usable every <paramref name="CycleSeconds"/>, over an area of
+/// <paramref name="Radius"/> m where it has one. A breacher pod's hits are each the smaller of
+/// <paramref name="MaxPerHit"/> HP and <paramref name="HullPercentPerHit"/>% of the target's hull,
+/// regardless of resistances.
+/// </summary>
+public sealed record Strike(DogmaItem Item, StrikeKind Kind, DamageBreakdown PerHit, int Hits, double HitSeconds, double CycleSeconds,
+    double Radius = 0, double MaxPerHit = 0, double HullPercentPerHit = 0)
+{
+    public DamageBreakdown Total => PerHit * Hits;
+}
+
+public enum MiningKind { Ore, Ice, Gas }
+
+/// <summary>A mining module or drone stack: m³ per cycle, its critical success chance and bonus share,
+/// and its residue chance (%) and the share of a cycle's volume residue wastes.</summary>
+public sealed record MiningYield(DogmaItem Item, MiningKind Kind, double PerCycle, double CycleSeconds,
+    double CritChance, double CritBonus, double WastePercent, double WasteMultiplier)
+{
+    /// <summary>m³ an hour, critical successes averaged in.</summary>
+    public double PerHour => CycleSeconds > 0 ? PerCycle * (1 + CritChance * CritBonus) * 3600 / CycleSeconds : 0;
+}
+
+public enum EwarKind { Web, Point, Neutralizer, Nosferatu, Jammer, Damper, TrackingDisruptor, GuidanceDisruptor, Painter }
+
+/// <summary>
+/// One electronic warfare module or EWAR drone stack and what it does, in the order its kind
+/// lists them: a web's speed change (%); a point's strength; a neutralizer's or nosferatu's GJ/s;
+/// a jammer's radar, ladar, magnetometric and gravimetric strength; a damper's lock range and
+/// scan resolution (%); a tracking disruptor's optimal, falloff and tracking (%); a guidance
+/// disruptor's missile velocity, flight time, explosion velocity and radius (%); a painter's
+/// signature (%). Point strength and GJ/s are for the whole stack; percentages are per drone.
+/// </summary>
+public sealed record Ewar(DogmaItem Item, EwarKind Kind, IReadOnlyList<double> Values, int Count, double Range, double Falloff);
 
 public enum TankLayer { Shield, Armor, Hull }
 
-/// <summary>One repair module: what one cycle restores and how long a cycle takes.</summary>
+/// <summary>One repair module: what one cycle restores and how long a cycle takes. An ancillary
+/// one runs <see cref="Shots"/> cycles on a load of charges, then reloads.</summary>
 public sealed record RepairModule(DogmaItem Item, TankLayer Layer, double Amount, double CycleSeconds)
 {
     public double PerSecond => CycleSeconds > 0 ? Amount / CycleSeconds : 0;
+    public int? Shots { get; init; }
+    public double ReloadSeconds { get; init; }
+    /// <summary>HP/s with reloading counted.</summary>
+    public double SustainedPerSecond => Shots is int n and > 0 && CycleSeconds > 0 && ReloadSeconds > 0
+        ? Amount * n / (n * CycleSeconds + ReloadSeconds) : PerSecond;
 }
 
 /// <summary>Raw HP/s: shield regeneration at its peak, what active modules repair per layer, and
@@ -67,12 +128,27 @@ public sealed record RemoteAssist(AssistKind Kind, double Amount, double CycleSe
 public sealed class FitStats
 {
     private readonly DogmaEngine _e;
-    /// <summary>Remote repairs and capacitor other fits send this one.</summary>
+    /// <summary>Remote repairs and capacitor other fits send this one, as much as arrives.</summary>
     private readonly IReadOnlyList<RemoteAssist> _incoming;
     public FitStats(DogmaEngine engine, IReadOnlyList<RemoteAssist>? incoming = null)
     {
         _e = engine;
-        _incoming = incoming ?? [];
+        _incoming = Arriving(incoming ?? []);
+    }
+
+    /// <summary>
+    /// What of <paramref name="sent"/> the ship takes: nothing while something it runs disallows
+    /// assistance (a warp disruption field generator); otherwise repairs scaled by its
+    /// <c>remoteRepairImpedance</c> and capacitor by its <c>remoteCapacitorImpedance</c>, which a
+    /// siege, bastion, triage module or industrial core all but closes.
+    /// </summary>
+    private IReadOnlyList<RemoteAssist> Arriving(IReadOnlyList<RemoteAssist> sent)
+    {
+        if (sent.Count == 0) return sent;
+        var blocked   = Ship("disallowAssistance") > 0;
+        var repairs   = blocked ? 0 : Ship("remoteRepairImpedance");
+        var capacitor = blocked ? 0 : Ship("remoteCapacitorImpedance");
+        return sent.Select(a => a with { Amount = a.Amount * (a.Kind == AssistKind.Capacitor ? capacitor : repairs) }).ToList();
     }
 
     // ── Remote assistance ───────────────────────────────────────────────────────
@@ -236,7 +312,10 @@ public sealed class FitStats
             if (fx.Name == "powerBooster")
             {
                 if (m.Charge is not null)
-                    drains.Add(new CapacitorDrain(m.Type.Name, -_e.Value(m.Charge, "capacitorBonus"), cycle));
+                {
+                    var (shots, reload) = Magazine(m);
+                    drains.Add(new CapacitorDrain(m.Type.Name, -_e.Value(m.Charge, "capacitorBonus"), cycle, shots, reload));
+                }
                 continue;
             }
             // The effect names the attribute holding its cap cost; a few (compressors, jump portal
@@ -265,7 +344,9 @@ public sealed class FitStats
     /// charge's damage times its damage multiplier; a launcher's, its missile's damage times the
     /// pilot's missile damage multiplier (where ballistic control systems act); a smartbomb's,
     /// its own damage; a drone stack's, one drone's damage times its multiplier times the number
-    /// launched. Reloads are not counted.
+    /// launched. DPS is the rate between reloads; <see cref="WeaponDamage.SustainedDps"/> counts
+    /// them, and <see cref="WeaponDamage.SpooledDps"/> is a spooling weapon's at full spool. Bombs
+    /// and breacher pods are not here: they are <see cref="Strikes"/>.
     /// </summary>
     public IReadOnlyList<WeaponDamage> Weapons()
     {
@@ -276,14 +357,24 @@ public sealed class FitStats
             var cycle = CycleSeconds(m, fx);
             switch (fx.Name)
             {
-                case "useMissiles" when m.Charge is not null:
+                case "useMissiles" when m.Charge is not null && !IsStrikeCharge(m.Charge):
+                {
+                    var (shots, reload) = Magazine(m);
                     list.Add(new WeaponDamage(m, WeaponKind.Missile,
-                        DamageOf(m.Charge) * _e.Value(_e.Character, "missileDamageMultiplier"), cycle));
+                        DamageOf(m.Charge) * _e.Value(_e.Character, "missileDamageMultiplier"), cycle) { Shots = shots, ReloadSeconds = reload });
                     break;
+                }
                 case "targetAttack" or "projectileFired" or "targetDisintegratorAttack" or "ChainLightning" when m.Charge is not null:
+                {
+                    var (shots, reload) = Magazine(m);
                     list.Add(new WeaponDamage(m, WeaponKind.Turret,
-                        DamageOf(m.Charge) * _e.Value(m, "damageMultiplier"), cycle));
+                        DamageOf(m.Charge) * _e.Value(m, "damageMultiplier"), cycle)
+                    {
+                        Shots = shots, ReloadSeconds = reload,
+                        SpoolMax = _e.Value(m, "damageMultiplierBonusMax"), SpoolPerCycle = _e.Value(m, "damageMultiplierBonusPerCycle"),
+                    });
                     break;
+                }
                 case "empWave":
                     list.Add(new WeaponDamage(m, WeaponKind.Smartbomb, DamageOf(m), cycle));
                     break;
@@ -330,6 +421,156 @@ public sealed class FitStats
         }
     }
 
+    /// <summary>
+    /// Shots a weapon fires before it reloads — its capacity over a charge's volume, a charge or more
+    /// a shot — and the reload's seconds. Crystals are not spent, so a laser never reloads.
+    /// </summary>
+    private (int? Shots, double ReloadSeconds) Magazine(DogmaItem m)
+    {
+        if (m.Charge is not { } charge || charge.Type.Attr(_e.Data.AttrId("crystalVolatilityChance")) is not null) return (null, 0);
+        var volume = _e.Value(charge, "volume") * Math.Max(1, _e.Value(m, "chargeRate"));
+        if (volume <= 0) return (null, 0);
+        var shots = (int)Math.Floor(_e.Value(m, "capacity") / volume + 1e-9);
+        return shots > 0 ? (shots, _e.Value(m, "reloadTime") / 1000) : (null, 0);
+    }
+
+    private bool HasEffect(DogmaItem item, string name) =>
+        item.Type.EffectIds.Any(id => _e.Data.Effects.TryGetValue(id, out var fx) && fx.Name == name);
+
+    /// <summary>A bomb or breacher pod: launched, but not a weapon whose damage makes a rate.</summary>
+    private bool IsStrikeCharge(DogmaItem charge) => HasEffect(charge, "bombLaunching") || HasEffect(charge, "dotMissileLaunching");
+
+    // ── Strikes: doomsdays, lances, reapers, bombs, breacher pods ───────────────
+
+    /// <summary>
+    /// What a doomsday, lance, reaper or field generator, a bomb, or a breacher pod does when it is
+    /// used — each once in a long while, or to an area, so none of it counts in DPS. Fitted and
+    /// online is enough: a doomsday is fitted to be fired, not left running.
+    /// </summary>
+    public IReadOnlyList<Strike> Strikes()
+    {
+        var list = new List<Strike>();
+        foreach (var m in _e.Modules.Where(m => m.Kind == DogmaItemKind.Module && m.State >= ModuleState.Online))
+        {
+            if (CyclingEffect(m) is not { } fx) continue;
+            var cycle = CycleSeconds(m, fx);
+            if (fx.Name.StartsWith("superWeapon", StringComparison.Ordinal) || fx.Name.StartsWith("doomsday", StringComparison.Ordinal)
+                || fx.Name == "debuffLance")
+            {
+                var damage = DamageOf(m);
+                if (damage.Total <= 0) continue;
+                // A beam, slash or cone deals its damage each tick for as long as it lasts; the
+                // older doomsdays strike once.
+                var tick = _e.Value(m, "doomsdayDamageCycleTime") / 1000;
+                var lasts = _e.Value(m, "doomsdayDamageDuration") / 1000;
+                var hits = tick > 0 && lasts > 0 ? (int)Math.Round(lasts / tick) : 1;
+                list.Add(new Strike(m, StrikeKind.Doomsday, damage, hits, hits > 1 ? tick : 0, cycle, _e.Value(m, "doomsdayDamageRadius")));
+            }
+            else if (fx.Name == "useMissiles" && m.Charge is { } charge && HasEffect(charge, "bombLaunching"))
+            {
+                var damage = DamageOf(charge);
+                if (damage.Total > 0)
+                    list.Add(new Strike(m, StrikeKind.Bomb, damage, 1, 0, cycle, _e.Value(charge, "explosionRange")));
+            }
+            // A breacher pod's boarders do a share of the target's hull each second, up to a cap,
+            // whatever its resistances.
+            else if (fx.Name == "useMissiles" && m.Charge is { } pod && HasEffect(pod, "dotMissileLaunching"))
+                list.Add(new Strike(m, StrikeKind.BreacherPod, DamageBreakdown.Zero, (int)Math.Round(_e.Value(pod, "dotDuration") / 1000), 1, cycle,
+                    MaxPerHit: _e.Value(pod, "dotMaxDamagePerTick"), HullPercentPerHit: _e.Value(pod, "dotMaxHPPercentagePerTick")));
+        }
+        return list;
+    }
+
+    // ── Mining ──────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Every running mining laser, strip miner, ice or gas harvester and launched mining drone: what
+    /// a cycle brings in and how long it takes. A critical success brings in its bonus share on top,
+    /// at its chance; residue is what a cycle wastes of the rock or cloud besides, at its chance.
+    /// </summary>
+    public IReadOnlyList<MiningYield> Mining()
+    {
+        var list = new List<MiningYield>();
+        MiningYield Of(DogmaItem item, DogmaEffectInfo fx, int count, double cycle) => new(item,
+            fx.Name == "miningClouds" ? MiningKind.Gas : RequiresIce(item) ? MiningKind.Ice : MiningKind.Ore,
+            _e.Value(item, "miningAmount") * count, cycle,
+            _e.Value(item, "miningCritChance"), _e.Value(item, "miningCritBonusYield"),
+            _e.Value(item, "miningWasteProbability"), _e.Value(item, "miningWastedVolumeMultiplier"));
+        foreach (var m in ActiveModules)
+            if (CyclingEffect(m) is { Name: "miningLaser" or "miningClouds" } fx)
+                list.Add(Of(m, fx, 1, CycleSeconds(m, fx)));
+        foreach (var d in _e.DroneStacks.Where(d => d.ActiveCount > 0))
+            if (CyclingEffect(d) is { Name: "mining" } fx)
+                list.Add(Of(d, fx, d.ActiveCount, CycleSeconds(d, fx)));
+        return list;
+    }
+
+    /// <summary>Ice comes from a harvester that needs the Ice Harvesting skill, or a drone that needs Ice Harvesting Drone Operation.</summary>
+    private static bool RequiresIce(DogmaItem item) => item.Type.Requires(SkillIceHarvesting) || item.Type.Requires(SkillIceHarvestingDrones);
+    private const int SkillIceHarvesting = 16281, SkillIceHarvestingDrones = 43702;
+
+    // ── Electronic warfare ──────────────────────────────────────────────────────
+
+    /// <summary>
+    /// What each running electronic warfare module and launched EWAR drone does to its target, by
+    /// the attributes its effect uses: a web's speed cut, a point's strength, a neutralizer's or
+    /// nosferatu's GJ a second, a jammer's strength per sensor type, a damper's, disruptor's or
+    /// painter's percentages — and its optimal range and falloff. Drones are per stack.
+    /// </summary>
+    public IReadOnlyList<Ewar> ElectronicWarfare()
+    {
+        var list = new List<Ewar>();
+        foreach (var m in ActiveModules)
+            if (CyclingEffect(m) is { } fx && EwarOf(m, fx, 1) is { } w) list.Add(w);
+        foreach (var d in _e.DroneStacks.Where(d => d.ActiveCount > 0))
+            if (CyclingEffect(d) is { } fx && EwarOf(d, fx, d.ActiveCount) is { } w) list.Add(w);
+        return list;
+    }
+
+    private Ewar? EwarOf(DogmaItem item, DogmaEffectInfo fx, int count)
+    {
+        double V(string a) => _e.Value(item, a);
+        var cycle = CycleSeconds(item, fx);
+        EwarKind? kind = fx.Name switch
+        {
+            "remoteWebifierFalloff" or "remoteWebifierEntity"                   => EwarKind.Web,
+            "warpDisrupt" or "warpScrambleBlockMWDWithNPCEffect"                => EwarKind.Point,
+            "energyNeutralizerFalloff" or "entityEnergyNeutralizerFalloff"      => EwarKind.Neutralizer,
+            "energyNosferatuFalloff"                                            => EwarKind.Nosferatu,
+            "remoteECMFalloff" or "entityECMFalloff" or "ECMBurstJammer"        => EwarKind.Jammer,
+            "remoteSensorDampFalloff" or "remoteSensorDampEntity"               => EwarKind.Damper,
+            "shipModuleTrackingDisruptor" or "npcEntityWeaponDisruptor"         => EwarKind.TrackingDisruptor,
+            "shipModuleGuidanceDisruptor"                                       => EwarKind.GuidanceDisruptor,
+            "remoteTargetPaintFalloff" or "remoteTargetPaintEntity"             => EwarKind.Painter,
+            _                                                                   => null,
+        };
+        if (kind is not { } k) return null;
+        double[] values = k switch
+        {
+            EwarKind.Web               => [V("speedFactor")],
+            EwarKind.Point             => [V("warpScrambleStrength") * count],
+            EwarKind.Neutralizer       => [cycle > 0 ? V("energyNeutralizerAmount") * count / cycle : 0],
+            EwarKind.Nosferatu         => [cycle > 0 ? V("powerTransferAmount") * count / cycle : 0],
+            EwarKind.Jammer            => [V("scanRadarStrengthBonus"), V("scanLadarStrengthBonus"), V("scanMagnetometricStrengthBonus"), V("scanGravimetricStrengthBonus")],
+            EwarKind.Damper            => [V("maxTargetRangeBonus"), V("scanResolutionBonus")],
+            EwarKind.TrackingDisruptor => [V("maxRangeBonus"), V("falloffBonus"), V("trackingSpeedBonus")],
+            EwarKind.GuidanceDisruptor => [V("missileVelocityBonus"), V("explosionDelayBonus"), V("aoeVelocityBonus"), V("aoeCloudSizeBonus")],
+            _                          => [V("signatureRadiusBonus")],
+        };
+        var range = fx.RangeAttributeId is { } r ? _e.Value(item, r) : fx.Name == "ECMBurstJammer" ? V("ecmBurstRange") : 0;
+        var falloff = fx.FalloffAttributeId is { } f ? _e.Value(item, f) : 0;
+        return new Ewar(item, k, values, count, range, falloff);
+    }
+
+    /// <summary>Seconds to lock a target of <paramref name="signature"/> m: 40,000 over the scan
+    /// resolution times the square of the signature's inverse hyperbolic sine — the game's rule.</summary>
+    public double LockSeconds(double signature)
+    {
+        var res = Ship("scanResolution");
+        var a = Math.Asinh(signature);
+        return res > 0 && a > 0 ? 40000 / (res * a * a) : 0;
+    }
+
     private DamageBreakdown BombDamage(DogmaItem f)
     {
         var id = (int)_e.Value(f, "fighterAbilityLaunchBombType");
@@ -372,16 +613,26 @@ public sealed class FitStats
             var cycle = CycleSeconds(m, fx);
             switch (fx.Name)
             {
-                case "shieldBoosting" or "fueledShieldBoosting":
+                case "shieldBoosting":
                     list.Add(new RepairModule(m, TankLayer.Shield, _e.Value(m, "shieldBonus"), cycle));
                     break;
+                case "fueledShieldBoosting":
+                {
+                    var (shots, reload) = Magazine(m);
+                    list.Add(new RepairModule(m, TankLayer.Shield, _e.Value(m, "shieldBonus"), cycle) { Shots = shots, ReloadSeconds = reload });
+                    break;
+                }
                 case "armorRepair":
                     list.Add(new RepairModule(m, TankLayer.Armor, _e.Value(m, "armorDamageAmount"), cycle));
                     break;
                 case "fueledArmorRepair":
+                {
                     var paste = m.Charge is not null ? _e.Value(m, "chargedArmorDamageMultiplier") : 1;
-                    list.Add(new RepairModule(m, TankLayer.Armor, _e.Value(m, "armorDamageAmount") * (paste > 0 ? paste : 1), cycle));
+                    var (shots, reload) = Magazine(m);
+                    list.Add(new RepairModule(m, TankLayer.Armor, _e.Value(m, "armorDamageAmount") * (paste > 0 ? paste : 1), cycle)
+                        { Shots = shots, ReloadSeconds = reload });
                     break;
+                }
                 case "structureRepair":
                     list.Add(new RepairModule(m, TankLayer.Hull, _e.Value(m, "structureDamageAmount"), cycle));
                     break;

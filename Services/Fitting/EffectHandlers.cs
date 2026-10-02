@@ -131,6 +131,8 @@ internal static class EffectHandlers
         Add(e, e.Ship, "signatureRadius", module, DogmaEngine.OpPostPercent, "signatureRadiusBonus", chain: "warpDisruptSphere");
         Add(e, e.Ship, "mass",            module, DogmaEngine.OpPostPercent, "massBonusPercentage");
         Add(e, e.Ship, "maxVelocity",     module, DogmaEngine.OpPostMul,     "maxVelocityMultiplier");
+        // While it runs, the ship can take no remote assistance.
+        Add(e, e.Ship, "disallowAssistance", module, DogmaEngine.OpPostAssign, "disallowAssistance");
         foreach (var prop in e.Modules.Where(m => m.Type.EffectIds.Any(id => e.Data.Effects.TryGetValue(id, out var fx)
                      && fx.Name is "moduleBonusAfterburner" or "moduleBonusMicrowarpdrive")))
         {

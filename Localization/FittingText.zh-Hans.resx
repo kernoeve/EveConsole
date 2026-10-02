@@ -562,6 +562,27 @@
   <data name="OffenseHeading" xml:space="preserve">
     <value>攻击</value>
   </data>
+  <data name="MiningHeading" xml:space="preserve">
+    <value>采矿</value>
+  </data>
+  <data name="MiningOre" xml:space="preserve">
+    <value>矿石 {0:N0} m³/h</value>
+  </data>
+  <data name="MiningIce" xml:space="preserve">
+    <value>冰矿 {0:N0} m³/h</value>
+  </data>
+  <data name="MiningGas" xml:space="preserve">
+    <value>气云 {0:N0} m³/h</value>
+  </data>
+  <data name="TipMining" xml:space="preserve">
+    <value>所有采集器运行一小时，按平均计入暴击成功。残渣损失的是矿石或气云本身，而非你的收获。已计入采矿晶体、技能、加成和船体。</value>
+  </data>
+  <data name="DetailMining" xml:space="preserve">
+    <value>每 {1:0.#} 秒 {0:N1} m³</value>
+  </data>
+  <data name="DetailResidue" xml:space="preserve">
+    <value>残渣 {0:0.#}%</value>
+  </data>
   <data name="Dps0" xml:space="preserve">
     <value>{0:N0} DPS</value>
   </data>
@@ -576,6 +597,33 @@
   </data>
   <data name="DpsVolley" xml:space="preserve">
     <value>齐射 {0:N0}</value>
+  </data>
+  <data name="DpsWithReloads" xml:space="preserve">
+    <value>含装填 {0:N1}</value>
+  </data>
+  <data name="DpsSpooled" xml:space="preserve">
+    <value>完全充能 {0:N1}（{1}后）</value>
+  </data>
+  <data name="TipDpsReloads" xml:space="preserve">
+    <value>DPS 为两次装填之间的数值。含装填时，每件武器打完一次装填的弹药后重新装填，循环往复。激光不需装填：晶体不会消耗。完全充能是熵能裂解器持续射击同一目标后达到的数值。</value>
+  </data>
+  <data name="StrikeOnce" xml:space="preserve">
+    <value>{0}：{1:N0} {2}，每 {3}</value>
+  </data>
+  <data name="StrikeOverTime" xml:space="preserve">
+    <value>{0}：每秒 {1:N0} {2}，持续 {3:0} 秒（共 {4:N0}），每 {6}</value>
+  </data>
+  <data name="StrikeBomb" xml:space="preserve">
+    <value>{0}：对 {3:0.#} 千米内所有目标造成 {1:N0} {2}，每 {4}</value>
+  </data>
+  <data name="StrikeBreacher" xml:space="preserve">
+    <value>{0}：每秒造成目标结构值的 {1:0.##}%（最多 {2:N0} HP），持续 {3:0} 秒，每 {4}</value>
+  </data>
+  <data name="NeutLine" xml:space="preserve">
+    <value>中和 {0:N1} GJ/s</value>
+  </data>
+  <data name="NosLine" xml:space="preserve">
+    <value>掠能器 {0:N1} GJ/s</value>
   </data>
   <data name="DamageMix" xml:space="preserve">
     <value>电磁 {0:P0} · 热能 {1:P0} · 动能 {2:P0} · 爆炸 {3:P0}</value>
@@ -621,6 +669,54 @@
   </data>
   <data name="DetailRepairArmor" xml:space="preserve">
     <value>装甲 {0:N1} HP/s</value>
+  </data>
+  <data name="DetailWithReloads" xml:space="preserve">
+    <value>含装填 {0:N1}</value>
+  </data>
+  <data name="DetailSpooled" xml:space="preserve">
+    <value>完全充能 {0:N1}</value>
+  </data>
+  <data name="EwarWeb" xml:space="preserve">
+    <value>速度 {0:+0.#;-0.#}%</value>
+  </data>
+  <data name="EwarPoint" xml:space="preserve">
+    <value>跃迁干扰强度 {0:0.#}</value>
+  </data>
+  <data name="EwarNeut" xml:space="preserve">
+    <value>中和 {0:N1} GJ/s</value>
+  </data>
+  <data name="EwarNos" xml:space="preserve">
+    <value>吸取最多 {0:N1} GJ/s</value>
+  </data>
+  <data name="EwarJam" xml:space="preserve">
+    <value>干扰强度 {0}</value>
+  </data>
+  <data name="EwarDamp" xml:space="preserve">
+    <value>锁定距离 {0:+0.#;-0.#}% · 扫描分辨率 {1:+0.#;-0.#}%</value>
+  </data>
+  <data name="EwarTracking" xml:space="preserve">
+    <value>最佳射程 {0:+0.#;-0.#}% · 失准范围 {1:+0.#;-0.#}% · 跟踪 {2:+0.#;-0.#}%</value>
+  </data>
+  <data name="EwarGuidance" xml:space="preserve">
+    <value>导弹速度 {0:+0.#;-0.#}% · 飞行时间 {1:+0.#;-0.#}% · 爆炸速度 {2:+0.#;-0.#}% · 爆炸半径 {3:+0.#;-0.#}%</value>
+  </data>
+  <data name="EwarPaint" xml:space="preserve">
+    <value>信号半径 {0:+0.#;-0.#}%</value>
+  </data>
+  <data name="EwarRange" xml:space="preserve">
+    <value>{0:0.#} 千米 + {1:0.#} 千米</value>
+  </data>
+  <data name="EwarRangeOnly" xml:space="preserve">
+    <value>{0:0.#} 千米</value>
+  </data>
+  <data name="EwarEach" xml:space="preserve">
+    <value>每个 {0}</value>
+  </data>
+  <data name="AbilityEffect" xml:space="preserve">
+    <value>{0}：{1}</value>
+  </data>
+  <data name="AbilityKamikazeTargets" xml:space="preserve">
+    <value>仅限旗舰和堡垒</value>
   </data>
   <data name="DetailRepairHull" xml:space="preserve">
     <value>结构 {0:N1} HP/s</value>
@@ -756,6 +852,12 @@
   </data>
   <data name="TargetingLine" xml:space="preserve">
     <value>锁定范围 {0:0.#} km    扫描分辨率 {1:N0} mm    锁定数量 {2:0}</value>
+  </data>
+  <data name="LockTimes" xml:space="preserve">
+    <value>锁定：护卫舰 {0:0.0} 秒 · 巡洋舰 {1:0.0} 秒 · 战列舰 {2:0.0} 秒 · 旗舰 {3:0.0} 秒</value>
+  </data>
+  <data name="TipLockTimes" xml:space="preserve">
+    <value>以此配置的扫描分辨率，锁定信号半径相当于典型护卫舰（35 米）、巡洋舰（125 米）、战列舰（400 米）和旗舰（5,000 米）的目标所需秒数。</value>
   </data>
   <data name="SensorRadar" xml:space="preserve">
     <value>雷达 {0:0.#}</value>
