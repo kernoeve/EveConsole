@@ -1474,4 +1474,16 @@
   <data name="PiTitleOther" xml:space="preserve">
     <value>주의가 필요한 행성 개발 콜로니 {0}개</value>
   </data>
+  <data name="IntelLyLabel" xml:space="preserve">
+    <value>광년</value>
+  </data>
+  <data name="IntelLyNote" xml:space="preserve">
+    <value>선택 사항. 게이트가 몇 개든 이 광년 안의 모든 성계도 지켜봅니다. 점프 드라이브나 사이노로 닿는 범위입니다. 어느 범위에든 걸린 보고가 있으면 발동합니다. 최대 20.</value>
+  </data>
+  <data name="IntelSaidLyFrom" xml:space="preserve">
+    <value>{1}에서 {0}광년</value>
+  </data>
+  <data name="IntelSaidLyOut" xml:space="preserve">
+    <value>{0}광년 거리</value>
+  </data>
 </root>

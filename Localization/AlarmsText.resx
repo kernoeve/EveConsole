@@ -2008,4 +2008,20 @@
     <value>{0} Planetary Industry colonies need attention</value>
     <comment>Title of a Planetary Industry alarm's alert or dialog. {0} is the number of colonies.</comment>
   </data>
+  <data name="IntelLyLabel" xml:space="preserve">
+    <value>Light years</value>
+    <comment>Alarm editor, Intel report check: label of the light-year range to watch, beside Jumps.</comment>
+  </data>
+  <data name="IntelLyNote" xml:space="preserve">
+    <value>Optional. Also watch every system within this many light years, however many gates away — what a jump drive or a cyno puts in reach. A report caught by either range fires. Capped at 20.</value>
+    <comment>Alarm editor, Intel report check, under Light years.</comment>
+  </data>
+  <data name="IntelSaidLyFrom" xml:space="preserve">
+    <value>{0} light years from {1}</value>
+    <comment>Spoken, in IntelSaidReportedAt: straight-line distance from one of the capsuleer's characters. {0} the light years (one decimal), {1} the character's name.</comment>
+  </data>
+  <data name="IntelSaidLyOut" xml:space="preserve">
+    <value>{0} light years out</value>
+    <comment>Spoken, in IntelSaidReportedAt: straight-line distance from the watched system. {0} the light years (one decimal).</comment>
+  </data>
 </root>

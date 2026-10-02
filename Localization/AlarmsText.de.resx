@@ -1507,4 +1507,16 @@
   <data name="PiTitleOther" xml:space="preserve">
     <value>{0} Kolonien der Planetaren Industrie brauchen Aufmerksamkeit</value>
   </data>
+  <data name="IntelLyLabel" xml:space="preserve">
+    <value>Lichtjahre</value>
+  </data>
+  <data name="IntelLyNote" xml:space="preserve">
+    <value>Optional. Zusätzlich jedes System innerhalb so vieler Lichtjahre überwachen, egal wie viele Gates entfernt – was ein Sprungantrieb oder ein Cyno in Reichweite bringt. Ein Bericht, den eine der beiden Reichweiten erfasst, löst aus. Höchstens 20.</value>
+  </data>
+  <data name="IntelSaidLyFrom" xml:space="preserve">
+    <value>{0} Lichtjahre von {1}</value>
+  </data>
+  <data name="IntelSaidLyOut" xml:space="preserve">
+    <value>{0} Lichtjahre entfernt</value>
+  </data>
 </root>

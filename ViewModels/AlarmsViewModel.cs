@@ -135,6 +135,32 @@ public sealed class AlarmFieldVm : ReactiveObject
     /// <summary>Shown among the check's fields: not a stage's, and in force.</summary>
     public bool IsInForm => !IsStage && Applies;
 
+    /// <summary>The field this one sits beside on one row, by the schema's <c>beside</c> — two
+    /// small numbers that go together, such as "Jumps" and "Light years". Null for a row of its own.</summary>
+    public string? BesideName { get; init; }
+
+    private AlarmFieldVm? _partner;
+    /// <summary>The field shown to the right of this one, in its row; null for none.</summary>
+    public AlarmFieldVm? Partner
+    {
+        get => _partner;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _partner, value);
+            this.RaisePropertyChanged(nameof(HasPartner));
+            this.RaisePropertyChanged(nameof(Span));
+        }
+    }
+    public bool HasPartner => _partner is not null;
+
+    /// <summary>How many of the row's three columns this field takes: all of them alone, the
+    /// first beside a partner.</summary>
+    public int Span => _partner is null ? 3 : 1;
+
+    private bool _isBeside;
+    /// <summary>Shown in its partner's row, so not in a row of its own.</summary>
+    public bool IsBeside { get => _isBeside; set => this.RaiseAndSetIfChanged(ref _isBeside, value); }
+
     public AlarmFieldVm()
     {
         AddCommand    = ReactiveCommand.CreateFromTask(AddAsync);
@@ -1100,6 +1126,7 @@ public sealed class AlarmsViewModel : ReactiveObject
                 UnitsName   = kind == "enum" ? unitsName : null,
                 ShowIfField  = showIfValues is not null ? showIf.Name : null,
                 ShowIfValues = showIfValues,
+                BesideName   = spec.TryGetProperty("beside", out var bs) && bs.ValueKind == JsonValueKind.String ? bs.GetString() : null,
             };
             if (field.HasUnits) field.UnitsText = unitsDflt;
 
@@ -1144,6 +1171,14 @@ public sealed class AlarmsViewModel : ReactiveObject
 
             Fields.Add(field);
         }
+
+        // Pairs on one row: the field named by "beside" takes this one to its right.
+        foreach (var field in Fields.Where(f => f.BesideName is not null))
+            if (Fields.FirstOrDefault(f => f.Name == field.BesideName && f.Partner is null) is { } host)
+            {
+                host.Partner   = field;
+                field.IsBeside = true;
+            }
 
         // A field shown only for some choices follows that choice as it changes — and as an
         // existing alarm's config sets it, since that goes through the same Text. A checkbox

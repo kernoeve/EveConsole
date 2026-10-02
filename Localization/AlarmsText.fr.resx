@@ -1507,4 +1507,16 @@
   <data name="PiTitleOther" xml:space="preserve">
     <value>{0} colonies d'industrie planétaire demandent votre attention</value>
   </data>
+  <data name="IntelLyLabel" xml:space="preserve">
+    <value>Années-lumière</value>
+  </data>
+  <data name="IntelLyNote" xml:space="preserve">
+    <value>Facultatif. Surveiller aussi chaque système à moins de ce nombre d'années-lumière, quel que soit le nombre de portails — ce qu'un moteur de saut ou un cyno met à portée. Un rapport capté par l'une ou l'autre portée déclenche l'alarme. 20 au plus.</value>
+  </data>
+  <data name="IntelSaidLyFrom" xml:space="preserve">
+    <value>à {0} années-lumière de {1}</value>
+  </data>
+  <data name="IntelSaidLyOut" xml:space="preserve">
+    <value>à {0} années-lumière</value>
+  </data>
 </root>

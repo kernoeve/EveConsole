@@ -1573,4 +1573,16 @@
   <data name="PiTitleMany" xml:space="preserve">
     <value>{0} колоний планетарной промышленности требуют внимания</value>
   </data>
+  <data name="IntelLyLabel" xml:space="preserve">
+    <value>Световые годы</value>
+  </data>
+  <data name="IntelLyNote" xml:space="preserve">
+    <value>Необязательно. Следить также за каждой системой в пределах стольких световых лет, сколько бы гейтов до неё ни было, — то, что достаёт прыжковый двигатель или цино. Срабатывает отчёт, попавший в любую из двух дальностей. Не больше 20.</value>
+  </data>
+  <data name="IntelSaidLyFrom" xml:space="preserve">
+    <value>в {0} св. г. от {1}</value>
+  </data>
+  <data name="IntelSaidLyOut" xml:space="preserve">
+    <value>в {0} св. г.</value>
+  </data>
 </root>

@@ -1474,4 +1474,16 @@
   <data name="PiTitleOther" xml:space="preserve">
     <value>{0} 个行星开发殖民地需要处理</value>
   </data>
+  <data name="IntelLyLabel" xml:space="preserve">
+    <value>光年</value>
+  </data>
+  <data name="IntelLyNote" xml:space="preserve">
+    <value>可选。同时监视此光年范围内的所有星系，无论隔多少星门——即跳跃引擎或诱导能触及的范围。任一范围捕获到报告即触发。最多 20。</value>
+  </data>
+  <data name="IntelSaidLyFrom" xml:space="preserve">
+    <value>距 {1} {0} 光年</value>
+  </data>
+  <data name="IntelSaidLyOut" xml:space="preserve">
+    <value>{0} 光年外</value>
+  </data>
 </root>

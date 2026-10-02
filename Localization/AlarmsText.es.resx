@@ -1507,4 +1507,16 @@
   <data name="PiTitleOther" xml:space="preserve">
     <value>{0} colonias de industria planetaria necesitan atención</value>
   </data>
+  <data name="IntelLyLabel" xml:space="preserve">
+    <value>Años luz</value>
+  </data>
+  <data name="IntelLyNote" xml:space="preserve">
+    <value>Opcional. Vigila además cada sistema a menos de estos años luz, a cuantas puertas esté, lo que un motor de salto o un cyno pone al alcance. Se activa con un informe que entre en cualquiera de los dos alcances. Máximo 20.</value>
+  </data>
+  <data name="IntelSaidLyFrom" xml:space="preserve">
+    <value>a {0} años luz de {1}</value>
+  </data>
+  <data name="IntelSaidLyOut" xml:space="preserve">
+    <value>a {0} años luz</value>
+  </data>
 </root>

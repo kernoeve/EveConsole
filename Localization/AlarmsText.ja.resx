@@ -1474,4 +1474,16 @@
   <data name="PiTitleOther" xml:space="preserve">
     <value>対応が必要な惑星インダストリーのコロニーが{0}か所あります</value>
   </data>
+  <data name="IntelLyLabel" xml:space="preserve">
+    <value>光年</value>
+  </data>
+  <data name="IntelLyNote" xml:space="preserve">
+    <value>任意。ゲートの数に関係なく、この光年以内のすべてのシステムも監視します — ジャンプドライブやサイノで届く範囲です。どちらかの範囲に入った報告で発動します。上限は20です。</value>
+  </data>
+  <data name="IntelSaidLyFrom" xml:space="preserve">
+    <value>{1}から{0}光年</value>
+  </data>
+  <data name="IntelSaidLyOut" xml:space="preserve">
+    <value>{0}光年先</value>
+  </data>
 </root>
