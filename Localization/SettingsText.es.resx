@@ -3370,4 +3370,73 @@ La aplicación se reiniciará.</value>
   <data name="IntelRegionsUnknown" xml:space="preserve">
     <value>No es una región: {0}</value>
   </data>
+  <data name="ColPi" xml:space="preserve">
+    <value>IP</value>
+  </data>
+  <data name="TipCharacterDoesPi" xml:space="preserve">
+    <value>El personaje hace industria planetaria. Si la desmarcas, el personaje queda fuera de la herramienta de IP, no recibe alertas ni tareas de IP y sus colonias no se leen.</value>
+  </data>
+  <data name="PiTaxTitle" xml:space="preserve">
+    <value>Impuestos de la industria planetaria</value>
+  </data>
+  <data name="PiTaxNote" xml:space="preserve">
+    <value>Lo que se cobra en un planeta por las mercancías que se sacan de él o se llevan a él, hasta que se conozca su propia tasa por el diario de la cartera tras una exportación o importación allí. Hay aduanas en seguridad alta, seguridad baja, agujeros de gusano y seguridad nula PNJ; la seguridad nula con soberanía tiene ganchos en su lugar. Llevar mercancías al planeta cuesta la mitad que sacarlas.</value>
+  </data>
+  <data name="PiTaxCustomsDefault" xml:space="preserve">
+    <value>Impuesto de aduana</value>
+  </data>
+  <data name="PiTaxSkyhookDefault" xml:space="preserve">
+    <value>Impuesto de gancho</value>
+  </data>
+  <data name="PiTimingTitle" xml:space="preserve">
+    <value>Alertas y tareas de industria planetaria</value>
+  </data>
+  <data name="PiTimingNote" xml:space="preserve">
+    <value>Con cuánta antelación avisan las alertas de IP del Resumen y las tareas de IP de la lista de tareas, cuándo los datos de una colonia son demasiado antiguos para fiarse de ellos y cuánto suministro trae un transporte. Qué alertas se generan se decide en la pestaña Alertas.</value>
+  </data>
+  <data name="PiLeadExtractors" xml:space="preserve">
+    <value>Extractores que se detienen</value>
+  </data>
+  <data name="PiLeadStorage" xml:space="preserve">
+    <value>Almacén o plataforma de lanzamiento llenos</value>
+  </data>
+  <data name="PiLeadInputs" xml:space="preserve">
+    <value>Suministro de fábricas que se agota</value>
+  </data>
+  <data name="PiHoursAhead" xml:space="preserve">
+    <value>horas antes (dato exacto)</value>
+  </data>
+  <data name="PiHoursAheadEstimated" xml:space="preserve">
+    <value>horas antes (estimación)</value>
+  </data>
+  <data name="PiStaleAfter" xml:space="preserve">
+    <value>Datos de colonia demasiado antiguos tras</value>
+  </data>
+  <data name="PiInputDays" xml:space="preserve">
+    <value>Un transporte de suministro trae</value>
+  </data>
+  <data name="PiDaysOfRunning" xml:space="preserve">
+    <value>días de funcionamiento</value>
+  </data>
+  <data name="PiAlertsTitle" xml:space="preserve">
+    <value>Industria planetaria</value>
+  </data>
+  <data name="PiAlertExtractors" xml:space="preserve">
+    <value>Extractores detenidos o a punto de detenerse</value>
+  </data>
+  <data name="PiAlertStorage" xml:space="preserve">
+    <value>Un almacén o una plataforma de lanzamiento llenos o a punto de llenarse (estimación)</value>
+  </data>
+  <data name="PiAlertInputs" xml:space="preserve">
+    <value>Suministro de un planeta de fábricas agotado o a punto de agotarse (estimación)</value>
+  </data>
+  <data name="PiAlertFreeSlots" xml:space="preserve">
+    <value>Un personaje de IP tiene una ranura de colonia sin usar</value>
+  </data>
+  <data name="PiAlertStale" xml:space="preserve">
+    <value>Una colonia lleva demasiado tiempo sin abrirse en el juego para fiarse de sus estimaciones</value>
+  </data>
+  <data name="PiAlertsNote" xml:space="preserve">
+    <value>Solo los personajes con la casilla IP marcada en la pestaña Personajes. Cuánto es «pronto» y cuánto es demasiado antiguo se ajusta en la pestaña Industria, y las tareas de IP de la lista de tareas usan los mismos tiempos.</value>
+  </data>
 </root>

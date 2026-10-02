@@ -1468,4 +1468,43 @@
   <data name="GameLogSaidAttacked" xml:space="preserve">
     <value>{0} está bajo ataque de {1}.</value>
   </data>
+  <data name="CheckPi" xml:space="preserve">
+    <value>Industria planetaria</value>
+  </data>
+  <data name="CheckPiNote" xml:space="preserve">
+    <value>Se dispara con las colonias de los personajes que hacen IP: un programa de extracción terminado o a punto de terminar (hora exacta), un almacén o una plataforma de lanzamiento llenos, o el suministro de un planeta de fábricas a punto de agotarse (ambos estimados desde la última vez que se abrió la colonia en el juego). El evento de cada colonia se dispara una sola vez; reiniciar los extractores o volver a abrir la colonia lo convierte de nuevo en noticia.</value>
+  </data>
+  <data name="PiWatchLabel" xml:space="preserve">
+    <value>Vigilar</value>
+  </data>
+  <data name="PiWatchNote" xml:space="preserve">
+    <value>Con cuál de los tres se dispara.</value>
+  </data>
+  <data name="PiLeadLabel" xml:space="preserve">
+    <value>Antelación</value>
+  </data>
+  <data name="PiLeadNote" xml:space="preserve">
+    <value>Se dispara estas horas antes de que ocurra. Con 0 se dispara cuando ocurre.</value>
+  </data>
+  <data name="PiLeadSuffix" xml:space="preserve">
+    <value>horas</value>
+  </data>
+  <data name="OptionPiAll" xml:space="preserve">
+    <value>Los tres</value>
+  </data>
+  <data name="OptionPiExtractors" xml:space="preserve">
+    <value>Extractores que se detienen</value>
+  </data>
+  <data name="OptionPiStorage" xml:space="preserve">
+    <value>Almacén que se llena</value>
+  </data>
+  <data name="OptionPiInputs" xml:space="preserve">
+    <value>Suministro que se agota</value>
+  </data>
+  <data name="PiTitleOne" xml:space="preserve">
+    <value>{0} colonia de industria planetaria necesita atención</value>
+  </data>
+  <data name="PiTitleOther" xml:space="preserve">
+    <value>{0} colonias de industria planetaria necesitan atención</value>
+  </data>
 </root>

@@ -28,6 +28,7 @@ public sealed class AlarmConditionRegistry
         new GameLogEventCondition(),
         new StoreOrderCondition(),
         new MarketContractCondition(),
+        new PiCondition(),
         new SqlCondition(),
     ]);
 

@@ -1438,4 +1438,40 @@
   <data name="GameLogSaidAttacked" xml:space="preserve">
     <value>{0}이(가) {1}에게 공격받고 있습니다.</value>
   </data>
+  <data name="CheckPi" xml:space="preserve">
+    <value>행성 개발</value>
+  </data>
+  <data name="CheckPiNote" xml:space="preserve">
+    <value>행성 개발을 하는 캐릭터의 콜로니에서 발생합니다: 추출 프로그램이 끝났거나 끝나 갈 때(정확), 저장시설이나 발사시설이 가득 찼을 때, 제조 행성의 투입 자원이 떨어져 갈 때(이 둘은 게임에서 콜로니를 마지막으로 열었던 시점을 기준으로 추정). 각 콜로니의 이벤트는 한 번만 발생하며, 추출기를 다시 가동하거나 콜로니를 다시 열면 새 소식으로 다시 다룹니다.</value>
+  </data>
+  <data name="PiWatchLabel" xml:space="preserve">
+    <value>감시 대상</value>
+  </data>
+  <data name="PiWatchNote" xml:space="preserve">
+    <value>세 가지 중 어떤 경우에 발생할지 정합니다.</value>
+  </data>
+  <data name="PiLeadLabel" xml:space="preserve">
+    <value>사전 알림</value>
+  </data>
+  <data name="PiLeadNote" xml:space="preserve">
+    <value>일이 일어나기 이 시간만큼 전에 발생합니다. 0이면 일이 일어날 때 발생합니다.</value>
+  </data>
+  <data name="PiLeadSuffix" xml:space="preserve">
+    <value>시간</value>
+  </data>
+  <data name="OptionPiAll" xml:space="preserve">
+    <value>세 가지 모두</value>
+  </data>
+  <data name="OptionPiExtractors" xml:space="preserve">
+    <value>추출기 정지</value>
+  </data>
+  <data name="OptionPiStorage" xml:space="preserve">
+    <value>저장고 가득 참</value>
+  </data>
+  <data name="OptionPiInputs" xml:space="preserve">
+    <value>투입 자원 고갈</value>
+  </data>
+  <data name="PiTitleOther" xml:space="preserve">
+    <value>주의가 필요한 행성 개발 콜로니 {0}개</value>
+  </data>
 </root>

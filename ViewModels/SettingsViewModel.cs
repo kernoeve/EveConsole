@@ -25,6 +25,7 @@ public class SettingsViewModel : ReactiveObject
     public MapStatsSettingsViewModel      MapStatsVm      { get; }
     public OtherSettingsViewModel         OtherVm         { get; }
     public DataRetentionSettingsViewModel RetentionVm     { get; }
+    public PiSettingsViewModel            PiVm            { get; }
 
     /// <summary>
     /// Shared with the Worklist tool rather than a second instance of its own.
@@ -56,6 +57,7 @@ public class SettingsViewModel : ReactiveObject
         MapStatsSettingsViewModel     mapStatsVm,
         OtherSettingsViewModel        otherVm,
         DataRetentionSettingsViewModel retentionVm,
+        PiSettingsViewModel           piVm,
         TtsService?                   tts     = null,
         SpeechInputService?           speech  = null,
         GlobalHotkeyService?          hotkey  = null)
@@ -79,6 +81,7 @@ public class SettingsViewModel : ReactiveObject
         DatabaseVm     = databaseVm;
         OtherVm        = otherVm;
         RetentionVm    = retentionVm;
+        PiVm           = piVm;
         IndustryVm     = industryVm;
     }
 
@@ -88,7 +91,8 @@ public class SettingsViewModel : ReactiveObject
     /// </summary>
     public Task FlushPendingSavesAsync() => Task.WhenAll(
         MarketVm.FlushAsync(), TimerVm.FlushAsync(), CorpTop10Vm.FlushAsync(),
-        AgentVm.FlushAsync(), AlertsVm.FlushAsync(), SlackVm.FlushAsync(), ChatLogVm.FlushAsync());
+        AgentVm.FlushAsync(), AlertsVm.FlushAsync(), SlackVm.FlushAsync(), ChatLogVm.FlushAsync(),
+        PiVm.FlushAsync());
 
     /// <summary>The window closed: nothing typed is lost to the pause.</summary>
     public Task CloseAsync() => Task.WhenAll(FlushPendingSavesAsync(), AgentVm.CloseAsync());

@@ -860,4 +860,61 @@
   <data name="ScopeGroupCorp" xml:space="preserve">
     <value>Corporación</value>
   </data>
+  <data name="AlertPiExtractorsStopped" xml:space="preserve">
+    <value>{0}: los extractores de {1} se han detenido.</value>
+  </data>
+  <data name="AlertPiExtractorsStopping" xml:space="preserve">
+    <value>{0}: los extractores de {1} se detienen en {2}.</value>
+  </data>
+  <data name="AlertPiExtractorsManyOne" xml:space="preserve">
+    <value>Extractores detenidos o a punto de detenerse en {0} colonia.</value>
+  </data>
+  <data name="AlertPiExtractorsManyOther" xml:space="preserve">
+    <value>Extractores detenidos o a punto de detenerse en {0} colonias.</value>
+  </data>
+  <data name="AlertPiStorageFull" xml:space="preserve">
+    <value>{0}: el almacén de {1} está lleno (estimación).</value>
+  </data>
+  <data name="AlertPiStorageFilling" xml:space="preserve">
+    <value>{0}: el almacén de {1} se llena en {2} (estimación).</value>
+  </data>
+  <data name="AlertPiStorageManyOne" xml:space="preserve">
+    <value>Almacén lleno o a punto de llenarse en {0} colonia (estimación).</value>
+  </data>
+  <data name="AlertPiStorageManyOther" xml:space="preserve">
+    <value>Almacén lleno o a punto de llenarse en {0} colonias (estimación).</value>
+  </data>
+  <data name="AlertPiInputsOut" xml:space="preserve">
+    <value>{0}: las fábricas de {1} se han quedado sin suministro (estimación).</value>
+  </data>
+  <data name="AlertPiInputsLow" xml:space="preserve">
+    <value>{0}: el suministro de {1} se agota en {2} (estimación).</value>
+  </data>
+  <data name="AlertPiInputsManyOne" xml:space="preserve">
+    <value>Suministro agotado o a punto de agotarse en {0} planeta de fábricas (estimación).</value>
+  </data>
+  <data name="AlertPiInputsManyOther" xml:space="preserve">
+    <value>Suministro agotado o a punto de agotarse en {0} planetas de fábricas (estimación).</value>
+  </data>
+  <data name="AlertPiStale" xml:space="preserve">
+    <value>{0}: {1} lleva {2} sin abrirse en el juego; sus estimaciones ya no son fiables.</value>
+  </data>
+  <data name="AlertPiStaleManyOne" xml:space="preserve">
+    <value>{0} colonia lleva tiempo sin abrirse en el juego; sus estimaciones ya no son fiables.</value>
+  </data>
+  <data name="AlertPiStaleManyOther" xml:space="preserve">
+    <value>{0} colonias llevan tiempo sin abrirse en el juego; sus estimaciones ya no son fiables.</value>
+  </data>
+  <data name="AlertPiFreeSlotsOne" xml:space="preserve">
+    <value>{1} tiene {0} ranura de colonia sin usar.</value>
+  </data>
+  <data name="AlertPiFreeSlotsOther" xml:space="preserve">
+    <value>{1} tiene {0} ranuras de colonia sin usar.</value>
+  </data>
+  <data name="AlertPiFreeSlotsCharsOne" xml:space="preserve">
+    <value>{0} personaje de IP tiene ranuras de colonia sin usar.</value>
+  </data>
+  <data name="AlertPiFreeSlotsCharsOther" xml:space="preserve">
+    <value>{0} personajes de IP tienen ranuras de colonia sin usar.</value>
+  </data>
 </root>

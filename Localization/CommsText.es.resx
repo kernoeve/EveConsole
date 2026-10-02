@@ -771,6 +771,12 @@
   <data name="NotifColVolume" xml:space="preserve">
     <value>Volumen</value>
   </data>
+  <data name="NotifColReprocessed" xml:space="preserve">
+    <value>Reprocesado</value>
+  </data>
+  <data name="NotifTipNoReprocessValue" xml:space="preserve">
+    <value>Aún no hay valor de reprocesado: no se han leído los precios de lo que produce este mineral.</value>
+  </data>
   <data name="NotifOpenKillmail" xml:space="preserve">
     <value>Abrir el informe de muertes</value>
   </data>

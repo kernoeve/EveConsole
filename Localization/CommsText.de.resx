@@ -771,6 +771,12 @@
   <data name="NotifColVolume" xml:space="preserve">
     <value>Volumen</value>
   </data>
+  <data name="NotifColReprocessed" xml:space="preserve">
+    <value>Aufbereitet</value>
+  </data>
+  <data name="NotifTipNoReprocessValue" xml:space="preserve">
+    <value>Noch kein Aufbereitungswert: Die Preise der Erzeugnisse dieses Erzes wurden noch nicht gelesen.</value>
+  </data>
   <data name="NotifOpenKillmail" xml:space="preserve">
     <value>Abschussbericht öffnen</value>
   </data>

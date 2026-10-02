@@ -76,6 +76,9 @@ public static class AppKnowledge
         structure exceptions. They drive the industry costs — job cost, ME/TE bonuses, rig and
         structure effects — used by the Production Calculator and the build-cost engine.
 
+        ### Planetary Industry
+        PI characters' colonies: extractor end (exact), storage full and inputs out (estimated), profit; colony detail; slots.
+
         ### Production Calc (Production Calculator)
         Plan a manufacturing job for a blueprint or product. Build cost, materials (optionally
         down the full build chain) and job details, from your Indy Parks and current prices.
@@ -437,6 +440,7 @@ public static class AppKnowledge
         ("industry",            "Industry Jobs",          "Industry Jobs"),
         ("indy_parks",          "Indy Parks",             "Indy Parks"),
         ("prod_calc",           "Production Calculator",  "Production Calc"),
+        ("planetary_industry",  "Planetary Industry",     "Planetary Industry"),
         ("price_overrides",     "Price Overrides",        "Price Overrides"),
         ("industry_opps",       "Industry Opportunities", "Industry Opportunities"),
         ("market_viewer",       "Market Overview",        "Market Overview"),

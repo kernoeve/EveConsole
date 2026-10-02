@@ -4447,4 +4447,96 @@ The application will restart.</value>
     <value>Not a region: {0}</value>
     <comment>Under a Regions box. {0} is the names typed that are no region, comma-separated.</comment>
   </data>
+  <data name="ColPi" xml:space="preserve">
+    <value>PI</value>
+    <comment>Column header in SettingsWindow, Characters tab: whether the character does Planetary Industry. "PI" is the game's own abbreviation for Planetary Industry; keep it short.</comment>
+  </data>
+  <data name="TipCharacterDoesPi" xml:space="preserve">
+    <value>Character does Planetary Industry. Clear it, and the character is left out of the PI tool, gets no PI alerts or worklist tasks, and its colonies are not read.</value>
+    <comment>Tooltip on the PI check box in SettingsWindow, Characters tab.</comment>
+  </data>
+  <data name="PiTaxTitle" xml:space="preserve">
+    <value>Planetary Industry tax</value>
+    <comment>Section heading in SettingsWindow, Industry tab: default tax rates for moving goods on and off planets.</comment>
+  </data>
+  <data name="PiTaxNote" xml:space="preserve">
+    <value>What a planet is charged for goods taken off it or brought onto it, until its own rate has been learned from the wallet journal after an export or import there. Customs offices are in high-sec, low-sec, wormholes and NPC null-sec; sovereignty null-sec has skyhooks instead. Bringing goods in costs half of taking them off.</value>
+    <comment>Note in SettingsWindow, Industry tab, under the Planetary Industry tax heading. "Customs office" and "skyhook" are the game's structure names.</comment>
+  </data>
+  <data name="PiTaxCustomsDefault" xml:space="preserve">
+    <value>Customs office tax</value>
+    <comment>Label before a percentage box in SettingsWindow, Industry tab: the default tax rate at customs offices.</comment>
+  </data>
+  <data name="PiTaxSkyhookDefault" xml:space="preserve">
+    <value>Skyhook tax</value>
+    <comment>Label before a percentage box in SettingsWindow, Industry tab: the default tax rate at orbital skyhooks in sovereignty null-sec.</comment>
+  </data>
+  <data name="PiTimingTitle" xml:space="preserve">
+    <value>Planetary Industry alerts and tasks</value>
+    <comment>Section heading in SettingsWindow, Industry tab.</comment>
+  </data>
+  <data name="PiTimingNote" xml:space="preserve">
+    <value>How far ahead the PI alerts on the Overview and the PI tasks on the Worklist look, when a colony's data counts as too old to trust, and how much input a haul brings. Which alerts are raised at all is on the Alerts tab.</value>
+    <comment>Note in SettingsWindow, Industry tab, under the Planetary Industry alerts and tasks heading.</comment>
+  </data>
+  <data name="PiLeadExtractors" xml:space="preserve">
+    <value>Extractors stopping</value>
+    <comment>Label before a number box in SettingsWindow, Industry tab: how many hours before an extractor stops to warn.</comment>
+  </data>
+  <data name="PiLeadStorage" xml:space="preserve">
+    <value>Storage or a launchpad full</value>
+    <comment>Label before a number box in SettingsWindow, Industry tab: how many hours before storage fills to warn.</comment>
+  </data>
+  <data name="PiLeadInputs" xml:space="preserve">
+    <value>Factory input running out</value>
+    <comment>Label before a number box in SettingsWindow, Industry tab: how many hours before a factory planet's input runs out to warn.</comment>
+  </data>
+  <data name="PiHoursAhead" xml:space="preserve">
+    <value>hours ahead (exact)</value>
+    <comment>After a number box in SettingsWindow, Industry tab. Extractor times are exact.</comment>
+  </data>
+  <data name="PiHoursAheadEstimated" xml:space="preserve">
+    <value>hours ahead (estimated)</value>
+    <comment>After a number box in SettingsWindow, Industry tab. Storage and input times are estimates.</comment>
+  </data>
+  <data name="PiStaleAfter" xml:space="preserve">
+    <value>Colony data too old after</value>
+    <comment>Label before a number box in SettingsWindow, Industry tab: days since a colony was last opened in the game.</comment>
+  </data>
+  <data name="PiInputDays" xml:space="preserve">
+    <value>An input haul brings</value>
+    <comment>Label before a number box in SettingsWindow, Industry tab: how many days of running a Worklist input haul brings.</comment>
+  </data>
+  <data name="PiDaysOfRunning" xml:space="preserve">
+    <value>days of running</value>
+    <comment>After a number box in SettingsWindow, Industry tab, as in "An input haul brings 7 days of running".</comment>
+  </data>
+  <data name="PiAlertsTitle" xml:space="preserve">
+    <value>Planetary Industry</value>
+    <comment>Section heading in SettingsWindow, Alerts tab.</comment>
+  </data>
+  <data name="PiAlertExtractors" xml:space="preserve">
+    <value>Extractors stopped, or stopping soon</value>
+    <comment>Check box in SettingsWindow, Alerts tab, Planetary Industry section.</comment>
+  </data>
+  <data name="PiAlertStorage" xml:space="preserve">
+    <value>Storage or a launchpad full, or filling soon (estimated)</value>
+    <comment>Check box in SettingsWindow, Alerts tab, Planetary Industry section.</comment>
+  </data>
+  <data name="PiAlertInputs" xml:space="preserve">
+    <value>A factory planet's input run out, or running out soon (estimated)</value>
+    <comment>Check box in SettingsWindow, Alerts tab, Planetary Industry section.</comment>
+  </data>
+  <data name="PiAlertFreeSlots" xml:space="preserve">
+    <value>A PI character has an unused colony slot</value>
+    <comment>Check box in SettingsWindow, Alerts tab, Planetary Industry section. "PI" is the game's abbreviation for Planetary Industry.</comment>
+  </data>
+  <data name="PiAlertStale" xml:space="preserve">
+    <value>A colony has not been opened in the game for too long to trust its estimates</value>
+    <comment>Check box in SettingsWindow, Alerts tab, Planetary Industry section.</comment>
+  </data>
+  <data name="PiAlertsNote" xml:space="preserve">
+    <value>Only characters with the PI box ticked on the Characters tab. How soon "soon" is, and how old is too old, are set on the Industry tab, and the Worklist's PI tasks use the same times.</value>
+    <comment>Note in SettingsWindow, Alerts tab, Planetary Industry section.</comment>
+  </data>
 </root>

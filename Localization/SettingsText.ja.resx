@@ -3367,4 +3367,73 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
   <data name="IntelRegionsUnknown" xml:space="preserve">
     <value>リージョンではありません：{0}</value>
   </data>
+  <data name="ColPi" xml:space="preserve">
+    <value>PI</value>
+  </data>
+  <data name="TipCharacterDoesPi" xml:space="preserve">
+    <value>このキャラクターは惑星インダストリーを行います。チェックを外すと、このキャラクターはPIツールの対象外になり、PIのアラートやワークリストのタスクも作られず、コロニーも読み込まれません。</value>
+  </data>
+  <data name="PiTaxTitle" xml:space="preserve">
+    <value>惑星インダストリーの税</value>
+  </data>
+  <data name="PiTaxNote" xml:space="preserve">
+    <value>惑星から運び出す物資、惑星へ運び込む物資にかかる税です。その惑星で輸出または輸入をした後、ウォレットのジャーナルからその惑星の税率を取得するまでは、この値を使います。税関はハイセク、ローセク、ワームホール、NPCのゼロセクにあります。領有権のあるゼロセクでは代わりにスカイフックがあります。運び込む税は、運び出す税の半分です。</value>
+  </data>
+  <data name="PiTaxCustomsDefault" xml:space="preserve">
+    <value>税関の税率</value>
+  </data>
+  <data name="PiTaxSkyhookDefault" xml:space="preserve">
+    <value>スカイフックの税率</value>
+  </data>
+  <data name="PiTimingTitle" xml:space="preserve">
+    <value>惑星インダストリーのアラートとタスク</value>
+  </data>
+  <data name="PiTimingNote" xml:space="preserve">
+    <value>概要のPIアラートとワークリストのPIタスクがどれだけ先まで見るか、コロニーのデータがいつ古すぎて信頼できなくなるか、投入資源の運搬でどれだけ運ぶかを設定します。どのアラートを出すかは「アラート」タブで設定します。</value>
+  </data>
+  <data name="PiLeadExtractors" xml:space="preserve">
+    <value>エクストラクターの停止</value>
+  </data>
+  <data name="PiLeadStorage" xml:space="preserve">
+    <value>保管施設・発射台の満杯</value>
+  </data>
+  <data name="PiLeadInputs" xml:space="preserve">
+    <value>工場の投入資源の枯渇</value>
+  </data>
+  <data name="PiHoursAhead" xml:space="preserve">
+    <value>時間前（正確）</value>
+  </data>
+  <data name="PiHoursAheadEstimated" xml:space="preserve">
+    <value>時間前（推定）</value>
+  </data>
+  <data name="PiStaleAfter" xml:space="preserve">
+    <value>コロニーのデータを古いとみなす日数</value>
+  </data>
+  <data name="PiInputDays" xml:space="preserve">
+    <value>投入資源の運搬1回で運ぶ量</value>
+  </data>
+  <data name="PiDaysOfRunning" xml:space="preserve">
+    <value>日分の稼働量</value>
+  </data>
+  <data name="PiAlertsTitle" xml:space="preserve">
+    <value>惑星インダストリー</value>
+  </data>
+  <data name="PiAlertExtractors" xml:space="preserve">
+    <value>エクストラクターが停止した、またはまもなく停止する</value>
+  </data>
+  <data name="PiAlertStorage" xml:space="preserve">
+    <value>保管施設や発射台が満杯、またはまもなく満杯になる（推定）</value>
+  </data>
+  <data name="PiAlertInputs" xml:space="preserve">
+    <value>工場惑星の投入資源が枯渇した、またはまもなく枯渇する（推定）</value>
+  </data>
+  <data name="PiAlertFreeSlots" xml:space="preserve">
+    <value>PIキャラクターに未使用のコロニースロットがある</value>
+  </data>
+  <data name="PiAlertStale" xml:space="preserve">
+    <value>コロニーが長くゲーム内で開かれておらず、推定値が信頼できない</value>
+  </data>
+  <data name="PiAlertsNote" xml:space="preserve">
+    <value>「キャラクター」タブでPIにチェックを入れたキャラクターだけが対象です。「まもなく」がどれくらい先か、どれだけ古いと古すぎるかは「インダストリー」タブで設定します。ワークリストのPIタスクも同じ時間を使います。</value>
+  </data>
 </root>

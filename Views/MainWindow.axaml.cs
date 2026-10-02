@@ -523,6 +523,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             });
 
         vm.OverviewVm.OpenAlertSettingsRequested = () => _ = OpenSettingsAsync(vm, EveConsole.Localization.SettingsText.TabAlerts);
+        // The PI tool's Characters tab points at the PI switch, which is on Settings → Characters.
+        vm.PlanetaryIndustryVm.OpenPiSettingsRequested = () => _ = OpenSettingsAsync(vm, EveConsole.Localization.SettingsText.TabCharacters);
 
         // Normally already done during startup, while the splash was up; the cached task makes this
         // a no-op in that case.
@@ -674,6 +676,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                                                vm.CorpTop10SettingsVm, dbVm, vm.SlackSettingsVm, vm.DiscordSettingsVm,
                                                vm.GameLogSettingsVm, vm.ChatLogSettingsVm, vm.ZkbSettingsVm,
                                                vm.MapStatsSettingsVm, vm.OtherSettingsVm, vm.DataRetentionVm,
+                                               // Over the shared preferences, which are already in memory.
+                                               new PiSettingsViewModel(vm.Pi.Tax, vm.Pi.Settings),
                                                vm.TtsService, vm.SpeechInputService, vm.HotkeyService);
         var settingsWin = new SettingsWindow { DataContext = settingsVm };
         settingsWin.WireDatabase(dbVm, this);

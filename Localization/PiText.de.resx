@@ -1,0 +1,562 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="PlanetWithId" xml:space="preserve">
+    <value>Planet {0}</value>
+  </data>
+  <data name="TypeWithId" xml:space="preserve">
+    <value>Typ {0}</value>
+  </data>
+  <data name="DurationDaysHours" xml:space="preserve">
+    <value>{0} Tg. {1} Std.</value>
+  </data>
+  <data name="InDuration" xml:space="preserve">
+    <value>in {0}</value>
+  </data>
+  <data name="AgoDuration" xml:space="preserve">
+    <value>vor {0}</value>
+  </data>
+  <data name="Updated" xml:space="preserve">
+    <value>Stand: {0}</value>
+  </data>
+  <data name="SummarySeparator" xml:space="preserve">
+    <value> · </value>
+  </data>
+  <data name="SummaryColoniesOne" xml:space="preserve">
+    <value>{0} Kolonie</value>
+  </data>
+  <data name="SummaryColoniesOther" xml:space="preserve">
+    <value>{0} Kolonien</value>
+  </data>
+  <data name="SummaryStoppedOne" xml:space="preserve">
+    <value>{0} Extraktor gestoppt</value>
+  </data>
+  <data name="SummaryStoppedOther" xml:space="preserve">
+    <value>{0} Extraktoren gestoppt</value>
+  </data>
+  <data name="SummaryHaulingOne" xml:space="preserve">
+    <value>{0} braucht Transport</value>
+  </data>
+  <data name="SummaryHaulingOther" xml:space="preserve">
+    <value>{0} brauchen Transport</value>
+  </data>
+  <data name="SummaryInputsOne" xml:space="preserve">
+    <value>{0} mit knappem Material</value>
+  </data>
+  <data name="SummaryInputsOther" xml:space="preserve">
+    <value>{0} mit knappem Material</value>
+  </data>
+  <data name="TabColonies" xml:space="preserve">
+    <value>Kolonien</value>
+  </data>
+  <data name="TabColony" xml:space="preserve">
+    <value>Kolonie</value>
+  </data>
+  <data name="TabCharacters" xml:space="preserve">
+    <value>Charaktere</value>
+  </data>
+  <data name="OpenColony" xml:space="preserve">
+    <value>Kolonie öffnen</value>
+  </data>
+  <data name="TipOpenColony" xml:space="preserve">
+    <value>Zeigt die ausgewählte Kolonie im Detail: ihre Einrichtungen, Warenflüsse und Finanzen. Ein Doppelklick auf eine Zeile bewirkt dasselbe.</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Aktualisieren</value>
+  </data>
+  <data name="TipRefresh" xml:space="preserve">
+    <value>Liest die Kolonien erneut. Solange die Liste geöffnet ist, aktualisiert sie sich außerdem jede Minute; neue Kolonie-Layouts werden alle zehn Minuten von ESI gelesen.</value>
+  </data>
+  <data name="EstimatesNote" xml:space="preserve">
+    <value>Die Zeiten der Extraktoren sind exakt. Lager- und Materialzeiten sind Schätzungen, nachgerechnet ab dem letzten Öffnen der jeweiligen Kolonie im Spiel; die Spalte „Datenalter“ zeigt, wie lange das her ist.</value>
+  </data>
+  <data name="EmptyNote" xml:space="preserve">
+    <value>Noch keine Kolonien vorhanden. Kolonien werden für Charaktere mit gesetztem PI-Häkchen unter Einstellungen → Charaktere gelesen; eine Kolonie erscheint hier, sobald ihr Layout von ESI gelesen wurde – das geschieht, wenn sie im Spiel geöffnet wird.</value>
+  </data>
+  <data name="ColCharacter" xml:space="preserve">
+    <value>Charakter</value>
+  </data>
+  <data name="ColPlanet" xml:space="preserve">
+    <value>Planet</value>
+  </data>
+  <data name="ColSystem" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>Typ</value>
+  </data>
+  <data name="ColKind" xml:space="preserve">
+    <value>Art</value>
+  </data>
+  <data name="ColCc" xml:space="preserve">
+    <value>CC</value>
+  </data>
+  <data name="ColExtractorsEnd" xml:space="preserve">
+    <value>Extraktor-Ende</value>
+  </data>
+  <data name="ColStorageFull" xml:space="preserve">
+    <value>Lager voll</value>
+  </data>
+  <data name="ColInputsRunOut" xml:space="preserve">
+    <value>Material leer</value>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="ColDataAge" xml:space="preserve">
+    <value>Datenalter</value>
+  </data>
+  <data name="ColProfit" xml:space="preserve">
+    <value>Gewinn</value>
+  </data>
+  <data name="LevelOfMax" xml:space="preserve">
+    <value>{0} / {1}</value>
+  </data>
+  <data name="TipCcHeadroom" xml:space="preserve">
+    <value>Kommandozentrale Stufe {0}; Command Center Upgrades erlaubt {1}, sie kann also aufgewertet werden.</value>
+  </data>
+  <data name="TipCcAtMax" xml:space="preserve">
+    <value>Kommandozentrale Stufe {0}: so hoch, wie Command Center Upgrades erlaubt.</value>
+  </data>
+  <data name="Stopped" xml:space="preserve">
+    <value>Gestoppt</value>
+  </data>
+  <data name="TipExtractorsStopped" xml:space="preserve">
+    <value>Der erste Extraktor hat vor {0} gestoppt, am {1}. Exakt: Das Ende eines Förderungsprogramms steht fest, sobald es eingestellt wird.</value>
+  </data>
+  <data name="TipExtractorsStop" xml:space="preserve">
+    <value>Der erste Extraktor stoppt am {0}. Exakt: Das Ende eines Förderungsprogramms steht fest, sobald es eingestellt wird.</value>
+  </data>
+  <data name="TipNoExtractors" xml:space="preserve">
+    <value>Keine Extraktoren in dieser Kolonie.</value>
+  </data>
+  <data name="Full" xml:space="preserve">
+    <value>Voll</value>
+  </data>
+  <data name="TipStorageFull" xml:space="preserve">
+    <value>Voraussichtlich voll seit {0}: Ertrag, der jetzt eintrifft, geht verloren. Geschätzt ab dem letzten Öffnen der Kolonie im Spiel.</value>
+  </data>
+  <data name="TipStorageFills" xml:space="preserve">
+    <value>Voraussichtlich voll am {0}, geschätzt ab dem letzten Öffnen der Kolonie im Spiel.</value>
+  </data>
+  <data name="NotWithinHorizon" xml:space="preserve">
+    <value>Nicht in 30 Tagen</value>
+  </data>
+  <data name="TipStorageNotFull" xml:space="preserve">
+    <value>Das Lager wird in den 30 Tagen, die die Schätzung vorausschaut, nicht voll.</value>
+  </data>
+  <data name="RanOut" xml:space="preserve">
+    <value>Leer</value>
+  </data>
+  <data name="TipInputsOut" xml:space="preserve">
+    <value>Voraussichtlich seit {0} aufgebraucht: Die Fabriken stehen still. Geschätzt ab dem letzten Öffnen der Kolonie im Spiel.</value>
+  </data>
+  <data name="TipInputsRunOut" xml:space="preserve">
+    <value>Voraussichtlich aufgebraucht am {0}, geschätzt ab dem letzten Öffnen der Kolonie im Spiel.</value>
+  </data>
+  <data name="TipInputsNotOut" xml:space="preserve">
+    <value>Das importierte Material reicht länger als die 30 Tage, die die Schätzung vorausschaut.</value>
+  </data>
+  <data name="TipNoInputs" xml:space="preserve">
+    <value>Es wird nichts importiert: Ein Extraktorplanet erzeugt sein Material selbst.</value>
+  </data>
+  <data name="StateAction" xml:space="preserve">
+    <value>Handeln</value>
+  </data>
+  <data name="StateAttention" xml:space="preserve">
+    <value>Achtung</value>
+  </data>
+  <data name="StateOk" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="AgeStale" xml:space="preserve">
+    <value>{0} (alt)</value>
+  </data>
+  <data name="TipAge" xml:space="preserve">
+    <value>Zuletzt im Spiel geöffnet am {0}.</value>
+  </data>
+  <data name="TipAgeStale" xml:space="preserve">
+    <value>Zuletzt im Spiel geöffnet am {0}: zu lange her, um den Schätzungen zu trauen. Öffnen Sie die Kolonie im Spiel, um sie zu aktualisieren.</value>
+  </data>
+  <data name="PerDay" xml:space="preserve">
+    <value>{0} / Tag</value>
+  </data>
+  <data name="TipProfit" xml:space="preserve">
+    <value>Ertrag {0}, abzüglich Material {1} sowie Ein- und Ausfuhrsteuer {2}, pro Tag, zu Marktpreisen.</value>
+  </data>
+  <data name="KindExtractor" xml:space="preserve">
+    <value>Extraktor</value>
+  </data>
+  <data name="KindFactory" xml:space="preserve">
+    <value>Fabrik</value>
+  </data>
+  <data name="KindEmpty" xml:space="preserve">
+    <value>Leer</value>
+  </data>
+  <data name="ReasonExtractorsStopped" xml:space="preserve">
+    <value>Extraktoren gestoppt.</value>
+  </data>
+  <data name="ReasonExtractorsStopping" xml:space="preserve">
+    <value>Extraktoren stoppen innerhalb der Vorlaufzeit.</value>
+  </data>
+  <data name="ReasonStorageFull" xml:space="preserve">
+    <value>Lager voll (geschätzt).</value>
+  </data>
+  <data name="ReasonStorageFilling" xml:space="preserve">
+    <value>Lager wird innerhalb der Vorlaufzeit voll (geschätzt).</value>
+  </data>
+  <data name="ReasonInputsOut" xml:space="preserve">
+    <value>Material aufgebraucht (geschätzt).</value>
+  </data>
+  <data name="ReasonInputsLow" xml:space="preserve">
+    <value>Material geht innerhalb der Vorlaufzeit aus (geschätzt).</value>
+  </data>
+  <data name="ReasonStale" xml:space="preserve">
+    <value>Daten zu alt, um ihnen zu trauen.</value>
+  </data>
+  <data name="ReasonNothingDue" xml:space="preserve">
+    <value>Innerhalb der Vorlaufzeiten ist nichts fällig.</value>
+  </data>
+  <data name="CharactersNote" xml:space="preserve">
+    <value>Charaktere mit gesetztem PI-Häkchen unter Einstellungen → Charaktere. Die Kolonie-Slots ergeben sich aus Interplanetary Consolidation, die Stufen der Kommandozentralen aus Command Center Upgrades.</value>
+  </data>
+  <data name="OpenPiSwitch" xml:space="preserve">
+    <value>PI-Häkchen in Einstellungen…</value>
+  </data>
+  <data name="TipOpenPiSwitch" xml:space="preserve">
+    <value>Öffnet Einstellungen → Charaktere, wo das PI-Häkchen jedes Charakters entscheidet, ob er in diesem Tool, seinen Warnungen und seinen Arbeitslistenaufgaben vorkommt.</value>
+  </data>
+  <data name="ColColonies" xml:space="preserve">
+    <value>Kolonien</value>
+  </data>
+  <data name="ColFreeSlots" xml:space="preserve">
+    <value>Freie Slots</value>
+  </data>
+  <data name="ColSkills" xml:space="preserve">
+    <value>Skills</value>
+  </data>
+  <data name="ColCommandCenters" xml:space="preserve">
+    <value>Kommandozentralen</value>
+  </data>
+  <data name="ColoniesOfAllowed" xml:space="preserve">
+    <value>{0} / {1}</value>
+  </data>
+  <data name="FreeSlotsOne" xml:space="preserve">
+    <value>{0} frei</value>
+  </data>
+  <data name="FreeSlotsOther" xml:space="preserve">
+    <value>{0} frei</value>
+  </data>
+  <data name="NoFreeSlots" xml:space="preserve">
+    <value>Keine</value>
+  </data>
+  <data name="SkillsShort" xml:space="preserve">
+    <value>IC {0} · CCU {1}</value>
+  </data>
+  <data name="TipSkills" xml:space="preserve">
+    <value>Interplanetary Consolidation (IC): eine Kolonie plus eine je Stufe. Command Center Upgrades (CCU): die höchste Stufe der Kommandozentrale.</value>
+  </data>
+  <data name="SlotWithHeadroom" xml:space="preserve">
+    <value>{0}: {1}/{2} ↑</value>
+  </data>
+  <data name="SlotAtMax" xml:space="preserve">
+    <value>{0}: {1}/{2}</value>
+  </data>
+  <data name="NoColonySelected" xml:space="preserve">
+    <value>Wählen Sie im Tab „Kolonien“ eine Kolonie – per Doppelklick, oder markieren Sie sie und drücken Sie „Kolonie öffnen“.</value>
+  </data>
+  <data name="DetailSubtitle" xml:space="preserve">
+    <value>{0} · {1} {2} · {3} · {4}</value>
+  </data>
+  <data name="DetailAge" xml:space="preserve">
+    <value>Daten {0} alt: zuletzt im Spiel geöffnet am {1}. Lager-, Fabrik- und Materialwerte sind ab diesem Zeitpunkt geschätzt.</value>
+  </data>
+  <data name="DetailAgeStale" xml:space="preserve">
+    <value>Daten {0} alt: zuletzt im Spiel geöffnet am {1} – zu lange her, um den Schätzungen zu trauen. Öffnen Sie die Kolonie im Spiel, um sie zu aktualisieren.</value>
+  </data>
+  <data name="SectionCommandCenter" xml:space="preserve">
+    <value>Kommandozentrale</value>
+  </data>
+  <data name="DetailCommandCenter" xml:space="preserve">
+    <value>Stufe {0} von {1} erlaubten – {2:N0} tf CPU, {3:N0} MW Stromnetz.</value>
+  </data>
+  <data name="SectionExtractors" xml:space="preserve">
+    <value>Extraktoren (exakt)</value>
+  </data>
+  <data name="NoProduct" xml:space="preserve">
+    <value>Kein Produkt festgelegt</value>
+  </data>
+  <data name="HeadsOne" xml:space="preserve">
+    <value>{0} Kopf</value>
+  </data>
+  <data name="HeadsOther" xml:space="preserve">
+    <value>{0} Köpfe</value>
+  </data>
+  <data name="ProgramFromTo" xml:space="preserve">
+    <value>Programm {0} bis {1}</value>
+  </data>
+  <data name="NoProgram" xml:space="preserve">
+    <value>Kein Programm aktiv</value>
+  </data>
+  <data name="CyclesDoneOfTotal" xml:space="preserve">
+    <value>Zyklus {0} von {1}, alle {2}</value>
+  </data>
+  <data name="OutputTotalRemaining" xml:space="preserve">
+    <value>{0} insgesamt, {1} noch ausstehend</value>
+  </data>
+  <data name="YieldUnknown" xml:space="preserve">
+    <value>Ertrag unbekannt: ESI hat für dieses Programm keine Menge geliefert.</value>
+  </data>
+  <data name="ExtractorStopped" xml:space="preserve">
+    <value>Gestoppt {0}</value>
+  </data>
+  <data name="ExtractorStops" xml:space="preserve">
+    <value>Stoppt {0}</value>
+  </data>
+  <data name="ChartDone" xml:space="preserve">
+    <value>Abgeschlossen</value>
+  </data>
+  <data name="ChartCurrent" xml:space="preserve">
+    <value>Läuft</value>
+  </data>
+  <data name="ChartAhead" xml:space="preserve">
+    <value>Ausstehend</value>
+  </data>
+  <data name="ChartUnits" xml:space="preserve">
+    <value>Einheiten</value>
+  </data>
+  <data name="ChartCycleWindow" xml:space="preserve">
+    <value>{0} – {1}</value>
+  </data>
+  <data name="SectionProcessors" xml:space="preserve">
+    <value>Fabriken (geschätzt)</value>
+  </data>
+  <data name="ColSchematic" xml:space="preserve">
+    <value>Schema</value>
+  </data>
+  <data name="ColOutput" xml:space="preserve">
+    <value>Ertrag</value>
+  </data>
+  <data name="ColFacility" xml:space="preserve">
+    <value>Anlage</value>
+  </data>
+  <data name="ColStateEstimated" xml:space="preserve">
+    <value>Zustand (geschätzt)</value>
+  </data>
+  <data name="NoSchematic" xml:space="preserve">
+    <value>Kein Schema</value>
+  </data>
+  <data name="ProcessorRunning" xml:space="preserve">
+    <value>Läuft</value>
+  </data>
+  <data name="ProcessorIdle" xml:space="preserve">
+    <value>Leerlauf</value>
+  </data>
+  <data name="ProcessorIdleSince" xml:space="preserve">
+    <value>Leerlauf seit {0}</value>
+  </data>
+  <data name="SectionStorage" xml:space="preserve">
+    <value>Lager und Launchpads (geschätzt)</value>
+  </data>
+  <data name="ColPin" xml:space="preserve">
+    <value>Art</value>
+  </data>
+  <data name="ColFill" xml:space="preserve">
+    <value>Füllstand</value>
+  </data>
+  <data name="ColVolume" xml:space="preserve">
+    <value>Volumen</value>
+  </data>
+  <data name="ColFullEstimated" xml:space="preserve">
+    <value>Voll</value>
+  </data>
+  <data name="ColContents" xml:space="preserve">
+    <value>Inhalt</value>
+  </data>
+  <data name="PinStorage" xml:space="preserve">
+    <value>Lager</value>
+  </data>
+  <data name="PinLaunchpad" xml:space="preserve">
+    <value>Launchpad</value>
+  </data>
+  <data name="PinCommandCenter" xml:space="preserve">
+    <value>Kommandozentrale</value>
+  </data>
+  <data name="Percent" xml:space="preserve">
+    <value>{0} %</value>
+  </data>
+  <data name="VolumeOfCapacity" xml:space="preserve">
+    <value>{0} / {1} m³</value>
+  </data>
+  <data name="Empty" xml:space="preserve">
+    <value>Leer</value>
+  </data>
+  <data name="QuantityOf" xml:space="preserve">
+    <value>{0} × {1}</value>
+  </data>
+  <data name="SectionFlows" xml:space="preserve">
+    <value>Warenflüsse pro Tag</value>
+  </data>
+  <data name="FlowsNote" xml:space="preserve">
+    <value>Was die Kolonie pro Tag herstellt, verbraucht, an Import braucht und zum Export übrig lässt – im Betrieb, so wie sie aufgebaut ist.</value>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>Gegenstand</value>
+  </data>
+  <data name="ColTier" xml:space="preserve">
+    <value>Rang</value>
+  </data>
+  <data name="ColProduced" xml:space="preserve">
+    <value>Erzeugt</value>
+  </data>
+  <data name="ColConsumed" xml:space="preserve">
+    <value>Verbraucht</value>
+  </data>
+  <data name="ColImported" xml:space="preserve">
+    <value>Importiert</value>
+  </data>
+  <data name="ColExported" xml:space="preserve">
+    <value>Exportiert</value>
+  </data>
+  <data name="SectionEconomics" xml:space="preserve">
+    <value>Finanzen pro Tag</value>
+  </data>
+  <data name="EconOutputValue" xml:space="preserve">
+    <value>Wert des Ertrags</value>
+  </data>
+  <data name="EconInputCost" xml:space="preserve">
+    <value>Materialkosten</value>
+  </data>
+  <data name="EconExportCharges" xml:space="preserve">
+    <value>Ausfuhrsteuer</value>
+  </data>
+  <data name="EconImportCharges" xml:space="preserve">
+    <value>Einfuhrsteuer</value>
+  </data>
+  <data name="EconProfit" xml:space="preserve">
+    <value>Gewinn</value>
+  </data>
+  <data name="EconTaxRate" xml:space="preserve">
+    <value>Steuersatz</value>
+  </data>
+  <data name="RateUnknown" xml:space="preserve">
+    <value>Unbekannt</value>
+  </data>
+  <data name="RateLearned" xml:space="preserve">
+    <value>{0} % am {1} dieses Planeten, aus dem Konto-Logbuch ermittelt am {2}</value>
+  </data>
+  <data name="RateDefault" xml:space="preserve">
+    <value>{0} %, Standardwert ({1}) unter Einstellungen → Industrie – für diesen Planeten noch nicht ermittelt</value>
+  </data>
+  <data name="CustomsOffice" xml:space="preserve">
+    <value>Zollamt</value>
+  </data>
+  <data name="Skyhook" xml:space="preserve">
+    <value>Skyhook</value>
+  </data>
+  <data name="ColEfficiency" xml:space="preserve">
+    <value>Effizienz</value>
+  </data>
+  <data name="TipEfficiency" xml:space="preserve">
+    <value>{0}: Die Prognose beträgt {1} ISK von möglichen {2} ISK.</value>
+  </data>
+  <data name="TipEfficiencyShort" xml:space="preserve">
+    <value>Fehlbetrag {0} ISK: {1} ISK mangels Platz vernichtet, {2} ISK nicht hergestellt von Fabriken, die auf Material warten.</value>
+  </data>
+  <data name="TipEfficiencyNone" xml:space="preserve">
+    <value>{0}: kein Gewinn, an dem sich die Prognose messen ließe.</value>
+  </data>
+  <data name="WindowUntilStop" xml:space="preserve">
+    <value>Bis die Extraktoren stoppen, {0}</value>
+  </data>
+  <data name="WindowNextDaysOne" xml:space="preserve">
+    <value>Nächster {0} Tag, bis {1}</value>
+  </data>
+  <data name="WindowNextDaysOther" xml:space="preserve">
+    <value>Nächste {0} Tage, bis {1}</value>
+  </data>
+  <data name="WindowStopped" xml:space="preserve">
+    <value>Die Extraktoren sind gestoppt</value>
+  </data>
+  <data name="PeriodStoppedNote" xml:space="preserve">
+    <value>Es wird nichts mehr gefördert, bis sie neu gestartet werden; daher gibt es nichts zu prognostizieren.</value>
+  </data>
+  <data name="PeriodPotential" xml:space="preserve">
+    <value>Potenzial</value>
+  </data>
+  <data name="PeriodForecast" xml:space="preserve">
+    <value>Prognose</value>
+  </data>
+  <data name="PeriodShort" xml:space="preserve">
+    <value>Fehlbetrag</value>
+  </data>
+  <data name="PeriodDestroyed" xml:space="preserve">
+    <value>Vernichtet</value>
+  </data>
+  <data name="PeriodRawOverflow" xml:space="preserve">
+    <value>Rohstoff-Überlauf</value>
+  </data>
+  <data name="PeriodIdle" xml:space="preserve">
+    <value>Fabriken im Leerlauf</value>
+  </data>
+  <data name="TipPeriodPotential" xml:space="preserve">
+    <value>Die Kolonie im Betrieb, so wie sie aufgebaut ist, über den ganzen Zeitraum: ihr Ertrag zu Marktpreisen, abzüglich des zugelieferten Materials sowie der Ein- und Ausfuhrsteuer.</value>
+  </data>
+  <data name="TipPeriodForecast" xml:space="preserve">
+    <value>Was im simulierten Zeitraum Lager und Launchpads erreicht, zu Marktpreisen, abzüglich des Materials, das die Fabriken verbrauchen, und der Steuern.</value>
+  </data>
+  <data name="IskAmount" xml:space="preserve">
+    <value>{0} ISK</value>
+  </data>
+  <data name="IskAndUnits" xml:space="preserve">
+    <value>{0} ISK · {1}</value>
+  </data>
+  <data name="IskUnitsAndShare" xml:space="preserve">
+    <value>{0} ISK · {1} · {2} des Potenzials</value>
+  </data>
+  <data name="OutputUnitsOne" xml:space="preserve">
+    <value>{0:N0} Einheit Ertrag</value>
+  </data>
+  <data name="OutputUnitsOther" xml:space="preserve">
+    <value>{0:N0} Einheiten Ertrag</value>
+  </data>
+  <data name="TipUnitsByType" xml:space="preserve">
+    <value>Potenzial {0}, Prognose {1}: {2}</value>
+  </data>
+  <data name="DestroyedFull" xml:space="preserve">
+    <value>{0}, im Wert von {1} ISK – {2} ist voll; vernichtet ab {3}</value>
+  </data>
+  <data name="DestroyedNoRoute" xml:space="preserve">
+    <value>{0}, im Wert von {1} ISK – {2} hat keinen Transportweg dafür; vernichtet ab {3}</value>
+  </data>
+  <data name="RawOverflowLine" xml:space="preserve">
+    <value>{0}, im Wert von {1} ISK – {2} ist voll ab {3}: Die Förderung übersteigt die Kapazität der Fabriken</value>
+  </data>
+  <data name="IdleLine" xml:space="preserve">
+    <value>{0} ({1}): wartet auf Material {2} – {3}, im Wert von {4} ISK, nicht hergestellt</value>
+  </data>
+  <data name="IdleLineExpected" xml:space="preserve">
+    <value>{0} ({1}): wartet auf Material {2}, davon {3} zu erwarten, weil die Extraktoren sie nicht auslasten können – {4}, im Wert von {5} ISK, nicht hergestellt</value>
+  </data>
+  <data name="FactoriesOne" xml:space="preserve">
+    <value>{0} Fabrik</value>
+  </data>
+  <data name="FactoriesOther" xml:space="preserve">
+    <value>{0} Fabriken</value>
+  </data>
+  <data name="PeriodNothingLost" xml:space="preserve">
+    <value>Nichts wird vernichtet, und keine Fabrik wartet länger auf Material, als ihre Versorgung erklärt.</value>
+  </data>
+  <data name="PeriodNote" xml:space="preserve">
+    <value>Geschätzt, nachgerechnet ab dem letzten Öffnen der Kolonie im Spiel. Der Fehlbetrag entspricht ungefähr dem, was vernichtet wird, plus dem, was Fabriken im Leerlauf nicht herstellen; der Rest sind unfertige Zyklen und Bestände, die am Ende des Zeitraums noch im Lager liegen.</value>
+  </data>
+  <data name="ReasonOutputDestroyed" xml:space="preserve">
+    <value>Ertrag wird ab {0} vernichtet: Es ist kein Platz dafür.</value>
+  </data>
+  <data name="ReasonRawOverflow" xml:space="preserve">
+    <value>Rohmaterial läuft ab {0} über das Lager hinaus: Die Förderung übersteigt die Kapazität der Fabriken.</value>
+  </data>
+</root>

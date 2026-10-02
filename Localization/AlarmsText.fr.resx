@@ -1468,4 +1468,43 @@
   <data name="GameLogSaidAttacked" xml:space="preserve">
     <value>{0} est attaqué par {1}.</value>
   </data>
+  <data name="CheckPi" xml:space="preserve">
+    <value>Industrie planétaire</value>
+  </data>
+  <data name="CheckPiNote" xml:space="preserve">
+    <value>Se déclenche pour les colonies des personnages qui font de la PI : un programme d'extraction terminé ou sur le point de se terminer (heure exacte), un stockage ou une plateforme de lancement plein, ou les intrants d'une planète de production en voie d'épuisement (ces deux derniers estimés d'après la dernière ouverture de la colonie dans le jeu). L'événement de chaque colonie ne se déclenche qu'une fois ; relancer les extracteurs ou rouvrir la colonie permet un nouveau déclenchement.</value>
+  </data>
+  <data name="PiWatchLabel" xml:space="preserve">
+    <value>Surveiller</value>
+  </data>
+  <data name="PiWatchNote" xml:space="preserve">
+    <value>Les cas, parmi les trois, pour lesquels se déclencher.</value>
+  </data>
+  <data name="PiLeadLabel" xml:space="preserve">
+    <value>Délai d'alerte</value>
+  </data>
+  <data name="PiLeadNote" xml:space="preserve">
+    <value>Se déclencher ce nombre d'heures avant l'événement. 0 se déclenche au moment où il se produit.</value>
+  </data>
+  <data name="PiLeadSuffix" xml:space="preserve">
+    <value>heures</value>
+  </data>
+  <data name="OptionPiAll" xml:space="preserve">
+    <value>Les trois</value>
+  </data>
+  <data name="OptionPiExtractors" xml:space="preserve">
+    <value>Arrêt des extracteurs</value>
+  </data>
+  <data name="OptionPiStorage" xml:space="preserve">
+    <value>Remplissage du stockage</value>
+  </data>
+  <data name="OptionPiInputs" xml:space="preserve">
+    <value>Épuisement des intrants</value>
+  </data>
+  <data name="PiTitleOne" xml:space="preserve">
+    <value>{0} colonie d'industrie planétaire demande votre attention</value>
+  </data>
+  <data name="PiTitleOther" xml:space="preserve">
+    <value>{0} colonies d'industrie planétaire demandent votre attention</value>
+  </data>
 </root>

@@ -1468,4 +1468,43 @@
   <data name="GameLogSaidAttacked" xml:space="preserve">
     <value>{0} wird von {1} angegriffen.</value>
   </data>
+  <data name="CheckPi" xml:space="preserve">
+    <value>Planetare Industrie</value>
+  </data>
+  <data name="CheckPiNote" xml:space="preserve">
+    <value>Löst für die Kolonien von Charakteren aus, die PI betreiben: Ein Förderungsprogramm ist beendet oder endet bald (exakt), das Lager oder ein Launchpad ist voll, oder das Material eines Fabrikplaneten geht aus (beides geschätzt ab dem letzten Öffnen der Kolonie im Spiel). Das Ereignis einer Kolonie löst nur einmal aus; ein Neustart der Extraktoren oder erneutes Öffnen der Kolonie macht es wieder zur Neuigkeit.</value>
+  </data>
+  <data name="PiWatchLabel" xml:space="preserve">
+    <value>Überwachen</value>
+  </data>
+  <data name="PiWatchNote" xml:space="preserve">
+    <value>Bei welchem der drei Fälle ausgelöst wird.</value>
+  </data>
+  <data name="PiLeadLabel" xml:space="preserve">
+    <value>Vorlaufzeit</value>
+  </data>
+  <data name="PiLeadNote" xml:space="preserve">
+    <value>So viele Stunden vorher auslösen. 0 löst aus, wenn es eintritt.</value>
+  </data>
+  <data name="PiLeadSuffix" xml:space="preserve">
+    <value>Stunden</value>
+  </data>
+  <data name="OptionPiAll" xml:space="preserve">
+    <value>Alle drei</value>
+  </data>
+  <data name="OptionPiExtractors" xml:space="preserve">
+    <value>Extraktoren stoppen</value>
+  </data>
+  <data name="OptionPiStorage" xml:space="preserve">
+    <value>Lager wird voll</value>
+  </data>
+  <data name="OptionPiInputs" xml:space="preserve">
+    <value>Material geht aus</value>
+  </data>
+  <data name="PiTitleOne" xml:space="preserve">
+    <value>{0} Kolonie der Planetaren Industrie braucht Aufmerksamkeit</value>
+  </data>
+  <data name="PiTitleOther" xml:space="preserve">
+    <value>{0} Kolonien der Planetaren Industrie brauchen Aufmerksamkeit</value>
+  </data>
 </root>

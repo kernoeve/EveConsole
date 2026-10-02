@@ -3376,4 +3376,73 @@ EVE Console сразу перезапустится, потому что баз�
   <data name="IntelRegionsUnknown" xml:space="preserve">
     <value>Не регион: {0}</value>
   </data>
+  <data name="ColPi" xml:space="preserve">
+    <value>PI</value>
+  </data>
+  <data name="TipCharacterDoesPi" xml:space="preserve">
+    <value>Персонаж занимается планетарной промышленностью. Если снять флажок, персонаж не попадёт в раздел «Планетарная промышленность», для него не будет оповещений PI и задач в списке задач, а его колонии не будут считываться.</value>
+  </data>
+  <data name="PiTaxTitle" xml:space="preserve">
+    <value>Налог планетарной промышленности</value>
+  </data>
+  <data name="PiTaxNote" xml:space="preserve">
+    <value>Сколько планета берёт за вывоз товаров с неё и ввоз на неё, пока её собственная ставка не определена по журналу кошелька после экспорта или импорта на ней. Таможни есть в хай-секе, лоу-секе, червоточинах и NPC-нуль-секе; в нуль-секе с правом владения вместо них подъёмники. Ввоз стоит вдвое дешевле вывоза.</value>
+  </data>
+  <data name="PiTaxCustomsDefault" xml:space="preserve">
+    <value>Налог таможни</value>
+  </data>
+  <data name="PiTaxSkyhookDefault" xml:space="preserve">
+    <value>Налог подъёмника</value>
+  </data>
+  <data name="PiTimingTitle" xml:space="preserve">
+    <value>Оповещения и задачи планетарной промышленности</value>
+  </data>
+  <data name="PiTimingNote" xml:space="preserve">
+    <value>Насколько заранее смотрят оповещения PI в «Обзоре» и задачи PI в списке задач, когда данные колонии считаются слишком старыми и на сколько дней работы рассчитана доставка материалов. Какие оповещения выводить вообще, задаётся на вкладке «Оповещения».</value>
+  </data>
+  <data name="PiLeadExtractors" xml:space="preserve">
+    <value>Остановка экстракторов</value>
+  </data>
+  <data name="PiLeadStorage" xml:space="preserve">
+    <value>Заполнение хранилища или стартовой площадки</value>
+  </data>
+  <data name="PiLeadInputs" xml:space="preserve">
+    <value>Исчерпание материалов на производстве</value>
+  </data>
+  <data name="PiHoursAhead" xml:space="preserve">
+    <value>ч заранее (точно)</value>
+  </data>
+  <data name="PiHoursAheadEstimated" xml:space="preserve">
+    <value>ч заранее (оценка)</value>
+  </data>
+  <data name="PiStaleAfter" xml:space="preserve">
+    <value>Данные колонии устаревают через</value>
+  </data>
+  <data name="PiInputDays" xml:space="preserve">
+    <value>Доставка материалов — на</value>
+  </data>
+  <data name="PiDaysOfRunning" xml:space="preserve">
+    <value>д работы</value>
+  </data>
+  <data name="PiAlertsTitle" xml:space="preserve">
+    <value>Планетарная промышленность</value>
+  </data>
+  <data name="PiAlertExtractors" xml:space="preserve">
+    <value>Экстракторы остановились или скоро остановятся</value>
+  </data>
+  <data name="PiAlertStorage" xml:space="preserve">
+    <value>Хранилище или стартовая площадка заполнены или скоро заполнятся (оценка)</value>
+  </data>
+  <data name="PiAlertInputs" xml:space="preserve">
+    <value>У производственной планеты кончились или скоро кончатся материалы (оценка)</value>
+  </data>
+  <data name="PiAlertFreeSlots" xml:space="preserve">
+    <value>У персонажа с PI есть свободный слот для колонии</value>
+  </data>
+  <data name="PiAlertStale" xml:space="preserve">
+    <value>Колонию слишком давно не открывали в игре, чтобы доверять её оценкам</value>
+  </data>
+  <data name="PiAlertsNote" xml:space="preserve">
+    <value>Только персонажи с флажком PI на вкладке «Персонажи». Что считать «скоро» и какие данные слишком старые, задаётся на вкладке «Промышленность»; задачи PI в списке задач используют те же сроки.</value>
+  </data>
 </root>

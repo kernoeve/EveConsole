@@ -634,6 +634,9 @@
               <DataTemplate DataType="vm:StructureBrowserViewModel">
                 <views:StructureBrowserView />
               </DataTemplate>
+              <DataTemplate DataType="vm:PlanetaryIndustryViewModel">
+                <views:PlanetaryIndustryView />
+              </DataTemplate>
               <DataTemplate DataType="vm:MapToolViewModel">
                 <views:MapToolView />
               </DataTemplate>

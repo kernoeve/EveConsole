@@ -768,6 +768,12 @@
   <data name="NotifColVolume" xml:space="preserve">
     <value>体积</value>
   </data>
+  <data name="NotifColReprocessed" xml:space="preserve">
+    <value>精炼价值</value>
+  </data>
+  <data name="NotifTipNoReprocessValue" xml:space="preserve">
+    <value>暂无精炼价值：尚未读取该矿石精炼产物的价格。</value>
+  </data>
   <data name="NotifOpenKillmail" xml:space="preserve">
     <value>打开击毁报告</value>
   </data>

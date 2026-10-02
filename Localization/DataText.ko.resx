@@ -1537,4 +1537,7 @@
   <data name="CallsNotRelayedOther" xml:space="preserve">
     <value>(전달되지 않은 호출 {0}개 더 있음)</value>
   </data>
+  <data name="EndpointColonyLayouts" xml:space="preserve">
+    <value>콜로니 구성</value>
+  </data>
 </root>
