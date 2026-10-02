@@ -301,7 +301,7 @@
     <comment>Column header in BackgroundProcessesView.</comment>
   </data>
   <data name="ItemsArePulledOneNote" xml:space="preserve">
-    <value>Items are pulled one contract at a time, a call apiece: your own contracts first, then the public listings behind them. A contract is pulled once and kept.</value>
+    <value>Items are pulled a call per contract: your own contracts first, one at a time, then the public listings, two at a time. A contract is pulled once and kept.</value>
     <comment>Note in BackgroundProcessesView.</comment>
   </data>
   <data name="TabLpStore" xml:space="preserve">
@@ -2091,5 +2091,149 @@
   <data name="EndpointColonyLayouts" xml:space="preserve">
     <value>Colony Layouts</value>
     <comment>ESI Call Schedule and Settings → Timers: the poll that reads each planetary colony's layout (its structures, contents and routes).</comment>
+  </data>
+  <data name="TabEsiLimits" xml:space="preserve">
+    <value>ESI limits</value>
+    <comment>Background Processes, tab: ESI's error budget, rate-limit groups and errors.</comment>
+  </data>
+  <data name="EsiErrorBudgetLabel" xml:space="preserve">
+    <value>Error budget</value>
+    <comment>ESI limits tab, heading: ESI's allowance of failed calls per minute for this internet connection.</comment>
+  </data>
+  <data name="EsiErrorBudgetText" xml:space="preserve">
+    <value>{0} of {1} errors left · the window resets in {2} s</value>
+    <comment>ESI limits tab. {0} errors left, {1} the allowance, {2} seconds until it resets.</comment>
+  </data>
+  <data name="EsiErrorBudgetFull" xml:space="preserve">
+    <value>Full: no errors in the current window</value>
+    <comment>ESI limits tab, when no error has been counted in the current window.</comment>
+  </data>
+  <data name="EsiWindowSpent" xml:space="preserve">
+    <value>Spent this window: {0} by this app, {1} by something else on this connection</value>
+    <comment>ESI limits tab. {0} errors this app made, {1} errors other programs or computers on the same internet connection made.</comment>
+  </data>
+  <data name="EsiWindowSpentOurs" xml:space="preserve">
+    <value>Spent this window: {0} by this app</value>
+    <comment>ESI limits tab. {0} errors this app made in the current window.</comment>
+  </data>
+  <data name="EsiCallsText" xml:space="preserve">
+    <value>Last minute — calls: {0:N0}, errors: {1:N0} · last hour — errors: {2:N0} · refused since start — error limit (420): {3:N0}, rate limit (429): {4:N0}</value>
+    <comment>ESI limits tab, counts. {0} calls, {1} errors, {2} errors in the hour, {3} and {4} refusals.</comment>
+  </data>
+  <data name="EsiGovernorLabel" xml:space="preserve">
+    <value>Governor</value>
+    <comment>ESI limits tab, heading: what the app does to stay under ESI's limits.</comment>
+  </data>
+  <data name="EsiGovernorNormal" xml:space="preserve">
+    <value>Background work at full speed.</value>
+    <comment>ESI limits tab, governor state.</comment>
+  </data>
+  <data name="EsiGovernorSpaced" xml:space="preserve">
+    <value>Background calls spaced out: fewer than {0} errors left.</value>
+    <comment>ESI limits tab, governor state. {0} is a number of errors.</comment>
+  </data>
+  <data name="EsiGovernorOneAtATime" xml:space="preserve">
+    <value>Background work one call at a time: fewer than {0} errors left.</value>
+    <comment>ESI limits tab, governor state. {0} is a number of errors.</comment>
+  </data>
+  <data name="EsiGovernorStopped" xml:space="preserve">
+    <value>Background calls wait for the window to reset: fewer than {0} errors left.</value>
+    <comment>ESI limits tab, governor state. {0} is a number of errors.</comment>
+  </data>
+  <data name="EsiGovernorPacedGroups" xml:space="preserve">
+    <value>Rate-limit groups running low and paced at their refill rate: {0}.</value>
+    <comment>ESI limits tab, after the governor state. {0} is how many groups.</comment>
+  </data>
+  <data name="EsiGroupsHeading" xml:space="preserve">
+    <value>Rate-limit groups</value>
+    <comment>ESI limits tab, heading: the groups of routes ESI gives an allowance of their own.</comment>
+  </data>
+  <data name="EsiGroupsNone" xml:space="preserve">
+    <value>No rate-limited route called yet.</value>
+    <comment>ESI limits tab, when no rate-limit group has been seen.</comment>
+  </data>
+  <data name="ColEsiGroup" xml:space="preserve">
+    <value>Group</value>
+    <comment>ESI limits tab, column: the rate-limit group's name, as ESI gives it.</comment>
+  </data>
+  <data name="ColEsiLimit" xml:space="preserve">
+    <value>Limit</value>
+    <comment>ESI limits tab, column: the allowance, e.g. 150 per 15 min.</comment>
+  </data>
+  <data name="ColEsiLeft" xml:space="preserve">
+    <value>Left</value>
+    <comment>ESI limits tab, column: calls left in the allowance.</comment>
+  </data>
+  <data name="ColEsiRefused" xml:space="preserve">
+    <value>Refused</value>
+    <comment>ESI limits tab, column: how many calls ESI refused for this group.</comment>
+  </data>
+  <data name="ColEsiState" xml:space="preserve">
+    <value>State</value>
+    <comment>ESI limits tab, column: paced, or refused until a time.</comment>
+  </data>
+  <data name="ColEsiRoutes" xml:space="preserve">
+    <value>Routes</value>
+    <comment>ESI limits tab, column: the ESI routes in the group.</comment>
+  </data>
+  <data name="EsiLimitPer" xml:space="preserve">
+    <value>{0} per {1}</value>
+    <comment>ESI limits tab, an allowance. {0} is a number of calls, {1} a time window (EsiWindowMinutes and the like).</comment>
+  </data>
+  <data name="EsiWindowSeconds" xml:space="preserve">
+    <value>{0} s</value>
+    <comment>ESI limits tab, a window in seconds.</comment>
+  </data>
+  <data name="EsiWindowMinutes" xml:space="preserve">
+    <value>{0} min</value>
+    <comment>ESI limits tab, a window in minutes.</comment>
+  </data>
+  <data name="EsiWindowHours" xml:space="preserve">
+    <value>{0} h</value>
+    <comment>ESI limits tab, a window in hours.</comment>
+  </data>
+  <data name="EsiGroupPaced" xml:space="preserve">
+    <value>Paced</value>
+    <comment>ESI limits tab, state: running low, so calls are slowed to its refill rate.</comment>
+  </data>
+  <data name="EsiGroupBlocked" xml:space="preserve">
+    <value>Refused until {0}</value>
+    <comment>ESI limits tab, state. {0} is a time of day.</comment>
+  </data>
+  <data name="EsiErrorsHeading" xml:space="preserve">
+    <value>Errors by route</value>
+    <comment>ESI limits tab, heading: failed calls, by ESI route and status.</comment>
+  </data>
+  <data name="EsiErrorsNone" xml:space="preserve">
+    <value>No errors since the app started.</value>
+    <comment>ESI limits tab, when no call has failed.</comment>
+  </data>
+  <data name="ColEsiRoute" xml:space="preserve">
+    <value>Route</value>
+    <comment>ESI limits tab, column: the ESI route.</comment>
+  </data>
+  <data name="ColEsiStatus" xml:space="preserve">
+    <value>Status</value>
+    <comment>ESI limits tab, column: the HTTP status ESI answered with.</comment>
+  </data>
+  <data name="ColEsiLastMinute" xml:space="preserve">
+    <value>Last minute</value>
+    <comment>ESI limits tab, column: errors in the last minute.</comment>
+  </data>
+  <data name="ColEsiLastHour" xml:space="preserve">
+    <value>Last hour</value>
+    <comment>ESI limits tab, column: errors in the last hour.</comment>
+  </data>
+  <data name="ColEsiSinceStart" xml:space="preserve">
+    <value>Since start</value>
+    <comment>ESI limits tab, column: errors since the app started.</comment>
+  </data>
+  <data name="ColEsiLastAt" xml:space="preserve">
+    <value>Last</value>
+    <comment>ESI limits tab, column: the time of the latest error.</comment>
+  </data>
+  <data name="EsiLimitsNote" xml:space="preserve">
+    <value>ESI allows about 100 failed calls a minute for everything on this internet connection — other programs and computers included — and refuses every call (420) once they are spent. Some routes also have an allowance of their own (rate-limit groups). Only background work is slowed to stay under them; anything you do yourself goes straight through.</value>
+    <comment>ESI limits tab, note at the bottom.</comment>
   </data>
 </root>

@@ -72,6 +72,10 @@ public class EsiClient
         return new LaneRestore(previous);
     }
 
+    /// <summary>Whether the code running now is in the background lane — what the governor in
+    /// <see cref="EsiBudgetHandler"/> holds back, and the only thing it does.</summary>
+    internal static bool IsBackgroundLane => _isBackground.Value;
+
     private sealed class LaneRestore(bool previous) : IDisposable
     {
         public void Dispose() => _isBackground.Value = previous;

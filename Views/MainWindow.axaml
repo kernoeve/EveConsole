@@ -251,6 +251,15 @@
             <TextBlock Text="{Binding ServerPlayersText}"
                        FontSize="10" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
           </StackPanel>
+
+          <!-- While the ESI governor holds background work back; opens the ESI limits tab. -->
+          <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center" Margin="10 0 0 0" Cursor="Hand"
+                      Background="Transparent" IsVisible="{Binding EsiThrottled}"
+                      ToolTip.Tip="{Binding EsiThrottleTip}" PointerPressed="OnEsiThrottleClick">
+            <TextBlock Text="▲" FontSize="9" VerticalAlignment="Center" Foreground="{DynamicResource WarnBrush}" />
+            <TextBlock Text="{x:Static loc:ShellText.EsiThrottled}" FontSize="10" VerticalAlignment="Center"
+                       Foreground="{DynamicResource WarnBrush}" />
+          </StackPanel>
         </StackPanel>
 
         <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4">

@@ -665,4 +665,12 @@ PID: {2}
   <data name="NavPlanetaryIndustry" xml:space="preserve">
     <value>Планетарная промышленность</value>
   </data>
+  <data name="EsiThrottled" xml:space="preserve">
+    <value>ESI замедлен</value>
+  </data>
+  <data name="TipEsiThrottled" xml:space="preserve">
+    <value>{0}
+{1}
+Нажмите, чтобы открыть лимиты ESI.</value>
+  </data>
 </root>

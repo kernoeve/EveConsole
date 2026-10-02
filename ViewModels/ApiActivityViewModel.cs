@@ -356,6 +356,10 @@ public class ApiActivityViewModel : ReactiveObject
         return next ? row?.NextRunUtc : row?.LastRunUtc;
     }
 
+    /// <summary>The ESI limits tab: the error budget, the rate-limit groups, errors by route and
+    /// the governor, from EsiBudget.Shared. Refreshed on the view's tick.</summary>
+    public EsiLimitsViewModel Limits { get; } = new();
+
     public ApiActivityViewModel(
         ApiActivityLog        log,
         IServiceScopeFactory  scopeFactory,

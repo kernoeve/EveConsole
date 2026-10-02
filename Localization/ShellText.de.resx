@@ -653,4 +653,12 @@ Aktualisieren Sie den Client mit den Hintergrundprozessen auf {1}, oder schließ
   <data name="NavPlanetaryIndustry" xml:space="preserve">
     <value>Planetare Industrie</value>
   </data>
+  <data name="EsiThrottled" xml:space="preserve">
+    <value>ESI gedrosselt</value>
+  </data>
+  <data name="TipEsiThrottled" xml:space="preserve">
+    <value>{0}
+{1}
+Klicken für die ESI-Limits.</value>
+  </data>
 </root>

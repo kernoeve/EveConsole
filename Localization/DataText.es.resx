@@ -227,7 +227,7 @@
     <value>Nota</value>
   </data>
   <data name="ItemsArePulledOneNote" xml:space="preserve">
-    <value>Los objetos se descargan contrato a contrato, con una llamada por cada uno: primero tus propios contratos y después los públicos. Cada contrato se descarga una vez y se conserva.</value>
+    <value>Los objetos se obtienen con una llamada por contrato: primero tus propios contratos, de uno en uno, y luego los anuncios públicos, de dos en dos. Cada contrato se obtiene una vez y se conserva.</value>
   </data>
   <data name="TabLpStore" xml:space="preserve">
     <value>Tienda de PL</value>
@@ -1569,5 +1569,113 @@
   </data>
   <data name="EndpointColonyLayouts" xml:space="preserve">
     <value>Disposición de colonias</value>
+  </data>
+  <data name="TabEsiLimits" xml:space="preserve">
+    <value>Límites de ESI</value>
+  </data>
+  <data name="EsiErrorBudgetLabel" xml:space="preserve">
+    <value>Margen de errores</value>
+  </data>
+  <data name="EsiErrorBudgetText" xml:space="preserve">
+    <value>Quedan {0} de {1} errores · la ventana se reinicia en {2} s</value>
+  </data>
+  <data name="EsiErrorBudgetFull" xml:space="preserve">
+    <value>Completo: ningún error en la ventana actual</value>
+  </data>
+  <data name="EsiWindowSpent" xml:space="preserve">
+    <value>Gastado en esta ventana: {0} por esta aplicación, {1} por otra cosa en esta conexión</value>
+  </data>
+  <data name="EsiWindowSpentOurs" xml:space="preserve">
+    <value>Gastado en esta ventana: {0} por esta aplicación</value>
+  </data>
+  <data name="EsiCallsText" xml:space="preserve">
+    <value>Último minuto — llamadas: {0:N0}, errores: {1:N0} · última hora — errores: {2:N0} · rechazadas desde el inicio — límite de errores (420): {3:N0}, límite de frecuencia (429): {4:N0}</value>
+  </data>
+  <data name="EsiGovernorLabel" xml:space="preserve">
+    <value>Regulador</value>
+  </data>
+  <data name="EsiGovernorNormal" xml:space="preserve">
+    <value>Trabajo en segundo plano a toda velocidad.</value>
+  </data>
+  <data name="EsiGovernorSpaced" xml:space="preserve">
+    <value>Llamadas en segundo plano espaciadas: quedan menos de {0} errores.</value>
+  </data>
+  <data name="EsiGovernorOneAtATime" xml:space="preserve">
+    <value>Trabajo en segundo plano de una llamada en una: quedan menos de {0} errores.</value>
+  </data>
+  <data name="EsiGovernorStopped" xml:space="preserve">
+    <value>Las llamadas en segundo plano esperan a que se reinicie la ventana: quedan menos de {0} errores.</value>
+  </data>
+  <data name="EsiGovernorPacedGroups" xml:space="preserve">
+    <value>Grupos con límite de frecuencia casi agotados y regulados a su ritmo de recarga: {0}.</value>
+  </data>
+  <data name="EsiGroupsHeading" xml:space="preserve">
+    <value>Grupos con límite de frecuencia</value>
+  </data>
+  <data name="EsiGroupsNone" xml:space="preserve">
+    <value>Aún no se ha llamado a ninguna ruta con límite de frecuencia.</value>
+  </data>
+  <data name="ColEsiGroup" xml:space="preserve">
+    <value>Grupo</value>
+  </data>
+  <data name="ColEsiLimit" xml:space="preserve">
+    <value>Límite</value>
+  </data>
+  <data name="ColEsiLeft" xml:space="preserve">
+    <value>Quedan</value>
+  </data>
+  <data name="ColEsiRefused" xml:space="preserve">
+    <value>Rechazadas</value>
+  </data>
+  <data name="ColEsiState" xml:space="preserve">
+    <value>Estado</value>
+  </data>
+  <data name="ColEsiRoutes" xml:space="preserve">
+    <value>Rutas</value>
+  </data>
+  <data name="EsiLimitPer" xml:space="preserve">
+    <value>{0} cada {1}</value>
+  </data>
+  <data name="EsiWindowSeconds" xml:space="preserve">
+    <value>{0} s</value>
+  </data>
+  <data name="EsiWindowMinutes" xml:space="preserve">
+    <value>{0} min</value>
+  </data>
+  <data name="EsiWindowHours" xml:space="preserve">
+    <value>{0} h</value>
+  </data>
+  <data name="EsiGroupPaced" xml:space="preserve">
+    <value>Regulado</value>
+  </data>
+  <data name="EsiGroupBlocked" xml:space="preserve">
+    <value>Rechazado hasta las {0}</value>
+  </data>
+  <data name="EsiErrorsHeading" xml:space="preserve">
+    <value>Errores por ruta</value>
+  </data>
+  <data name="EsiErrorsNone" xml:space="preserve">
+    <value>Ningún error desde que se inició la aplicación.</value>
+  </data>
+  <data name="ColEsiRoute" xml:space="preserve">
+    <value>Ruta</value>
+  </data>
+  <data name="ColEsiStatus" xml:space="preserve">
+    <value>Estado HTTP</value>
+  </data>
+  <data name="ColEsiLastMinute" xml:space="preserve">
+    <value>Último minuto</value>
+  </data>
+  <data name="ColEsiLastHour" xml:space="preserve">
+    <value>Última hora</value>
+  </data>
+  <data name="ColEsiSinceStart" xml:space="preserve">
+    <value>Desde el inicio</value>
+  </data>
+  <data name="ColEsiLastAt" xml:space="preserve">
+    <value>Último</value>
+  </data>
+  <data name="EsiLimitsNote" xml:space="preserve">
+    <value>ESI permite unas 100 llamadas fallidas por minuto para todo lo que hay en esta conexión a internet —otros programas y ordenadores incluidos— y rechaza todas las llamadas (420) cuando se agotan. Algunas rutas tienen además un margen propio (grupos con límite de frecuencia). Solo se frena el trabajo en segundo plano; lo que haces tú pasa directamente.</value>
   </data>
 </root>

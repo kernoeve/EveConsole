@@ -653,4 +653,12 @@ Actualiza a la versión {1} el cliente que ejecuta los procesos en segundo plano
   <data name="NavPlanetaryIndustry" xml:space="preserve">
     <value>Industria planetaria</value>
   </data>
+  <data name="EsiThrottled" xml:space="preserve">
+    <value>ESI frenado</value>
+  </data>
+  <data name="TipEsiThrottled" xml:space="preserve">
+    <value>{0}
+{1}
+Haz clic para ver los límites de ESI.</value>
+  </data>
 </root>

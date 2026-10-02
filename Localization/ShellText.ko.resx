@@ -647,4 +647,12 @@ PID: {2}
   <data name="NavPlanetaryIndustry" xml:space="preserve">
     <value>행성 개발</value>
   </data>
+  <data name="EsiThrottled" xml:space="preserve">
+    <value>ESI 조절 중</value>
+  </data>
+  <data name="TipEsiThrottled" xml:space="preserve">
+    <value>{0}
+{1}
+클릭하면 ESI 한도를 봅니다.</value>
+  </data>
 </root>

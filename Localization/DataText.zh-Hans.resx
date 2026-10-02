@@ -227,7 +227,7 @@
     <value>备注</value>
   </data>
   <data name="ItemsArePulledOneNote" xml:space="preserve">
-    <value>物品按合同逐个拉取，每个合同一次调用：先拉取你自己的合同，然后是排在其后的公开合同。每个合同只拉取一次，之后便一直保留。</value>
+    <value>物品按每个合同一次调用获取：先逐个获取你自己的合同，再每次两个获取公开合同。每个合同只获取一次并保存。</value>
   </data>
   <data name="TabLpStore" xml:space="preserve">
     <value>LP 商店</value>
@@ -1539,5 +1539,113 @@
   </data>
   <data name="EndpointColonyLayouts" xml:space="preserve">
     <value>殖民地布局</value>
+  </data>
+  <data name="TabEsiLimits" xml:space="preserve">
+    <value>ESI 限制</value>
+  </data>
+  <data name="EsiErrorBudgetLabel" xml:space="preserve">
+    <value>错误额度</value>
+  </data>
+  <data name="EsiErrorBudgetText" xml:space="preserve">
+    <value>剩余 {0}/{1} 个错误 · {2} 秒后重置</value>
+  </data>
+  <data name="EsiErrorBudgetFull" xml:space="preserve">
+    <value>已满：当前时间窗口内没有错误</value>
+  </data>
+  <data name="EsiWindowSpent" xml:space="preserve">
+    <value>本窗口已用：本应用 {0} 个，同一网络连接上的其他程序 {1} 个</value>
+  </data>
+  <data name="EsiWindowSpentOurs" xml:space="preserve">
+    <value>本窗口已用：本应用 {0} 个</value>
+  </data>
+  <data name="EsiCallsText" xml:space="preserve">
+    <value>最近一分钟 — 调用：{0:N0}，错误：{1:N0} · 最近一小时 — 错误：{2:N0} · 启动以来被拒 — 错误限制 (420)：{3:N0}，速率限制 (429)：{4:N0}</value>
+  </data>
+  <data name="EsiGovernorLabel" xml:space="preserve">
+    <value>调节</value>
+  </data>
+  <data name="EsiGovernorNormal" xml:space="preserve">
+    <value>后台任务全速运行。</value>
+  </data>
+  <data name="EsiGovernorSpaced" xml:space="preserve">
+    <value>后台调用已拉开间隔：剩余错误少于 {0} 个。</value>
+  </data>
+  <data name="EsiGovernorOneAtATime" xml:space="preserve">
+    <value>后台任务一次只进行一个调用：剩余错误少于 {0} 个。</value>
+  </data>
+  <data name="EsiGovernorStopped" xml:space="preserve">
+    <value>后台调用等待时间窗口重置：剩余错误少于 {0} 个。</value>
+  </data>
+  <data name="EsiGovernorPacedGroups" xml:space="preserve">
+    <value>额度将尽、按恢复速度放慢的速率限制组：{0} 个。</value>
+  </data>
+  <data name="EsiGroupsHeading" xml:space="preserve">
+    <value>速率限制组</value>
+  </data>
+  <data name="EsiGroupsNone" xml:space="preserve">
+    <value>尚未调用任何有速率限制的路由。</value>
+  </data>
+  <data name="ColEsiGroup" xml:space="preserve">
+    <value>组</value>
+  </data>
+  <data name="ColEsiLimit" xml:space="preserve">
+    <value>限额</value>
+  </data>
+  <data name="ColEsiLeft" xml:space="preserve">
+    <value>剩余</value>
+  </data>
+  <data name="ColEsiRefused" xml:space="preserve">
+    <value>被拒</value>
+  </data>
+  <data name="ColEsiState" xml:space="preserve">
+    <value>状态</value>
+  </data>
+  <data name="ColEsiRoutes" xml:space="preserve">
+    <value>路由</value>
+  </data>
+  <data name="EsiLimitPer" xml:space="preserve">
+    <value>每 {1} {0} 次</value>
+  </data>
+  <data name="EsiWindowSeconds" xml:space="preserve">
+    <value>{0} 秒</value>
+  </data>
+  <data name="EsiWindowMinutes" xml:space="preserve">
+    <value>{0} 分钟</value>
+  </data>
+  <data name="EsiWindowHours" xml:space="preserve">
+    <value>{0} 小时</value>
+  </data>
+  <data name="EsiGroupPaced" xml:space="preserve">
+    <value>已放慢</value>
+  </data>
+  <data name="EsiGroupBlocked" xml:space="preserve">
+    <value>拒绝至 {0}</value>
+  </data>
+  <data name="EsiErrorsHeading" xml:space="preserve">
+    <value>按路由的错误</value>
+  </data>
+  <data name="EsiErrorsNone" xml:space="preserve">
+    <value>应用启动以来没有错误。</value>
+  </data>
+  <data name="ColEsiRoute" xml:space="preserve">
+    <value>路由</value>
+  </data>
+  <data name="ColEsiStatus" xml:space="preserve">
+    <value>状态码</value>
+  </data>
+  <data name="ColEsiLastMinute" xml:space="preserve">
+    <value>最近一分钟</value>
+  </data>
+  <data name="ColEsiLastHour" xml:space="preserve">
+    <value>最近一小时</value>
+  </data>
+  <data name="ColEsiSinceStart" xml:space="preserve">
+    <value>启动以来</value>
+  </data>
+  <data name="ColEsiLastAt" xml:space="preserve">
+    <value>最近</value>
+  </data>
+  <data name="EsiLimitsNote" xml:space="preserve">
+    <value>ESI 对这条网络连接上的所有程序（包括其他程序和电脑）每分钟大约允许 100 次失败的调用，用完后会拒绝所有调用 (420)。有些路由还有各自的额度（速率限制组）。为了不超限，只会放慢后台任务；你自己的操作会直接通过。</value>
   </data>
 </root>

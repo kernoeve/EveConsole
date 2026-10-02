@@ -647,4 +647,12 @@ PID：{2}
   <data name="NavPlanetaryIndustry" xml:space="preserve">
     <value>行星开发</value>
   </data>
+  <data name="EsiThrottled" xml:space="preserve">
+    <value>ESI 已放慢</value>
+  </data>
+  <data name="TipEsiThrottled" xml:space="preserve">
+    <value>{0}
+{1}
+点击查看 ESI 限制。</value>
+  </data>
 </root>

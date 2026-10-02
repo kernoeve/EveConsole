@@ -653,4 +653,12 @@ Mettez à jour en version {1} le client qui exécute les processus d'arrière-pl
   <data name="NavPlanetaryIndustry" xml:space="preserve">
     <value>Industrie planétaire</value>
   </data>
+  <data name="EsiThrottled" xml:space="preserve">
+    <value>ESI ralenti</value>
+  </data>
+  <data name="TipEsiThrottled" xml:space="preserve">
+    <value>{0}
+{1}
+Cliquez pour voir les limites ESI.</value>
+  </data>
 </root>

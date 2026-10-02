@@ -827,4 +827,14 @@ Update the client running the background processes to {1}, or close it and start
     <value>Planetary Industry</value>
     <comment>Navigation, Industry group: the Planetary Industry tool. Use the game's name for Planetary Industry.</comment>
   </data>
+  <data name="EsiThrottled" xml:space="preserve">
+    <value>ESI slowed</value>
+    <comment>Header, beside the Tranquility status: the app is holding its background ESI calls back to stay under ESI's limits.</comment>
+  </data>
+  <data name="TipEsiThrottled" xml:space="preserve">
+    <value>{0}
+{1}
+Click for the ESI limits.</value>
+    <comment>Tooltip on the header's ESI slowed. {0} is the governor's state, {1} the error budget line.</comment>
+  </data>
 </root>
