@@ -529,12 +529,16 @@
     <comment>Column header in ErrorLogView.</comment>
   </data>
   <data name="ColInner" xml:space="preserve">
-    <value>Inner</value>
-    <comment>Column header in ErrorLogView.</comment>
+    <value>Details</value>
+    <comment>Column header in ErrorLogView: an error's inner error, or a warning's or note's further detail.</comment>
+  </data>
+  <data name="ColLevel" xml:space="preserve">
+    <value>Level</value>
+    <comment>Column header in ErrorLogView: whether the row is an error, a warning or a note.</comment>
   </data>
   <data name="SelectAnErrorToNote" xml:space="preserve">
-    <value>Select an error to view its details.</value>
-    <comment>Note in ErrorLogView.</comment>
+    <value>Select an entry to view its details.</value>
+    <comment>Note in ErrorLogView, when no row is selected.</comment>
   </data>
   <data name="EsiTables" xml:space="preserve">
     <value>ESI Tables</value>
@@ -1449,12 +1453,32 @@
     <comment>Error Log: status line when no error was logged between the dates chosen.</comment>
   </data>
   <data name="ErrorLogCount" xml:space="preserve">
-    <value>{0:N0} error(s)</value>
-    <comment>Error Log: status line. {0} is the number of errors shown.</comment>
+    <value>{0:N0} entries, {1:N0} errors</value>
+    <comment>Error Log: status line. {0} is the number of rows shown, {1} how many of them are errors (the rest are warnings and notes).</comment>
   </data>
   <data name="ErrorInner" xml:space="preserve">
     <value>Inner: {0}</value>
     <comment>Error Log, detail pane, below the error's message. {0} is the message of the error that caused it (the inner exception).</comment>
+  </data>
+  <data name="ErrorDetails" xml:space="preserve">
+    <value>Details: {0}</value>
+    <comment>Error Log, detail pane, below a warning's or a note's message. {0} is the further detail it was logged with.</comment>
+  </data>
+  <data name="SeverityError" xml:space="preserve">
+    <value>Error</value>
+    <comment>Error Log, Level column: something failed.</comment>
+  </data>
+  <data name="SeverityWarning" xml:space="preserve">
+    <value>Warning</value>
+    <comment>Error Log, Level column: worth a look, but nothing failed.</comment>
+  </data>
+  <data name="SeverityNote" xml:space="preserve">
+    <value>Note</value>
+    <comment>Error Log, Level column: a record of what happened, kept in the log, not a fault (e.g. what an SDE import stored).</comment>
+  </data>
+  <data name="ErrorsOnly" xml:space="preserve">
+    <value>Errors only</value>
+    <comment>Error Log: a checkbox that hides warnings and notes.</comment>
   </data>
   <data name="GameLogAllTypes" xml:space="preserve">
     <value>(all types)</value>

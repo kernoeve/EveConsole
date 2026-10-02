@@ -1265,7 +1265,18 @@ public class AppErrorEntry
     public string HostName { get; set; } = "";
 
     public bool Headless { get; set; }
+
+    /// <summary>
+    /// How serious it is (<see cref="LogSeverity"/>). Error unless the writer says otherwise, so
+    /// every row written before the column existed, and every client still on an older build,
+    /// reads as the error it was logged as.
+    /// </summary>
+    public int Severity { get; set; }
 }
+
+/// <summary>What a row in the error log is: a fault, something worth a look, or a record of what
+/// happened that is kept because the log is what stays (an SDE import's counts, say).</summary>
+public enum LogSeverity { Error = 0, Warning = 1, Note = 2 }
 
 // ── Client activity monitoring ────────────────────────────────────────────────
 

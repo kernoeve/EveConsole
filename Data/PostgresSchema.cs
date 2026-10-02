@@ -584,6 +584,11 @@ public static class PostgresSchema
         """
         ALTER TABLE "AppErrorLog" ADD COLUMN IF NOT EXISTS "Headless" BOOLEAN NOT NULL DEFAULT FALSE
         """,
+        // Error, warning or note (LogSeverity). 0, an error, for every row already there and for
+        // a client on an older build that does not name it. Mirrored for SQLite in App.axaml.cs.
+        """
+        ALTER TABLE "AppErrorLog" ADD COLUMN IF NOT EXISTS "Severity" INTEGER NOT NULL DEFAULT 0
+        """,
 
         // Packaged-only arrived after InvLevelGroups did.
         """
