@@ -616,6 +616,9 @@
   <data name="ItemsHttpError" xml:space="preserve">
     <value>На запрос предметов ESI ответил HTTP {0}.</value>
   </data>
+  <data name="ItemsClosedUnread" xml:space="preserve">
+    <value>Он закрылся до того, как были прочитаны его предметы, и ESI их больше не показывает.</value>
+  </data>
   <data name="ItemsNoneListed" xml:space="preserve">
     <value>ESI не вернул для него ни одного предмета.</value>
   </data>

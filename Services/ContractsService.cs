@@ -44,6 +44,13 @@ public class ContractsService : ReactiveObject
     // Contract types that carry an item list. "loan" has none.
     private static readonly HashSet<string> ItemBearingTypes = ["item_exchange", "auction", "courier"];
 
+    /// <summary>
+    /// The ItemsStatus of a public contract that closed before its items were read, and that no
+    /// character or corporation here holds: settled without a call, since the public endpoint
+    /// refuses a contract once it has left the listing (403/404), and nothing else can serve it.
+    /// </summary>
+    public const int ItemsGoneUnread = 410;
+
     private string _statusText = "Contracts: not started";
     public string StatusText
     {
@@ -304,7 +311,7 @@ public class ContractsService : ReactiveObject
         // contract seen by several owners is fetched once.
         var pending = (await db.EsiContracts.AsNoTracking()
                 .Where(c => !c.ItemsPulled)
-                .Select(c => new { c.ContractId, c.OwnerId, c.OwnerType, c.Type, c.IssuerCorporationId, c.AssigneeId, c.AcceptorId })
+                .Select(c => new { c.ContractId, c.OwnerId, c.OwnerType, c.Type, c.Status, c.IssuerCorporationId, c.AssigneeId, c.AcceptorId })
                 .ToListAsync(ct))
             .Where(c => ItemBearingTypes.Contains(c.Type))
             .GroupBy(c => c.ContractId)
@@ -325,6 +332,16 @@ public class ContractsService : ReactiveObject
                                  || c.AssigneeId == c.OwnerId || c.AcceptorId == c.OwnerId ? 2 : 1,
                 _             => 0,
             }))
+            // Then what is still open before what has closed.
+            //
+            // ⚠️ By contract number alone, the oldest came first — and from late August 2026 the
+            // oldest were some 85,000 public contracts that had closed before their items were
+            // read. The public endpoint refuses every one, each refusal is followed by the long
+            // pause, and at twelve a minute the sweep spent days on them while the open
+            // contracts behind them — the ones current prices and blueprint copies come from —
+            // waited. No BPC sighting was stored after 31 August, so build costs for BPC-only
+            // items fell back to market prices.
+            .ThenBy(g => g.Any(c => c.Status == "outstanding") ? 0 : 1)
             .ThenBy(g => g.Key)
             .ToList();
 
@@ -349,13 +366,13 @@ public class ContractsService : ReactiveObject
         var authedChars = (await db.Characters.AsNoTracking().Where(c => c.RefreshToken != "").Select(c => c.Id).ToListAsync(ct)).ToHashSet();
         var authedCorps = (await db.Corporations.AsNoTracking().Where(c => c.RefreshToken != "").Select(c => (long)c.Id).ToListAsync(ct)).ToHashSet();
 
-        int done = 0, refused = 0, skipped = 0;
+        int done = 0, refused = 0, skipped = 0, gone = 0;
         _itemsTotal = pending.Count;
         _itemsDone  = 0;
         foreach (var group in pending)
         {
             if (ct.IsCancellationRequested) break;
-            _itemsDone = done + refused + skipped;
+            _itemsDone = done + refused + skipped + gone;
 
             // Prefer the public endpoint (no token bucket, items always visible), then a
             // character token, then a corporation's.
@@ -388,6 +405,27 @@ public class ContractsService : ReactiveObject
                 src = owned;
             }
 
+            // A public contract that has left the listing: the public endpoint refuses it now.
+            // An owned copy can still be read; with none, it is settled without a call.
+            if (src.OwnerType == "public" && src.Status != "outstanding")
+            {
+                var owned = group.FirstOrDefault(c => c.OwnerType == "character" && authedChars.Contains(c.OwnerId)) ?? corp;
+                if (owned is null)
+                {
+                    // As for couriers: settled only when no owner row exists at all.
+                    if (group.All(c => c.OwnerType == "public"))
+                    {
+                        await db.EsiContracts.Where(x => x.ContractId == group.Key && !x.ItemsPulled)
+                            .ExecuteUpdateAsync(s => s.SetProperty(x => x.ItemsPulled, true)
+                                                      .SetProperty(x => x.ItemsStatus, ItemsGoneUnread), ct);
+                        gone++;
+                    }
+                    else skipped++;
+                    continue;
+                }
+                src = owned;
+            }
+
             while (_esi.IsErrorLimitBlocked && !ct.IsCancellationRequested)
             { try { await Task.Delay(3000, ct); } catch (OperationCanceledException) { break; } }
             if (ct.IsCancellationRequested) break;
@@ -413,7 +451,7 @@ public class ContractsService : ReactiveObject
             catch (OperationCanceledException) { break; }
         }
         StatusText = $"Contracts: item pass done ({done:N0} pulled, {refused:N0} refused, "
-                   + $"{skipped:N0} skipped) — {DateTimeOffset.Now:t}";
+                   + $"{skipped:N0} skipped, {gone:N0} closed before they were read) — {DateTimeOffset.Now:t}";
     }
 
     // Fetches a contract's items via the right endpoint and stores them (dedup by RecordId).
