@@ -616,6 +616,9 @@
   <data name="ItemsHttpError" xml:space="preserve">
     <value>アイテムを問い合わせたところ、ESIはHTTP {0}を返しました。</value>
   </data>
+  <data name="ItemsClosedUnread" xml:space="preserve">
+    <value>アイテムを読み取る前に終了したため、ESIはもう表示しません。</value>
+  </data>
   <data name="ItemsNoneListed" xml:space="preserve">
     <value>ESIはこの契約のアイテムを返しませんでした。</value>
   </data>
