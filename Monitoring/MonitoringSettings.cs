@@ -24,6 +24,7 @@ public sealed class MonitoringSettings(AppPreferencesService prefs)
     public const string KeyChatHistoryDays   = "chatlog.history_days";
     public const string KeyChatDirs          = "chatlog.dirs";
     public const string KeyChatIntelChannels = "chatlog.intel_channels";
+    public const string KeyIntelRegions      = "chatlog.intel_regions";
     public const string KeyIntelWatermark    = "intel.last_message_id";
 
     /// <summary>
@@ -141,6 +142,31 @@ public sealed class MonitoringSettings(AppPreferencesService prefs)
     /// a channel that is not being stored has nothing to parse — and empty by default, so
     /// intel parsing stays off until the user names a channel.
     /// </summary>
+    /// <summary>
+    /// Regions set by hand for an intel channel, by channel name — optional. Without them the
+    /// channel's regions are learned from the systems it has reported. Shared like the channel
+    /// list itself: every client parses the same channels the same way.
+    /// </summary>
+    public IReadOnlyDictionary<string, IReadOnlyList<string>> IntelChannelRegions
+    {
+        get
+        {
+            var map = new Dictionary<string, IReadOnlyList<string>>(StringComparer.OrdinalIgnoreCase);
+            try
+            {
+                if (prefs.Get(KeyIntelRegions) is { Length: > 0 } json
+                    && System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, List<string>>>(json) is { } read)
+                    foreach (var (channel, regions) in read)
+                        if (regions.Count > 0) map[channel] = regions;
+            }
+            catch (System.Text.Json.JsonException) { /* unreadable: as if none were set */ }
+            return map;
+        }
+        set => _ = prefs.SetAsync(KeyIntelRegions, value.Count == 0 ? null
+                    : System.Text.Json.JsonSerializer.Serialize(value.Where(kv => kv.Value.Count > 0)
+                          .ToDictionary(kv => kv.Key, kv => kv.Value)));
+    }
+
     public IReadOnlyList<string> ChatIntelChannels
     {
         get => (prefs.Get(KeyChatIntelChannels) ?? "")

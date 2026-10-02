@@ -139,6 +139,16 @@ public static class PostgresSchema
         """
         ALTER TABLE "SdeSolarSystems" ADD COLUMN IF NOT EXISTS "Border" BOOLEAN NOT NULL DEFAULT FALSE
         """,
+        // Intel: what else a report said, and the hulls nobody was named in.
+        """
+        ALTER TABLE "IntelReports" ADD COLUMN IF NOT EXISTS "Flags" INTEGER NOT NULL DEFAULT 0
+        """,
+        """
+        ALTER TABLE "IntelReports" ADD COLUMN IF NOT EXISTS "Gate" TEXT NULL
+        """,
+        """
+        ALTER TABLE "IntelReports" ADD COLUMN IF NOT EXISTS "Ships" TEXT NULL
+        """,
         """
         ALTER TABLE "SdeSolarSystems" ADD COLUMN IF NOT EXISTS "Corridor" BOOLEAN NOT NULL DEFAULT FALSE
         """,

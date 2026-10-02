@@ -3375,6 +3375,9 @@ public class App : Application
                     """ALTER TABLE "IntelReports" ADD COLUMN "ReporterCharacterId" INTEGER NULL""",
                     """ALTER TABLE "IntelReports" ADD COLUMN "NoVisual" INTEGER NOT NULL DEFAULT 0""",
                     """ALTER TABLE "IntelReports" ADD COLUMN "Message" TEXT NOT NULL DEFAULT ''""",
+                    """ALTER TABLE "IntelReports" ADD COLUMN "Flags" INTEGER NOT NULL DEFAULT 0""",
+                    """ALTER TABLE "IntelReports" ADD COLUMN "Gate" TEXT NULL""",
+                    """ALTER TABLE "IntelReports" ADD COLUMN "Ships" TEXT NULL""",
                     // Intel whose chat message no longer exists. Two things delete a chat message
                     // without a replacement report being written: the dedupe above, and a log file
                     // being re-read after its length appeared to go backwards. In both cases the

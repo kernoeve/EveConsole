@@ -1526,6 +1526,17 @@ public class IntelReport
 
     /// <summary>The message this came from — provenance, and what makes re-parsing idempotent.</summary>
     public int ChatMessageId { get; set; }
+
+    /// <summary>What else the reporter said about the system — spike, gate camp, bubbles,
+    /// wormhole, ESS, cyno, skyhook, combat probes — as <see cref="Monitoring.IntelRules.IntelFlags"/> bits.</summary>
+    public int Flags { get; set; }
+
+    /// <summary>The system whose gate they are on, when the reporter said so: "QZ-X77 gate".</summary>
+    public string? Gate { get; set; }
+
+    /// <summary>Hulls and classes named with no pilot to fly them, as written for a reader:
+    /// "3× Loki, Interdictor". Already counted in <see cref="PlayerCount"/>.</summary>
+    public string? Ships { get; set; }
 }
 
 /// <summary>A pilot named on an intel report. Separate table because one line often drags in
