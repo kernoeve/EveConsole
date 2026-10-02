@@ -21,6 +21,10 @@ public sealed class IntelVocabulary
         ["kiki"]   = "Kikimora",
         ["retri"]  = "Retribution",
         ["vaga"]   = "Vagabond",
+        ["drek"]   = "Drekavac",
+        ["squal"]  = "Squall",
+        ["jag"]    = "Jaguar",
+        ["male"]   = "Malediction",
         ["cerb"]   = "Cerberus",
         ["maled"]  = "Malediction",
         // Initials of the navy and fleet hulls
@@ -29,16 +33,19 @@ public sealed class IntelVocabulary
         ["cni"]    = "Caracal Navy Issue",
         ["oni"]    = "Osprey Navy Issue",
         ["sfi"]    = "Stabber Fleet Issue",
-        ["navy slicer"] = "Imperial Navy Slicer",
+        ["navy slicer"]   = "Imperial Navy Slicer",
+        ["navy hookbill"] = "Caldari Navy Hookbill",
         // Misspellings
         ["stilleto"]  = "Stiletto",
         ["stilletto"] = "Stiletto",
         ["saber"]     = "Sabre",
         ["flycather"] = "Flycatcher",
+        ["fly catcher"] = "Flycatcher",
         ["cynabul"]   = "Cynabal",
         // Classes
         ["dictor"] = "Interdictor",
         ["cepter"] = "Interceptor",
+        ["inty"]   = "Interceptor",
         ["blops"]  = "Black Ops",
         ["bomber"] = "Stealth Bomber",
     };
@@ -139,6 +146,11 @@ public sealed class IntelVocabulary
             return _hulls.TryGetValue(slang, out var named) ? new(named.Name, named.TypeId, false)
                  : _classes.TryGetValue(slang, out var cls) ? new(cls, null, true) : null;
         if (_classes.TryGetValue(run, out var group)) return new(group, null, true);
+
+        // "omen navy", "vexor navy": the hull's Navy Issue, where there is one.
+        if (run.EndsWith(" navy", StringComparison.OrdinalIgnoreCase)
+            && _hulls.TryGetValue(run[..^5] + " Navy Issue", out var navy))
+            return new(navy.Name, navy.TypeId, false);
         return null;
     }
 }
@@ -156,7 +168,7 @@ public sealed record IntelChannelHints(IReadOnlySet<int> Regions, IReadOnlyDicti
 }
 
 /// <summary>The lexicon <see cref="IntelRules.Parse"/> reads one channel's messages with.</summary>
-public sealed class IntelLexicon(IntelVocabulary vocabulary, IntelChannelHints hints, Func<string, bool> isCharacter)
+public sealed class IntelLexicon(IntelVocabulary vocabulary, IntelChannelHints hints, Func<string, bool, bool> isCharacter)
     : IntelRules.ILexicon
 {
     /// <summary>Counts and salutes that look like the start of a system name: "x2", "5x", "o7".</summary>
@@ -169,7 +181,7 @@ public sealed class IntelLexicon(IntelVocabulary vocabulary, IntelChannelHints h
 
     public IntelRules.ShipMatch? Ship(string run) => vocabulary.Ship(run);
 
-    public bool Character(string run) => isCharacter(run);
+    public bool Character(string run, bool startsChunk) => isCharacter(run, startsChunk);
 
     public IntelRules.SystemMatch? System(string run)
     {

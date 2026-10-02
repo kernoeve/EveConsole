@@ -201,7 +201,9 @@ public static class IntelRules
     {
         SystemMatch? System(string run);
         ShipMatch?   Ship(string run);
-        bool         Character(string run);
+        /// <param name="startsChunk">The run begins a chunk — where a pasted link begins, the
+        /// client padding it with spaces; typed chatter mostly runs on mid-chunk.</param>
+        bool         Character(string run, bool startsChunk);
     }
 
     /// <summary>What a reporter says about a system besides who is in it. Stored as a bit set,
@@ -441,6 +443,8 @@ public static class IntelRules
                     var next = chunk[i + 1].Clean;
                     if (HeadWords.Contains(next)) { plus += bare; i += 2; last = Last.Other; continue; }
                     if (next.Equals("total", StringComparison.OrdinalIgnoreCase)) { total = Math.Max(total, bare); i += 2; last = Last.Other; continue; }
+                    // "3 camping": three people, and the camp, which the flag word sets next.
+                    if (FlagWords.TryGetValue(next, out var what) && what == IntelFlags.Camp) { plus += bare; i++; last = Last.Plus; continue; }
                     if (ShipRunAt(chunk, i + 1, lexicon) > 0) { number = bare; i++; last = Last.Other; continue; }
                 }
 
@@ -493,7 +497,7 @@ public static class IntelRules
                     // hull-named character followed by a bracketed hull is a pilot and the ship
                     // they fly. Unbracketed, two hulls in a row are a list of ships.
                     if (lexicon.Ship(run) is { } ship
-                        && !(!ship.IsClass && lexicon.Character(run) && NextIsBracketedHull(chunks, ci, i + len, lexicon)))
+                        && !(!ship.IsClass && lexicon.Character(run, i == 0) && NextIsBracketedHull(chunks, ci, i + len, lexicon)))
                     {
                         var each = number ?? 1;
                         number = null;
@@ -516,7 +520,7 @@ public static class IntelRules
                         continue;
                     }
 
-                    if (!IsStopRun(run) && lexicon.Character(run))
+                    if (!IsStopRun(run) && lexicon.Character(run, i == 0))
                     {
                         // One hull right before a pilot is theirs: "Loki  Tester".
                         string? hull = null; int? hullId = null;
@@ -608,7 +612,7 @@ public static class IntelRules
     private static bool StartsCharacter(Token[] chunk, int start, ILexicon lexicon)
     {
         for (var len = Math.Min(MaxNameTokens, chunk.Length - start); len >= 2; len--)
-            if (lexicon.Character(Run(chunk, start, len))) return true;
+            if (lexicon.Character(Run(chunk, start, len), start == 0)) return true;
         return false;
     }
 }

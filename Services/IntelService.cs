@@ -345,16 +345,17 @@ public sealed class IntelService(
             await ResolveAsync(db, candidates, ct);
             await LoadKillmailPresenceAsync(db, candidates, ct);
 
-            // A character, unless it is one word typed in other capitals than the character's own
-            // and that character has never been on a killmail here. Links paste a name exactly;
-            // "gate", "sabre" or "clone" typed in passing match some character as well, but one
-            // nobody has ever seen fight. A name of two or three words is let through: chatter
-            // rarely runs to a real character's full name by accident.
-            bool IsCharacter(string s) =>
+            // A character who has been on a killmail here always counts. Otherwise the name must
+            // be written exactly as the character's own — a pasted link always is — and, when it
+            // has no capital letter at all, start a chunk, where a pasted link starts. Ordinary
+            // words and phrases are real characters often enough ("then", "for now", "1 hour",
+            // "looks like"), long inactive ones that nobody has ever seen fight, and chatter types
+            // them in lower case in the middle of a sentence.
+            bool IsCharacter(string s, bool startsChunk) =>
                 _nameCache.TryGetValue(s, out var id) && id is { } cid
-                && (s.Contains(' ')
-                    || (_canonical.TryGetValue(s, out var spelled) && string.Equals(spelled, s, StringComparison.Ordinal))
-                    || _onKillmail.GetValueOrDefault(cid));
+                && (_onKillmail.GetValueOrDefault(cid)
+                    || (_canonical.TryGetValue(s, out var spelled) && string.Equals(spelled, s, StringComparison.Ordinal)
+                        && (startsChunk || s.Any(char.IsUpper))));
 
             var seenCharacters = new List<long>();
 
@@ -519,8 +520,10 @@ public sealed class IntelService(
             ChatMessageId = chatMessageId,
             Flags         = (int)parsed.Flags,
             Gate          = parsed.Gate,
+            // The same hull named twice is two of it: "Loki  Loki  Sabre" is "2× Loki, Sabre".
             Ships         = parsed.Ships.Count == 0 ? null
-                          : string.Join(", ", parsed.Ships.Select(s => s.Count > 1 ? $"{s.Count}× {s.Name}" : s.Name)),
+                          : string.Join(", ", parsed.Ships.GroupBy(s => s.Name).Select(g => (Name: g.Key, Count: g.Sum(s => s.Count)))
+                                                    .Select(s => s.Count > 1 ? $"{s.Count}× {s.Name}" : s.Name)),
         };
 
         var pilots = new List<IntelReportCharacter>();
@@ -843,10 +846,10 @@ public sealed class IntelService(
     /// the character's own.</summary>
     private async Task LoadKillmailPresenceAsync(AppDbContext db, HashSet<string> candidates, CancellationToken ct)
     {
-        // Every one-word character, not only those typed in other capitals: the candidates are
-        // gathered without regard to case, so "Lone" and "lone" in one batch arrive as one.
+        // Every character among them: the candidates are gathered without regard to case, so
+        // "Lone" and "lone" in one batch arrive as one.
         var ids = candidates
-            .Where(c => !c.Contains(' ') && _nameCache.TryGetValue(c, out var id) && id is not null)
+            .Where(c => _nameCache.TryGetValue(c, out var id) && id is not null)
             .Select(c => _nameCache[c]!.Value)
             .Where(id => !_onKillmail.ContainsKey(id))
             .Distinct().ToList();
