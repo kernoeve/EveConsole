@@ -1513,7 +1513,7 @@
     <value>实时标记</value>
   </data>
   <data name="LiveMarkHostiles" xml:space="preserve">
-    <value>过去 5 分钟内经情报或击毁报告确认位于此处的敌对人员。悬停查看是谁、驾驶什么舰船。</value>
+    <value>过去 5 分钟内经情报或击毁报告确认位于此处的敌对人员。悬停查看是谁、驾驶什么舰船。“!”表示情报在此报告了某事（人数激增、拦截泡、蹲守），但未计入人数。</value>
   </data>
   <data name="LiveMarkOwn" xml:space="preserve">
     <value>你在此处在线的角色。悬停查看舰船以及是否停靠。</value>
@@ -2209,5 +2209,41 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   </data>
   <data name="LegendFwContested" xml:space="preserve">
     <value>虚线：争夺中（{0}）</value>
+  </data>
+  <data name="IntelFlagSpike" xml:space="preserve">
+    <value>本地人数激增</value>
+  </data>
+  <data name="IntelFlagCamp" xml:space="preserve">
+    <value>星门蹲守</value>
+  </data>
+  <data name="IntelFlagBubbles" xml:space="preserve">
+    <value>拦截泡</value>
+  </data>
+  <data name="IntelFlagHotdrop" xml:space="preserve">
+    <value>有空降风险</value>
+  </data>
+  <data name="IntelFlagCyno" xml:space="preserve">
+    <value>诱导</value>
+  </data>
+  <data name="IntelFlagWormhole" xml:space="preserve">
+    <value>虫洞</value>
+  </data>
+  <data name="IntelFlagProbes" xml:space="preserve">
+    <value>战斗探针</value>
+  </data>
+  <data name="IntelFlagEss" xml:space="preserve">
+    <value>在ESS</value>
+  </data>
+  <data name="IntelFlagSkyhook" xml:space="preserve">
+    <value>在天钩</value>
+  </data>
+  <data name="IntelOnGate" xml:space="preserve">
+    <value>在通往{0}的星门</value>
+  </data>
+  <data name="LiveFactsTitle" xml:space="preserve">
+    <value>{0}有报告</value>
+  </data>
+  <data name="LiveShipsRow" xml:space="preserve">
+    <value>舰船：{0}</value>
   </data>
 </root>

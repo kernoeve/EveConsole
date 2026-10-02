@@ -256,11 +256,12 @@ public sealed class IntelCondition : IAlarmCondition
         var idList = string.Join(",", watched);
 
         var reports = new List<(long Id, string System, int Count, string Reporter, string? Note,
-                               DateTime At, int SystemId)>();
+                               DateTime At, int SystemId, int Flags, string? Gate, string? Ships)>();
         await using (var cmd = conn.CreateCommand())
         {
             cmd.CommandText = AppDb.CaseInsensitiveLike($"""
-                SELECT "Id", "SystemName", "PlayerCount", "ReporterName", "Note", "ReportedAt", "SystemId"
+                SELECT "Id", "SystemName", "PlayerCount", "ReporterName", "Note", "ReportedAt", "SystemId",
+                       "Flags", "Gate", "Ships"
                 FROM "IntelReports"
                 WHERE "ReportedAt" >= @cutoff
                   AND "SystemId" IN ({idList})
@@ -285,44 +286,61 @@ public sealed class IntelCondition : IAlarmCondition
                     // as the string it is and parse it as the UTC instant it is; the seen-key is
                     // built from this, so it must not depend on the machine's clock setting.
                     r.IsDBNull(5) ? default : ParseUtc(r.GetString(5)),
-                    r.IsDBNull(6) ? 0 : r.GetInt32(6)));
+                    r.IsDBNull(6) ? 0 : r.GetInt32(6),
+                    r.IsDBNull(7) ? 0 : r.GetInt32(7),
+                    r.IsDBNull(8) ? null : r.GetString(8),
+                    r.IsDBNull(9) ? null : r.GetString(9)));
         }
 
         // Named pilots and their hulls, kept apart: the announcement says the hulls first, the
         // names after, and a name with the hull in brackets could do neither.
-        var pilots = new Dictionary<long, List<string>>();
-        var hulls  = new Dictionary<long, List<string>>();
+        var named = new List<(long ReportId, long CharacterId, string Name, string? Ship)>();
         if (reports.Count > 0)
         await using (var cmd = conn.CreateCommand())
         {
             cmd.CommandText = AppDb.CaseInsensitiveLike($"""
-                SELECT "IntelReportId", "CharacterName", "ShipName"
+                SELECT "IntelReportId", "CharacterName", "ShipName", "CharacterId"
                 FROM "IntelReportCharacters"
                 WHERE "IntelReportId" IN ({string.Join(",", reports.Select(x => x.Id))})
                 """);
             await using var r = await cmd.ExecuteReaderAsync(ct);
             while (await r.ReadAsync(ct))
             {
-                var reportId = r.GetInt64(0);
-                var name     = r.IsDBNull(1) ? "" : r.GetString(1);
-                var ship     = r.IsDBNull(2) ? null : r.GetString(2);
+                var name = r.IsDBNull(1) ? "" : r.GetString(1);
                 if (string.IsNullOrWhiteSpace(name)) continue;
+                named.Add((r.GetInt64(0), r.IsDBNull(3) ? 0 : r.GetInt64(3), name, r.IsDBNull(2) ? null : r.GetString(2)));
+            }
+        }
 
-                if (!pilots.TryGetValue(reportId, out var list)) pilots[reportId] = list = [];
-                list.Add(name);
-                if (!string.IsNullOrWhiteSpace(ship))
-                {
-                    if (!hulls.TryGetValue(reportId, out var hl)) hulls[reportId] = hl = [];
-                    hl.Add(ship);
-                }
+        // Friendlies are not hostiles: a blue named in the channel is neither said nor counted,
+        // the same rule the live map and the killmail matches below go by.
+        var friendlyIds = await FriendlyPilotsAsync(ctx, named.Select(n => n.CharacterId).Distinct().ToList(), ct);
+        var pilots   = new Dictionary<long, List<string>>();
+        var hulls    = new Dictionary<long, List<string>>();
+        var friendly = new Dictionary<long, int>();
+        foreach (var n in named)
+        {
+            if (friendlyIds.Contains(n.CharacterId)) { friendly[n.ReportId] = friendly.GetValueOrDefault(n.ReportId) + 1; continue; }
+            if (!pilots.TryGetValue(n.ReportId, out var list)) pilots[n.ReportId] = list = [];
+            list.Add(n.Name);
+            if (!string.IsNullOrWhiteSpace(n.Ship))
+            {
+                if (!hulls.TryGetValue(n.ReportId, out var hl)) hulls[n.ReportId] = hl = [];
+                hl.Add(n.Ship);
             }
         }
 
         var matches = new List<AlarmMatch>(reports.Count);
-        foreach (var rep in reports)
+        foreach (var raw in reports)
         {
+            // Less the friendlies it named; a report of only friendlies says nobody is there.
+            var rep = raw with { Count = raw.Count - friendly.GetValueOrDefault(raw.Id) };
+            if (rep.Count < Math.Max(1, minimum)) continue;
+
             var names_ = pilots.TryGetValue(rep.Id, out var list) ? list : [];
-            var ships  = hulls.TryGetValue(rep.Id, out var hl) ? hl : [];
+            // The pilots' hulls, then the hulls nobody was named in: "3 lokis" is three Lokis.
+            var ships  = (hulls.TryGetValue(rep.Id, out var hl) ? hl : [])
+                .Concat(EveConsole.Services.IntelDisplay.ParseShips(rep.Ships).Select(s => s.Name)).ToList();
             var who    = names_.Count > 0
                 ? " — " + string.Join(", ", names_.Take(5)) + (names_.Count > 5 ? $", +{names_.Count - 5}" : "")
                 : "";
@@ -360,6 +378,9 @@ public sealed class IntelCondition : IAlarmCondition
                     ["pilots"]    = names_,
                     ["hulls"]     = ships,
                     ["note"]      = rep.Note,
+                    ["flags"]     = EveConsole.Services.IntelDisplay.FlagsEnglish(rep.Flags),
+                    ["flag_bits"] = rep.Flags,
+                    ["gate"]      = rep.Gate,
                     ["jumps"]     = jumpsOut,
                     ["near"]      = near,
                     ["at"]        = rep.At,
@@ -385,6 +406,25 @@ public sealed class IntelCondition : IAlarmCondition
     /// <para>Keyed like a report — system, five-minute slice, the pilots' names — so the same
     /// gang reported in the channel and seen on a kill in the same minutes is one alert.</para>
     /// </summary>
+    /// <summary>Which of these characters are friendly: the user's own, in their corporations or
+    /// alliances, or set to positive standing — by the corporation and alliance last fetched for
+    /// them.</summary>
+    private static async Task<HashSet<long>> FriendlyPilotsAsync(
+        AlarmEvaluationContext ctx, List<long> ids, CancellationToken ct)
+    {
+        if (ids.Count == 0) return [];
+        await using var db = await ctx.DbFactory.CreateDbContextAsync(ct);
+        var friends = await LiveIntelService.FriendlyAsync(db, ct);
+        var flyFor  = await db.CharacterAffiliations.AsNoTracking()
+            .Where(a => ids.Contains(a.CharacterId)).ToListAsync(ct);
+        var result = ids.Where(friends.Characters.Contains).ToHashSet();
+        foreach (var a in flyFor)
+            if ((a.CorporationId > 0 && friends.Corporations.Contains(a.CorporationId))
+                || (a.AllianceId > 0 && friends.Alliances.Contains(a.AllianceId)))
+                result.Add(a.CharacterId);
+        return result;
+    }
+
     private static async Task<List<AlarmMatch>> KillMatchesAsync(
         AlarmEvaluationContext ctx, HashSet<int> watched, DateTimeOffset since, int minimum, int jumps,
         IReadOnlyDictionary<int, int> distances, IReadOnlyDictionary<int, string> nearest, CancellationToken ct)
@@ -529,6 +569,8 @@ public sealed class IntelCondition : IAlarmCondition
                 Pilots = g.SelectMany(m => Names(m.Detail!, "pilots")).Distinct(StringComparer.OrdinalIgnoreCase).ToList(),
                 Hulls  = g.SelectMany(m => Names(m.Detail!, "hulls")).Distinct(StringComparer.OrdinalIgnoreCase).ToList(),
                 Notes  = g.Select(m => Str(m.Detail!, "note").Trim().TrimEnd('.')).Where(n => n.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase).ToList(),
+                Flags  = g.Aggregate(0, (f, m) => f | (m.Detail!.TryGetValue("flag_bits", out var b) && b is int bits ? bits : 0)),
+                Gate   = g.Select(m => Str(m.Detail!, "gate")).FirstOrDefault(x => x.Length > 0),
                 Jumps  = g.Select(m => m.Detail!.TryGetValue("jumps", out var j) && j is int hops ? hops : (int?)null).Where(j => j is not null).Min(),
                 Near   = g.Select(m => Str(m.Detail!, "near")).FirstOrDefault(n => n.Length > 0),
             })
@@ -547,6 +589,10 @@ public sealed class IntelCondition : IAlarmCondition
                                  s.Near is { } near ? JumpsFrom(jumps, near) : JumpsOut(jumps))
                 : Plurals.Format(AlarmsText.ResourceManager, nameof(AlarmsText.IntelSaidReportedOther), count, s.System));
 
+            // What else was said — "Bubbles, gate camp · on the QZ-X77 gate." — before the
+            // hulls: it decides how to go in.
+            if (EveConsole.Services.IntelDisplay.Facts(s.Flags, s.Gate) is { } facts)
+                sb.Append(' ').Append(string.Format(AlarmsText.SaidSentence, char.ToUpper(facts[0], CultureInfo.CurrentCulture) + facts[1..]));
             if (s.Hulls.Count > 0)
                 sb.Append(' ').Append(string.Format(AlarmsText.IntelSaidFlying,
                     s.Hulls.Count == 1 ? AlarmWords.Hull(s.Hulls[0]) : AlarmWords.List(s.Hulls)));

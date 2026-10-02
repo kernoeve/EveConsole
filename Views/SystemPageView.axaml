@@ -959,10 +959,17 @@
                         </ItemsControl.ItemTemplate>
                       </ItemsControl>
 
-                      <TextBlock Grid.Column="5" Text="{Binding Note}" FontSize="11"
-                                 Foreground="{DynamicResource TextDimBrush}" TextTrimming="CharacterEllipsis"
-                                 ToolTip.Tip="{Binding Note}" Margin="0 0 8 0"
-                                 VerticalAlignment="Center" />
+                      <!-- What else was said — flags and the gate, the unflown hulls — above the
+                           note, so the facts read first and the commentary after. -->
+                      <StackPanel Grid.Column="5" Margin="0 0 8 0" VerticalAlignment="Center"
+                                  ToolTip.Tip="{Binding NoteTip}">
+                        <TextBlock Text="{Binding Facts}" IsVisible="{Binding HasFacts}" FontSize="11" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource WarnBrush}" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="{Binding Ships}" IsVisible="{Binding HasShips}" FontSize="11"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="{Binding Note}" IsVisible="{Binding HasNote}" FontSize="11"
+                                   Foreground="{DynamicResource TextDimBrush}" TextTrimming="CharacterEllipsis" />
+                      </StackPanel>
                       <!-- The reporter, shown and linked exactly like the pilots they called.
                            The channel moves onto the name, where it belongs to the report rather
                            than to whichever badge the cursor happened to land on. -->

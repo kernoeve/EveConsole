@@ -28,11 +28,14 @@ public sealed record MapNodeStyle(Color Fill, string? Caption = null, string? De
 /// Live marks on one node: hostiles believed to be there now, and the user's own characters.
 /// Each carries the text its hover shows, so the canvas stays ignorant of intel.
 /// </summary>
+/// <param name="Reported">Intel said something here — a spike, bubbles — though nobody was
+/// counted: the mark shows "!" instead of a number.</param>
 public sealed record MapMarkers(
     int Hostiles, string? HostileTitle, string? HostileDetail,
     int Own,      string? OwnTitle,     string? OwnDetail,
     IReadOnlyList<MapMarkRow>? HostileRows = null,
-    IReadOnlyList<MapMarkRow>? OwnRows     = null);
+    IReadOnlyList<MapMarkRow>? OwnRows     = null,
+    bool Reported = false);
 
 /// <summary>One line of a mark's hover: the pilot's portrait in front of it, and the ship's icon
 /// just before the ship's name in it.</summary>
@@ -1307,10 +1310,10 @@ public class MapCanvas : Control
         // below. Above a dot, where its label (to the right) does not run.
         var y = isBox ? anchor.Center.Y : anchor.Top - 5;
 
-        if (m.Hostiles > 0)
+        if (m.Hostiles > 0 || m.Reported)
         {
-            var text = new FormattedText(m.Hostiles.ToString(CultureInfo.CurrentCulture), CultureInfo.CurrentCulture,
-                FlowDirection.LeftToRight, BoldFace, 9.5, MarkInk);
+            var text = new FormattedText(m.Hostiles > 0 ? m.Hostiles.ToString(CultureInfo.CurrentCulture) : "!",
+                CultureInfo.CurrentCulture, FlowDirection.LeftToRight, BoldFace, 9.5, MarkInk);
             var r  = Math.Max(7.5, text.Width / 2 + 4);
             var cx = isBox ? anchor.Right + r + 3 : anchor.Right + r - 3;
             var c  = new Point(cx, y);

@@ -1045,8 +1045,11 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
     /// including the retired ones, which traces the path a gang took as it was called through
     /// system after system.
     ///
-    /// Counts sum PlayerCount rather than counting reports, so a single "+8" call carries the
-    /// weight it should.
+    /// <para>A count is of people, not of reports: every hostile pilot named in the window once,
+    /// however many reports named them, and of the pilots counted but not named, the most any one
+    /// report gave — the same "+5" reposted by three scouts is five, not fifteen. A region counts
+    /// its named pilots once across all its systems. Friendlies — the user's own characters,
+    /// corporations and alliances, and anyone set to positive standing — are not counted.</para>
     /// </summary>
     public async Task<Dictionary<int, int>> GetIntelCountsAsync(
         int minutes, bool includeObsolete, bool byRegion, CancellationToken ct = default)
@@ -1063,17 +1066,47 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
 
         if (!includeObsolete) q = q.Where(r => !r.Obsolete);
 
-        if (!byRegion)
-            return await q.GroupBy(r => r.SystemId)
-                          .Select(g => new { g.Key, Total = g.Sum(x => x.PlayerCount) })
-                          .ToDictionaryAsync(g => g.Key, g => g.Total, ct);
+        var reports = await q.Select(r => new { r.Id, r.SystemId, r.PlayerCount }).ToListAsync(ct);
+        if (reports.Count == 0) return [];
+        var named = await q.Join(db.IntelReportCharacters.AsNoTracking(), r => r.Id, c => c.IntelReportId,
+                                 (r, c) => new { c.IntelReportId, c.CharacterId })
+                           .ToListAsync(ct);
 
-        return await q.Join(db.SdeSolarSystems.AsNoTracking(),
-                            r => r.SystemId, s => s.SolarSystemId,
-                            (r, s) => new { s.RegionId, r.PlayerCount })
-                      .GroupBy(x => x.RegionId)
-                      .Select(g => new { g.Key, Total = g.Sum(x => x.PlayerCount) })
-                      .ToDictionaryAsync(g => g.Key, g => g.Total, ct);
+        // Friendlies, by character and by what they fly for.
+        var friends  = await LiveIntelService.FriendlyAsync(db, ct);
+        var pilotIds = named.Select(n => n.CharacterId).Distinct().ToList();
+        var flyFor   = pilotIds.Count == 0 ? [] : await db.CharacterAffiliations.AsNoTracking()
+            .Where(a => pilotIds.Contains(a.CharacterId))
+            .ToDictionaryAsync(a => a.CharacterId, a => (a.CorporationId, a.AllianceId), ct);
+        bool Friendly(long id) =>
+            friends.Characters.Contains(id)
+            || (flyFor.TryGetValue(id, out var a)
+                && ((a.CorporationId > 0 && friends.Corporations.Contains(a.CorporationId))
+                    || (a.AllianceId > 0 && friends.Alliances.Contains(a.AllianceId))));
+
+        var namedIn = named.GroupBy(n => n.IntelReportId).ToDictionary(g => g.Key, g => g.Select(x => x.CharacterId).ToList());
+        var region  = byRegion
+            ? await db.SdeSolarSystems.AsNoTracking()
+                .Where(s => reports.Select(r => r.SystemId).Distinct().Contains(s.SolarSystemId))
+                .ToDictionaryAsync(s => s.SolarSystemId, s => s.RegionId, ct)
+            : null;
+
+        // Per system: the most unnamed any one report gave. Per place (system or region): the
+        // distinct hostile pilots named, plus those.
+        var unnamed = reports.GroupBy(r => r.SystemId).ToDictionary(
+            g => g.Key,
+            g => g.Max(r => Math.Max(0, r.PlayerCount - (namedIn.GetValueOrDefault(r.Id)?.Count ?? 0))));
+        int PlaceOf(int systemId) => region is null ? systemId : region.GetValueOrDefault(systemId);
+
+        var result = new Dictionary<int, int>();
+        foreach (var place in reports.GroupBy(r => PlaceOf(r.SystemId)))
+        {
+            if (place.Key == 0) continue;
+            var pilots = place.SelectMany(r => namedIn.GetValueOrDefault(r.Id) ?? []).Distinct().Count(id => !Friendly(id));
+            var extra  = place.Select(r => r.SystemId).Distinct().Sum(s => unnamed[s]);
+            if (pilots + extra > 0) result[place.Key] = pilots + extra;
+        }
+        return result;
     }
 
     /// <summary>

@@ -1513,7 +1513,7 @@
     <value>실시간 표시</value>
   </data>
   <data name="LiveMarkHostiles" xml:space="preserve">
-    <value>최근 5분 동안 인텔 또는 킬 메일로 이곳에서 확인된 적대 세력입니다. 마우스를 올리면 누가 무엇을 타고 있는지 표시합니다.</value>
+    <value>최근 5분 동안 인텔 또는 킬 메일로 이곳에서 확인된 적대 세력입니다. 마우스를 올리면 누가 무엇을 타고 있는지 표시합니다. "!"는 인텔이 이곳에서 무언가(급증, 버블, 캠프)를 보고했지만 인원은 세지 않았다는 뜻입니다.</value>
   </data>
   <data name="LiveMarkOwn" xml:space="preserve">
     <value>이곳에서 접속 중인 내 캐릭터입니다. 마우스를 올리면 함선과 정박 여부를 표시합니다.</value>
@@ -2209,5 +2209,41 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   </data>
   <data name="LegendFwContested" xml:space="preserve">
     <value>점선: 교전 중 ({0})</value>
+  </data>
+  <data name="IntelFlagSpike" xml:space="preserve">
+    <value>로컬 급증</value>
+  </data>
+  <data name="IntelFlagCamp" xml:space="preserve">
+    <value>게이트 캠프</value>
+  </data>
+  <data name="IntelFlagBubbles" xml:space="preserve">
+    <value>버블</value>
+  </data>
+  <data name="IntelFlagHotdrop" xml:space="preserve">
+    <value>핫드롭 위험</value>
+  </data>
+  <data name="IntelFlagCyno" xml:space="preserve">
+    <value>사이노</value>
+  </data>
+  <data name="IntelFlagWormhole" xml:space="preserve">
+    <value>웜홀</value>
+  </data>
+  <data name="IntelFlagProbes" xml:space="preserve">
+    <value>전투 프로브</value>
+  </data>
+  <data name="IntelFlagEss" xml:space="preserve">
+    <value>ESS에 있음</value>
+  </data>
+  <data name="IntelFlagSkyhook" xml:space="preserve">
+    <value>스카이훅에 있음</value>
+  </data>
+  <data name="IntelOnGate" xml:space="preserve">
+    <value>{0} 게이트</value>
+  </data>
+  <data name="LiveFactsTitle" xml:space="preserve">
+    <value>{0}에서 보고됨</value>
+  </data>
+  <data name="LiveShipsRow" xml:space="preserve">
+    <value>함선: {0}</value>
   </data>
 </root>

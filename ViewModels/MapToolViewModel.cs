@@ -843,12 +843,15 @@ public sealed class MapToolViewModel : ReactiveObject
             var ownRows     = o is null ? null : OwnRows(o);
             result[id] = new MapMarkers(
                 h?.Count ?? 0,
-                h is null ? null : string.Format(MapText.LiveHostilesTitle, h.Count, node.Label),
+                h is null ? null
+                    : h.Count > 0 ? string.Format(MapText.LiveHostilesTitle, h.Count, node.Label)
+                    : string.Format(MapText.LiveFactsTitle, node.Label),
                 hostileRows is null ? null : string.Join("\n", hostileRows.Select(r => r.Text)),
                 o?.Count ?? 0,
                 o is null ? null : string.Format(MapText.LiveOwnTitle, o.Count, node.Label),
                 ownRows is null ? null : string.Join("\n", ownRows.Select(r => r.Text)),
-                hostileRows, ownRows);
+                hostileRows, ownRows,
+                Reported: h is { Facts: not null });
         }
 
         // Regions: the sum, and which systems it is in.
@@ -882,7 +885,9 @@ public sealed class MapToolViewModel : ReactiveObject
     /// the map can put the portrait and the ship's icon in front of it.</summary>
     private static List<MapMarkRow> HostileRows(SystemHostiles h, DateTimeOffset now)
     {
-        var rows = h.Pilots.Take(MaxListed).Select(p =>
+        // What was said about the system first — a spike or bubbles changes how to go in.
+        var said = h.Facts is { } facts ? new List<MapMarkRow> { new(facts) } : [];
+        var rows = said.Concat(h.Pilots.Take(MaxListed).Select(p =>
         {
             var ship    = p.Ship is { Length: > 0 } s ? s : MapText.LiveShipUnknown;
             var minutes = (int)Math.Max(0, (now - p.At).TotalMinutes);
@@ -892,12 +897,14 @@ public sealed class MapToolViewModel : ReactiveObject
                         :                  MapText.LiveSourceIntel;
             var (text, at) = WithShipAt(MapText.LiveHostileLine, ship, p.Name, ShipMark, ago, source);
             return new MapMarkRow(text, p.CharacterId, p.ShipTypeId ?? 0, at);
-        }).ToList();
+        })).ToList();
 
         if (h.Pilots.Count > MaxListed)
             rows.Add(new MapMarkRow(string.Format(MapText.LiveMore, h.Pilots.Count - MaxListed)));
         if (h.Unidentified > 0)
             rows.Add(new MapMarkRow(string.Format(MapText.LiveUnidentified, h.Unidentified)));
+        if (h.Ships is { } ships)
+            rows.Add(new MapMarkRow(string.Format(MapText.LiveShipsRow, ships)));
         return rows;
     }
 

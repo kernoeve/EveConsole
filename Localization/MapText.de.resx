@@ -1555,7 +1555,7 @@ Besitzer: {3}</value>
     <value>Live-Markierungen</value>
   </data>
   <data name="LiveMarkHostiles" xml:space="preserve">
-    <value>Feinde, die in den letzten 5 Minuten hier gemeldet wurden – per Intel oder Abschussbericht. Zeigen Sie darauf, um zu sehen, wer es ist und was geflogen wird.</value>
+    <value>Feinde, die in den letzten 5 Minuten hier gemeldet wurden – per Intel oder Abschussbericht. Zeigen Sie darauf, um zu sehen, wer es ist und was geflogen wird. „!“: Intel meldete hier etwas (Spike, Bubbles, Camp), zählte aber niemanden.</value>
   </data>
   <data name="LiveMarkOwn" xml:space="preserve">
     <value>Ihre Charaktere, die hier online sind. Zeigen Sie darauf, um Schiff und Andockstatus zu sehen.</value>
@@ -2251,5 +2251,41 @@ Kein Hauptstadtsystem, daher keine Zone</value>
   </data>
   <data name="LegendFwContested" xml:space="preserve">
     <value>Gestrichelt: umkämpft ({0})</value>
+  </data>
+  <data name="IntelFlagSpike" xml:space="preserve">
+    <value>Spike</value>
+  </data>
+  <data name="IntelFlagCamp" xml:space="preserve">
+    <value>Gate-Camp</value>
+  </data>
+  <data name="IntelFlagBubbles" xml:space="preserve">
+    <value>Bubbles</value>
+  </data>
+  <data name="IntelFlagHotdrop" xml:space="preserve">
+    <value>Hotdrop-Gefahr</value>
+  </data>
+  <data name="IntelFlagCyno" xml:space="preserve">
+    <value>Cyno</value>
+  </data>
+  <data name="IntelFlagWormhole" xml:space="preserve">
+    <value>Wurmloch</value>
+  </data>
+  <data name="IntelFlagProbes" xml:space="preserve">
+    <value>Kampfsonden</value>
+  </data>
+  <data name="IntelFlagEss" xml:space="preserve">
+    <value>am ESS</value>
+  </data>
+  <data name="IntelFlagSkyhook" xml:space="preserve">
+    <value>an einem Skyhook</value>
+  </data>
+  <data name="IntelOnGate" xml:space="preserve">
+    <value>am Gate nach {0}</value>
+  </data>
+  <data name="LiveFactsTitle" xml:space="preserve">
+    <value>Gemeldet in {0}</value>
+  </data>
+  <data name="LiveShipsRow" xml:space="preserve">
+    <value>Schiffe: {0}</value>
   </data>
 </root>

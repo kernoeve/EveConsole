@@ -16,8 +16,12 @@ public sealed record LivePilot(
 
 /// <summary>Everyone currently placed in one system.</summary>
 /// <param name="Unidentified">Pilots the newest standing report counted but did not name —
-/// "+5", or names that did not resolve to a character.</param>
-public sealed record SystemHostiles(int SystemId, IReadOnlyList<LivePilot> Pilots, int Unidentified)
+/// "+5", "3 lokis", or names that did not resolve to a character.</param>
+/// <param name="Facts">What the standing reports said besides who — "bubbles, gate camp · on the
+/// QZ-X77 gate" — in the interface language; null when nothing.</param>
+/// <param name="Ships">The newest report's hulls with nobody named in them, as read.</param>
+public sealed record SystemHostiles(int SystemId, IReadOnlyList<LivePilot> Pilots, int Unidentified,
+                                    string? Facts = null, string? Ships = null)
 {
     public int Count => Pilots.Count + Unidentified;
 }
@@ -81,7 +85,7 @@ public sealed class LiveIntelService(
         var cutoffText = cutoff.UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
         var reports = await db.IntelReports.AsNoTracking()
             .Where(r => string.Compare(r.ReportedAt, cutoffText) >= 0)
-            .Select(r => new { r.Id, r.ReportedAt, r.SystemId, r.PlayerCount, r.NoVisual, r.Obsolete })
+            .Select(r => new { r.Id, r.ReportedAt, r.SystemId, r.PlayerCount, r.NoVisual, r.Obsolete, r.Flags, r.Gate, r.Ships })
             .ToListAsync(ct);
 
         var reportIds = reports.Select(r => r.Id).ToList();
@@ -206,17 +210,25 @@ public sealed class LiveIntelService(
         }
 
         // Pilots a report counted without naming. Only the newest report still standing in each
-        // system: two reports of the same "+5" a minute apart are the same five, not ten.
+        // system: two reports of the same "+5" a minute apart are the same five, not ten. What
+        // the standing reports said besides — a spike, bubbles, the gate — is kept even where
+        // nobody was counted: "QZ-X77 bubbles" is worth a mark on its own.
+        var hullName = await IntelDisplay.HullNamesAsync(db,
+            reports.SelectMany(r => IntelDisplay.ParseShips(r.Ships)).Select(s => s.Name), ct);
         foreach (var bySystem in reports.Where(r => !r.Obsolete).GroupBy(r => r.SystemId))
         {
-            var newest = bySystem.OrderByDescending(r => r.ReportedAt, StringComparer.Ordinal).ThenByDescending(r => r.Id).First();
-            var named  = pilots.Count(p => p.IntelReportId == newest.Id);
-            var extra  = Math.Max(0, newest.PlayerCount - named);
-            if (extra == 0) continue;
+            var ordered = bySystem.OrderByDescending(r => r.ReportedAt, StringComparer.Ordinal).ThenByDescending(r => r.Id).ToList();
+            var newest  = ordered[0];
+            var named   = pilots.Count(p => p.IntelReportId == newest.Id);
+            var extra   = Math.Max(0, newest.PlayerCount - named);
+            var facts   = IntelDisplay.Facts(ordered.Aggregate(0, (f, r) => f | r.Flags),
+                                             ordered.Select(r => r.Gate).FirstOrDefault(g => !string.IsNullOrEmpty(g)));
+            var ships   = IntelDisplay.Ships(newest.Ships, hullName);
+            if (extra == 0 && facts is null) continue;
 
             hostiles[bySystem.Key] = hostiles.TryGetValue(bySystem.Key, out var h)
-                ? h with { Unidentified = extra }
-                : new SystemHostiles(bySystem.Key, [], extra);
+                ? h with { Unidentified = extra, Facts = facts, Ships = ships }
+                : new SystemHostiles(bySystem.Key, [], extra, facts, ships);
         }
 
         // ── Own characters ───────────────────────────────────────────────────

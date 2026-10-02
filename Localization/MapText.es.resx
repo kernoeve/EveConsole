@@ -1555,7 +1555,7 @@ Propietario: {3}</value>
     <value>Marcas en directo</value>
   </data>
   <data name="LiveMarkHostiles" xml:space="preserve">
-    <value>Hostiles situados aquí en los últimos 5 minutos, por inteligencia o por un informe de muertes. Pasa el cursor para ver quiénes son y qué pilotan.</value>
+    <value>Hostiles situados aquí en los últimos 5 minutos, por inteligencia o por un informe de muertes. Pasa el cursor para ver quiénes son y qué pilotan. «!»: la inteligencia informó de algo aquí (un pico, burbujas, un campeo) pero no contó a nadie.</value>
   </data>
   <data name="LiveMarkOwn" xml:space="preserve">
     <value>Tus personajes conectados aquí. Pasa el cursor para ver sus naves y si están acoplados.</value>
@@ -2251,5 +2251,41 @@ Sin sistema capital, así que sin zona</value>
   </data>
   <data name="LegendFwContested" xml:space="preserve">
     <value>Discontinuo: en disputa ({0})</value>
+  </data>
+  <data name="IntelFlagSpike" xml:space="preserve">
+    <value>pico en local</value>
+  </data>
+  <data name="IntelFlagCamp" xml:space="preserve">
+    <value>campeo de puerta</value>
+  </data>
+  <data name="IntelFlagBubbles" xml:space="preserve">
+    <value>burbujas</value>
+  </data>
+  <data name="IntelFlagHotdrop" xml:space="preserve">
+    <value>riesgo de hotdrop</value>
+  </data>
+  <data name="IntelFlagCyno" xml:space="preserve">
+    <value>cyno</value>
+  </data>
+  <data name="IntelFlagWormhole" xml:space="preserve">
+    <value>agujero de gusano</value>
+  </data>
+  <data name="IntelFlagProbes" xml:space="preserve">
+    <value>sondas de combate</value>
+  </data>
+  <data name="IntelFlagEss" xml:space="preserve">
+    <value>en el ESS</value>
+  </data>
+  <data name="IntelFlagSkyhook" xml:space="preserve">
+    <value>en un skyhook</value>
+  </data>
+  <data name="IntelOnGate" xml:space="preserve">
+    <value>en la puerta a {0}</value>
+  </data>
+  <data name="LiveFactsTitle" xml:space="preserve">
+    <value>Informado en {0}</value>
+  </data>
+  <data name="LiveShipsRow" xml:space="preserve">
+    <value>Naves: {0}</value>
   </data>
 </root>

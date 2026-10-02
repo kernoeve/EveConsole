@@ -516,7 +516,9 @@ public class SystemViewService(
         bool                      NoVisual,
         bool                      Obsolete,
         string                    ReporterCorpName     = "",
-        string                    ReporterAllianceName = "");
+        string                    ReporterAllianceName = "",
+        string?                   Facts                = null,
+        string?                   Ships                = null);
 
     /// <summary>
     /// Sightings reported in this system, newest first.
@@ -535,10 +537,14 @@ public class SystemViewService(
             .OrderByDescending(r => r.ReportedAt)
             .Take(limit)
             .Select(r => new { r.Id, r.ReportedAt, r.PlayerCount, r.Note,
-                               r.ReporterName, r.ReporterCharacterId, r.ChannelName, r.Message, r.NoVisual, r.Obsolete })
+                               r.ReporterName, r.ReporterCharacterId, r.ChannelName, r.Message, r.NoVisual, r.Obsolete,
+                               r.Flags, r.Gate, r.Ships })
             .ToListAsync(ct);
 
         if (reports.Count == 0) return [];
+
+        var hullName = await IntelDisplay.HullNamesAsync(db,
+            reports.SelectMany(r => IntelDisplay.ParseShips(r.Ships)).Select(s => s.Name), ct);
 
         var ids    = reports.Select(r => r.Id).ToList();
         var pilots = await db.IntelReportCharacters.AsNoTracking()
@@ -597,7 +603,9 @@ public class SystemViewService(
                 r.NoVisual,
                 r.Obsolete,
                 OrgName(ra?.CorporationId ?? 0),
-                OrgName(ra?.AllianceId ?? 0));
+                OrgName(ra?.AllianceId ?? 0),
+                IntelDisplay.Facts(r.Flags, r.Gate),
+                IntelDisplay.Ships(r.Ships, hullName));
         }).ToList();
     }
 

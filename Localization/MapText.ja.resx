@@ -1513,7 +1513,7 @@
     <value>ライブ表示</value>
   </data>
   <data name="LiveMarkHostiles" xml:space="preserve">
-    <value>過去5分間にインテルまたはキルレポートでここにいると分かった敵対者です。カーソルを合わせると、誰が何に乗っているかを表示します。</value>
+    <value>過去5分間にインテルまたはキルレポートでここにいると分かった敵対者です。カーソルを合わせると、誰が何に乗っているかを表示します。「!」は、インテルがここで何か（急増、バブル、キャンプ）を報告したものの人数は数えていないことを示します。</value>
   </data>
   <data name="LiveMarkOwn" xml:space="preserve">
     <value>ここでオンラインのあなたのキャラクターです。カーソルを合わせると、艦船と入港中かどうかを表示します。</value>
@@ -2209,5 +2209,41 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   </data>
   <data name="LegendFwContested" xml:space="preserve">
     <value>破線: 係争中({0})</value>
+  </data>
+  <data name="IntelFlagSpike" xml:space="preserve">
+    <value>ローカル急増</value>
+  </data>
+  <data name="IntelFlagCamp" xml:space="preserve">
+    <value>ゲートキャンプ</value>
+  </data>
+  <data name="IntelFlagBubbles" xml:space="preserve">
+    <value>バブル</value>
+  </data>
+  <data name="IntelFlagHotdrop" xml:space="preserve">
+    <value>ホットドロップの恐れ</value>
+  </data>
+  <data name="IntelFlagCyno" xml:space="preserve">
+    <value>サイノ</value>
+  </data>
+  <data name="IntelFlagWormhole" xml:space="preserve">
+    <value>ワームホール</value>
+  </data>
+  <data name="IntelFlagProbes" xml:space="preserve">
+    <value>戦闘プローブ</value>
+  </data>
+  <data name="IntelFlagEss" xml:space="preserve">
+    <value>ESSにいる</value>
+  </data>
+  <data name="IntelFlagSkyhook" xml:space="preserve">
+    <value>スカイフックにいる</value>
+  </data>
+  <data name="IntelOnGate" xml:space="preserve">
+    <value>{0}へのゲート</value>
+  </data>
+  <data name="LiveFactsTitle" xml:space="preserve">
+    <value>{0}で報告</value>
+  </data>
+  <data name="LiveShipsRow" xml:space="preserve">
+    <value>艦船：{0}</value>
   </data>
 </root>

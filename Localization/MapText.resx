@@ -2071,7 +2071,7 @@ Owned by {3}</value>
     <comment>Label in UniverseView's side panel, above the legend of the live marks on the map.</comment>
   </data>
   <data name="LiveMarkHostiles" xml:space="preserve">
-    <value>Hostiles placed here in the last 5 minutes, by intel or a killmail. Hover for who they are and what they fly.</value>
+    <value>Hostiles placed here in the last 5 minutes, by intel or a killmail. Hover for who they are and what they fly. "!": intel said something here (a spike, bubbles, a camp) but counted nobody.</value>
     <comment>Legend beside the red round mark on the map.</comment>
   </data>
   <data name="LiveMarkOwn" xml:space="preserve">
@@ -2998,5 +2998,53 @@ No capital system, so no zone</value>
   <data name="LegendFwContested" xml:space="preserve">
     <value>Dashed: contested ({0})</value>
     <comment>Map legend, faction warfare. {0} how many systems are contested or vulnerable.</comment>
+  </data>
+  <data name="IntelFlagSpike" xml:space="preserve">
+    <value>spike</value>
+    <comment>Intel: the reporter said local spiked. Shown on the map hover, the system page and spoken by the intel alarm; lower case, joined into a list.</comment>
+  </data>
+  <data name="IntelFlagCamp" xml:space="preserve">
+    <value>gate camp</value>
+    <comment>Intel: a gate camp reported. Lower case, joined into a list.</comment>
+  </data>
+  <data name="IntelFlagBubbles" xml:space="preserve">
+    <value>bubbles</value>
+    <comment>Intel: warp disruption bubbles reported. Lower case, joined into a list.</comment>
+  </data>
+  <data name="IntelFlagHotdrop" xml:space="preserve">
+    <value>hotdrop risk</value>
+    <comment>Intel: a hot drop (cyno and black ops) reported or a pilot set up for one. Lower case, joined into a list.</comment>
+  </data>
+  <data name="IntelFlagCyno" xml:space="preserve">
+    <value>cyno</value>
+    <comment>Intel: a cynosural field reported. Lower case, joined into a list.</comment>
+  </data>
+  <data name="IntelFlagWormhole" xml:space="preserve">
+    <value>wormhole</value>
+    <comment>Intel: a wormhole in the system reported. Lower case, joined into a list.</comment>
+  </data>
+  <data name="IntelFlagProbes" xml:space="preserve">
+    <value>combat probes</value>
+    <comment>Intel: combat probes reported. Lower case, joined into a list.</comment>
+  </data>
+  <data name="IntelFlagEss" xml:space="preserve">
+    <value>at the ESS</value>
+    <comment>Intel: someone at the Encounter Surveillance System. Lower case, joined into a list.</comment>
+  </data>
+  <data name="IntelFlagSkyhook" xml:space="preserve">
+    <value>at a skyhook</value>
+    <comment>Intel: someone at an orbital skyhook. Lower case, joined into a list.</comment>
+  </data>
+  <data name="IntelOnGate" xml:space="preserve">
+    <value>on the {0} gate</value>
+    <comment>Intel: where in the system the hostiles are. {0} is the system the gate leads to.</comment>
+  </data>
+  <data name="LiveFactsTitle" xml:space="preserve">
+    <value>Reported in {0}</value>
+    <comment>Map hover on the mark of a system where intel reported something (spike, bubbles…) but nobody was counted. {0} is the system.</comment>
+  </data>
+  <data name="LiveShipsRow" xml:space="preserve">
+    <value>Ships: {0}</value>
+    <comment>Map hover and system page: hulls reported with no pilot named. {0} is the list, e.g. 3× Loki, Sabre.</comment>
   </data>
 </root>

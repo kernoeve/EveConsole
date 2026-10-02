@@ -80,6 +80,10 @@ public sealed class IntelService(
     /// character created since under that name would otherwise never be recognised.</summary>
     private static readonly TimeSpan MissRecheck = TimeSpan.FromDays(30);
 
+    /// <summary>How old a pilot's corporation and alliance may be before a new sighting of them
+    /// fetches it again.</summary>
+    private static readonly TimeSpan AffiliationRefresh = TimeSpan.FromDays(7);
+
     /// <summary>The share of a channel's reports a region needs to count as one it covers.</summary>
     private const double RegionShare = 0.05;
 
@@ -664,26 +668,42 @@ public sealed class IntelService(
         var wanted = characterIds.Where(i => i > 0).Distinct().ToList();
         if (wanted.Count == 0) return;
 
-        var known = await db.CharacterAffiliations.AsNoTracking()
+        // ⚠️ The age is judged in memory: a DateTimeOffset comparison does not translate on SQLite.
+        var known = await db.CharacterAffiliations
             .Where(a => wanted.Contains(a.CharacterId))
-            .Select(a => a.CharacterId)
             .ToListAsync(ct);
+        var stale = DateTimeOffset.UtcNow - AffiliationRefresh;
 
-        var missing = wanted.Except(known).ToList();
-        if (missing.Count == 0) return;
+        // Never seen, or seen again more than a week after the last look: people change corp,
+        // and a hostile shown under last year's ticker is a wrong call.
+        var fetch = wanted.Except(known.Select(k => k.CharacterId))
+            .Concat(known.Where(k => k.PulledAt < stale).Select(k => k.CharacterId))
+            .ToList();
+        if (fetch.Count == 0) { db.ChangeTracker.Clear(); return; }
 
         try
         {
-            var found = await esi.GetAffiliationsAsync(missing, ct);
-            if (found.Count == 0) return;
+            var found = await esi.GetAffiliationsAsync(fetch, ct);
+            if (found.Count == 0) { db.ChangeTracker.Clear(); return; }
 
-            db.CharacterAffiliations.AddRange(found.Select(f => new CharacterAffiliation
+            var byId = known.ToDictionary(k => k.CharacterId);
+            var now  = DateTimeOffset.UtcNow;
+            foreach (var f in found)
             {
-                CharacterId   = f.CharacterId,
-                CorporationId = f.CorporationId,
-                AllianceId    = f.AllianceId ?? 0,
-                PulledAt      = DateTimeOffset.UtcNow,
-            }));
+                if (byId.TryGetValue(f.CharacterId, out var row))
+                {
+                    row.CorporationId = f.CorporationId;
+                    row.AllianceId    = f.AllianceId ?? 0;
+                    row.PulledAt      = now;
+                }
+                else db.CharacterAffiliations.Add(new CharacterAffiliation
+                {
+                    CharacterId   = f.CharacterId,
+                    CorporationId = f.CorporationId,
+                    AllianceId    = f.AllianceId ?? 0,
+                    PulledAt      = now,
+                });
+            }
 
             await db.SaveChangesAsync(ct);
             db.ChangeTracker.Clear();

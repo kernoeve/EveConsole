@@ -1542,10 +1542,10 @@ public class IntelReport
 /// <summary>A pilot named on an intel report. Separate table because one line often drags in
 /// several, and because superseding works pilot by pilot.</summary>
 /// <summary>
-/// Who a character flies for, cached from ESI. Affiliations change, so PulledAt is kept — but
-/// nothing expires them today: for reading old intel, the corp someone was in is roughly as
-/// useful as the one they are in now, and refetching thousands of pilots to chase that would
-/// cost far more than it is worth.
+/// Who a character flies for, cached from ESI. Fetched when a character is first reported in
+/// intel and again when they are reported more than a week after the last fetch — so a pilot
+/// still active is shown under their current ticker, while one not seen lately keeps whatever
+/// they flew for then. PulledAt is the last fetch.
 /// </summary>
 public class CharacterAffiliation
 {

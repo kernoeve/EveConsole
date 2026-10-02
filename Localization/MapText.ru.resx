@@ -1639,7 +1639,7 @@
     <value>Отметки в реальном времени</value>
   </data>
   <data name="LiveMarkHostiles" xml:space="preserve">
-    <value>Противники, замеченные здесь за последние 5 минут — по разведке или отчёту о бое. Наведите курсор, чтобы увидеть, кто это и на чём летает.</value>
+    <value>Противники, замеченные здесь за последние 5 минут — по разведке или отчёту о бое. Наведите курсор, чтобы увидеть, кто это и на чём летает. «!» — разведка сообщила здесь о чём-то (всплеск, бублики, кемп), но никого не насчитала.</value>
   </data>
   <data name="LiveMarkOwn" xml:space="preserve">
     <value>Ваши персонажи в сети в этой системе. Наведите курсор, чтобы увидеть корабль и находится ли персонаж в доке.</value>
@@ -2335,5 +2335,41 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   </data>
   <data name="LegendFwContested" xml:space="preserve">
     <value>Пунктир: идёт борьба ({0})</value>
+  </data>
+  <data name="IntelFlagSpike" xml:space="preserve">
+    <value>всплеск в локале</value>
+  </data>
+  <data name="IntelFlagCamp" xml:space="preserve">
+    <value>кемп на гейте</value>
+  </data>
+  <data name="IntelFlagBubbles" xml:space="preserve">
+    <value>бублики</value>
+  </data>
+  <data name="IntelFlagHotdrop" xml:space="preserve">
+    <value>риск хотдропа</value>
+  </data>
+  <data name="IntelFlagCyno" xml:space="preserve">
+    <value>цино</value>
+  </data>
+  <data name="IntelFlagWormhole" xml:space="preserve">
+    <value>вормхол</value>
+  </data>
+  <data name="IntelFlagProbes" xml:space="preserve">
+    <value>боевые зонды</value>
+  </data>
+  <data name="IntelFlagEss" xml:space="preserve">
+    <value>на ESS</value>
+  </data>
+  <data name="IntelFlagSkyhook" xml:space="preserve">
+    <value>на скайхуке</value>
+  </data>
+  <data name="IntelOnGate" xml:space="preserve">
+    <value>на гейте в {0}</value>
+  </data>
+  <data name="LiveFactsTitle" xml:space="preserve">
+    <value>Сообщено в {0}</value>
+  </data>
+  <data name="LiveShipsRow" xml:space="preserve">
+    <value>Корабли: {0}</value>
   </data>
 </root>

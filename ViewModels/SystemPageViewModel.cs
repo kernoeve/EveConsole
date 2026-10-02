@@ -367,11 +367,24 @@ public class IntelRowVm(SystemViewService.IntelRow r)
     /// <summary>Which sighting this is, for a refresh to find it again: reports have no id of
     /// their own here.</summary>
     public string Key       { get; } = $"{r.When.UtcTicks}|{r.ReporterId}|{r.Channel}|{r.Message}";
-    /// <summary>What a refresh compares: a report gone obsolete is redrawn.</summary>
-    public string Signature { get; } = $"{r.Obsolete}|{r.PlayerCount}|{r.Pilots.Count}";
+    /// <summary>What a refresh compares: a report gone obsolete, or re-parsed, is redrawn.</summary>
+    public string Signature { get; } = $"{r.Obsolete}|{r.PlayerCount}|{r.Pilots.Count}|{r.Facts}|{r.Ships}";
     public string When     { get; } = r.When.UtcDateTime.ToString("yyyy-MM-dd HH:mm");
     public string Count    { get; } = r.PlayerCount.ToString("N0");
     public string Note     { get; } = r.Note;
+
+    /// <summary>What else the report said — "bubbles, gate camp · on the QZ-X77 gate".</summary>
+    public string Facts    { get; } = r.Facts ?? "";
+    public bool   HasFacts { get; } = !string.IsNullOrEmpty(r.Facts);
+
+    /// <summary>Hulls named with nobody to fly them: "Ships: 3× Loki".</summary>
+    public string Ships    { get; } = r.Ships is { } s ? string.Format(MapText.LiveShipsRow, s) : "";
+    public bool   HasShips { get; } = r.Ships is not null;
+    public bool   HasNote  { get; } = !string.IsNullOrEmpty(r.Note);
+
+    /// <summary>Everything in the note column, for its hover.</summary>
+    public string NoteTip  { get; } = string.Join("\n", new[] { r.Facts, r.Ships is { } sh ? string.Format(MapText.LiveShipsRow, sh) : null, r.Note }
+                                                     .Where(x => !string.IsNullOrEmpty(x)));
     public string Reporter { get; } = r.Reporter;
     public string Channel  { get; } = r.Channel;
 

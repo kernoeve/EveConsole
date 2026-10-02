@@ -1555,7 +1555,7 @@ Propriétaire : {3}</value>
     <value>Marques en direct</value>
   </data>
   <data name="LiveMarkHostiles" xml:space="preserve">
-    <value>Hostiles signalés ici au cours des 5 dernières minutes, par les renseignements ou un rapport de victime. Survolez pour voir qui ils sont et ce qu'ils pilotent.</value>
+    <value>Hostiles signalés ici au cours des 5 dernières minutes, par les renseignements ou un rapport de victime. Survolez pour voir qui ils sont et ce qu'ils pilotent. « ! » : les renseignements signalent quelque chose ici (pic, bulles, camp) sans compter personne.</value>
   </data>
   <data name="LiveMarkOwn" xml:space="preserve">
     <value>Vos personnages connectés ici. Survolez pour voir leurs vaisseaux et s'ils sont amarrés.</value>
@@ -2251,5 +2251,41 @@ Pas de système capitale, donc pas de zone</value>
   </data>
   <data name="LegendFwContested" xml:space="preserve">
     <value>Pointillé : disputé ({0})</value>
+  </data>
+  <data name="IntelFlagSpike" xml:space="preserve">
+    <value>pic en local</value>
+  </data>
+  <data name="IntelFlagCamp" xml:space="preserve">
+    <value>camp de portail</value>
+  </data>
+  <data name="IntelFlagBubbles" xml:space="preserve">
+    <value>bulles</value>
+  </data>
+  <data name="IntelFlagHotdrop" xml:space="preserve">
+    <value>risque de hotdrop</value>
+  </data>
+  <data name="IntelFlagCyno" xml:space="preserve">
+    <value>cyno</value>
+  </data>
+  <data name="IntelFlagWormhole" xml:space="preserve">
+    <value>trou de ver</value>
+  </data>
+  <data name="IntelFlagProbes" xml:space="preserve">
+    <value>sondes de combat</value>
+  </data>
+  <data name="IntelFlagEss" xml:space="preserve">
+    <value>à l'ESS</value>
+  </data>
+  <data name="IntelFlagSkyhook" xml:space="preserve">
+    <value>à un skyhook</value>
+  </data>
+  <data name="IntelOnGate" xml:space="preserve">
+    <value>sur le portail vers {0}</value>
+  </data>
+  <data name="LiveFactsTitle" xml:space="preserve">
+    <value>Signalé à {0}</value>
+  </data>
+  <data name="LiveShipsRow" xml:space="preserve">
+    <value>Vaisseaux : {0}</value>
   </data>
 </root>
