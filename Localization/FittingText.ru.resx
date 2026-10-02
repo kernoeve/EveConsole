@@ -736,6 +736,21 @@
   <data name="AbilityKamikazeTargets" xml:space="preserve">
     <value>только капитальные корабли и цитадели</value>
   </data>
+  <data name="FighterSpeed" xml:space="preserve">
+    <value>Скорость {0:N0} м/с</value>
+  </data>
+  <data name="PropulsionBurst" xml:space="preserve">
+    <value>{0:N0} м/с на {1:0} с</value>
+  </data>
+  <data name="PropulsionSignature" xml:space="preserve">
+    <value>сигнатура {0:+0;-0}%</value>
+  </data>
+  <data name="PropulsionJump" xml:space="preserve">
+    <value>прыжок на {0:0.#} км через {1:0} с</value>
+  </data>
+  <data name="PropulsionResists" xml:space="preserve">
+    <value>сопротивления щита {0:0}%</value>
+  </data>
   <data name="DetailRepairHull" xml:space="preserve">
     <value>Корпус: {0:N1} ед. пр./с</value>
   </data>

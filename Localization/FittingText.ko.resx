@@ -718,6 +718,21 @@
   <data name="AbilityKamikazeTargets" xml:space="preserve">
     <value>캐피탈과 시타델만</value>
   </data>
+  <data name="FighterSpeed" xml:space="preserve">
+    <value>속도 {0:N0} m/s</value>
+  </data>
+  <data name="PropulsionBurst" xml:space="preserve">
+    <value>{1:0}초 동안 {0:N0} m/s</value>
+  </data>
+  <data name="PropulsionSignature" xml:space="preserve">
+    <value>시그니처 {0:+0;-0}%</value>
+  </data>
+  <data name="PropulsionJump" xml:space="preserve">
+    <value>{1:0}초 후 {0:0.#} km 점프</value>
+  </data>
+  <data name="PropulsionResists" xml:space="preserve">
+    <value>실드 저항 {0:0}%</value>
+  </data>
   <data name="DetailRepairHull" xml:space="preserve">
     <value>선체 {0:N1} HP/s</value>
   </data>

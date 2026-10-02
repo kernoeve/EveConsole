@@ -2388,6 +2388,7 @@ public class FitTabViewModel : ReactiveObject
                     : string.Format(FittingText.AbilityAlpha, w.Label, w.Volley.Total)
                       + (w.Ability?.Kind == FighterAbilityKind.Kamikaze ? $" ({FittingText.AbilityKamikazeTargets})" : "")));
                 parts.AddRange(FighterUtility(e, d));
+                parts.AddRange(FighterPropulsion(e, d));
             }
             else if (mine.Sum(w => w.Dps.Total) is var dps and > 0) parts.Add(string.Format(FittingText.Dps1, dps));
             if (ewarOf.TryGetValue(d, out var dw)) parts.Add(EwarText(dw));
@@ -2505,6 +2506,42 @@ public class FitTabViewModel : ReactiveObject
     private static string MiningDetail(MiningYield m) =>
         string.Format(FittingText.DetailMining, m.PerCycle, m.CycleSeconds)
         + (m.WastePercent > 0 ? " · " + string.Format(FittingText.DetailResidue, m.WastePercent) : "");
+
+    /// <summary>
+    /// A squadron's top speed — skills, hull and modules counted — and what each propulsion ability
+    /// switched on does while it runs: an afterburner or microwarpdrive's speed for its burst, and a
+    /// microwarpdrive's signature bloom; a micro jump drive's jump and the wait before it; evasive
+    /// maneuvers' speed, smaller signature and shield resistances.
+    /// </summary>
+    private static IEnumerable<string> FighterPropulsion(DogmaEngine e, DogmaItem f)
+    {
+        double V(string a) => e.Data.Attribute(a) is { } info ? e.Value(f, info.Id) : 0;
+        var speed = V("maxVelocity");
+        yield return string.Format(FittingText.FighterSpeed, speed);
+        string Burst(string bonus, string duration) =>
+            string.Format(FittingText.PropulsionBurst, speed * (1 + V(bonus) / 100), V(duration) / 1000);
+        string Signature(string bonus) => string.Format(FittingText.PropulsionSignature, V(bonus));
+        foreach (var a in FighterAbilities.Of(e.Data, f.Type))
+        {
+            if (a.Kind != FighterAbilityKind.Propulsion || !f.Abilities.Contains(a.EffectId)) continue;
+            var effect = e.Data.Effects[a.EffectId].Name switch
+            {
+                "fighterAbilityAfterburner" => Burst("fighterAbilityAfterburnerSpeedBonus", "fighterAbilityAfterburnerDuration"),
+                "fighterAbilityMicroWarpDrive" => Burst("fighterAbilityMicroWarpDriveSpeedBonus", "fighterAbilityMicroWarpDriveDuration")
+                    + " · " + Signature("fighterAbilityMicroWarpDriveSignatureRadiusBonus"),
+                "fighterAbilityMicroJumpDrive" => string.Format(FittingText.PropulsionJump,
+                        V("fighterAbilityMicroJumpDriveDistance") / 1000, V("fighterAbilityMicroJumpDriveDuration") / 1000)
+                    + (V("fighterAbilityMicroJumpDriveSignatureRadiusBonus") is not 0 ? " · " + Signature("fighterAbilityMicroJumpDriveSignatureRadiusBonus") : ""),
+                // Its resistances are resonances, one per damage type and the same for all four today: shown as the resistance.
+                "fighterAbilityEvasiveManeuvers" => Burst("fighterAbilityEvasiveManeuversSpeedBonus", "fighterAbilityEvasiveManeuversDuration")
+                    + " · " + Signature("fighterAbilityEvasiveManeuversSignatureRadiusBonus")
+                    + (V("fighterAbilityEvasiveManeuversEmResonance") is var res and > 0 and < 1
+                        ? " · " + string.Format(FittingText.PropulsionResists, (1 - res) * 100) : ""),
+                _ => null,
+            };
+            if (effect is not null) yield return string.Format(FittingText.AbilityEffect, a.Label, effect);
+        }
+    }
 
     /// <summary>
     /// What a squadron's utility abilities that are switched on do to a target: a web's speed cut

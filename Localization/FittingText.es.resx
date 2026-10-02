@@ -724,6 +724,21 @@
   <data name="AbilityKamikazeTargets" xml:space="preserve">
     <value>solo capitales y ciudadelas</value>
   </data>
+  <data name="FighterSpeed" xml:space="preserve">
+    <value>Velocidad {0:N0} m/s</value>
+  </data>
+  <data name="PropulsionBurst" xml:space="preserve">
+    <value>{0:N0} m/s durante {1:0} s</value>
+  </data>
+  <data name="PropulsionSignature" xml:space="preserve">
+    <value>firma {0:+0;-0} %</value>
+  </data>
+  <data name="PropulsionJump" xml:space="preserve">
+    <value>salta {0:0.#} km tras {1:0} s</value>
+  </data>
+  <data name="PropulsionResists" xml:space="preserve">
+    <value>resistencias de escudo {0:0} %</value>
+  </data>
   <data name="DetailRepairHull" xml:space="preserve">
     <value>{0:N1} PV/s de estructura</value>
   </data>

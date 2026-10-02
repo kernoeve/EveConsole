@@ -724,6 +724,21 @@
   <data name="AbilityKamikazeTargets" xml:space="preserve">
     <value>nur Großkampfschiffe und Zitadellen</value>
   </data>
+  <data name="FighterSpeed" xml:space="preserve">
+    <value>Geschwindigkeit {0:N0} m/s</value>
+  </data>
+  <data name="PropulsionBurst" xml:space="preserve">
+    <value>{0:N0} m/s für {1:0} s</value>
+  </data>
+  <data name="PropulsionSignature" xml:space="preserve">
+    <value>Signatur {0:+0;-0} %</value>
+  </data>
+  <data name="PropulsionJump" xml:space="preserve">
+    <value>springt {0:0.#} km nach {1:0} s</value>
+  </data>
+  <data name="PropulsionResists" xml:space="preserve">
+    <value>Schildresistenzen {0:0} %</value>
+  </data>
   <data name="DetailRepairHull" xml:space="preserve">
     <value>{0:N1} Struktur-HP/s</value>
   </data>

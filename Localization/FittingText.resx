@@ -964,6 +964,26 @@
     <value>capitals and citadels only</value>
     <comment>Fitting tool, under a fighter squadron with a kamikaze strike: the only targets it hurts. Shown in parentheses.</comment>
   </data>
+  <data name="FighterSpeed" xml:space="preserve">
+    <value>Speed {0:N0} m/s</value>
+    <comment>Fitting tool, under a fighter squadron: its top speed, with skills, hull and modules. {0} the speed.</comment>
+  </data>
+  <data name="PropulsionBurst" xml:space="preserve">
+    <value>{0:N0} m/s for {1:0} s</value>
+    <comment>Fitting tool, under a fighter squadron: its speed while a propulsion ability runs, and for how long. {0} the speed, {1} seconds.</comment>
+  </data>
+  <data name="PropulsionSignature" xml:space="preserve">
+    <value>signature {0:+0;-0}%</value>
+    <comment>Fitting tool, under a fighter squadron: how a propulsion ability changes its signature radius. {0} the percentage, signed.</comment>
+  </data>
+  <data name="PropulsionJump" xml:space="preserve">
+    <value>jumps {0:0.#} km after {1:0} s</value>
+    <comment>Fitting tool, under a fighter squadron: its micro jump drive's jump. {0} the distance in km, {1} the seconds before it jumps.</comment>
+  </data>
+  <data name="PropulsionResists" xml:space="preserve">
+    <value>shield resists {0:0}%</value>
+    <comment>Fitting tool, under a fighter squadron: the shield resistances evasive maneuvers give while they run. {0} the percentage.</comment>
+  </data>
   <data name="DetailRepairHull" xml:space="preserve">
     <value>{0:N1} hull HP/s</value>
     <comment>Fitting tool, under a hull repairer: the hull (structure) it repairs per second. {0} is the number; HP/s is hit points per second.</comment>

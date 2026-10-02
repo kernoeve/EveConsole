@@ -718,6 +718,21 @@
   <data name="AbilityKamikazeTargets" xml:space="preserve">
     <value>仅限旗舰和堡垒</value>
   </data>
+  <data name="FighterSpeed" xml:space="preserve">
+    <value>速度 {0:N0} m/s</value>
+  </data>
+  <data name="PropulsionBurst" xml:space="preserve">
+    <value>{0:N0} m/s，持续 {1:0} 秒</value>
+  </data>
+  <data name="PropulsionSignature" xml:space="preserve">
+    <value>信号半径 {0:+0;-0}%</value>
+  </data>
+  <data name="PropulsionJump" xml:space="preserve">
+    <value>{1:0} 秒后跃迁 {0:0.#} 千米</value>
+  </data>
+  <data name="PropulsionResists" xml:space="preserve">
+    <value>护盾抗性 {0:0}%</value>
+  </data>
   <data name="DetailRepairHull" xml:space="preserve">
     <value>结构 {0:N1} HP/s</value>
   </data>

@@ -718,6 +718,21 @@
   <data name="AbilityKamikazeTargets" xml:space="preserve">
     <value>主力艦とシタデルのみ</value>
   </data>
+  <data name="FighterSpeed" xml:space="preserve">
+    <value>速度{0:N0} m/s</value>
+  </data>
+  <data name="PropulsionBurst" xml:space="preserve">
+    <value>{1:0}秒間{0:N0} m/s</value>
+  </data>
+  <data name="PropulsionSignature" xml:space="preserve">
+    <value>シグネチャ{0:+0;-0}%</value>
+  </data>
+  <data name="PropulsionJump" xml:space="preserve">
+    <value>{1:0}秒後に{0:0.#} kmジャンプ</value>
+  </data>
+  <data name="PropulsionResists" xml:space="preserve">
+    <value>シールド耐性{0:0}%</value>
+  </data>
   <data name="DetailRepairHull" xml:space="preserve">
     <value>船体{0:N1} HP/s</value>
   </data>

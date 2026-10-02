@@ -98,7 +98,7 @@
                               <StackPanel Grid.Column="2" VerticalAlignment="Center">
                                 <TextBlock Text="{Binding DisplayName}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}"
                                            TextTrimming="CharacterEllipsis" />
-                                <TextBlock Text="{Binding Detail}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" />
+                                <TextBlock Text="{Binding Detail}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap" />
                               </StackPanel>
                               <ComboBox Grid.Column="3" IsVisible="{Binding HasCharges}" ItemsSource="{Binding Charges}"
                                         SelectedItem="{Binding Charge}" PlaceholderText="{x:Static loc:FittingText.NoCharge}" MinWidth="200" MaxWidth="260"
@@ -131,7 +131,8 @@
                       <Image Grid.Column="0" Source="{Binding Icon}" Width="32" Height="32" Margin="78 0 6 0" />
                       <StackPanel Grid.Column="1" VerticalAlignment="Center">
                         <TextBlock Text="{Binding DisplayName}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" />
-                        <TextBlock Text="{Binding Detail}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextTrimming="CharacterEllipsis"
+                        <!-- A squadron's line runs long (abilities, speed, propulsion): wrapped, not cut off. -->
+                        <TextBlock Text="{Binding Detail}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
                                    IsVisible="{Binding Detail, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                       </StackPanel>
 
