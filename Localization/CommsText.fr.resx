@@ -771,6 +771,12 @@
   <data name="NotifColVolume" xml:space="preserve">
     <value>Volume</value>
   </data>
+  <data name="NotifColReprocessed" xml:space="preserve">
+    <value>Retraitement</value>
+  </data>
+  <data name="NotifTipNoReprocessValue" xml:space="preserve">
+    <value>Pas encore de valeur de retraitement : les prix de ce que ce minerai produit n'ont pas encore été lus.</value>
+  </data>
   <data name="NotifOpenKillmail" xml:space="preserve">
     <value>Ouvrir le rapport de victime</value>
   </data>

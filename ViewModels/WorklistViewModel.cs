@@ -65,7 +65,7 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
     // link. ⚠️ The em dash CharacterName falls back to is not a name, so HasCharacterLink tests
     // the id rather than the displayed text.
     public bool HasCharacterLink => _item.CharacterId > 0 && _item.CharacterName.Length > 0;
-    public bool HasLocationLink  => _item.LocationId  > 0 && _item.LocationName.Length  > 0;
+    public bool HasLocationLink  => _item.LocationId  > 0 && _item.LocationName.Length  > 0 && !IsPlanet(_item.LocationId);
     public bool HasItemLink      => _item.TypeId      > 0 && _item.TypeName.Length      > 0;
 
     public void OpenCharacter() =>
@@ -78,10 +78,16 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
 
     private static void OpenPlace(long id)
     {
-        if (id <= 0) return;
+        if (id <= 0 || IsPlanet(id)) return;
+        // A Planetary Industry haul with several stops in one system is placed at the system.
+        if (id is >= 30_000_000 and <= 32_999_999) { EntityNavigator.Instance.System((int)id); return; }
         if (id <= int.MaxValue) EntityNavigator.Instance.Entity(EntityKind.Station, id);
         else                    EntityNavigator.Instance.Structure(id);
     }
+
+    /// <summary>A planet — where a Planetary Industry task happens — has nothing of its own to
+    /// open, and taken for a station id it would open the wrong thing.</summary>
+    private static bool IsPlanet(long id) => id is >= 40_000_000 and <= 49_999_999;
 
     public void OpenItem() => EntityNavigator.Instance.Item(_item.TypeId);
     public int    TypeId        => _item.TypeId;
@@ -151,6 +157,7 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
         WorklistKind.Job         => WorklistText.KindJob,
         WorklistKind.AssetSafety => WorklistText.KindAssetSafety,
         WorklistKind.SkillQueue  => WorklistText.KindSkillQueue,
+        WorklistKind.Pi          => WorklistText.KindPi,
         _                        => WorklistText.KindCorpProject,
     };
 
@@ -216,6 +223,10 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
         (WorklistKind.AssetSafety, _) =>
             "M8,2 L13.5,4 V8 C13.5,11 11,13.2 8,14 C5,13.2 2.5,11 2.5,8 V4 Z",
 
+        // A ringed planet: Planetary Industry.
+        (WorklistKind.Pi, _) =>
+            "M8,4 A4,4 0 1,0 8,12 A4,4 0 1,0 8,4 M1.5,10.5 C0.5,12.5 5,11.5 8.5,9.5 C12,7.5 15.5,4.5 14.5,3.8",
+
         // Rising bars: a skill queue.
         _ => "M3,13 V9.5 M6.5,13 V7 M10,13 V4.5 M13.5,13 V2",
     };
@@ -249,6 +260,7 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow
         (WorklistKind.Job, _)                          => WorklistText.KindTipIndustry,
         (WorklistKind.CorpProject, _)                  => WorklistText.KindTipCorpProject,
         (WorklistKind.AssetSafety, _)                  => WorklistText.KindTipAssetSafety,
+        (WorklistKind.Pi, _)                           => WorklistText.KindTipPi,
         _                                              => WorklistText.KindTipSkillQueue,
     };
 

@@ -93,6 +93,22 @@ public class AlertSettingsViewModel : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _expiringContracts, value);
     }
 
+    // Planetary Industry: only the characters that do PI. The lead times are on Settings → Industry.
+    private bool _piExtractors = true;
+    public bool PiExtractors { get => _piExtractors; set => this.RaiseAndSetIfChanged(ref _piExtractors, value); }
+
+    private bool _piStorage = true;
+    public bool PiStorage { get => _piStorage; set => this.RaiseAndSetIfChanged(ref _piStorage, value); }
+
+    private bool _piInputs = true;
+    public bool PiInputs { get => _piInputs; set => this.RaiseAndSetIfChanged(ref _piInputs, value); }
+
+    private bool _piFreeSlots = true;
+    public bool PiFreeSlots { get => _piFreeSlots; set => this.RaiseAndSetIfChanged(ref _piFreeSlots, value); }
+
+    private bool _piStaleData = true;
+    public bool PiStaleData { get => _piStaleData; set => this.RaiseAndSetIfChanged(ref _piStaleData, value); }
+
     public string Status
     {
         get => _status;
@@ -139,6 +155,11 @@ public class AlertSettingsViewModel : ReactiveObject
         IndustryJobsReady          = s.IndustryJobsReady;
         OutstandingContracts       = s.OutstandingContracts;
         ExpiringContracts          = s.ExpiringContracts;
+        PiExtractors               = s.PiExtractors;
+        PiStorage                  = s.PiStorage;
+        PiInputs                   = s.PiInputs;
+        PiFreeSlots                = s.PiFreeSlots;
+        PiStaleData                = s.PiStaleData;
     }
 
     private async Task SaveAsync()
@@ -154,6 +175,11 @@ public class AlertSettingsViewModel : ReactiveObject
         int ready     = IndustryJobsReady           ? 1 : 0;
         int outstanding = OutstandingContracts      ? 1 : 0;
         int expiring  = ExpiringContracts           ? 1 : 0;
+        int piExtract = PiExtractors                ? 1 : 0;
+        int piStorage = PiStorage                   ? 1 : 0;
+        int piInputs  = PiInputs                    ? 1 : 0;
+        int piSlots   = PiFreeSlots                 ? 1 : 0;
+        int piStale   = PiStaleData                 ? 1 : 0;
 
         // Read above, on the UI thread; written off it.
         await Task.Run(async () =>
@@ -161,8 +187,10 @@ public class AlertSettingsViewModel : ReactiveObject
             await using var db = await _dbFactory.CreateDbContextAsync().ConfigureAwait(false);
             await db.Database.ExecuteSqlInterpolatedAsync($"""
                 INSERT INTO "AlertSettings"
-                    ("Id","SkillQueueEmpty","SkillQueuePaused","SkillQueueEmptyInDays","SkillQueueEmptyDays","AssetSafety","InactiveStandingProjects","StandingBuyOrdersAttention","UnriggedIndustryJobs","IndustryJobsReady","OutstandingContracts","ExpiringContracts")
-                VALUES (1,{empty},{paused},{emptyDay},{days},{safety},{inactive},{buyOrders},{unrigged},{ready},{outstanding},{expiring})
+                    ("Id","SkillQueueEmpty","SkillQueuePaused","SkillQueueEmptyInDays","SkillQueueEmptyDays","AssetSafety","InactiveStandingProjects","StandingBuyOrdersAttention","UnriggedIndustryJobs","IndustryJobsReady","OutstandingContracts","ExpiringContracts",
+                     "PiExtractors","PiStorage","PiInputs","PiFreeSlots","PiStaleData")
+                VALUES (1,{empty},{paused},{emptyDay},{days},{safety},{inactive},{buyOrders},{unrigged},{ready},{outstanding},{expiring},
+                        {piExtract},{piStorage},{piInputs},{piSlots},{piStale})
                 ON CONFLICT("Id") DO UPDATE SET
                     "SkillQueueEmpty"             = excluded."SkillQueueEmpty",
                     "SkillQueuePaused"            = excluded."SkillQueuePaused",
@@ -174,7 +202,12 @@ public class AlertSettingsViewModel : ReactiveObject
                     "UnriggedIndustryJobs"        = excluded."UnriggedIndustryJobs",
                     "IndustryJobsReady"           = excluded."IndustryJobsReady",
                     "OutstandingContracts"        = excluded."OutstandingContracts",
-                    "ExpiringContracts"           = excluded."ExpiringContracts"
+                    "ExpiringContracts"           = excluded."ExpiringContracts",
+                    "PiExtractors"                = excluded."PiExtractors",
+                    "PiStorage"                   = excluded."PiStorage",
+                    "PiInputs"                    = excluded."PiInputs",
+                    "PiFreeSlots"                 = excluded."PiFreeSlots",
+                    "PiStaleData"                 = excluded."PiStaleData"
                 """).ConfigureAwait(false);
         });
 

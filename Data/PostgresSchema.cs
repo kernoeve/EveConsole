@@ -509,6 +509,22 @@ public static class PostgresSchema
         """
         ALTER TABLE "AlertSettings" ADD COLUMN IF NOT EXISTS "ExpiringContracts" BOOLEAN NOT NULL DEFAULT TRUE
         """,
+        // The Planetary Industry alerts. Mirrored for SQLite in App.axaml.cs.
+        """
+        ALTER TABLE "AlertSettings" ADD COLUMN IF NOT EXISTS "PiExtractors" BOOLEAN NOT NULL DEFAULT TRUE
+        """,
+        """
+        ALTER TABLE "AlertSettings" ADD COLUMN IF NOT EXISTS "PiStorage" BOOLEAN NOT NULL DEFAULT TRUE
+        """,
+        """
+        ALTER TABLE "AlertSettings" ADD COLUMN IF NOT EXISTS "PiInputs" BOOLEAN NOT NULL DEFAULT TRUE
+        """,
+        """
+        ALTER TABLE "AlertSettings" ADD COLUMN IF NOT EXISTS "PiFreeSlots" BOOLEAN NOT NULL DEFAULT TRUE
+        """,
+        """
+        ALTER TABLE "AlertSettings" ADD COLUMN IF NOT EXISTS "PiStaleData" BOOLEAN NOT NULL DEFAULT TRUE
+        """,
 
         // The HTTP status ESI answered a contract's item pull with, and the repair it makes
         // possible: corporation contracts issued by another corporation were once marked pulled
@@ -834,6 +850,121 @@ public static class PostgresSchema
             END IF;
         END $$
         """,
+
+        // ── Planetary Industry ───────────────────────────────────────────────
+        //
+        // The PI box on Settings → Characters. Default TRUE, so every character already listed
+        // keeps doing PI until somebody clears it. Mirrored for SQLite in App.axaml.cs.
+        """
+        ALTER TABLE "WorklistIndyChars" ADD COLUMN IF NOT EXISTS "PlanetaryIndustry" BOOLEAN NOT NULL DEFAULT TRUE
+        """,
+        // Colony layouts, one colony replaced whole at a time, and what tax learning works from.
+        // Entities that arrived after databases existed. Mirrored for SQLite in App.axaml.cs.
+        // ⚠️ DOUBLE PRECISION, never REAL: REAL is float4 here and would round a tax rate.
+        """
+        CREATE TABLE IF NOT EXISTS "EsiPlanetaryLayouts" (
+            "CharacterId" BIGINT      NOT NULL,
+            "PlanetId"    INTEGER     NOT NULL,
+            "LastUpdate"  TIMESTAMPTZ NOT NULL,
+            "FetchedAt"   TIMESTAMPTZ NOT NULL,
+            CONSTRAINT "PK_EsiPlanetaryLayouts" PRIMARY KEY ("CharacterId", "PlanetId")
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS "EsiPlanetaryPins" (
+            "CharacterId"            BIGINT           NOT NULL,
+            "PlanetId"               INTEGER          NOT NULL,
+            "PinId"                  BIGINT           NOT NULL,
+            "TypeId"                 INTEGER          NOT NULL DEFAULT 0,
+            "SchematicId"            INTEGER          NULL,
+            "InstallTime"            TIMESTAMPTZ      NULL,
+            "ExpiryTime"             TIMESTAMPTZ      NULL,
+            "LastCycleStart"         TIMESTAMPTZ      NULL,
+            "Latitude"               DOUBLE PRECISION NOT NULL DEFAULT 0,
+            "Longitude"              DOUBLE PRECISION NOT NULL DEFAULT 0,
+            "ExtractorProductTypeId" INTEGER          NULL,
+            "ExtractorCycleTime"     INTEGER          NULL,
+            "ExtractorQtyPerCycle"   INTEGER          NULL,
+            "ExtractorHeadRadius"    DOUBLE PRECISION NULL,
+            "ExtractorHeadCount"     INTEGER          NOT NULL DEFAULT 0,
+            CONSTRAINT "PK_EsiPlanetaryPins" PRIMARY KEY ("CharacterId", "PlanetId", "PinId")
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS "EsiPlanetaryPinContents" (
+            "CharacterId" BIGINT  NOT NULL,
+            "PlanetId"    INTEGER NOT NULL,
+            "PinId"       BIGINT  NOT NULL,
+            "TypeId"      INTEGER NOT NULL,
+            "Amount"      BIGINT  NOT NULL DEFAULT 0,
+            CONSTRAINT "PK_EsiPlanetaryPinContents" PRIMARY KEY ("CharacterId", "PlanetId", "PinId", "TypeId")
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS "EsiPlanetaryRoutes" (
+            "CharacterId"      BIGINT           NOT NULL,
+            "PlanetId"         INTEGER          NOT NULL,
+            "RouteId"          BIGINT           NOT NULL,
+            "SourcePinId"      BIGINT           NOT NULL DEFAULT 0,
+            "DestinationPinId" BIGINT           NOT NULL DEFAULT 0,
+            "ContentTypeId"    INTEGER          NOT NULL DEFAULT 0,
+            "Quantity"         DOUBLE PRECISION NOT NULL DEFAULT 0,
+            "Waypoints"        TEXT             NOT NULL DEFAULT '',
+            CONSTRAINT "PK_EsiPlanetaryRoutes" PRIMARY KEY ("CharacterId", "PlanetId", "RouteId")
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS "EsiPlanetaryLinks" (
+            "CharacterId"      BIGINT  NOT NULL,
+            "PlanetId"         INTEGER NOT NULL,
+            "SourcePinId"      BIGINT  NOT NULL,
+            "DestinationPinId" BIGINT  NOT NULL,
+            "LinkLevel"        INTEGER NOT NULL DEFAULT 0,
+            CONSTRAINT "PK_EsiPlanetaryLinks" PRIMARY KEY ("CharacterId", "PlanetId", "SourcePinId", "DestinationPinId")
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS "PiColonyMovements" (
+            "Id"          BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+            "CharacterId" BIGINT      NOT NULL DEFAULT 0,
+            "PlanetId"    INTEGER     NOT NULL DEFAULT 0,
+            "FromUpdate"  TIMESTAMPTZ NOT NULL,
+            "ToUpdate"    TIMESTAMPTZ NOT NULL,
+            "TypeId"      INTEGER     NOT NULL DEFAULT 0,
+            "Removed"     BIGINT      NOT NULL DEFAULT 0,
+            "Added"       BIGINT      NOT NULL DEFAULT 0
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS "PiPlanetTaxRates" (
+            "PlanetId"    INTEGER          NOT NULL PRIMARY KEY,
+            "Rate"        DOUBLE PRECISION NOT NULL DEFAULT 0,
+            "LearnedAt"   TIMESTAMPTZ      NOT NULL,
+            "JournalId"   BIGINT           NOT NULL DEFAULT 0,
+            "CharacterId" BIGINT           NOT NULL DEFAULT 0,
+            "Source"      TEXT             NOT NULL DEFAULT '',
+            "Units"       BIGINT           NOT NULL DEFAULT 0
+        )
+        """,
+        // The SDE's PI additions: which processors run each schematic, and the raw resources each
+        // planet type yields. New tables, so the schema fingerprint grows and the SDE import that
+        // fills them starts on its own after the upgrade. Mirrored for SQLite in
+        // SdeImportService.EnsureSdeSchema.
+        """
+        CREATE TABLE IF NOT EXISTS "SdePlanetSchematicPins" (
+            "SchematicId" INTEGER NOT NULL,
+            "PinTypeId"   INTEGER NOT NULL,
+            CONSTRAINT "PK_SdePlanetSchematicPins" PRIMARY KEY ("SchematicId", "PinTypeId")
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS "SdePlanetTypeResources" (
+            "PlanetTypeId"   INTEGER NOT NULL,
+            "ResourceTypeId" INTEGER NOT NULL,
+            "PlanetType"     TEXT    NOT NULL DEFAULT '',
+            CONSTRAINT "PK_SdePlanetTypeResources" PRIMARY KEY ("PlanetTypeId", "ResourceTypeId")
+        )
+        """,
     ];
 
     /// <summary>
@@ -983,8 +1114,9 @@ public static class PostgresSchema
         INSERT INTO "AlertSettings"
             ("Id", "SkillQueueEmpty", "SkillQueuePaused", "SkillQueueEmptyInDays", "SkillQueueEmptyDays",
              "AssetSafety", "InactiveStandingProjects", "StandingBuyOrdersAttention", "UnriggedIndustryJobs", "IndustryJobsReady",
-             "OutstandingContracts", "ExpiringContracts")
-        VALUES (1, true, true, true, 30, true, true, true, true, true, true, true)
+             "OutstandingContracts", "ExpiringContracts",
+             "PiExtractors", "PiStorage", "PiInputs", "PiFreeSlots", "PiStaleData")
+        VALUES (1, true, true, true, 30, true, true, true, true, true, true, true, true, true, true, true, true)
         ON CONFLICT DO NOTHING
         """,
         """

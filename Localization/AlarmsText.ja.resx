@@ -1387,4 +1387,40 @@
   <data name="IntelSaidJumpsFromOther" xml:space="preserve">
     <value>{1}から{0}ジャンプ</value>
   </data>
+  <data name="CheckPi" xml:space="preserve">
+    <value>惑星インダストリー</value>
+  </data>
+  <data name="CheckPiNote" xml:space="preserve">
+    <value>PIを行うキャラクターのコロニーについて発動します：エクストラクターのプログラムが終了した、または終了間近（正確）、保管施設や発射台が満杯、工場惑星の投入資源が枯渇しつつある（どちらもゲーム内でコロニーを最後に開いた時点からの推定）。各コロニーのイベントは1回だけ発動します。抽出を再開するか、コロニーをもう一度開くと、再び新しい出来事として扱われます。</value>
+  </data>
+  <data name="PiWatchLabel" xml:space="preserve">
+    <value>監視対象</value>
+  </data>
+  <data name="PiWatchNote" xml:space="preserve">
+    <value>3つのうちどれで発動するか。</value>
+  </data>
+  <data name="PiLeadLabel" xml:space="preserve">
+    <value>事前通知</value>
+  </data>
+  <data name="PiLeadNote" xml:space="preserve">
+    <value>発生するこの時間数前に発動します。0なら発生した時点で発動します。</value>
+  </data>
+  <data name="PiLeadSuffix" xml:space="preserve">
+    <value>時間</value>
+  </data>
+  <data name="OptionPiAll" xml:space="preserve">
+    <value>3つすべて</value>
+  </data>
+  <data name="OptionPiExtractors" xml:space="preserve">
+    <value>エクストラクターの停止</value>
+  </data>
+  <data name="OptionPiStorage" xml:space="preserve">
+    <value>保管施設の満杯</value>
+  </data>
+  <data name="OptionPiInputs" xml:space="preserve">
+    <value>投入資源の枯渇</value>
+  </data>
+  <data name="PiTitleOther" xml:space="preserve">
+    <value>対応が必要な惑星インダストリーのコロニーが{0}か所あります</value>
+  </data>
 </root>

@@ -777,6 +777,12 @@
   <data name="NotifColVolume" xml:space="preserve">
     <value>Объём</value>
   </data>
+  <data name="NotifColReprocessed" xml:space="preserve">
+    <value>Переработка</value>
+  </data>
+  <data name="NotifTipNoReprocessValue" xml:space="preserve">
+    <value>Стоимость переработки пока неизвестна: цены на продукты переработки этой руды ещё не загружены.</value>
+  </data>
   <data name="NotifOpenKillmail" xml:space="preserve">
     <value>Открыть отчёт о бое</value>
   </data>

@@ -1567,4 +1567,7 @@
   <data name="CallsNotRelayedOther" xml:space="preserve">
     <value>({0} weitere Aufrufe nicht übermittelt)</value>
   </data>
+  <data name="EndpointColonyLayouts" xml:space="preserve">
+    <value>Kolonie-Layouts</value>
+  </data>
 </root>

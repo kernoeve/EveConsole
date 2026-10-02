@@ -151,6 +151,7 @@ public static class NotificationBody
         Isk, Number, Decimal2, Percent, Fraction, Bool,
         Date, Duration, Seconds, Hours,
         Killmail, TypeQuantities, OreVolumes, Wants, LinkDataEntity, StructureIdType,
+        OreValue, OreValueTotal,
     }
 
     /// <summary>What a key means: its label, the kind of value, and where it sits among the
@@ -556,9 +557,12 @@ public static class NotificationBody
             case K.OreVolumes when value is IDictionary<object, object> ore:  // { typeId: m³ }
             {
                 var total = M3(ore.Values.Sum(Dbl));
-                var rows  = ore.Select(o => (r.Type(Int(o.Key)), (Pending?)Pending.Right(M3(Dbl(o.Value))), (Pending?)null)).ToList();
-                if (rows.Count > 1) rows.Add((Pending.Plain(CommsText.NotifTotal), Pending.Right(total), null));
-                parts.Tables.Add(new PendingTable(def.Label, "", CommsText.NotifColVolume, "", rows));
+                // Each ore's reprocessed value beside its volume — what the chunk is worth once
+                // refined, which is the question a fracture notice raises.
+                var rows  = ore.Select(o => (r.Type(Int(o.Key)), (Pending?)Pending.Right(M3(Dbl(o.Value))),
+                                             (Pending?)r.OreValue(Int(o.Key), Dbl(o.Value)))).ToList();
+                if (rows.Count > 1) rows.Add((Pending.Plain(CommsText.NotifTotal), Pending.Right(total), r.OreValueTotal()));
+                parts.Tables.Add(new PendingTable(def.Label, "", CommsText.NotifColVolume, CommsText.NotifColReprocessed, rows));
                 parts.Facts["ore.total"] = [Pending.Plain(total)];
                 parts.Facts["ore.count"] = [Pending.Plain(ore.Count.ToString("N0", CultureInfo.CurrentCulture))];
                 return;
@@ -818,6 +822,8 @@ public static class NotificationBody
         private readonly HashSet<long> _stations   = [];
         private readonly HashSet<long> _structures = [];
         private readonly Dictionary<long, (string? Name, int TypeId)> _structureHints = [];
+        private readonly Dictionary<int, double> _oreVolumes = [];
+        private Dictionary<int, double> _orePerM3 = [];
 
         private IReadOnlyDictionary<long, string>           _entityNames = new Dictionary<long, string>();
         private readonly Dictionary<long, string>           _categories  = [];
@@ -831,6 +837,17 @@ public static class NotificationBody
         public Pending Type(int id)             { _types.Add(id);    return new(null, new Ref(K.Type, id)); }
         public Pending System(int id)           { _systems.Add(id);  return new(null, new Ref(K.System, id)); }
         public Pending Moon(int id)             { _moons.Add(id);    return new(null, new Ref(K.Moon, id)); }
+
+        /// <summary>An ore's reprocessed value for <paramref name="m3"/> of it, once prices are read.</summary>
+        public Pending OreValue(int typeId, double m3)
+        {
+            _types.Add(typeId);
+            _oreVolumes[typeId] = _oreVolumes.GetValueOrDefault(typeId) + m3;
+            return new(null, new Ref(K.OreValue, typeId));
+        }
+
+        /// <summary>The sum of every <see cref="OreValue"/> in the body.</summary>
+        public Pending OreValueTotal() => new(null, new Ref(K.OreValueTotal, 0));
 
         public Pending Structure(long id, int typeId = 0)
         {
@@ -903,6 +920,21 @@ public static class NotificationBody
                     .ToDictionaryAsync(t => t.TypeId, t => t.Name);
             }
 
+            if (_oreVolumes.Count > 0)
+            {
+                // ISK per m³ of each ore: the reprocessed value of a unit (ReprocessingValueService
+                // — the app's yields and asset-value prices, the same Item Valuation uses) over the
+                // unit's volume. An ore with no value yet (prices not read) shows none.
+                var ids     = _oreVolumes.Keys.ToList();
+                var perUnit = await db.ReprocessingItemValues.AsNoTracking().Where(v => ids.Contains(v.TypeId))
+                    .ToDictionaryAsync(v => v.TypeId, v => v.Value);
+                var volume  = await db.SdeTypes.AsNoTracking().Where(t => ids.Contains(t.TypeId))
+                    .ToDictionaryAsync(t => t.TypeId, t => t.Volume);
+                _orePerM3 = ids
+                    .Where(id => perUnit.ContainsKey(id) && volume.GetValueOrDefault(id) > 0)
+                    .ToDictionary(id => id, id => perUnit[id] / volume[id]);
+            }
+
             if (_systems.Count > 0)
             {
                 var ids = _systems.ToList();
@@ -936,6 +968,17 @@ public static class NotificationBody
         {
             switch (x.Kind)
             {
+                case K.OreValue:
+                    return _orePerM3.TryGetValue((int)x.Id, out var perM3)
+                        ? new NotifValueVm { Text = Isk(Math.Round(perM3 * _oreVolumes[(int)x.Id])), AlignRight = true }
+                        : new NotifValueVm { Text = "—", AlignRight = true, IsDim = true, Tip = CommsText.NotifTipNoReprocessValue };
+                case K.OreValueTotal:
+                {
+                    var known = _oreVolumes.Where(o => _orePerM3.ContainsKey(o.Key)).ToList();
+                    return known.Count == 0
+                        ? new NotifValueVm { Text = "—", AlignRight = true, IsDim = true, Tip = CommsText.NotifTipNoReprocessValue }
+                        : new NotifValueVm { Text = Isk(Math.Round(known.Sum(o => _orePerM3[o.Key] * o.Value))), AlignRight = true };
+                }
                 case K.Type:
                 {
                     var id = (int)x.Id;

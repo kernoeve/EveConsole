@@ -307,10 +307,23 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
+
+                  <!-- Planetary Industry: cleared, the character is not in the PI tool at all. -->
+                  <DataGridTemplateColumn Header="{x:Static loc:SettingsText.ColPi}" Width="70" SortMemberPath="PlanetaryIndustry"
+                                          IsReadOnly="True" ClipboardContentBinding="{Binding PlanetaryIndustry}">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:IndyCharRow">
+                        <CheckBox IsChecked="{Binding PlanetaryIndustry, Mode=TwoWay}" FontSize="11" MinHeight="0"
+                                  HorizontalAlignment="Center"
+                                  ToolTip.Tip="{x:Static loc:SettingsText.TipCharacterDoesPi}" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                 </DataGrid.Columns>
               </DataGrid>
             </StackPanel>
           </Border>
+
         </StackPanel>
       </ScrollViewer>
     </TabItem>
@@ -840,6 +853,87 @@
 
               <TextBlock FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
                          Text="{x:Static loc:SettingsText.OffByDefaultComponentNote}"/>
+            </StackPanel>
+          </Border>
+
+          <!-- Planetary Industry tax: what a planet is charged until its own rate is learned. -->
+          <Border Background="{DynamicResource SurfaceHeaderBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+                  CornerRadius="4" Padding="12 10">
+            <StackPanel Spacing="8" DataContext="{Binding PiVm}">
+              <TextBlock Text="{x:Static loc:SettingsText.PiTaxTitle}" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" FontSize="12" />
+              <TextBlock FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
+                         Text="{x:Static loc:SettingsText.PiTaxNote}" />
+              <Grid ColumnDefinitions="Auto,8,Auto,8,Auto" RowDefinitions="Auto,6,Auto">
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static loc:SettingsText.PiTaxCustomsDefault}"
+                           FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                <NumericUpDown Grid.Row="0" Grid.Column="2" Value="{Binding CustomsTaxPercent}"
+                               Minimum="0" Maximum="100" Increment="0.5" FormatString="0.##"
+                               FontSize="12" Width="120" VerticalAlignment="Center" />
+                <TextBlock Grid.Row="0" Grid.Column="4" Text="%" FontSize="12"
+                           Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="{x:Static loc:SettingsText.PiTaxSkyhookDefault}"
+                           FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                <NumericUpDown Grid.Row="2" Grid.Column="2" Value="{Binding SkyhookTaxPercent}"
+                               Minimum="0" Maximum="100" Increment="0.5" FormatString="0.##"
+                               FontSize="12" Width="120" VerticalAlignment="Center" />
+                <TextBlock Grid.Row="2" Grid.Column="4" Text="%" FontSize="12"
+                           Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" />
+              </Grid>
+            </StackPanel>
+          </Border>
+
+          <!-- Planetary Industry timing: how far ahead the PI alerts and worklist tasks look, when a
+               colony's data is too old to trust, and how much input a haul brings. Whether each
+               alert is raised at all is on the Alerts tab. -->
+          <Border Background="{DynamicResource SurfaceHeaderBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+                  CornerRadius="4" Padding="12 10">
+            <StackPanel Spacing="8" DataContext="{Binding PiVm}">
+              <TextBlock Text="{x:Static loc:SettingsText.PiTimingTitle}" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" FontSize="12" />
+              <TextBlock FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
+                         Text="{x:Static loc:SettingsText.PiTimingNote}" />
+              <Grid ColumnDefinitions="Auto,8,Auto,8,Auto" RowDefinitions="Auto,6,Auto,6,Auto,6,Auto,6,Auto">
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static loc:SettingsText.PiLeadExtractors}"
+                           FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                <NumericUpDown Grid.Row="0" Grid.Column="2" Value="{Binding ExtractorLeadHours}"
+                               Minimum="0" Maximum="{Binding MaxLeadHours}" Increment="1" FormatString="0"
+                               FontSize="12" Width="120" VerticalAlignment="Center" />
+                <TextBlock Grid.Row="0" Grid.Column="4" Text="{x:Static loc:SettingsText.PiHoursAhead}" FontSize="12"
+                           Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" />
+
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="{x:Static loc:SettingsText.PiLeadStorage}"
+                           FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                <NumericUpDown Grid.Row="2" Grid.Column="2" Value="{Binding StorageLeadHours}"
+                               Minimum="0" Maximum="{Binding MaxLeadHours}" Increment="1" FormatString="0"
+                               FontSize="12" Width="120" VerticalAlignment="Center" />
+                <TextBlock Grid.Row="2" Grid.Column="4" Text="{x:Static loc:SettingsText.PiHoursAheadEstimated}" FontSize="12"
+                           Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" />
+
+                <TextBlock Grid.Row="4" Grid.Column="0" Text="{x:Static loc:SettingsText.PiLeadInputs}"
+                           FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                <NumericUpDown Grid.Row="4" Grid.Column="2" Value="{Binding InputLeadHours}"
+                               Minimum="0" Maximum="{Binding MaxLeadHours}" Increment="1" FormatString="0"
+                               FontSize="12" Width="120" VerticalAlignment="Center" />
+                <TextBlock Grid.Row="4" Grid.Column="4" Text="{x:Static loc:SettingsText.PiHoursAheadEstimated}" FontSize="12"
+                           Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" />
+
+                <TextBlock Grid.Row="6" Grid.Column="0" Text="{x:Static loc:SettingsText.PiStaleAfter}"
+                           FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                <NumericUpDown Grid.Row="6" Grid.Column="2" Value="{Binding StaleDays}"
+                               Minimum="1" Maximum="365" Increment="1" FormatString="0"
+                               FontSize="12" Width="120" VerticalAlignment="Center" />
+                <TextBlock Grid.Row="6" Grid.Column="4" Text="{x:Static loc:SettingsText.Days}" FontSize="12"
+                           Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" />
+
+                <TextBlock Grid.Row="8" Grid.Column="0" Text="{x:Static loc:SettingsText.PiInputDays}"
+                           FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                <NumericUpDown Grid.Row="8" Grid.Column="2" Value="{Binding InputDays}"
+                               Minimum="1" Maximum="60" Increment="1" FormatString="0"
+                               FontSize="12" Width="120" VerticalAlignment="Center" />
+                <TextBlock Grid.Row="8" Grid.Column="4" Text="{x:Static loc:SettingsText.PiDaysOfRunning}" FontSize="12"
+                           Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" />
+              </Grid>
+              <!-- Both boxes above save as they are changed; this says so for a moment. -->
+              <TextBlock Text="{Binding Status}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
             </StackPanel>
           </Border>
 
@@ -2996,6 +3090,35 @@
 
             <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
                        Text="{x:Static loc:SettingsText.CountsActiveContractsYouNote}" />
+          </StackPanel>
+        </Border>
+
+        <!-- Planetary Industry alerts: only the characters that do PI. How far ahead each looks is
+             on the Industry tab, shared with the PI worklist tasks. -->
+        <Border Background="{DynamicResource SurfaceHeaderBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+                CornerRadius="4" Padding="14 12">
+          <StackPanel Spacing="8">
+            <TextBlock Text="{x:Static loc:SettingsText.PiAlertsTitle}" FontWeight="SemiBold"
+                       Foreground="{DynamicResource AccentBrush}" FontSize="12" Margin="0 0 0 4" />
+
+            <CheckBox Content="{x:Static loc:SettingsText.PiAlertExtractors}"
+                      IsChecked="{Binding AlertsVm.PiExtractors}"
+                      FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
+            <CheckBox Content="{x:Static loc:SettingsText.PiAlertStorage}"
+                      IsChecked="{Binding AlertsVm.PiStorage}"
+                      FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
+            <CheckBox Content="{x:Static loc:SettingsText.PiAlertInputs}"
+                      IsChecked="{Binding AlertsVm.PiInputs}"
+                      FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
+            <CheckBox Content="{x:Static loc:SettingsText.PiAlertFreeSlots}"
+                      IsChecked="{Binding AlertsVm.PiFreeSlots}"
+                      FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
+            <CheckBox Content="{x:Static loc:SettingsText.PiAlertStale}"
+                      IsChecked="{Binding AlertsVm.PiStaleData}"
+                      FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
+
+            <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                       Text="{x:Static loc:SettingsText.PiAlertsNote}" />
           </StackPanel>
         </Border>
 

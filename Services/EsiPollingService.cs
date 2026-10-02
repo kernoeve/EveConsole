@@ -42,6 +42,7 @@ public class EsiPollingService : ReactiveObject
     private readonly StructureSyncService    _structureSync;
     private readonly IndyStructureLinkService _indyLink;
     private readonly EveRefStructureService   _eveRefStructures;
+    private readonly EveConsole.Services.Pi.PiService _pi;
 
     private static readonly HashSet<string> s_netWorthCharEndpoints = [
         "char.wallet.balance", "char.industry.jobs", "char.orders.active", "char.assets", "char.contracts"
@@ -238,6 +239,7 @@ public class EsiPollingService : ReactiveObject
         ["char.contacts"]         = DataText.EndpointContacts,
         ["char.killmails"]        = DataText.EndpointKillMails,
         ["char.planets"]          = DataText.EndpointPlanetaryInteraction,
+        ["char.planets.layouts"]  = DataText.EndpointColonyLayouts,
         ["char.agents_research"]  = DataText.EndpointAgentResearch,
         ["char.loyalty"]          = DataText.EndpointLoyaltyPoints,
         ["char.medals"]           = DataText.EndpointMedals,
@@ -279,7 +281,7 @@ public class EsiPollingService : ReactiveObject
         ["contract.items"]        = DataText.EndpointContractItems,
     };
 
-    public EsiPollingService(IServiceScopeFactory scopeFactory, EsiClient esi, ApiActivityLog log, AppErrorLogger errorLogger, TimerSettingsService timerSettings, NetWorthService netWorth, KillMailService killMailService, AppPreferencesService prefs, EveMailService mailService, StructureSyncService structureSync, IndyStructureLinkService indyLink, EveRefStructureService eveRefStructures)
+    public EsiPollingService(IServiceScopeFactory scopeFactory, EsiClient esi, ApiActivityLog log, AppErrorLogger errorLogger, TimerSettingsService timerSettings, NetWorthService netWorth, KillMailService killMailService, AppPreferencesService prefs, EveMailService mailService, StructureSyncService structureSync, IndyStructureLinkService indyLink, EveRefStructureService eveRefStructures, EveConsole.Services.Pi.PiService pi)
     {
         _scopeFactory       = scopeFactory;
         _esi                = esi;
@@ -293,6 +295,7 @@ public class EsiPollingService : ReactiveObject
         _structureSync      = structureSync;
         _indyLink           = indyLink;
         _eveRefStructures   = eveRefStructures;
+        _pi                 = pi;
         _characterEndpoints = BuildEndpoints();
         _corpEndpoints      = BuildCorpEndpoints();
         CharacterEndpointInfos = _characterEndpoints
@@ -462,6 +465,7 @@ public class EsiPollingService : ReactiveObject
                 .Where(c => c.RefreshToken != "")
                 .AsNoTracking()
                 .ToListAsync(ct);
+            _piOff = await EveConsole.Services.Pi.PiCharacters.OffAsync(db, ct);
         }
 
         if (characters.Count == 0) return;
@@ -490,7 +494,15 @@ public class EsiPollingService : ReactiveObject
         ["char.online"]   = "esi-location.read_online.v1",
         ["char.location"] = "esi-location.read_location.v1",
         ["char.ship"]     = "esi-location.read_ship_type.v1",
+        // Both PI calls: the colony list and each colony's layout.
+        ["char.planets"]         = "esi-planets.manage_planets.v1",
+        ["char.planets.layouts"] = "esi-planets.manage_planets.v1",
     };
+
+    private const string PiLayoutsKey = "char.planets.layouts";
+
+    /// <summary>Characters whose PI box is clear, re-read at the start of every cycle.</summary>
+    private HashSet<long> _piOff = [];
 
     // Endpoints not worth re-polling while a character is logged off. ESI still
     // answers them when offline — it reports where the character logged off — so
@@ -574,6 +586,11 @@ public class EsiPollingService : ReactiveObject
     private async Task<PollingResult?> CallEndpointAsync(Character character, EndpointDef ep, DateTimeOffset now, CancellationToken ct)
     {
         if (s_charEndpointScopes.TryGetValue(ep.Key, out var reqScope) && !character.HasScope(reqScope))
+            return null;
+
+        // A character whose PI box is clear is not in the PI tool: no layouts are read for it,
+        // and skipping here, before the call, keeps it out of the activity log too.
+        if (ep.Key == PiLayoutsKey && _piOff.Contains(character.Id))
             return null;
 
         // Skip before the call so no API-activity record is written for a request that was
@@ -2063,8 +2080,11 @@ public class EsiPollingService : ReactiveObject
             $"characters/{charId}/planets/", ct);
         if (!r.IsSuccess) return FromResult(r);
 
+        // ⚠️ One transaction: deleting and then inserting outside one leaves a moment with no
+        // colonies at all, and the PI tool reading then would show the character with none.
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
         await db.EsiPlanetaryColonies.Where(p => p.CharacterId == charId).ExecuteDeleteAsync(ct);
-        db.EsiPlanetaryColonies.AddRange(r.Data!.Select(p => new PlanetaryColony
+        db.EsiPlanetaryColonies.AddRange(r.Data!.DistinctBy(p => p.PlanetId).Select(p => new PlanetaryColony
         {
             CharacterId   = charId,
             PlanetId      = p.PlanetId,
@@ -2075,7 +2095,81 @@ public class EsiPollingService : ReactiveObject
             UpgradeLevel  = p.UpgradeLevel,
         }));
         await db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
         return FromResult(r);
+    }
+
+    /// <summary>
+    /// Each colony's layout — pins, contents, routes and links — read only when it can have
+    /// changed.
+    ///
+    /// <para>A layout describes the colony as of its last_update, which moves only when the owner
+    /// views it in the client, and the colony list already carries that date. So a colony is read
+    /// when it has never been read, or when the list's last_update differs from the stored
+    /// layout's; every other cycle costs nothing. The char-industry group is shared with jobs and
+    /// mining, which is the reason to be this frugal.</para>
+    ///
+    /// <para>⚠️ Not for a character whose PI box is clear: they are not in the PI tool, so their
+    /// layouts are not wanted. Their colony list is still read — it is one cheap call, and
+    /// existed before PI did.</para>
+    ///
+    /// <para>Each colony is replaced in one transaction (PiLayoutStore), and the tax rates are
+    /// then learned again for the character, since a new snapshot can be exactly what an export
+    /// in the journal was waiting for.</para>
+    /// </summary>
+    private async Task<PollingResult> FetchPlanetLayoutsAsync(long charId, AppDbContext db, CancellationToken ct)
+    {
+        if (!await EveConsole.Services.Pi.PiCharacters.IsOnAsync(db, charId, ct))
+            return new PollingResult(true, 200);
+
+        var colonies = await db.EsiPlanetaryColonies.AsNoTracking()
+            .Where(c => c.CharacterId == charId).ToListAsync(ct);
+        var stored = await db.EsiPlanetaryLayouts.AsNoTracking()
+            .Where(l => l.CharacterId == charId).ToListAsync(ct);
+
+        // A colony given up in the game: its layout goes too.
+        var current = colonies.Select(c => c.PlanetId).ToHashSet();
+        foreach (var gone in stored.Where(l => !current.Contains(l.PlanetId)))
+            await EveConsole.Services.Pi.PiLayoutStore.DeleteAsync(db, charId, gone.PlanetId, ct);
+
+        // Compared in memory: ⚠️ DateTimeOffset comparisons do not translate on SQLite.
+        var storedAt = stored.ToDictionary(l => l.PlanetId, l => l.LastUpdate);
+        var due = colonies
+            .Where(c => !storedAt.TryGetValue(c.PlanetId, out var at) || at != c.LastUpdate)
+            .ToList();
+
+        PollingResult? last = null;
+        if (due.Count > 0)
+        {
+            var sd = await _pi.StaticDataAsync(ct);
+            foreach (var colony in due)
+            {
+                ct.ThrowIfCancellationRequested();
+                var r = await _esi.ExecuteAuthAsync<EsiPlanetLayout>(charId,
+                    $"characters/{charId}/planets/{colony.PlanetId}/", ct);
+                last = FromResult(r);
+                // The rest wait for the next cycle: a failure here is ESI's, and asking again at
+                // once for the next colony would only spend more of the error budget.
+                if (!r.IsSuccess || r.Data is null) break;
+
+                await EveConsole.Services.Pi.PiLayoutStore.ReplaceAsync(db, colony, r.Data, sd,
+                    DateTimeOffset.UtcNow, ct);
+            }
+        }
+
+        // Best effort: a fault in learning a tax rate is not a failed poll.
+        try
+        {
+            var sd = await _pi.StaticDataAsync(ct);
+            await EveConsole.Services.Pi.PiTaxLearning.LearnAsync(db, charId, sd, ct);
+        }
+        catch (OperationCanceledException) { throw; }
+        catch (Exception ex)
+        {
+            _errorLogger.Log(nameof(EsiPollingService), $"PI tax learning for {charId}", ex);
+        }
+
+        return last ?? new PollingResult(true, 200);
     }
 
     private async Task<PollingResult> FetchAgentResearchAsync(long charId, AppDbContext db, CancellationToken ct)
@@ -2310,6 +2404,10 @@ public class EsiPollingService : ReactiveObject
         new("char.contacts",        300,   1800, FetchContactsAsync),
         new("char.killmails",       300,   900,  FetchKillMailsAsync),
         new("char.planets",         600,   1800, FetchPlanetsAsync),
+        // ⚠️ After the colony list, which is what tells it which layouts have changed. Ten
+        // minutes, the layout's own cache — and it calls ESI only for a colony whose last_update
+        // moved, so most cycles cost no call at all.
+        new("char.planets.layouts", 600,    600, FetchPlanetLayoutsAsync),
         new("char.agents_research", 3600,  7200, FetchAgentResearchAsync),
         new("char.loyalty",         3600,  7200, FetchLoyaltyPointsAsync),
         new("char.medals",          3600, 14400, FetchMedalsAsync),

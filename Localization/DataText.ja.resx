@@ -1537,4 +1537,7 @@
   <data name="CallsNotRelayedOther" xml:space="preserve">
     <value>（ほかに{0}件の呼び出しは中継されていません）</value>
   </data>
+  <data name="EndpointColonyLayouts" xml:space="preserve">
+    <value>コロニーのレイアウト</value>
+  </data>
 </root>

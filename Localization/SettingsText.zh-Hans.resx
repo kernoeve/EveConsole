@@ -3334,4 +3334,73 @@ SQLite 数据库只会被读取，不会被修改。大型数据库需要一些�
   <data name="DiscordErrHttp" xml:space="preserve">
     <value>Discord 拒绝了请求（HTTP {0}）：{1}</value>
   </data>
+  <data name="ColPi" xml:space="preserve">
+    <value>PI</value>
+  </data>
+  <data name="TipCharacterDoesPi" xml:space="preserve">
+    <value>角色进行行星开发。取消勾选后，该角色不会出现在行星开发工具中，不会收到行星开发提醒或工作项，也不会读取其殖民地。</value>
+  </data>
+  <data name="PiTaxTitle" xml:space="preserve">
+    <value>行星开发税</value>
+  </data>
+  <data name="PiTaxNote" xml:space="preserve">
+    <value>从行星运出或向行星运入货物时该行星收取的税率，在该行星发生过出口或进口、并从钱包日志中获知其自身税率之前使用。海关办公室位于高安、低安、虫洞和 NPC 00 区；主权 00 区则使用天钩。运入货物的费用是运出的一半。</value>
+  </data>
+  <data name="PiTaxCustomsDefault" xml:space="preserve">
+    <value>海关办公室税率</value>
+  </data>
+  <data name="PiTaxSkyhookDefault" xml:space="preserve">
+    <value>天钩税率</value>
+  </data>
+  <data name="PiTimingTitle" xml:space="preserve">
+    <value>行星开发提醒与工作项</value>
+  </data>
+  <data name="PiTimingNote" xml:space="preserve">
+    <value>概览中的行星开发提醒和工作清单中的行星开发工作项提前多久预警、殖民地数据多旧就不再可信，以及一趟原料运送带来多少原料。要启用哪些提醒在“提醒”标签页中设置。</value>
+  </data>
+  <data name="PiLeadExtractors" xml:space="preserve">
+    <value>采集器即将停止</value>
+  </data>
+  <data name="PiLeadStorage" xml:space="preserve">
+    <value>储藏设施或发射平台已满</value>
+  </data>
+  <data name="PiLeadInputs" xml:space="preserve">
+    <value>工厂原料即将耗尽</value>
+  </data>
+  <data name="PiHoursAhead" xml:space="preserve">
+    <value>小时前预警（精确）</value>
+  </data>
+  <data name="PiHoursAheadEstimated" xml:space="preserve">
+    <value>小时前预警（预计）</value>
+  </data>
+  <data name="PiStaleAfter" xml:space="preserve">
+    <value>殖民地数据过旧阈值</value>
+  </data>
+  <data name="PiInputDays" xml:space="preserve">
+    <value>一趟原料运送带来</value>
+  </data>
+  <data name="PiDaysOfRunning" xml:space="preserve">
+    <value>天的运转量</value>
+  </data>
+  <data name="PiAlertsTitle" xml:space="preserve">
+    <value>行星开发</value>
+  </data>
+  <data name="PiAlertExtractors" xml:space="preserve">
+    <value>采集器已停止或即将停止</value>
+  </data>
+  <data name="PiAlertStorage" xml:space="preserve">
+    <value>储藏设施或发射平台已满或即将装满（预计）</value>
+  </data>
+  <data name="PiAlertInputs" xml:space="preserve">
+    <value>工厂行星的原料已耗尽或即将耗尽（预计）</value>
+  </data>
+  <data name="PiAlertFreeSlots" xml:space="preserve">
+    <value>行星开发角色有未使用的殖民地栏位</value>
+  </data>
+  <data name="PiAlertStale" xml:space="preserve">
+    <value>殖民地太久未在游戏中打开，其预计数据已不可信</value>
+  </data>
+  <data name="PiAlertsNote" xml:space="preserve">
+    <value>仅限在“角色”标签页中勾选了 PI 的角色。“即将”是多久、多旧算过旧，均在“工业”标签页中设置；工作清单中的行星开发工作项使用相同的时间。</value>
+  </data>
 </root>

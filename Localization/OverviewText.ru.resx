@@ -938,4 +938,97 @@
   <data name="ScopeGroupCorp" xml:space="preserve">
     <value>Корпорация</value>
   </data>
+  <data name="AlertPiExtractorsStopped" xml:space="preserve">
+    <value>{0}: экстракторы на планете {1} остановились.</value>
+  </data>
+  <data name="AlertPiExtractorsStopping" xml:space="preserve">
+    <value>{0}: экстракторы на планете {1} остановятся через {2}.</value>
+  </data>
+  <data name="AlertPiExtractorsManyOne" xml:space="preserve">
+    <value>Экстракторы остановились или скоро остановятся в {0} колонии.</value>
+  </data>
+  <data name="AlertPiExtractorsManyOther" xml:space="preserve">
+    <value>Экстракторы остановились или скоро остановятся в {0} колонии.</value>
+  </data>
+  <data name="AlertPiExtractorsManyFew" xml:space="preserve">
+    <value>Экстракторы остановились или скоро остановятся в {0} колониях.</value>
+  </data>
+  <data name="AlertPiExtractorsManyMany" xml:space="preserve">
+    <value>Экстракторы остановились или скоро остановятся в {0} колониях.</value>
+  </data>
+  <data name="AlertPiStorageFull" xml:space="preserve">
+    <value>{0}: хранилище на планете {1} заполнено (оценка).</value>
+  </data>
+  <data name="AlertPiStorageFilling" xml:space="preserve">
+    <value>{0}: хранилище на планете {1} заполнится через {2} (оценка).</value>
+  </data>
+  <data name="AlertPiStorageManyOne" xml:space="preserve">
+    <value>Хранилище заполнено или скоро заполнится в {0} колонии (оценка).</value>
+  </data>
+  <data name="AlertPiStorageManyOther" xml:space="preserve">
+    <value>Хранилища заполнены или скоро заполнятся в {0} колонии (оценка).</value>
+  </data>
+  <data name="AlertPiStorageManyFew" xml:space="preserve">
+    <value>Хранилища заполнены или скоро заполнятся в {0} колониях (оценка).</value>
+  </data>
+  <data name="AlertPiStorageManyMany" xml:space="preserve">
+    <value>Хранилища заполнены или скоро заполнятся в {0} колониях (оценка).</value>
+  </data>
+  <data name="AlertPiInputsOut" xml:space="preserve">
+    <value>{0}: у производственных комплексов на планете {1} кончились материалы (оценка).</value>
+  </data>
+  <data name="AlertPiInputsLow" xml:space="preserve">
+    <value>{0}: материалы на планете {1} кончатся через {2} (оценка).</value>
+  </data>
+  <data name="AlertPiInputsManyOne" xml:space="preserve">
+    <value>Материалы кончились или скоро кончатся на {0} производственной планете (оценка).</value>
+  </data>
+  <data name="AlertPiInputsManyOther" xml:space="preserve">
+    <value>Материалы кончились или скоро кончатся на {0} производственной планеты (оценка).</value>
+  </data>
+  <data name="AlertPiInputsManyFew" xml:space="preserve">
+    <value>Материалы кончились или скоро кончатся на {0} производственных планетах (оценка).</value>
+  </data>
+  <data name="AlertPiInputsManyMany" xml:space="preserve">
+    <value>Материалы кончились или скоро кончатся на {0} производственных планетах (оценка).</value>
+  </data>
+  <data name="AlertPiStale" xml:space="preserve">
+    <value>{0}: колонию на планете {1} не открывали в игре уже {2}; её оценкам больше нельзя доверять.</value>
+  </data>
+  <data name="AlertPiStaleManyOne" xml:space="preserve">
+    <value>{0} колонию давно не открывали в игре; её оценкам больше нельзя доверять.</value>
+  </data>
+  <data name="AlertPiStaleManyOther" xml:space="preserve">
+    <value>{0} колонии давно не открывали в игре; их оценкам больше нельзя доверять.</value>
+  </data>
+  <data name="AlertPiStaleManyFew" xml:space="preserve">
+    <value>{0} колонии давно не открывали в игре; их оценкам больше нельзя доверять.</value>
+  </data>
+  <data name="AlertPiStaleManyMany" xml:space="preserve">
+    <value>{0} колоний давно не открывали в игре; их оценкам больше нельзя доверять.</value>
+  </data>
+  <data name="AlertPiFreeSlotsOne" xml:space="preserve">
+    <value>У персонажа {1} свободен {0} слот для колонии.</value>
+  </data>
+  <data name="AlertPiFreeSlotsOther" xml:space="preserve">
+    <value>У персонажа {1} свободно {0} слота для колоний.</value>
+  </data>
+  <data name="AlertPiFreeSlotsFew" xml:space="preserve">
+    <value>У персонажа {1} свободно {0} слота для колоний.</value>
+  </data>
+  <data name="AlertPiFreeSlotsMany" xml:space="preserve">
+    <value>У персонажа {1} свободно {0} слотов для колоний.</value>
+  </data>
+  <data name="AlertPiFreeSlotsCharsOne" xml:space="preserve">
+    <value>У {0} персонажа с PI есть свободные слоты для колоний.</value>
+  </data>
+  <data name="AlertPiFreeSlotsCharsOther" xml:space="preserve">
+    <value>У {0} персонажа с PI есть свободные слоты для колоний.</value>
+  </data>
+  <data name="AlertPiFreeSlotsCharsFew" xml:space="preserve">
+    <value>У {0} персонажей с PI есть свободные слоты для колоний.</value>
+  </data>
+  <data name="AlertPiFreeSlotsCharsMany" xml:space="preserve">
+    <value>У {0} персонажей с PI есть свободные слоты для колоний.</value>
+  </data>
 </root>

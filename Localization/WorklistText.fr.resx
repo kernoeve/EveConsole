@@ -2182,4 +2182,82 @@
   <data name="SummaryWorstShown" xml:space="preserve">
     <value>Les {0} pires affichés ; les autres sont dans l'onglet.</value>
   </data>
+  <data name="SourcePlanetaryIndustry" xml:space="preserve">
+    <value>Industrie planétaire</value>
+  </data>
+  <data name="KindPi" xml:space="preserve">
+    <value>PI</value>
+  </data>
+  <data name="KindTipPi" xml:space="preserve">
+    <value>Industrie planétaire</value>
+  </data>
+  <data name="PiRestartTitle" xml:space="preserve">
+    <value>Relancer les extracteurs sur {0}</value>
+  </data>
+  <data name="PiRestartStoppedDetail" xml:space="preserve">
+    <value>Arrêtés il y a {0}, le {1} (heure exacte).</value>
+  </data>
+  <data name="PiRestartStoppingDetail" xml:space="preserve">
+    <value>S'arrêtent dans {0}, le {1} (heure exacte).</value>
+  </data>
+  <data name="PiRestartWaiting" xml:space="preserve">
+    <value>Encore en cours pendant {0}</value>
+  </data>
+  <data name="PiHaulOutTitle" xml:space="preserve">
+    <value>Récupérer la production de {0}</value>
+  </data>
+  <data name="PiHaulOutSystemOne" xml:space="preserve">
+    <value>Récupérer la production de {0} planète dans {1}</value>
+  </data>
+  <data name="PiHaulOutSystemOther" xml:space="preserve">
+    <value>Récupérer la production de {0} planètes dans {1}</value>
+  </data>
+  <data name="PiHaulOutFull" xml:space="preserve">
+    <value>{0} : stockage plein, production perdue (estimation)</value>
+  </data>
+  <data name="PiHaulOutFilling" xml:space="preserve">
+    <value>{0} : stockage plein dans {1} (estimation)</value>
+  </data>
+  <data name="PiHaulOutCollect" xml:space="preserve">
+    <value>{0} : stockage au moins à moitié plein de production (estimation)</value>
+  </data>
+  <data name="PiStaleNote" xml:space="preserve">
+    <value>Les chiffres sont estimés à partir de données anciennes : la colonie n'a pas été ouverte dans le jeu depuis un moment.</value>
+  </data>
+  <data name="PiHaulInTitle" xml:space="preserve">
+    <value>Apporter des intrants sur {0}</value>
+  </data>
+  <data name="PiHaulInOutDetailOne" xml:space="preserve">
+    <value>Intrants épuisés il y a {1} (estimation) : les usines sont à l'arrêt. Apporte {0} jour de fonctionnement.</value>
+  </data>
+  <data name="PiHaulInOutDetailOther" xml:space="preserve">
+    <value>Intrants épuisés il y a {1} (estimation) : les usines sont à l'arrêt. Apporte {0} jours de fonctionnement.</value>
+  </data>
+  <data name="PiHaulInLowDetailOne" xml:space="preserve">
+    <value>Les intrants s'épuisent dans {1} (estimation). Apporte {0} jour de fonctionnement.</value>
+  </data>
+  <data name="PiHaulInLowDetailOther" xml:space="preserve">
+    <value>Les intrants s'épuisent dans {1} (estimation). Apporte {0} jours de fonctionnement.</value>
+  </data>
+  <data name="PiSetUpTitleOne" xml:space="preserve">
+    <value>Établir une colonie — {0} emplacement libre</value>
+  </data>
+  <data name="PiSetUpTitleOther" xml:space="preserve">
+    <value>Établir une colonie — {0} emplacements libres</value>
+  </data>
+  <data name="PiSetUpDetail" xml:space="preserve">
+    <value>Colonies en service : {0} sur {1} ; Consolidation interplanétaire en permet {1}.</value>
+  </data>
+  <data name="PiUpgradeTitle" xml:space="preserve">
+    <value>Améliorer le centre de commandement de {0} au niveau {1}</value>
+  </data>
+  <data name="PiUpgradeDetail" xml:space="preserve">
+    <value>Niveau {0} actuellement ; Améliorations de centre de commandement permet le niveau {1}. Plus de CPU et de réseau d'alimentation pour les têtes d'extracteur et les usines.</value>
+  </data>
+  <data name="PiOpenTitle" xml:space="preserve">
+    <value>Ouvrir {0} dans le jeu</value>
+  </data>
+  <data name="PiOpenDetail" xml:space="preserve">
+    <value>Ses données sont vieilles de {0} : ses estimations ne sont plus fiables. Ouvrir la colonie dans le jeu les actualise.</value>
+  </data>
 </root>

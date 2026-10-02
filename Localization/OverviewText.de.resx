@@ -860,4 +860,61 @@
   <data name="ScopeGroupCorp" xml:space="preserve">
     <value>Corp</value>
   </data>
+  <data name="AlertPiExtractorsStopped" xml:space="preserve">
+    <value>{0}: Die Extraktoren auf {1} sind gestoppt.</value>
+  </data>
+  <data name="AlertPiExtractorsStopping" xml:space="preserve">
+    <value>{0}: Die Extraktoren auf {1} stoppen in {2}.</value>
+  </data>
+  <data name="AlertPiExtractorsManyOne" xml:space="preserve">
+    <value>Extraktoren gestoppt oder bald gestoppt in {0} Kolonie.</value>
+  </data>
+  <data name="AlertPiExtractorsManyOther" xml:space="preserve">
+    <value>Extraktoren gestoppt oder bald gestoppt in {0} Kolonien.</value>
+  </data>
+  <data name="AlertPiStorageFull" xml:space="preserve">
+    <value>{0}: Das Lager auf {1} ist voll (geschätzt).</value>
+  </data>
+  <data name="AlertPiStorageFilling" xml:space="preserve">
+    <value>{0}: Das Lager auf {1} ist in {2} voll (geschätzt).</value>
+  </data>
+  <data name="AlertPiStorageManyOne" xml:space="preserve">
+    <value>Lager voll oder bald voll in {0} Kolonie (geschätzt).</value>
+  </data>
+  <data name="AlertPiStorageManyOther" xml:space="preserve">
+    <value>Lager voll oder bald voll in {0} Kolonien (geschätzt).</value>
+  </data>
+  <data name="AlertPiInputsOut" xml:space="preserve">
+    <value>{0}: Den Fabriken auf {1} ist das Material ausgegangen (geschätzt).</value>
+  </data>
+  <data name="AlertPiInputsLow" xml:space="preserve">
+    <value>{0}: Das Material auf {1} geht in {2} aus (geschätzt).</value>
+  </data>
+  <data name="AlertPiInputsManyOne" xml:space="preserve">
+    <value>Material aufgebraucht oder bald aufgebraucht auf {0} Fabrikplaneten (geschätzt).</value>
+  </data>
+  <data name="AlertPiInputsManyOther" xml:space="preserve">
+    <value>Material aufgebraucht oder bald aufgebraucht auf {0} Fabrikplaneten (geschätzt).</value>
+  </data>
+  <data name="AlertPiStale" xml:space="preserve">
+    <value>{0}: {1} wurde seit {2} nicht im Spiel geöffnet; den Schätzungen ist nicht mehr zu trauen.</value>
+  </data>
+  <data name="AlertPiStaleManyOne" xml:space="preserve">
+    <value>{0} Kolonie wurde eine Weile nicht im Spiel geöffnet; ihren Schätzungen ist nicht mehr zu trauen.</value>
+  </data>
+  <data name="AlertPiStaleManyOther" xml:space="preserve">
+    <value>{0} Kolonien wurden eine Weile nicht im Spiel geöffnet; ihren Schätzungen ist nicht mehr zu trauen.</value>
+  </data>
+  <data name="AlertPiFreeSlotsOne" xml:space="preserve">
+    <value>{1} hat {0} ungenutzten Kolonie-Slot.</value>
+  </data>
+  <data name="AlertPiFreeSlotsOther" xml:space="preserve">
+    <value>{1} hat {0} ungenutzte Kolonie-Slots.</value>
+  </data>
+  <data name="AlertPiFreeSlotsCharsOne" xml:space="preserve">
+    <value>{0} PI-Charakter hat ungenutzte Kolonie-Slots.</value>
+  </data>
+  <data name="AlertPiFreeSlotsCharsOther" xml:space="preserve">
+    <value>{0} PI-Charaktere haben ungenutzte Kolonie-Slots.</value>
+  </data>
 </root>

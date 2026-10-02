@@ -13,6 +13,7 @@ using EveConsole.Api;
 using EveConsole.Data;
 using EveConsole.Models;
 using EveConsole.Services;
+using EveConsole.Services.Pi;
 using EveConsole.Services.Worklist;
 using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
@@ -383,6 +384,14 @@ public class OverviewViewModel : ReactiveObject
     public Action?          NavigateToOrderTracker                  { get; set; }
     public Action<int>?     RequestOpenKillmail                     { get; set; }
     public Action<string>?  OpenToolRequested                       { get; set; }  // open a tool by id
+    /// <summary>The Planetary Industry tool on one colony (character, planet), or on its list when
+    /// both are null; the second opens its Characters tab.</summary>
+    public Action<long?, int?>? NavigateToPi                        { get; set; }
+    public Action?          NavigateToPiCharacters                  { get; set; }
+
+    /// <summary>Planetary Industry colonies, for the PI alerts. Set by MainWindowViewModel; null
+    /// leaves them out.</summary>
+    public PiService?       Pi                                      { get; set; }
     public Action?          OpenAlertSettingsRequested              { get; set; }  // Settings ▸ Alerts
 
     // Shared Sale Listing tool VMs, injected by MainWindowViewModel, so the Overview can embed
@@ -1711,6 +1720,100 @@ public class OverviewViewModel : ReactiveObject
                 }
             }
             catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "ContractAlerts", ex); }
+        }
+
+        // Planetary Industry: only the characters that do PI (PiService returns no one else).
+        // One row per kind of trouble: named and opening the colony when it is one colony, counted
+        // and opening the tool's list when there are several — twenty-two colonies left alone for
+        // a month should be one line, not forty-four.
+        if (Pi is { } pi && (_alertSettings.PiExtractors || _alertSettings.PiStorage || _alertSettings.PiInputs
+                             || _alertSettings.PiFreeSlots || _alertSettings.PiStaleData))
+        {
+            try
+            {
+                var wantSlots = _alertSettings.PiFreeSlots;
+                var t         = pi.Settings.Thresholds;
+                var colonies  = await Off(() => pi.ColoniesAsync(DateTimeOffset.UtcNow));
+                var piChars   = wantSlots ? await Off(() => pi.CharactersAsync()) : [];
+                var judged    = colonies
+                    .Select(c => (C: c, A: PiColonyAttention.For(c.Forecast, t)))
+                    .OrderBy(x => x.A.NextActionAt ?? DateTimeOffset.MaxValue)
+                    .ToList();
+
+                async Task Add(List<(PiColonyStatus C, PiColonyAttention A)> hits,
+                               Func<PiColonyStatus, PiColonyAttention, string> one, string manyFamily)
+                {
+                    if (hits.Count == 0) return;
+                    if (hits.Count == 1)
+                    {
+                        var (c, a) = hits[0];
+                        newAlerts.Add(new AlertRowVm
+                        {
+                            Message         = one(c, a),
+                            NavigateCommand = NavigateToPi is not null
+                                ? ReactiveCommand.Create(() => NavigateToPi!(c.CharacterId, c.PlanetId)) : null,
+                            Icon            = await GetPortraitAsync(c.CharacterId),
+                        });
+                        return;
+                    }
+                    newAlerts.Add(new AlertRowVm
+                    {
+                        Message         = Counted(manyFamily, hits.Count),
+                        NavigateCommand = NavigateToPi is not null
+                            ? ReactiveCommand.Create(() => NavigateToPi!(null, null)) : null,
+                    });
+                }
+
+                if (_alertSettings.PiExtractors)
+                    await Add(judged.Where(x => x.A.ExtractorsStopped || x.A.ExtractorsStopping).ToList(),
+                        (c, a) => a.ExtractorsStopped
+                            ? string.Format(OverviewText.AlertPiExtractorsStopped, c.CharacterName, PiNames.Planet(c))
+                            : string.Format(OverviewText.AlertPiExtractorsStopping, c.CharacterName, PiNames.Planet(c),
+                                            PiFormat.Duration(a.ExtractorsStopAt!.Value - a.Now)),
+                        nameof(OverviewText.AlertPiExtractorsManyOther));
+
+                if (_alertSettings.PiStorage)
+                    await Add(judged.Where(x => x.A.StorageFull || x.A.StorageFilling).ToList(),
+                        (c, a) => a.StorageFull
+                            ? string.Format(OverviewText.AlertPiStorageFull, c.CharacterName, PiNames.Planet(c))
+                            : string.Format(OverviewText.AlertPiStorageFilling, c.CharacterName, PiNames.Planet(c),
+                                            PiFormat.Duration(a.StorageFullAt!.Value - a.Now)),
+                        nameof(OverviewText.AlertPiStorageManyOther));
+
+                if (_alertSettings.PiInputs)
+                    await Add(judged.Where(x => x.C.Forecast.Kind == PiColonyKind.Factory && (x.A.InputsOut || x.A.InputsLow)).ToList(),
+                        (c, a) => a.InputsOut
+                            ? string.Format(OverviewText.AlertPiInputsOut, c.CharacterName, PiNames.Planet(c))
+                            : string.Format(OverviewText.AlertPiInputsLow, c.CharacterName, PiNames.Planet(c),
+                                            PiFormat.Duration(a.InputsRunOutAt!.Value - a.Now)),
+                        nameof(OverviewText.AlertPiInputsManyOther));
+
+                if (_alertSettings.PiStaleData)
+                    await Add(judged.Where(x => x.A.Stale).ToList(),
+                        (c, a) => string.Format(OverviewText.AlertPiStale, c.CharacterName, PiNames.Planet(c),
+                                                PiFormat.Duration(a.DataAge)),
+                        nameof(OverviewText.AlertPiStaleManyOther));
+
+                if (wantSlots)
+                {
+                    var free = piChars.Where(c => c.ColoniesFree > 0).ToList();
+                    if (free.Count == 1)
+                        newAlerts.Add(new AlertRowVm
+                        {
+                            Message = Plurals.Format(OverviewText.ResourceManager, nameof(OverviewText.AlertPiFreeSlotsOther),
+                                                     free[0].ColoniesFree, free[0].Name),
+                            NavigateCommand = NavigateToPiCharacters is not null ? ReactiveCommand.Create(NavigateToPiCharacters) : null,
+                            Icon = await GetPortraitAsync(free[0].CharacterId),
+                        });
+                    else if (free.Count > 1)
+                        newAlerts.Add(new AlertRowVm
+                        {
+                            Message = Counted(nameof(OverviewText.AlertPiFreeSlotsCharsOther), free.Count),
+                            NavigateCommand = NavigateToPiCharacters is not null ? ReactiveCommand.Create(NavigateToPiCharacters) : null,
+                        });
+                }
+            }
+            catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "PiAlerts", ex); }
         }
 
         // Alerts raised by the user's own alarms. Listed first and unconditionally: unlike the

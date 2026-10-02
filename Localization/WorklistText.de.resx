@@ -2182,4 +2182,82 @@
   <data name="SummaryWorstShown" xml:space="preserve">
     <value>Die schlimmsten {0} werden angezeigt; der Rest steht im Tab.</value>
   </data>
+  <data name="SourcePlanetaryIndustry" xml:space="preserve">
+    <value>Planetare Industrie</value>
+  </data>
+  <data name="KindPi" xml:space="preserve">
+    <value>PI</value>
+  </data>
+  <data name="KindTipPi" xml:space="preserve">
+    <value>Planetare Industrie</value>
+  </data>
+  <data name="PiRestartTitle" xml:space="preserve">
+    <value>Extraktoren auf {0} neu starten</value>
+  </data>
+  <data name="PiRestartStoppedDetail" xml:space="preserve">
+    <value>Vor {0} gestoppt, am {1} (exakt).</value>
+  </data>
+  <data name="PiRestartStoppingDetail" xml:space="preserve">
+    <value>Stoppt in {0}, am {1} (exakt).</value>
+  </data>
+  <data name="PiRestartWaiting" xml:space="preserve">
+    <value>Läuft noch {0}</value>
+  </data>
+  <data name="PiHaulOutTitle" xml:space="preserve">
+    <value>Ertrag von {0} abholen</value>
+  </data>
+  <data name="PiHaulOutSystemOne" xml:space="preserve">
+    <value>Ertrag von {0} Planeten in {1} abholen</value>
+  </data>
+  <data name="PiHaulOutSystemOther" xml:space="preserve">
+    <value>Ertrag von {0} Planeten in {1} abholen</value>
+  </data>
+  <data name="PiHaulOutFull" xml:space="preserve">
+    <value>{0}: Lager voll, Ertrag geht verloren (geschätzt)</value>
+  </data>
+  <data name="PiHaulOutFilling" xml:space="preserve">
+    <value>{0}: Lager voll in {1} (geschätzt)</value>
+  </data>
+  <data name="PiHaulOutCollect" xml:space="preserve">
+    <value>{0}: mindestens halb voll mit Ertrag (geschätzt)</value>
+  </data>
+  <data name="PiStaleNote" xml:space="preserve">
+    <value>Die Werte sind aus alten Daten geschätzt: Die Kolonie wurde eine Weile nicht im Spiel geöffnet.</value>
+  </data>
+  <data name="PiHaulInTitle" xml:space="preserve">
+    <value>Material zu {0} bringen</value>
+  </data>
+  <data name="PiHaulInOutDetailOne" xml:space="preserve">
+    <value>Material vor {1} aufgebraucht (geschätzt): Die Fabriken stehen still. Bringt Material für {0} Tag Betrieb.</value>
+  </data>
+  <data name="PiHaulInOutDetailOther" xml:space="preserve">
+    <value>Material vor {1} aufgebraucht (geschätzt): Die Fabriken stehen still. Bringt Material für {0} Tage Betrieb.</value>
+  </data>
+  <data name="PiHaulInLowDetailOne" xml:space="preserve">
+    <value>Material geht in {1} aus (geschätzt). Bringt Material für {0} Tag Betrieb.</value>
+  </data>
+  <data name="PiHaulInLowDetailOther" xml:space="preserve">
+    <value>Material geht in {1} aus (geschätzt). Bringt Material für {0} Tage Betrieb.</value>
+  </data>
+  <data name="PiSetUpTitleOne" xml:space="preserve">
+    <value>Kolonie einrichten – {0} Slot frei</value>
+  </data>
+  <data name="PiSetUpTitleOther" xml:space="preserve">
+    <value>Kolonie einrichten – {0} Slots frei</value>
+  </data>
+  <data name="PiSetUpDetail" xml:space="preserve">
+    <value>{0} von {1} Kolonien in Gebrauch; Interplanetary Consolidation erlaubt {1}.</value>
+  </data>
+  <data name="PiUpgradeTitle" xml:space="preserve">
+    <value>Kommandozentrale von {0} auf Stufe {1} aufwerten</value>
+  </data>
+  <data name="PiUpgradeDetail" xml:space="preserve">
+    <value>Jetzt Stufe {0}; Command Center Upgrades erlaubt {1}. Mehr CPU und Stromnetz für Extraktorköpfe und Fabriken.</value>
+  </data>
+  <data name="PiOpenTitle" xml:space="preserve">
+    <value>{0} im Spiel öffnen</value>
+  </data>
+  <data name="PiOpenDetail" xml:space="preserve">
+    <value>Die Daten der Kolonie sind {0} alt, daher ist ihren Schätzungen nicht mehr zu trauen. Das Öffnen der Kolonie im Spiel aktualisiert sie.</value>
+  </data>
 </root>

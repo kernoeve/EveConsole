@@ -1144,4 +1144,80 @@ Replace '{1}' with '{0}'?</value>
     <value>Corp</value>
     <comment>Heading over a group of ESI permissions (scopes), in the list shown when a corporation is added: the corporation itself. Short for corporation.</comment>
   </data>
+  <data name="AlertPiExtractorsStopped" xml:space="preserve">
+    <value>{0}: the extractors on {1} have stopped.</value>
+    <comment>Overview alert. {0} is the character, {1} the planet.</comment>
+  </data>
+  <data name="AlertPiExtractorsStopping" xml:space="preserve">
+    <value>{0}: the extractors on {1} stop in {2}.</value>
+    <comment>Overview alert. {0} is the character, {1} the planet, {2} a length of time.</comment>
+  </data>
+  <data name="AlertPiExtractorsManyOne" xml:space="preserve">
+    <value>Extractors stopped or stopping on {0} colony.</value>
+    <comment>Overview alert. {0} is the number of colonies.</comment>
+  </data>
+  <data name="AlertPiExtractorsManyOther" xml:space="preserve">
+    <value>Extractors stopped or stopping on {0} colonies.</value>
+    <comment>Overview alert. {0} is the number of colonies.</comment>
+  </data>
+  <data name="AlertPiStorageFull" xml:space="preserve">
+    <value>{0}: storage on {1} is full (estimated).</value>
+    <comment>Overview alert. {0} is the character, {1} the planet.</comment>
+  </data>
+  <data name="AlertPiStorageFilling" xml:space="preserve">
+    <value>{0}: storage on {1} fills in {2} (estimated).</value>
+    <comment>Overview alert. {0} is the character, {1} the planet, {2} a length of time.</comment>
+  </data>
+  <data name="AlertPiStorageManyOne" xml:space="preserve">
+    <value>Storage full or filling on {0} colony (estimated).</value>
+    <comment>Overview alert. {0} is the number of colonies.</comment>
+  </data>
+  <data name="AlertPiStorageManyOther" xml:space="preserve">
+    <value>Storage full or filling on {0} colonies (estimated).</value>
+    <comment>Overview alert. {0} is the number of colonies.</comment>
+  </data>
+  <data name="AlertPiInputsOut" xml:space="preserve">
+    <value>{0}: the factories on {1} have run out of input (estimated).</value>
+    <comment>Overview alert. {0} is the character, {1} the planet.</comment>
+  </data>
+  <data name="AlertPiInputsLow" xml:space="preserve">
+    <value>{0}: input on {1} runs out in {2} (estimated).</value>
+    <comment>Overview alert. {0} is the character, {1} the planet, {2} a length of time.</comment>
+  </data>
+  <data name="AlertPiInputsManyOne" xml:space="preserve">
+    <value>Input out or running out on {0} factory planet (estimated).</value>
+    <comment>Overview alert. {0} is the number of planets.</comment>
+  </data>
+  <data name="AlertPiInputsManyOther" xml:space="preserve">
+    <value>Input out or running out on {0} factory planets (estimated).</value>
+    <comment>Overview alert. {0} is the number of planets.</comment>
+  </data>
+  <data name="AlertPiStale" xml:space="preserve">
+    <value>{0}: {1} has not been opened in the game for {2}; its estimates are no longer trustworthy.</value>
+    <comment>Overview alert. {0} is the character, {1} the planet, {2} a length of time.</comment>
+  </data>
+  <data name="AlertPiStaleManyOne" xml:space="preserve">
+    <value>{0} colony has not been opened in the game for a while; its estimates are no longer trustworthy.</value>
+    <comment>Overview alert. {0} is the number of colonies.</comment>
+  </data>
+  <data name="AlertPiStaleManyOther" xml:space="preserve">
+    <value>{0} colonies have not been opened in the game for a while; their estimates are no longer trustworthy.</value>
+    <comment>Overview alert. {0} is the number of colonies.</comment>
+  </data>
+  <data name="AlertPiFreeSlotsOne" xml:space="preserve">
+    <value>{1} has {0} unused colony slot.</value>
+    <comment>Overview alert. {0} is the number of free slots, {1} the character.</comment>
+  </data>
+  <data name="AlertPiFreeSlotsOther" xml:space="preserve">
+    <value>{1} has {0} unused colony slots.</value>
+    <comment>Overview alert. {0} is the number of free slots, {1} the character.</comment>
+  </data>
+  <data name="AlertPiFreeSlotsCharsOne" xml:space="preserve">
+    <value>{0} PI character has unused colony slots.</value>
+    <comment>Overview alert. {0} is the number of characters. "PI" is the game's abbreviation for Planetary Industry.</comment>
+  </data>
+  <data name="AlertPiFreeSlotsCharsOther" xml:space="preserve">
+    <value>{0} PI characters have unused colony slots.</value>
+    <comment>Overview alert. {0} is the number of characters. "PI" is the game's abbreviation for Planetary Industry.</comment>
+  </data>
 </root>
