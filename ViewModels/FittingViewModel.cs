@@ -457,6 +457,7 @@ public class FittingViewModel : ReactiveObject
 
         ImportEftCommand   = Guarded(ReactiveCommand.CreateFromTask(ImportEftAsync));
         OpenFitCommand     = Guarded(ReactiveCommand.CreateFromTask(OpenFitAsync));
+        OpenShipCommand    = Guarded(ReactiveCommand.CreateFromTask(OpenShipAsync));
         AddSelectedCommand = Guarded(ReactiveCommand.CreateFromTask(() => SelectedResult is { } r ? AddAsync(r) : Task.CompletedTask));
         AddToCargoCommand  = Guarded(ReactiveCommand.Create(() =>
         {
@@ -982,6 +983,7 @@ public class FittingViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> ImportEftCommand   { get; }
     /// <summary>Opens a saved fit: EVE Console's, or a fitting from the game.</summary>
     public ReactiveCommand<Unit, Unit> OpenFitCommand     { get; }
+    public ReactiveCommand<Unit, Unit> OpenShipCommand    { get; }
 
     /// <summary>Asks the view for EFT text to import; null when cancelled.</summary>
     public Interaction<Unit, string?> AskEft { get; } = new();
@@ -990,6 +992,8 @@ public class FittingViewModel : ReactiveObject
     /// <summary>Asks the view to show the in-game fittings picker.</summary>
     /// <summary>Asks the view to show the saved-fits picker; the fit chosen, or null.</summary>
     public Interaction<FitSelectorViewModel, FitEntry?> PickFit { get; } = new();
+    /// <summary>Asks the view to show the Existing ships picker; the ship chosen, or null.</summary>
+    public Interaction<ExistingShipsViewModel, ExistingShip?> PickShip { get; } = new();
     /// <summary>Asks the view a yes/no question (overwriting a fit); true for yes.</summary>
     public Interaction<string, bool> AskConfirm { get; } = new();
     /// <summary>Asks the view where to save; null when cancelled.</summary>
@@ -1033,6 +1037,28 @@ public class FittingViewModel : ReactiveObject
                 tab.SelectedSkillSource = pilot;
         }
         Status = string.Format(FittingText.StatusImportedFromGame, esi.Name);
+    }
+
+    /// <summary>
+    /// Opens one of the characters' or personal corporations' assembled ships in a new tab, as
+    /// the asset list has it fitted. A new fit, saved nowhere: Save As puts it where it should go.
+    /// Calculated with the owner's skills when a character owns it and no character pilot was
+    /// already chosen.
+    /// </summary>
+    private async Task OpenShipAsync()
+    {
+        if (Data is null || Catalog is null) await EnsureLoadedAsync();
+        if (Data is null || Catalog is null) return;
+        var ship = await PickShip.Handle(new ExistingShipsViewModel(ct => ExistingShips.LoadAsync(DbFactory, Esi, ct)));
+        if (ship is null) return;
+
+        var fit = await ExistingShips.ToFitAsync(ship, SdeNames.Type(ship.HullTypeId, ship.HullName), Data, Catalog);
+        var tab = NewTab();
+        await tab.LoadFitAsync(fit);
+        if (!ship.OwnedByCorporation && tab.SelectedSkillSource?.CharacterId is null
+            && SkillSources.FirstOrDefault(s => s.CharacterId == ship.OwnerId) is { } pilot)
+            tab.SelectedSkillSource = pilot;
+        Status = string.Format(FittingText.StatusOpenedShip, fit.Name);
     }
 
     /// <summary>The picker of every saved fit: EVE Console's, and the characters' fittings in the game.</summary>

@@ -1314,6 +1314,35 @@ public class EsiClient
     }
 
     /// <summary>
+    /// <see cref="PostAuthAsync{T}"/> with a corporation's own token — the asset names of a
+    /// corporation's ships. Stands down while ESI is paused, as every corporation call does.
+    /// </summary>
+    internal async Task<(int StatusCode, T? Data)> PostCorpAuthAsync<T>(
+        long corpId, string path, object body, CancellationToken ct)
+    {
+        if (IsErrorLimitBlocked) return (_serverOffline ? 503 : 420, default);
+        try
+        {
+            var token = await EnsureValidCorpTokenAsync(corpId, ct);
+            using var request = new HttpRequestMessage(HttpMethod.Post, path);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.AccessToken);
+            request.Content = JsonBody(body);
+
+            HttpResponseMessage response;
+            using (await AcquireSlotAsync(ct))
+                response = await _http.SendAsync(request, ct);
+
+            var statusCode = (int)response.StatusCode;
+            T? data = default;
+            if (response.IsSuccessStatusCode)
+                data = await response.Content.ReadFromJsonAsync<T>(JsonOptions, ct);
+            return (statusCode, data);
+        }
+        catch (OperationCanceledException) { throw; }
+        catch { return (0, default); }
+    }
+
+    /// <summary>
     /// A JSON request body that declares its length.
     ///
     /// <para><b>⚠️ Not <c>JsonContent.Create</c>.</b> JsonContent cannot compute its length up

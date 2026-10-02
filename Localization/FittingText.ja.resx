@@ -1165,4 +1165,64 @@
   <data name="OwnerEveryone" xml:space="preserve">
     <value>すべて</value>
   </data>
+  <data name="ExistingShips" xml:space="preserve">
+    <value>所有艦…</value>
+  </data>
+  <data name="TipExistingShips" xml:space="preserve">
+    <value>キャラクターと個人コーポレーションが所有する組み立て済みの艦すべてを、アセット一覧が最後に確認した装備で表示します。選んだ艦は新しいタブで新しいフィッティングとして開きます。残すには「名前を付けて保存」を使ってください。</value>
+  </data>
+  <data name="TitleExistingShips" xml:space="preserve">
+    <value>所有艦</value>
+  </data>
+  <data name="ShipsFilterWatermark" xml:space="preserve">
+    <value>艦の名前、艦種、星系、所有者の一部</value>
+  </data>
+  <data name="ColShip" xml:space="preserve">
+    <value>艦</value>
+  </data>
+  <data name="ColHull" xml:space="preserve">
+    <value>艦種</value>
+  </data>
+  <data name="ColOwner" xml:space="preserve">
+    <value>所有者</value>
+  </data>
+  <data name="ColSystem" xml:space="preserve">
+    <value>星系</value>
+  </data>
+  <data name="ColHullValue" xml:space="preserve">
+    <value>艦体の価値</value>
+  </data>
+  <data name="ColFitValue" xml:space="preserve">
+    <value>装備の価値</value>
+  </data>
+  <data name="ColTotalValue" xml:space="preserve">
+    <value>合計価値</value>
+  </data>
+  <data name="OpenShip" xml:space="preserve">
+    <value>新しいフィッティングとして開く</value>
+  </data>
+  <data name="TipOpenShip" xml:space="preserve">
+    <value>艦と装備を新しいタブで開きます（まだどこにも保存されていません）。「名前を付けて保存」で EVE Console かキャラクターのフィッティングに保存できます。</value>
+  </data>
+  <data name="ShipsLoading" xml:space="preserve">
+    <value>艦を読み込んでいます…</value>
+  </data>
+  <data name="ShipsCount" xml:space="preserve">
+    <value>{0:N0} 隻</value>
+  </data>
+  <data name="ShipsNone" xml:space="preserve">
+    <value>キャラクターや個人コーポレーションのアセットに組み立て済みの艦はありません。</value>
+  </data>
+  <data name="ShipsNote" xml:space="preserve">
+    <value>価値は {0} で計算。装備は最後のアセット更新で取り付けられていたもの（モジュール、リグ、サブシステム、装填済みチャージ、ドローン、ファイター）で、カーゴは含みません。</value>
+  </data>
+  <data name="ShipsNoteNoPrices" xml:space="preserve">
+    <value>価格がありません。設定 → マーケットでアセット価値のマーケットを選んでください。装備は最後のアセット更新で取り付けられていたもの（モジュール、リグ、サブシステム、装填済みチャージ、ドローン、ファイター）で、カーゴは含みません。</value>
+  </data>
+  <data name="ShipsNamesMissing" xml:space="preserve">
+    <value>一部の艦の名前をゲームから読み取れなかったため、それらは艦種のみで表示しています。</value>
+  </data>
+  <data name="StatusOpenedShip" xml:space="preserve">
+    <value>{0} を新しいフィッティングとして開きました（未保存）。残すには「名前を付けて保存」を使ってください。</value>
+  </data>
 </root>

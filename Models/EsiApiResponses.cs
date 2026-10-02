@@ -531,6 +531,13 @@ public record EsiFittingData(
     [property: JsonPropertyName("items")]       List<EsiFittingItem> Items
 );
 
+/// <summary>POST characters/{id}/assets/names/ (and the corporation's): the name given to an item —
+/// a ship's, a container's. An item never named comes back as "None".</summary>
+public record EsiAssetName(
+    [property: JsonPropertyName("item_id")] long   ItemId,
+    [property: JsonPropertyName("name")]    string Name
+);
+
 public record EsiFittingItem(
     [property: JsonPropertyName("type_id")]  int    TypeId,
     [property: JsonPropertyName("flag")]     string Flag,

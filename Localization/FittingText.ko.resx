@@ -1165,4 +1165,64 @@
   <data name="OwnerEveryone" xml:space="preserve">
     <value>전체</value>
   </data>
+  <data name="ExistingShips" xml:space="preserve">
+    <value>보유 함선…</value>
+  </data>
+  <data name="TipExistingShips" xml:space="preserve">
+    <value>캐릭터와 개인 코퍼레이션이 보유한 조립된 함선 전체를, 자산 목록이 마지막으로 본 피팅과 함께 보여 줍니다. 고른 함선은 새 탭에서 새 피팅으로 열립니다. 남기려면 '다른 이름으로 저장'을 사용하세요.</value>
+  </data>
+  <data name="TitleExistingShips" xml:space="preserve">
+    <value>보유 함선</value>
+  </data>
+  <data name="ShipsFilterWatermark" xml:space="preserve">
+    <value>함선 이름, 함급, 항성계, 소유자의 일부</value>
+  </data>
+  <data name="ColShip" xml:space="preserve">
+    <value>함선</value>
+  </data>
+  <data name="ColHull" xml:space="preserve">
+    <value>함급</value>
+  </data>
+  <data name="ColOwner" xml:space="preserve">
+    <value>소유자</value>
+  </data>
+  <data name="ColSystem" xml:space="preserve">
+    <value>항성계</value>
+  </data>
+  <data name="ColHullValue" xml:space="preserve">
+    <value>선체 가치</value>
+  </data>
+  <data name="ColFitValue" xml:space="preserve">
+    <value>피팅 가치</value>
+  </data>
+  <data name="ColTotalValue" xml:space="preserve">
+    <value>총 가치</value>
+  </data>
+  <data name="OpenShip" xml:space="preserve">
+    <value>새 피팅으로 열기</value>
+  </data>
+  <data name="TipOpenShip" xml:space="preserve">
+    <value>함선과 피팅을 새 탭에서 엽니다(아직 어디에도 저장되지 않음). '다른 이름으로 저장'으로 EVE Console이나 캐릭터의 피팅에 저장할 수 있습니다.</value>
+  </data>
+  <data name="ShipsLoading" xml:space="preserve">
+    <value>함선을 읽는 중…</value>
+  </data>
+  <data name="ShipsCount" xml:space="preserve">
+    <value>함선 {0:N0}척</value>
+  </data>
+  <data name="ShipsNone" xml:space="preserve">
+    <value>캐릭터나 개인 코퍼레이션의 자산에 조립된 함선이 없습니다.</value>
+  </data>
+  <data name="ShipsNote" xml:space="preserve">
+    <value>{0} 기준 가치. 피팅은 마지막 자산 갱신 때 장착되어 있던 것(모듈, 리그, 서브시스템, 장전된 차지, 드론, 파이터)이며 화물칸은 포함하지 않습니다.</value>
+  </data>
+  <data name="ShipsNoteNoPrices" xml:space="preserve">
+    <value>가격이 없습니다. 설정 → 거래소에서 자산 가치에 쓸 거래소를 고르세요. 피팅은 마지막 자산 갱신 때 장착되어 있던 것(모듈, 리그, 서브시스템, 장전된 차지, 드론, 파이터)이며 화물칸은 포함하지 않습니다.</value>
+  </data>
+  <data name="ShipsNamesMissing" xml:space="preserve">
+    <value>일부 함선 이름을 게임에서 읽지 못해, 그 함선들은 함급으로만 표시합니다.</value>
+  </data>
+  <data name="StatusOpenedShip" xml:space="preserve">
+    <value>{0}을(를) 새 피팅으로 열었습니다(아직 저장 안 됨). 남기려면 '다른 이름으로 저장'을 사용하세요.</value>
+  </data>
 </root>

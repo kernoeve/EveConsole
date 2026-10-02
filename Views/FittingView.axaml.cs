@@ -60,6 +60,11 @@ public partial class FittingView : UserControl
             var result = owner is null ? null : await new FitSelectorWindow(ctx.Input).ShowDialog<FitSelectorResult?>(owner);
             ctx.SetOutput(result?.Entry);
         }));
+        _handlers.Add(vm.PickShip.RegisterHandler(async ctx =>
+        {
+            var owner = TopLevel.GetTopLevel(this) as Window;
+            ctx.SetOutput(owner is null ? null : await new ExistingShipsWindow(ctx.Input).ShowDialog<EveConsole.Services.Fitting.ExistingShip?>(owner));
+        }));
         _handlers.Add(vm.AskConfirm.RegisterHandler(async ctx =>
         {
             var owner = TopLevel.GetTopLevel(this) as Window;

@@ -1564,4 +1564,84 @@
     <value>Everyone</value>
     <comment>Fit picker, the pick list of owners: every character's and corporation's fittings. Short.</comment>
   </data>
+  <data name="ExistingShips" xml:space="preserve">
+    <value>Existing ships…</value>
+    <comment>Fitting tool, toolbar button: opens a list of the user's own assembled ships to load one as a fit.</comment>
+  </data>
+  <data name="TipExistingShips" xml:space="preserve">
+    <value>Every assembled ship your characters and personal corporations own, with its fit as the asset list last saw it. The one you pick opens in a new tab as a new fit — use Save As to keep it.</value>
+    <comment>Fitting tool, tooltip on the Existing ships button.</comment>
+  </data>
+  <data name="TitleExistingShips" xml:space="preserve">
+    <value>Existing ships</value>
+    <comment>Window title: the list of the user's own assembled ships.</comment>
+  </data>
+  <data name="ShipsFilterWatermark" xml:space="preserve">
+    <value>Part of a ship's name, its hull, its system or its owner</value>
+    <comment>Existing ships window, placeholder in the filter box.</comment>
+  </data>
+  <data name="ColShip" xml:space="preserve">
+    <value>Ship</value>
+    <comment>Existing ships window, column header: the name the owner gave the ship.</comment>
+  </data>
+  <data name="ColHull" xml:space="preserve">
+    <value>Hull</value>
+    <comment>Existing ships window, column header: the ship's type.</comment>
+  </data>
+  <data name="ColOwner" xml:space="preserve">
+    <value>Owner</value>
+    <comment>Existing ships window, column header: the character or corporation that owns it.</comment>
+  </data>
+  <data name="ColSystem" xml:space="preserve">
+    <value>System</value>
+    <comment>Existing ships window, column header: the solar system the ship is in.</comment>
+  </data>
+  <data name="ColHullValue" xml:space="preserve">
+    <value>Hull value</value>
+    <comment>Existing ships window, column header: what the hull alone is worth.</comment>
+  </data>
+  <data name="ColFitValue" xml:space="preserve">
+    <value>Fit value</value>
+    <comment>Existing ships window, column header: what is fitted to it is worth.</comment>
+  </data>
+  <data name="ColTotalValue" xml:space="preserve">
+    <value>Total value</value>
+    <comment>Existing ships window, column header: hull and fit together.</comment>
+  </data>
+  <data name="OpenShip" xml:space="preserve">
+    <value>Open as a new fit</value>
+    <comment>Existing ships window, button: loads the chosen ship into a new tab.</comment>
+  </data>
+  <data name="TipOpenShip" xml:space="preserve">
+    <value>Opens the ship and its fit in a new tab, saved nowhere yet: Save As keeps it in EVE Console or in a character's fittings.</value>
+    <comment>Existing ships window, tooltip on the open button.</comment>
+  </data>
+  <data name="ShipsLoading" xml:space="preserve">
+    <value>Reading your ships…</value>
+    <comment>Existing ships window, while the list is loading.</comment>
+  </data>
+  <data name="ShipsCount" xml:space="preserve">
+    <value>{0:N0} ships</value>
+    <comment>Existing ships window, beside the filter: how many ships are listed. {0} is the number.</comment>
+  </data>
+  <data name="ShipsNone" xml:space="preserve">
+    <value>No assembled ships in your characters' or personal corporations' assets.</value>
+    <comment>Existing ships window, when there is nothing to list.</comment>
+  </data>
+  <data name="ShipsNote" xml:space="preserve">
+    <value>Values at {0}. The fit is what the last asset update saw fitted: modules, rigs, subsystems, loaded charges, drones and fighters — not the cargo.</value>
+    <comment>Existing ships window, under the list. {0} is the price basis, e.g. "Sell price at Jita 4-4".</comment>
+  </data>
+  <data name="ShipsNoteNoPrices" xml:space="preserve">
+    <value>No prices: choose a market for asset values in Settings → Market. The fit is what the last asset update saw fitted: modules, rigs, subsystems, loaded charges, drones and fighters — not the cargo.</value>
+    <comment>Existing ships window, under the list, when no market is chosen for asset values.</comment>
+  </data>
+  <data name="ShipsNamesMissing" xml:space="preserve">
+    <value>Some ship names could not be read from the game; those are listed by hull only.</value>
+    <comment>Existing ships window, added after the note when ESI did not give some ships' names.</comment>
+  </data>
+  <data name="StatusOpenedShip" xml:space="preserve">
+    <value>Opened {0} as a new fit — not saved yet; use Save As to keep it.</value>
+    <comment>Fitting tool status line after opening an existing ship. {0} is the ship's name.</comment>
+  </data>
 </root>
