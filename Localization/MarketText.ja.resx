@@ -1075,4 +1075,10 @@
   <data name="ExpiryFirst" xml:space="preserve">
     <value>{0}（最初の期限）</value>
   </data>
+  <data name="ColDestUnitsSold30d" xml:space="preserve">
+    <value>目的地 30日間の販売数</value>
+  </data>
+  <data name="ColDestIskSold30d" xml:space="preserve">
+    <value>目的地 30日間の販売額</value>
+  </data>
 </root>

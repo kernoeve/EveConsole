@@ -433,6 +433,23 @@ public class MarketHistoryService : ReactiveObject
     }
 
     /// <summary>
+    /// Units and ISK traded over the last 30 calendar days, in one read — what
+    /// <see cref="Get30DayUnitVolumeAsync"/> and <see cref="Get30DayIskVolumeAsync"/> give
+    /// separately, for a caller that wants both for every row of a list.
+    /// </summary>
+    public async Task<(double Units, double Isk)> Get30DayVolumesAsync(int regionId, int typeId)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync();
+        var cutoff = ThirtyDayCutoff();
+        var recent = await db.MarketTypeHistories
+            .Where(h => h.RegionId == regionId && h.TypeId == typeId
+                     && string.Compare(h.Date, cutoff) >= 0)
+            .Select(h => new { h.Volume, h.Average })
+            .ToListAsync();
+        return (recent.Sum(h => (double)h.Volume), recent.Sum(h => (double)h.Volume * h.Average));
+    }
+
+    /// <summary>
     /// Total units traded over the last 30 calendar days.
     /// </summary>
     public async Task<double> Get30DayUnitVolumeAsync(int regionId, int typeId)

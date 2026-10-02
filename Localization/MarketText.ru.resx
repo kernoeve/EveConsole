@@ -1084,4 +1084,10 @@
   <data name="ExpiryFirst" xml:space="preserve">
     <value>{0} (ближайший)</value>
   </data>
+  <data name="ColDestUnitsSold30d" xml:space="preserve">
+    <value>Назн. прод. 30 д, ед.</value>
+  </data>
+  <data name="ColDestIskSold30d" xml:space="preserve">
+    <value>Назн. прод. 30 д, ISK</value>
+  </data>
 </root>

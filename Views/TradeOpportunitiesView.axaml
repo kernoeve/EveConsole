@@ -349,6 +349,29 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
 
+        <!-- What the destination's region traded over 30 days: how much room a sell order has. -->
+        <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColDestUnitsSold30d}" Width="140" SortMemberPath="DestUnitVol30d" ClipboardContentBinding="{Binding DestUnitVol30dDisplay}">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding DestUnitVol30dDisplay}"
+                         Foreground="{DynamicResource TextMutedBrush}"
+                         HorizontalAlignment="Right" Padding="0 0 8 0"
+                         VerticalAlignment="Center" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <DataGridTemplateColumn Header="{x:Static loc:MarketText.ColDestIskSold30d}" Width="140" SortMemberPath="DestIskVol30d" ClipboardContentBinding="{Binding DestIskVol30dDisplay}">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding DestIskVol30dDisplay}"
+                         Foreground="{DynamicResource TextMutedBrush}"
+                         HorizontalAlignment="Right" Padding="0 0 8 0"
+                         VerticalAlignment="Center" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
       </DataGrid.Columns>
     </DataGrid>
 

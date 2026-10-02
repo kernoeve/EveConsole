@@ -1078,4 +1078,10 @@
   <data name="ExpiryFirst" xml:space="preserve">
     <value>{0} (premier à expirer)</value>
   </data>
+  <data name="ColDestUnitsSold30d" xml:space="preserve">
+    <value>Dest. qté vendue 30 j</value>
+  </data>
+  <data name="ColDestIskSold30d" xml:space="preserve">
+    <value>Dest. ISK vendus 30 j</value>
+  </data>
 </root>

@@ -1436,4 +1436,12 @@
     <value>{0} (first)</value>
     <comment>Standing Buy Orders and the Overview, Expires column, when several orders back one row: {0} is the expiry of the one that lapses first, as in the entries above. Keep {0} first: the column sorts on this text.</comment>
   </data>
+  <data name="ColDestUnitsSold30d" xml:space="preserve">
+    <value>Dest Units Sold 30d</value>
+    <comment>Trade Opportunities, column: units traded in the destination's region over the last 30 days.</comment>
+  </data>
+  <data name="ColDestIskSold30d" xml:space="preserve">
+    <value>Dest ISK Sold 30d</value>
+    <comment>Trade Opportunities, column: ISK traded in the destination's region over the last 30 days.</comment>
+  </data>
 </root>

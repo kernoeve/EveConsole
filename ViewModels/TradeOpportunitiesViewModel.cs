@@ -38,15 +38,22 @@ public class TradeRow
     public double TotalVolume   { get; init; }
     public double TotalCost     { get; init; }
     public double TotalProfit   { get; init; }
+    // Units and ISK traded in the destination's region over the last 30 days — how much the
+    // market there takes, for judging how far a sell order will have to undercut. From the
+    // cached history (MarketHistoryService); 0 where none has been read for the type.
+    public double DestUnitVol30d { get; init; }
+    public double DestIskVol30d  { get; init; }
 
     public string BestSellDisplay    => FormatIsk(BestSell);
     public string DestPriceDisplay   => FormatIsk(DestPrice);
     public string ProfitUnitDisplay  => FormatIsk(ProfitPerUnit);
-    public string ProfitM3Display    => $"{ProfitPerM3:N2}";
+    public string ProfitM3Display    => FormatIsk(ProfitPerM3);
     public string QuantityDisplay    => $"{Quantity:N0}";
     public string TotalVolumeDisplay => $"{TotalVolume:N1}";
     public string TotalCostDisplay   => FormatIsk(TotalCost);
     public string TotalProfitDisplay => FormatIsk(TotalProfit);
+    public string DestUnitVol30dDisplay => $"{DestUnitVol30d:N0}";
+    public string DestIskVol30dDisplay  => FormatIsk(DestIskVol30d);
 
     /// <summary>Single-click opens the Item Browser. Double-clicking the row still routes
     /// through the tool's own RequestItemNavigation, which keeps the trade context.</summary>
@@ -369,9 +376,9 @@ public class TradeOpportunitiesViewModel : ReactiveObject
                 SourceStation.LocationId, DestinationStation.LocationId);
 
             bool needsVolume  = minIskVol.HasValue || minUnitVol.HasValue;
-            int? destRegionId = needsVolume
-                ? await GetRegionIdAsync(DestinationStation.LocationId)
-                : null;
+            // Always looked up: the 30-day destination columns show it whether or not a volume
+            // filter is set. Without it the columns read 0, and only a filter makes that an error.
+            int? destRegionId = await GetRegionIdAsync(DestinationStation.LocationId);
 
             if (needsVolume && !destRegionId.HasValue)
             {
@@ -465,20 +472,14 @@ public class TradeOpportunitiesViewModel : ReactiveObject
             if (remainM3 < c.M3PerUnit) continue;
             if (remainIsk < c.BestSell) break; // can't afford even 1 unit — done
 
-            // 30-day volume filters read history cached by the background sweep
-            // (MarketHistoryService) — no ESI calls here.
-            if ((minIskVol30d.HasValue || minUnitVol30d.HasValue) && destRegionId.HasValue)
+            // The destination's 30-day volumes, for the columns and the filters alike — read from
+            // history cached by the background sweep (MarketHistoryService), no ESI calls here.
+            double iskVol = 0, unitVol = 0;
+            if (destRegionId.HasValue)
             {
-                if (minIskVol30d.HasValue)
-                {
-                    var iskVol = await _historyService.Get30DayIskVolumeAsync(destRegionId.Value, c.TypeId);
-                    if (iskVol < minIskVol30d.Value) continue;
-                }
-                if (minUnitVol30d.HasValue)
-                {
-                    var unitVol = await _historyService.Get30DayUnitVolumeAsync(destRegionId.Value, c.TypeId);
-                    if (unitVol < minUnitVol30d.Value) continue;
-                }
+                (unitVol, iskVol) = await _historyService.Get30DayVolumesAsync(destRegionId.Value, c.TypeId);
+                if (minIskVol30d.HasValue  && iskVol  < minIskVol30d.Value)  continue;
+                if (minUnitVol30d.HasValue && unitVol < minUnitVol30d.Value) continue;
             }
 
             var maxByM3  = (long)Math.Floor(remainM3  / c.M3PerUnit);
@@ -503,6 +504,8 @@ public class TradeOpportunitiesViewModel : ReactiveObject
                 TotalVolume   = vol,
                 TotalCost     = cost,
                 TotalProfit   = profit,
+                DestUnitVol30d = unitVol,
+                DestIskVol30d  = iskVol,
             });
 
             remainM3  -= vol;
