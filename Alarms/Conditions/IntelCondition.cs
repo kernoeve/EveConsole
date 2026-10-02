@@ -4,18 +4,20 @@ using System.Text.Json;
 using EveConsole.Localization;
 using EveConsole.Services;
 using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
 using EveConsole.Data;
 using EveConsole.Models;
 
 namespace EveConsole.Alarms.Conditions;
 
 /// <summary>
-/// Fires when a pilot is reported in a watched system — either a named list of systems, or
-/// everything within a jump range of one system.
+/// Fires when a pilot is reported within a jump range of what is being watched: the capsuleer's
+/// characters while they are undocked (the default), the named characters wherever they are,
+/// or a list of systems. One range covers all of them; 0 is the system itself.
 ///
-/// <para>Matches are keyed on the intel report's own id, so a hostile who sits in a system and
-/// gets re-reported every few minutes is one alert per report rather than a repeat of the same
-/// one, and a genuinely new report is always news.</para>
+/// <para>Matches are keyed on the system, the pilots and a five-minute slice of time (see
+/// <see cref="MatchKey"/>), so the same sighting called by three people is one alert, and a
+/// pilot re-reported later is news again.</para>
 /// </summary>
 public sealed class IntelCondition : IAlarmCondition
 {
@@ -25,6 +27,13 @@ public sealed class IntelCondition : IAlarmCondition
     /// </summary>
     private static readonly TimeSpan Lookback = TimeSpan.FromHours(2);
 
+    /// <summary>
+    /// How far back a check around characters looks. Shorter, because the watched systems move
+    /// with the pilot: a report an hour old in a system they have just jumped next to is not a
+    /// hostile near them, and would be announced as if it were.
+    /// </summary>
+    private static readonly TimeSpan CharacterLookback = TimeSpan.FromMinutes(10);
+
     private const int MaxReports = 100;
 
     /// <summary>
@@ -32,6 +41,17 @@ public sealed class IntelCondition : IAlarmCondition
     /// the region, and the system list goes into the query as an IN clause.
     /// </summary>
     private const int MaxJumps = 15;
+
+    /// <summary>What a new alarm starts on. Around a pilot, their own system alone is too
+    /// little warning; the systems a list names are watched as they are unless asked.</summary>
+    private const int DefaultJumps = 5;
+
+    // What the range is drawn around. The strings are what the editor shows and what the config
+    // stores; the reader is lenient about case and a few synonyms.
+    internal const string AroundUndocked   = "Undocked characters";
+    internal const string AroundCharacters = "Characters";
+    internal const string AroundSystems    = "Systems";
+    private static readonly string[] AroundChoices = [AroundUndocked, AroundCharacters, AroundSystems];
 
     private readonly SystemGraph _graph;
 
@@ -41,32 +61,54 @@ public sealed class IntelCondition : IAlarmCondition
     public string DisplayName => "Intel report";
 
     public string Description =>
-        "Fires when someone reports a pilot in a system you are watching. Give a list of " +
-        "systems, or one system and a jump range to cover everything around it. Reads the " +
-        "intel channels already being parsed under Settings → Chat Logs.";
+        "Fires when someone reports a pilot within a jump range of what you are watching: your " +
+        "characters while they are undocked (the default), named characters wherever they are, " +
+        "or a list of systems. A range of 0 watches just those systems. Reads the intel " +
+        "channels already being parsed under Settings → Chat Logs, and kills there with hostile " +
+        "pilots among the attackers, which place those pilots in the system.";
 
     public object ParameterSchema => new
     {
         type = "object",
         properties = new
         {
+            around = new
+            {
+                type        = "string",
+                @enum       = AroundChoices,
+                @default    = AroundUndocked,
+                title       = "Watch around",
+                description = "\"Undocked characters\": wherever your online characters are in space; " +
+                              "docked ones are not watched. \"Characters\": wherever they are while " +
+                              "online, docked or not. \"Systems\": the systems listed below.",
+            },
+            characters = new
+            {
+                type        = "array",
+                items       = new { type = "string" },
+                format      = "character-name",
+                show_if     = new Dictionary<string, string[]> { ["around"] = [AroundUndocked, AroundCharacters] },
+                title       = "Characters",
+                description = "Optional. Names of your own characters to watch around; leave empty " +
+                              "for all of them. Only characters that are online count.",
+            },
             systems = new
             {
-                type        = "string",
-                description = "Comma-separated system names to watch, e.g. \"Jita, Amarr\". " +
-                              "May be left empty if a jump range is given instead.",
-            },
-            within_jumps_of = new
-            {
-                type        = "string",
-                description = "Optional. A system name; everything within the jump range below is " +
-                              "watched. Combined with the list above rather than replacing it.",
+                type        = "array",
+                items       = new { type = "string" },
+                format      = "system-name",
+                show_if     = new Dictionary<string, string[]> { ["around"] = [AroundSystems] },
+                title       = "Systems",
+                description = "System names to watch around, e.g. [\"Jita\", \"Amarr\"]. Used when " +
+                              "'around' is \"Systems\".",
             },
             jumps = new
             {
                 type        = "integer",
-                description = "How many gate jumps out from 'within_jumps_of' to watch. 0 means that " +
-                              "system only. Capped at 15 — past that it stops being a neighbourhood.",
+                @default    = DefaultJumps,
+                description = "How many gate jumps out from each character or system to watch. 0 " +
+                              "means their own system only. Capped at 15 — past that it stops being " +
+                              "a neighbourhood.",
             },
             min_players = new
             {
@@ -85,36 +127,52 @@ public sealed class IntelCondition : IAlarmCondition
 
     // The editor's words; the three above are the agent's and stay English.
     public string ScreenName        => AlarmsText.CheckIntel;
-    public string ScreenDescription => AlarmsText.CheckIntelNote;
+    public string ScreenDescription => Sentences.Join(AlarmsText.CheckIntelNote, AlarmsText.CheckIntelKillsNote);
 
     public AlarmFieldText? ScreenField(string property) => property switch
     {
+        "around"           => new(AlarmsText.IntelAroundLabel,      AlarmsText.IntelAroundNote),
+        "characters"       => new(AlarmsText.IntelCharactersLabel,  AlarmsText.IntelCharactersNote),
         // Examples as the game names them in the interface language: names the box takes.
         "systems"          => new(AlarmsText.IntelSystemsLabel,     string.Format(AlarmsText.IntelSystemsNote,
                                   SdeNames.SolarSystem(30000142, "Jita"), SdeNames.SolarSystem(30002187, "Amarr"))),
-        "within_jumps_of"  => new(AlarmsText.IntelWithinJumpsLabel, AlarmsText.IntelWithinJumpsNote),
         "jumps"            => new(AlarmsText.IntelJumpsLabel,       AlarmsText.IntelJumpsNote),
         "min_players"      => new(AlarmsText.IntelMinPlayersLabel,  AlarmsText.IntelMinPlayersNote),
         "ignore_no_visual" => new(AlarmsText.IntelIgnoreNvLabel,    AlarmsText.IntelIgnoreNvNote),
         _                  => null,
     };
 
+    public string? ScreenOption(string property, string value) => value switch
+    {
+        AroundUndocked   => AlarmsText.OptionUndockedCharacters,
+        AroundCharacters => AlarmsText.OptionCharacters,
+        AroundSystems    => AlarmsText.OptionSystems,
+        _                => null,
+    };
+
     public string Describe(JsonElement config)
     {
-        var systems = ReadCsv(config, "systems");
-        var origin  = ReadString(config, "within_jumps_of");
-        var jumps   = ReadInt(config, "jumps") ?? 0;
+        var around  = ReadAround(config);
+        var jumps   = ReadJumps(config, around);
         var minimum = ReadInt(config, "min_players") ?? 1;
+        var range   = jumps > 0 ? $"within {jumps} jump{(jumps == 1 ? "" : "s")} of " : "";
 
-        var parts = new List<string>();
-        if (systems.Count > 0) parts.Add(string.Join(", ", systems));
-        if (!string.IsNullOrWhiteSpace(origin))
-            parts.Add(jumps > 0 ? $"within {jumps} jump{(jumps == 1 ? "" : "s")} of {origin}" : origin);
+        string where;
+        if (around == AroundSystems)
+        {
+            var systems = SystemNames(config);
+            if (systems.Count == 0) return "Intel (no systems chosen)";
+            where = (jumps > 0 ? range : "in ") + string.Join(", ", systems);
+        }
+        else
+        {
+            var characters = ReadList(config, "characters");
+            var who = characters.Count > 0 ? string.Join(", ", characters) : "your characters";
+            if (around == AroundUndocked) who += " while undocked";
+            where = (jumps > 0 ? range : "in the system of ") + who;
+        }
 
-        if (parts.Count == 0) return "Intel (no systems chosen)";
-
-        var where = string.Join(" or ", parts);
-        return minimum > 1 ? $"Intel in {where}, {minimum}+ pilots" : $"Intel in {where}";
+        return minimum > 1 ? $"Intel {where}, {minimum}+ pilots" : $"Intel {where}";
     }
 
     public (string Title, string Body) DefaultText(
@@ -147,9 +205,8 @@ public sealed class IntelCondition : IAlarmCondition
     public async Task<IReadOnlyList<AlarmMatch>> EvaluateAsync(
         JsonElement config, AlarmEvaluationContext ctx, CancellationToken ct = default)
     {
-        var names   = ReadCsv(config, "systems");
-        var origin  = ReadString(config, "within_jumps_of");
-        var jumps   = Math.Clamp(ReadInt(config, "jumps") ?? 0, 0, MaxJumps);
+        var around  = ReadAround(config);
+        var jumps   = ReadJumps(config, around);
         var minimum = Math.Max(1, ReadInt(config, "min_players") ?? 1);
         var skipNv  = ReadBool(config, "ignore_no_visual");
 
@@ -157,28 +214,44 @@ public sealed class IntelCondition : IAlarmCondition
         await conn.OpenAsync(ct);
 
         var watched   = new HashSet<int>();
-        var distances = new Dictionary<int, int>();   // from the origin, when there is one
+        var distances = new Dictionary<int, int>();      // from the nearest origin
+        var nearest   = new Dictionary<int, string>();   // the character that origin is, around characters
 
-        foreach (var id in await ResolveSystemsAsync(conn, names, ct)) watched.Add(id);
-
-        if (!string.IsNullOrWhiteSpace(origin))
+        // Everything within range of one origin. The nearer figure wins when two origins reach
+        // the same system — two characters a jump apart, or a system listed twice.
+        async Task SpreadAsync(int origin, string? who)
         {
-            var originIds = await ResolveSystemsAsync(conn, [origin], ct);
-            foreach (var oid in originIds)
-                foreach (var (id, hops) in await _graph.DistancesWithinAsync(oid, jumps, ct))
-                {
-                    watched.Add(id);
-                    // The nearer figure when two origins resolve — a name given twice.
-                    if (!distances.TryGetValue(id, out var known) || hops < known) distances[id] = hops;
-                }
+            foreach (var (id, hops) in await _graph.DistancesWithinAsync(origin, jumps, ct))
+            {
+                watched.Add(id);
+                if (distances.TryGetValue(id, out var known) && hops >= known) continue;
+                distances[id] = hops;
+                if (who is not null) nearest[id] = who;
+            }
+        }
+
+        if (around == AroundSystems)
+        {
+            foreach (var id in await ResolveSystemsAsync(conn, SystemNames(config), ct))
+                await SpreadAsync(id, null);
+        }
+        else
+        {
+            foreach (var (name, systemId) in await OriginsAsync(ctx, around, ReadList(config, "characters"), ct))
+                await SpreadAsync(systemId, name);
         }
 
         // No resolvable system means nothing to watch. Returning empty rather than everything
-        // matters: a typo in a system name must go quiet, not alert on the whole cluster.
+        // matters: a typo in a system name must go quiet, not alert on the whole cluster — and
+        // every character docked must go quiet too, which is the point of watching undocked ones.
         if (watched.Count == 0) return [];
 
-        var cutoff = (ctx.Now - Lookback).ToUniversalTime()
-            .ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture) + "+00:00";
+        var lookback = around == AroundSystems ? Lookback : CharacterLookback;
+        // ⚠️ In the column's own format. ReportedAt is TEXT, "2026-09-11T23:19:09Z", compared as
+        // text; a cutoff written "2026-09-11 22:19:09+00:00" sorts below every report of the same
+        // day (' ' before 'T'), so the window was really "since midnight".
+        var cutoff = (ctx.Now - lookback).UtcDateTime
+            .ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
 
         var idList = string.Join(",", watched);
 
@@ -215,12 +288,11 @@ public sealed class IntelCondition : IAlarmCondition
                     r.IsDBNull(6) ? 0 : r.GetInt32(6)));
         }
 
-        if (reports.Count == 0) return [];
-
         // Named pilots and their hulls, kept apart: the announcement says the hulls first, the
         // names after, and a name with the hull in brackets could do neither.
         var pilots = new Dictionary<long, List<string>>();
         var hulls  = new Dictionary<long, List<string>>();
+        if (reports.Count > 0)
         await using (var cmd = conn.CreateCommand())
         {
             cmd.CommandText = AppDb.CaseInsensitiveLike($"""
@@ -256,7 +328,16 @@ public sealed class IntelCondition : IAlarmCondition
                 : "";
 
             var headline = rep.Count == 1 ? "1 pilot" : $"{rep.Count} pilots";
-            var jumpsOut = distances.TryGetValue(rep.SystemId, out var d) ? d : (int?)null;
+
+            // How far out is only worth saying when there is a range: the systems a list names
+            // at 0 jumps are simply where the report was. Around a character it is always said,
+            // with the character, since they are what the distance is from.
+            var near     = nearest.GetValueOrDefault(rep.SystemId);
+            var jumpsOut = (jumps > 0 || near is not null) && distances.TryGetValue(rep.SystemId, out var d)
+                ? d : (int?)null;
+            var from = near is null || jumpsOut is not { } hops ? ""
+                     : hops == 0 ? $" (where {near} is)"
+                     : $" ({hops} jump{(hops == 1 ? "" : "s")} from {near})";
 
             // Keyed on WHERE, WHO was seen and a five-minute slice of WHEN — and not on the
             // report's row id, nor on who said it. A row id changes whenever a chat log is
@@ -268,7 +349,7 @@ public sealed class IntelCondition : IAlarmCondition
             // repeated reads as a sighting that ended.
             matches.Add(new AlarmMatch(
                 MatchKey(rep.SystemId, rep.At, names_, rep.Count),
-                $"{headline} in {rep.System}{who}")
+                $"{headline} in {rep.System}{from}{who}")
             {
                 Detail = new Dictionary<string, object?>
                 {
@@ -280,12 +361,147 @@ public sealed class IntelCondition : IAlarmCondition
                     ["hulls"]     = ships,
                     ["note"]      = rep.Note,
                     ["jumps"]     = jumpsOut,
+                    ["near"]      = near,
                     ["at"]        = rep.At,
                 },
             });
         }
 
+        matches.AddRange(await KillMatchesAsync(ctx, watched, ctx.Now - lookback, minimum, jumps, distances, nearest, ct));
         return matches;
+    }
+
+    /// <summary>
+    /// Kills in the watched systems with hostile pilots among the attackers, as sightings of
+    /// those pilots.
+    ///
+    /// <para>⚠️ A kill is intel. Its attackers were in that system at that moment — the exact
+    /// pilots and hulls, where a report may name neither — and a gang that kills its way through
+    /// without anyone typing in the channel used to raise nothing at all. The same rules as the
+    /// live map (<see cref="LiveIntelService"/>): hostile means not ours and not blue, NPC
+    /// attackers are nobody, and the victim is not a sighting (a loss takes a pilot off the
+    /// map). "Only no-visual" does not apply: a kill is never NV.</para>
+    ///
+    /// <para>Keyed like a report — system, five-minute slice, the pilots' names — so the same
+    /// gang reported in the channel and seen on a kill in the same minutes is one alert.</para>
+    /// </summary>
+    private static async Task<List<AlarmMatch>> KillMatchesAsync(
+        AlarmEvaluationContext ctx, HashSet<int> watched, DateTimeOffset since, int minimum, int jumps,
+        IReadOnlyDictionary<int, int> distances, IReadOnlyDictionary<int, string> nearest, CancellationToken ct)
+    {
+        await using var db = await ctx.DbFactory.CreateDbContextAsync(ct);
+        var systems = watched.ToList();
+
+        // ⚠️ Raw SQL for the time: SQLite cannot translate a DateTimeOffset comparison in LINQ.
+        var kills = await db.KillMailDetails
+            .FromSqlRaw("""SELECT * FROM "KillMailDetails" WHERE "KillMailTime" >= {0}""", since)
+            .AsNoTracking()
+            .Where(k => systems.Contains(k.SolarSystemId))
+            .Select(k => new { k.KillMailId, k.KillMailTime, k.SolarSystemId })
+            .ToListAsync(ct);
+        if (kills.Count == 0) return [];
+
+        var killIds = kills.Select(k => k.KillMailId).ToList();
+        var attackers = await db.KillMailAttackers.AsNoTracking()
+            .Where(a => killIds.Contains(a.KillMailId) && a.CharacterId != null)
+            .Select(a => new { a.KillMailId, CharacterId = a.CharacterId!.Value, a.CorporationId, a.AllianceId, a.ShipTypeId })
+            .ToListAsync(ct);
+
+        var friendly = await LiveIntelService.FriendlyAsync(db, ct);
+        var hostile = attackers
+            .Where(a => !friendly.Characters.Contains(a.CharacterId)
+                     && !(a.CorporationId is > 0 && friendly.Corporations.Contains(a.CorporationId.Value))
+                     && !(a.AllianceId    is > 0 && friendly.Alliances.Contains(a.AllianceId.Value)))
+            .ToLookup(a => a.KillMailId);
+        if (!kills.Any(k => hostile[k.KillMailId].Any())) return [];
+
+        // Names as the app knows them; a pilot it has not met yet is counted but not named.
+        var pilotIds = hostile.SelectMany(g => g).Select(a => a.CharacterId).Distinct().ToList();
+        var names = (await db.UniverseNames.AsNoTracking()
+                .Where(n => pilotIds.Contains(n.EntityId))
+                .Select(n => new { n.EntityId, n.Name })
+                .ToListAsync(ct))
+            .GroupBy(n => n.EntityId)
+            .ToDictionary(g => g.Key, g => g.First().Name);
+
+        var shipIds = hostile.SelectMany(g => g).Where(a => a.ShipTypeId is > 0).Select(a => a.ShipTypeId!.Value).Distinct().ToList();
+        var shipNames = await db.SdeTypes.AsNoTracking()
+            .Where(t => shipIds.Contains(t.TypeId))
+            .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct);
+        var killSystems = kills.Select(k => k.SolarSystemId).Distinct().ToList();
+        var systemNames = await db.SdeSolarSystems.AsNoTracking()
+            .Where(s => killSystems.Contains(s.SolarSystemId))
+            .ToDictionaryAsync(s => s.SolarSystemId, s => s.Name, ct);
+
+        var matches = new List<AlarmMatch>();
+        foreach (var k in kills.OrderByDescending(k => k.KillMailTime))
+        {
+            var gang = hostile[k.KillMailId].ToList();
+            var count = gang.Select(a => a.CharacterId).Distinct().Count();
+            if (count == 0 || count < minimum) continue;
+
+            var pilotNames = gang.Select(a => names.GetValueOrDefault(a.CharacterId))
+                .Where(n => !string.IsNullOrWhiteSpace(n)).Select(n => n!).Distinct().ToList();
+            var hullNames = gang.Where(a => a.ShipTypeId is > 0)
+                .Select(a => SdeNames.Type(a.ShipTypeId!.Value, shipNames.GetValueOrDefault(a.ShipTypeId!.Value) ?? ""))
+                .Where(h => h.Length > 0).Distinct().ToList();
+            var system = SdeNames.SolarSystem(k.SolarSystemId, systemNames.GetValueOrDefault(k.SolarSystemId) ?? "");
+            var at     = k.KillMailTime.UtcDateTime;
+
+            var near     = nearest.GetValueOrDefault(k.SolarSystemId);
+            var jumpsOut = (jumps > 0 || near is not null) && distances.TryGetValue(k.SolarSystemId, out var d) ? d : (int?)null;
+            var from = near is null || jumpsOut is not { } hops ? ""
+                     : hops == 0 ? $" (where {near} is)"
+                     : $" ({hops} jump{(hops == 1 ? "" : "s")} from {near})";
+            var who = pilotNames.Count > 0
+                ? " — " + string.Join(", ", pilotNames.Take(5)) + (pilotNames.Count > 5 ? $", +{pilotNames.Count - 5}" : "")
+                : "";
+            var headline = count == 1 ? "1 pilot" : $"{count} pilots";
+
+            matches.Add(new AlarmMatch(
+                MatchKey(k.SolarSystemId, at, pilotNames, count),
+                $"{headline} on a kill in {system}{from}{who}")
+            {
+                Detail = new Dictionary<string, object?>
+                {
+                    ["killmail_id"] = k.KillMailId,
+                    ["system"]      = system,
+                    ["system_id"]   = k.SolarSystemId,
+                    ["count"]       = count,
+                    ["pilots"]      = pilotNames,
+                    ["hulls"]       = hullNames,
+                    ["note"]        = AlarmsText.IntelSaidOnKill,
+                    ["jumps"]       = jumpsOut,
+                    ["near"]        = near,
+                    ["at"]          = at,
+                },
+            });
+        }
+        return matches;
+    }
+
+    /// <summary>
+    /// The characters to draw the range around, with the system each is in: the capsuleer's own,
+    /// online, and — around undocked characters — in space. Named ones only when names are
+    /// given. A character logged off is not watched wherever they were left: nobody is there to
+    /// warn.
+    /// </summary>
+    private static async Task<List<(string Name, int SystemId)>> OriginsAsync(
+        AlarmEvaluationContext ctx, string around, IReadOnlyList<string> named, CancellationToken ct)
+    {
+        await using var db = await ctx.DbFactory.CreateDbContextAsync(ct);
+        var rows = await (
+            from s in db.CharacterStatuses.AsNoTracking()
+            join c in db.Characters.AsNoTracking() on s.CharacterId equals c.Id
+            where s.Online && s.SolarSystemId != null
+            select new { c.Name, s.SolarSystemId, s.StationId, s.StructureId }).ToListAsync(ct);
+
+        var wanted = named.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        return [.. rows
+            .Where(r => wanted.Count == 0 || wanted.Contains(r.Name))
+            .Where(r => around != AroundUndocked || (r.StationId is null && r.StructureId is null))
+            .OrderBy(r => r.Name, StringComparer.OrdinalIgnoreCase)
+            .Select(r => (r.Name, r.SolarSystemId!.Value))];
     }
 
     /// <summary>
@@ -314,6 +530,7 @@ public sealed class IntelCondition : IAlarmCondition
                 Hulls  = g.SelectMany(m => Names(m.Detail!, "hulls")).Distinct(StringComparer.OrdinalIgnoreCase).ToList(),
                 Notes  = g.Select(m => Str(m.Detail!, "note").Trim().TrimEnd('.')).Where(n => n.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase).ToList(),
                 Jumps  = g.Select(m => m.Detail!.TryGetValue("jumps", out var j) && j is int hops ? hops : (int?)null).Where(j => j is not null).Min(),
+                Near   = g.Select(m => Str(m.Detail!, "near")).FirstOrDefault(n => n.Length > 0),
             })
             .OrderByDescending(s => s.Newest)
             .ToList();
@@ -326,7 +543,8 @@ public sealed class IntelCondition : IAlarmCondition
             var count = Math.Max(s.Count, s.Pilots.Count);
             if (sb.Length > 0) sb.Append(' ');
             sb.Append(s.Jumps is { } jumps
-                ? Plurals.Format(AlarmsText.ResourceManager, nameof(AlarmsText.IntelSaidReportedAtOther), count, s.System, JumpsOut(jumps))
+                ? Plurals.Format(AlarmsText.ResourceManager, nameof(AlarmsText.IntelSaidReportedAtOther), count, s.System,
+                                 s.Near is { } near ? JumpsFrom(jumps, near) : JumpsOut(jumps))
                 : Plurals.Format(AlarmsText.ResourceManager, nameof(AlarmsText.IntelSaidReportedOther), count, s.System));
 
             if (s.Hulls.Count > 0)
@@ -351,6 +569,9 @@ public sealed class IntelCondition : IAlarmCondition
         static string JumpsOut(int jumps) => jumps == 0
             ? AlarmsText.IntelSaidHere
             : Plurals.Format(AlarmsText.ResourceManager, nameof(AlarmsText.IntelSaidJumpsOutOther), jumps);
+        static string JumpsFrom(int jumps, string near) => jumps == 0
+            ? string.Format(AlarmsText.IntelSaidWhereIs, near)
+            : Plurals.Format(AlarmsText.ResourceManager, nameof(AlarmsText.IntelSaidJumpsFromOther), jumps, near);
     }
 
     internal static string MatchKey(int systemId, DateTime at, IReadOnlyList<string> names, int count)
@@ -360,6 +581,91 @@ public sealed class IntelCondition : IAlarmCondition
             ? string.Join(",", names.Select(n => n.ToLowerInvariant()).Distinct().Order())
             : $"n{count}";
         return $"intel:{systemId}|{bucket:yyyy-MM-ddTHH:mm}|{signature}";
+    }
+
+    public string? NormaliseConfig(string? json) => UpgradeConfig(json);
+
+    /// <summary>
+    /// Rewrites a config from the first shape of this check — <c>systems</c> as a comma list,
+    /// and one <c>within_jumps_of</c> system with the range around it — into "around Systems"
+    /// with one list and one range. Null when there is nothing to do. Run once at startup over
+    /// every alarm of this type, so an alarm made before characters could be watched keeps
+    /// watching its systems rather than turning into the new default; and on what the agent
+    /// writes, which may name systems without saying "around".
+    ///
+    /// <para>The one change of meaning is deliberate: a list given beside a ranged system was
+    /// watched at 0 jumps, and is now watched at the range too.</para>
+    /// </summary>
+    internal static string? UpgradeConfig(string? json)
+    {
+        System.Text.Json.Nodes.JsonObject config;
+        try
+        {
+            if (System.Text.Json.Nodes.JsonNode.Parse(string.IsNullOrWhiteSpace(json) ? "{}" : json)
+                is not System.Text.Json.Nodes.JsonObject o) return null;
+            config = o;
+        }
+        catch { return null; }
+
+        if (config.ContainsKey("around")) return null;
+
+        // An array without the choice is the agent's: Systems, range and all, as the reader
+        // takes it. Without systems either, the default is what was meant, and left implicit.
+        if (config["systems"] is System.Text.Json.Nodes.JsonArray { Count: > 0 } && !config.ContainsKey("within_jumps_of"))
+        {
+            config["around"] = AroundSystems;
+            return config.ToJsonString();
+        }
+
+        // The first shape: a comma list, or a ranged system.
+        var origin = config["within_jumps_of"] is System.Text.Json.Nodes.JsonValue ov
+                  && ov.TryGetValue<string>(out var os) && !string.IsNullOrWhiteSpace(os) ? os.Trim() : null;
+        var csv = config["systems"] is System.Text.Json.Nodes.JsonValue sv && sv.TryGetValue<string>(out var ss) ? ss : null;
+        if (origin is null && csv is null) return null;
+
+        var systems = SplitList(csv);
+        if (origin is not null && !systems.Contains(origin, StringComparer.OrdinalIgnoreCase)) systems.Add(origin);
+        // A first-shape alarm naming no system matched nothing; it is left to match nothing.
+        config["around"]  = AroundSystems;
+        config["systems"] = new System.Text.Json.Nodes.JsonArray(systems.Select(s => (System.Text.Json.Nodes.JsonNode?)s).ToArray());
+        // The range applied to the one system only: with none, the list was watched as it is.
+        if (origin is null) config["jumps"] = 0;
+        config.Remove("within_jumps_of");
+        return config.ToJsonString();
+    }
+
+    /// <summary>
+    /// What the range is drawn around. A config without the choice was written before there was
+    /// one, by the editor or by the agent: its systems, if it names any, else the default.
+    /// </summary>
+    internal static string ReadAround(JsonElement config)
+    {
+        var text = ReadString(config, "around")?.Trim() ?? "";
+        if (text.Length > 0)
+        {
+            if (AroundChoices.FirstOrDefault(c => string.Equals(c, text, StringComparison.OrdinalIgnoreCase)) is { } exact)
+                return exact;
+            if (text.Contains("undock", StringComparison.OrdinalIgnoreCase)) return AroundUndocked;
+            if (text.StartsWith("char", StringComparison.OrdinalIgnoreCase))  return AroundCharacters;
+            if (text.StartsWith("sys", StringComparison.OrdinalIgnoreCase))   return AroundSystems;
+        }
+        return SystemNames(config).Count > 0 ? AroundSystems : AroundUndocked;
+    }
+
+    /// <summary>The range, capped. Left out, a list of systems is watched as it is — what the
+    /// first shape of this check did — and characters at the default.</summary>
+    private static int ReadJumps(JsonElement config, string around) =>
+        Math.Clamp(ReadInt(config, "jumps") ?? (around == AroundSystems ? 0 : DefaultJumps), 0, MaxJumps);
+
+    /// <summary>The systems to watch: the list, and the one ranged system of the first shape if
+    /// a config still carries it.</summary>
+    private static List<string> SystemNames(JsonElement config)
+    {
+        var names = ReadList(config, "systems");
+        if (ReadString(config, "within_jumps_of") is { } origin && !string.IsNullOrWhiteSpace(origin)
+            && !names.Contains(origin.Trim(), StringComparer.OrdinalIgnoreCase))
+            names.Add(origin.Trim());
+        return names;
     }
 
     private static DateTime ParseUtc(string text)
@@ -389,10 +695,26 @@ public sealed class IntelCondition : IAlarmCondition
     // A full-width comma and 、 separate names too: typed in Chinese, "Jita，Amarr" was one name.
     private static readonly char[] ListSeparators = [',', '，', '、'];
 
-    private static List<string> ReadCsv(JsonElement config, string name) =>
-        ReadString(config, name) is { } s && !string.IsNullOrWhiteSpace(s)
-            ? [.. s.Split(ListSeparators, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)]
-            : [];
+    private static List<string> SplitList(string? text) =>
+        string.IsNullOrWhiteSpace(text)
+            ? []
+            : [.. text.Split(ListSeparators, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)];
+
+    /// <summary>A list as the editor writes it — an array — or as a comma list, as the first
+    /// shape of this check and a hand-written config have it.</summary>
+    private static List<string> ReadList(JsonElement e, string name)
+    {
+        if (e.ValueKind != JsonValueKind.Object || !e.TryGetProperty(name, out var p)) return [];
+        return p.ValueKind switch
+        {
+            JsonValueKind.Array  => [.. p.EnumerateArray()
+                                        .Where(x => x.ValueKind == JsonValueKind.String)
+                                        .Select(x => x.GetString()?.Trim() ?? "")
+                                        .Where(x => x.Length > 0)],
+            JsonValueKind.String => SplitList(p.GetString()),
+            _                    => [],
+        };
+    }
 
     private static string? ReadString(JsonElement e, string name) =>
         e.ValueKind == JsonValueKind.Object && e.TryGetProperty(name, out var p)

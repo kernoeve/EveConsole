@@ -1399,7 +1399,8 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
                                  CorpReportTitles? titles = null,
                                  SlackService? slack = null,
                                  ExportFormatSettings? exportFormat = null,
-                                 AppErrorLogger? errorLogger = null)
+                                 AppErrorLogger? errorLogger = null,
+                                 DiscordService? discord = null)
     {
         // ⚠️ Registered here rather than where the axes are built: several of these replace their
         // axis arrays wholesale on every reload, so anything holding the arrays would restyle the
@@ -1410,6 +1411,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         _excludeSvc   = excludeSvc!;
         _titles       = titles!;
         _slack        = slack;
+        _discord      = discord;
         _exportFormat = exportFormat;
 
         // ⚠️ Added because this view model had none. Fifteen of its catch blocks traced to
@@ -1942,6 +1944,80 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         SlackStatus = SlackPostStatus(sent, SlackDestination(SlackService.AreaCorpMonthly));
     }
 
+    // ── Discord ──────────────────────────────────────────────────────────────
+    // A button of its own beside Slack's, shown only once a Discord webhook is set for the area:
+    // most people use one or the other, and whoever set both sees both. Re-checked when the
+    // Settings window closes (see MainWindow.OpenSettingsAsync).
+    //
+    // ⚠️ Discord's own status line and repost guard. A Slack post of the Top 10 says nothing about
+    // whether Discord has it, and one status line would have each post overwrite the other's result.
+
+    private readonly DiscordService? _discord;
+
+    public bool IsDiscordTop10Configured   => _discord?.IsConfigured(DiscordService.AreaCorpTop10)   == true;
+    public bool IsDiscordMonthlyConfigured => _discord?.IsConfigured(DiscordService.AreaCorpMonthly) == true;
+
+    /// <summary>The webhook a post would go to, by the name it was given, for the button's tooltip.</summary>
+    public string DiscordTop10HookText   => _discord?.WebhookName(DiscordService.AreaCorpTop10)   ?? "";
+    public string DiscordMonthlyHookText => _discord?.WebhookName(DiscordService.AreaCorpMonthly) ?? "";
+
+    private string _discordStatus = "";
+    public string DiscordStatus { get => _discordStatus; private set => this.RaiseAndSetIfChanged(ref _discordStatus, value); }
+
+    public void RefreshDiscordState()
+    {
+        this.RaisePropertyChanged(nameof(IsDiscordTop10Configured));
+        this.RaisePropertyChanged(nameof(IsDiscordMonthlyConfigured));
+        this.RaisePropertyChanged(nameof(DiscordTop10HookText));
+        this.RaisePropertyChanged(nameof(DiscordMonthlyHookText));
+    }
+
+    /// <summary>
+    /// Posts the Top 10 to the area's Discord webhook, without ISK like the Slack button.
+    ///
+    /// <para>⚠️ Always in the Discord format, whatever the clipboard format is set to: what arrives
+    /// is exactly what "copy as Discord" gives. Slack's button posts the selected format because
+    /// Slack's markup and the clipboard's were once the same choice; Discord has one right answer.</para>
+    /// </summary>
+    public Task PostTop10ToDiscordAsync(bool includeIsk) =>
+        PostToDiscordAsync(DiscordService.AreaCorpTop10,
+            () => BuildTop10Export("Discord", includeIsk), CorpText.Top10AlreadyPostedDiscord);
+
+    /// <summary>Posts the monthly summary to its Discord webhook, in the Discord format.</summary>
+    public Task PostMonthlySummaryToDiscordAsync() =>
+        PostToDiscordAsync(DiscordService.AreaCorpMonthly,
+            () => BuildMonthlySummaryExport("Discord"), CorpText.SummaryAlreadyPostedDiscord);
+
+    private async Task PostToDiscordAsync(string area, Func<string> build, string alreadyPosted)
+    {
+        if (_discord is null) return;
+        if (!_discord.IsConfigured(area)) { DiscordStatus = CorpText.DiscordNoDestination; return; }
+
+        // The same guard as Slack's, against a stray double-click posting twice.
+        if (_discord.LastPostAt(area) is { } last
+            && DateTimeOffset.UtcNow - last < SlackRepostWindow
+            && ConfirmSlackRepost is not null)
+        {
+            var confirmed = await ConfirmSlackRepost(
+                string.Format(alreadyPosted, NotificationSummary.Age(last)) + "\n\n" + CorpText.PostItAgain);
+            if (!confirmed) { DiscordStatus = CorpText.SlackPostCancelled; return; }
+        }
+
+        DiscordStatus = CorpText.DiscordPosting;
+        var sent = await _discord.PostAreaAsync(area, build());
+        if (sent.Posted > 0) await _discord.SetLastPostAsync(area, DateTimeOffset.UtcNow);
+
+        var where = _discord.WebhookName(area);
+        DiscordStatus = sent.AllPosted
+            ? sent.Total > 1
+                ? Plurals.Format(CorpText.ResourceManager, nameof(CorpText.SlackPostedInPartsOther),
+                                 sent.Total, where, DateTimeOffset.Now)
+                : string.Format(CorpText.SlackPosted, where, DateTimeOffset.Now)
+            : sent.Posted == 0
+                ? string.Format(CorpText.DiscordPostFailed, sent.Error)
+                : string.Format(CorpText.DiscordPostedPartly, sent.Posted, sent.Total, where, sent.Error);
+    }
+
     // ── Monthly Summary ───────────────────────────────────────────────────────
 
     private async Task LoadMonthlySummaryAsync(long corpId, CancellationToken ct = default)
@@ -2057,9 +2133,13 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     public string BuildTop10Export() => BuildTop10Export(includeIsk: true);
     public string BuildTop10ExportNoIsk() => BuildTop10Export(includeIsk: false);
 
-    private string BuildTop10Export(bool includeIsk)
+    private string BuildTop10Export(bool includeIsk) => BuildTop10Export(_selectedExportFormat, includeIsk);
+
+    /// <summary>The Top 10 export in a named format — Discord's posts ask for "Discord" whatever the
+    /// clipboard format is set to, so they post what copying as Discord would give.</summary>
+    private string BuildTop10Export(string formatName, bool includeIsk)
     {
-        var fmt   = OutputFormat.ByName(_selectedExportFormat);
+        var fmt   = OutputFormat.ByName(formatName);
         var plain = fmt.Name == "Plain Text";
 
         var month = SelectedTop10Month?.Name ?? "?";

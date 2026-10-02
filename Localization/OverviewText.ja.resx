@@ -821,4 +821,43 @@
   <data name="ScopeGroupCorp" xml:space="preserve">
     <value>コーポ</value>
   </data>
+  <data name="AlertPiExtractorsStopped" xml:space="preserve">
+    <value>{0}：{1}のエクストラクターが停止しました。</value>
+  </data>
+  <data name="AlertPiExtractorsStopping" xml:space="preserve">
+    <value>{0}：{1}のエクストラクターはあと{2}で停止します。</value>
+  </data>
+  <data name="AlertPiExtractorsManyOther" xml:space="preserve">
+    <value>コロニー{0}か所でエクストラクターが停止した、または停止しようとしています。</value>
+  </data>
+  <data name="AlertPiStorageFull" xml:space="preserve">
+    <value>{0}：{1}の保管施設が満杯です（推定）。</value>
+  </data>
+  <data name="AlertPiStorageFilling" xml:space="preserve">
+    <value>{0}：{1}の保管施設はあと{2}で満杯になります（推定）。</value>
+  </data>
+  <data name="AlertPiStorageManyOther" xml:space="preserve">
+    <value>コロニー{0}か所で保管施設が満杯、または満杯になりつつあります（推定）。</value>
+  </data>
+  <data name="AlertPiInputsOut" xml:space="preserve">
+    <value>{0}：{1}の工場の投入資源が枯渇しました（推定）。</value>
+  </data>
+  <data name="AlertPiInputsLow" xml:space="preserve">
+    <value>{0}：{1}の投入資源はあと{2}で枯渇します（推定）。</value>
+  </data>
+  <data name="AlertPiInputsManyOther" xml:space="preserve">
+    <value>工場惑星{0}個で投入資源が枯渇した、または枯渇しつつあります（推定）。</value>
+  </data>
+  <data name="AlertPiStale" xml:space="preserve">
+    <value>{0}：{1}は{2}の間ゲーム内で開かれていないため、推定値はもう信頼できません。</value>
+  </data>
+  <data name="AlertPiStaleManyOther" xml:space="preserve">
+    <value>コロニー{0}か所がしばらくゲーム内で開かれていないため、推定値はもう信頼できません。</value>
+  </data>
+  <data name="AlertPiFreeSlotsOther" xml:space="preserve">
+    <value>{1}に未使用のコロニースロットが{0}個あります。</value>
+  </data>
+  <data name="AlertPiFreeSlotsCharsOther" xml:space="preserve">
+    <value>未使用のコロニースロットがあるPIキャラクターが{0}人います。</value>
+  </data>
 </root>

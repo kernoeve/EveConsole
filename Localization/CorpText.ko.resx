@@ -1771,4 +1771,25 @@
   <data name="FactReprocessingValue" xml:space="preserve">
     <value>{0:0.#}% · 세금 {1:0.#}%</value>
   </data>
+  <data name="PostToDiscord" xml:space="preserve">
+    <value>Discord에 게시</value>
+  </data>
+  <data name="DiscordNoDestination" xml:space="preserve">
+    <value>이 작업에 지정된 Discord 웹후크가 없습니다. 설정의 Discord에서 선택하십시오.</value>
+  </data>
+  <data name="Top10AlreadyPostedDiscord" xml:space="preserve">
+    <value>이 상위 10 목록은 이미 Discord에 게시되었습니다 ({0}).</value>
+  </data>
+  <data name="SummaryAlreadyPostedDiscord" xml:space="preserve">
+    <value>이 월간 요약은 이미 Discord에 게시되었습니다 ({0}).</value>
+  </data>
+  <data name="DiscordPosting" xml:space="preserve">
+    <value>Discord에 게시하는 중…</value>
+  </data>
+  <data name="DiscordPostFailed" xml:space="preserve">
+    <value>Discord 게시 실패: {0}</value>
+  </data>
+  <data name="DiscordPostedPartly" xml:space="preserve">
+    <value>{2}에 메시지 {1}개 중 {0}개를 게시했습니다. Discord가 다음 메시지를 거부했습니다: {3}</value>
+  </data>
 </root>

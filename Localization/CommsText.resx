@@ -1026,6 +1026,14 @@
     <value>Volume</value>
     <comment>Column header in a notification's ore table.</comment>
   </data>
+  <data name="NotifColReprocessed" xml:space="preserve">
+    <value>Reprocessed</value>
+    <comment>Column header in a moon notification's ore table (extraction finished / fractured), right of Volume: what that volume of each ore is worth reprocessed, in ISK. Short.</comment>
+  </data>
+  <data name="NotifTipNoReprocessValue" xml:space="preserve">
+    <value>No reprocessed value yet: the prices of what this ore refines into have not been read.</value>
+    <comment>Tooltip on a dash in a moon notification's Reprocessed column, when the ore's value is not known yet.</comment>
+  </data>
   <data name="NotifOpenKillmail" xml:space="preserve">
     <value>Open the killmail</value>
     <comment>Link to a killmail.</comment>

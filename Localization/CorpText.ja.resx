@@ -1771,4 +1771,25 @@
   <data name="FactReprocessingValue" xml:space="preserve">
     <value>{0:0.#}% · 税{1:0.#}%</value>
   </data>
+  <data name="PostToDiscord" xml:space="preserve">
+    <value>Discordに投稿</value>
+  </data>
+  <data name="DiscordNoDestination" xml:space="preserve">
+    <value>投稿先のDiscord Webhookが設定されていません — 「設定」の「Discord」で選択してください。</value>
+  </data>
+  <data name="Top10AlreadyPostedDiscord" xml:space="preserve">
+    <value>このトップ10リストは{0}にすでにDiscordへ投稿されています。</value>
+  </data>
+  <data name="SummaryAlreadyPostedDiscord" xml:space="preserve">
+    <value>この月次概要は{0}にすでにDiscordへ投稿されています。</value>
+  </data>
+  <data name="DiscordPosting" xml:space="preserve">
+    <value>Discordに投稿中…</value>
+  </data>
+  <data name="DiscordPostFailed" xml:space="preserve">
+    <value>Discordへの投稿に失敗しました：{0}</value>
+  </data>
+  <data name="DiscordPostedPartly" xml:space="preserve">
+    <value>{2}に{1}件中{0}件のメッセージを投稿しました。Discordが次のメッセージを拒否しました：{3}</value>
+  </data>
 </root>

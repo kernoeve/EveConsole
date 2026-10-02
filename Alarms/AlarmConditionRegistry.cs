@@ -27,6 +27,7 @@ public sealed class AlarmConditionRegistry
         new ShipAdriftCondition(),
         new StoreOrderCondition(),
         new MarketContractCondition(),
+        new PiCondition(),
         new SqlCondition(),
     ]);
 

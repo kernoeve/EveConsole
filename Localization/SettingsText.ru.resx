@@ -3280,4 +3280,145 @@ EVE Console сразу перезапустится, потому что баз�
   <data name="PurposeConversation" xml:space="preserve">
     <value>нашей беседы</value>
   </data>
+  <data name="TabDiscord" xml:space="preserve">
+    <value>Discord</value>
+  </data>
+  <data name="DiscordIntegration" xml:space="preserve">
+    <value>Интеграция с Discord</value>
+  </data>
+  <data name="DiscordIntroNote" xml:space="preserve">
+    <value>Публикуйте из EVE Console в каналы Discord через веб-хуки — без бота и без входа в аккаунт. Ничего не публикуется, пока вы не нажмёте кнопку «Опубликовать в Discord» или не настроите задачу по расписанию; а раздел приложения показывает эту кнопку, только если для него выбран веб-хук из списка ниже.</value>
+  </data>
+  <data name="DiscordHowToNote" xml:space="preserve">
+    <value>Управляющие сервера создают веб-хук в Discord: «Редактировать канал» → «Интеграции» → «Вебхуки» — и копируют его URL. Дайте ему здесь название, и его можно будет выбрать ниже и в планировщике.</value>
+  </data>
+  <data name="DiscordSecretNote" xml:space="preserve">
+    <value>⚠ URL веб-хука работает как пароль: любой, у кого он есть, может публиковать в этот канал. EVE Console никогда не показывает его целиком и не записывает в журнал. Если URL утёк, удалите веб-хук в Discord и добавьте здесь новый.</value>
+  </data>
+  <data name="DiscordTest" xml:space="preserve">
+    <value>Проверить</value>
+  </data>
+  <data name="DiscordWebhookNeedsNameUrl" xml:space="preserve">
+    <value>Для веб-хука нужны название и URL.</value>
+  </data>
+  <data name="DiscordWebhookNotDiscord" xml:space="preserve">
+    <value>Это не URL веб-хука Discord. Он начинается с https://discord.com/api/webhooks/.</value>
+  </data>
+  <data name="DiscordWebhookIsSlack" xml:space="preserve">
+    <value>Это веб-хук Slack. Добавьте его на вкладке Slack.</value>
+  </data>
+  <data name="DiscordNone" xml:space="preserve">
+    <value>(нет)</value>
+  </data>
+  <data name="DiscordTesting" xml:space="preserve">
+    <value>Проверка «{0}»…</value>
+  </data>
+  <data name="DiscordTestSent" xml:space="preserve">
+    <value>Discord принял пробное сообщение для «{0}» — проверьте канал.</value>
+  </data>
+  <data name="DiscordTestFailed" xml:space="preserve">
+    <value>Не удалось проверить «{0}»: {1}</value>
+  </data>
+  <data name="DiscordTestMessage" xml:space="preserve">
+    <value>Пробное сообщение от EVE Console: этот веб-хук работает.</value>
+  </data>
+  <data name="DiscordWhereEachPosts" xml:space="preserve">
+    <value>Куда публикует каждый раздел</value>
+  </data>
+  <data name="DiscordPickWebhookNote" xml:space="preserve">
+    <value>Выберите, в какой веб-хук публикует каждый раздел EVE Console. Кнопка «Опубликовать в Discord» появляется только после выбора. Slack настраивается на своей вкладке, и его кнопка показывается отдельно.</value>
+  </data>
+  <data name="DiscordErrNoWebhook" xml:space="preserve">
+    <value>Для этого не выбран веб-хук Discord.</value>
+  </data>
+  <data name="DiscordErrWebhookRemoved" xml:space="preserve">
+    <value>Этот веб-хук Discord удалён из настроек.</value>
+  </data>
+  <data name="DiscordErrNothingToPost" xml:space="preserve">
+    <value>Публиковать нечего.</value>
+  </data>
+  <data name="DiscordErrNotAWebhook" xml:space="preserve">
+    <value>Сохранённая ссылка — не URL веб-хука Discord. Вставьте новую в разделе «Настройки → Discord».</value>
+  </data>
+  <data name="DiscordErrWebhookGone" xml:space="preserve">
+    <value>Discord больше не принимает этот веб-хук — возможно, он удалён. Вставьте новую ссылку в разделе «Настройки → Discord».</value>
+  </data>
+  <data name="DiscordErrUnreachable" xml:space="preserve">
+    <value>Не удалось связаться с Discord.</value>
+  </data>
+  <data name="DiscordErrRateLimited" xml:space="preserve">
+    <value>Discord несколько раз просил снизить частоту запросов — повторите через минуту.</value>
+  </data>
+  <data name="DiscordErrHttp" xml:space="preserve">
+    <value>Discord отклонил запрос (HTTP {0}): {1}</value>
+  </data>
+  <data name="ColPi" xml:space="preserve">
+    <value>PI</value>
+  </data>
+  <data name="TipCharacterDoesPi" xml:space="preserve">
+    <value>Персонаж занимается планетарной промышленностью. Если снять флажок, персонаж не попадёт в раздел «Планетарная промышленность», для него не будет оповещений PI и задач в списке задач, а его колонии не будут считываться.</value>
+  </data>
+  <data name="PiTaxTitle" xml:space="preserve">
+    <value>Налог планетарной промышленности</value>
+  </data>
+  <data name="PiTaxNote" xml:space="preserve">
+    <value>Сколько планета берёт за вывоз товаров с неё и ввоз на неё, пока её собственная ставка не определена по журналу кошелька после экспорта или импорта на ней. Таможни есть в хай-секе, лоу-секе, червоточинах и NPC-нуль-секе; в нуль-секе с правом владения вместо них подъёмники. Ввоз стоит вдвое дешевле вывоза.</value>
+  </data>
+  <data name="PiTaxCustomsDefault" xml:space="preserve">
+    <value>Налог таможни</value>
+  </data>
+  <data name="PiTaxSkyhookDefault" xml:space="preserve">
+    <value>Налог подъёмника</value>
+  </data>
+  <data name="PiTimingTitle" xml:space="preserve">
+    <value>Оповещения и задачи планетарной промышленности</value>
+  </data>
+  <data name="PiTimingNote" xml:space="preserve">
+    <value>Насколько заранее смотрят оповещения PI в «Обзоре» и задачи PI в списке задач, когда данные колонии считаются слишком старыми и на сколько дней работы рассчитана доставка материалов. Какие оповещения выводить вообще, задаётся на вкладке «Оповещения».</value>
+  </data>
+  <data name="PiLeadExtractors" xml:space="preserve">
+    <value>Остановка экстракторов</value>
+  </data>
+  <data name="PiLeadStorage" xml:space="preserve">
+    <value>Заполнение хранилища или стартовой площадки</value>
+  </data>
+  <data name="PiLeadInputs" xml:space="preserve">
+    <value>Исчерпание материалов на производстве</value>
+  </data>
+  <data name="PiHoursAhead" xml:space="preserve">
+    <value>ч заранее (точно)</value>
+  </data>
+  <data name="PiHoursAheadEstimated" xml:space="preserve">
+    <value>ч заранее (оценка)</value>
+  </data>
+  <data name="PiStaleAfter" xml:space="preserve">
+    <value>Данные колонии устаревают через</value>
+  </data>
+  <data name="PiInputDays" xml:space="preserve">
+    <value>Доставка материалов — на</value>
+  </data>
+  <data name="PiDaysOfRunning" xml:space="preserve">
+    <value>д работы</value>
+  </data>
+  <data name="PiAlertsTitle" xml:space="preserve">
+    <value>Планетарная промышленность</value>
+  </data>
+  <data name="PiAlertExtractors" xml:space="preserve">
+    <value>Экстракторы остановились или скоро остановятся</value>
+  </data>
+  <data name="PiAlertStorage" xml:space="preserve">
+    <value>Хранилище или стартовая площадка заполнены или скоро заполнятся (оценка)</value>
+  </data>
+  <data name="PiAlertInputs" xml:space="preserve">
+    <value>У производственной планеты кончились или скоро кончатся материалы (оценка)</value>
+  </data>
+  <data name="PiAlertFreeSlots" xml:space="preserve">
+    <value>У персонажа с PI есть свободный слот для колонии</value>
+  </data>
+  <data name="PiAlertStale" xml:space="preserve">
+    <value>Колонию слишком давно не открывали в игре, чтобы доверять её оценкам</value>
+  </data>
+  <data name="PiAlertsNote" xml:space="preserve">
+    <value>Только персонажи с флажком PI на вкладке «Персонажи». Что считать «скоро» и какие данные слишком старые, задаётся на вкладке «Промышленность»; задачи PI в списке задач используют те же сроки.</value>
+  </data>
 </root>

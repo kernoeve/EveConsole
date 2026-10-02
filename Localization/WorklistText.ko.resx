@@ -2161,4 +2161,70 @@
   <data name="SummaryWorstShown" xml:space="preserve">
     <value>가장 심각한 {0}개만 표시합니다. 나머지는 해당 탭에 있습니다.</value>
   </data>
+  <data name="SourcePlanetaryIndustry" xml:space="preserve">
+    <value>행성 개발</value>
+  </data>
+  <data name="KindPi" xml:space="preserve">
+    <value>PI</value>
+  </data>
+  <data name="KindTipPi" xml:space="preserve">
+    <value>행성 개발</value>
+  </data>
+  <data name="PiRestartTitle" xml:space="preserve">
+    <value>{0}의 추출기 재시작</value>
+  </data>
+  <data name="PiRestartStoppedDetail" xml:space="preserve">
+    <value>{0} 전, {1}에 정지했습니다 (정확).</value>
+  </data>
+  <data name="PiRestartStoppingDetail" xml:space="preserve">
+    <value>{0} 후, {1}에 정지합니다 (정확).</value>
+  </data>
+  <data name="PiRestartWaiting" xml:space="preserve">
+    <value>아직 {0} 동안 가동 중</value>
+  </data>
+  <data name="PiHaulOutTitle" xml:space="preserve">
+    <value>{0}에서 생산품 반출</value>
+  </data>
+  <data name="PiHaulOutSystemOther" xml:space="preserve">
+    <value>{1}의 행성 {0}곳에서 생산품 반출</value>
+  </data>
+  <data name="PiHaulOutFull" xml:space="preserve">
+    <value>{0}: 저장고 가득 참, 생산품 손실 중 (추정)</value>
+  </data>
+  <data name="PiHaulOutFilling" xml:space="preserve">
+    <value>{0}: {1} 후 저장고 가득 참 (추정)</value>
+  </data>
+  <data name="PiHaulOutCollect" xml:space="preserve">
+    <value>{0}: 생산품이 절반 이상 참 (추정)</value>
+  </data>
+  <data name="PiStaleNote" xml:space="preserve">
+    <value>오래된 데이터로 추정한 수치입니다: 한동안 게임에서 콜로니를 열지 않았습니다.</value>
+  </data>
+  <data name="PiHaulInTitle" xml:space="preserve">
+    <value>{0}에 투입 자원 반입</value>
+  </data>
+  <data name="PiHaulInOutDetailOther" xml:space="preserve">
+    <value>{1} 전에 투입 자원이 떨어졌습니다 (추정): 제조시설이 멈춰 있습니다. {0}일 가동분을 가져옵니다.</value>
+  </data>
+  <data name="PiHaulInLowDetailOther" xml:space="preserve">
+    <value>{1} 후에 투입 자원이 떨어집니다 (추정). {0}일 가동분을 가져옵니다.</value>
+  </data>
+  <data name="PiSetUpTitleOther" xml:space="preserve">
+    <value>콜로니 설치 — 빈 슬롯 {0}개</value>
+  </data>
+  <data name="PiSetUpDetail" xml:space="preserve">
+    <value>콜로니 {1}개 중 {0}개 사용 중. 행성 관리 스킬로 {1}개까지 가능합니다.</value>
+  </data>
+  <data name="PiUpgradeTitle" xml:space="preserve">
+    <value>{0}의 통제센터 업그레이드 — 레벨 {1}</value>
+  </data>
+  <data name="PiUpgradeDetail" xml:space="preserve">
+    <value>현재 레벨 {0}. 통제센터 업그레이드 스킬로 {1}까지 가능합니다. 추출기 헤드와 제조시설에 쓸 CPU와 파워그리드가 늘어납니다.</value>
+  </data>
+  <data name="PiOpenTitle" xml:space="preserve">
+    <value>게임에서 {0} 열기</value>
+  </data>
+  <data name="PiOpenDetail" xml:space="preserve">
+    <value>데이터가 {0} 지나 추정치를 더 이상 믿을 수 없습니다. 게임에서 콜로니를 열면 갱신됩니다.</value>
+  </data>
 </root>

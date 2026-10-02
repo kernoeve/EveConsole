@@ -546,6 +546,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             });
 
         vm.OverviewVm.OpenAlertSettingsRequested = () => _ = OpenSettingsAsync(vm, EveConsole.Localization.SettingsText.TabAlerts);
+        // The PI tool's Characters tab points at the PI switch, which is on Settings → Characters.
+        vm.PlanetaryIndustryVm.OpenPiSettingsRequested = () => _ = OpenSettingsAsync(vm, EveConsole.Localization.SettingsText.TabCharacters);
 
         // Normally already done during startup, while the splash was up; the cached task makes this
         // a no-op in that case.
@@ -669,17 +671,25 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                                                vm.CharacterVm, vm.SdeVm, vm.UpdateVm, vm.MarketVm, vm.TimerVm,
                                                vm.AgentVm.Service, vm.PriceHistorySettingsVm,
                                                vm.AlertSettingsVm, vm.PollingSettingsVm,
-                                               vm.CorpTop10SettingsVm, dbVm, vm.SlackSettingsVm,
+                                               vm.CorpTop10SettingsVm, dbVm, vm.SlackSettingsVm, vm.DiscordSettingsVm,
                                                vm.GameLogSettingsVm, vm.ChatLogSettingsVm, vm.ZkbSettingsVm,
                                                vm.MapStatsSettingsVm, vm.OtherSettingsVm, vm.DataRetentionVm,
+                                               // Over the shared preferences, which are already in memory.
+                                               new PiSettingsViewModel(vm.Pi.Tax, vm.Pi.Settings),
                                                vm.TtsService, vm.SpeechInputService, vm.HotkeyService);
         var settingsWin = new SettingsWindow { DataContext = settingsVm };
         settingsWin.WireDatabase(dbVm, this);
         if (initialTab is not null) settingsWin.SelectTab(initialTab);
         await settingsWin.ShowDialog(this);
-        // Slack token / channel may have changed — re-evaluate the post buttons' visibility.
+        // The tabs save as they are changed; what was still waiting on a typing pause is saved as
+        // the window closes. Awaited before anything here reads what was changed.
+        await settingsWin.PendingSaves;
+        // Slack token / channel or a Discord webhook may have changed — re-evaluate the post
+        // buttons' visibility.
         vm.CorpActivityVm.RefreshSlackState();
         vm.SalePostingVm.RefreshSlackState();
+        vm.CorpActivityVm.RefreshDiscordState();
+        vm.SalePostingVm.RefreshDiscordState();
     }
 
     private void OnResolveNamesClick(object? sender, RoutedEventArgs e)

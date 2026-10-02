@@ -3274,4 +3274,145 @@ Die Anwendung wird neu gestartet.</value>
   <data name="PurposeConversation" xml:space="preserve">
     <value>unser Gespräch</value>
   </data>
+  <data name="TabDiscord" xml:space="preserve">
+    <value>Discord</value>
+  </data>
+  <data name="DiscordIntegration" xml:space="preserve">
+    <value>Discord-Integration</value>
+  </data>
+  <data name="DiscordIntroNote" xml:space="preserve">
+    <value>Posten Sie aus EVE Console über Webhooks in Discord-Kanäle – ohne Bot und ohne Anmeldung. Es wird nichts gepostet, bis Sie auf eine Schaltfläche „In Discord posten“ klicken oder eine geplante Aufgabe einrichten; ein Bereich der App zeigt diese Schaltfläche erst, wenn unten ein Webhook für ihn eingestellt ist.</value>
+  </data>
+  <data name="DiscordHowToNote" xml:space="preserve">
+    <value>Die Manager eines Servers erstellen in Discord unter „Kanal bearbeiten“ → „Integrationen“ → „Webhooks“ einen Webhook und kopieren dessen URL. Geben Sie ihm hier einen Namen, dann lässt er sich unten und im Planer auswählen.</value>
+  </data>
+  <data name="DiscordSecretNote" xml:space="preserve">
+    <value>⚠ Eine Webhook-URL funktioniert wie ein Passwort: Jeder, der sie hat, kann in diesen Kanal posten. EVE Console zeigt sie nie vollständig an und schreibt sie in kein Protokoll. Ist eine URL in falsche Hände geraten, löschen Sie den Webhook in Discord und fügen Sie hier einen neuen hinzu.</value>
+  </data>
+  <data name="DiscordTest" xml:space="preserve">
+    <value>Testen</value>
+  </data>
+  <data name="DiscordWebhookNeedsNameUrl" xml:space="preserve">
+    <value>Ein Webhook braucht einen Namen und eine URL.</value>
+  </data>
+  <data name="DiscordWebhookNotDiscord" xml:space="preserve">
+    <value>Das ist keine Discord-Webhook-URL. Sie beginnt mit https://discord.com/api/webhooks/.</value>
+  </data>
+  <data name="DiscordWebhookIsSlack" xml:space="preserve">
+    <value>Das ist ein Slack-Webhook. Fügen Sie ihn stattdessen auf dem Slack-Tab hinzu.</value>
+  </data>
+  <data name="DiscordNone" xml:space="preserve">
+    <value>(keiner)</value>
+  </data>
+  <data name="DiscordTesting" xml:space="preserve">
+    <value>„{0}“ wird getestet…</value>
+  </data>
+  <data name="DiscordTestSent" xml:space="preserve">
+    <value>Discord hat die Testnachricht für „{0}“ angenommen – prüfen Sie den Kanal.</value>
+  </data>
+  <data name="DiscordTestFailed" xml:space="preserve">
+    <value>Test von „{0}“ fehlgeschlagen: {1}</value>
+  </data>
+  <data name="DiscordTestMessage" xml:space="preserve">
+    <value>Testnachricht von EVE Console: Dieser Webhook funktioniert.</value>
+  </data>
+  <data name="DiscordWhereEachPosts" xml:space="preserve">
+    <value>Wohin jeder Bereich postet</value>
+  </data>
+  <data name="DiscordPickWebhookNote" xml:space="preserve">
+    <value>Wählen Sie, in welchen Webhook jeder Bereich von EVE Console postet. Die Schaltfläche „In Discord posten“ erscheint erst, wenn einer eingestellt ist. Slack wird auf seinem eigenen Tab eingestellt, und seine Schaltfläche erscheint getrennt.</value>
+  </data>
+  <data name="DiscordErrNoWebhook" xml:space="preserve">
+    <value>Dafür ist kein Discord-Webhook eingestellt.</value>
+  </data>
+  <data name="DiscordErrWebhookRemoved" xml:space="preserve">
+    <value>Dieser Discord-Webhook wurde aus den Einstellungen entfernt.</value>
+  </data>
+  <data name="DiscordErrNothingToPost" xml:space="preserve">
+    <value>Nichts zu posten.</value>
+  </data>
+  <data name="DiscordErrNotAWebhook" xml:space="preserve">
+    <value>Der gespeicherte Link ist keine Discord-Webhook-URL – fügen Sie unter Einstellungen → Discord einen neuen ein.</value>
+  </data>
+  <data name="DiscordErrWebhookGone" xml:space="preserve">
+    <value>Discord akzeptiert diesen Webhook nicht mehr – möglicherweise wurde er gelöscht; fügen Sie unter Einstellungen → Discord einen neuen Link ein.</value>
+  </data>
+  <data name="DiscordErrUnreachable" xml:space="preserve">
+    <value>Discord war nicht erreichbar.</value>
+  </data>
+  <data name="DiscordErrRateLimited" xml:space="preserve">
+    <value>Discord hat wiederholt zum Langsamermachen aufgefordert – versuchen Sie es in einer Minute erneut.</value>
+  </data>
+  <data name="DiscordErrHttp" xml:space="preserve">
+    <value>Von Discord abgelehnt (HTTP {0}): {1}</value>
+  </data>
+  <data name="ColPi" xml:space="preserve">
+    <value>PI</value>
+  </data>
+  <data name="TipCharacterDoesPi" xml:space="preserve">
+    <value>Der Charakter betreibt Planetare Industrie. Ohne Häkchen bleibt der Charakter im PI-Tool außen vor, erhält keine PI-Warnungen oder -Arbeitslistenaufgaben, und seine Kolonien werden nicht gelesen.</value>
+  </data>
+  <data name="PiTaxTitle" xml:space="preserve">
+    <value>Steuer der Planetaren Industrie</value>
+  </data>
+  <data name="PiTaxNote" xml:space="preserve">
+    <value>Was ein Planet für Güter berechnet, die von ihm exportiert oder auf ihn importiert werden, bis sein eigener Satz nach einem Export oder Import dort aus dem Konto-Logbuch ermittelt wurde. Zollämter gibt es in Hochsicherheit, Niedersicherheit, Wurmlöchern und NPC-Nullsicherheit; in Nullsicherheit mit Souveränität stehen stattdessen Skyhooks. Importieren kostet die Hälfte des Exportierens.</value>
+  </data>
+  <data name="PiTaxCustomsDefault" xml:space="preserve">
+    <value>Zollamt-Steuer</value>
+  </data>
+  <data name="PiTaxSkyhookDefault" xml:space="preserve">
+    <value>Skyhook-Steuer</value>
+  </data>
+  <data name="PiTimingTitle" xml:space="preserve">
+    <value>Warnungen und Aufgaben der Planetaren Industrie</value>
+  </data>
+  <data name="PiTimingNote" xml:space="preserve">
+    <value>Wie weit die PI-Warnungen der Übersicht und die PI-Aufgaben der Arbeitsliste vorausschauen, ab wann die Daten einer Kolonie zu alt sind, um ihnen zu trauen, und wie viel Material ein Transport bringt. Welche Warnungen überhaupt ausgelöst werden, legen Sie im Tab „Warnungen“ fest.</value>
+  </data>
+  <data name="PiLeadExtractors" xml:space="preserve">
+    <value>Extraktoren stoppen</value>
+  </data>
+  <data name="PiLeadStorage" xml:space="preserve">
+    <value>Lager oder Launchpad voll</value>
+  </data>
+  <data name="PiLeadInputs" xml:space="preserve">
+    <value>Fabrikmaterial geht aus</value>
+  </data>
+  <data name="PiHoursAhead" xml:space="preserve">
+    <value>Stunden vorher (exakt)</value>
+  </data>
+  <data name="PiHoursAheadEstimated" xml:space="preserve">
+    <value>Stunden vorher (geschätzt)</value>
+  </data>
+  <data name="PiStaleAfter" xml:space="preserve">
+    <value>Koloniedaten zu alt nach</value>
+  </data>
+  <data name="PiInputDays" xml:space="preserve">
+    <value>Ein Materialtransport bringt</value>
+  </data>
+  <data name="PiDaysOfRunning" xml:space="preserve">
+    <value>Tage Betrieb</value>
+  </data>
+  <data name="PiAlertsTitle" xml:space="preserve">
+    <value>Planetare Industrie</value>
+  </data>
+  <data name="PiAlertExtractors" xml:space="preserve">
+    <value>Extraktoren gestoppt oder bald gestoppt</value>
+  </data>
+  <data name="PiAlertStorage" xml:space="preserve">
+    <value>Lager oder Launchpad voll oder bald voll (geschätzt)</value>
+  </data>
+  <data name="PiAlertInputs" xml:space="preserve">
+    <value>Material eines Fabrikplaneten aufgebraucht oder bald aufgebraucht (geschätzt)</value>
+  </data>
+  <data name="PiAlertFreeSlots" xml:space="preserve">
+    <value>Ein PI-Charakter hat einen ungenutzten Kolonie-Slot</value>
+  </data>
+  <data name="PiAlertStale" xml:space="preserve">
+    <value>Eine Kolonie wurde zu lange nicht im Spiel geöffnet, um ihren Schätzungen zu trauen</value>
+  </data>
+  <data name="PiAlertsNote" xml:space="preserve">
+    <value>Nur Charaktere mit gesetztem PI-Häkchen im Tab „Charaktere“. Wie bald „bald“ ist und wie alt zu alt ist, legen Sie im Tab „Industrie“ fest; die PI-Aufgaben der Arbeitsliste verwenden dieselben Zeiten.</value>
+  </data>
 </root>

@@ -1,0 +1,116 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:views="clr-namespace:EveConsole.Views"
+             x:Class="EveConsole.Views.MapPaneView"
+             x:DataType="vm:MapPaneViewModel"
+             DragDrop.AllowDrop="True">
+
+  <UserControl.Styles>
+    <Style Selector="Border.maptab">
+      <Setter Property="Padding" Value="10 5 4 5" />
+      <Setter Property="Margin" Value="0 0 2 0" />
+      <Setter Property="CornerRadius" Value="3 3 0 0" />
+      <Setter Property="Background" Value="{DynamicResource SurfacePanelBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderDefaultBrush}" />
+      <Setter Property="BorderThickness" Value="1 1 1 0" />
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Border.maptab.selected">
+      <Setter Property="Background" Value="{DynamicResource SurfaceRaisedBrush}" />
+    </Style>
+    <Style Selector="Border.maptab TextBlock.tabtitle">
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+    </Style>
+    <Style Selector="Border.maptab.selected TextBlock.tabtitle">
+      <Setter Property="Foreground" Value="{DynamicResource TextBrightBrush}" />
+    </Style>
+    <Style Selector="Border.strip.active Border.maptab.selected">
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+    </Style>
+    <Style Selector="Border.strip">
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderDefaultBrush}" />
+      <Setter Property="BorderThickness" Value="0 0 0 1" />
+    </Style>
+    <Style Selector="Border.dropmark">
+      <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="Width" Value="2" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Setter Property="IsHitTestVisible" Value="False" />
+    </Style>
+    <Style Selector="Button.tabclose">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="6 0" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+  </UserControl.Styles>
+
+  <DockPanel>
+    <Border DockPanel.Dock="Top" x:Name="Strip" Classes="strip" Classes.active="{Binding IsActive}" Padding="10 6 10 0">
+      <Panel>
+        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+          <ItemsControl x:Name="TabList" ItemsSource="{Binding Tabs}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <StackPanel Orientation="Horizontal" />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:MapTabViewModel">
+                <Border Classes="maptab" Classes.selected="{Binding IsSelected}"
+                        PointerPressed="OnTabPressed" PointerMoved="OnTabMoved" PointerReleased="OnTabReleased"
+                        ToolTip.Tip="{x:Static loc:MapText.TipMapTab}">
+                  <StackPanel Orientation="Horizontal" Spacing="5">
+                    <TextBlock Text="{Binding TabGlyph}" FontSize="10" VerticalAlignment="Center"
+                               Foreground="{DynamicResource TextFaintBrush}" />
+                    <TextBlock Classes="tabtitle" Text="{Binding TabTitle}" MaxWidth="200"
+                               TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                    <Button Classes="tabclose" Content="✕" FontSize="10" Command="{Binding CloseCommand}"
+                            ToolTip.Tip="{x:Static loc:MapText.TipCloseMapTab}" />
+                  </StackPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+        <Border x:Name="DropMark" Classes="dropmark" IsVisible="False" />
+      </Panel>
+    </Border>
+
+    <!-- ⚠️ Every tab's view is kept, and only the selected one shown, rather than one view
+         re-templated as the selection moves. A system page would otherwise lose its scroll
+         position and sub-tab each time you looked away, and a map its hover state. The maps
+         keep their zoom in their view model as well (Camera), for the one rebuild this cannot
+         avoid: moving a tab to the other side. -->
+    <ItemsControl ItemsSource="{Binding Tabs}">
+      <ItemsControl.ItemsPanel>
+        <ItemsPanelTemplate>
+          <Panel />
+        </ItemsPanelTemplate>
+      </ItemsControl.ItemsPanel>
+      <ItemsControl.DataTemplates>
+        <!-- The visibility is on a wrapper, never on the view itself: a binding resolves against
+             its own element's DataContext, and the view's is the map or the page, not the tab. -->
+        <DataTemplate DataType="vm:UniverseTabViewModel">
+          <Panel IsVisible="{Binding IsSelected}">
+            <views:UniverseView DataContext="{Binding Map}" />
+          </Panel>
+        </DataTemplate>
+        <DataTemplate DataType="vm:BridgesTabViewModel">
+          <Panel IsVisible="{Binding IsSelected}">
+            <views:JumpBridgesView />
+          </Panel>
+        </DataTemplate>
+        <DataTemplate DataType="vm:SystemTabViewModel">
+          <Panel IsVisible="{Binding IsSelected}">
+            <views:SystemPageView DataContext="{Binding Page}" />
+          </Panel>
+        </DataTemplate>
+      </ItemsControl.DataTemplates>
+    </ItemsControl>
+  </DockPanel>
+</UserControl>

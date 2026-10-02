@@ -236,7 +236,10 @@ public class MainWindowViewModel : ReactiveObject
     public FittingViewModel               FittingVm              { get; }
     public PriceOverrideViewModel         PriceOverrideVm        { get; }
     public StructureBrowserViewModel      StructureBrowserVm     { get; }
-    public UniverseViewModel              UniverseVm             { get; }
+    public PlanetaryIndustryViewModel     PlanetaryIndustryVm    { get; }
+    /// <summary>Planetary Industry's one door to the data, for the Settings window's PI boxes.</summary>
+    public EveConsole.Services.Pi.PiService Pi                   { get; }
+    public MapToolViewModel                MapVm                  { get; }
     public AlarmsViewModel                AlarmsVm               { get; }
     public SchedulerViewModel             SchedulerVm            { get; }
     public JumpPlannerViewModel           JumpPlannerVm          { get; }
@@ -269,6 +272,7 @@ public class MainWindowViewModel : ReactiveObject
     public PollingSettingsViewModel       PollingSettingsVm      { get; }
     public CorpTop10SettingsViewModel     CorpTop10SettingsVm    { get; }
     public SlackSettingsViewModel         SlackSettingsVm        { get; }
+    public DiscordSettingsViewModel       DiscordSettingsVm      { get; }
     public GameLogSettingsViewModel       GameLogSettingsVm      { get; }
     public ChatLogSettingsViewModel       ChatLogSettingsVm      { get; }
     public ZkillboardSettingsViewModel    ZkbSettingsVm          { get; }
@@ -461,7 +465,7 @@ public class MainWindowViewModel : ReactiveObject
     /// English; the ids are for naming them in the interface language.</summary>
     internal sealed record OnlineCharacterRow(
         string Name, bool Online, bool Docked, string? System, string? Place, string? Hull, string? ShipName,
-        int? SolarSystemId = null, long? StationId = null, int? ShipTypeId = null);
+        int? SolarSystemId = null, long? StationId = null, int? ShipTypeId = null, long CharacterId = 0);
 
     /// <summary>
     /// Every character with a status row, with names looked up for the ones online.
@@ -480,7 +484,7 @@ public class MainWindowViewModel : ReactiveObject
             join c in db.Characters.AsNoTracking() on s.CharacterId equals c.Id
             select new
             {
-                c.Name, s.Online, s.SolarSystemId, s.StationId, s.StructureId, s.ShipTypeId, s.ShipName,
+                c.Id, c.Name, s.Online, s.SolarSystemId, s.StationId, s.StructureId, s.ShipTypeId, s.ShipName,
             }).ToListAsync(ct);
 
         // Names only for who is online — nothing else is shown. A character who has just logged
@@ -526,7 +530,7 @@ public class MainWindowViewModel : ReactiveObject
                   : s.StructureId is long str ? structures.GetValueOrDefault(str) : null,
             Hull:   s.ShipTypeId is int hull ? ships.GetValueOrDefault(hull) : null,
             s.ShipName,
-            SolarSystemId: s.SolarSystemId, StationId: s.StationId, ShipTypeId: s.ShipTypeId)).ToList();
+            SolarSystemId: s.SolarSystemId, StationId: s.StationId, ShipTypeId: s.ShipTypeId, CharacterId: s.Id)).ToList();
     }
 
     private async Task RefreshOnlineCharactersAsync(IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errorLogger)
@@ -827,7 +831,8 @@ public class MainWindowViewModel : ReactiveObject
             "fitting"    => (ShellText.NavFitting,        FittingVm,                true),
             "price_overrides" => (ShellText.NavPriceOverrides, PriceOverrideVm,     true),
             "structure_browser" => (ShellText.NavStructureBrowser, StructureBrowserVm, true),
-            "universe"        => (ShellText.TabUniverse,        UniverseVm,        true),
+            "planetary_industry" => (ShellText.NavPlanetaryIndustry, PlanetaryIndustryVm, true),
+            "universe"        => (ShellText.TabUniverse,        MapVm,             true),
             "alarms"          => (ShellText.TabAlarms,          AlarmsVm,          true),
             "scheduler"       => (ShellText.TabScheduler,       SchedulerVm,       true),
             "jump_planner"    => (ShellText.NavJumpPlanner,    JumpPlannerVm,     true),
@@ -884,6 +889,7 @@ public class MainWindowViewModel : ReactiveObject
         // afresh, which is what somebody doing that is asking for.
         if (toolId == "error_log") ErrorLogVm.Reload();
         if (toolId == "ai_usage")  AgentUsageVm.Reload();
+        if (toolId == "planetary_industry") _ = PlanetaryIndustryVm.RefreshAsync();
 
         var navItem = _allNavItems.FirstOrDefault(i => i.ToolId == toolId);
         if (navItem is not null) navItem.IsOpen = true;
@@ -1009,6 +1015,7 @@ public class MainWindowViewModel : ReactiveObject
         MarketHistoryService            historyService,
         ContractsService                contractsService,
         SlackService                    slackService,
+        DiscordService                  discordService,
         MonitoringSettings              monitoringSettings,
         GameLogImportService            gameLogImport,
         ChatLogImportService            chatLogImport,
@@ -1036,7 +1043,8 @@ public class MainWindowViewModel : ReactiveObject
         LpStoreService                  lpStoreService,
         LpValueService                  lpValueService,
         SchedulerService                schedulerService,
-        ScheduledBlockRenderer          blockRenderer)
+        ScheduledBlockRenderer          blockRenderer,
+        EveConsole.Services.Pi.PiService piService)
     {
         // The main window's selection, as those who ask the main view model for it see it.
         Main.WhenAnyValue(w => w.SelectedTab).Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedTab)));
@@ -1051,11 +1059,12 @@ public class MainWindowViewModel : ReactiveObject
 
         Slack             = slackService;
         SlackSettingsVm   = new SlackSettingsViewModel(slackService);
+        DiscordSettingsVm = new DiscordSettingsViewModel(discordService);
         GameLogSettingsVm = new GameLogSettingsViewModel(monitoringSettings, gameLogImport);
         ChatLogSettingsVm = new ChatLogSettingsViewModel(monitoringSettings, chatLogImport, intelService);
         ZkbSettingsVm     = new ZkillboardSettingsViewModel(zkillboardSettings, zkbPolling, zkbFirehose, zkbBackfill, zkbPost);
         MapStatsSettingsVm = new MapStatsSettingsViewModel(mapStatsSettings, mapStatsBackfill, mapStatsPolling, mapStatsService);
-        AlertSettingsVm   = new AlertSettingsViewModel(dbFactory.CreateDbContext());
+        AlertSettingsVm   = new AlertSettingsViewModel(dbFactory);
         OverviewVm        = new OverviewViewModel(dbFactory.CreateDbContext(), AlertSettingsVm, errorLogger, newsService, appPrefs, corpActivityService, dbFactory, esi, standingBuyOrderService, indyFacilityCheck);
         CharacterVm       = new CharacterViewModel(auth, esi, dbFactory.CreateDbContext(), errorLogger);
         SdeVm             = new SdeViewModel(sdeService, hoboService, dbFactory.CreateDbContext());
@@ -1102,10 +1111,10 @@ public class MainWindowViewModel : ReactiveObject
         InvLevelVm        = new InvLevelViewModel(invLevelService, dbFactory, appPrefs,
             batchAddService, prodCalcService, fittingsService,
             CharacterVm.Characters);
-        SalePostingVm     = new SalePostingViewModel(salePostingService, dbFactory, batchAddService, slackService, exportFormat);
+        SalePostingVm     = new SalePostingViewModel(salePostingService, dbFactory, batchAddService, slackService, exportFormat, discordService);
         StoresVm          = new StoresViewModel(dbFactory, salePostingService, storeMailService, orderLabels, errorLogger, webStoreSync, workerLease, cloudflareDeploy);
 
-        CorpActivityVm    = new CorpActivityViewModel(corpActivityService, CharacterVm.Corporations, corpTop10Exclude, corpReportTitles, slackService, exportFormat, errorLogger);
+        CorpActivityVm    = new CorpActivityViewModel(corpActivityService, CharacterVm.Corporations, corpTop10Exclude, corpReportTitles, slackService, exportFormat, errorLogger, discordService);
         KillmailBrowserVm = new KillmailBrowserViewModel(killmailBrowserService);
         MailSvc           = eveMailService;
         EveMailVm         = new EveMailViewModel(eveMailService, CharacterVm.Characters);
@@ -1201,12 +1210,28 @@ public class MainWindowViewModel : ReactiveObject
         StructureBrowserVm     = new StructureBrowserViewModel(
                                      dbFactory, pollingService, esi, new FittingOptionService(dbFactory),
                                      appPrefs, indyStructureLink);
+        Pi                     = piService;
+        PlanetaryIndustryVm    = new PlanetaryIndustryViewModel(piService, errorLogger);
+        // The Overview's PI alerts open the colony they are about, or the list for several.
+        OverviewVm.Pi                     = piService;
+        OverviewVm.NavigateToPi           = (character, planet) => { OpenTool("planetary_industry"); PlanetaryIndustryVm.ShowColony(character, planet); };
+        OverviewVm.NavigateToPiCharacters = () => { OpenTool("planetary_industry"); PlanetaryIndustryVm.ShowCharacters(); };
         var universeMapService = new UniverseMapService(dbFactory);
-        UniverseVm             = new UniverseViewModel(
-            universeMapService, mapStatsService,
-            new SystemPageViewModel(systemViewService, killmailBrowserService), appPrefs);
+        // Each system tab gets a page of its own, wired to the Item Browser like the rest.
+        SystemPageViewModel NewSystemPage() => new(systemViewService, killmailBrowserService)
+        {
+            NavigateToItemAction = typeId =>
+            {
+                OpenTool("items");
+                _ = ItemBrowserVm.NavigateToItemCommand.Execute(typeId).Subscribe();
+            },
+        };
+        MapVm                  = new MapToolViewModel(
+            universeMapService, mapStatsService, appPrefs, NewSystemPage,
+            new LiveIntelService(dbFactory, corpActivityService), errorLogger,
+            new JumpBridgeService(dbFactory, esi.GetSovSystemsAsync, corpActivityService));
         AlarmsVm               = new AlarmsViewModel(dbFactory, alarmService, alarmSounds, alarmMute);
-        SchedulerVm            = new SchedulerViewModel(dbFactory, schedulerService, blockRenderer, slackService,
+        SchedulerVm            = new SchedulerViewModel(dbFactory, schedulerService, blockRenderer, slackService, discordService,
                                                         corpActivityService, salePostingService, errorLogger);
         JumpPlannerVm          = new JumpPlannerViewModel(jumpPlanner);
 
@@ -1227,40 +1252,40 @@ public class MainWindowViewModel : ReactiveObject
             if (player) PlayerEntitiesVm.Open(kind, id);
             else        NpcEntitiesVm.Open(kind, id);
         };
-        EntityNavigator.Instance.OpenSystem   = id => { OpenTool("universe"); _ = UniverseVm.OpenSystemCommand.Execute(id).Subscribe(); };
+        EntityNavigator.Instance.OpenSystem   = id => { OpenTool("universe"); MapVm.OpenSystem(id); };
         EntityNavigator.Instance.OpenItem     = id => { OpenTool("items"); _ = ItemBrowserVm.NavigateToItemCommand.Execute(id).Subscribe(); };
         EntityNavigator.Instance.OpenKillmail = id => { OpenTool("killmails"); KillmailBrowserVm.SelectById(id); };
         EntityNavigator.Instance.OpenStructure = id => { OpenTool("structure_browser"); StructureBrowserVm.Open(id); };
         EntityNavigator.Instance.OpenContract  = id => { OpenTool("contracts"); ContractsVm.SelectById(id); };
         EntityNavigator.Instance.OpenNotification = id => { OpenTool("notifications"); NotificationsVm.ShowNotification(id); };
-        // FocusRegionAsync, not ShowRegionAsync: the separate per-region map is legacy — only
-        // the system page still returns to it. A region is now territory you zoom to on the
-        // one continuous universe map.
-        EntityNavigator.Instance.OpenRegion   = id => { OpenTool("universe"); _ = UniverseVm.FocusRegionAsync(id); };
+        // A region or constellation is territory you zoom to on a map: the map tab used last,
+        // framed on it, or a new map tab if none is open.
+        EntityNavigator.Instance.OpenRegion   = id => { OpenTool("universe"); _ = MapVm.FocusRegionAsync(id); };
         EntityNavigator.Instance.OpenConstellation =
-            name => { OpenTool("universe"); _ = UniverseVm.FocusConstellationAsync(name); };
+            name => { OpenTool("universe"); _ = MapVm.FocusConstellationAsync(name); };
 
         // Resolve the overlay here rather than in the agent tool: this is the list's home, so
         // an overlay added to the map is reachable by name without touching the tool.
         EntityNavigator.Instance.SetOverlay = text =>
         {
             var wanted = (text ?? "").Trim();
-            var mode = UniverseVm.OverlayModes.FirstOrDefault(m =>
+            OpenTool("universe");
+            var map  = MapVm.ShowUniverseTab().Map;
+            var mode = map.OverlayModes.FirstOrDefault(m =>
                            m.Key.Equals(wanted, StringComparison.OrdinalIgnoreCase) ||
                            m.Name.Equals(wanted, StringComparison.OrdinalIgnoreCase))
-                    ?? UniverseVm.OverlayModes.FirstOrDefault(m =>
+                    ?? map.OverlayModes.FirstOrDefault(m =>
                            m.Name.Contains(wanted, StringComparison.OrdinalIgnoreCase));
             if (mode is null) return "";
 
-            OpenTool("universe");
-            UniverseVm.SelectedOverlay = mode;
+            map.SelectedOverlay = mode;
             return $"Map overlay set to {mode.Name}.";
         };
 
         Action<int> showSystem = systemId =>
         {
             OpenTool("universe");
-            _ = UniverseVm.OpenSystemCommand.Execute(systemId).Subscribe();
+            MapVm.OpenSystem(systemId);
         };
         PlayerEntitiesVm.NavigateToSystem = showSystem;
         NpcEntitiesVm.NavigateToSystem    = showSystem;
@@ -1300,19 +1325,11 @@ public class MainWindowViewModel : ReactiveObject
             OpenTool("items");
             _ = ItemBrowserVm.NavigateToItemCommand.Execute(typeId).Subscribe();
         };
-        if (UniverseVm.SystemPage is { } sysPage)
-            sysPage.NavigateToItemAction = typeId =>
-            {
-                OpenTool("items");
-                _ = ItemBrowserVm.NavigateToItemCommand.Execute(typeId).Subscribe();
-            };
 
         KillmailBrowserVm.NavigateToSystemAction = systemId =>
         {
             OpenTool("universe");
-            // Through the command rather than the method directly: it already routes failures
-            // to the map's status line instead of leaving an unobserved task exception.
-            _ = UniverseVm.OpenSystemCommand.Execute(systemId).Subscribe();
+            MapVm.OpenSystem(systemId);
         };
 
         using var tmpDb      = dbFactory.CreateDbContext();
@@ -1406,6 +1423,7 @@ public class MainWindowViewModel : ReactiveObject
                 new NavItem("industry",      ShellText.NavIndustryJobs),
                 new NavItem("indy_parks",    ShellText.NavIndyParks),
                 new NavItem("prod_calc",     ShellText.NavProductionCalc),
+                new NavItem("planetary_industry", ShellText.NavPlanetaryIndustry),
                 new NavItem("price_overrides", ShellText.NavPriceOverrides),
                 new NavItem("industry_opps", ShellText.NavIndustryOpportunities),
             ]),

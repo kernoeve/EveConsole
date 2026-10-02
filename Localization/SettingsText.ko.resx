@@ -3271,4 +3271,145 @@ SQLite 데이터베이스는 읽기만 하고 변경하지 않습니다. 데이�
   <data name="PurposeConversation" xml:space="preserve">
     <value>우리 대화</value>
   </data>
+  <data name="TabDiscord" xml:space="preserve">
+    <value>Discord</value>
+  </data>
+  <data name="DiscordIntegration" xml:space="preserve">
+    <value>Discord 연동</value>
+  </data>
+  <data name="DiscordIntroNote" xml:space="preserve">
+    <value>봇이나 로그인 없이 웹후크를 통해 EVE Console에서 Discord 채널로 게시합니다. Discord에 게시 버튼을 누르거나 예약 작업을 설정하기 전에는 아무것도 게시되지 않으며, 앱의 각 부분은 아래에서 웹후크가 지정된 뒤에야 해당 버튼을 표시합니다.</value>
+  </data>
+  <data name="DiscordHowToNote" xml:space="preserve">
+    <value>서버 관리자가 Discord의 채널 편집 → 연동 → 웹후크에서 웹후크를 만들고 URL을 복사합니다. 여기에 이름을 붙여 추가하면 아래 목록과 스케줄러에서 선택할 수 있습니다.</value>
+  </data>
+  <data name="DiscordSecretNote" xml:space="preserve">
+    <value>⚠ 웹후크 URL은 비밀번호와 같습니다. URL을 가진 사람은 누구나 해당 채널에 게시할 수 있습니다. EVE Console은 URL을 전체로 표시하거나 로그에 기록하지 않습니다. URL이 유출되면 Discord에서 웹후크를 삭제하고 여기에 새로 추가하십시오.</value>
+  </data>
+  <data name="DiscordTest" xml:space="preserve">
+    <value>테스트</value>
+  </data>
+  <data name="DiscordWebhookNeedsNameUrl" xml:space="preserve">
+    <value>웹후크에는 이름과 URL이 필요합니다.</value>
+  </data>
+  <data name="DiscordWebhookNotDiscord" xml:space="preserve">
+    <value>Discord 웹후크 URL이 아닙니다. 웹후크 URL은 https://discord.com/api/webhooks/로 시작합니다.</value>
+  </data>
+  <data name="DiscordWebhookIsSlack" xml:space="preserve">
+    <value>Slack 웹후크입니다. Slack 탭에서 추가하십시오.</value>
+  </data>
+  <data name="DiscordNone" xml:space="preserve">
+    <value>(없음)</value>
+  </data>
+  <data name="DiscordTesting" xml:space="preserve">
+    <value>"{0}" 테스트 중…</value>
+  </data>
+  <data name="DiscordTestSent" xml:space="preserve">
+    <value>Discord가 "{0}"의 테스트 메시지를 수락했습니다. 채널을 확인하십시오.</value>
+  </data>
+  <data name="DiscordTestFailed" xml:space="preserve">
+    <value>"{0}" 테스트 실패: {1}</value>
+  </data>
+  <data name="DiscordTestMessage" xml:space="preserve">
+    <value>EVE Console의 테스트 메시지입니다. 이 웹후크는 정상적으로 작동합니다.</value>
+  </data>
+  <data name="DiscordWhereEachPosts" xml:space="preserve">
+    <value>각 부분의 게시 위치</value>
+  </data>
+  <data name="DiscordPickWebhookNote" xml:space="preserve">
+    <value>EVE Console의 각 부분이 게시할 웹후크를 선택하십시오. 웹후크가 지정된 뒤에야 해당 부분의 Discord에 게시 버튼이 나타납니다. Slack은 자체 탭에서 설정하며, 해당 버튼은 별도로 표시됩니다.</value>
+  </data>
+  <data name="DiscordErrNoWebhook" xml:space="preserve">
+    <value>이 작업에 지정된 Discord 웹후크가 없습니다.</value>
+  </data>
+  <data name="DiscordErrWebhookRemoved" xml:space="preserve">
+    <value>해당 Discord 웹후크는 설정에서 제거되었습니다.</value>
+  </data>
+  <data name="DiscordErrNothingToPost" xml:space="preserve">
+    <value>게시할 내용이 없습니다.</value>
+  </data>
+  <data name="DiscordErrNotAWebhook" xml:space="preserve">
+    <value>저장된 링크가 Discord 웹후크 URL이 아닙니다. 설정의 Discord에서 새 URL을 붙여 넣으십시오.</value>
+  </data>
+  <data name="DiscordErrWebhookGone" xml:space="preserve">
+    <value>Discord가 더 이상 이 웹후크를 수락하지 않습니다. 삭제되었을 수 있으니 설정의 Discord에서 새 링크를 붙여 넣으십시오.</value>
+  </data>
+  <data name="DiscordErrUnreachable" xml:space="preserve">
+    <value>Discord에 연결할 수 없습니다.</value>
+  </data>
+  <data name="DiscordErrRateLimited" xml:space="preserve">
+    <value>Discord가 계속 속도를 늦추라고 요청했습니다. 1분 뒤에 다시 시도하십시오.</value>
+  </data>
+  <data name="DiscordErrHttp" xml:space="preserve">
+    <value>Discord가 거부했습니다 (HTTP {0}): {1}</value>
+  </data>
+  <data name="ColPi" xml:space="preserve">
+    <value>PI</value>
+  </data>
+  <data name="TipCharacterDoesPi" xml:space="preserve">
+    <value>캐릭터가 행성 개발을 합니다. 선택을 해제하면 이 캐릭터는 PI 도구에서 빠지고, PI 경보나 작업 목록의 작업 항목을 받지 않으며, 콜로니도 읽지 않습니다.</value>
+  </data>
+  <data name="PiTaxTitle" xml:space="preserve">
+    <value>행성 개발 관세</value>
+  </data>
+  <data name="PiTaxNote" xml:space="preserve">
+    <value>행성에서 상품을 수출하거나 행성으로 수입할 때 부과되는 세율로, 그곳에서 수출이나 수입을 한 뒤 계좌 저널에서 그 행성의 실제 세율을 확인할 때까지 사용합니다. 세관 사무소는 하이 시큐리티, 로우 시큐리티, 웜홀, NPC 널 시큐리티에 있고, 소버린티 널 시큐리티에는 대신 궤도 스카이훅이 있습니다. 수입 관세는 수출 관세의 절반입니다.</value>
+  </data>
+  <data name="PiTaxCustomsDefault" xml:space="preserve">
+    <value>세관 사무소 세율</value>
+  </data>
+  <data name="PiTaxSkyhookDefault" xml:space="preserve">
+    <value>스카이훅 세율</value>
+  </data>
+  <data name="PiTimingTitle" xml:space="preserve">
+    <value>행성 개발 경보 및 작업 항목</value>
+  </data>
+  <data name="PiTimingNote" xml:space="preserve">
+    <value>개요의 PI 경보와 작업 목록의 PI 작업 항목이 얼마나 앞을 내다볼지, 콜로니 데이터가 얼마나 지나면 믿을 수 없는 것으로 볼지, 투입 자원 운반 한 번에 얼마만큼 가져올지를 정합니다. 어떤 경보를 표시할지는 경보 탭에서 정합니다.</value>
+  </data>
+  <data name="PiLeadExtractors" xml:space="preserve">
+    <value>추출기 정지</value>
+  </data>
+  <data name="PiLeadStorage" xml:space="preserve">
+    <value>저장시설 또는 발사시설 가득 참</value>
+  </data>
+  <data name="PiLeadInputs" xml:space="preserve">
+    <value>제조시설 투입 자원 고갈</value>
+  </data>
+  <data name="PiHoursAhead" xml:space="preserve">
+    <value>시간 전 (정확)</value>
+  </data>
+  <data name="PiHoursAheadEstimated" xml:space="preserve">
+    <value>시간 전 (추정)</value>
+  </data>
+  <data name="PiStaleAfter" xml:space="preserve">
+    <value>콜로니 데이터 유효 기간</value>
+  </data>
+  <data name="PiInputDays" xml:space="preserve">
+    <value>투입 자원 운반 1회 분량</value>
+  </data>
+  <data name="PiDaysOfRunning" xml:space="preserve">
+    <value>일 가동분</value>
+  </data>
+  <data name="PiAlertsTitle" xml:space="preserve">
+    <value>행성 개발</value>
+  </data>
+  <data name="PiAlertExtractors" xml:space="preserve">
+    <value>추출기가 정지했거나 곧 정지할 때</value>
+  </data>
+  <data name="PiAlertStorage" xml:space="preserve">
+    <value>저장시설 또는 발사시설이 가득 찼거나 곧 가득 찰 때 (추정)</value>
+  </data>
+  <data name="PiAlertInputs" xml:space="preserve">
+    <value>제조 행성의 투입 자원이 떨어졌거나 곧 떨어질 때 (추정)</value>
+  </data>
+  <data name="PiAlertFreeSlots" xml:space="preserve">
+    <value>PI 캐릭터에게 사용하지 않은 콜로니 슬롯이 있을 때</value>
+  </data>
+  <data name="PiAlertStale" xml:space="preserve">
+    <value>콜로니를 게임에서 너무 오래 열지 않아 추정치를 믿을 수 없을 때</value>
+  </data>
+  <data name="PiAlertsNote" xml:space="preserve">
+    <value>캐릭터 탭에서 PI 확인란을 선택한 캐릭터만 해당합니다. '곧'이 얼마나 가까운지, 얼마나 지나면 너무 오래된 것인지는 산업 탭에서 정하며, 작업 목록의 PI 작업 항목도 같은 시간을 사용합니다.</value>
+  </data>
 </root>

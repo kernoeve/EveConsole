@@ -19,4 +19,18 @@ public class AlertSettings
     public bool OutstandingContracts       { get; set; } = true;
     /// <summary>Active contracts from or to them in the last 15% of their life.</summary>
     public bool ExpiringContracts          { get; set; } = true;
+
+    // ── Planetary Industry ── only the characters that do PI. The lead times these judge by are
+    // on Settings → Industry (PiSettings), shared with the PI worklist tasks.
+
+    /// <summary>Extractors stopped, or stopping within the lead time (exact).</summary>
+    public bool PiExtractors { get; set; } = true;
+    /// <summary>Storage, a launchpad or the command center full within the lead time (estimated).</summary>
+    public bool PiStorage    { get; set; } = true;
+    /// <summary>A factory planet's brought-in input running out within the lead time (estimated).</summary>
+    public bool PiInputs     { get; set; } = true;
+    /// <summary>A PI character with a colony slot it is not using.</summary>
+    public bool PiFreeSlots  { get; set; } = true;
+    /// <summary>A colony not opened in game for longer than the staleness setting.</summary>
+    public bool PiStaleData  { get; set; } = true;
 }

@@ -36,7 +36,7 @@ public enum WorklistReadiness
 /// they are the same sort of errand — material you already own, in the wrong form rather than the
 /// wrong place.
 /// </summary>
-public enum WorklistKind { Buy, Haul, Refine, Decompress, Job, CorpProject, AssetSafety, SkillQueue }
+public enum WorklistKind { Buy, Haul, Refine, Decompress, Job, CorpProject, AssetSafety, SkillQueue, Pi }
 
 /// <summary>
 /// One item on a task that moves or acquires several things at once.

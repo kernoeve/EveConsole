@@ -1817,4 +1817,21 @@
   <data name="WebSyncDeclined" xml:space="preserve">
     <value>已拒绝。</value>
   </data>
+  <data name="PostToDiscord" xml:space="preserve">
+    <value>发布到 Discord</value>
+  </data>
+  <data name="DiscordNotConfigured" xml:space="preserve">
+    <value>尚未为销售发布设置 Discord Webhook。</value>
+  </data>
+  <data name="DiscordAlreadyPosted" xml:space="preserve">
+    <value>“{0}”已发布到 Discord（{1}）。
+
+</value>
+  </data>
+  <data name="DiscordPosting" xml:space="preserve">
+    <value>正在发布到 Discord…</value>
+  </data>
+  <data name="DiscordPostFailed" xml:space="preserve">
+    <value>帖子块“{0}”发布到 Discord 失败：{1}</value>
+  </data>
 </root>

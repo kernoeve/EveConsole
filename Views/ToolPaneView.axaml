@@ -158,8 +158,11 @@
         <DataTemplate DataType="vm:StructureBrowserViewModel">
           <views:StructureBrowserView />
         </DataTemplate>
-        <DataTemplate DataType="vm:UniverseViewModel">
-          <views:UniverseView />
+        <DataTemplate DataType="vm:PlanetaryIndustryViewModel">
+          <views:PlanetaryIndustryView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:MapToolViewModel">
+          <views:MapToolView />
         </DataTemplate>
         <DataTemplate DataType="vm:AlarmsViewModel">
           <views:AlarmsView />

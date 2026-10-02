@@ -860,4 +860,61 @@ Remplacer « {1} » par « {0} » ?</value>
   <data name="ScopeGroupCorp" xml:space="preserve">
     <value>Corporation</value>
   </data>
+  <data name="AlertPiExtractorsStopped" xml:space="preserve">
+    <value>{0} : les extracteurs de {1} se sont arrêtés.</value>
+  </data>
+  <data name="AlertPiExtractorsStopping" xml:space="preserve">
+    <value>{0} : les extracteurs de {1} s'arrêtent dans {2}.</value>
+  </data>
+  <data name="AlertPiExtractorsManyOne" xml:space="preserve">
+    <value>Extracteurs arrêtés ou sur le point de s'arrêter sur {0} colonie.</value>
+  </data>
+  <data name="AlertPiExtractorsManyOther" xml:space="preserve">
+    <value>Extracteurs arrêtés ou sur le point de s'arrêter sur {0} colonies.</value>
+  </data>
+  <data name="AlertPiStorageFull" xml:space="preserve">
+    <value>{0} : le stockage de {1} est plein (estimation).</value>
+  </data>
+  <data name="AlertPiStorageFilling" xml:space="preserve">
+    <value>{0} : le stockage de {1} sera plein dans {2} (estimation).</value>
+  </data>
+  <data name="AlertPiStorageManyOne" xml:space="preserve">
+    <value>Stockage plein ou bientôt plein sur {0} colonie (estimation).</value>
+  </data>
+  <data name="AlertPiStorageManyOther" xml:space="preserve">
+    <value>Stockage plein ou bientôt plein sur {0} colonies (estimation).</value>
+  </data>
+  <data name="AlertPiInputsOut" xml:space="preserve">
+    <value>{0} : les usines de {1} n'ont plus d'intrants (estimation).</value>
+  </data>
+  <data name="AlertPiInputsLow" xml:space="preserve">
+    <value>{0} : les intrants de {1} s'épuisent dans {2} (estimation).</value>
+  </data>
+  <data name="AlertPiInputsManyOne" xml:space="preserve">
+    <value>Intrants épuisés ou bientôt épuisés sur {0} planète de production (estimation).</value>
+  </data>
+  <data name="AlertPiInputsManyOther" xml:space="preserve">
+    <value>Intrants épuisés ou bientôt épuisés sur {0} planètes de production (estimation).</value>
+  </data>
+  <data name="AlertPiStale" xml:space="preserve">
+    <value>{0} : la colonie de {1} n'a pas été ouverte dans le jeu depuis {2} ; ses estimations ne sont plus fiables.</value>
+  </data>
+  <data name="AlertPiStaleManyOne" xml:space="preserve">
+    <value>{0} colonie n'a pas été ouverte dans le jeu depuis un moment ; ses estimations ne sont plus fiables.</value>
+  </data>
+  <data name="AlertPiStaleManyOther" xml:space="preserve">
+    <value>{0} colonies n'ont pas été ouvertes dans le jeu depuis un moment ; leurs estimations ne sont plus fiables.</value>
+  </data>
+  <data name="AlertPiFreeSlotsOne" xml:space="preserve">
+    <value>{1} a {0} emplacement de colonie inutilisé.</value>
+  </data>
+  <data name="AlertPiFreeSlotsOther" xml:space="preserve">
+    <value>{1} a {0} emplacements de colonie inutilisés.</value>
+  </data>
+  <data name="AlertPiFreeSlotsCharsOne" xml:space="preserve">
+    <value>{0} personnage PI a des emplacements de colonie inutilisés.</value>
+  </data>
+  <data name="AlertPiFreeSlotsCharsOther" xml:space="preserve">
+    <value>{0} personnages PI ont des emplacements de colonie inutilisés.</value>
+  </data>
 </root>

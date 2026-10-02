@@ -532,6 +532,10 @@ public class EsiClient
     {
         [System.Text.Json.Serialization.JsonPropertyName("alliance_id")]
         public long                 AllianceId  { get; set; }
+        /// <summary>The alliance's capital system. Since 2026-09-22 an Ansiblex jump's capacitor
+        /// cost grows with the distance from here to where the jump lands.</summary>
+        [System.Text.Json.Serialization.JsonPropertyName("is_capital_system")]
+        public bool                 IsCapitalSystem { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("development")]
         public EsiSovDevelopment?   Development { get; set; }
     }

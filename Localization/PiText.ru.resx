@@ -1,0 +1,616 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="PlanetWithId" xml:space="preserve">
+    <value>Планета {0}</value>
+  </data>
+  <data name="TypeWithId" xml:space="preserve">
+    <value>Тип {0}</value>
+  </data>
+  <data name="DurationDaysHours" xml:space="preserve">
+    <value>{0} д {1} ч</value>
+  </data>
+  <data name="InDuration" xml:space="preserve">
+    <value>через {0}</value>
+  </data>
+  <data name="AgoDuration" xml:space="preserve">
+    <value>{0} назад</value>
+  </data>
+  <data name="Updated" xml:space="preserve">
+    <value>Обновлено: {0}</value>
+  </data>
+  <data name="SummarySeparator" xml:space="preserve">
+    <value> · </value>
+  </data>
+  <data name="SummaryColoniesOne" xml:space="preserve">
+    <value>{0} колония</value>
+  </data>
+  <data name="SummaryColoniesOther" xml:space="preserve">
+    <value>{0} колонии</value>
+  </data>
+  <data name="SummaryColoniesFew" xml:space="preserve">
+    <value>{0} колонии</value>
+  </data>
+  <data name="SummaryColoniesMany" xml:space="preserve">
+    <value>{0} колоний</value>
+  </data>
+  <data name="SummaryStoppedOne" xml:space="preserve">
+    <value>{0} экстрактор остановлен</value>
+  </data>
+  <data name="SummaryStoppedOther" xml:space="preserve">
+    <value>{0} экстрактора остановлено</value>
+  </data>
+  <data name="SummaryStoppedFew" xml:space="preserve">
+    <value>{0} экстрактора остановлены</value>
+  </data>
+  <data name="SummaryStoppedMany" xml:space="preserve">
+    <value>{0} экстракторов остановлено</value>
+  </data>
+  <data name="SummaryHaulingOne" xml:space="preserve">
+    <value>{0} колония ждёт вывоза</value>
+  </data>
+  <data name="SummaryHaulingOther" xml:space="preserve">
+    <value>{0} колонии ждут вывоза</value>
+  </data>
+  <data name="SummaryHaulingFew" xml:space="preserve">
+    <value>{0} колонии ждут вывоза</value>
+  </data>
+  <data name="SummaryHaulingMany" xml:space="preserve">
+    <value>{0} колоний ждут вывоза</value>
+  </data>
+  <data name="SummaryInputsOne" xml:space="preserve">
+    <value>у {0} планеты кончаются материалы</value>
+  </data>
+  <data name="SummaryInputsOther" xml:space="preserve">
+    <value>у {0} планеты кончаются материалы</value>
+  </data>
+  <data name="SummaryInputsFew" xml:space="preserve">
+    <value>у {0} планет кончаются материалы</value>
+  </data>
+  <data name="SummaryInputsMany" xml:space="preserve">
+    <value>у {0} планет кончаются материалы</value>
+  </data>
+  <data name="TabColonies" xml:space="preserve">
+    <value>Колонии</value>
+  </data>
+  <data name="TabColony" xml:space="preserve">
+    <value>Колония</value>
+  </data>
+  <data name="TabCharacters" xml:space="preserve">
+    <value>Персонажи</value>
+  </data>
+  <data name="OpenColony" xml:space="preserve">
+    <value>Открыть колонию</value>
+  </data>
+  <data name="TipOpenColony" xml:space="preserve">
+    <value>Показать подробности выбранной колонии: её объекты, потоки и деньги. Двойной щелчок по строке делает то же самое.</value>
+  </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>Обновить</value>
+  </data>
+  <data name="TipRefresh" xml:space="preserve">
+    <value>Считать колонии заново. Пока список открыт, он обновляется каждую минуту; новая планировка колоний считывается из ESI каждые десять минут.</value>
+  </data>
+  <data name="EstimatesNote" xml:space="preserve">
+    <value>Время экстракторов точное. Время заполнения хранилищ и расхода материалов — оценка, рассчитанная с момента, когда колонию в последний раз открывали в игре; сколько прошло с тех пор, показывает столбец «Возраст данных».</value>
+  </data>
+  <data name="EmptyNote" xml:space="preserve">
+    <value>Колоний пока нет. Колонии считываются для персонажей с флажком PI в разделе «Настройки → Персонажи»; колония появляется здесь, когда её планировка считана из ESI, а это происходит после того, как её открывали в игре.</value>
+  </data>
+  <data name="ColCharacter" xml:space="preserve">
+    <value>Персонаж</value>
+  </data>
+  <data name="ColPlanet" xml:space="preserve">
+    <value>Планета</value>
+  </data>
+  <data name="ColSystem" xml:space="preserve">
+    <value>Система</value>
+  </data>
+  <data name="ColType" xml:space="preserve">
+    <value>Тип</value>
+  </data>
+  <data name="ColKind" xml:space="preserve">
+    <value>Вид</value>
+  </data>
+  <data name="ColCc" xml:space="preserve">
+    <value>КЦ</value>
+  </data>
+  <data name="ColExtractorsEnd" xml:space="preserve">
+    <value>Конец добычи</value>
+  </data>
+  <data name="ColStorageFull" xml:space="preserve">
+    <value>Хранилище полно</value>
+  </data>
+  <data name="ColInputsRunOut" xml:space="preserve">
+    <value>Материалы кончатся</value>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>Статус</value>
+  </data>
+  <data name="ColDataAge" xml:space="preserve">
+    <value>Возраст данных</value>
+  </data>
+  <data name="ColProfit" xml:space="preserve">
+    <value>Прибыль</value>
+  </data>
+  <data name="LevelOfMax" xml:space="preserve">
+    <value>{0} / {1}</value>
+  </data>
+  <data name="TipCcHeadroom" xml:space="preserve">
+    <value>Уровень командного центра: {0}; навык «Модификации наземной базы» позволяет {1}, так что центр можно улучшить.</value>
+  </data>
+  <data name="TipCcAtMax" xml:space="preserve">
+    <value>Уровень командного центра: {0} — максимум, который позволяет навык «Модификации наземной базы».</value>
+  </data>
+  <data name="Stopped" xml:space="preserve">
+    <value>Остановлены</value>
+  </data>
+  <data name="TipExtractorsStopped" xml:space="preserve">
+    <value>Первый экстрактор остановился {0} назад, в {1}. Точно: конец программы экстрактора задаётся при её запуске.</value>
+  </data>
+  <data name="TipExtractorsStop" xml:space="preserve">
+    <value>Первый экстрактор остановится в {0}. Точно: конец программы экстрактора задаётся при её запуске.</value>
+  </data>
+  <data name="TipNoExtractors" xml:space="preserve">
+    <value>В этой колонии нет экстракторов.</value>
+  </data>
+  <data name="Full" xml:space="preserve">
+    <value>Заполнено</value>
+  </data>
+  <data name="TipStorageFull" xml:space="preserve">
+    <value>По оценке, заполнено с {0}: поступающая сейчас продукция теряется. Оценка рассчитана с момента, когда колонию в последний раз открывали в игре.</value>
+  </data>
+  <data name="TipStorageFills" xml:space="preserve">
+    <value>По оценке, заполнится в {0} — расчёт с момента, когда колонию в последний раз открывали в игре.</value>
+  </data>
+  <data name="NotWithinHorizon" xml:space="preserve">
+    <value>Не в ближайшие 30 дней</value>
+  </data>
+  <data name="TipStorageNotFull" xml:space="preserve">
+    <value>Хранилище не заполнится в пределах 30 дней, на которые рассчитана оценка.</value>
+  </data>
+  <data name="RanOut" xml:space="preserve">
+    <value>Кончились</value>
+  </data>
+  <data name="TipInputsOut" xml:space="preserve">
+    <value>Материалы, по оценке, кончились в {0}: производственные комплексы простаивают. Оценка рассчитана с момента, когда колонию в последний раз открывали в игре.</value>
+  </data>
+  <data name="TipInputsRunOut" xml:space="preserve">
+    <value>Материалы, по оценке, кончатся в {0} — расчёт с момента, когда колонию в последний раз открывали в игре.</value>
+  </data>
+  <data name="TipInputsNotOut" xml:space="preserve">
+    <value>Ввезённых материалов хватит дольше, чем на 30 дней, на которые рассчитана оценка.</value>
+  </data>
+  <data name="TipNoInputs" xml:space="preserve">
+    <value>Ничего не ввозится: добывающая планета производит сырьё сама.</value>
+  </data>
+  <data name="StateAction" xml:space="preserve">
+    <value>Срочно</value>
+  </data>
+  <data name="StateAttention" xml:space="preserve">
+    <value>Внимание</value>
+  </data>
+  <data name="StateOk" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="AgeStale" xml:space="preserve">
+    <value>{0} (устар.)</value>
+  </data>
+  <data name="TipAge" xml:space="preserve">
+    <value>Последний раз открывалась в игре: {0}.</value>
+  </data>
+  <data name="TipAgeStale" xml:space="preserve">
+    <value>Последний раз открывалась в игре: {0} — слишком давно, чтобы доверять оценкам. Откройте колонию в игре, чтобы обновить данные.</value>
+  </data>
+  <data name="PerDay" xml:space="preserve">
+    <value>{0} в день</value>
+  </data>
+  <data name="TipProfit" xml:space="preserve">
+    <value>В день: продукция {0} минус материалы {1} и налоги на импорт и экспорт {2}, по рыночным ценам.</value>
+  </data>
+  <data name="KindExtractor" xml:space="preserve">
+    <value>Добыча</value>
+  </data>
+  <data name="KindFactory" xml:space="preserve">
+    <value>Производство</value>
+  </data>
+  <data name="KindEmpty" xml:space="preserve">
+    <value>Пусто</value>
+  </data>
+  <data name="ReasonExtractorsStopped" xml:space="preserve">
+    <value>Экстракторы остановлены.</value>
+  </data>
+  <data name="ReasonExtractorsStopping" xml:space="preserve">
+    <value>Экстракторы остановятся в пределах времени упреждения.</value>
+  </data>
+  <data name="ReasonStorageFull" xml:space="preserve">
+    <value>Хранилище заполнено (оценка).</value>
+  </data>
+  <data name="ReasonStorageFilling" xml:space="preserve">
+    <value>Хранилище заполнится в пределах времени упреждения (оценка).</value>
+  </data>
+  <data name="ReasonInputsOut" xml:space="preserve">
+    <value>Материалы кончились (оценка).</value>
+  </data>
+  <data name="ReasonInputsLow" xml:space="preserve">
+    <value>Материалы кончатся в пределах времени упреждения (оценка).</value>
+  </data>
+  <data name="ReasonStale" xml:space="preserve">
+    <value>Данные слишком старые, чтобы им доверять.</value>
+  </data>
+  <data name="ReasonNothingDue" xml:space="preserve">
+    <value>В пределах времени упреждения ничего не ожидается.</value>
+  </data>
+  <data name="CharactersNote" xml:space="preserve">
+    <value>Персонажи с флажком PI в разделе «Настройки → Персонажи». Число колоний зависит от навыка «Параллельное управление наземными базами», уровень командных центров — от навыка «Модификации наземной базы».</value>
+  </data>
+  <data name="OpenPiSwitch" xml:space="preserve">
+    <value>Флажок PI в настройках…</value>
+  </data>
+  <data name="TipOpenPiSwitch" xml:space="preserve">
+    <value>Открыть «Настройки → Персонажи», где флажок PI у каждого персонажа решает, попадёт ли он в этот раздел, в оповещения и в задачи списка задач.</value>
+  </data>
+  <data name="ColColonies" xml:space="preserve">
+    <value>Колонии</value>
+  </data>
+  <data name="ColFreeSlots" xml:space="preserve">
+    <value>Свободно</value>
+  </data>
+  <data name="ColSkills" xml:space="preserve">
+    <value>Навыки</value>
+  </data>
+  <data name="ColCommandCenters" xml:space="preserve">
+    <value>Командные центры</value>
+  </data>
+  <data name="ColoniesOfAllowed" xml:space="preserve">
+    <value>{0} / {1}</value>
+  </data>
+  <data name="FreeSlotsOne" xml:space="preserve">
+    <value>{0} свободный</value>
+  </data>
+  <data name="FreeSlotsOther" xml:space="preserve">
+    <value>{0} свободного</value>
+  </data>
+  <data name="FreeSlotsFew" xml:space="preserve">
+    <value>{0} свободных</value>
+  </data>
+  <data name="FreeSlotsMany" xml:space="preserve">
+    <value>{0} свободных</value>
+  </data>
+  <data name="NoFreeSlots" xml:space="preserve">
+    <value>Нет</value>
+  </data>
+  <data name="SkillsShort" xml:space="preserve">
+    <value>IC {0} · CCU {1}</value>
+  </data>
+  <data name="TipSkills" xml:space="preserve">
+    <value>«Параллельное управление наземными базами» (IC): одна колония плюс ещё одна за каждый уровень. «Модификации наземной базы» (CCU): максимальный уровень командного центра.</value>
+  </data>
+  <data name="SlotWithHeadroom" xml:space="preserve">
+    <value>{0}: {1}/{2} ↑</value>
+  </data>
+  <data name="SlotAtMax" xml:space="preserve">
+    <value>{0}: {1}/{2}</value>
+  </data>
+  <data name="NoColonySelected" xml:space="preserve">
+    <value>Выберите колонию на вкладке «Колонии» — двойным щелчком или выделив её и нажав «Открыть колонию».</value>
+  </data>
+  <data name="DetailSubtitle" xml:space="preserve">
+    <value>{0} · {1} {2} · {3} · {4}</value>
+  </data>
+  <data name="DetailAge" xml:space="preserve">
+    <value>Возраст данных — {0}: колонию последний раз открывали в игре {1}. Показатели хранилищ, производственных комплексов и материалов рассчитаны от этого момента.</value>
+  </data>
+  <data name="DetailAgeStale" xml:space="preserve">
+    <value>Возраст данных — {0}: колонию последний раз открывали в игре {1}, слишком давно, чтобы доверять оценкам. Откройте колонию в игре, чтобы обновить данные.</value>
+  </data>
+  <data name="SectionCommandCenter" xml:space="preserve">
+    <value>Командный центр</value>
+  </data>
+  <data name="DetailCommandCenter" xml:space="preserve">
+    <value>Уровень {0} из {1} доступных — ЦПУ {2:N0} тФ, энергосеть {3:N0} МВт.</value>
+  </data>
+  <data name="SectionExtractors" xml:space="preserve">
+    <value>Экстракторы (точно)</value>
+  </data>
+  <data name="NoProduct" xml:space="preserve">
+    <value>Ресурс не выбран</value>
+  </data>
+  <data name="HeadsOne" xml:space="preserve">
+    <value>{0} головка</value>
+  </data>
+  <data name="HeadsOther" xml:space="preserve">
+    <value>{0} головки</value>
+  </data>
+  <data name="HeadsFew" xml:space="preserve">
+    <value>{0} головки</value>
+  </data>
+  <data name="HeadsMany" xml:space="preserve">
+    <value>{0} головок</value>
+  </data>
+  <data name="ProgramFromTo" xml:space="preserve">
+    <value>Программа с {0} по {1}</value>
+  </data>
+  <data name="NoProgram" xml:space="preserve">
+    <value>Программа не запущена</value>
+  </data>
+  <data name="CyclesDoneOfTotal" xml:space="preserve">
+    <value>Цикл {0} из {1}, длительность цикла {2}</value>
+  </data>
+  <data name="OutputTotalRemaining" xml:space="preserve">
+    <value>Всего {0}, ещё предстоит {1}</value>
+  </data>
+  <data name="YieldUnknown" xml:space="preserve">
+    <value>Выход неизвестен: ESI не сообщил количество для этой программы.</value>
+  </data>
+  <data name="ExtractorStopped" xml:space="preserve">
+    <value>Остановлен {0}</value>
+  </data>
+  <data name="ExtractorStops" xml:space="preserve">
+    <value>Остановится {0}</value>
+  </data>
+  <data name="ChartDone" xml:space="preserve">
+    <value>Завершены</value>
+  </data>
+  <data name="ChartCurrent" xml:space="preserve">
+    <value>Текущий</value>
+  </data>
+  <data name="ChartAhead" xml:space="preserve">
+    <value>Впереди</value>
+  </data>
+  <data name="ChartUnits" xml:space="preserve">
+    <value>Ед. за цикл</value>
+  </data>
+  <data name="ChartCycleWindow" xml:space="preserve">
+    <value>{0} – {1}</value>
+  </data>
+  <data name="SectionProcessors" xml:space="preserve">
+    <value>Производственные комплексы (оценка)</value>
+  </data>
+  <data name="ColSchematic" xml:space="preserve">
+    <value>Схема</value>
+  </data>
+  <data name="ColOutput" xml:space="preserve">
+    <value>Продукция</value>
+  </data>
+  <data name="ColFacility" xml:space="preserve">
+    <value>Комплекс</value>
+  </data>
+  <data name="ColStateEstimated" xml:space="preserve">
+    <value>Состояние (оценка)</value>
+  </data>
+  <data name="NoSchematic" xml:space="preserve">
+    <value>Не выбрана произв. схема</value>
+  </data>
+  <data name="ProcessorRunning" xml:space="preserve">
+    <value>Работает</value>
+  </data>
+  <data name="ProcessorIdle" xml:space="preserve">
+    <value>Простаивает</value>
+  </data>
+  <data name="ProcessorIdleSince" xml:space="preserve">
+    <value>Простаивает с {0}</value>
+  </data>
+  <data name="SectionStorage" xml:space="preserve">
+    <value>Хранилища и стартовые площадки (оценка)</value>
+  </data>
+  <data name="ColPin" xml:space="preserve">
+    <value>Вид</value>
+  </data>
+  <data name="ColFill" xml:space="preserve">
+    <value>Заполнение</value>
+  </data>
+  <data name="ColVolume" xml:space="preserve">
+    <value>Объём</value>
+  </data>
+  <data name="ColFullEstimated" xml:space="preserve">
+    <value>Заполнится</value>
+  </data>
+  <data name="ColContents" xml:space="preserve">
+    <value>Содержимое</value>
+  </data>
+  <data name="PinStorage" xml:space="preserve">
+    <value>Хранилище</value>
+  </data>
+  <data name="PinLaunchpad" xml:space="preserve">
+    <value>Стартовая площадка</value>
+  </data>
+  <data name="PinCommandCenter" xml:space="preserve">
+    <value>Командный центр</value>
+  </data>
+  <data name="Percent" xml:space="preserve">
+    <value>{0}%</value>
+  </data>
+  <data name="VolumeOfCapacity" xml:space="preserve">
+    <value>{0} / {1} m³</value>
+  </data>
+  <data name="Empty" xml:space="preserve">
+    <value>Пусто</value>
+  </data>
+  <data name="QuantityOf" xml:space="preserve">
+    <value>{0} × {1}</value>
+  </data>
+  <data name="SectionFlows" xml:space="preserve">
+    <value>Потоки в день</value>
+  </data>
+  <data name="FlowsNote" xml:space="preserve">
+    <value>Что колония производит и расходует, что нужно ввозить и что остаётся вывезти — в день, при работе в нынешнем виде.</value>
+  </data>
+  <data name="ColItem" xml:space="preserve">
+    <value>Предмет</value>
+  </data>
+  <data name="ColTier" xml:space="preserve">
+    <value>Класс</value>
+  </data>
+  <data name="ColProduced" xml:space="preserve">
+    <value>Выпуск</value>
+  </data>
+  <data name="ColConsumed" xml:space="preserve">
+    <value>Расход</value>
+  </data>
+  <data name="ColImported" xml:space="preserve">
+    <value>Ввоз</value>
+  </data>
+  <data name="ColExported" xml:space="preserve">
+    <value>Вывоз</value>
+  </data>
+  <data name="SectionEconomics" xml:space="preserve">
+    <value>Доходы и расходы в день</value>
+  </data>
+  <data name="EconOutputValue" xml:space="preserve">
+    <value>Стоимость продукции</value>
+  </data>
+  <data name="EconInputCost" xml:space="preserve">
+    <value>Стоимость материалов</value>
+  </data>
+  <data name="EconExportCharges" xml:space="preserve">
+    <value>Налог на экспорт</value>
+  </data>
+  <data name="EconImportCharges" xml:space="preserve">
+    <value>Налог на импорт</value>
+  </data>
+  <data name="EconProfit" xml:space="preserve">
+    <value>Прибыль</value>
+  </data>
+  <data name="EconTaxRate" xml:space="preserve">
+    <value>Ставка налога</value>
+  </data>
+  <data name="RateUnknown" xml:space="preserve">
+    <value>Неизвестна</value>
+  </data>
+  <data name="RateLearned" xml:space="preserve">
+    <value>{0}% ({1} этой планеты; определено по журналу кошелька {2})</value>
+  </data>
+  <data name="RateDefault" xml:space="preserve">
+    <value>{0}% — ставка по умолчанию из «Настройки → Промышленность» ({1}); для этой планеты она ещё не определена</value>
+  </data>
+  <data name="CustomsOffice" xml:space="preserve">
+    <value>таможня</value>
+  </data>
+  <data name="Skyhook" xml:space="preserve">
+    <value>подъёмник</value>
+  </data>
+  <data name="ColEfficiency" xml:space="preserve">
+    <value>Эффект.</value>
+  </data>
+  <data name="TipEfficiency" xml:space="preserve">
+    <value>{0}: прогноз — {1} ISK из возможных {2} ISK.</value>
+  </data>
+  <data name="TipEfficiencyShort" xml:space="preserve">
+    <value>Не хватает {0} ISK: {1} ISK уничтожено из-за нехватки места, {2} ISK не выпущено комплексами, ожидавшими материалы.</value>
+  </data>
+  <data name="TipEfficiencyNone" xml:space="preserve">
+    <value>{0}: прибыли нет, не с чем сравнивать прогноз.</value>
+  </data>
+  <data name="WindowUntilStop" xml:space="preserve">
+    <value>До остановки экстракторов, {0}</value>
+  </data>
+  <data name="WindowNextDaysOne" xml:space="preserve">
+    <value>Ближайший {0} день, до {1}</value>
+  </data>
+  <data name="WindowNextDaysOther" xml:space="preserve">
+    <value>Ближайшие {0} дня, до {1}</value>
+  </data>
+  <data name="WindowNextDaysFew" xml:space="preserve">
+    <value>Ближайшие {0} дня, до {1}</value>
+  </data>
+  <data name="WindowNextDaysMany" xml:space="preserve">
+    <value>Ближайшие {0} дней, до {1}</value>
+  </data>
+  <data name="WindowStopped" xml:space="preserve">
+    <value>Экстракторы остановлены</value>
+  </data>
+  <data name="PeriodStoppedNote" xml:space="preserve">
+    <value>Пока их не запустят снова, ничего больше не добывается, так что прогнозировать нечего.</value>
+  </data>
+  <data name="PeriodPotential" xml:space="preserve">
+    <value>Потенциал</value>
+  </data>
+  <data name="PeriodForecast" xml:space="preserve">
+    <value>Прогноз</value>
+  </data>
+  <data name="PeriodShort" xml:space="preserve">
+    <value>Не хватает</value>
+  </data>
+  <data name="PeriodDestroyed" xml:space="preserve">
+    <value>Уничтожено</value>
+  </data>
+  <data name="PeriodRawOverflow" xml:space="preserve">
+    <value>Переполнение сырья</value>
+  </data>
+  <data name="PeriodIdle" xml:space="preserve">
+    <value>Простаивающие комплексы</value>
+  </data>
+  <data name="TipPeriodPotential" xml:space="preserve">
+    <value>Колония, работающая в нынешнем виде весь период: её продукция по рыночным ценам минус ввозимые материалы и налоги на импорт и экспорт.</value>
+  </data>
+  <data name="TipPeriodForecast" xml:space="preserve">
+    <value>Что за смоделированный период попадает в хранилища и на стартовые площадки, по рыночным ценам, минус материалы, которые расходуют комплексы, и налоги.</value>
+  </data>
+  <data name="IskAmount" xml:space="preserve">
+    <value>{0} ISK</value>
+  </data>
+  <data name="IskAndUnits" xml:space="preserve">
+    <value>{0} ISK · {1}</value>
+  </data>
+  <data name="IskUnitsAndShare" xml:space="preserve">
+    <value>{0} ISK · {1} · {2} от потенциала</value>
+  </data>
+  <data name="OutputUnitsOne" xml:space="preserve">
+    <value>{0:N0} единица продукции</value>
+  </data>
+  <data name="OutputUnitsOther" xml:space="preserve">
+    <value>{0:N0} единицы продукции</value>
+  </data>
+  <data name="OutputUnitsFew" xml:space="preserve">
+    <value>{0:N0} единицы продукции</value>
+  </data>
+  <data name="OutputUnitsMany" xml:space="preserve">
+    <value>{0:N0} единиц продукции</value>
+  </data>
+  <data name="TipUnitsByType" xml:space="preserve">
+    <value>Потенциал {0}, прогноз {1}: {2}</value>
+  </data>
+  <data name="DestroyedFull" xml:space="preserve">
+    <value>{0}, стоимостью {1} ISK — {2}: нет места; уничтожается с {3}</value>
+  </data>
+  <data name="DestroyedNoRoute" xml:space="preserve">
+    <value>{0}, стоимостью {1} ISK — {2}: нет маршрута для продукции; уничтожается с {3}</value>
+  </data>
+  <data name="RawOverflowLine" xml:space="preserve">
+    <value>{0}, стоимостью {1} ISK — {2}: заполнено с {3}, добыча опережает производство</value>
+  </data>
+  <data name="IdleLine" xml:space="preserve">
+    <value>{0} ({1}): простой из-за нехватки материалов — {2}; не выпущено: {3}, стоимостью {4} ISK</value>
+  </data>
+  <data name="IdleLineExpected" xml:space="preserve">
+    <value>{0} ({1}): простой из-за нехватки материалов — {2}, из них {3} — ожидаемо: экстракторы не могут загрузить комплексы работой; не выпущено: {4}, стоимостью {5} ISK</value>
+  </data>
+  <data name="FactoriesOne" xml:space="preserve">
+    <value>{0} комплекс</value>
+  </data>
+  <data name="FactoriesOther" xml:space="preserve">
+    <value>{0} комплекса</value>
+  </data>
+  <data name="FactoriesFew" xml:space="preserve">
+    <value>{0} комплекса</value>
+  </data>
+  <data name="FactoriesMany" xml:space="preserve">
+    <value>{0} комплексов</value>
+  </data>
+  <data name="PeriodNothingLost" xml:space="preserve">
+    <value>Ничего не уничтожается, и ни один комплекс не простаивает дольше, чем объясняется его снабжением.</value>
+  </data>
+  <data name="PeriodNote" xml:space="preserve">
+    <value>Оценка: расчёт с момента, когда колонию в последний раз открывали в игре. Разница между потенциалом и прогнозом — это примерно уничтоженное плюс то, что не выпустили простаивающие комплексы; остальное — незавершённые циклы и запасы, оставшиеся в хранилищах к концу периода.</value>
+  </data>
+  <data name="ReasonOutputDestroyed" xml:space="preserve">
+    <value>Продукция будет уничтожаться с {0}: для неё нет места.</value>
+  </data>
+  <data name="ReasonRawOverflow" xml:space="preserve">
+    <value>Сырьё будет переполнять хранилище с {0}: добыча опережает производство.</value>
+  </data>
+</root>

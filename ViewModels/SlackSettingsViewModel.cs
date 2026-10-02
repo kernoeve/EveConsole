@@ -56,7 +56,9 @@ public class SlackSettingsViewModel : ReactiveObject
         // database, and the pickers are empty until it returns either way.
         _ = ReloadWebhooksAsync();
 
-        SaveAndTestCommand   = ReactiveCommand.CreateFromTask(SaveAndTestAsync);
+        _tokenSave           = new AutoSave(SaveTokenAsync,
+            ex => Status = string.Format(CommonText.ErrorWithMessage, ex.Message));
+        TestCommand          = ReactiveCommand.CreateFromTask(TestAsync);
         LoadChannelsCommand  = ReactiveCommand.CreateFromTask(LoadChannelsAsync);
         OpenSlackAppsCommand = ReactiveCommand.Create(() => OpenUrl(AppsUrl));
         ConnectCommand       = ReactiveCommand.CreateFromTask(ConnectAsync);
@@ -106,7 +108,7 @@ public class SlackSettingsViewModel : ReactiveObject
                 : string.Format(SettingsText.SlackFailed, res.Error);
             if (res.Ok)
             {
-                Token = _slack.Token ?? "";
+                ShowToken(_slack.Token ?? "");
                 await LoadChannelsAsync();
             }
         }
@@ -127,7 +129,7 @@ public class SlackSettingsViewModel : ReactiveObject
     private async Task DisconnectAsync()
     {
         await _slack.DisconnectAsync();
-        Token       = "";
+        ShowToken("");
         IsConnected = false;
         Channels.Clear();
         _corpTop10Channel = null;
@@ -142,11 +144,32 @@ public class SlackSettingsViewModel : ReactiveObject
     // ── Token ────────────────────────────────────────────────────────────────
 
     private string _token;
+
+    /// <summary>The token as typed, saved once typing pauses (or the box loses focus, or the
+    /// window closes). Saving it tests nothing: that is the Test button's.</summary>
     public string Token
     {
         get => _token;
-        set => this.RaiseAndSetIfChanged(ref _token, value);
+        set
+        {
+            if (value == _token) return;
+            this.RaiseAndSetIfChanged(ref _token, value);
+            _tokenSave.Typed();
+        }
     }
+
+    /// <summary>A token the service already holds — connected, or disconnected — shown without
+    /// being saved over again.</summary>
+    private void ShowToken(string token)
+    {
+        _token = token;
+        this.RaisePropertyChanged(nameof(Token));
+    }
+
+    private readonly AutoSave _tokenSave;
+
+    /// <summary>Saves a token still waiting — the Settings window, closing.</summary>
+    public Task FlushAsync() => _tokenSave.FlushAsync();
 
     private string _status = "";
     public string Status { get => _status; private set => this.RaiseAndSetIfChanged(ref _status, value); }
@@ -157,25 +180,39 @@ public class SlackSettingsViewModel : ReactiveObject
     private bool _isConnected;
     public bool IsConnected { get => _isConnected; private set => this.RaiseAndSetIfChanged(ref _isConnected, value); }
 
-    public ReactiveCommand<Unit, Unit> SaveAndTestCommand   { get; }
+    public ReactiveCommand<Unit, Unit> TestCommand          { get; }
     public ReactiveCommand<Unit, Unit> LoadChannelsCommand  { get; }
     public ReactiveCommand<Unit, Unit> OpenSlackAppsCommand { get; }
 
-    private async Task SaveAndTestAsync()
+    /// <summary>
+    /// Writes the token: what the posting buttons and Reload Channels read. Nothing reconnects —
+    /// the next call to Slack uses it.
+    /// </summary>
+    private async Task SaveTokenAsync()
     {
+        var token = Token;   // read on the UI thread, written off it
+        await Task.Run(() => _slack.SetTokenAsync(token));
+
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            IsConnected = false;
+            Status      = SettingsText.SlackTokenCleared;
+            return;
+        }
+        Status = SettingsText.Saved;
+    }
+
+    /// <summary>Asks Slack whether the saved token works, and lists its channels when it does.</summary>
+    private async Task TestAsync()
+    {
+        // A token still waiting to be saved is the one being tested.
+        await _tokenSave.FlushAsync();
+        if (!_slack.HasToken) { Status = SettingsText.SlackEnterTokenFirst; return; }
+
         IsBusy = true;
         Status = SettingsText.SlackCheckingToken;
         try
         {
-            await _slack.SetTokenAsync(Token);
-
-            if (string.IsNullOrWhiteSpace(Token))
-            {
-                IsConnected = false;
-                Status      = SettingsText.SlackTokenCleared;
-                return;
-            }
-
             var res = await _slack.TestAuthAsync();
             IsConnected = res.Ok;
             Status = res.Ok
@@ -469,6 +506,7 @@ public class SlackSettingsViewModel : ReactiveObject
 
     private async Task LoadChannelsAsync()
     {
+        await _tokenSave.FlushAsync();   // the channels of the token as typed
         if (!_slack.HasToken) { Status = SettingsText.SlackEnterTokenFirst; return; }
 
         IsBusy = true;

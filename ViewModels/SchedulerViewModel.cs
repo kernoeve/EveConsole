@@ -511,6 +511,7 @@ public sealed class SchedulerViewModel : ReactiveObject
     private readonly SchedulerService                _scheduler;
     private readonly ScheduledBlockRenderer          _renderer;
     private readonly SlackService                    _slack;
+    private readonly DiscordService                  _discord;
     private readonly CorpActivityService             _corp;
     private readonly SalePostingService              _sales;
     private readonly AppErrorLogger                  _errors;
@@ -520,6 +521,7 @@ public sealed class SchedulerViewModel : ReactiveObject
         SchedulerService                scheduler,
         ScheduledBlockRenderer          renderer,
         SlackService                    slack,
+        DiscordService                  discord,
         CorpActivityService             corp,
         SalePostingService              sales,
         AppErrorLogger                  errors)
@@ -528,6 +530,7 @@ public sealed class SchedulerViewModel : ReactiveObject
         _scheduler = scheduler;
         _renderer  = renderer;
         _slack     = slack;
+        _discord   = discord;
         _corp      = corp;
         _sales     = sales;
         _errors    = errors;
@@ -617,7 +620,7 @@ public sealed class SchedulerViewModel : ReactiveObject
 
     public List<LabelledChoice> TaskTypes { get; } =
     [
-        new(ScheduledTaskType.SlackPost,  AlarmsText.TaskTypeSlackPost),
+        new(ScheduledTaskType.SlackPost,  AlarmsText.TaskTypeSlackOrDiscordPost),
         new(ScheduledTaskType.RaiseAlert, AlarmsText.TaskTypeRaiseAlert),
     ];
 
@@ -998,7 +1001,12 @@ public sealed class SchedulerViewModel : ReactiveObject
 
     /// <summary>
     /// The same list the Slack settings offer: workspace channels first, then webhooks under a
-    /// "Webhook: " prefix. One list, because from a task's point of view they are one choice.
+    /// "Webhook: " prefix — and after them Discord's webhooks under "Discord: ". One list, because
+    /// from a task's point of view they are one choice.
+    ///
+    /// <para>⚠️ Discord's are their own kind with their own prefix. A Slack webhook and a Discord
+    /// one of the same name are different rows in different tables, and only one of them can
+    /// carry a chart.</para>
     /// </summary>
     private async Task LoadDestinationsAsync()
     {
@@ -1015,6 +1023,11 @@ public sealed class SchedulerViewModel : ReactiveObject
         foreach (var w in await _slack.WebhooksAsync())
             Destinations.Add(new SlackDestination(
                 SlackDestination.KindWebhook, w.Id.ToString(), string.Format(AlarmsText.WebhookDestination, w.Name), w.Url));
+
+        // ⚠️ No URL carried: a Discord link is a secret, and the task keeps only the row's id.
+        foreach (var w in await _discord.WebhooksAsync())
+            Destinations.Add(new SlackDestination(
+                SlackDestination.KindDiscord, w.Id.ToString(), string.Format(AlarmsText.DiscordDestination, w.Name)));
 
         if (picked is not null)
             Destination = Destinations.FirstOrDefault(d => d.Kind == picked.Kind && d.Id == picked.Id);
@@ -1228,7 +1241,7 @@ public sealed class SchedulerViewModel : ReactiveObject
             if (Destination is null)
             {
                 StatusText = Destinations.Count == 0
-                    ? AlarmsText.ErrNoDestinations
+                    ? AlarmsText.ErrNoDestinationsAny
                     : AlarmsText.ErrPickDestination;
                 return null;
             }
@@ -1396,8 +1409,10 @@ public sealed class SchedulerViewModel : ReactiveObject
         StatusText = AlarmsText.StatusRendering;
         try
         {
+            // In the markup the destination will get, so a Discord task previews as Discord.
             var render = await _renderer.RenderAsync(
-                [.. Blocks.Select(b => b.ToModel())], DateTime.UtcNow);
+                [.. Blocks.Select(b => b.ToModel())], DateTime.UtcNow,
+                formatName: Destination?.IsDiscord == true ? "Discord" : "Slack");
 
             // WARN Charts are named, not drawn. They contribute no text, so a preview that
             // showed only the text would call a chart-only message empty and read as broken.

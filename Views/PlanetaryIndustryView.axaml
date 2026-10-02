@@ -1,0 +1,504 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Avalonia;assembly=LiveChartsCore.SkiaSharpView.Avalonia"
+             x:Class="EveConsole.Views.PlanetaryIndustryView"
+             x:DataType="vm:PlanetaryIndustryViewModel">
+
+  <UserControl.Styles>
+    <!-- Cell text at the size the app's grids use: a DataGrid's own FontSize does not reach
+         templated cells. -->
+    <Style Selector="DataGrid TextBlock">
+      <Setter Property="FontSize" Value="11" />
+    </Style>
+    <Style Selector="DataGridCell.num TextBlock">
+      <Setter Property="TextAlignment" Value="Right" />
+      <Setter Property="Margin" Value="0 0 6 0" />
+    </Style>
+    <!-- A section of the colony detail. -->
+    <Style Selector="Border.section">
+      <Setter Property="Background" Value="{DynamicResource SurfaceHeaderBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderDefaultBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="4" />
+      <Setter Property="Padding" Value="12 10" />
+    </Style>
+    <Style Selector="TextBlock.heading">
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+      <Setter Property="Margin" Value="0 0 0 4" />
+    </Style>
+    <Style Selector="TextBlock.label">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="Foreground" Value="{DynamicResource TextDimBrush}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TextBlock.value">
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+  </UserControl.Styles>
+
+  <TabControl SelectedIndex="{Binding SelectedTabIndex}" Padding="0" Background="Transparent" Margin="10 6">
+
+    <!-- ══ Colonies ═══════════════════════════════════════════════════════════ -->
+    <TabItem Header="{x:Static loc:PiText.TabColonies}">
+      <Grid RowDefinitions="Auto,Auto,*" Margin="0 8 0 0">
+
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 4">
+          <TextBlock Grid.Column="0" Text="{Binding Summary}" FontSize="14" FontWeight="SemiBold"
+                     Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" TextWrapping="Wrap" />
+          <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+            <TextBlock Text="{Binding Status}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+            <Button Content="{x:Static loc:PiText.OpenColony}" Command="{Binding OpenColonyCommand}" Padding="12 4" FontSize="12"
+                    ToolTip.Tip="{x:Static loc:PiText.TipOpenColony}" />
+            <Button Content="{x:Static loc:PiText.Refresh}" Command="{Binding RefreshCommand}" Padding="12 4" FontSize="12"
+                    ToolTip.Tip="{x:Static loc:PiText.TipRefresh}" />
+          </StackPanel>
+        </Grid>
+
+        <StackPanel Grid.Row="1" Spacing="4" Margin="0 0 0 8">
+          <TextBlock Text="{x:Static loc:PiText.EstimatesNote}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap" />
+          <TextBlock Text="{x:Static loc:PiText.EmptyNote}" IsVisible="{Binding IsEmpty}" FontSize="12"
+                     Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap" Margin="0 8 0 0" />
+        </StackPanel>
+
+        <DataGrid Grid.Row="2" x:Name="ColoniesGrid"
+                  ItemsSource="{Binding Colonies}" SelectedItem="{Binding Selected}"
+                  IsReadOnly="True" AutoGenerateColumns="False" FontSize="11"
+                  Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
+                  CanUserReorderColumns="False" SelectionMode="Single"
+                  DoubleTapped="OnColonyDoubleTapped">
+          <DataGrid.Columns>
+            <DataGridTemplateColumn Header="{x:Static loc:PiText.ColCharacter}" Width="160" SortMemberPath="CharacterName"
+                                    ClipboardContentBinding="{Binding CharacterName}">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:PiColonyRowVm">
+                  <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="4 0">
+                    <Image Source="{Binding Portrait}" Width="20" Height="20" VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding CharacterName}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                  </StackPanel>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTemplateColumn Header="{x:Static loc:PiText.ColPlanet}" Width="150" SortMemberPath="PlanetName"
+                                    ClipboardContentBinding="{Binding PlanetName}">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:PiColonyRowVm">
+                  <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="4 0">
+                    <Image Source="{Binding PlanetIcon}" Width="20" Height="20" VerticalAlignment="Center" ToolTip.Tip="{Binding PlanetType}" />
+                    <TextBlock Text="{Binding PlanetName}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                  </StackPanel>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTextColumn Header="{x:Static loc:PiText.ColType}" Binding="{Binding PlanetType}" Width="Auto" MinWidth="80" SortMemberPath="PlanetType" />
+            <DataGridTemplateColumn Header="{x:Static loc:PiText.ColSystem}" Width="130" SortMemberPath="SystemName"
+                                    ClipboardContentBinding="{Binding SystemName}">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:PiColonyRowVm">
+                  <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center" Margin="4 0" ToolTip.Tip="{Binding SecurityTip}">
+                    <TextBlock Text="{Binding SecurityText}" Foreground="{Binding SecurityColor}" VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding SystemName}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                  </StackPanel>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTextColumn Header="{x:Static loc:AssetsText.ColRegion}" Binding="{Binding RegionName}" Width="Auto" MinWidth="90" SortMemberPath="RegionName" />
+            <DataGridTextColumn Header="{x:Static loc:PiText.ColKind}" Binding="{Binding KindText}" Width="Auto" MinWidth="80" SortMemberPath="KindText" />
+            <DataGridTemplateColumn Header="{x:Static loc:PiText.ColCc}" Width="60" SortMemberPath="CcLevel"
+                                    ClipboardContentBinding="{Binding CcLevelText}">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:PiColonyRowVm">
+                  <TextBlock Text="{Binding CcLevelText}" Foreground="{Binding CcLevelColor}" ToolTip.Tip="{Binding CcLevelTip}"
+                             VerticalAlignment="Center" Margin="4 0" />
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTemplateColumn Header="{x:Static loc:PiText.ColExtractorsEnd}" Width="120" SortMemberPath="ExtractorsSort"
+                                    ClipboardContentBinding="{Binding ExtractorsText}">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:PiColonyRowVm">
+                  <StackPanel VerticalAlignment="Center" Margin="4 1" ToolTip.Tip="{Binding ExtractorsTip}">
+                    <TextBlock Text="{Binding ExtractorsText}" Foreground="{Binding ExtractorsColor}" />
+                    <TextBlock Text="{Binding ExtractorsWhen}" FontSize="9" Foreground="{DynamicResource TextFaintBrush}" />
+                  </StackPanel>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTemplateColumn Header="{x:Static loc:PiText.ColStorageFull}" Width="120" SortMemberPath="StorageSort"
+                                    ClipboardContentBinding="{Binding StorageText}">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:PiColonyRowVm">
+                  <StackPanel VerticalAlignment="Center" Margin="4 1" ToolTip.Tip="{Binding StorageTip}">
+                    <TextBlock Text="{Binding StorageText}" Foreground="{Binding StorageColor}" />
+                    <TextBlock Text="{Binding StorageWhen}" FontSize="9" Foreground="{DynamicResource TextFaintBrush}" />
+                  </StackPanel>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTemplateColumn Header="{x:Static loc:PiText.ColInputsRunOut}" Width="120" SortMemberPath="InputsSort"
+                                    ClipboardContentBinding="{Binding InputsText}">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:PiColonyRowVm">
+                  <StackPanel VerticalAlignment="Center" Margin="4 1" ToolTip.Tip="{Binding InputsTip}">
+                    <TextBlock Text="{Binding InputsText}" Foreground="{Binding InputsColor}" />
+                    <TextBlock Text="{Binding InputsWhen}" FontSize="9" Foreground="{DynamicResource TextFaintBrush}" />
+                  </StackPanel>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTemplateColumn Header="{x:Static loc:PiText.ColStatus}" Width="110" SortMemberPath="StateSort"
+                                    ClipboardContentBinding="{Binding StateText}">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:PiColonyRowVm">
+                  <!-- A word and a mark as well as a colour: the state reads without the colour. -->
+                  <Border Background="{Binding StateSurface}" BorderBrush="{Binding StateColor}" BorderThickness="1"
+                          CornerRadius="8" Padding="7 1" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="4 0"
+                          ToolTip.Tip="{Binding StateTip}">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                      <TextBlock Text="{Binding StateGlyph}" Foreground="{Binding StateColor}" FontSize="9" VerticalAlignment="Center" />
+                      <TextBlock Text="{Binding StateText}" Foreground="{Binding StateColor}" VerticalAlignment="Center" />
+                    </StackPanel>
+                  </Border>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTemplateColumn Header="{x:Static loc:PiText.ColDataAge}" Width="100" SortMemberPath="AgeHours"
+                                    ClipboardContentBinding="{Binding AgeText}">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:PiColonyRowVm">
+                  <TextBlock Text="{Binding AgeText}" Foreground="{Binding AgeColor}" ToolTip.Tip="{Binding AgeTip}"
+                             VerticalAlignment="Center" Margin="4 0" />
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTemplateColumn Header="{x:Static loc:PiText.ColEfficiency}" Width="Auto" MinWidth="70" SortMemberPath="EfficiencySort"
+                                    ClipboardContentBinding="{Binding EfficiencyText}">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:PiColonyRowVm">
+                  <TextBlock Text="{Binding EfficiencyText}" Foreground="{Binding EfficiencyColor}" ToolTip.Tip="{Binding EfficiencyTip}"
+                             TextAlignment="Right" VerticalAlignment="Center" Margin="4 0 8 0" />
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTemplateColumn Header="{x:Static loc:PiText.ColProfit}" Width="*" MinWidth="100" SortMemberPath="ProfitPerDay"
+                                    ClipboardContentBinding="{Binding ProfitText}">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:PiColonyRowVm">
+                  <TextBlock Text="{Binding ProfitText}" ToolTip.Tip="{Binding ProfitTip}" VerticalAlignment="Center" Margin="4 0" />
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+          </DataGrid.Columns>
+        </DataGrid>
+      </Grid>
+    </TabItem>
+
+    <!-- ══ Colony ═════════════════════════════════════════════════════════════ -->
+    <TabItem Header="{x:Static loc:PiText.TabColony}">
+      <Grid Margin="0 8 0 0">
+        <TextBlock Text="{x:Static loc:PiText.NoColonySelected}" IsVisible="{Binding NoDetail}" FontSize="12"
+                   Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap" />
+
+        <ScrollViewer IsVisible="{Binding HasDetail}" HorizontalScrollBarVisibility="Disabled">
+          <StackPanel Spacing="12" Margin="0 0 8 8" DataContext="{Binding Detail}" x:DataType="vm:PiColonyDetailVm">
+
+            <StackPanel Spacing="2">
+              <TextBlock Text="{Binding Title}" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextBrightBrush}" />
+              <TextBlock Text="{Binding Subtitle}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" />
+              <TextBlock Text="{Binding AgeText}" FontSize="11" Foreground="{Binding AgeColor}" TextWrapping="Wrap" />
+            </StackPanel>
+
+            <!-- What it could make against what it will, and why the difference: estimated. -->
+            <Border Classes="section" IsVisible="{Binding HasPeriod}">
+              <StackPanel Spacing="6" DataContext="{Binding Period}" x:DataType="vm:PiPeriodVm">
+                <TextBlock Classes="heading" Text="{Binding Heading}" />
+                <TextBlock Text="{x:Static loc:PiText.PeriodStoppedNote}" IsVisible="{Binding IsStopped}" FontSize="11"
+                           Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap" />
+
+                <Grid ColumnDefinitions="Auto,16,*" RowDefinitions="Auto,4,Auto,4,Auto" IsVisible="{Binding HasNumbers}">
+                  <TextBlock Grid.Row="0" Grid.Column="0" Classes="label" Text="{x:Static loc:PiText.PeriodPotential}"
+                             ToolTip.Tip="{x:Static loc:PiText.TipPeriodPotential}" />
+                  <TextBlock Grid.Row="0" Grid.Column="2" Classes="value" Text="{Binding PotentialText}" TextWrapping="Wrap"
+                             ToolTip.Tip="{Binding UnitsTip}" />
+                  <TextBlock Grid.Row="2" Grid.Column="0" Classes="label" Text="{x:Static loc:PiText.PeriodForecast}"
+                             ToolTip.Tip="{x:Static loc:PiText.TipPeriodForecast}" />
+                  <TextBlock Grid.Row="2" Grid.Column="2" Classes="value" Text="{Binding ForecastText}" TextWrapping="Wrap"
+                             ToolTip.Tip="{Binding UnitsTip}" />
+                  <TextBlock Grid.Row="4" Grid.Column="0" Classes="label" Text="{x:Static loc:PiText.PeriodShort}" FontWeight="SemiBold" />
+                  <TextBlock Grid.Row="4" Grid.Column="2" Classes="value" Text="{Binding ShortText}" Foreground="{Binding ShortColor}"
+                             FontWeight="SemiBold" />
+                </Grid>
+
+                <!-- Products destroyed: the bad colour. -->
+                <StackPanel Spacing="2" IsVisible="{Binding HasDestroyed}" Margin="0 4 0 0">
+                  <StackPanel Orientation="Horizontal" Spacing="16">
+                    <TextBlock Classes="label" Text="{x:Static loc:PiText.PeriodDestroyed}" Foreground="{DynamicResource BadBrush}" />
+                    <TextBlock Classes="value" Text="{Binding DestroyedText}" Foreground="{DynamicResource BadBrush}" />
+                  </StackPanel>
+                  <ItemsControl ItemsSource="{Binding Destroyed}" Margin="12 0 0 0">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:PiPeriodLineVm">
+                        <TextBlock Text="{Binding Text}" Foreground="{Binding Color}" FontSize="11" TextWrapping="Wrap" />
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+
+                <!-- Factories waiting for input: the warning colour. -->
+                <StackPanel Spacing="2" IsVisible="{Binding HasIdle}" Margin="0 4 0 0">
+                  <StackPanel Orientation="Horizontal" Spacing="16">
+                    <TextBlock Classes="label" Text="{x:Static loc:PiText.PeriodIdle}" Foreground="{DynamicResource WarnBrush}" />
+                    <TextBlock Classes="value" Text="{Binding IdleText}" Foreground="{DynamicResource WarnBrush}" />
+                  </StackPanel>
+                  <ItemsControl ItemsSource="{Binding Idle}" Margin="12 0 0 0">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:PiPeriodLineVm">
+                        <TextBlock Text="{Binding Text}" Foreground="{Binding Color}" FontSize="11" TextWrapping="Wrap" />
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+
+                <!-- Raw overflow: quieter — nothing made was lost; the program outruns the factories. -->
+                <StackPanel Spacing="2" IsVisible="{Binding HasRawOverflow}" Margin="0 4 0 0">
+                  <StackPanel Orientation="Horizontal" Spacing="16">
+                    <TextBlock Classes="label" Text="{x:Static loc:PiText.PeriodRawOverflow}" />
+                    <TextBlock Classes="value" Text="{Binding RawOverflowText}" Foreground="{DynamicResource TextSecondaryBrush}" />
+                  </StackPanel>
+                  <ItemsControl ItemsSource="{Binding RawOverflow}" Margin="12 0 0 0">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:PiPeriodLineVm">
+                        <TextBlock Text="{Binding Text}" Foreground="{Binding Color}" FontSize="11" TextWrapping="Wrap" />
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+
+                <TextBlock Text="{x:Static loc:PiText.PeriodNothingLost}" IsVisible="{Binding NothingLost}" FontSize="11"
+                           Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" />
+                <TextBlock Text="{x:Static loc:PiText.PeriodNote}" IsVisible="{Binding HasNumbers}" FontSize="11"
+                           Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap" Margin="0 4 0 0" />
+              </StackPanel>
+            </Border>
+
+            <!-- Command center -->
+            <Border Classes="section">
+              <StackPanel Spacing="4">
+                <TextBlock Classes="heading" Text="{x:Static loc:PiText.SectionCommandCenter}" />
+                <TextBlock Classes="value" Text="{Binding CommandCenterText}" TextWrapping="Wrap" />
+              </StackPanel>
+            </Border>
+
+            <!-- Extractors: exact. -->
+            <Border Classes="section" IsVisible="{Binding HasExtractors}">
+              <StackPanel Spacing="8">
+                <TextBlock Classes="heading" Text="{x:Static loc:PiText.SectionExtractors}" />
+                <ItemsControl ItemsSource="{Binding Extractors}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:PiExtractorVm">
+                      <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="300,*" Margin="0 0 0 12">
+                        <StackPanel Grid.Column="0" Spacing="3">
+                          <TextBlock Text="{Binding ProductName}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
+                          <TextBlock Text="{Binding StateText}" FontSize="11" Foreground="{Binding StateColor}" />
+                          <TextBlock Text="{Binding HeadsText}" Classes="label" />
+                          <TextBlock Text="{Binding ProgramText}" Classes="label" TextWrapping="Wrap" />
+                          <TextBlock Text="{Binding CyclesText}" Classes="label" TextWrapping="Wrap" />
+                          <TextBlock Text="{Binding OutputText}" Classes="label" TextWrapping="Wrap" />
+                        </StackPanel>
+                        <lvc:CartesianChart Grid.Column="1" Height="170" IsVisible="{Binding HasChart}"
+                                            Series="{Binding Series}" XAxes="{Binding XAxes}" YAxes="{Binding YAxes}"
+                                            Sections="{Binding Sections}"
+                                            TooltipPosition="Top" LegendPosition="Hidden" />
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </Border>
+
+            <!-- Processors: estimated. -->
+            <Border Classes="section" IsVisible="{Binding HasProcessors}">
+              <StackPanel Spacing="6">
+                <TextBlock Classes="heading" Text="{x:Static loc:PiText.SectionProcessors}" />
+                <DataGrid ItemsSource="{Binding Processors}" IsReadOnly="True" AutoGenerateColumns="False" FontSize="11"
+                          Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent" MaxHeight="320"
+                          CanUserReorderColumns="False">
+                  <DataGrid.Columns>
+                    <DataGridTextColumn Header="{x:Static loc:PiText.ColSchematic}" Binding="{Binding SchematicName}" Width="220" />
+                    <DataGridTextColumn Header="{x:Static loc:PiText.ColOutput}" Binding="{Binding OutputName}" Width="180" />
+                    <DataGridTextColumn Header="{x:Static loc:PiText.ColFacility}" Binding="{Binding PinName}" Width="220" />
+                    <DataGridTemplateColumn Header="{x:Static loc:PiText.ColStateEstimated}" Width="*" MinWidth="160"
+                                            ClipboardContentBinding="{Binding StateText}" SortMemberPath="StateText">
+                      <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="vm:PiProcessorRowVm">
+                          <TextBlock Text="{Binding StateText}" Foreground="{Binding StateColor}" VerticalAlignment="Center" Margin="4 0" />
+                        </DataTemplate>
+                      </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                  </DataGrid.Columns>
+                </DataGrid>
+              </StackPanel>
+            </Border>
+
+            <!-- Storage and launchpads: estimated. -->
+            <Border Classes="section">
+              <StackPanel Spacing="6">
+                <TextBlock Classes="heading" Text="{x:Static loc:PiText.SectionStorage}" />
+                <DataGrid ItemsSource="{Binding Storage}" IsReadOnly="True" AutoGenerateColumns="False" FontSize="11"
+                          Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
+                          CanUserReorderColumns="False">
+                  <DataGrid.Columns>
+                    <DataGridTextColumn Header="{x:Static loc:PiText.ColPin}" Binding="{Binding KindText}" Width="Auto" MinWidth="110" />
+                    <DataGridTemplateColumn Header="{x:Static loc:PiText.ColFill}" Width="130" SortMemberPath="Fill"
+                                            ClipboardContentBinding="{Binding FillText}">
+                      <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="vm:PiStorageRowVm">
+                          <Grid ColumnDefinitions="70,Auto" VerticalAlignment="Center" Margin="4 0">
+                            <ProgressBar Grid.Column="0" Minimum="0" Maximum="1" Value="{Binding Fill}" Height="6" MinWidth="0"
+                                         VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="1" Text="{Binding FillText}" Margin="6 0 0 0" VerticalAlignment="Center" />
+                          </Grid>
+                        </DataTemplate>
+                      </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="{x:Static loc:PiText.ColVolume}" Binding="{Binding VolumeText}" Width="150" />
+                    <DataGridTemplateColumn Header="{x:Static loc:PiText.ColFullEstimated}" Width="120"
+                                            ClipboardContentBinding="{Binding FullText}" SortMemberPath="FullText">
+                      <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="vm:PiStorageRowVm">
+                          <TextBlock Text="{Binding FullText}" Foreground="{Binding FullColor}" VerticalAlignment="Center" Margin="4 0" />
+                        </DataTemplate>
+                      </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="{x:Static loc:PiText.ColContents}" Width="*" MinWidth="200"
+                                            ClipboardContentBinding="{Binding ContentsText}">
+                      <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate x:DataType="vm:PiStorageRowVm">
+                          <TextBlock Text="{Binding ContentsText}" TextWrapping="Wrap" VerticalAlignment="Center" Margin="4 2" />
+                        </DataTemplate>
+                      </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                  </DataGrid.Columns>
+                </DataGrid>
+              </StackPanel>
+            </Border>
+
+            <!-- Flows per day, at the colony's steady rate. -->
+            <Border Classes="section">
+              <StackPanel Spacing="6">
+                <TextBlock Classes="heading" Text="{x:Static loc:PiText.SectionFlows}" />
+                <TextBlock Text="{x:Static loc:PiText.FlowsNote}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap" />
+                <DataGrid ItemsSource="{Binding Flows}" IsReadOnly="True" AutoGenerateColumns="False" FontSize="11"
+                          Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
+                          CanUserReorderColumns="False">
+                  <DataGrid.Columns>
+                    <DataGridTextColumn Header="{x:Static loc:PiText.ColItem}" Binding="{Binding Name}" Width="220" />
+                    <DataGridTextColumn Header="{x:Static loc:PiText.ColTier}" Binding="{Binding TierText}" Width="50" SortMemberPath="TierSort" />
+                    <DataGridTextColumn Header="{x:Static loc:PiText.ColProduced}" Binding="{Binding Produced}" Width="100" CellStyleClasses="num" />
+                    <DataGridTextColumn Header="{x:Static loc:PiText.ColConsumed}" Binding="{Binding Consumed}" Width="100" CellStyleClasses="num" />
+                    <DataGridTextColumn Header="{x:Static loc:PiText.ColImported}" Binding="{Binding Imported}" Width="100" CellStyleClasses="num" />
+                    <DataGridTextColumn Header="{x:Static loc:PiText.ColExported}" Binding="{Binding Exported}" Width="100" CellStyleClasses="num" />
+                  </DataGrid.Columns>
+                </DataGrid>
+              </StackPanel>
+            </Border>
+
+            <!-- Money per day: output value − input cost − import − export charges. -->
+            <Border Classes="section">
+              <StackPanel Spacing="6">
+                <TextBlock Classes="heading" Text="{x:Static loc:PiText.SectionEconomics}" />
+                <Grid ColumnDefinitions="Auto,16,Auto" RowDefinitions="Auto,4,Auto,4,Auto,4,Auto,4,Auto,8,Auto">
+                  <TextBlock Grid.Row="0"  Grid.Column="0" Classes="label" Text="{x:Static loc:PiText.EconOutputValue}" />
+                  <TextBlock Grid.Row="0"  Grid.Column="2" Classes="value" Text="{Binding OutputValueText}" />
+                  <TextBlock Grid.Row="2"  Grid.Column="0" Classes="label" Text="{x:Static loc:PiText.EconInputCost}" />
+                  <TextBlock Grid.Row="2"  Grid.Column="2" Classes="value" Text="{Binding InputCostText}" />
+                  <TextBlock Grid.Row="4"  Grid.Column="0" Classes="label" Text="{x:Static loc:PiText.EconExportCharges}" />
+                  <TextBlock Grid.Row="4"  Grid.Column="2" Classes="value" Text="{Binding ExportChargesText}" />
+                  <TextBlock Grid.Row="6"  Grid.Column="0" Classes="label" Text="{x:Static loc:PiText.EconImportCharges}" />
+                  <TextBlock Grid.Row="6"  Grid.Column="2" Classes="value" Text="{Binding ImportChargesText}" />
+                  <TextBlock Grid.Row="8"  Grid.Column="0" Classes="label" Text="{x:Static loc:PiText.EconProfit}" FontWeight="SemiBold" />
+                  <TextBlock Grid.Row="8"  Grid.Column="2" Classes="value" Text="{Binding ProfitText}" Foreground="{Binding ProfitColor}" FontWeight="SemiBold" />
+                  <TextBlock Grid.Row="10" Grid.Column="0" Classes="label" Text="{x:Static loc:PiText.EconTaxRate}" />
+                  <TextBlock Grid.Row="10" Grid.Column="2" Classes="value" Text="{Binding RateText}" TextWrapping="Wrap" />
+                </Grid>
+              </StackPanel>
+            </Border>
+
+          </StackPanel>
+        </ScrollViewer>
+      </Grid>
+    </TabItem>
+
+    <!-- ══ Characters ═════════════════════════════════════════════════════════ -->
+    <TabItem Header="{x:Static loc:PiText.TabCharacters}">
+      <Grid RowDefinitions="Auto,*" Margin="0 8 0 0">
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 8">
+          <TextBlock Grid.Column="0" Text="{x:Static loc:PiText.CharactersNote}" FontSize="11"
+                     Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap" VerticalAlignment="Center" />
+          <Button Grid.Column="1" Content="{x:Static loc:PiText.OpenPiSwitch}" Command="{Binding OpenSettingsCommand}"
+                  Padding="12 4" FontSize="12" Margin="12 0 0 0"
+                  ToolTip.Tip="{x:Static loc:PiText.TipOpenPiSwitch}" />
+        </Grid>
+
+        <DataGrid Grid.Row="1" ItemsSource="{Binding Characters}"
+                  IsReadOnly="True" AutoGenerateColumns="False" FontSize="11"
+                  Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent"
+                  CanUserReorderColumns="False">
+          <DataGrid.Columns>
+            <DataGridTemplateColumn Header="{x:Static loc:PiText.ColCharacter}" Width="180" SortMemberPath="Name"
+                                    ClipboardContentBinding="{Binding Name}">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:PiCharacterRowVm">
+                  <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="4 0">
+                    <Image Source="{Binding Portrait}" Width="20" Height="20" VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                  </StackPanel>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTextColumn Header="{x:Static loc:PiText.ColColonies}" Binding="{Binding ColoniesText}" Width="90" SortMemberPath="ColoniesUsed" />
+            <DataGridTemplateColumn Header="{x:Static loc:PiText.ColFreeSlots}" Width="110" SortMemberPath="FreeSlots"
+                                    ClipboardContentBinding="{Binding FreeText}">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:PiCharacterRowVm">
+                  <TextBlock Text="{Binding FreeText}" Foreground="{Binding FreeColor}" VerticalAlignment="Center" Margin="4 0" />
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTemplateColumn Header="{x:Static loc:PiText.ColSkills}" Width="110" SortMemberPath="SkillsText"
+                                    ClipboardContentBinding="{Binding SkillsText}">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:PiCharacterRowVm">
+                  <TextBlock Text="{Binding SkillsText}" ToolTip.Tip="{Binding SkillsTip}" VerticalAlignment="Center" Margin="4 0" />
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTemplateColumn Header="{x:Static loc:PiText.ColCommandCenters}" Width="*" MinWidth="240" SortMemberPath="Headroom"
+                                    ClipboardContentBinding="{Binding SlotsText}">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:PiCharacterRowVm">
+                  <ItemsControl ItemsSource="{Binding Slots}" VerticalAlignment="Center" Margin="4 2">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate><WrapPanel Orientation="Horizontal" /></ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:PiSlotVm">
+                        <TextBlock Text="{Binding Text}" Foreground="{Binding Color}" ToolTip.Tip="{Binding Tip}" Margin="0 0 14 0" />
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+          </DataGrid.Columns>
+        </DataGrid>
+      </Grid>
+    </TabItem>
+
+  </TabControl>
+</UserControl>

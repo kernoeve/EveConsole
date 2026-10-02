@@ -370,6 +370,12 @@ public class App : Application
             polling.CharacterUndocked += characterId =>
                 _ = Services.GetRequiredService<AlarmService>().TriggerAsync("ship_undock");
 
+            // An intel alarm around characters watches wherever they are, so an undock or a jump
+            // changes what it watches: evaluated then, so a hostile already reported next door
+            // is heard on arrival rather than at the alarm's next interval.
+            polling.CharacterMoved += characterId =>
+                _ = Services.GetRequiredService<AlarmService>().TriggerAsync("intel");
+
             // And a store order's state is worked out by the fulfilment pass — which the store
             // mail runs the moment it books an order — so the store-order alarms follow the pass.
             // The web sites do NOT follow the pass: it runs every half minute and after every
@@ -1119,6 +1125,14 @@ public class App : Application
                         "Url"  TEXT    NOT NULL DEFAULT ''
                     )
                     """);
+                // Discord's named webhooks, the same shape as Slack's. Mirrored in PostgresSchema.
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "DiscordWebhooks" (
+                        "Id"   INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "Name" TEXT    NOT NULL DEFAULT '',
+                        "Url"  TEXT    NOT NULL DEFAULT ''
+                    )
+                    """);
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "StoreSenders" (
                         "Id"         INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -1852,6 +1866,103 @@ public class App : Application
                         "NumPins"       INTEGER NOT NULL DEFAULT 0,
                         "UpgradeLevel"  INTEGER NOT NULL DEFAULT 0,
                         PRIMARY KEY ("CharacterId", "PlanetId")
+                    )
+                    """);
+
+                // ── Planetary Industry: colony layouts ──────────────────────────────
+                // One colony replaced whole, in one transaction, whenever the colony list
+                // reports a new last_update. Mirrored for PostgreSQL in PostgresSchema.
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "EsiPlanetaryLayouts" (
+                        "CharacterId" INTEGER NOT NULL,
+                        "PlanetId"    INTEGER NOT NULL,
+                        "LastUpdate"  TEXT    NOT NULL,
+                        "FetchedAt"   TEXT    NOT NULL,
+                        CONSTRAINT "PK_EsiPlanetaryLayouts" PRIMARY KEY ("CharacterId", "PlanetId")
+                    )
+                    """);
+
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "EsiPlanetaryPins" (
+                        "CharacterId"            INTEGER NOT NULL,
+                        "PlanetId"               INTEGER NOT NULL,
+                        "PinId"                  INTEGER NOT NULL,
+                        "TypeId"                 INTEGER NOT NULL DEFAULT 0,
+                        "SchematicId"            INTEGER NULL,
+                        "InstallTime"            TEXT    NULL,
+                        "ExpiryTime"             TEXT    NULL,
+                        "LastCycleStart"         TEXT    NULL,
+                        "Latitude"               REAL    NOT NULL DEFAULT 0,
+                        "Longitude"              REAL    NOT NULL DEFAULT 0,
+                        "ExtractorProductTypeId" INTEGER NULL,
+                        "ExtractorCycleTime"     INTEGER NULL,
+                        "ExtractorQtyPerCycle"   INTEGER NULL,
+                        "ExtractorHeadRadius"    REAL    NULL,
+                        "ExtractorHeadCount"     INTEGER NOT NULL DEFAULT 0,
+                        CONSTRAINT "PK_EsiPlanetaryPins" PRIMARY KEY ("CharacterId", "PlanetId", "PinId")
+                    )
+                    """);
+
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "EsiPlanetaryPinContents" (
+                        "CharacterId" INTEGER NOT NULL,
+                        "PlanetId"    INTEGER NOT NULL,
+                        "PinId"       INTEGER NOT NULL,
+                        "TypeId"      INTEGER NOT NULL,
+                        "Amount"      INTEGER NOT NULL DEFAULT 0,
+                        CONSTRAINT "PK_EsiPlanetaryPinContents" PRIMARY KEY ("CharacterId", "PlanetId", "PinId", "TypeId")
+                    )
+                    """);
+
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "EsiPlanetaryRoutes" (
+                        "CharacterId"      INTEGER NOT NULL,
+                        "PlanetId"         INTEGER NOT NULL,
+                        "RouteId"          INTEGER NOT NULL,
+                        "SourcePinId"      INTEGER NOT NULL DEFAULT 0,
+                        "DestinationPinId" INTEGER NOT NULL DEFAULT 0,
+                        "ContentTypeId"    INTEGER NOT NULL DEFAULT 0,
+                        "Quantity"         REAL    NOT NULL DEFAULT 0,
+                        "Waypoints"        TEXT    NOT NULL DEFAULT '',
+                        CONSTRAINT "PK_EsiPlanetaryRoutes" PRIMARY KEY ("CharacterId", "PlanetId", "RouteId")
+                    )
+                    """);
+
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "EsiPlanetaryLinks" (
+                        "CharacterId"      INTEGER NOT NULL,
+                        "PlanetId"         INTEGER NOT NULL,
+                        "SourcePinId"      INTEGER NOT NULL,
+                        "DestinationPinId" INTEGER NOT NULL,
+                        "LinkLevel"        INTEGER NOT NULL DEFAULT 0,
+                        CONSTRAINT "PK_EsiPlanetaryLinks" PRIMARY KEY ("CharacterId", "PlanetId", "SourcePinId", "DestinationPinId")
+                    )
+                    """);
+
+                // What left and arrived between two snapshots of a colony, and the tax rate each
+                // planet was learned to charge from it. See PiTaxLearning.
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "PiColonyMovements" (
+                        "Id"          INTEGER NOT NULL CONSTRAINT "PK_PiColonyMovements" PRIMARY KEY AUTOINCREMENT,
+                        "CharacterId" INTEGER NOT NULL DEFAULT 0,
+                        "PlanetId"    INTEGER NOT NULL DEFAULT 0,
+                        "FromUpdate"  TEXT    NOT NULL DEFAULT '',
+                        "ToUpdate"    TEXT    NOT NULL DEFAULT '',
+                        "TypeId"      INTEGER NOT NULL DEFAULT 0,
+                        "Removed"     INTEGER NOT NULL DEFAULT 0,
+                        "Added"       INTEGER NOT NULL DEFAULT 0
+                    )
+                    """);
+
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "PiPlanetTaxRates" (
+                        "PlanetId"    INTEGER NOT NULL CONSTRAINT "PK_PiPlanetTaxRates" PRIMARY KEY,
+                        "Rate"        REAL    NOT NULL DEFAULT 0,
+                        "LearnedAt"   TEXT    NOT NULL DEFAULT '',
+                        "JournalId"   INTEGER NOT NULL DEFAULT 0,
+                        "CharacterId" INTEGER NOT NULL DEFAULT 0,
+                        "Source"      TEXT    NOT NULL DEFAULT '',
+                        "Units"       INTEGER NOT NULL DEFAULT 0
                     )
                     """);
 
@@ -2664,7 +2775,8 @@ public class App : Application
                         "IncludeCorpAssets"     INTEGER NOT NULL DEFAULT 1,
                         "IncludePersonalAssets" INTEGER NOT NULL DEFAULT 1,
                         "Note"                  TEXT    NOT NULL DEFAULT '',
-                        "SkillQueue"            INTEGER NOT NULL DEFAULT 1
+                        "SkillQueue"            INTEGER NOT NULL DEFAULT 1,
+                        "PlanetaryIndustry"     INTEGER NOT NULL DEFAULT 1
                     )
                     """);
                 db.Database.ExecuteSqlRaw("""
@@ -2676,6 +2788,10 @@ public class App : Application
                 // column with no default would silence every character's skill queue on upgrade,
                 // which is the opposite of what clearing a box is for.
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "WorklistIndyChars" ADD COLUMN "SkillQueue" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+
+                // The PI box, on by default for the same reason: every character already listed
+                // keeps doing PI until somebody clears it. Mirrored for PostgreSQL in PostgresSchema.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "WorklistIndyChars" ADD COLUMN "PlanetaryIndustry" INTEGER NOT NULL DEFAULT 1"""); } catch { }
 
                 // Added after the rules table shipped on this branch, so it needs its own ALTER —
                 // CREATE TABLE IF NOT EXISTS will not add a column to a table that already exists.
@@ -2882,7 +2998,12 @@ public class App : Application
                         "UnriggedIndustryJobs"       INTEGER NOT NULL DEFAULT 1,
                         "IndustryJobsReady"          INTEGER NOT NULL DEFAULT 1,
                         "OutstandingContracts"       INTEGER NOT NULL DEFAULT 1,
-                        "ExpiringContracts"          INTEGER NOT NULL DEFAULT 1
+                        "ExpiringContracts"          INTEGER NOT NULL DEFAULT 1,
+                        "PiExtractors"               INTEGER NOT NULL DEFAULT 1,
+                        "PiStorage"                  INTEGER NOT NULL DEFAULT 1,
+                        "PiInputs"                   INTEGER NOT NULL DEFAULT 1,
+                        "PiFreeSlots"                INTEGER NOT NULL DEFAULT 1,
+                        "PiStaleData"                INTEGER NOT NULL DEFAULT 1
                     )
                     """);
                 // Existing installs predate these alerts.
@@ -2891,6 +3012,12 @@ public class App : Application
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "IndustryJobsReady" INTEGER NOT NULL DEFAULT 1"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "OutstandingContracts" INTEGER NOT NULL DEFAULT 1"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "ExpiringContracts" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                // Planetary Industry alerts. Mirrored for PostgreSQL in PostgresSchema.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "PiExtractors" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "PiStorage" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "PiInputs" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "PiFreeSlots" INTEGER NOT NULL DEFAULT 1"""); } catch { }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "AlertSettings" ADD COLUMN "PiStaleData" INTEGER NOT NULL DEFAULT 1"""); } catch { }
                 // Every alert on by default. Named in full for the same reason as the market seed
                 // above, and with an extra sting: OR IGNORE swallows a NOT NULL violation rather
                 // than raising it, so the short form did not fail — it inserted nothing at all, and
@@ -2900,8 +3027,9 @@ public class App : Application
                     INSERT OR IGNORE INTO "AlertSettings"
                         ("Id", "SkillQueueEmpty", "SkillQueuePaused", "SkillQueueEmptyInDays", "SkillQueueEmptyDays",
                          "AssetSafety", "InactiveStandingProjects", "StandingBuyOrdersAttention", "UnriggedIndustryJobs", "IndustryJobsReady",
-                         "OutstandingContracts", "ExpiringContracts")
-                    VALUES (1, 1, 1, 1, 30, 1, 1, 1, 1, 1, 1, 1)
+                         "OutstandingContracts", "ExpiringContracts",
+                         "PiExtractors", "PiStorage", "PiInputs", "PiFreeSlots", "PiStaleData")
+                    VALUES (1, 1, 1, 1, 30, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
                     """);
 
                 db.Database.ExecuteSqlRaw("""
@@ -3360,6 +3488,11 @@ public class App : Application
                     """CREATE INDEX IF NOT EXISTS "IX_IntelReports_System_Time" ON "IntelReports" ("SystemId", "ReportedAt")""",
                     """CREATE INDEX IF NOT EXISTS "IX_IntelReports_Obsolete_Time" ON "IntelReports" ("Obsolete", "ReportedAt")""",
 
+                    // Jump bridges entered by hand (the ones ESI shows are read from corporation
+                    // structures, never stored). Mirrored for PostgreSQL in PostgresSchema.
+                    """CREATE TABLE IF NOT EXISTS "ManualJumpBridges" ("Id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "FromSystemId" INTEGER NOT NULL DEFAULT 0, "ToSystemId" INTEGER NOT NULL DEFAULT 0, "Note" TEXT NOT NULL DEFAULT '', "CreatedAt" TEXT NOT NULL DEFAULT '')""",
+                    """CREATE UNIQUE INDEX IF NOT EXISTS "IX_ManualJumpBridges_Pair" ON "ManualJumpBridges" ("FromSystemId", "ToSystemId")""",
+
                     """CREATE TABLE IF NOT EXISTS "IntelReportCharacters" ("IntelReportId" INTEGER NOT NULL, "CharacterId" INTEGER NOT NULL, "CharacterName" TEXT NOT NULL DEFAULT '', PRIMARY KEY ("IntelReportId", "CharacterId"))""",
                     """CREATE INDEX IF NOT EXISTS "IX_IntelReportCharacters_CharacterId" ON "IntelReportCharacters" ("CharacterId")""",
                     """ALTER TABLE "IntelReportCharacters" ADD COLUMN "ShipTypeId" INTEGER NULL""",
@@ -3535,6 +3668,18 @@ public class App : Application
                     db.SaveChanges();
                 }
                 catch (Exception ex) { Services.GetRequiredService<AppErrorLogger>().Log("Alarms", "upgrading ship_undock alarms", ex); }
+
+                // Intel report alarms saved before they could watch characters (a comma list and
+                // one ranged system) are rewritten to "around Systems", once, so they go on
+                // watching their systems rather than turning into the new default.
+                try
+                {
+                    foreach (var alarm in db.Alarms.Where(a => a.ConditionType == "intel").ToList())
+                        if (EveConsole.Alarms.Conditions.IntelCondition.UpgradeConfig(alarm.ConditionJson) is { } upgraded)
+                            alarm.ConditionJson = upgraded;
+                    db.SaveChanges();
+                }
+                catch (Exception ex) { Services.GetRequiredService<AppErrorLogger>().Log("Alarms", "upgrading intel alarms", ex); }
 
                 try { AssetLocations.FillMissing(db); }
                 catch (Exception ex) { Services.GetRequiredService<AppErrorLogger>().Log("AssetLocations", "FillMissing", ex); }
@@ -4050,6 +4195,15 @@ public class App : Application
             client.DefaultRequestHeaders.Add("User-Agent", "EveConsole/1.0 (EVE Online companion app)");
         });
 
+        // Named HTTP client for Discord channel webhooks. No BaseAddress: every webhook is its own
+        // absolute URL, and no Authorization header — the link is the whole credential. A timeout
+        // of its own, since a chart upload is a request somebody is sitting in front of.
+        services.AddHttpClient("discord", client =>
+        {
+            client.DefaultRequestHeaders.Add("User-Agent", "EveConsole/1.0 (https://github.com/kernoeve/EveConsole)");
+            client.Timeout = TimeSpan.FromSeconds(30);
+        });
+
         // Named HTTP client for zKillboard (zkillboard.com + r2z2.zkillboard.com). No
         // BaseAddress — the API and history/firehose endpoints live on different hosts,
         // so callers use absolute URLs. Automatic gzip decompression since daily dumps
@@ -4100,6 +4254,7 @@ public class App : Application
         services.AddSingleton<AppPreferencesService>();
         services.AddSingleton<SlackAuthService>();
         services.AddSingleton<SlackService>();
+        services.AddSingleton<DiscordService>();
         services.AddSingleton<ScheduledBlockRenderer>();
         services.AddSingleton<SchedulerService>();
         services.AddSingleton<DatabaseBackupService>();
@@ -4107,6 +4262,11 @@ public class App : Application
         // Decides whether this process does background work at all. Registered beside the
         // services it gates, though nothing resolves it until startup wires the lease events.
         services.AddSingleton<WorkerLease>();
+        // Planetary Industry: tax defaults and per-planet rates, and the one door the PI tool,
+        // its alerts and its worklist tasks read colonies through.
+        services.AddSingleton<EveConsole.Services.Pi.PiTaxService>();
+        services.AddSingleton<EveConsole.Services.Pi.PiSettings>();
+        services.AddSingleton<EveConsole.Services.Pi.PiService>();
         services.AddSingleton<EsiPollingService>();
         services.AddSingleton<NetWorthService>();
         services.AddSingleton<TypePriceHistoryService>();
@@ -4212,6 +4372,8 @@ public class App : Application
                               EveConsole.Services.Worklist.SkillQueueGenerator>();
         services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
                               EveConsole.Services.Worklist.AssetSafetyGenerator>();
+        services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
+                              EveConsole.Services.Worklist.PiGenerator>();
         services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
                               EveConsole.Services.Worklist.RefiningGenerator>();
         services.AddSingleton<EveConsole.Services.Worklist.InventionService>();

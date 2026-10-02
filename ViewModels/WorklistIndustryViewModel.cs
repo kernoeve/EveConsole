@@ -20,7 +20,8 @@ public sealed record ScopeStationRow(int Id, string LocationName);
 /// name the list shows. ⚠️ The box writes ToString back into its text when one is picked, which
 /// is why that is the shown name — nothing reads the text back as a choice.
 /// </summary>
-public sealed record ScopePlaceOption(long Id, string Name, string Shown)
+/// <param name="Region">A system's region, shown to its right in the list; empty for a region.</param>
+public sealed record ScopePlaceOption(long Id, string Name, string Shown, string Region = "")
 {
     public override string ToString() => Shown;
 }
@@ -51,6 +52,7 @@ public sealed class IndyCharRow : ReactiveObject
         _reactions     = config.Reactions;
         _science       = config.Science;
         _skillQueue    = config.SkillQueue;
+        _pi            = config.PlanetaryIndustry;
 
         _loaded = true;
     }
@@ -83,6 +85,15 @@ public sealed class IndyCharRow : ReactiveObject
         set { this.RaiseAndSetIfChanged(ref _skillQueue, value); Persist(); }
     }
 
+    private bool _pi;
+    /// <summary>Whether the character does Planetary Industry. Clear, it is not in the PI tool at
+    /// all and gets no PI alerts or tasks — see PiCharacters.</summary>
+    public bool PlanetaryIndustry
+    {
+        get => _pi;
+        set { this.RaiseAndSetIfChanged(ref _pi, value); Persist(); }
+    }
+
     /// <summary>Sorted on, and it still reads as a sentence when every box is clear.</summary>
     public string Activities
     {
@@ -104,6 +115,7 @@ public sealed class IndyCharRow : ReactiveObject
         Config.Reactions     = _reactions;
         Config.Science       = _science;
         Config.SkillQueue    = _skillQueue;
+        Config.PlanetaryIndustry = _pi;
 
         this.RaisePropertyChanged(nameof(Activities));
         _ = _save(this);
@@ -361,7 +373,7 @@ public class WorklistIndustryViewModel : ReactiveObject
     public Func<string?, CancellationToken, Task<IEnumerable<object>>> ScopePlacePopulator =>
         async (text, ct) => (_selectedScope == "System"
                 ? (await _corpActivity.SearchSdeSystemsAsync(text ?? "", ct))
-                    .Select(s => new ScopePlaceOption(s.SystemId, s.Name, SdeNames.SolarSystem(s.SystemId, s.Name)))
+                    .Select(s => new ScopePlaceOption(s.SystemId, s.Name, SdeNames.SolarSystem(s.SystemId, s.Name), s.RegionLabel))
                 : (await _corpActivity.SearchSdeRegionsAsync(text ?? "", ct))
                     .Select(r => new ScopePlaceOption(r.RegionId, r.Name, SdeNames.Region(r.RegionId, r.Name))))
             .OrderBy(o => o.Shown, StringComparer.CurrentCulture)
@@ -669,7 +681,8 @@ public class WorklistIndustryViewModel : ReactiveObject
                     .SetProperty(x => x.Manufacturing, row.Config.Manufacturing)
                     .SetProperty(x => x.Reactions,     row.Config.Reactions)
                     .SetProperty(x => x.Science,       row.Config.Science)
-                    .SetProperty(x => x.SkillQueue,    row.Config.SkillQueue));
+                    .SetProperty(x => x.SkillQueue,    row.Config.SkillQueue)
+                    .SetProperty(x => x.PlanetaryIndustry, row.Config.PlanetaryIndustry));
 
             if (IndustryChanged is not null) await IndustryChanged();
         }

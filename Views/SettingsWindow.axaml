@@ -307,10 +307,23 @@
                       </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                   </DataGridTemplateColumn>
+
+                  <!-- Planetary Industry: cleared, the character is not in the PI tool at all. -->
+                  <DataGridTemplateColumn Header="{x:Static loc:SettingsText.ColPi}" Width="70" SortMemberPath="PlanetaryIndustry"
+                                          IsReadOnly="True" ClipboardContentBinding="{Binding PlanetaryIndustry}">
+                    <DataGridTemplateColumn.CellTemplate>
+                      <DataTemplate x:DataType="vm:IndyCharRow">
+                        <CheckBox IsChecked="{Binding PlanetaryIndustry, Mode=TwoWay}" FontSize="11" MinHeight="0"
+                                  HorizontalAlignment="Center"
+                                  ToolTip.Tip="{x:Static loc:SettingsText.TipCharacterDoesPi}" />
+                      </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                  </DataGridTemplateColumn>
                 </DataGrid.Columns>
               </DataGrid>
             </StackPanel>
           </Border>
+
         </StackPanel>
       </ScrollViewer>
     </TabItem>
@@ -589,10 +602,8 @@
                              FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" />
                 </Grid>
 
+                <!-- No Save: a source is saved as it is changed (MarketSettingsViewModel). -->
                 <StackPanel Orientation="Horizontal" Spacing="6" Margin="0 8 0 0">
-                  <Button Content="{x:Static loc:SettingsText.Save}"
-                          Command="{Binding MarketVm.SaveCommand}"
-                          Padding="14 4" />
                   <Button Content="{x:Static loc:SettingsText.RefreshThis}"
                           Command="{Binding MarketVm.RefreshSelectedCommand}"
                           Padding="14 4" />
@@ -702,9 +713,8 @@
                          TextWrapping="Wrap" />
             </Grid>
 
-            <!-- Save row -->
+            <!-- Saved as they are changed; this says so for a moment after each save. -->
             <StackPanel Grid.Row="5" Orientation="Horizontal" Spacing="10">
-              <Button Content="{x:Static loc:SettingsText.SaveDefaults}" Command="{Binding MarketVm.SaveDefaultsCommand}" Padding="14 4" />
               <TextBlock Text="{Binding MarketVm.DefaultsStatus}"
                          FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
             </StackPanel>
@@ -846,9 +856,89 @@
             </StackPanel>
           </Border>
 
-          <!-- Save row -->
+          <!-- Planetary Industry tax: what a planet is charged until its own rate is learned. -->
+          <Border Background="{DynamicResource SurfaceHeaderBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+                  CornerRadius="4" Padding="12 10">
+            <StackPanel Spacing="8" DataContext="{Binding PiVm}">
+              <TextBlock Text="{x:Static loc:SettingsText.PiTaxTitle}" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" FontSize="12" />
+              <TextBlock FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
+                         Text="{x:Static loc:SettingsText.PiTaxNote}" />
+              <Grid ColumnDefinitions="Auto,8,Auto,8,Auto" RowDefinitions="Auto,6,Auto">
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static loc:SettingsText.PiTaxCustomsDefault}"
+                           FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                <NumericUpDown Grid.Row="0" Grid.Column="2" Value="{Binding CustomsTaxPercent}"
+                               Minimum="0" Maximum="100" Increment="0.5" FormatString="0.##"
+                               FontSize="12" Width="120" VerticalAlignment="Center" />
+                <TextBlock Grid.Row="0" Grid.Column="4" Text="%" FontSize="12"
+                           Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="{x:Static loc:SettingsText.PiTaxSkyhookDefault}"
+                           FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                <NumericUpDown Grid.Row="2" Grid.Column="2" Value="{Binding SkyhookTaxPercent}"
+                               Minimum="0" Maximum="100" Increment="0.5" FormatString="0.##"
+                               FontSize="12" Width="120" VerticalAlignment="Center" />
+                <TextBlock Grid.Row="2" Grid.Column="4" Text="%" FontSize="12"
+                           Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" />
+              </Grid>
+            </StackPanel>
+          </Border>
+
+          <!-- Planetary Industry timing: how far ahead the PI alerts and worklist tasks look, when a
+               colony's data is too old to trust, and how much input a haul brings. Whether each
+               alert is raised at all is on the Alerts tab. -->
+          <Border Background="{DynamicResource SurfaceHeaderBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+                  CornerRadius="4" Padding="12 10">
+            <StackPanel Spacing="8" DataContext="{Binding PiVm}">
+              <TextBlock Text="{x:Static loc:SettingsText.PiTimingTitle}" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" FontSize="12" />
+              <TextBlock FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
+                         Text="{x:Static loc:SettingsText.PiTimingNote}" />
+              <Grid ColumnDefinitions="Auto,8,Auto,8,Auto" RowDefinitions="Auto,6,Auto,6,Auto,6,Auto,6,Auto">
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static loc:SettingsText.PiLeadExtractors}"
+                           FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                <NumericUpDown Grid.Row="0" Grid.Column="2" Value="{Binding ExtractorLeadHours}"
+                               Minimum="0" Maximum="{Binding MaxLeadHours}" Increment="1" FormatString="0"
+                               FontSize="12" Width="120" VerticalAlignment="Center" />
+                <TextBlock Grid.Row="0" Grid.Column="4" Text="{x:Static loc:SettingsText.PiHoursAhead}" FontSize="12"
+                           Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" />
+
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="{x:Static loc:SettingsText.PiLeadStorage}"
+                           FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                <NumericUpDown Grid.Row="2" Grid.Column="2" Value="{Binding StorageLeadHours}"
+                               Minimum="0" Maximum="{Binding MaxLeadHours}" Increment="1" FormatString="0"
+                               FontSize="12" Width="120" VerticalAlignment="Center" />
+                <TextBlock Grid.Row="2" Grid.Column="4" Text="{x:Static loc:SettingsText.PiHoursAheadEstimated}" FontSize="12"
+                           Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" />
+
+                <TextBlock Grid.Row="4" Grid.Column="0" Text="{x:Static loc:SettingsText.PiLeadInputs}"
+                           FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                <NumericUpDown Grid.Row="4" Grid.Column="2" Value="{Binding InputLeadHours}"
+                               Minimum="0" Maximum="{Binding MaxLeadHours}" Increment="1" FormatString="0"
+                               FontSize="12" Width="120" VerticalAlignment="Center" />
+                <TextBlock Grid.Row="4" Grid.Column="4" Text="{x:Static loc:SettingsText.PiHoursAheadEstimated}" FontSize="12"
+                           Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" />
+
+                <TextBlock Grid.Row="6" Grid.Column="0" Text="{x:Static loc:SettingsText.PiStaleAfter}"
+                           FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                <NumericUpDown Grid.Row="6" Grid.Column="2" Value="{Binding StaleDays}"
+                               Minimum="1" Maximum="365" Increment="1" FormatString="0"
+                               FontSize="12" Width="120" VerticalAlignment="Center" />
+                <TextBlock Grid.Row="6" Grid.Column="4" Text="{x:Static loc:SettingsText.Days}" FontSize="12"
+                           Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" />
+
+                <TextBlock Grid.Row="8" Grid.Column="0" Text="{x:Static loc:SettingsText.PiInputDays}"
+                           FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                <NumericUpDown Grid.Row="8" Grid.Column="2" Value="{Binding InputDays}"
+                               Minimum="1" Maximum="60" Increment="1" FormatString="0"
+                               FontSize="12" Width="120" VerticalAlignment="Center" />
+                <TextBlock Grid.Row="8" Grid.Column="4" Text="{x:Static loc:SettingsText.PiDaysOfRunning}" FontSize="12"
+                           Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" />
+              </Grid>
+              <!-- Both boxes above save as they are changed; this says so for a moment. -->
+              <TextBlock Text="{Binding Status}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
+            </StackPanel>
+          </Border>
+
+          <!-- Saved as it is changed, with the Market tab's defaults it belongs to. -->
           <StackPanel Orientation="Horizontal" Spacing="10">
-            <Button Content="{x:Static loc:SettingsText.Save}" Command="{Binding MarketVm.SaveDefaultsCommand}" Padding="14 4" />
             <TextBlock Text="{Binding MarketVm.DefaultsStatus}"
                        FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
           </StackPanel>
@@ -984,17 +1074,12 @@
           </StackPanel>
         </ScrollViewer>
 
-        <!-- Save bar -->
+        <!-- Status bar. An interval is saved once typing pauses, or when its box is left; this
+             says so for a moment after each save. -->
         <Border Grid.Row="1" Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4" Padding="10 8" Margin="0 8 0 0">
-          <Grid ColumnDefinitions="*,Auto">
-            <TextBlock Grid.Column="0"
-                       Text="{Binding TimerVm.SaveStatus}"
-                       FontSize="11" Foreground="{DynamicResource GoodBrush}"
-                       VerticalAlignment="Center" />
-            <Button Grid.Column="1" Content="{x:Static loc:SettingsText.SaveTimers}"
-                    Command="{Binding TimerVm.SaveCommand}"
-                    Padding="14 4" />
-          </Grid>
+          <TextBlock Text="{Binding TimerVm.SaveStatus}"
+                     FontSize="11" Foreground="{DynamicResource GoodBrush}"
+                     VerticalAlignment="Center" MinHeight="16" />
         </Border>
 
       </Grid>
@@ -1684,7 +1769,7 @@
         <!-- Left: what every section is called. Scrolls, because twelve fields and a
              prefix do not fit a settings pane at every window height. -->
         <Border Grid.Column="0" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
-          <Grid RowDefinitions="Auto,Auto,*,Auto">
+          <Grid RowDefinitions="Auto,Auto,*">
             <Border Grid.Row="0" Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
               <TextBlock Text="{x:Static loc:SettingsText.Top10ListTitles}" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
             </Border>
@@ -1741,11 +1826,6 @@
               </StackPanel>
             </ScrollViewer>
 
-            <Button Grid.Row="3" Content="{x:Static loc:SettingsText.SaveTitles}" Command="{Binding SaveTitlesCommand}"
-                    Margin="10 0 10 10" HorizontalAlignment="Left"
-                    FontSize="11" Padding="12 4"
-                    Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
-                    BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" />
           </Grid>
         </Border>
 
@@ -1813,9 +1893,9 @@
 
     <!-- ══ Agent ═══════════════════════════════════════════════════════════════ -->
     <TabItem Header="{x:Static loc:SettingsText.TabAiAgent}">
-      <!-- Four sub-tabs over one view model and ONE save bar: the tab had grown to two hundred
-           lines of sections, and Save applies to all of them, so it stays outside the sub-tabs
-           where it is visible whichever one is showing. -->
+      <!-- Four sub-tabs over one view model and ONE status bar: the tab had grown to two hundred
+           lines of sections, all saved as they are changed, so the bar that says so stays outside
+           the sub-tabs where it is visible whichever one is showing. -->
       <Grid RowDefinitions="*,Auto" Margin="0 8 0 0"
             x:DataType="vm:AgentSettingsViewModel" DataContext="{Binding AgentVm}">
         <TabControl Grid.Row="0" Padding="0">
@@ -2558,17 +2638,11 @@
         </TabControl>
 
         <Grid Grid.Row="1" Margin="0 8 0 0">
-          <!-- Save bar -->
+          <!-- Status bar -->
           <Border Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4" Padding="10 8">
-            <Grid ColumnDefinitions="*,Auto">
-              <TextBlock Grid.Column="0"
-                         Text="{Binding SaveStatus}"
-                         FontSize="11" Foreground="{DynamicResource GoodBrush}"
-                         VerticalAlignment="Center" />
-              <Button Grid.Column="1" Content="{x:Static loc:SettingsText.SaveAgentSettings}"
-                      Command="{Binding SaveCommand}"
-                      Padding="14 4" />
-            </Grid>
+            <TextBlock Text="{Binding SaveStatus}"
+                       FontSize="11" Foreground="{DynamicResource GoodBrush}"
+                       VerticalAlignment="Center" MinHeight="16" />
           </Border>
         </Grid>
       </Grid>
@@ -2649,8 +2723,9 @@
           <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextDimBrush}" FontSize="11"
                      Text="{x:Static loc:SettingsText.StoredLocallyInYourNote}" />
           <StackPanel Orientation="Horizontal" Spacing="8">
-            <Button Content="{x:Static loc:SettingsText.SaveTest}"
-                    Command="{Binding SlackVm.SaveAndTestCommand}"
+            <!-- The token saves as it is typed; this only asks Slack whether it works. -->
+            <Button Content="{x:Static loc:SettingsText.DiscordTest}"
+                    Command="{Binding SlackVm.TestCommand}"
                     IsEnabled="{Binding !SlackVm.IsBusy}"
                     Padding="12 4" FontSize="11"
                     Background="{DynamicResource GoodSurfaceBrush}" Foreground="{DynamicResource GoodBrush}"
@@ -2769,6 +2844,115 @@
     </ScrollViewer>
   </TabItem>
 
+  <!-- ── Discord ─────────────────────────────────────────────────────────
+       Webhooks only: no bot, no sign-in. Laid out like the Slack tab's webhook section, with a
+       Test per row, since a link pasted from somebody else's server is only known to work once
+       something has been posted through it. -->
+  <TabItem Header="{x:Static loc:SettingsText.TabDiscord}">
+    <ScrollViewer>
+      <StackPanel Spacing="16" Margin="24 16">
+
+        <TextBlock Text="{x:Static loc:SettingsText.DiscordIntegration}"
+                   FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+
+        <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" FontSize="12"
+                   Text="{x:Static loc:SettingsText.DiscordIntroNote}" />
+
+        <StackPanel Spacing="8">
+          <TextBlock Text="{x:Static loc:SettingsText.Webhooks}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
+          <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" FontSize="11"
+                     Text="{x:Static loc:SettingsText.DiscordHowToNote}" />
+          <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" FontSize="11"
+                     Text="{x:Static loc:SettingsText.DiscordSecretNote}" />
+
+          <!-- The link column shows the webhook's id and never its token: the full link is a
+               credential, and this window turns up in screenshots. -->
+          <DataGrid ItemsSource="{Binding DiscordVm.Webhooks}" AutoGenerateColumns="False"
+                    IsReadOnly="True" MaxHeight="150" HeadersVisibility="Column"
+                    Background="Transparent">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="{x:Static loc:SettingsText.ColName}" Binding="{Binding Name}" Width="200" />
+              <DataGridTextColumn Header="URL"  Binding="{Binding Link}"  Width="*" />
+              <DataGridTemplateColumn Header="" Width="150">
+                <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate x:DataType="vm:DiscordWebhookRow">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                      <Button Content="{x:Static loc:SettingsText.DiscordTest}" FontSize="10" Padding="6 1" Cursor="Hand"
+                              Command="{Binding $parent[Window].((vm:SettingsViewModel)DataContext).DiscordVm.TestWebhookCommand}"
+                              CommandParameter="{Binding Id}"
+                              IsEnabled="{Binding !$parent[Window].((vm:SettingsViewModel)DataContext).DiscordVm.IsBusy}"
+                              Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
+                              BorderBrush="{DynamicResource SurfaceSelectedBrush}" BorderThickness="1" />
+                      <Button Content="{x:Static loc:SettingsText.Remove}" FontSize="10" Padding="6 1" Cursor="Hand"
+                              Command="{Binding $parent[Window].((vm:SettingsViewModel)DataContext).DiscordVm.RemoveWebhookCommand}"
+                              CommandParameter="{Binding Id}"
+                              Background="{DynamicResource BadSurfaceBrush}" Foreground="{DynamicResource BadBrush}"
+                              BorderBrush="{DynamicResource BadSurfaceBrush}" BorderThickness="1" />
+                    </StackPanel>
+                  </DataTemplate>
+                </DataGridTemplateColumn.CellTemplate>
+              </DataGridTemplateColumn>
+            </DataGrid.Columns>
+          </DataGrid>
+
+          <Grid ColumnDefinitions="200,*,Auto">
+            <TextBox Grid.Column="0" Text="{Binding DiscordVm.NewWebhookName}"
+                     Watermark="{x:Static loc:SettingsText.HintName}" FontSize="12"
+                     Background="{DynamicResource SurfacePanelAltBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+            <TextBox Grid.Column="1" Text="{Binding DiscordVm.NewWebhookUrl}"
+                     Watermark="https://discord.com/api/webhooks/…" FontSize="12" Margin="8 0"
+                     Background="{DynamicResource SurfacePanelAltBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+            <Button Grid.Column="2" Content="{x:Static loc:SettingsText.Add}" Command="{Binding DiscordVm.AddWebhookCommand}"
+                    Padding="14 5" FontSize="12"
+                    Background="{DynamicResource SurfaceBaseBrush}" Foreground="{DynamicResource GoodBrush}"
+                    BorderBrush="{DynamicResource GoodSurfaceBrush}" BorderThickness="1" />
+          </Grid>
+
+          <TextBlock Text="{Binding DiscordVm.WebhookStatus}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                     TextWrapping="Wrap" IsVisible="{Binding DiscordVm.WebhookStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+        </StackPanel>
+
+        <!-- Which webhook each part of the app posts to -->
+        <StackPanel Spacing="6">
+          <TextBlock Text="{x:Static loc:SettingsText.DiscordWhereEachPosts}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
+          <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" FontSize="12"
+                     Text="{x:Static loc:SettingsText.DiscordPickWebhookNote}" />
+          <Grid ColumnDefinitions="200,*" Margin="0 4 0 0">
+            <TextBlock Grid.Column="0" Text="{x:Static loc:SettingsText.CorpActivityTop10}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}"
+                       VerticalAlignment="Center" TextWrapping="Wrap" />
+            <ComboBox Grid.Column="1"
+                      ItemsSource="{Binding DiscordVm.Choices}"
+                      SelectedItem="{Binding DiscordVm.CorpTop10Hook}"
+                      HorizontalAlignment="Stretch" FontSize="12"
+                      Background="{DynamicResource SurfacePanelAltBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
+                      BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" />
+          </Grid>
+          <Grid ColumnDefinitions="200,*" Margin="0 4 0 0">
+            <TextBlock Grid.Column="0" Text="{x:Static loc:SettingsText.CorpActivityMonthlySummary}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}"
+                       VerticalAlignment="Center" TextWrapping="Wrap" />
+            <ComboBox Grid.Column="1"
+                      ItemsSource="{Binding DiscordVm.Choices}"
+                      SelectedItem="{Binding DiscordVm.CorpMonthlyHook}"
+                      HorizontalAlignment="Stretch" FontSize="12"
+                      Background="{DynamicResource SurfacePanelAltBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
+                      BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" />
+          </Grid>
+          <Grid ColumnDefinitions="200,*" Margin="0 4 0 0">
+            <TextBlock Grid.Column="0" Text="{x:Static loc:SettingsText.SalePosting}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}"
+                       VerticalAlignment="Center" TextWrapping="Wrap" />
+            <ComboBox Grid.Column="1"
+                      ItemsSource="{Binding DiscordVm.Choices}"
+                      SelectedItem="{Binding DiscordVm.SalePostingHook}"
+                      HorizontalAlignment="Stretch" FontSize="12"
+                      Background="{DynamicResource SurfacePanelAltBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
+                      BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" />
+          </Grid>
+        </StackPanel>
+
+      </StackPanel>
+    </ScrollViewer>
+  </TabItem>
+
   <!-- ── Alerts ────────────────────────────────────────────────────────── -->
   <TabItem Header="{x:Static loc:SettingsText.TabAlerts}">
     <ScrollViewer>
@@ -2809,10 +2993,8 @@
                          VerticalAlignment="Center" />
             </StackPanel>
 
+            <!-- Every rule on the tab is saved as it is ticked; this says so for a moment. -->
             <StackPanel Orientation="Horizontal" Spacing="10" Margin="0 6 0 0">
-              <Button Content="{x:Static loc:SettingsText.SaveAlerts}"
-                      Command="{Binding AlertsVm.SaveCommand}"
-                      Padding="14 4" />
               <TextBlock Text="{Binding AlertsVm.Status}"
                          FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
                          VerticalAlignment="Center" />
@@ -2908,6 +3090,35 @@
 
             <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
                        Text="{x:Static loc:SettingsText.CountsActiveContractsYouNote}" />
+          </StackPanel>
+        </Border>
+
+        <!-- Planetary Industry alerts: only the characters that do PI. How far ahead each looks is
+             on the Industry tab, shared with the PI worklist tasks. -->
+        <Border Background="{DynamicResource SurfaceHeaderBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+                CornerRadius="4" Padding="14 12">
+          <StackPanel Spacing="8">
+            <TextBlock Text="{x:Static loc:SettingsText.PiAlertsTitle}" FontWeight="SemiBold"
+                       Foreground="{DynamicResource AccentBrush}" FontSize="12" Margin="0 0 0 4" />
+
+            <CheckBox Content="{x:Static loc:SettingsText.PiAlertExtractors}"
+                      IsChecked="{Binding AlertsVm.PiExtractors}"
+                      FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
+            <CheckBox Content="{x:Static loc:SettingsText.PiAlertStorage}"
+                      IsChecked="{Binding AlertsVm.PiStorage}"
+                      FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
+            <CheckBox Content="{x:Static loc:SettingsText.PiAlertInputs}"
+                      IsChecked="{Binding AlertsVm.PiInputs}"
+                      FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
+            <CheckBox Content="{x:Static loc:SettingsText.PiAlertFreeSlots}"
+                      IsChecked="{Binding AlertsVm.PiFreeSlots}"
+                      FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
+            <CheckBox Content="{x:Static loc:SettingsText.PiAlertStale}"
+                      IsChecked="{Binding AlertsVm.PiStaleData}"
+                      FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
+
+            <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                       Text="{x:Static loc:SettingsText.PiAlertsNote}" />
           </StackPanel>
         </Border>
 

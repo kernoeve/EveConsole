@@ -1537,4 +1537,7 @@
   <data name="CallsNotRelayedOther" xml:space="preserve">
     <value>（另有 {0} 次调用未转发）</value>
   </data>
+  <data name="EndpointColonyLayouts" xml:space="preserve">
+    <value>殖民地布局</value>
+  </data>
 </root>

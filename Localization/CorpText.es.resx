@@ -1783,4 +1783,25 @@
   <data name="FactReprocessingValue" xml:space="preserve">
     <value>{0:0.#} % · {1:0.#} % de impuesto</value>
   </data>
+  <data name="PostToDiscord" xml:space="preserve">
+    <value>Publicar en Discord</value>
+  </data>
+  <data name="DiscordNoDestination" xml:space="preserve">
+    <value>No hay ningún webhook de Discord configurado para esto: elige uno en Ajustes, Discord.</value>
+  </data>
+  <data name="Top10AlreadyPostedDiscord" xml:space="preserve">
+    <value>Esta lista Top 10 ya se publicó en Discord {0}.</value>
+  </data>
+  <data name="SummaryAlreadyPostedDiscord" xml:space="preserve">
+    <value>Este resumen mensual ya se publicó en Discord {0}.</value>
+  </data>
+  <data name="DiscordPosting" xml:space="preserve">
+    <value>Publicando en Discord…</value>
+  </data>
+  <data name="DiscordPostFailed" xml:space="preserve">
+    <value>No se ha podido publicar en Discord: {0}</value>
+  </data>
+  <data name="DiscordPostedPartly" xml:space="preserve">
+    <value>Se han publicado {0} de {1} mensajes en {2}; Discord ha rechazado el siguiente: {3}</value>
+  </data>
 </root>

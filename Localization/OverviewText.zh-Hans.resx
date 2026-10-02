@@ -821,4 +821,43 @@
   <data name="ScopeGroupCorp" xml:space="preserve">
     <value>军团</value>
   </data>
+  <data name="AlertPiExtractorsStopped" xml:space="preserve">
+    <value>{0}：{1} 上的采集器已停止。</value>
+  </data>
+  <data name="AlertPiExtractorsStopping" xml:space="preserve">
+    <value>{0}：{1} 上的采集器将在 {2} 后停止。</value>
+  </data>
+  <data name="AlertPiExtractorsManyOther" xml:space="preserve">
+    <value>{0} 个殖民地的采集器已停止或即将停止。</value>
+  </data>
+  <data name="AlertPiStorageFull" xml:space="preserve">
+    <value>{0}：{1} 上的储藏已满（预计）。</value>
+  </data>
+  <data name="AlertPiStorageFilling" xml:space="preserve">
+    <value>{0}：{1} 上的储藏将在 {2} 后装满（预计）。</value>
+  </data>
+  <data name="AlertPiStorageManyOther" xml:space="preserve">
+    <value>{0} 个殖民地的储藏已满或即将装满（预计）。</value>
+  </data>
+  <data name="AlertPiInputsOut" xml:space="preserve">
+    <value>{0}：{1} 上的工厂原料已耗尽（预计）。</value>
+  </data>
+  <data name="AlertPiInputsLow" xml:space="preserve">
+    <value>{0}：{1} 上的原料将在 {2} 后耗尽（预计）。</value>
+  </data>
+  <data name="AlertPiInputsManyOther" xml:space="preserve">
+    <value>{0} 个工厂行星的原料已耗尽或即将耗尽（预计）。</value>
+  </data>
+  <data name="AlertPiStale" xml:space="preserve">
+    <value>{0}：{1} 已有 {2} 未在游戏中打开，其预计数据已不可信。</value>
+  </data>
+  <data name="AlertPiStaleManyOther" xml:space="preserve">
+    <value>{0} 个殖民地已有一段时间未在游戏中打开，其预计数据已不可信。</value>
+  </data>
+  <data name="AlertPiFreeSlotsOther" xml:space="preserve">
+    <value>{1} 有 {0} 个未使用的殖民地栏位。</value>
+  </data>
+  <data name="AlertPiFreeSlotsCharsOther" xml:space="preserve">
+    <value>{0} 个行星开发角色有未使用的殖民地栏位。</value>
+  </data>
 </root>

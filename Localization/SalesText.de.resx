@@ -1853,4 +1853,21 @@ Nichts wird vernichtet: Seine Bestellungen bleiben in der Bestellverfolgung, und
   <data name="WebSyncDeclined" xml:space="preserve">
     <value>Abgelehnt.</value>
   </data>
+  <data name="PostToDiscord" xml:space="preserve">
+    <value>In Discord posten</value>
+  </data>
+  <data name="DiscordNotConfigured" xml:space="preserve">
+    <value>Für Verkaufsanzeigen ist kein Discord-Webhook eingestellt.</value>
+  </data>
+  <data name="DiscordAlreadyPosted" xml:space="preserve">
+    <value>„{0}“ wurde bereits {1} in Discord gepostet.
+
+</value>
+  </data>
+  <data name="DiscordPosting" xml:space="preserve">
+    <value>Wird in Discord gepostet…</value>
+  </data>
+  <data name="DiscordPostFailed" xml:space="preserve">
+    <value>Posten in Discord bei „{0}“ fehlgeschlagen: {1}</value>
+  </data>
 </root>

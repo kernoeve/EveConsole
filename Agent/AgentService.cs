@@ -692,29 +692,39 @@ public sealed class AgentService : ReactiveObject
     /// written synchronously first, so nothing is lost if the process ends before this lands, and
     /// the preferences cache is updated before the write, so a read that follows sees the new
     /// value at once.
+    ///
+    /// <para>⚠️ One write at a time, of the latest settings. Settings save as they are typed, so
+    /// two of these can be in flight a second apart, and unordered tasks could land the older one
+    /// last — the database then holding a name the file and the screen no longer do. Each write
+    /// waits its turn and then writes whatever is current, so the last to land is the newest.</para>
     /// </summary>
-    private void SaveShared(AgentSettings s)
+    private void SaveShared()
     {
         if (Preferences is not { } prefs) return;
         _ = Task.Run(async () =>
         {
+            await _sharedWrite.WaitAsync().ConfigureAwait(false);
             try
             {
-                await prefs.SetAsync(SharedKeys.AgentName,    s.AgentName);
-                await prefs.SetAsync(SharedKeys.Verbosity,    s.Verbosity.ToString());
-                await prefs.SetAsync(SharedKeys.UserName,     s.UserName);
-                await prefs.SetAsync(SharedKeys.UserGuidance, s.UserGuidance);
+                var s = _settings;
+                await prefs.SetAsync(SharedKeys.AgentName,    s.AgentName).ConfigureAwait(false);
+                await prefs.SetAsync(SharedKeys.Verbosity,    s.Verbosity.ToString()).ConfigureAwait(false);
+                await prefs.SetAsync(SharedKeys.UserName,     s.UserName).ConfigureAwait(false);
+                await prefs.SetAsync(SharedKeys.UserGuidance, s.UserGuidance).ConfigureAwait(false);
             }
             catch { /* the file has it; the next start seeds what the database lacks */ }
+            finally { _sharedWrite.Release(); }
         });
     }
+
+    private readonly SemaphoreSlim _sharedWrite = new(1, 1);
 
     public void Configure(AgentSettings settings)
     {
         _settings = settings;
         ConfigureRoles();
         Save();
-        SaveShared(settings);
+        SaveShared();
         this.RaisePropertyChanged(nameof(Settings));
     }
 
@@ -732,7 +742,7 @@ public sealed class AgentService : ReactiveObject
         next.UserGuidance = guidance;
         _settings = next;
         Save();
-        SaveShared(next);
+        SaveShared();
         this.RaisePropertyChanged(nameof(Settings));
     }
 

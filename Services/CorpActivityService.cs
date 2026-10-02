@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using EveConsole.Api;
 using EveConsole.Data;
 using EveConsole.Models;
@@ -121,9 +121,16 @@ public sealed record SdeStationResult(long StationId, string Name)
     public string DisplayName => SdeNames.Location(StationId, Name);
     public override string ToString() => Name;
 }
-public sealed record SdeSystemResult(int SystemId, string Name)
+public sealed record SdeSystemResult(int SystemId, string Name, int RegionId, string Region)
 {
+    /// <summary>⚠️ A constructor of its own, not optional arguments: EF's query expressions
+    /// cannot call a constructor that leaves any out.</summary>
+    public SdeSystemResult(int systemId, string name) : this(systemId, name, 0, "") { }
+
     public string DisplayName => SdeNames.SolarSystem(SystemId, Name);
+
+    /// <summary>The region, shown to the right of the system in every system picker.</summary>
+    public string RegionLabel => RegionId > 0 ? SdeNames.Region(RegionId, Region) : Region;
     public override string ToString() => Name;
 }
 public sealed record SdeRegionResult(int RegionId, string Name)
@@ -2419,7 +2426,9 @@ public class CorpActivityService
                         && (includeWormholes || !s.IsWormhole))
             .OrderBy(s => s.Name)
             .Take(shown.Count == 0 ? PickerMax : PickerShownMax)
-            .Select(s => new SdeSystemResult(s.SolarSystemId, s.Name))
+            // The region comes along: every system picker shows it beside the name.
+            .Join(db.SdeRegions, s => s.RegionId, r => r.RegionId,
+                  (s, r) => new SdeSystemResult(s.SolarSystemId, s.Name, s.RegionId, r.Name))
             .ToListAsync(ct);
         return shown.Count == 0 ? hits : RankPicks(hits, query, r => r.Name, r => r.DisplayName);
     }

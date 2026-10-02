@@ -1771,4 +1771,25 @@
   <data name="FactReprocessingValue" xml:space="preserve">
     <value>{0:0.#}% · 税率 {1:0.#}%</value>
   </data>
+  <data name="PostToDiscord" xml:space="preserve">
+    <value>发布到 Discord</value>
+  </data>
+  <data name="DiscordNoDestination" xml:space="preserve">
+    <value>尚未为此设置 Discord Webhook——请在“设置 → Discord”中选择。</value>
+  </data>
+  <data name="Top10AlreadyPostedDiscord" xml:space="preserve">
+    <value>这份前十榜单已发布到 Discord（{0}）。</value>
+  </data>
+  <data name="SummaryAlreadyPostedDiscord" xml:space="preserve">
+    <value>这份月度摘要已发布到 Discord（{0}）。</value>
+  </data>
+  <data name="DiscordPosting" xml:space="preserve">
+    <value>正在发布到 Discord…</value>
+  </data>
+  <data name="DiscordPostFailed" xml:space="preserve">
+    <value>发布到 Discord 失败：{0}</value>
+  </data>
+  <data name="DiscordPostedPartly" xml:space="preserve">
+    <value>已向 {2} 发布 {1} 条消息中的 {0} 条；Discord 拒绝了下一条：{3}</value>
+  </data>
 </root>

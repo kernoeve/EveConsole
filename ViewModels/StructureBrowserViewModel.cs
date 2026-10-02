@@ -19,7 +19,8 @@ namespace EveConsole.ViewModels;
 /// <see cref="Id"/> is what gets saved, so picking "Jita — The Forge" stores 30000142 rather than
 /// a string the next reader would have to resolve again.
 /// </summary>
-public sealed record PickOption(int Id, string Label, string English = "")
+/// <param name="Detail">Shown to the right of the label in the list — a system's region.</param>
+public sealed record PickOption(int Id, string Label, string English = "", string Detail = "")
 {
     public override string ToString() => Label;
 }
@@ -167,7 +168,8 @@ public class StructureBrowserViewModel : ReactiveObject
     // Autocomplete suggestion lists (distinct values present in the data).
     public ObservableCollection<string> RegionSuggestions        { get; } = [];
     public ObservableCollection<string> ConstellationSuggestions { get; } = [];
-    public ObservableCollection<string> SystemSuggestions        { get; } = [];
+    /// <summary>The systems in the list, each with its region beside it as every system picker shows it.</summary>
+    public ObservableCollection<PickOption> SystemSuggestions    { get; } = [];
     public ObservableCollection<string> TypeSuggestions          { get; } = [];
     public ObservableCollection<string> CorpSuggestions          { get; } = [];
     public ObservableCollection<string> AllianceSuggestions      { get; } = [];
@@ -1511,12 +1513,16 @@ public class StructureBrowserViewModel : ReactiveObject
                         .ToListAsync())
                     .Select(s =>
                     {
+                        // The system as the label, its region beside it in the list (as every
+                        // system picker shows it) rather than inside the text the box keeps.
+                        // The English carries the region too, so typing a region still finds its
+                        // systems.
                         var region = regs.GetValueOrDefault(s.RegionId, "");
                         return new PickOption(
                             s.SolarSystemId,
-                            Place(SdeNames.SolarSystem(s.SolarSystemId, s.Name),
-                                  region.Length > 0 ? SdeNames.Region(s.RegionId, region) : ""),
-                            Place(s.Name, region));
+                            SdeNames.SolarSystem(s.SolarSystemId, s.Name),
+                            Place(s.Name, region),
+                            region.Length > 0 ? SdeNames.Region(s.RegionId, region) : "");
                     })
                     .OrderBy(o => o.Label, StringComparer.CurrentCulture)
                     .ToList();
@@ -1846,7 +1852,10 @@ public class StructureBrowserViewModel : ReactiveObject
         }
         Fill(RegionSuggestions,        r => r.RegionLabel);
         Fill(ConstellationSuggestions, r => r.ConstellationLabel);
-        Fill(SystemSuggestions,        r => r.SystemLabel);
+        SystemSuggestions.Clear();
+        foreach (var g in _all.Where(r => !string.IsNullOrEmpty(r.SystemLabel))
+                              .GroupBy(r => r.SystemLabel).OrderBy(g => g.Key))
+            SystemSuggestions.Add(new PickOption(0, g.Key, Detail: g.First().RegionLabel));
         Fill(TypeSuggestions,          r => r.TypeLabel);
         Fill(CorpSuggestions,          r => r.CorpName);
         Fill(AllianceSuggestions,      r => r.AllianceName);

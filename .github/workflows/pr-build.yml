@@ -95,6 +95,15 @@ jobs:
       - name: Translations check
         run: dotnet run --project tools/LocCheck/LocCheck.csproj -c Release
 
+      # ⚠️ Do the Planetary Industry forecasts still add up? ESI shows a colony only as of the
+      # last time its owner looked at it, so every "storage full at" and "inputs run out at" is
+      # simulated, and a wrong one shows as a confident date, not as an error. Tax learning has no
+      # real journal entries to be checked against at all. This runs the engine on constructed
+      # colonies against the published yield formula, hand arithmetic and conservation, and
+      # learns a tax rate through a throwaway database.
+      - name: PI engine check
+        run: dotnet run --project tools/PiEngineCheck/PiEngineCheck.csproj -c Release
+
   # ⚠️ Does the Linux target still compile?
   #
   # The job above answers that for Windows only — it is a windows-latest runner with no

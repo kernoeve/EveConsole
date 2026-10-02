@@ -4319,4 +4319,192 @@ The application will restart.</value>
     <value>our conversation</value>
     <comment>Fills {purpose} in the spoken failover messages: what the conversation model is for.</comment>
   </data>
+  <data name="TabDiscord" xml:space="preserve">
+    <value>Discord</value>
+    <comment>Settings window, tab header. Discord is a brand name; keep it as it is.</comment>
+  </data>
+  <data name="DiscordIntegration" xml:space="preserve">
+    <value>Discord Integration</value>
+    <comment>Settings, Discord tab: the tab's title. Discord is a brand name.</comment>
+  </data>
+  <data name="DiscordIntroNote" xml:space="preserve">
+    <value>Post from EVE Console into Discord channels through webhooks — no bot and no sign-in. Nothing is posted until you press a Post to Discord button or set up a scheduled task, and a part of the app only shows that button once it has a webhook below.</value>
+    <comment>Settings, Discord tab: the note under the title. "Post to Discord" is the name of a button.</comment>
+  </data>
+  <data name="DiscordHowToNote" xml:space="preserve">
+    <value>A server's managers make a webhook in Discord under a channel's Edit Channel → Integrations → Webhooks, and copy its URL. Name it here and it can be picked below and in the Scheduler.</value>
+    <comment>Settings, Discord tab, Webhooks section. Edit Channel, Integrations and Webhooks are the names Discord's own settings use; use Discord's wording in your language if it has one.</comment>
+  </data>
+  <data name="DiscordSecretNote" xml:space="preserve">
+    <value>⚠ A webhook URL works like a password: anyone who has it can post to that channel. EVE Console never shows it in full or writes it to a log. If one leaks, delete the webhook in Discord and add a new one here.</value>
+    <comment>Settings, Discord tab, Webhooks section: a warning.</comment>
+  </data>
+  <data name="DiscordTest" xml:space="preserve">
+    <value>Test</value>
+    <comment>Settings, Discord tab: a button on each webhook's row that posts one short test message. A verb.</comment>
+  </data>
+  <data name="DiscordWebhookNeedsNameUrl" xml:space="preserve">
+    <value>A webhook needs a name and a URL.</value>
+    <comment>Settings, Discord tab, Webhooks: status line when Add is pressed with a box empty.</comment>
+  </data>
+  <data name="DiscordWebhookNotDiscord" xml:space="preserve">
+    <value>That is not a Discord webhook URL. It starts with https://discord.com/api/webhooks/.</value>
+    <comment>Settings, Discord tab, Webhooks: status line when the pasted link is not a Discord webhook. Keep the URL as it is.</comment>
+  </data>
+  <data name="DiscordWebhookIsSlack" xml:space="preserve">
+    <value>That is a Slack webhook. Add it on the Slack tab instead.</value>
+    <comment>Settings, Discord tab, Webhooks: status line when a Slack webhook link was pasted here. Slack is a brand name.</comment>
+  </data>
+  <data name="DiscordNone" xml:space="preserve">
+    <value>(none)</value>
+    <comment>Settings, Discord tab: the entry in each pick list that means this part of the app does not post to Discord.</comment>
+  </data>
+  <data name="DiscordTesting" xml:space="preserve">
+    <value>Testing "{0}"…</value>
+    <comment>Settings, Discord tab, Webhooks: status line while a test message is sent. {0} is the webhook's name.</comment>
+  </data>
+  <data name="DiscordTestSent" xml:space="preserve">
+    <value>Discord accepted the test message for "{0}" — check the channel.</value>
+    <comment>Settings, Discord tab, Webhooks: status line after a test message was accepted. {0} is the webhook's name.</comment>
+  </data>
+  <data name="DiscordTestFailed" xml:space="preserve">
+    <value>Test of "{0}" failed: {1}</value>
+    <comment>Settings, Discord tab, Webhooks: status line after a test message was refused. {0} is the webhook's name, {1} why.</comment>
+  </data>
+  <data name="DiscordTestMessage" xml:space="preserve">
+    <value>Test message from EVE Console: this webhook works.</value>
+    <comment>Posted into the Discord channel by the Test button. EVE Console is the app's name.</comment>
+  </data>
+  <data name="DiscordWhereEachPosts" xml:space="preserve">
+    <value>Where each part posts</value>
+    <comment>Settings, Discord tab: heading over the pick lists that choose each part of the app's webhook.</comment>
+  </data>
+  <data name="DiscordPickWebhookNote" xml:space="preserve">
+    <value>Pick which webhook each part of EVE Console posts to. Its Post to Discord button appears only once one is set. Slack is set on its own tab, and its button shows separately.</value>
+    <comment>Settings, Discord tab: note under "Where each part posts". "Post to Discord" is the name of a button; Slack is a brand name.</comment>
+  </data>
+  <data name="DiscordErrNoWebhook" xml:space="preserve">
+    <value>No Discord webhook is set for this.</value>
+    <comment>Status line or error when a post to Discord has no webhook to go to.</comment>
+  </data>
+  <data name="DiscordErrWebhookRemoved" xml:space="preserve">
+    <value>That Discord webhook has been removed from Settings.</value>
+    <comment>Error when a post or test names a webhook that was since removed on the Discord settings tab.</comment>
+  </data>
+  <data name="DiscordErrNothingToPost" xml:space="preserve">
+    <value>Nothing to post.</value>
+    <comment>Error when a Discord post has no text.</comment>
+  </data>
+  <data name="DiscordErrNotAWebhook" xml:space="preserve">
+    <value>The saved link is not a Discord webhook URL — paste a new one in Settings, Discord.</value>
+    <comment>Error when a stored webhook link is not a Discord webhook. Settings and Discord name the place in the Settings window.</comment>
+  </data>
+  <data name="DiscordErrWebhookGone" xml:space="preserve">
+    <value>Discord no longer accepts this webhook — it may have been deleted; paste a new link in Settings, Discord.</value>
+    <comment>Error when Discord refuses a webhook (deleted or wrong link). Settings and Discord name the place in the Settings window.</comment>
+  </data>
+  <data name="DiscordErrUnreachable" xml:space="preserve">
+    <value>Discord could not be reached.</value>
+    <comment>Error when the network request to Discord failed or timed out.</comment>
+  </data>
+  <data name="DiscordErrRateLimited" xml:space="preserve">
+    <value>Discord kept asking to slow down — try again in a minute.</value>
+    <comment>Error when Discord rate-limited a post several times in a row.</comment>
+  </data>
+  <data name="DiscordErrHttp" xml:space="preserve">
+    <value>Discord refused it (HTTP {0}): {1}</value>
+    <comment>Error when Discord refused a post. {0} is the HTTP status number, {1} Discord's own message (in English).</comment>
+  </data>
+  <data name="ColPi" xml:space="preserve">
+    <value>PI</value>
+    <comment>Column header in SettingsWindow, Characters tab: whether the character does Planetary Industry. "PI" is the game's own abbreviation for Planetary Industry; keep it short.</comment>
+  </data>
+  <data name="TipCharacterDoesPi" xml:space="preserve">
+    <value>Character does Planetary Industry. Clear it, and the character is left out of the PI tool, gets no PI alerts or worklist tasks, and its colonies are not read.</value>
+    <comment>Tooltip on the PI check box in SettingsWindow, Characters tab.</comment>
+  </data>
+  <data name="PiTaxTitle" xml:space="preserve">
+    <value>Planetary Industry tax</value>
+    <comment>Section heading in SettingsWindow, Industry tab: default tax rates for moving goods on and off planets.</comment>
+  </data>
+  <data name="PiTaxNote" xml:space="preserve">
+    <value>What a planet is charged for goods taken off it or brought onto it, until its own rate has been learned from the wallet journal after an export or import there. Customs offices are in high-sec, low-sec, wormholes and NPC null-sec; sovereignty null-sec has skyhooks instead. Bringing goods in costs half of taking them off.</value>
+    <comment>Note in SettingsWindow, Industry tab, under the Planetary Industry tax heading. "Customs office" and "skyhook" are the game's structure names.</comment>
+  </data>
+  <data name="PiTaxCustomsDefault" xml:space="preserve">
+    <value>Customs office tax</value>
+    <comment>Label before a percentage box in SettingsWindow, Industry tab: the default tax rate at customs offices.</comment>
+  </data>
+  <data name="PiTaxSkyhookDefault" xml:space="preserve">
+    <value>Skyhook tax</value>
+    <comment>Label before a percentage box in SettingsWindow, Industry tab: the default tax rate at orbital skyhooks in sovereignty null-sec.</comment>
+  </data>
+  <data name="PiTimingTitle" xml:space="preserve">
+    <value>Planetary Industry alerts and tasks</value>
+    <comment>Section heading in SettingsWindow, Industry tab.</comment>
+  </data>
+  <data name="PiTimingNote" xml:space="preserve">
+    <value>How far ahead the PI alerts on the Overview and the PI tasks on the Worklist look, when a colony's data counts as too old to trust, and how much input a haul brings. Which alerts are raised at all is on the Alerts tab.</value>
+    <comment>Note in SettingsWindow, Industry tab, under the Planetary Industry alerts and tasks heading.</comment>
+  </data>
+  <data name="PiLeadExtractors" xml:space="preserve">
+    <value>Extractors stopping</value>
+    <comment>Label before a number box in SettingsWindow, Industry tab: how many hours before an extractor stops to warn.</comment>
+  </data>
+  <data name="PiLeadStorage" xml:space="preserve">
+    <value>Storage or a launchpad full</value>
+    <comment>Label before a number box in SettingsWindow, Industry tab: how many hours before storage fills to warn.</comment>
+  </data>
+  <data name="PiLeadInputs" xml:space="preserve">
+    <value>Factory input running out</value>
+    <comment>Label before a number box in SettingsWindow, Industry tab: how many hours before a factory planet's input runs out to warn.</comment>
+  </data>
+  <data name="PiHoursAhead" xml:space="preserve">
+    <value>hours ahead (exact)</value>
+    <comment>After a number box in SettingsWindow, Industry tab. Extractor times are exact.</comment>
+  </data>
+  <data name="PiHoursAheadEstimated" xml:space="preserve">
+    <value>hours ahead (estimated)</value>
+    <comment>After a number box in SettingsWindow, Industry tab. Storage and input times are estimates.</comment>
+  </data>
+  <data name="PiStaleAfter" xml:space="preserve">
+    <value>Colony data too old after</value>
+    <comment>Label before a number box in SettingsWindow, Industry tab: days since a colony was last opened in the game.</comment>
+  </data>
+  <data name="PiInputDays" xml:space="preserve">
+    <value>An input haul brings</value>
+    <comment>Label before a number box in SettingsWindow, Industry tab: how many days of running a Worklist input haul brings.</comment>
+  </data>
+  <data name="PiDaysOfRunning" xml:space="preserve">
+    <value>days of running</value>
+    <comment>After a number box in SettingsWindow, Industry tab, as in "An input haul brings 7 days of running".</comment>
+  </data>
+  <data name="PiAlertsTitle" xml:space="preserve">
+    <value>Planetary Industry</value>
+    <comment>Section heading in SettingsWindow, Alerts tab.</comment>
+  </data>
+  <data name="PiAlertExtractors" xml:space="preserve">
+    <value>Extractors stopped, or stopping soon</value>
+    <comment>Check box in SettingsWindow, Alerts tab, Planetary Industry section.</comment>
+  </data>
+  <data name="PiAlertStorage" xml:space="preserve">
+    <value>Storage or a launchpad full, or filling soon (estimated)</value>
+    <comment>Check box in SettingsWindow, Alerts tab, Planetary Industry section.</comment>
+  </data>
+  <data name="PiAlertInputs" xml:space="preserve">
+    <value>A factory planet's input run out, or running out soon (estimated)</value>
+    <comment>Check box in SettingsWindow, Alerts tab, Planetary Industry section.</comment>
+  </data>
+  <data name="PiAlertFreeSlots" xml:space="preserve">
+    <value>A PI character has an unused colony slot</value>
+    <comment>Check box in SettingsWindow, Alerts tab, Planetary Industry section. "PI" is the game's abbreviation for Planetary Industry.</comment>
+  </data>
+  <data name="PiAlertStale" xml:space="preserve">
+    <value>A colony has not been opened in the game for too long to trust its estimates</value>
+    <comment>Check box in SettingsWindow, Alerts tab, Planetary Industry section.</comment>
+  </data>
+  <data name="PiAlertsNote" xml:space="preserve">
+    <value>Only characters with the PI box ticked on the Characters tab. How soon "soon" is, and how old is too old, are set on the Industry tab, and the Worklist's PI tasks use the same times.</value>
+    <comment>Note in SettingsWindow, Alerts tab, Planetary Industry section.</comment>
+  </data>
 </root>

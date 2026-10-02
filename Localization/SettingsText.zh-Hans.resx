@@ -3271,4 +3271,145 @@ SQLite 数据库只会被读取，不会被修改。大型数据库需要一些�
   <data name="PurposeConversation" xml:space="preserve">
     <value>我们的对话</value>
   </data>
+  <data name="TabDiscord" xml:space="preserve">
+    <value>Discord</value>
+  </data>
+  <data name="DiscordIntegration" xml:space="preserve">
+    <value>Discord 集成</value>
+  </data>
+  <data name="DiscordIntroNote" xml:space="preserve">
+    <value>通过 Webhook 从 EVE Console 向 Discord 频道发布内容——无需机器人，也无需登录。只有在你点击“发布到 Discord”按钮或设置了计划任务后才会发布，而且应用的某个部分只有在下方为其设置了 Webhook 后才会显示该按钮。</value>
+  </data>
+  <data name="DiscordHowToNote" xml:space="preserve">
+    <value>服务器管理员可在 Discord 的“编辑频道 → 整合 → Webhook”中创建 Webhook，并复制其网址。在此为其命名后，即可在下方和计划任务中选用。</value>
+  </data>
+  <data name="DiscordSecretNote" xml:space="preserve">
+    <value>⚠ Webhook 网址相当于密码：任何拿到它的人都可以向该频道发布内容。EVE Console 绝不会完整显示它，也不会将其写入日志。如果泄露，请在 Discord 中删除该 Webhook，然后在此添加新的。</value>
+  </data>
+  <data name="DiscordTest" xml:space="preserve">
+    <value>测试</value>
+  </data>
+  <data name="DiscordWebhookNeedsNameUrl" xml:space="preserve">
+    <value>Webhook 需要一个名称和一个网址。</value>
+  </data>
+  <data name="DiscordWebhookNotDiscord" xml:space="preserve">
+    <value>这不是 Discord Webhook 网址。它应以 https://discord.com/api/webhooks/ 开头。</value>
+  </data>
+  <data name="DiscordWebhookIsSlack" xml:space="preserve">
+    <value>这是 Slack Webhook。请改到 Slack 选项卡中添加。</value>
+  </data>
+  <data name="DiscordNone" xml:space="preserve">
+    <value>（无）</value>
+  </data>
+  <data name="DiscordTesting" xml:space="preserve">
+    <value>正在测试“{0}”…</value>
+  </data>
+  <data name="DiscordTestSent" xml:space="preserve">
+    <value>Discord 已接受“{0}”的测试消息——请查看该频道。</value>
+  </data>
+  <data name="DiscordTestFailed" xml:space="preserve">
+    <value>测试“{0}”失败：{1}</value>
+  </data>
+  <data name="DiscordTestMessage" xml:space="preserve">
+    <value>来自 EVE Console 的测试消息：此 Webhook 可用。</value>
+  </data>
+  <data name="DiscordWhereEachPosts" xml:space="preserve">
+    <value>各部分的发布位置</value>
+  </data>
+  <data name="DiscordPickWebhookNote" xml:space="preserve">
+    <value>选择 EVE Console 各部分要发布到哪个 Webhook。只有设置后，其“发布到 Discord”按钮才会出现。Slack 在其自己的选项卡中设置，其按钮单独显示。</value>
+  </data>
+  <data name="DiscordErrNoWebhook" xml:space="preserve">
+    <value>尚未为此设置 Discord Webhook。</value>
+  </data>
+  <data name="DiscordErrWebhookRemoved" xml:space="preserve">
+    <value>该 Discord Webhook 已从设置中移除。</value>
+  </data>
+  <data name="DiscordErrNothingToPost" xml:space="preserve">
+    <value>没有可发布的内容。</value>
+  </data>
+  <data name="DiscordErrNotAWebhook" xml:space="preserve">
+    <value>已保存的链接不是 Discord Webhook 网址——请在“设置 → Discord”中粘贴新的网址。</value>
+  </data>
+  <data name="DiscordErrWebhookGone" xml:space="preserve">
+    <value>Discord 不再接受此 Webhook——它可能已被删除；请在“设置 → Discord”中粘贴新的链接。</value>
+  </data>
+  <data name="DiscordErrUnreachable" xml:space="preserve">
+    <value>无法连接到 Discord。</value>
+  </data>
+  <data name="DiscordErrRateLimited" xml:space="preserve">
+    <value>Discord 一再要求放慢速度——请一分钟后再试。</value>
+  </data>
+  <data name="DiscordErrHttp" xml:space="preserve">
+    <value>Discord 拒绝了请求（HTTP {0}）：{1}</value>
+  </data>
+  <data name="ColPi" xml:space="preserve">
+    <value>PI</value>
+  </data>
+  <data name="TipCharacterDoesPi" xml:space="preserve">
+    <value>角色进行行星开发。取消勾选后，该角色不会出现在行星开发工具中，不会收到行星开发提醒或工作项，也不会读取其殖民地。</value>
+  </data>
+  <data name="PiTaxTitle" xml:space="preserve">
+    <value>行星开发税</value>
+  </data>
+  <data name="PiTaxNote" xml:space="preserve">
+    <value>从行星运出或向行星运入货物时该行星收取的税率，在该行星发生过出口或进口、并从钱包日志中获知其自身税率之前使用。海关办公室位于高安、低安、虫洞和 NPC 00 区；主权 00 区则使用天钩。运入货物的费用是运出的一半。</value>
+  </data>
+  <data name="PiTaxCustomsDefault" xml:space="preserve">
+    <value>海关办公室税率</value>
+  </data>
+  <data name="PiTaxSkyhookDefault" xml:space="preserve">
+    <value>天钩税率</value>
+  </data>
+  <data name="PiTimingTitle" xml:space="preserve">
+    <value>行星开发提醒与工作项</value>
+  </data>
+  <data name="PiTimingNote" xml:space="preserve">
+    <value>概览中的行星开发提醒和工作清单中的行星开发工作项提前多久预警、殖民地数据多旧就不再可信，以及一趟原料运送带来多少原料。要启用哪些提醒在“提醒”标签页中设置。</value>
+  </data>
+  <data name="PiLeadExtractors" xml:space="preserve">
+    <value>采集器即将停止</value>
+  </data>
+  <data name="PiLeadStorage" xml:space="preserve">
+    <value>储藏设施或发射平台已满</value>
+  </data>
+  <data name="PiLeadInputs" xml:space="preserve">
+    <value>工厂原料即将耗尽</value>
+  </data>
+  <data name="PiHoursAhead" xml:space="preserve">
+    <value>小时前预警（精确）</value>
+  </data>
+  <data name="PiHoursAheadEstimated" xml:space="preserve">
+    <value>小时前预警（预计）</value>
+  </data>
+  <data name="PiStaleAfter" xml:space="preserve">
+    <value>殖民地数据过旧阈值</value>
+  </data>
+  <data name="PiInputDays" xml:space="preserve">
+    <value>一趟原料运送带来</value>
+  </data>
+  <data name="PiDaysOfRunning" xml:space="preserve">
+    <value>天的运转量</value>
+  </data>
+  <data name="PiAlertsTitle" xml:space="preserve">
+    <value>行星开发</value>
+  </data>
+  <data name="PiAlertExtractors" xml:space="preserve">
+    <value>采集器已停止或即将停止</value>
+  </data>
+  <data name="PiAlertStorage" xml:space="preserve">
+    <value>储藏设施或发射平台已满或即将装满（预计）</value>
+  </data>
+  <data name="PiAlertInputs" xml:space="preserve">
+    <value>工厂行星的原料已耗尽或即将耗尽（预计）</value>
+  </data>
+  <data name="PiAlertFreeSlots" xml:space="preserve">
+    <value>行星开发角色有未使用的殖民地栏位</value>
+  </data>
+  <data name="PiAlertStale" xml:space="preserve">
+    <value>殖民地太久未在游戏中打开，其预计数据已不可信</value>
+  </data>
+  <data name="PiAlertsNote" xml:space="preserve">
+    <value>仅限在“角色”标签页中勾选了 PI 的角色。“即将”是多久、多旧算过旧，均在“工业”标签页中设置；工作清单中的行星开发工作项使用相同的时间。</value>
+  </data>
 </root>

@@ -2088,4 +2088,8 @@
     <value>({0} more calls not relayed)</value>
     <comment>ESI Activity Log row when the worker sent fewer calls than it made, several. {0} is the number.</comment>
   </data>
+  <data name="EndpointColonyLayouts" xml:space="preserve">
+    <value>Colony Layouts</value>
+    <comment>ESI Call Schedule and Settings → Timers: the poll that reads each planetary colony's layout (its structures, contents and routes).</comment>
+  </data>
 </root>

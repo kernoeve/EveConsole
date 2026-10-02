@@ -725,7 +725,10 @@
     <value>Intel-Meldung</value>
   </data>
   <data name="CheckIntelNote" xml:space="preserve">
-    <value>Löst aus, wenn jemand einen Piloten in einem überwachten System meldet. Geben Sie eine Liste von Systemen an oder ein System und eine Sprungreichweite, um alles darum herum abzudecken. Liest die Intel-Kanäle, die bereits unter Einstellungen → Chatprotokolle ausgewertet werden.</value>
+    <value>Löst aus, wenn jemand einen Piloten in der Nähe dessen meldet, was Sie überwachen: Ihre Charaktere, solange sie abgedockt sind, Ihre Charaktere, wo immer sie sind, oder eine Liste von Systemen, jeweils mit einer Reichweite in Sprüngen. Liest die Intel-Kanäle, die bereits unter Einstellungen → Chatprotokolle ausgewertet werden.</value>
+  </data>
+  <data name="CheckIntelKillsNote" xml:space="preserve">
+    <value>Abschüsse dort mit feindlichen Piloten unter den Angreifern zählen ebenfalls: Ein Abschuss verortet seine Angreifer in diesem System.</value>
   </data>
   <data name="CheckShipUndock" xml:space="preserve">
     <value>Schiff dockt ab</value>
@@ -773,19 +776,13 @@
     <value>Systeme</value>
   </data>
   <data name="IntelSystemsNote" xml:space="preserve">
-    <value>Kommagetrennte Namen der zu überwachenden Systeme, z. B. „{0}, {1}“. Kann leer bleiben, wenn stattdessen eine Sprungreichweite angegeben ist.</value>
-  </data>
-  <data name="IntelWithinJumpsLabel" xml:space="preserve">
-    <value>Im Sprungumkreis von</value>
-  </data>
-  <data name="IntelWithinJumpsNote" xml:space="preserve">
-    <value>Optional. Ein Systemname; alles innerhalb der Sprungreichweite unten wird überwacht. Ergänzt die Liste oben, statt sie zu ersetzen.</value>
+    <value>Zu überwachende Systeme, z. B. {0} oder {1}. Fügen Sie jedes einzeln hinzu; bei 0 Sprüngen werden nur diese Systeme überwacht.</value>
   </data>
   <data name="IntelJumpsLabel" xml:space="preserve">
     <value>Sprünge</value>
   </data>
   <data name="IntelJumpsNote" xml:space="preserve">
-    <value>Wie viele Torsprünge rund um „Im Sprungumkreis von“ überwacht werden. 0 bedeutet nur dieses System. Höchstens 15 – darüber hinaus ist es keine Nachbarschaft mehr.</value>
+    <value>Wie viele Torsprünge rund um jeden Charakter bzw. jedes System überwacht werden. 0 bedeutet nur das eigene System. Höchstens 15 – darüber hinaus ist es keine Nachbarschaft mehr.</value>
   </data>
   <data name="IntelMinPlayersLabel" xml:space="preserve">
     <value>Min. Spieler</value>
@@ -1035,6 +1032,9 @@
   </data>
   <data name="SaidSentence" xml:space="preserve">
     <value>{0}.</value>
+  </data>
+  <data name="IntelSaidOnKill" xml:space="preserve">
+    <value>Bei einem Abschuss gesehen</value>
   </data>
   <data name="UnknownSystem" xml:space="preserve">
     <value>einem unbekannten System</value>
@@ -1368,5 +1368,92 @@
   </data>
   <data name="IskTenThousands" xml:space="preserve">
     <value>{0:0.##} zehntausend ISK</value>
+  </data>
+  <data name="TaskTypeSlackOrDiscordPost" xml:space="preserve">
+    <value>In Slack oder Discord posten</value>
+  </data>
+  <data name="DiscordDestination" xml:space="preserve">
+    <value>Discord: {0}</value>
+  </data>
+  <data name="ErrNoDestinationsAny" xml:space="preserve">
+    <value>Noch keine Kanäle oder Webhooks – fügen Sie unter Einstellungen → Slack oder Discord einen hinzu.</value>
+  </data>
+  <data name="SlackAndDiscordDestinationsNote" xml:space="preserve">
+    <value>Slack-Kanäle und -Webhooks, dann Discord-Webhooks, wie in den Einstellungen festgelegt – in einer Liste.</value>
+  </data>
+  <data name="RunDiscordRefused" xml:space="preserve">
+    <value>Von Discord abgelehnt: {0}</value>
+  </data>
+  <data name="RunPostedPartDiscord" xml:space="preserve">
+    <value>{0} von {1} Nachrichten gepostet ({2:N0} Zeichen); Discord hat die nächste abgelehnt: {3}.</value>
+  </data>
+  <data name="IntelAroundLabel" xml:space="preserve">
+    <value>Überwachen rund um</value>
+  </data>
+  <data name="IntelAroundNote" xml:space="preserve">
+    <value>Abgedockte Charaktere: wo immer Ihre eingeloggten Charaktere im All sind; angedockte werden nicht überwacht. Charaktere: wo immer sie sind, solange sie eingeloggt sind, angedockt oder nicht. Systeme: die unten aufgeführten Systeme.</value>
+  </data>
+  <data name="OptionUndockedCharacters" xml:space="preserve">
+    <value>Abgedockte Charaktere</value>
+  </data>
+  <data name="OptionCharacters" xml:space="preserve">
+    <value>Charaktere</value>
+  </data>
+  <data name="OptionSystems" xml:space="preserve">
+    <value>Systeme</value>
+  </data>
+  <data name="IntelCharactersLabel" xml:space="preserve">
+    <value>Charaktere</value>
+  </data>
+  <data name="IntelCharactersNote" xml:space="preserve">
+    <value>Optional. Ihre eigenen Charaktere, um die herum überwacht wird; leer lassen für alle. Es zählen nur eingeloggte Charaktere.</value>
+  </data>
+  <data name="IntelSaidWhereIs" xml:space="preserve">
+    <value>wo {0} ist</value>
+  </data>
+  <data name="IntelSaidJumpsFromOne" xml:space="preserve">
+    <value>{0} Sprung von {1} entfernt</value>
+  </data>
+  <data name="IntelSaidJumpsFromOther" xml:space="preserve">
+    <value>{0} Sprünge von {1} entfernt</value>
+  </data>
+  <data name="CheckPi" xml:space="preserve">
+    <value>Planetare Industrie</value>
+  </data>
+  <data name="CheckPiNote" xml:space="preserve">
+    <value>Löst für die Kolonien von Charakteren aus, die PI betreiben: Ein Förderungsprogramm ist beendet oder endet bald (exakt), das Lager oder ein Launchpad ist voll, oder das Material eines Fabrikplaneten geht aus (beides geschätzt ab dem letzten Öffnen der Kolonie im Spiel). Das Ereignis einer Kolonie löst nur einmal aus; ein Neustart der Extraktoren oder erneutes Öffnen der Kolonie macht es wieder zur Neuigkeit.</value>
+  </data>
+  <data name="PiWatchLabel" xml:space="preserve">
+    <value>Überwachen</value>
+  </data>
+  <data name="PiWatchNote" xml:space="preserve">
+    <value>Bei welchem der drei Fälle ausgelöst wird.</value>
+  </data>
+  <data name="PiLeadLabel" xml:space="preserve">
+    <value>Vorlaufzeit</value>
+  </data>
+  <data name="PiLeadNote" xml:space="preserve">
+    <value>So viele Stunden vorher auslösen. 0 löst aus, wenn es eintritt.</value>
+  </data>
+  <data name="PiLeadSuffix" xml:space="preserve">
+    <value>Stunden</value>
+  </data>
+  <data name="OptionPiAll" xml:space="preserve">
+    <value>Alle drei</value>
+  </data>
+  <data name="OptionPiExtractors" xml:space="preserve">
+    <value>Extraktoren stoppen</value>
+  </data>
+  <data name="OptionPiStorage" xml:space="preserve">
+    <value>Lager wird voll</value>
+  </data>
+  <data name="OptionPiInputs" xml:space="preserve">
+    <value>Material geht aus</value>
+  </data>
+  <data name="PiTitleOne" xml:space="preserve">
+    <value>{0} Kolonie der Planetaren Industrie braucht Aufmerksamkeit</value>
+  </data>
+  <data name="PiTitleOther" xml:space="preserve">
+    <value>{0} Kolonien der Planetaren Industrie brauchen Aufmerksamkeit</value>
   </data>
 </root>

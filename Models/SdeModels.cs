@@ -649,6 +649,29 @@ public class SdePlanetSchematicType
     public int  Quantity    { get; set; }
 }
 
+/// <summary>Which processor types can run a schematic: planetSchematics.yaml's <c>pins</c>.</summary>
+public class SdePlanetSchematicPin
+{
+    public int SchematicId { get; set; }
+    public int PinTypeId   { get; set; }
+}
+
+/// <summary>
+/// A raw (P0) resource a planet type yields.
+///
+/// <para>⚠️ The SDE has no such table. It is derived from the legacy extractor pins (group 1026):
+/// each carries the planet type it may stand on (dogma 1632, planetRestriction) and what it
+/// harvests (dogma 709, harvesterType). Keyed on the planet type id, and carrying ESI's own
+/// <c>planet_type</c> word ("barren", "gas", …) because that is what a colony reports.</para>
+/// </summary>
+public class SdePlanetTypeResource
+{
+    public int    PlanetTypeId   { get; set; }
+    public int    ResourceTypeId { get; set; }
+    /// <summary>ESI's <c>planet_type</c> for this planet type, lower case.</summary>
+    public string PlanetType     { get; set; } = "";
+}
+
 // dogmaUnits.yaml
 public class SdeDogmaUnit
 {

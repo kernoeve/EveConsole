@@ -725,7 +725,10 @@
     <value>Informe de inteligencia</value>
   </data>
   <data name="CheckIntelNote" xml:space="preserve">
-    <value>Se dispara cuando alguien notifica un piloto en un sistema que vigilas. Indica una lista de sistemas, o un sistema y un alcance en saltos para cubrir todo lo que lo rodea. Lee los canales de inteligencia que ya se analizan en Ajustes → Registros de chat.</value>
+    <value>Se dispara cuando alguien notifica un piloto cerca de lo que vigilas: tus personajes mientras están desacoplados, tus personajes estén donde estén, o una lista de sistemas, cada uno con un alcance en saltos. Lee los canales de inteligencia que ya se analizan en Ajustes → Registros de chat.</value>
+  </data>
+  <data name="CheckIntelKillsNote" xml:space="preserve">
+    <value>También cuentan las muertes allí con pilotos hostiles entre los atacantes: una muerte sitúa a sus atacantes en ese sistema.</value>
   </data>
   <data name="CheckShipUndock" xml:space="preserve">
     <value>Desacople de nave</value>
@@ -773,19 +776,13 @@
     <value>Sistemas</value>
   </data>
   <data name="IntelSystemsNote" xml:space="preserve">
-    <value>Nombres de sistemas que vigilar, separados por comas, p. ej., «{0}, {1}». Se puede dejar vacío si se indica un alcance en saltos.</value>
-  </data>
-  <data name="IntelWithinJumpsLabel" xml:space="preserve">
-    <value>Alrededor de</value>
-  </data>
-  <data name="IntelWithinJumpsNote" xml:space="preserve">
-    <value>Opcional. El nombre de un sistema; se vigila todo lo que esté dentro del alcance en saltos de abajo. Se combina con la lista de arriba en lugar de sustituirla.</value>
+    <value>Sistemas que vigilar, p. ej., {0} o {1}. Añade cada uno; con Saltos en 0 solo se vigilan estos sistemas.</value>
   </data>
   <data name="IntelJumpsLabel" xml:space="preserve">
     <value>Saltos</value>
   </data>
   <data name="IntelJumpsNote" xml:space="preserve">
-    <value>Cuántos saltos por portal estelar se vigilan desde el sistema de «Alrededor de». 0 significa solo ese sistema. Máximo 15: más allá deja de ser un vecindario.</value>
+    <value>Cuántos saltos por portal estelar se vigilan desde cada personaje o sistema. 0 significa solo su propio sistema. Máximo 15: más allá deja de ser un vecindario.</value>
   </data>
   <data name="IntelMinPlayersLabel" xml:space="preserve">
     <value>Mín. de jugadores</value>
@@ -1035,6 +1032,9 @@
   </data>
   <data name="SaidSentence" xml:space="preserve">
     <value>{0}.</value>
+  </data>
+  <data name="IntelSaidOnKill" xml:space="preserve">
+    <value>Visto en una muerte</value>
   </data>
   <data name="UnknownSystem" xml:space="preserve">
     <value>un sistema desconocido</value>
@@ -1368,5 +1368,92 @@
   </data>
   <data name="IskTenThousands" xml:space="preserve">
     <value>{0:0.##} decenas de miles de ISK</value>
+  </data>
+  <data name="TaskTypeSlackOrDiscordPost" xml:space="preserve">
+    <value>Publicar en Slack o Discord</value>
+  </data>
+  <data name="DiscordDestination" xml:space="preserve">
+    <value>Discord: {0}</value>
+  </data>
+  <data name="ErrNoDestinationsAny" xml:space="preserve">
+    <value>Todavía no hay canales ni webhooks: añade uno en Ajustes, Slack o Discord.</value>
+  </data>
+  <data name="SlackAndDiscordDestinationsNote" xml:space="preserve">
+    <value>Canales y webhooks de Slack, y después webhooks de Discord, tal como están en Ajustes, todo en una lista.</value>
+  </data>
+  <data name="RunDiscordRefused" xml:space="preserve">
+    <value>Discord lo ha rechazado: {0}</value>
+  </data>
+  <data name="RunPostedPartDiscord" xml:space="preserve">
+    <value>Se han publicado {0} de {1} mensajes ({2:N0} caracteres); Discord ha rechazado el siguiente: {3}.</value>
+  </data>
+  <data name="IntelAroundLabel" xml:space="preserve">
+    <value>Vigilar alrededor de</value>
+  </data>
+  <data name="IntelAroundNote" xml:space="preserve">
+    <value>Personajes desacoplados: dondequiera que estén en el espacio tus personajes conectados; los acoplados no se vigilan. Personajes: dondequiera que estén mientras estén conectados, acoplados o no. Sistemas: los sistemas de la lista de abajo.</value>
+  </data>
+  <data name="OptionUndockedCharacters" xml:space="preserve">
+    <value>Personajes desacoplados</value>
+  </data>
+  <data name="OptionCharacters" xml:space="preserve">
+    <value>Personajes</value>
+  </data>
+  <data name="OptionSystems" xml:space="preserve">
+    <value>Sistemas</value>
+  </data>
+  <data name="IntelCharactersLabel" xml:space="preserve">
+    <value>Personajes</value>
+  </data>
+  <data name="IntelCharactersNote" xml:space="preserve">
+    <value>Opcional. Tus propios personajes alrededor de los cuales vigilar; déjalo vacío para todos. Solo cuentan los personajes conectados.</value>
+  </data>
+  <data name="IntelSaidWhereIs" xml:space="preserve">
+    <value>donde está {0}</value>
+  </data>
+  <data name="IntelSaidJumpsFromOne" xml:space="preserve">
+    <value>a {0} salto de {1}</value>
+  </data>
+  <data name="IntelSaidJumpsFromOther" xml:space="preserve">
+    <value>a {0} saltos de {1}</value>
+  </data>
+  <data name="CheckPi" xml:space="preserve">
+    <value>Industria planetaria</value>
+  </data>
+  <data name="CheckPiNote" xml:space="preserve">
+    <value>Se dispara con las colonias de los personajes que hacen IP: un programa de extracción terminado o a punto de terminar (hora exacta), un almacén o una plataforma de lanzamiento llenos, o el suministro de un planeta de fábricas a punto de agotarse (ambos estimados desde la última vez que se abrió la colonia en el juego). El evento de cada colonia se dispara una sola vez; reiniciar los extractores o volver a abrir la colonia lo convierte de nuevo en noticia.</value>
+  </data>
+  <data name="PiWatchLabel" xml:space="preserve">
+    <value>Vigilar</value>
+  </data>
+  <data name="PiWatchNote" xml:space="preserve">
+    <value>Con cuál de los tres se dispara.</value>
+  </data>
+  <data name="PiLeadLabel" xml:space="preserve">
+    <value>Antelación</value>
+  </data>
+  <data name="PiLeadNote" xml:space="preserve">
+    <value>Se dispara estas horas antes de que ocurra. Con 0 se dispara cuando ocurre.</value>
+  </data>
+  <data name="PiLeadSuffix" xml:space="preserve">
+    <value>horas</value>
+  </data>
+  <data name="OptionPiAll" xml:space="preserve">
+    <value>Los tres</value>
+  </data>
+  <data name="OptionPiExtractors" xml:space="preserve">
+    <value>Extractores que se detienen</value>
+  </data>
+  <data name="OptionPiStorage" xml:space="preserve">
+    <value>Almacén que se llena</value>
+  </data>
+  <data name="OptionPiInputs" xml:space="preserve">
+    <value>Suministro que se agota</value>
+  </data>
+  <data name="PiTitleOne" xml:space="preserve">
+    <value>{0} colonia de industria planetaria necesita atención</value>
+  </data>
+  <data name="PiTitleOther" xml:space="preserve">
+    <value>{0} colonias de industria planetaria necesitan atención</value>
   </data>
 </root>

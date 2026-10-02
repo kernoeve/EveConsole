@@ -1627,4 +1627,7 @@
   <data name="CallsNotRelayedMany" xml:space="preserve">
     <value>(ещё {0} запросов не передано)</value>
   </data>
+  <data name="EndpointColonyLayouts" xml:space="preserve">
+    <value>Планировка колоний</value>
+  </data>
 </root>

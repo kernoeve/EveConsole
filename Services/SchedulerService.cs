@@ -24,6 +24,7 @@ public class SchedulerService(
     IDbContextFactory<AppDbContext> dbFactory,
     ScheduledBlockRenderer          renderer,
     SlackService                    slack,
+    DiscordService                  discord,
     AppErrorLogger                  errors)
 {
     private static readonly TimeSpan Tick = TimeSpan.FromMinutes(1);
@@ -141,6 +142,11 @@ public class SchedulerService(
 
         if (cfg.Blocks.Count == 0) return (true, AlarmsText.RunNoSections);
 
+        // Discord is its own path from here: its own markup, its own splitting, and charts it can
+        // carry. The Slack path below is untouched by it.
+        if (cfg.DestinationKind == SlackDestination.KindDiscord)
+            return await DiscordPostAsync(cfg, now, ct);
+
         var viaWebhook = cfg.DestinationKind == SlackDestination.KindWebhook;
 
         var render = await renderer.RenderAsync(cfg.Blocks, now, ct);
@@ -217,6 +223,78 @@ public class SchedulerService(
         if (failed.Count > 0)           what += " " + string.Format(AlarmsText.RunChartsFailed, failed.Count, string.Join("; ", failed));
 
         return (true, WithSkipped(what, skipped));
+    }
+
+    /// <summary>
+    /// A post task aimed at a Discord webhook.
+    ///
+    /// <para>The same decisions as the Slack path — empty, nothing dynamic, partly posted — with
+    /// two differences. The text is rendered in Discord's markup, and charts go as image
+    /// attachments, since a Discord webhook carries files where a Slack one cannot.</para>
+    /// </summary>
+    private async Task<(bool Ok, string Message)> DiscordPostAsync(
+        ScheduledTaskConfig cfg, DateTime now, CancellationToken ct)
+    {
+        if (!int.TryParse(cfg.DestinationId, out var hookId))
+            return (false, string.Format(AlarmsText.RunDiscordRefused, AlarmsText.RunNoWebhook));
+
+        // ⚠️ Looked up before anything is drawn. A webhook removed since the task was saved is
+        // the likeliest failure, and nothing is gained by rendering a month of charts first.
+        var hook = await discord.FindAsync(hookId, ct);
+        if (hook is null) return (false, string.Format(AlarmsText.RunDiscordRefused, AlarmsText.RunWebhookDeleted));
+
+        var render = await renderer.RenderAsync(cfg.Blocks, now, ct, "Discord");
+        var body   = render.Text.Trim();
+
+        var drawn = new List<(byte[] Png, string Title)>();
+        foreach (var b in cfg.Blocks.Where(b => b.IsChart))
+        {
+            ct.ThrowIfCancellationRequested();
+            if (await renderer.RenderChartAsync(b, ct) is { } c) drawn.Add(c);
+        }
+
+        if (body.Length == 0 && drawn.Count == 0) return (true, AlarmsText.RunRenderedEmpty);
+
+        if (cfg.SkipIfNoDynamicContent && !render.AnyDynamicContent && drawn.Count == 0)
+            return (true, AlarmsText.RunNothingDynamic);
+
+        var what = AlarmsText.RunPosted;
+
+        if (body.Length > 0)
+        {
+            var sent = await discord.PostAsync(hook.Url, body, hook.Name, ct);
+
+            // Nothing reached the channel, so the next pass can try the whole thing again.
+            if (sent.Posted == 0) return (false, string.Format(AlarmsText.RunDiscordRefused, sent.Error));
+
+            // ⚠️ Some of it did: the run counts, as on Slack, so a retry does not repeat it.
+            what = !sent.AllPosted
+                ? string.Format(AlarmsText.RunPostedPartDiscord, sent.Posted, sent.Total, sent.Characters, sent.Error)
+                : sent.Total > 1
+                    ? string.Format(AlarmsText.RunPostedMessages, sent.Characters, sent.Total)
+                    : string.Format(AlarmsText.RunPostedCharacters, sent.Characters);
+        }
+
+        // After the text, so the message reads in the order it was composed. Each chart is a
+        // message of its own with its title above it.
+        var failed = new List<string>();
+
+        foreach (var (png, title) in drawn)
+        {
+            var res = await discord.UploadAsync(
+                hook.Url, png,
+                filename: $"{title.Replace(' ', '-').ToLowerInvariant()}.png",
+                text:     $"**{title}**",
+                name:     hook.Name,
+                ct:       ct);
+
+            if (!res.Ok) failed.Add($"{title}: {res.Error}");
+        }
+
+        if (drawn.Count > failed.Count) what += " " + string.Format(AlarmsText.RunChartsUploaded, drawn.Count - failed.Count);
+        if (failed.Count > 0)           what += " " + string.Format(AlarmsText.RunChartsFailed, failed.Count, string.Join("; ", failed));
+
+        return (true, what);
     }
 
     /// <summary>
