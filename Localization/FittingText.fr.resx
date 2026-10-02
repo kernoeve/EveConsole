@@ -466,23 +466,32 @@
   <data name="AddBooster" xml:space="preserve">
     <value>Ajouter un montage de bonus…</value>
   </data>
+  <data name="TitleAddBooster" xml:space="preserve">
+    <value>Ajouter un montage de soutien</value>
+  </data>
+  <data name="ConfirmAddBooster" xml:space="preserve">
+    <value>Ajouter</value>
+  </data>
+  <data name="TipBoosterPilot" xml:space="preserve">
+    <value>Les compétences avec lesquelles les salves et modules à distance de ce montage sont calculés</value>
+  </data>
   <data name="TipAddBooster" xml:space="preserve">
-    <value>Montages dont les salves de commandement actives renforcent celui-ci, autant que voulu. D'un même bonus venu de plusieurs, le plus fort s'applique.</value>
-  </data>
-  <data name="BoosterOpenTab" xml:space="preserve">
-    <value>{0} — onglet ouvert</value>
-  </data>
-  <data name="BoosterSaved" xml:space="preserve">
-    <value>{0} ({1}) — enregistré dans EVE Console</value>
-  </data>
-  <data name="BoosterDetailTab" xml:space="preserve">
-    <value>onglet ouvert, son pilote</value>
-  </data>
-  <data name="BoosterDetailSaved" xml:space="preserve">
-    <value>montage enregistré, Tout à V</value>
+    <value>Montages qui aident celui-ci, autant que voulu : leurs salves de commandement actives (d'un même bonus venu de plusieurs, le plus fort s'applique) et leurs réparateurs à distance, boosters de bouclier à distance, transmetteurs de capaciteur et drones logistiques (qui s'additionnent)</value>
   </data>
   <data name="BoostLine" xml:space="preserve">
     <value>{0}  {1}  · {2}</value>
+  </data>
+  <data name="AssistShield" xml:space="preserve">
+    <value>Boost du bouclier à distance  {0:N1} PV/s  · {1}</value>
+  </data>
+  <data name="AssistArmor" xml:space="preserve">
+    <value>Réparation du blindage à distance  {0:N1} PV/s  · {1}</value>
+  </data>
+  <data name="AssistHull" xml:space="preserve">
+    <value>Réparation de la structure à distance  {0:N1} PV/s  · {1}</value>
+  </data>
+  <data name="AssistCapacitor" xml:space="preserve">
+    <value>Transfert de capaciteur  {0:N1} GJ/s  · {1}</value>
   </data>
   <data name="ResourcesHeading" xml:space="preserve">
     <value>Ressources</value>
@@ -703,6 +712,15 @@
   <data name="RepairHull" xml:space="preserve">
     <value>Réparation de la structure {0:N1} PV/s ({1:N0} EHP/s)</value>
   </data>
+  <data name="RepairRemoteShield" xml:space="preserve">
+    <value>Boost du bouclier à distance {0:N1} PV/s ({1:N0} EHP/s)</value>
+  </data>
+  <data name="RepairRemoteArmor" xml:space="preserve">
+    <value>Réparation du blindage à distance {0:N1} PV/s ({1:N0} EHP/s)</value>
+  </data>
+  <data name="RepairRemoteHull" xml:space="preserve">
+    <value>Réparation de la structure à distance {0:N1} PV/s ({1:N0} EHP/s)</value>
+  </data>
   <data name="RepairCapRunsOut" xml:space="preserve">
     <value>Les réparations qui consomment du capaciteur s'arrêtent quand il est vide ({0})</value>
   </data>
@@ -720,6 +738,9 @@
   </data>
   <data name="CapBoosters" xml:space="preserve">
     <value>Boosters +{0:0.0} GJ/s</value>
+  </data>
+  <data name="CapTransfers" xml:space="preserve">
+    <value>Transferts +{0:0.0} GJ/s</value>
   </data>
   <data name="NavigationHeading" xml:space="preserve">
     <value>Navigation</value>

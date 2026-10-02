@@ -466,23 +466,32 @@
   <data name="AddBooster" xml:space="preserve">
     <value>Boostende Ausrüstung hinzufügen…</value>
   </data>
+  <data name="TitleAddBooster" xml:space="preserve">
+    <value>Boostende Ausrüstung hinzufügen</value>
+  </data>
+  <data name="ConfirmAddBooster" xml:space="preserve">
+    <value>Hinzufügen</value>
+  </data>
+  <data name="TipBoosterPilot" xml:space="preserve">
+    <value>Mit wessen Skills die Schübe und Fernmodule dieser Ausrüstung berechnet werden</value>
+  </data>
   <data name="TipAddBooster" xml:space="preserve">
-    <value>Ausrüstungen, deren laufende Kommandoschübe diese verstärken – beliebig viele. Von gleichen Boni gilt der stärkste.</value>
-  </data>
-  <data name="BoosterOpenTab" xml:space="preserve">
-    <value>{0} – geöffneter Tab</value>
-  </data>
-  <data name="BoosterSaved" xml:space="preserve">
-    <value>{0} ({1}) – in EVE Console gespeichert</value>
-  </data>
-  <data name="BoosterDetailTab" xml:space="preserve">
-    <value>geöffneter Tab, sein Pilot</value>
-  </data>
-  <data name="BoosterDetailSaved" xml:space="preserve">
-    <value>gespeicherte Ausrüstung, Alle V</value>
+    <value>Ausrüstungen, die diese unterstützen – beliebig viele: ihre laufenden Kommandoschübe (von gleichen Boni gilt der stärkste) und ihre Fernreparaturmodule, Fern-Schildbooster, Energietransmitter und Logistikdrohnen (die sich addieren)</value>
   </data>
   <data name="BoostLine" xml:space="preserve">
     <value>{0}  {1}  · {2}</value>
+  </data>
+  <data name="AssistShield" xml:space="preserve">
+    <value>Fern-Schildboost  {0:N1} HP/s  · {1}</value>
+  </data>
+  <data name="AssistArmor" xml:space="preserve">
+    <value>Fern-Panzerungsreparatur  {0:N1} HP/s  · {1}</value>
+  </data>
+  <data name="AssistHull" xml:space="preserve">
+    <value>Fern-Strukturreparatur  {0:N1} HP/s  · {1}</value>
+  </data>
+  <data name="AssistCapacitor" xml:space="preserve">
+    <value>Energietransfer  {0:N1} GJ/s  · {1}</value>
   </data>
   <data name="ResourcesHeading" xml:space="preserve">
     <value>Ressourcen</value>
@@ -703,6 +712,15 @@
   <data name="RepairHull" xml:space="preserve">
     <value>Strukturreparatur {0:N1} HP/s ({1:N0} EHP/s)</value>
   </data>
+  <data name="RepairRemoteShield" xml:space="preserve">
+    <value>Fern-Schildboost {0:N1} HP/s ({1:N0} EHP/s)</value>
+  </data>
+  <data name="RepairRemoteArmor" xml:space="preserve">
+    <value>Fern-Panzerungsreparatur {0:N1} HP/s ({1:N0} EHP/s)</value>
+  </data>
+  <data name="RepairRemoteHull" xml:space="preserve">
+    <value>Fern-Strukturreparatur {0:N1} HP/s ({1:N0} EHP/s)</value>
+  </data>
   <data name="RepairCapRunsOut" xml:space="preserve">
     <value>Reparaturen, die Energiespeicher verbrauchen, enden, wenn er leer ist ({0})</value>
   </data>
@@ -720,6 +738,9 @@
   </data>
   <data name="CapBoosters" xml:space="preserve">
     <value>Booster +{0:0.0} GJ/s</value>
+  </data>
+  <data name="CapTransfers" xml:space="preserve">
+    <value>Transfers +{0:0.0} GJ/s</value>
   </data>
   <data name="NavigationHeading" xml:space="preserve">
     <value>Navigation</value>

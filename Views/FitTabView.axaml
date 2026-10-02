@@ -210,8 +210,9 @@
             </ItemsControl.ItemTemplate>
           </ItemsControl>
 
-          <!-- Fleet boosts: its own bursts, and any number of other fits boosting it; the strongest
-               of each bonus applies, as in game. -->
+          <!-- Fleet boosts: its own bursts, and any number of other fits boosting it — their bursts
+               (the strongest of each bonus applies, as in game) and their remote repairs and
+               capacitor (which add up). Each booster with its own pilot. -->
           <TextBlock Text="{x:Static loc:FittingText.BoostsHeading}" Classes="section" IsVisible="{Binding HasShip}"
                      ToolTip.Tip="{x:Static loc:FittingText.TipAddBooster}" />
           <CheckBox IsChecked="{Binding BoostsItself}" Content="{x:Static loc:FittingText.BoostSelf}" IsVisible="{Binding HasOwnBursts}"
@@ -219,18 +220,19 @@
           <ItemsControl ItemsSource="{Binding Boosters}">
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="vm:BoosterRowVm">
-                <Grid ColumnDefinitions="Auto,*,Auto,Auto" Margin="78 2 0 2">
+                <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" Margin="78 2 0 2">
                   <CheckBox Grid.Column="0" IsChecked="{Binding IsOn}" VerticalAlignment="Center" />
                   <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                  <TextBlock Grid.Column="2" Text="{Binding Detail}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" Margin="8 0" VerticalAlignment="Center" />
-                  <Button Grid.Column="3" Classes="remove" Content="✕" Command="{Binding RemoveCommand}" ToolTip.Tip="{x:Static loc:FittingText.Remove}" />
+                  <TextBlock Grid.Column="2" Text="{Binding Owner}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" Margin="8 0" VerticalAlignment="Center" />
+                  <ComboBox Grid.Column="3" ItemsSource="{Binding Pilots}" SelectedItem="{Binding Pilot}" MinWidth="140" FontSize="11"
+                            VerticalAlignment="Center" ToolTip.Tip="{x:Static loc:FittingText.TipBoosterPilot}" />
+                  <Button Grid.Column="4" Classes="remove" Content="✕" Command="{Binding RemoveCommand}" ToolTip.Tip="{x:Static loc:FittingText.Remove}" />
                 </Grid>
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>
-          <ComboBox ItemsSource="{Binding BoosterChoices}" SelectedItem="{Binding SelectedBoosterChoice}" IsVisible="{Binding HasShip}"
-                    PlaceholderText="{x:Static loc:FittingText.AddBooster}" ToolTip.Tip="{x:Static loc:FittingText.TipAddBooster}"
-                    MinWidth="280" FontSize="11" Margin="78 4 0 4" DropDownOpened="OnBoosterPickerOpened" />
+          <Button Classes="tool" Content="{x:Static loc:FittingText.AddBooster}" Command="{Binding AddBoosterCommand}" IsVisible="{Binding HasShip}"
+                  ToolTip.Tip="{x:Static loc:FittingText.TipAddBooster}" Margin="78 4 0 4" HorizontalAlignment="Left" />
           <ItemsControl ItemsSource="{Binding BoostLines}" IsVisible="{Binding HasBoostLines}" Margin="78 2 0 8">
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="sys:String">

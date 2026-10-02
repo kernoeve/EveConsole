@@ -466,23 +466,32 @@
   <data name="AddBooster" xml:space="preserve">
     <value>Добавить усиливающую оснастку…</value>
   </data>
+  <data name="TitleAddBooster" xml:space="preserve">
+    <value>Добавить усиливающую оснастку</value>
+  </data>
+  <data name="ConfirmAddBooster" xml:space="preserve">
+    <value>Добавить</value>
+  </data>
+  <data name="TipBoosterPilot" xml:space="preserve">
+    <value>Чьими навыками рассчитываются импульсы и дистанционные модули этой оснастки</value>
+  </data>
   <data name="TipAddBooster" xml:space="preserve">
-    <value>Оснастки, чьи работающие командные импульсы усиливают эту, — сколько угодно. Из одинаковых бонусов действует сильнейший.</value>
-  </data>
-  <data name="BoosterOpenTab" xml:space="preserve">
-    <value>{0} — открытая вкладка</value>
-  </data>
-  <data name="BoosterSaved" xml:space="preserve">
-    <value>{0} ({1}) — сохранено в EVE Console</value>
-  </data>
-  <data name="BoosterDetailTab" xml:space="preserve">
-    <value>открытая вкладка, её пилот</value>
-  </data>
-  <data name="BoosterDetailSaved" xml:space="preserve">
-    <value>сохранённая оснастка, Все V</value>
+    <value>Оснастки, помогающие этой, — сколько угодно: их работающие командные импульсы (из одинаковых бонусов действует сильнейший) и их дистанционные ремонтные модули, накачки щитов, передатчики энергии и ремонтные дроны (суммируются)</value>
   </data>
   <data name="BoostLine" xml:space="preserve">
     <value>{0}  {1}  · {2}</value>
+  </data>
+  <data name="AssistShield" xml:space="preserve">
+    <value>Дистанционная накачка щитов  {0:N1} ед. пр./с  · {1}</value>
+  </data>
+  <data name="AssistArmor" xml:space="preserve">
+    <value>Дистанционный ремонт брони  {0:N1} ед. пр./с  · {1}</value>
+  </data>
+  <data name="AssistHull" xml:space="preserve">
+    <value>Дистанционный ремонт корпуса  {0:N1} ед. пр./с  · {1}</value>
+  </data>
+  <data name="AssistCapacitor" xml:space="preserve">
+    <value>Передача энергии  {0:N1} ГДж/с  · {1}</value>
   </data>
   <data name="ResourcesHeading" xml:space="preserve">
     <value>Ресурсы</value>
@@ -715,6 +724,15 @@
   <data name="RepairHull" xml:space="preserve">
     <value>Ремонт корпуса: {0:N1} ед. пр./с (эфф.: {1:N0}/с)</value>
   </data>
+  <data name="RepairRemoteShield" xml:space="preserve">
+    <value>Дистанционная накачка щитов: {0:N1} ед. пр./с (эфф.: {1:N0}/с)</value>
+  </data>
+  <data name="RepairRemoteArmor" xml:space="preserve">
+    <value>Дистанционный ремонт брони: {0:N1} ед. пр./с (эфф.: {1:N0}/с)</value>
+  </data>
+  <data name="RepairRemoteHull" xml:space="preserve">
+    <value>Дистанционный ремонт корпуса: {0:N1} ед. пр./с (эфф.: {1:N0}/с)</value>
+  </data>
   <data name="RepairCapRunsOut" xml:space="preserve">
     <value>Ремонт, расходующий энергию накопителя, прекратится, когда она закончится ({0})</value>
   </data>
@@ -732,6 +750,9 @@
   </data>
   <data name="CapBoosters" xml:space="preserve">
     <value>Системы подкачки: +{0:0.0} ГДж/с</value>
+  </data>
+  <data name="CapTransfers" xml:space="preserve">
+    <value>Передача энергии: +{0:0.0} ГДж/с</value>
   </data>
   <data name="NavigationHeading" xml:space="preserve">
     <value>Навигация</value>

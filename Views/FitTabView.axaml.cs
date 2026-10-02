@@ -117,12 +117,6 @@ public partial class FitTabView : UserControl
         _markedRow = null;
     }
 
-    /// <summary>The fits that could boost this one are listed as the list opens: open tabs change.</summary>
-    private void OnBoosterPickerOpened(object? sender, EventArgs e)
-    {
-        if (Vm is { } vm) _ = vm.RefreshBoosterChoicesAsync();
-    }
-
     /// <summary>The module last clicked is where a charge picked in the finder is loaded.</summary>
     private void OnRowPressed(object? sender, PointerPressedEventArgs e)
     {

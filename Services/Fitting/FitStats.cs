@@ -46,14 +46,83 @@ public sealed record RepairModule(DogmaItem Item, TankLayer Layer, double Amount
     public double PerSecond => CycleSeconds > 0 ? Amount / CycleSeconds : 0;
 }
 
-/// <summary>Raw HP/s: shield regeneration at its peak, and what active modules repair per layer.</summary>
-public sealed record TankRates(double PassiveShield, double ShieldBoost, double ArmorRepair, double HullRepair);
+/// <summary>Raw HP/s: shield regeneration at its peak, what active modules repair per layer, and
+/// what other fits' remote modules and logistics drones repair.</summary>
+public sealed record TankRates(double PassiveShield, double ShieldBoost, double ArmorRepair, double HullRepair,
+    double RemoteShield = 0, double RemoteArmor = 0, double RemoteHull = 0);
+
+/// <summary>What one fit's remote module or logistics drones send another: repairs to a layer, or capacitor.</summary>
+public enum AssistKind { Shield, Armor, Hull, Capacitor }
+
+/// <summary>
+/// Remote assistance from another fit: <paramref name="Amount"/> HP (or GJ) every
+/// <paramref name="CycleSeconds"/>, from the fit named <paramref name="From"/>.
+/// </summary>
+public sealed record RemoteAssist(AssistKind Kind, double Amount, double CycleSeconds, string From)
+{
+    public double PerSecond => CycleSeconds > 0 ? Amount / CycleSeconds : 0;
+}
 
 /// <summary>What a fit adds up to — the numbers a fitting window shows.</summary>
 public sealed class FitStats
 {
     private readonly DogmaEngine _e;
-    public FitStats(DogmaEngine engine) => _e = engine;
+    /// <summary>Remote repairs and capacitor other fits send this one.</summary>
+    private readonly IReadOnlyList<RemoteAssist> _incoming;
+    public FitStats(DogmaEngine engine, IReadOnlyList<RemoteAssist>? incoming = null)
+    {
+        _e = engine;
+        _incoming = incoming ?? [];
+    }
+
+    // ── Remote assistance ───────────────────────────────────────────────────────
+
+    /// <summary>
+    /// What this fit's running remote modules and launched logistics drones send another fit: its
+    /// remote shield boosters, armor and hull repairers and capacitor transmitters, each a
+    /// targeted effect the game runs itself, with its amount on the module as the pilot's skills
+    /// and the hull make it. An ancillary remote armor repairer with paste loaded repairs by its
+    /// paste multiplier, as a local one does; a mutadaptive one is counted at its starting rate,
+    /// before it spools up.
+    /// </summary>
+    public IReadOnlyList<RemoteAssist> OutgoingAssistance(string from)
+    {
+        var list = new List<RemoteAssist>();
+        foreach (var m in ActiveModules)
+        {
+            if (CyclingEffect(m) is not { } fx) continue;
+            var cycle = CycleSeconds(m, fx);
+            if (Assist(fx.Name, m, 1) is { } a) list.Add(new RemoteAssist(a.Kind, a.Amount, cycle, from));
+        }
+        foreach (var d in _e.DroneStacks.Where(d => d.ActiveCount > 0))
+        {
+            if (CyclingEffect(d) is not { } fx) continue;
+            var cycle = fx.DurationAttributeId is { } dur ? _e.Value(d, dur) / 1000 : 0;
+            if (Assist(fx.Name, d, d.ActiveCount) is { } a) list.Add(new RemoteAssist(a.Kind, a.Amount, cycle, from));
+        }
+        return list;
+    }
+
+    private (AssistKind Kind, double Amount)? Assist(string effect, DogmaItem item, int count) => effect switch
+    {
+        "shipModuleRemoteShieldBooster" or "shipModuleAncillaryRemoteShieldBooster" or "npcEntityRemoteShieldBooster"
+            => (AssistKind.Shield, _e.Value(item, "shieldBonus") * count),
+        "shipModuleRemoteArmorRepairer" or "ShipModuleRemoteArmorMutadaptiveRepairer" or "npcEntityRemoteArmorRepairer"
+            => (AssistKind.Armor, _e.Value(item, "armorDamageAmount") * count),
+        "shipModuleAncillaryRemoteArmorRepairer"
+            => (AssistKind.Armor, _e.Value(item, "armorDamageAmount") * count
+                * (item.Charge is not null && _e.Value(item, "chargedArmorDamageMultiplier") is var paste and > 0 ? paste : 1)),
+        "shipModuleRemoteHullRepairer" or "npcEntityRemoteHullRepairer"
+            => (AssistKind.Hull, _e.Value(item, "structureDamageAmount") * count),
+        "shipModuleRemoteCapacitorTransmitter"
+            => (AssistKind.Capacitor, _e.Value(item, "powerTransferAmount") * count),
+        _ => null,
+    };
+
+    /// <summary>Remote assistance arriving, as it was given to the calculation.</summary>
+    public IReadOnlyList<RemoteAssist> Incoming => _incoming;
+    /// <summary>GJ/s other fits' capacitor transmitters send.</summary>
+    public double IncomingCapacitor => _incoming.Where(a => a.Kind == AssistKind.Capacitor).Sum(a => a.PerSecond);
 
     private double Ship(string attr) => _e.Value(_e.Ship, attr);
 
@@ -176,6 +245,9 @@ public sealed class FitStats
             if (_e.Value(m, need) is var amount and not 0)
                 drains.Add(new CapacitorDrain(m.Type.Name, amount, cycle));
         }
+        // Other fits' capacitor transmitters: capacitor put back each of their cycles.
+        foreach (var a in _incoming.Where(a => a.Kind == AssistKind.Capacitor && a.CycleSeconds > 0))
+            drains.Add(new CapacitorDrain(a.From, -a.Amount, a.CycleSeconds));
         return drains;
     }
 
@@ -323,7 +395,9 @@ public sealed class FitStats
     {
         repairs ??= Repairs();
         double Sum(TankLayer l) => repairs.Where(r => r.Layer == l).Sum(r => r.PerSecond);
-        return new TankRates(PassiveShieldRegen, Sum(TankLayer.Shield), Sum(TankLayer.Armor), Sum(TankLayer.Hull));
+        double Remote(AssistKind k) => _incoming.Where(a => a.Kind == k).Sum(a => a.PerSecond);
+        return new TankRates(PassiveShieldRegen, Sum(TankLayer.Shield), Sum(TankLayer.Armor), Sum(TankLayer.Hull),
+            Remote(AssistKind.Shield), Remote(AssistKind.Armor), Remote(AssistKind.Hull));
     }
 
     public DamageBreakdown WeaponDps(IReadOnlyList<WeaponDamage>? weapons = null) =>

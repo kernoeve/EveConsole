@@ -310,26 +310,32 @@ public sealed record DamageProfileOption(string Key, string Name, DamageProfile?
 }
 
 /// <summary>
-/// A fit boosting this one: another open tab (calculated with its pilot), or a fit saved in EVE
-/// Console (with All V). Its running command bursts and phenomena generators are what boost.
+/// A fit boosting this one, chosen like any fit to open: from EVE Console or a character's
+/// fittings in the game. Its running command bursts and phenomena generators boost; its remote
+/// repairers, shield boosters, capacitor transmitters and logistics drones assist. Worked out
+/// with the pilot chosen for it. Kept while the tab is open, not saved with the fit.
 /// </summary>
 public sealed class BoosterRowVm : ReactiveObject
 {
     public required string Name { get; init; }
-    public required string Detail { get; init; }
-    public FitTabViewModel? Tab { get; init; }
-    public long? SavedFitId { get; init; }
+    /// <summary>Where it came from: EVE Console, or the character whose fitting it is.</summary>
+    public required string Owner { get; init; }
+    public required FitDefinition Fit { get; init; }
+    public required IReadOnlyList<SkillSourceOption> Pilots { get; init; }
+
+    private SkillSourceOption? _pilot;
+    /// <summary>Whose skills its bursts and remote modules are worked out with.</summary>
+    public SkillSourceOption? Pilot
+    {
+        get => _pilot;
+        // A detaching ComboBox sets null; that is not a choice.
+        set { if (value is null) { this.RaisePropertyChanged(); return; } this.RaiseAndSetIfChanged(ref _pilot, value); }
+    }
 
     private bool _isOn = true;
-    /// <summary>Boosting now; off keeps it in the list without its bonuses.</summary>
+    /// <summary>Boosting now; off keeps it in the list without its help.</summary>
     public bool IsOn { get => _isOn; set => this.RaiseAndSetIfChanged(ref _isOn, value); }
     public ReactiveCommand<Unit, Unit>? RemoveCommand { get; set; }
-}
-
-/// <summary>A fit that could be added as a booster: an open tab, or a fit saved in EVE Console.</summary>
-public sealed record BoosterChoice(string Label, FitTabViewModel? Tab, long? SavedFitId)
-{
-    public override string ToString() => Label;
 }
 
 public sealed class FittingImplantRowVm(int typeId, string name, bool booster)
@@ -387,6 +393,8 @@ public sealed class FitSnapshot
     public Dictionary<int, string> DroneDetail = new();    // by drone/squadron index
     public double Speed, Align, Signature, Warp, Mass, Agility;
     public bool   CanWarp = true;
+    /// <summary>GJ/s other fits' capacitor transmitters send.</summary>
+    public double CapTransfers;
     /// <summary>The fleet boosts reaching the fit, as lines to show.</summary>
     public List<string> Boosts = [];
     /// <summary>Whether the fit runs command bursts (or phenomena generators) of its own.</summary>
@@ -537,7 +545,6 @@ public class FittingViewModel : ReactiveObject
     {
         var pane = tab.Pane;
         if (!TakeOut(tab)) return;
-        foreach (var other in AllTabs) other.ForgetBooster(tab);
         if (pane == _activePane) this.RaisePropertyChanged(nameof(SelectedTab));
         PanesChanged();
     }
@@ -616,12 +623,6 @@ public class FittingViewModel : ReactiveObject
     internal void TabCalculated(FitTabViewModel tab)
     {
         if (tab == SelectedTab && FitsOnly && tab.ShipTypeId != _searchedHull) _ = RunSearchAsync();
-        // A fit boosting others has changed what its bursts send: work those out again. Only on a
-        // change, so two fits boosting each other do not recalculate each other for ever.
-        var signature = tab.BoostSignature;
-        if (signature == tab.LastBoostSignature) return;
-        tab.LastBoostSignature = signature;
-        foreach (var other in AllTabs.Where(t => t != tab && t.IsBoostedBy(tab))) other.ScheduleRecalc();
     }
 
     // ── Loading ─────────────────────────────────────────────────────────────────
@@ -1005,13 +1006,7 @@ public class FittingViewModel : ReactiveObject
         // Not loaded yet (or the first try failed): try again, rather than doing nothing.
         if (Data is null || Catalog is null) await EnsureLoadedAsync();
         if (Data is null || Catalog is null) return;
-        var picker = new FitSelectorViewModel(Characters is null ? null : Fittings, DbFactory,
-            Characters ?? [], [], 0, await LocalFitsAsync())
-        {
-            ChooseGroup = false,
-            DeleteLocal = DeleteSavedAsync,
-        };
-        var entry = await PickFit.Handle(picker);
+        var entry = await PickFit.Handle(await NewFitPickerAsync());
         if (entry is null) return;
         if (entry is { Source: FitSource.App, SavedFitId: { } id }) { await OpenSavedAsync(id); return; }
 
@@ -1028,6 +1023,64 @@ public class FittingViewModel : ReactiveObject
                 tab.SelectedSkillSource = pilot;
         }
         Status = string.Format(FittingText.StatusImportedFromGame, esi.Name);
+    }
+
+    /// <summary>The picker of every saved fit: EVE Console's, and the characters' fittings in the game.</summary>
+    private async Task<FitSelectorViewModel> NewFitPickerAsync(string? title = null, string? confirm = null) =>
+        new(Characters is null ? null : Fittings, DbFactory, Characters ?? [], [], 0, await LocalFitsAsync())
+        {
+            ChooseGroup     = false,
+            DeleteLocal     = DeleteSavedAsync,
+            TitleOverride   = title,
+            ConfirmOverride = confirm,
+        };
+
+    /// <summary>A fit chosen in the same picker as Open fit…, to boost another: the fit, where it is
+    /// kept, and the pilot it starts with — the character whose fitting it is, else All V. Null
+    /// when nothing was chosen.</summary>
+    internal async Task<(string Name, string Owner, FitDefinition Fit, SkillSourceOption? Pilot)?> PickBoosterAsync()
+    {
+        if (Data is null || Catalog is null) await EnsureLoadedAsync();
+        if (Data is null || Catalog is null) return null;
+        var entry = await PickFit.Handle(await NewFitPickerAsync(FittingText.TitleAddBooster, FittingText.ConfirmAddBooster));
+        if (entry is null) return null;
+        FitDefinition fit;
+        if (entry is { Source: FitSource.App, SavedFitId: { } id })
+        {
+            await using var db = await DbFactory.CreateDbContextAsync();
+            if (await db.SavedFits.AsNoTracking().FirstOrDefaultAsync(f => f.Id == id) is not { } row) return null;
+            fit = (await EftFormat.ParseAsync(row.Eft, Data)).Fit;
+        }
+        else fit = await EftFormat.FromEsiAsync(entry.Data, Data, Catalog);
+        await LaunchDronesAsync(fit);
+        var pilot = entry.Source == FitSource.Personal && Characters?.FirstOrDefault(c => c.Name == entry.OwnerName) is { } owner
+            ? SkillSources.FirstOrDefault(p => p.CharacterId == owner.Id)
+            : SkillSources.FirstOrDefault();
+        return (entry.Data.Name, entry.OwnerName, fit, pilot);
+    }
+
+    /// <summary>
+    /// A booster's drones launched as a tab launches them on loading: in fit order, up to the drones
+    /// a pilot controls and within the hull's bandwidth — so its logistics drones repair. A fit
+    /// read from EFT or the game has its drones in the bay.
+    /// </summary>
+    private async Task LaunchDronesAsync(FitDefinition fit)
+    {
+        if (Data is null || fit.Drones.Count == 0) return;
+        var e = await DogmaEngine.CreateAsync(Data, fit, SkillSet.AllAt(Data, 5));
+        var bandwidth = new FitStats(e).DroneBandwidth;
+        var control   = (int)Math.Round(e.Value(e.Character, "maxActiveDrones"));
+        var used      = Data.Attribute("droneBandwidthUsed")?.Id;
+        for (var i = 0; i < fit.Drones.Count; i++)
+        {
+            var d = fit.Drones[i];
+            if (Data.Type(d.TypeId).CategoryId == DogmaData.CategoryFighter) continue;
+            var each = used is { } u ? Data.Type(d.TypeId).Attr(u) ?? 0 : 0;
+            var n = Math.Max(0, Math.Min(Math.Min(d.Count, control), each > 0 ? (int)(bandwidth / each) : d.Count));
+            fit.Drones[i] = d with { Active = n };
+            bandwidth -= each * n;
+            control   -= n;
+        }
     }
 
     // ── Saved fits ──────────────────────────────────────────────────────────────
@@ -1220,9 +1273,10 @@ public class FitTabViewModel : ReactiveObject
         else if (_loadedSavedId is { } id) await SaveToAppAsync(id);
     }
 
-    // ── Fleet boosts ────────────────────────────────────────────────────────────
+    // ── Fleet boosts and remote assistance ──────────────────────────────────────
 
-    /// <summary>The fits boosting this one; any number, the strongest of each bonus applying.</summary>
+    /// <summary>The fits boosting this one; any number. Of the same bonus the strongest applies;
+    /// remote repairs and capacitor add up.</summary>
     public ObservableCollection<BoosterRowVm> Boosters { get; } = [];
 
     private bool _boostsItself = true;
@@ -1236,81 +1290,33 @@ public class FitTabViewModel : ReactiveObject
     public IReadOnlyList<string> BoostLines => Stats?.Boosts ?? [];
     public bool HasBoostLines => BoostLines.Count > 0;
 
-    /// <summary>What could be added: the other open tabs with a hull, then the fits saved in EVE Console.</summary>
-    public ObservableCollection<BoosterChoice> BoosterChoices { get; } = [];
+    /// <summary>Opens the fit picker; the fit chosen boosts this one, with its pilot to pick.</summary>
+    public ReactiveCommand<Unit, Unit> AddBoosterCommand => _addBooster ??= Tool.Guarded(ReactiveCommand.CreateFromTask(AddBoosterAsync));
+    private ReactiveCommand<Unit, Unit>? _addBooster;
 
-    private BoosterChoice? _selectedBoosterChoice;
-    /// <summary>Choosing a fit adds it as a booster; the list then clears for the next.</summary>
-    public BoosterChoice? SelectedBoosterChoice
+    private async Task AddBoosterAsync()
     {
-        get => _selectedBoosterChoice;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _selectedBoosterChoice, value);
-            if (value is null) return;
-            AddBooster(value);
-            Avalonia.Threading.Dispatcher.UIThread.Post(() => { _selectedBoosterChoice = null; this.RaisePropertyChanged(nameof(SelectedBoosterChoice)); });
-        }
+        if (await Tool.PickBoosterAsync() is not { } picked) return;
+        AddBooster(picked.Name, picked.Owner, picked.Fit, picked.Pilot);
     }
 
-    /// <summary>Fills <see cref="BoosterChoices"/> afresh — when the list is opened.</summary>
-    public async Task RefreshBoosterChoicesAsync()
+    internal BoosterRowVm AddBooster(string name, string owner, FitDefinition fit, SkillSourceOption? pilot)
     {
-        BoosterChoices.Clear();
-        foreach (var tab in Tool.AllTabs.Where(t => t != this && t.HasShip && Boosters.All(b => b.Tab != t)))
-            BoosterChoices.Add(new BoosterChoice(string.Format(FittingText.BoosterOpenTab, tab.TabTitle), tab, null));
-        await using var db = await _dbFactory.CreateDbContextAsync();
-        var saved = await db.SavedFits.AsNoTracking().Select(f => new { f.Id, f.Name, f.ShipTypeId }).ToListAsync();
-        foreach (var f in saved.Where(f => Boosters.All(b => b.SavedFitId != f.Id)).OrderBy(f => f.Name, StringComparer.CurrentCultureIgnoreCase))
-            BoosterChoices.Add(new BoosterChoice(string.Format(FittingText.BoosterSaved, f.Name, _catalog?.Find(f.ShipTypeId)?.DisplayName ?? ""), null, f.Id));
-    }
-
-    private void AddBooster(BoosterChoice choice)
-    {
-        var row = new BoosterRowVm
-        {
-            Name = choice.Tab?.TabTitle ?? choice.Label,
-            Detail = choice.Tab is not null ? FittingText.BoosterDetailTab : FittingText.BoosterDetailSaved,
-            Tab = choice.Tab, SavedFitId = choice.SavedFitId,
-        };
+        var row = new BoosterRowVm { Name = name, Owner = owner, Fit = fit, Pilots = Tool.SkillSources, Pilot = pilot ?? Tool.SkillSources.FirstOrDefault() };
         row.RemoveCommand = ReactiveCommand.Create(() => { Boosters.Remove(row); ScheduleRecalc(); });
         row.WhenAnyValue(r => r.IsOn).Skip(1).Subscribe(_ => ScheduleRecalc());
+        row.WhenAnyValue(r => r.Pilot).Skip(1).Subscribe(_ => ScheduleRecalc());
         Boosters.Add(row);
         ScheduleRecalc();
+        return row;
     }
 
-    /// <summary>A booster tab has closed: it boosts no more.</summary>
-    internal void ForgetBooster(FitTabViewModel tab)
-    {
-        var gone = Boosters.Where(b => b.Tab == tab).ToList();
-        foreach (var row in gone) Boosters.Remove(row);
-        if (gone.Count > 0) ScheduleRecalc();
-    }
-
-    internal bool IsBoostedBy(FitTabViewModel tab) => Boosters.Any(b => b.IsOn && b.Tab == tab);
-
-    /// <summary>What a booster's bursts depend on: its hull, modules with their states and charges,
-    /// and its pilot. A boosted fit is worked out again only when this changes.</summary>
-    internal string BoostSignature => $"{_shipTypeId}|{SelectedSkillSource?.Name}|{_modeTypeId}|"
-        + string.Join(",", _modules.Select(m => $"{m.TypeId}:{(int)m.State}:{m.Charge?.TypeId}"));
-    internal string? LastBoostSignature { get; set; }
-
-    /// <summary>Each switched-on booster as a fit and pilot: an open tab with its own pilot, a saved fit with All V.</summary>
+    /// <summary>Each switched-on booster as a fit and its pilot's skills.</summary>
     private async Task<List<(string Name, FitDefinition Fit, SkillSet Skills)>> BoosterSourcesAsync()
     {
         var list = new List<(string, FitDefinition, SkillSet)>();
-        if (_data is null) return list;
         foreach (var b in Boosters.Where(b => b.IsOn).ToList())
-        {
-            if (b.Tab is { HasShip: true } tab)
-                list.Add((tab.TabTitle, tab.CurrentFit(), await tab.SkillsAsync()));
-            else if (b.SavedFitId is { } id)
-            {
-                await using var db = await _dbFactory.CreateDbContextAsync();
-                if (await db.SavedFits.AsNoTracking().FirstOrDefaultAsync(f => f.Id == id) is { } row)
-                    list.Add((row.Name, (await EftFormat.ParseAsync(row.Eft, _data)).Fit, SkillSet.AllAt(_data, 5)));
-            }
-        }
+            list.Add((b.Name, b.Fit, await SkillsForAsync(b.Pilot)));
         return list;
     }
 
@@ -2116,9 +2122,12 @@ public class FitTabViewModel : ReactiveObject
         return fit;
     }
 
-    private async Task<SkillSet> SkillsAsync()
+    private Task<SkillSet> SkillsAsync() => SkillsForAsync(SelectedSkillSource);
+
+    /// <summary>The skills of a pilot from the list: All V, All 0, or a character's own.</summary>
+    private async Task<SkillSet> SkillsForAsync(SkillSourceOption? pilot)
     {
-        var src = SelectedSkillSource ?? new SkillSourceOption(FittingText.PilotAllV, null, 5);
+        var src = pilot ?? new SkillSourceOption(FittingText.PilotAllV, null, 5);
         if (src.CharacterId is not { } id) return SkillSet.AllAt(_data!, src.AllLevel);
         if (_skillCache.TryGetValue(id, out var cached)) return cached;
         await using var db = await _dbFactory.CreateDbContextAsync();
@@ -2146,10 +2155,15 @@ public class FitTabViewModel : ReactiveObject
                 var own = e.OutgoingBuffs(selfName);
                 var incoming = new List<FleetBuff>();
                 if (boostsItself) incoming.AddRange(own);
+                var assists = new List<RemoteAssist>();
                 foreach (var (name, boosterFit, boosterSkills) in boosters)
-                    incoming.AddRange((await DogmaEngine.CreateAsync(_data, boosterFit, boosterSkills, null, ct)).OutgoingBuffs(name));
+                {
+                    var booster = await DogmaEngine.CreateAsync(_data, boosterFit, boosterSkills, null, ct);
+                    incoming.AddRange(booster.OutgoingBuffs(name));
+                    assists.AddRange(new FitStats(booster).OutgoingAssistance(name));
+                }
                 if (incoming.Count > 0) e = await DogmaEngine.CreateAsync(_data, fit, skills, profile, ct, incoming);
-                var s = Snapshot(e, profile);
+                var s = Snapshot(e, profile, assists);
                 s.HasOwnBursts = own.Count > 0;
                 return (e, s);
             }, ct);
@@ -2270,9 +2284,9 @@ public class FitTabViewModel : ReactiveObject
         };
     }
 
-    private static FitSnapshot Snapshot(DogmaEngine e, DamageProfile profile)
+    private static FitSnapshot Snapshot(DogmaEngine e, DamageProfile profile, IReadOnlyList<RemoteAssist>? assists = null)
     {
-        var s = new FitStats(e);
+        var s = new FitStats(e, assists);
         var snap = new FitSnapshot
         {
             Cpu = s.CpuUsed, CpuOut = s.CpuOutput, Power = s.PowerUsed, PowerOut = s.PowerOutput,
@@ -2298,6 +2312,16 @@ public class FitTabViewModel : ReactiveObject
         snap.Ehp = s.Ehp(profile);
         foreach (var b in e.Buffs.Where(b => !b.Buff.Hidden).OrderBy(b => b.Buff.DisplayName, StringComparer.CurrentCulture))
             snap.Boosts.Add(string.Format(FittingText.BoostLine, b.Buff.DisplayName, BoostValue(b), b.From));
+        // Remote assistance, a line per fit sending it and kind.
+        foreach (var g in s.Incoming.GroupBy(a => (a.From, a.Kind)).OrderBy(g => g.Key.Kind).ThenBy(g => g.Key.From, StringComparer.CurrentCulture))
+            snap.Boosts.Add(string.Format(g.Key.Kind switch
+            {
+                AssistKind.Shield => FittingText.AssistShield,
+                AssistKind.Armor  => FittingText.AssistArmor,
+                AssistKind.Hull   => FittingText.AssistHull,
+                _                 => FittingText.AssistCapacitor,
+            }, g.Sum(a => a.PerSecond), g.Key.From));
+        snap.CapTransfers = s.IncomingCapacitor;
         snap.Cargo = s.CargoUsed; snap.CargoOut = s.CargoCapacity;
         var repairs = s.Repairs();
         snap.Rates = s.Tank(repairs);
@@ -2400,17 +2424,21 @@ public class FitTabViewModel : ReactiveObject
             r.ShieldBoost > 0 ? string.Format(FittingText.RepairShield, r.ShieldBoost, r.ShieldBoost / s.ShieldTaken) : null,
             r.ArmorRepair > 0 ? string.Format(FittingText.RepairArmor, r.ArmorRepair, r.ArmorRepair / s.ArmorTaken) : null,
             r.HullRepair  > 0 ? string.Format(FittingText.RepairHull, r.HullRepair, r.HullRepair / s.HullTaken) : null,
+            r.RemoteShield > 0 ? string.Format(FittingText.RepairRemoteShield, r.RemoteShield, r.RemoteShield / s.ShieldTaken) : null,
+            r.RemoteArmor  > 0 ? string.Format(FittingText.RepairRemoteArmor, r.RemoteArmor, r.RemoteArmor / s.ArmorTaken) : null,
+            r.RemoteHull   > 0 ? string.Format(FittingText.RepairRemoteHull, r.RemoteHull, r.RemoteHull / s.HullTaken) : null,
             (r.ShieldBoost + r.ArmorRepair + r.HullRepair) > 0 && s.Cap is { Stable: false } c
                 ? string.Format(FittingText.RepairCapRunsOut, FormatDuration(c.LastsSeconds)) : null,
         }.OfType<string>()) : "";
-    public bool HasRepairs        => Stats is { Rates: { } r } && r.ShieldBoost + r.ArmorRepair + r.HullRepair > 0;
+    public bool HasRepairs        => Stats is { Rates: { } r } && r.ShieldBoost + r.ArmorRepair + r.HullRepair + r.RemoteShield + r.RemoteArmor + r.RemoteHull > 0;
     public string CapText         => Stats?.Cap is { } c ? $"{c.Capacity:N0} GJ" : "";
     public string CapStateText    => Stats?.Cap is { } c
         ? c.Stable ? string.Format(FittingText.CapStable, c.StableFraction * 100) : string.Format(FittingText.CapLasts, FormatDuration(c.LastsSeconds)) : "";
     public bool   CapStable       => Stats?.Cap?.Stable ?? true;
     public string CapFlowText     => Stats?.Cap is { } c
         ? string.Format(FittingText.CapFlow, c.Drain, c.PeakRecharge)
-          + (c.Injection > 0 ? "    " + string.Format(FittingText.CapBoosters, c.Injection) : "") : "";
+          + (c.Injection - Stats.CapTransfers > 0.005 ? "    " + string.Format(FittingText.CapBoosters, c.Injection - Stats.CapTransfers) : "")
+          + (Stats.CapTransfers > 0 ? "    " + string.Format(FittingText.CapTransfers, Stats.CapTransfers) : "") : "";
     public string DpsText         => Stats is { } s ? string.Format(FittingText.Dps0, s.WeaponDps.Total + s.DroneDps.Total + s.FighterDps.Total) : "";
     public string DpsSplitText    => Stats is { } s
         ? string.Format(FittingText.DpsWeapons, s.WeaponDps.Total) + "    " + string.Format(FittingText.DpsDrones, s.DroneDps.Total)

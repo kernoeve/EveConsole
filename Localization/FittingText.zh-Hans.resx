@@ -466,23 +466,32 @@
   <data name="AddBooster" xml:space="preserve">
     <value>添加加成装配…</value>
   </data>
+  <data name="TitleAddBooster" xml:space="preserve">
+    <value>添加支援装配</value>
+  </data>
+  <data name="ConfirmAddBooster" xml:space="preserve">
+    <value>添加</value>
+  </data>
+  <data name="TipBoosterPilot" xml:space="preserve">
+    <value>用于计算此装配脉冲和远程模块的技能</value>
+  </data>
   <data name="TipAddBooster" xml:space="preserve">
-    <value>其运行中的指挥脉冲为本装配提供加成的装配，数量不限。同一加成有多个来源时取最强者。</value>
-  </data>
-  <data name="BoosterOpenTab" xml:space="preserve">
-    <value>{0} — 已打开的标签页</value>
-  </data>
-  <data name="BoosterSaved" xml:space="preserve">
-    <value>{0}（{1}）— 已保存在 EVE Console</value>
-  </data>
-  <data name="BoosterDetailTab" xml:space="preserve">
-    <value>已打开的标签页，其飞行员</value>
-  </data>
-  <data name="BoosterDetailSaved" xml:space="preserve">
-    <value>已保存的装配，全部 V 级</value>
+    <value>为本装配提供支援的装配，数量不限：其运行中的指挥脉冲（同一加成取最强者），以及其远程维修器、远程护盾回充器、电容传输器和后勤无人机（累加）</value>
   </data>
   <data name="BoostLine" xml:space="preserve">
     <value>{0}  {1}  · {2}</value>
+  </data>
+  <data name="AssistShield" xml:space="preserve">
+    <value>远程护盾回充  {0:N1} HP/s  · {1}</value>
+  </data>
+  <data name="AssistArmor" xml:space="preserve">
+    <value>远程装甲维修  {0:N1} HP/s  · {1}</value>
+  </data>
+  <data name="AssistHull" xml:space="preserve">
+    <value>远程结构维修  {0:N1} HP/s  · {1}</value>
+  </data>
+  <data name="AssistCapacitor" xml:space="preserve">
+    <value>电容传输  {0:N1} GJ/s  · {1}</value>
   </data>
   <data name="ResourcesHeading" xml:space="preserve">
     <value>资源</value>
@@ -697,6 +706,15 @@
   <data name="RepairHull" xml:space="preserve">
     <value>结构维修 {0:N1} HP/s（{1:N0} 有效 HP/s）</value>
   </data>
+  <data name="RepairRemoteShield" xml:space="preserve">
+    <value>远程护盾回充 {0:N1} HP/s（{1:N0} 有效 HP/s）</value>
+  </data>
+  <data name="RepairRemoteArmor" xml:space="preserve">
+    <value>远程装甲维修 {0:N1} HP/s（{1:N0} 有效 HP/s）</value>
+  </data>
+  <data name="RepairRemoteHull" xml:space="preserve">
+    <value>远程结构维修 {0:N1} HP/s（{1:N0} 有效 HP/s）</value>
+  </data>
   <data name="RepairCapRunsOut" xml:space="preserve">
     <value>消耗电容的维修装备会在电容耗尽时停止（{0}）</value>
   </data>
@@ -714,6 +732,9 @@
   </data>
   <data name="CapBoosters" xml:space="preserve">
     <value>电容注电器 +{0:0.0} GJ/s</value>
+  </data>
+  <data name="CapTransfers" xml:space="preserve">
+    <value>电容传输 +{0:0.0} GJ/s</value>
   </data>
   <data name="NavigationHeading" xml:space="preserve">
     <value>导航</value>

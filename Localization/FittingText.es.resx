@@ -466,23 +466,32 @@
   <data name="AddBooster" xml:space="preserve">
     <value>Añadir un equipamiento que potencie…</value>
   </data>
+  <data name="TitleAddBooster" xml:space="preserve">
+    <value>Añadir un equipamiento de apoyo</value>
+  </data>
+  <data name="ConfirmAddBooster" xml:space="preserve">
+    <value>Añadir</value>
+  </data>
+  <data name="TipBoosterPilot" xml:space="preserve">
+    <value>Con qué habilidades se calculan las ráfagas y módulos remotos de este equipamiento</value>
+  </data>
   <data name="TipAddBooster" xml:space="preserve">
-    <value>Equipamientos cuyas ráfagas de mando activas potencian este, los que sean. De la misma bonificación de varios, se aplica la más fuerte.</value>
-  </data>
-  <data name="BoosterOpenTab" xml:space="preserve">
-    <value>{0} — pestaña abierta</value>
-  </data>
-  <data name="BoosterSaved" xml:space="preserve">
-    <value>{0} ({1}) — guardado en EVE Console</value>
-  </data>
-  <data name="BoosterDetailTab" xml:space="preserve">
-    <value>pestaña abierta, su piloto</value>
-  </data>
-  <data name="BoosterDetailSaved" xml:space="preserve">
-    <value>equipamiento guardado, Todas a V</value>
+    <value>Equipamientos que ayudan a este, los que sean: sus ráfagas de mando activas (de la misma bonificación de varios, se aplica la más fuerte) y sus reparadores remotos, potenciadores de escudo remotos, transmisores de condensador y drones logísticos (que se suman)</value>
   </data>
   <data name="BoostLine" xml:space="preserve">
     <value>{0}  {1}  · {2}</value>
+  </data>
+  <data name="AssistShield" xml:space="preserve">
+    <value>Potenciación remota de escudo  {0:N1} PV/s  · {1}</value>
+  </data>
+  <data name="AssistArmor" xml:space="preserve">
+    <value>Reparación remota de blindaje  {0:N1} PV/s  · {1}</value>
+  </data>
+  <data name="AssistHull" xml:space="preserve">
+    <value>Reparación remota de estructura  {0:N1} PV/s  · {1}</value>
+  </data>
+  <data name="AssistCapacitor" xml:space="preserve">
+    <value>Transferencia de condensador  {0:N1} GJ/s  · {1}</value>
   </data>
   <data name="ResourcesHeading" xml:space="preserve">
     <value>Recursos</value>
@@ -703,6 +712,15 @@
   <data name="RepairHull" xml:space="preserve">
     <value>Reparación de estructura {0:N1} PV/s ({1:N0} PVE/s)</value>
   </data>
+  <data name="RepairRemoteShield" xml:space="preserve">
+    <value>Potenciación remota de escudo {0:N1} PV/s ({1:N0} PVE/s)</value>
+  </data>
+  <data name="RepairRemoteArmor" xml:space="preserve">
+    <value>Reparación remota de blindaje {0:N1} PV/s ({1:N0} PVE/s)</value>
+  </data>
+  <data name="RepairRemoteHull" xml:space="preserve">
+    <value>Reparación remota de estructura {0:N1} PV/s ({1:N0} PVE/s)</value>
+  </data>
   <data name="RepairCapRunsOut" xml:space="preserve">
     <value>Las reparaciones que usan el condensador se detienen cuando este se agota ({0})</value>
   </data>
@@ -720,6 +738,9 @@
   </data>
   <data name="CapBoosters" xml:space="preserve">
     <value>Potenciadores +{0:0.0} GJ/s</value>
+  </data>
+  <data name="CapTransfers" xml:space="preserve">
+    <value>Transferencias +{0:0.0} GJ/s</value>
   </data>
   <data name="NavigationHeading" xml:space="preserve">
     <value>Navegación</value>

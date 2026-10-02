@@ -466,23 +466,32 @@
   <data name="AddBooster" xml:space="preserve">
     <value>버프 피팅 추가…</value>
   </data>
+  <data name="TitleAddBooster" xml:space="preserve">
+    <value>지원 피팅 추가</value>
+  </data>
+  <data name="ConfirmAddBooster" xml:space="preserve">
+    <value>추가</value>
+  </data>
+  <data name="TipBoosterPilot" xml:space="preserve">
+    <value>이 피팅의 버스트와 원격 모듈을 계산할 스킬</value>
+  </data>
   <data name="TipAddBooster" xml:space="preserve">
-    <value>작동 중인 지휘 버스트로 이 피팅을 강화하는 피팅(개수 제한 없음). 같은 보너스가 여러 개면 가장 강한 것이 적용됩니다.</value>
-  </data>
-  <data name="BoosterOpenTab" xml:space="preserve">
-    <value>{0} — 열린 탭</value>
-  </data>
-  <data name="BoosterSaved" xml:space="preserve">
-    <value>{0} ({1}) — EVE Console에 저장됨</value>
-  </data>
-  <data name="BoosterDetailTab" xml:space="preserve">
-    <value>열린 탭, 해당 파일럿</value>
-  </data>
-  <data name="BoosterDetailSaved" xml:space="preserve">
-    <value>저장된 피팅, 전체 V</value>
+    <value>이 피팅을 지원하는 피팅(개수 제한 없음): 작동 중인 지휘 버스트(같은 보너스가 여럿이면 가장 강한 것 적용)와 원격 수리기, 원격 실드 부스터, 캐패시터 전송기, 로지스틱스 드론(합산)</value>
   </data>
   <data name="BoostLine" xml:space="preserve">
     <value>{0}  {1}  · {2}</value>
+  </data>
+  <data name="AssistShield" xml:space="preserve">
+    <value>원격 실드 부스트  {0:N1} HP/s  · {1}</value>
+  </data>
+  <data name="AssistArmor" xml:space="preserve">
+    <value>원격 장갑 수리  {0:N1} HP/s  · {1}</value>
+  </data>
+  <data name="AssistHull" xml:space="preserve">
+    <value>원격 선체 수리  {0:N1} HP/s  · {1}</value>
+  </data>
+  <data name="AssistCapacitor" xml:space="preserve">
+    <value>캐패시터 전송  {0:N1} GJ/s  · {1}</value>
   </data>
   <data name="ResourcesHeading" xml:space="preserve">
     <value>자원</value>
@@ -697,6 +706,15 @@
   <data name="RepairHull" xml:space="preserve">
     <value>선체 수리 {0:N1} HP/s ({1:N0} EHP/s)</value>
   </data>
+  <data name="RepairRemoteShield" xml:space="preserve">
+    <value>원격 실드 부스트 {0:N1} HP/s ({1:N0} EHP/s)</value>
+  </data>
+  <data name="RepairRemoteArmor" xml:space="preserve">
+    <value>원격 장갑 수리 {0:N1} HP/s ({1:N0} EHP/s)</value>
+  </data>
+  <data name="RepairRemoteHull" xml:space="preserve">
+    <value>원격 선체 수리 {0:N1} HP/s ({1:N0} EHP/s)</value>
+  </data>
   <data name="RepairCapRunsOut" xml:space="preserve">
     <value>캐패시터를 쓰는 수리는 캐패시터가 고갈되면 멈춥니다 ({0})</value>
   </data>
@@ -714,6 +732,9 @@
   </data>
   <data name="CapBoosters" xml:space="preserve">
     <value>부스터 +{0:0.0} GJ/s</value>
+  </data>
+  <data name="CapTransfers" xml:space="preserve">
+    <value>전송 +{0:0.0} GJ/s</value>
   </data>
   <data name="NavigationHeading" xml:space="preserve">
     <value>항해</value>

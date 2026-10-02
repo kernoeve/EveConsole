@@ -198,8 +198,11 @@ public class FitSelectorViewModel : ReactiveObject
 
     /// <summary>The window's title and its confirm button: adding a fit's items to a group, or
     /// opening the fit in the fitting tool.</summary>
-    public string WindowTitle => ChooseGroup ? CommonText.TitleAddItemsFromFit : FittingText.TitleOpenFit;
-    public string ConfirmText => ChooseGroup ? CommonText.AddItems2 : FittingText.LoadFit;
+    public string WindowTitle => TitleOverride ?? (ChooseGroup ? CommonText.TitleAddItemsFromFit : FittingText.TitleOpenFit);
+    public string ConfirmText => ConfirmOverride ?? (ChooseGroup ? CommonText.AddItems2 : FittingText.LoadFit);
+    /// <summary>Another title and confirm button, for a picker used for something else (adding a booster).</summary>
+    public string? TitleOverride   { get; init; }
+    public string? ConfirmOverride { get; init; }
 
     public bool CanConfirm     => _selectedNode?.IsFit == true && (!ChooseGroup || _selectedGroup != null);
 

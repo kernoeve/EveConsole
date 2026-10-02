@@ -620,29 +620,41 @@
     <value>Add a boosting fit…</value>
     <comment>Fitting tool, fleet boosts: placeholder of the pick list of fits (open tabs, saved fits) that can be added as boosters.</comment>
   </data>
+  <data name="TitleAddBooster" xml:space="preserve">
+    <value>Add a Boosting Fit</value>
+    <comment>Fitting tool: title of the fit picker when it is used to add a fit boosting another.</comment>
+  </data>
+  <data name="ConfirmAddBooster" xml:space="preserve">
+    <value>Add</value>
+    <comment>Fitting tool: confirm button of the fit picker when it adds a fit boosting another.</comment>
+  </data>
+  <data name="TipBoosterPilot" xml:space="preserve">
+    <value>Whose skills this fit's bursts and remote modules are worked out with</value>
+    <comment>Fitting tool, fleet boosts: tooltip on the pilot pick list beside a boosting fit.</comment>
+  </data>
   <data name="TipAddBooster" xml:space="preserve">
-    <value>Fits whose running command bursts boost this one — any number. Of the same bonus from several, the strongest applies.</value>
-    <comment>Fitting tool, fleet boosts: tooltip on the section heading and the pick list of boosting fits.</comment>
-  </data>
-  <data name="BoosterOpenTab" xml:space="preserve">
-    <value>{0} — open tab</value>
-    <comment>Fitting tool, fleet boosts pick list: a fit open in another tab. {0} is its tab title.</comment>
-  </data>
-  <data name="BoosterSaved" xml:space="preserve">
-    <value>{0} ({1}) — saved in EVE Console</value>
-    <comment>Fitting tool, fleet boosts pick list: a fit saved in the app. {0} is its name, {1} its hull.</comment>
-  </data>
-  <data name="BoosterDetailTab" xml:space="preserve">
-    <value>open tab, its pilot</value>
-    <comment>Fitting tool, fleet boosts: beside a booster that is a fit open in another tab — worked out with the pilot chosen there.</comment>
-  </data>
-  <data name="BoosterDetailSaved" xml:space="preserve">
-    <value>saved fit, All V</value>
-    <comment>Fitting tool, fleet boosts: beside a booster that is a saved fit — worked out with every skill at level V (All V, as in the pilot list).</comment>
+    <value>Fits that help this one — any number: their running command bursts (of the same bonus from several, the strongest applies), and their remote repairers, shield boosters, capacitor transmitters and logistics drones (which add up)</value>
+    <comment>Fitting tool, fleet boosts: tooltip on the section heading and the button that adds a fit boosting this one.</comment>
   </data>
   <data name="BoostLine" xml:space="preserve">
     <value>{0}  {1}  · {2}</value>
     <comment>Fitting tool, fleet boosts: one bonus reaching the fit. {0} is the bonus's name (from the game), {1} its value (+17.25%), {2} the fit whose burst sends the strongest of it.</comment>
+  </data>
+  <data name="AssistShield" xml:space="preserve">
+    <value>Remote shield boost  {0:N1} HP/s  · {1}</value>
+    <comment>Fitting tool, fleet boosts: shield one boosting fit repairs on this one. {0} HP per second, {1} the boosting fit's name.</comment>
+  </data>
+  <data name="AssistArmor" xml:space="preserve">
+    <value>Remote armor repair  {0:N1} HP/s  · {1}</value>
+    <comment>Fitting tool, fleet boosts: armor one boosting fit repairs on this one.</comment>
+  </data>
+  <data name="AssistHull" xml:space="preserve">
+    <value>Remote hull repair  {0:N1} HP/s  · {1}</value>
+    <comment>Fitting tool, fleet boosts: hull one boosting fit repairs on this one.</comment>
+  </data>
+  <data name="AssistCapacitor" xml:space="preserve">
+    <value>Capacitor transfer  {0:N1} GJ/s  · {1}</value>
+    <comment>Fitting tool, fleet boosts: capacitor one boosting fit's transmitters send this one.</comment>
   </data>
   <data name="ResourcesHeading" xml:space="preserve">
     <value>RESOURCES</value>
@@ -936,6 +948,18 @@
     <value>Hull repair {0:N1} HP/s ({1:N0} EHP/s)</value>
     <comment>Fitting tool, DEFENSE: what the hull repairers repair. {0} hit points per second, {1} the same as effective hit points.</comment>
   </data>
+  <data name="RepairRemoteShield" xml:space="preserve">
+    <value>Remote shield boost {0:N1} HP/s ({1:N0} EHP/s)</value>
+    <comment>Fitting tool, DEFENSE: shield repaired by other fits' remote shield boosters and drones. {0} HP per second, {1} effective HP per second.</comment>
+  </data>
+  <data name="RepairRemoteArmor" xml:space="preserve">
+    <value>Remote armor repair {0:N1} HP/s ({1:N0} EHP/s)</value>
+    <comment>Fitting tool, DEFENSE: armor repaired by other fits' remote armor repairers and drones.</comment>
+  </data>
+  <data name="RepairRemoteHull" xml:space="preserve">
+    <value>Remote hull repair {0:N1} HP/s ({1:N0} EHP/s)</value>
+    <comment>Fitting tool, DEFENSE: hull repaired by other fits' remote hull repairers and drones.</comment>
+  </data>
   <data name="RepairCapRunsOut" xml:space="preserve">
     <value>Repairs that use capacitor stop when it runs out ({0})</value>
     <comment>Fitting tool, DEFENSE: under the repairs when the capacitor is not stable. {0} is how long it lasts ("4 m 10 s").</comment>
@@ -959,6 +983,10 @@
   <data name="CapBoosters" xml:space="preserve">
     <value>Boosters +{0:0.0} GJ/s</value>
     <comment>Fitting tool, CAPACITOR, after the use and recharge: what capacitor boosters put back, in gigajoules per second.</comment>
+  </data>
+  <data name="CapTransfers" xml:space="preserve">
+    <value>Transfers +{0:0.0} GJ/s</value>
+    <comment>Fitting tool, CAPACITOR: capacitor other fits' capacitor transmitters send, on the line with use and recharge.</comment>
   </data>
   <data name="NavigationHeading" xml:space="preserve">
     <value>NAVIGATION</value>
