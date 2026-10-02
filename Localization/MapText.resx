@@ -3047,4 +3047,56 @@ No capital system, so no zone</value>
     <value>Ships: {0}</value>
     <comment>Map hover and system page: hulls reported with no pilot named. {0} is the list, e.g. 3× Loki, Sabre.</comment>
   </data>
+  <data name="JumpRangeTab" xml:space="preserve">
+    <value>Jump range</value>
+    <comment>Map tool: tab and toolbar button for the jump range tool.</comment>
+  </data>
+  <data name="TipJumpRangeTab" xml:space="preserve">
+    <value>Every system a jump drive reaches from a character or a system, ringed on the map</value>
+    <comment>Tooltip on the map tool's Jump range button.</comment>
+  </data>
+  <data name="JumpRangeCharacterNote" xml:space="preserve">
+    <value>Picking a character takes their system, their hull if it has a jump drive, and their Jump Drive Calibration. The range then follows them as they move.</value>
+    <comment>Jump range tab, under the Character picker.</comment>
+  </data>
+  <data name="JumpRangeLandLabel" xml:space="preserve">
+    <value>LAND IN</value>
+    <comment>Jump range tab: label over the choice of which systems count (anywhere, stations and structures, Fortizar/Keepstar, Keepstar).</comment>
+  </data>
+  <data name="TipJumpRangeShowOnMap" xml:space="preserve">
+    <value>Ring the systems in range on the Universe Map's tabs</value>
+    <comment>Tooltip on the Jump range tab's Show on map tick box.</comment>
+  </data>
+  <data name="JumpRangeRulesNote" xml:space="preserve">
+    <value>A jump drive cannot be used in high sec, wormhole space, Pochven or Zarzakh, so none of those are ever in range. Distances are straight-line light years.</value>
+    <comment>Jump range tab: the note at the bottom of the settings.</comment>
+  </data>
+  <data name="JumpRangeColLy" xml:space="preserve">
+    <value>LY</value>
+    <comment>Jump range tab: column of light years from the origin.</comment>
+  </data>
+  <data name="JumpRangeSummary" xml:space="preserve">
+    <value>{0} systems within {1} ly of {2}</value>
+    <comment>Jump range tab: the line above the list. {0} how many systems, {1} the range in light years, {2} the system it is from.</comment>
+  </data>
+  <data name="JumpRangeFollowing" xml:space="preserve">
+    <value>Following {0} as they move</value>
+    <comment>Jump range tab, under From: the range is from a character's current system and follows them. {0} the character.</comment>
+  </data>
+  <data name="JumpRangeHighSec" xml:space="preserve">
+    <value>A jump drive cannot be used in high sec ({0}).</value>
+    <comment>Jump range tab: the origin is a high-sec system. {0} the system.</comment>
+  </data>
+  <data name="JumpRangeNoDrive" xml:space="preserve">
+    <value>A jump drive cannot be used in {0}.</value>
+    <comment>Jump range tab: the origin is wormhole space, Pochven or Zarzakh. {0} the system.</comment>
+  </data>
+  <data name="JumpRangeNothing" xml:space="preserve">
+    <value>Nothing is in range.</value>
+    <comment>Jump range tab: no system within range of the origin.</comment>
+  </data>
+  <data name="LegendJumpRange" xml:space="preserve">
+    <value>In jump range of the Jump range tab's system (the heavier ring)</value>
+    <comment>Map legend: the green ring the jump range tool draws.</comment>
+  </data>
 </root>

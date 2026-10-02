@@ -37,6 +37,9 @@ public sealed record MapMarkers(
     IReadOnlyList<MapMarkRow>? OwnRows     = null,
     bool Reported = false);
 
+/// <summary>The jump range tab's answer: where it is from, and every system in range.</summary>
+public sealed record MapJumpRange(int OriginId, IReadOnlySet<int> Systems);
+
 /// <summary>One line of a mark's hover: the pilot's portrait in front of it, and the ship's icon
 /// just before the ship's name in it.</summary>
 /// <param name="ShipAt">Where in <see cref="Text"/> the ship's name starts, so the icon goes
@@ -187,6 +190,17 @@ public class MapCanvas : Control
     }
 
     /// <summary>Systems on the route avoid list, ringed in red where systems are drawn.</summary>
+    /// <summary>Systems a jump drive reaches from the jump range tab's system, ringed; the
+    /// origin ringed heavier.</summary>
+    public static readonly StyledProperty<MapJumpRange?> JumpRangeProperty =
+        AvaloniaProperty.Register<MapCanvas, MapJumpRange?>(nameof(JumpRange));
+
+    public MapJumpRange? JumpRange
+    {
+        get => GetValue(JumpRangeProperty);
+        set => SetValue(JumpRangeProperty, value);
+    }
+
     public static readonly StyledProperty<IReadOnlyCollection<int>?> AvoidedProperty =
         AvaloniaProperty.Register<MapCanvas, IReadOnlyCollection<int>?>(nameof(Avoided));
 
@@ -246,7 +260,7 @@ public class MapCanvas : Control
 
     static MapCanvas()
     {
-        AffectsRender<MapCanvas>(GraphProperty, OverlayProperty, SelectedIdProperty, BadgesProperty, MarkersProperty, BridgesProperty, RoutesProperty, AvoidedProperty, HolesProperty, HoleLinksProperty, StormsProperty, CampaignsProperty);
+        AffectsRender<MapCanvas>(GraphProperty, OverlayProperty, SelectedIdProperty, BadgesProperty, MarkersProperty, BridgesProperty, RoutesProperty, AvoidedProperty, JumpRangeProperty, HolesProperty, HoleLinksProperty, StormsProperty, CampaignsProperty);
     }
 
     public MapCanvas()
@@ -807,6 +821,20 @@ public class MapCanvas : Control
                     : new Rect(p.X - NodeRadius, p.Y - NodeRadius, NodeRadius * 2, NodeRadius * 2), useBoxes));
         }
 
+        // In jump range: a green ring on each system, a heavier one on the origin. On the
+        // zoomed-out tier, a region holding any of them is ringed instead.
+        if (JumpRange is { } range)
+        {
+            var systemTier = !g.IsContinuous || _activeTier == 1;
+            var ringed = systemTier
+                ? range.Systems
+                : range.Systems.Select(id => _byId.TryGetValue(id, out var sn) ? sn.RegionId : 0)
+                       .Append(_byId.TryGetValue(range.OriginId, out var on) ? on.RegionId : 0)
+                       .Where(r => r != 0).ToHashSet();
+            foreach (var id in ringed) DrawRangeRing(ctx, id, RangePen);
+            if (systemTier) DrawRangeRing(ctx, range.OriginId, RangeOriginPen);
+        }
+
         // Avoided systems, ringed over their node, where systems are drawn.
         if (Avoided is { Count: > 0 } avoided && (!g.IsContinuous || _activeTier == 1))
             foreach (var id in avoided)
@@ -1299,6 +1327,18 @@ public class MapCanvas : Control
         ctx.DrawRectangle(HoleBrush, MarkPen, new RoundedRect(rect, 3));
         ctx.DrawText(text, new Point(rect.Center.X - text.Width / 2, rect.Center.Y - text.Height / 2));
         _badgeTips.Add((rect.Inflate(2), h.Title, h.Detail, null));
+    }
+
+    private IPen RangePen       => new Pen(Palette.Good, 1.6);
+    private IPen RangeOriginPen => new Pen(Palette.Good, 3);
+
+    private void DrawRangeRing(DrawingContext ctx, int id, IPen pen)
+    {
+        if (!_byId.TryGetValue(id, out var n)) return;
+        if (_nodeRects.TryGetValue(id, out var box)) { ctx.DrawRectangle(null, pen, box.Inflate(5), 5, 5); return; }
+        var at = ToScreen(n.X, n.Y);
+        if (at.X < -20 || at.Y < -20 || at.X > Bounds.Width + 20 || at.Y > Bounds.Height + 20) return;
+        ctx.DrawEllipse(null, pen, at, NodeRadius + 6, NodeRadius + 6);
     }
 
     private static readonly IBrush MarkInk = new ImmutableSolidColorBrush(Color.Parse("#ffffff"));

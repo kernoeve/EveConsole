@@ -115,6 +115,11 @@
             <views:CampaignsView />
           </Panel>
         </DataTemplate>
+        <DataTemplate DataType="vm:JumpRangeTabViewModel">
+          <Panel IsVisible="{Binding IsSelected}">
+            <views:JumpRangeView />
+          </Panel>
+        </DataTemplate>
         <DataTemplate DataType="vm:JumpPlannerTabViewModel">
           <Panel IsVisible="{Binding IsSelected}">
             <views:JumpPlannerView DataContext="{Binding Planner}" />

@@ -2246,4 +2246,43 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   <data name="LiveShipsRow" xml:space="preserve">
     <value>함선: {0}</value>
   </data>
+  <data name="JumpRangeTab" xml:space="preserve">
+    <value>점프 범위</value>
+  </data>
+  <data name="TipJumpRangeTab" xml:space="preserve">
+    <value>캐릭터나 성계에서 점프 드라이브로 닿는 모든 성계를 지도에 표시합니다</value>
+  </data>
+  <data name="JumpRangeCharacterNote" xml:space="preserve">
+    <value>캐릭터를 고르면 그 성계, 점프 드라이브가 있다면 그 함선, Jump Drive Calibration을 가져옵니다. 이후 범위는 캐릭터가 움직이는 대로 따라갑니다.</value>
+  </data>
+  <data name="JumpRangeLandLabel" xml:space="preserve">
+    <value>도착 성계</value>
+  </data>
+  <data name="TipJumpRangeShowOnMap" xml:space="preserve">
+    <value>범위 안의 성계를 우주 지도 탭에 표시합니다</value>
+  </data>
+  <data name="JumpRangeRulesNote" xml:space="preserve">
+    <value>점프 드라이브는 하이섹, 웜홀 우주, 포크벤, 자르자크에서 쓸 수 없으므로 그곳은 범위에 들지 않습니다. 거리는 직선 광년입니다.</value>
+  </data>
+  <data name="JumpRangeColLy" xml:space="preserve">
+    <value>광년</value>
+  </data>
+  <data name="JumpRangeSummary" xml:space="preserve">
+    <value>{2}에서 {1}광년 이내 성계 {0}개</value>
+  </data>
+  <data name="JumpRangeFollowing" xml:space="preserve">
+    <value>{0}의 이동을 따라가는 중</value>
+  </data>
+  <data name="JumpRangeHighSec" xml:space="preserve">
+    <value>하이섹에서는 점프 드라이브를 쓸 수 없습니다({0}).</value>
+  </data>
+  <data name="JumpRangeNoDrive" xml:space="preserve">
+    <value>{0}에서는 점프 드라이브를 쓸 수 없습니다.</value>
+  </data>
+  <data name="JumpRangeNothing" xml:space="preserve">
+    <value>범위 안에 아무것도 없습니다.</value>
+  </data>
+  <data name="LegendJumpRange" xml:space="preserve">
+    <value>점프 범위 탭의 성계에서 점프 범위 안(굵은 고리가 출발 성계)</value>
+  </data>
 </root>

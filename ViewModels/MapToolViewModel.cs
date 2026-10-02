@@ -86,6 +86,7 @@ public sealed class MapToolViewModel : ReactiveObject
         ShowBridgesTabCommand = ReactiveCommand.Create(() => { ShowBridgesTab(); });
         ShowRouteTabCommand   = ReactiveCommand.Create(() => { ShowRouteTab(); });
         ShowJumpPlannerTabCommand = ReactiveCommand.Create(() => { ShowJumpPlannerTab(); });
+        ShowJumpRangeTabCommand   = ReactiveCommand.Create(() => { ShowJumpRangeTab(); });
         ShowCampaignsTabCommand   = ReactiveCommand.Create(() => { ShowCampaignsTab(); });
 
         // The avoid list is ringed on every map, whoever changed it.
@@ -161,6 +162,7 @@ public sealed class MapToolViewModel : ReactiveObject
 
     public ReactiveCommand<Unit, Unit> ShowRouteTabCommand       { get; }
     public ReactiveCommand<Unit, Unit> ShowJumpPlannerTabCommand { get; }
+    public ReactiveCommand<Unit, Unit> ShowJumpRangeTabCommand   { get; }
 
     public bool HasRoutes      => _routes is not null;
     public bool HasCampaigns   => _campaigns is not null;
@@ -264,6 +266,31 @@ public sealed class MapToolViewModel : ReactiveObject
         return tab;
     }
 
+    /// <summary>What a jump drive reaches from a system: one tab, brought forward if open.</summary>
+    public JumpRangeTabViewModel? ShowJumpRangeTab()
+    {
+        if (_jumpPlanner is null) return null;
+        if (AllTabs.OfType<JumpRangeTabViewModel>().FirstOrDefault() is { } open)
+        {
+            SelectedTab = open;
+            return open;
+        }
+        var tab = new JumpRangeTabViewModel(this, _jumpPlanner.Service, _map, _db);
+        Add(tab);
+        return tab;
+    }
+
+    /// <summary>The jump range on the maps, and the tab it is from.</summary>
+    private (MapTabViewModel Owner, MapJumpRange Range)? _jumpRange;
+
+    /// <summary>Puts the jump range tab's systems on every map, or takes them off (null). UI thread.</summary>
+    public void SetJumpRange(MapTabViewModel owner, MapJumpRange? range)
+    {
+        if (range is null && _jumpRange?.Owner != owner) return;
+        _jumpRange = range is null ? null : (owner, range);
+        foreach (var t in AllTabs.OfType<UniverseTabViewModel>()) t.Map.JumpRange = range;
+    }
+
     /// <summary>The routes on the maps, by the tab that planned them. A tab's route goes when it
     /// clears it, turns Show on map off, or closes.</summary>
     private readonly Dictionary<MapTabViewModel, IReadOnlyList<MapRouteStep>> _routeByTab = new();
@@ -318,6 +345,7 @@ public sealed class MapToolViewModel : ReactiveObject
         if (_snapshot is { } live) tab.ApplyLive(live);
         map.Bridges = _bridgeLines;
         map.Routes  = _routeList;
+        map.JumpRange = _jumpRange?.Range;
         map.ClearRoutesRequested = ClearAllRoutes;
         tab.ApplyHoles(_holeList, _stormList, _eveScout?.Enabled == true);
         tab.ApplyCampaigns(_campaignList, _campaigns is not null);
@@ -346,8 +374,9 @@ public sealed class MapToolViewModel : ReactiveObject
     {
         var pane = tab.Pane;
         if (!TakeOut(tab)) return;
-        // A planning tool's route goes with it.
+        // A planning tool's route goes with it, and the jump range with its tab.
         SetRoute(tab, null);
+        SetJumpRange(tab, null);
         tab.OnClosed();
         if (pane == _activePane) this.RaisePropertyChanged(nameof(SelectedTab));
         PanesChanged();

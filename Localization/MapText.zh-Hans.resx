@@ -2246,4 +2246,43 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   <data name="LiveShipsRow" xml:space="preserve">
     <value>舰船：{0}</value>
   </data>
+  <data name="JumpRangeTab" xml:space="preserve">
+    <value>跳跃范围</value>
+  </data>
+  <data name="TipJumpRangeTab" xml:space="preserve">
+    <value>从角色或星系出发，跳跃引擎能到达的所有星系，在地图上圈出</value>
+  </data>
+  <data name="JumpRangeCharacterNote" xml:space="preserve">
+    <value>选择角色会采用其所在星系、其舰船（若装有跳跃引擎）以及其跳跃引擎校准技能等级。之后范围会随角色移动而更新。</value>
+  </data>
+  <data name="JumpRangeLandLabel" xml:space="preserve">
+    <value>落点</value>
+  </data>
+  <data name="TipJumpRangeShowOnMap" xml:space="preserve">
+    <value>在宇宙地图标签页上圈出范围内的星系</value>
+  </data>
+  <data name="JumpRangeRulesNote" xml:space="preserve">
+    <value>跳跃引擎不能在高安、虫洞空间、波赫文或扎尔扎赫使用，因此这些地方永远不在范围内。距离为直线光年。</value>
+  </data>
+  <data name="JumpRangeColLy" xml:space="preserve">
+    <value>光年</value>
+  </data>
+  <data name="JumpRangeSummary" xml:space="preserve">
+    <value>{2} {1} 光年内有 {0} 个星系</value>
+  </data>
+  <data name="JumpRangeFollowing" xml:space="preserve">
+    <value>随 {0} 的移动更新</value>
+  </data>
+  <data name="JumpRangeHighSec" xml:space="preserve">
+    <value>高安星系无法使用跳跃引擎（{0}）。</value>
+  </data>
+  <data name="JumpRangeNoDrive" xml:space="preserve">
+    <value>{0} 无法使用跳跃引擎。</value>
+  </data>
+  <data name="JumpRangeNothing" xml:space="preserve">
+    <value>范围内没有星系。</value>
+  </data>
+  <data name="LegendJumpRange" xml:space="preserve">
+    <value>在跳跃范围标签页所选星系的跳跃范围内（粗圈为出发星系）</value>
+  </data>
 </root>

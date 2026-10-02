@@ -344,6 +344,11 @@ public static class AppKnowledge
         add or remove it). Lists each jump with security, hostiles and last-hour kills; Show on
         map draws it, Set destination sends it to the game's autopilot.
 
+        ### Jump Range
+        A Universe Map tab. Every system a jump drive reaches from a character's system (taking
+        their hull and Jump Drive Calibration, and following them as they move) or any system,
+        nearest first, optionally only where you can dock; ringed green on the map.
+
         ### Jump Planner
         A Universe Map tab. Plans a capital jump route. Pick a jump-capable hull, Jump Drive Calibration and Jump Fuel
         Conservation levels (the range per jump is shown) and a Jump Through rule for where

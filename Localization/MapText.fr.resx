@@ -2288,4 +2288,43 @@ Pas de système capitale, donc pas de zone</value>
   <data name="LiveShipsRow" xml:space="preserve">
     <value>Vaisseaux : {0}</value>
   </data>
+  <data name="JumpRangeTab" xml:space="preserve">
+    <value>Portée de saut</value>
+  </data>
+  <data name="TipJumpRangeTab" xml:space="preserve">
+    <value>Tous les systèmes qu'un moteur de saut atteint depuis un personnage ou un système, entourés sur la carte</value>
+  </data>
+  <data name="JumpRangeCharacterNote" xml:space="preserve">
+    <value>Choisir un personnage reprend son système, sa coque si elle a un moteur de saut et sa Jump Drive Calibration. La portée le suit ensuite quand il se déplace.</value>
+  </data>
+  <data name="JumpRangeLandLabel" xml:space="preserve">
+    <value>ARRIVER DANS</value>
+  </data>
+  <data name="TipJumpRangeShowOnMap" xml:space="preserve">
+    <value>Entourer les systèmes à portée sur les onglets de la carte de l'univers</value>
+  </data>
+  <data name="JumpRangeRulesNote" xml:space="preserve">
+    <value>Un moteur de saut ne peut pas être utilisé en haute sécurité, dans l'espace des trous de ver, à Pochven ni à Zarzakh : aucun d'eux n'est donc jamais à portée. Les distances sont des années-lumière en ligne droite.</value>
+  </data>
+  <data name="JumpRangeColLy" xml:space="preserve">
+    <value>AL</value>
+  </data>
+  <data name="JumpRangeSummary" xml:space="preserve">
+    <value>{0} systèmes à moins de {1} al de {2}</value>
+  </data>
+  <data name="JumpRangeFollowing" xml:space="preserve">
+    <value>Suit {0} quand il se déplace</value>
+  </data>
+  <data name="JumpRangeHighSec" xml:space="preserve">
+    <value>Un moteur de saut ne peut pas être utilisé en haute sécurité ({0}).</value>
+  </data>
+  <data name="JumpRangeNoDrive" xml:space="preserve">
+    <value>Un moteur de saut ne peut pas être utilisé à {0}.</value>
+  </data>
+  <data name="JumpRangeNothing" xml:space="preserve">
+    <value>Rien n'est à portée.</value>
+  </data>
+  <data name="LegendJumpRange" xml:space="preserve">
+    <value>À portée de saut du système de l'onglet Portée de saut (l'anneau plus épais)</value>
+  </data>
 </root>

@@ -2288,4 +2288,43 @@ Sin sistema capital, así que sin zona</value>
   <data name="LiveShipsRow" xml:space="preserve">
     <value>Naves: {0}</value>
   </data>
+  <data name="JumpRangeTab" xml:space="preserve">
+    <value>Alcance de salto</value>
+  </data>
+  <data name="TipJumpRangeTab" xml:space="preserve">
+    <value>Todos los sistemas que alcanza un motor de salto desde un personaje o un sistema, marcados en el mapa</value>
+  </data>
+  <data name="JumpRangeCharacterNote" xml:space="preserve">
+    <value>Elegir un personaje toma su sistema, su casco si tiene motor de salto y su Jump Drive Calibration. Después, el alcance le sigue cuando se mueve.</value>
+  </data>
+  <data name="JumpRangeLandLabel" xml:space="preserve">
+    <value>ATERRIZAR EN</value>
+  </data>
+  <data name="TipJumpRangeShowOnMap" xml:space="preserve">
+    <value>Marcar los sistemas al alcance en las pestañas del mapa del universo</value>
+  </data>
+  <data name="JumpRangeRulesNote" xml:space="preserve">
+    <value>Un motor de salto no puede usarse en alta seguridad, espacio de agujeros de gusano, Pochven ni Zarzakh, así que ninguno de ellos está nunca al alcance. Las distancias son años luz en línea recta.</value>
+  </data>
+  <data name="JumpRangeColLy" xml:space="preserve">
+    <value>AL</value>
+  </data>
+  <data name="JumpRangeSummary" xml:space="preserve">
+    <value>{0} sistemas a menos de {1} al de {2}</value>
+  </data>
+  <data name="JumpRangeFollowing" xml:space="preserve">
+    <value>Siguiendo a {0} mientras se mueve</value>
+  </data>
+  <data name="JumpRangeHighSec" xml:space="preserve">
+    <value>Un motor de salto no puede usarse en alta seguridad ({0}).</value>
+  </data>
+  <data name="JumpRangeNoDrive" xml:space="preserve">
+    <value>Un motor de salto no puede usarse en {0}.</value>
+  </data>
+  <data name="JumpRangeNothing" xml:space="preserve">
+    <value>No hay nada al alcance.</value>
+  </data>
+  <data name="LegendJumpRange" xml:space="preserve">
+    <value>Al alcance de salto del sistema de la pestaña Alcance de salto (el anillo más grueso)</value>
+  </data>
 </root>

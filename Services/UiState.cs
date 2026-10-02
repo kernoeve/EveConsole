@@ -34,6 +34,7 @@ public static class UiState
     public const string UniverseCampaigns    = "universe.campaigns";
     public const string RouteShowOnMap       = "route.show_on_map";
     public const string JumpPlannerShowOnMap = "jumpplanner.show_on_map";
+    public const string JumpRangeShowOnMap   = "jumprange.show_on_map";
     public const string OverviewPeriodHours  = "overview.period_hours";
     public const string MarketSource         = "itembrowser.market_source";
     public const string CollapsedGroups      = "invlevels.collapsed_groups";

@@ -90,6 +90,9 @@ public sealed class JumpPlannerViewModel : ReactiveObject
 {
     private readonly JumpPlannerService _planner;
 
+    /// <summary>The service behind the planner, for the map tool's jump range tab.</summary>
+    public JumpPlannerService Service => _planner;
+
     public JumpPlannerViewModel(JumpPlannerService planner)
     {
         _planner = planner;

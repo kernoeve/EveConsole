@@ -146,6 +146,7 @@
                       Bridges="{Binding VisibleBridges}"
                       Routes="{Binding Routes}"
                       Avoided="{Binding Avoided}"
+                      JumpRange="{Binding JumpRange}"
                       Holes="{Binding VisibleHoles}"
                       Storms="{Binding VisibleStorms}"
                       Campaigns="{Binding VisibleCampaigns}"
@@ -280,6 +281,11 @@
               <Line StartPoint="0,6" EndPoint="11,6" Stroke="#c084fc" StrokeThickness="1.8" StrokeDashArray="2,1.5"
                     VerticalAlignment="Center" />
               <TextBlock Text="{x:Static loc:MapText.LegendJumpBridge}" FontSize="10.5" TextWrapping="Wrap"
+                         Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" MaxWidth="170" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="7" IsVisible="{Binding HasJumpRange}">
+              <Ellipse Width="12" Height="12" Stroke="{DynamicResource GoodBrush}" StrokeThickness="1.6" VerticalAlignment="Center" />
+              <TextBlock Text="{x:Static loc:MapText.LegendJumpRange}" FontSize="10.5" TextWrapping="Wrap"
                          Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" MaxWidth="170" />
             </StackPanel>
             <StackPanel Orientation="Horizontal" Spacing="7" IsVisible="{Binding HolesAvailable}">

@@ -44,6 +44,16 @@ public enum JumpMidpoints
     KeepstarSystems,
 }
 
+/// <summary>A system a jump drive reaches from where it is, and how far it is.</summary>
+public sealed record JumpRangeSystem(int Id, string Name, string Region, int RegionId, double Security, double Ly)
+{
+    public string Label       => SdeNames.SolarSystem(Id, Name);
+    public string RegionLabel => SdeNames.Region(RegionId, Region);
+}
+
+/// <summary>Everything in range of one system, or why nothing can be.</summary>
+public sealed record JumpRangeResult(double RangeLy, IReadOnlyList<JumpRangeSystem> Systems, string? Problem);
+
 /// <summary>One jump in a planned route.</summary>
 public sealed record JumpLeg(
     int    FromSystemId,
@@ -132,6 +142,13 @@ public sealed class JumpPlannerService
     /// </summary>
     private static readonly HashSet<int> JoveRegionIds = [10_000_004, 10_000_017, 10_000_019];
 
+    /// <summary>
+    /// Pochven and Yasna Zakh (Zarzakh): null-sec by their security, but no cynosural field can
+    /// be lit in either, so a jump drive can never land there. Without this the planner took
+    /// both for ordinary null sec.
+    /// </summary>
+    private static readonly HashSet<int> NoCynoRegionIds = [10_000_070, 10_001_000];
+
     private List<Node>? _systems;
     private Dictionary<int, MapPoint>? _mapPoints;
     private readonly SemaphoreSlim _gate = new(1, 1);
@@ -216,7 +233,7 @@ public sealed class JumpPlannerService
             // cluster at null-sec security, with no gate in or out — were perfectly good
             // midpoints as far as the search was concerned, and no player can go there.
             _systems = rows
-                .Where(r => !JoveRegionIds.Contains(r.RegionId))
+                .Where(r => !JoveRegionIds.Contains(r.RegionId) && !NoCynoRegionIds.Contains(r.RegionId))
                 .Select(r => new Node(r.SolarSystemId, r.Name, r.Region, r.RegionId, r.Security, r.X, r.Y, r.Z))
                 .ToList();
 
@@ -663,6 +680,40 @@ public sealed class JumpPlannerService
         }
 
         return result.OrderBy(r => r.InLy + r.OutLy).ToList();
+    }
+
+    /// <summary>
+    /// Every system a jump drive of <paramref name="rangeLy"/> reaches from one system, nearest
+    /// first, landing only where <paramref name="landing"/> allows. A drive cannot be used in
+    /// high sec, nor anywhere a cyno cannot be lit, so a start there is a problem rather than an
+    /// empty list.
+    /// </summary>
+    public async Task<JumpRangeResult> InRangeAsync(
+        int fromSystemId, double rangeLy, JumpMidpoints landing = JumpMidpoints.Any, CancellationToken ct = default)
+    {
+        var nodes = await SystemsAsync(ct);
+        var start = nodes.FirstOrDefault(n => n.Id == fromSystemId);
+        if (start is null)
+        {
+            // Not a place a drive can be used: say which kind of not.
+            await using var db = await _dbFactory.CreateDbContextAsync(ct);
+            var s = await db.SdeSolarSystems.AsNoTracking().Where(x => x.SolarSystemId == fromSystemId)
+                .Select(x => new { x.Name, x.Security }).FirstOrDefaultAsync(ct);
+            var name = s is null ? "" : SdeNames.SolarSystem(fromSystemId, s.Name);
+            return new JumpRangeResult(rangeLy, [],
+                s is { Security: >= HighSecFloor } ? string.Format(MapText.JumpRangeHighSec, name)
+                                                   : string.Format(MapText.JumpRangeNoDrive, name));
+        }
+
+        var allowed = await MidpointSetAsync(landing, ct);
+        var list = new List<JumpRangeSystem>();
+        foreach (var n in nodes)
+        {
+            if (n.Id == start.Id || (allowed is not null && !allowed.Contains(n.Id))) continue;
+            var ly = DistanceLy(start, n);
+            if (ly <= rangeLy) list.Add(new JumpRangeSystem(n.Id, n.Name, n.Region, n.RegionId, n.Security, ly));
+        }
+        return new JumpRangeResult(rangeLy, [.. list.OrderBy(x => x.Ly)], null);
     }
 
     private static double DistanceLy(Node a, Node b)

@@ -2246,4 +2246,43 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   <data name="LiveShipsRow" xml:space="preserve">
     <value>艦船：{0}</value>
   </data>
+  <data name="JumpRangeTab" xml:space="preserve">
+    <value>ジャンプ範囲</value>
+  </data>
+  <data name="TipJumpRangeTab" xml:space="preserve">
+    <value>キャラクターまたはシステムからジャンプドライブで届くすべてのシステムを、マップ上で囲んで表示します</value>
+  </data>
+  <data name="JumpRangeCharacterNote" xml:space="preserve">
+    <value>キャラクターを選ぶと、そのシステム、ジャンプドライブ搭載ならその船体、Jump Drive Calibrationを使います。その後、範囲はキャラクターの移動に合わせて追従します。</value>
+  </data>
+  <data name="JumpRangeLandLabel" xml:space="preserve">
+    <value>到着先</value>
+  </data>
+  <data name="TipJumpRangeShowOnMap" xml:space="preserve">
+    <value>範囲内のシステムを宇宙マップのタブで囲んで表示します</value>
+  </data>
+  <data name="JumpRangeRulesNote" xml:space="preserve">
+    <value>ジャンプドライブはハイセク、ワームホール空間、ポクヴェン、ザルザフでは使えないため、それらが範囲に入ることはありません。距離は直線の光年です。</value>
+  </data>
+  <data name="JumpRangeColLy" xml:space="preserve">
+    <value>光年</value>
+  </data>
+  <data name="JumpRangeSummary" xml:space="preserve">
+    <value>{2}から{1}光年以内に{0}システム</value>
+  </data>
+  <data name="JumpRangeFollowing" xml:space="preserve">
+    <value>{0}の移動に追従中</value>
+  </data>
+  <data name="JumpRangeHighSec" xml:space="preserve">
+    <value>ハイセクではジャンプドライブを使えません（{0}）。</value>
+  </data>
+  <data name="JumpRangeNoDrive" xml:space="preserve">
+    <value>{0}ではジャンプドライブを使えません。</value>
+  </data>
+  <data name="JumpRangeNothing" xml:space="preserve">
+    <value>範囲内に何もありません。</value>
+  </data>
+  <data name="LegendJumpRange" xml:space="preserve">
+    <value>ジャンプ範囲タブのシステムからジャンプ範囲内（太い輪がそのシステム）</value>
+  </data>
 </root>

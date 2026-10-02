@@ -2288,4 +2288,43 @@ Kein Hauptstadtsystem, daher keine Zone</value>
   <data name="LiveShipsRow" xml:space="preserve">
     <value>Schiffe: {0}</value>
   </data>
+  <data name="JumpRangeTab" xml:space="preserve">
+    <value>Sprungreichweite</value>
+  </data>
+  <data name="TipJumpRangeTab" xml:space="preserve">
+    <value>Alle Systeme, die ein Sprungantrieb von einem Charakter oder System aus erreicht, auf der Karte umrandet</value>
+  </data>
+  <data name="JumpRangeCharacterNote" xml:space="preserve">
+    <value>Die Wahl eines Charakters übernimmt sein System, seinen Rumpf, falls dieser einen Sprungantrieb hat, und seine Jump Drive Calibration. Die Reichweite folgt ihm dann, wenn er sich bewegt.</value>
+  </data>
+  <data name="JumpRangeLandLabel" xml:space="preserve">
+    <value>LANDEN IN</value>
+  </data>
+  <data name="TipJumpRangeShowOnMap" xml:space="preserve">
+    <value>Die Systeme in Reichweite auf den Tabs der Universumskarte umranden</value>
+  </data>
+  <data name="JumpRangeRulesNote" xml:space="preserve">
+    <value>Ein Sprungantrieb kann in Hochsicherheit, im Wurmlochraum, in Pochven oder in Zarzakh nicht benutzt werden, daher liegt keines davon je in Reichweite. Entfernungen sind Lichtjahre in gerader Linie.</value>
+  </data>
+  <data name="JumpRangeColLy" xml:space="preserve">
+    <value>LJ</value>
+  </data>
+  <data name="JumpRangeSummary" xml:space="preserve">
+    <value>{0} Systeme innerhalb von {1} LJ von {2}</value>
+  </data>
+  <data name="JumpRangeFollowing" xml:space="preserve">
+    <value>Folgt {0}, wenn er sich bewegt</value>
+  </data>
+  <data name="JumpRangeHighSec" xml:space="preserve">
+    <value>In Hochsicherheit kann kein Sprungantrieb benutzt werden ({0}).</value>
+  </data>
+  <data name="JumpRangeNoDrive" xml:space="preserve">
+    <value>In {0} kann kein Sprungantrieb benutzt werden.</value>
+  </data>
+  <data name="JumpRangeNothing" xml:space="preserve">
+    <value>Nichts ist in Reichweite.</value>
+  </data>
+  <data name="LegendJumpRange" xml:space="preserve">
+    <value>In Sprungreichweite des Systems im Tab Sprungreichweite (der dickere Ring)</value>
+  </data>
 </root>

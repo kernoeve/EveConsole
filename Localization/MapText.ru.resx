@@ -2372,4 +2372,43 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   <data name="LiveShipsRow" xml:space="preserve">
     <value>Корабли: {0}</value>
   </data>
+  <data name="JumpRangeTab" xml:space="preserve">
+    <value>Дальность прыжка</value>
+  </data>
+  <data name="TipJumpRangeTab" xml:space="preserve">
+    <value>Все системы, до которых достаёт прыжковый двигатель от персонажа или системы, обведены на карте</value>
+  </data>
+  <data name="JumpRangeCharacterNote" xml:space="preserve">
+    <value>При выборе персонажа берутся его система, его корпус, если у него есть прыжковый двигатель, и его Jump Drive Calibration. Дальше дальность следует за ним, когда он перемещается.</value>
+  </data>
+  <data name="JumpRangeLandLabel" xml:space="preserve">
+    <value>ПРИЗЕМЛЕНИЕ</value>
+  </data>
+  <data name="TipJumpRangeShowOnMap" xml:space="preserve">
+    <value>Обвести системы в пределах дальности на вкладках карты вселенной</value>
+  </data>
+  <data name="JumpRangeRulesNote" xml:space="preserve">
+    <value>Прыжковый двигатель нельзя использовать в хайсеке, в пространстве червоточин, в Почвене и в Зарзахе, поэтому они никогда не попадают в дальность. Расстояния — световые годы по прямой.</value>
+  </data>
+  <data name="JumpRangeColLy" xml:space="preserve">
+    <value>СВ. Л.</value>
+  </data>
+  <data name="JumpRangeSummary" xml:space="preserve">
+    <value>{0} систем в пределах {1} св. л. от {2}</value>
+  </data>
+  <data name="JumpRangeFollowing" xml:space="preserve">
+    <value>Следует за {0} при перемещении</value>
+  </data>
+  <data name="JumpRangeHighSec" xml:space="preserve">
+    <value>В хайсеке прыжковый двигатель использовать нельзя ({0}).</value>
+  </data>
+  <data name="JumpRangeNoDrive" xml:space="preserve">
+    <value>В {0} прыжковый двигатель использовать нельзя.</value>
+  </data>
+  <data name="JumpRangeNothing" xml:space="preserve">
+    <value>В пределах дальности ничего нет.</value>
+  </data>
+  <data name="LegendJumpRange" xml:space="preserve">
+    <value>В дальности прыжка от системы вкладки «Дальность прыжка» (толстое кольцо — сама система)</value>
+  </data>
 </root>

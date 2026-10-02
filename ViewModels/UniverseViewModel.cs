@@ -460,6 +460,15 @@ public class UniverseViewModel : ReactiveObject
     public IReadOnlyDictionary<int, MapHoleMark>? VisibleHoles     => _showHoles ? _holes : null;
     public IReadOnlyList<MapHoleLink>?            VisibleHoleLinks => _showHoles ? _holeLinks : null;
 
+    /// <summary>The jump range tab's systems, ringed on the map; null for none. Pushed in by the map tool.</summary>
+    private MapJumpRange? _jumpRange;
+    public MapJumpRange? JumpRange
+    {
+        get => _jumpRange;
+        set { this.RaiseAndSetIfChanged(ref _jumpRange, value); this.RaisePropertyChanged(nameof(HasJumpRange)); }
+    }
+    public bool HasJumpRange => _jumpRange is not null;
+
     /// <summary>The route avoid list, ringed on the map. Pushed in by the map tool.</summary>
     private IReadOnlyCollection<int>? _avoided = RouteAvoidList.Ids;
     public IReadOnlyCollection<int>? Avoided
