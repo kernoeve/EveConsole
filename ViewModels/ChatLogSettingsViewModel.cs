@@ -126,7 +126,6 @@ public class ChatLogSettingsViewModel : ReactiveObject
         ParseIntelHistoryCommand.ThrownExceptions.Subscribe(ex => IntelStatus = string.Format(CommonText.ErrorWithMessage, ex.Message));
         AddDirectoryCommand    = ReactiveCommand.CreateFromTask(AddDirectoryAsync);
         RemoveDirectoryCommand = ReactiveCommand.CreateFromTask(RemoveDirectoryAsync);
-        DetectDirectoryCommand = ReactiveCommand.CreateFromTask(DetectDirectoryAsync);
         OpenDirectoryCommand   = ReactiveCommand.Create(OpenSelectedDirectory);
 
         _pathProbe = new ThrottledUiProbe(TimeSpan.FromSeconds(30),
@@ -187,7 +186,6 @@ public class ChatLogSettingsViewModel : ReactiveObject
 
     public ReactiveCommand<Unit, Unit> AddDirectoryCommand    { get; }
     public ReactiveCommand<Unit, Unit> RemoveDirectoryCommand { get; }
-    public ReactiveCommand<Unit, Unit> DetectDirectoryCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenDirectoryCommand   { get; }
 
     private string _resolvedPaths = "";
@@ -393,18 +391,6 @@ public class ChatLogSettingsViewModel : ReactiveObject
         if (SelectedDirectory is null) return;
         Directories.Remove(SelectedDirectory);
         await SaveDirectoriesAsync();
-    }
-
-    private async Task DetectDirectoryAsync()
-    {
-        var auto = MonitoringSettings.DefaultChatLogDirectory();
-        if (auto is null) { ResolvedPaths = SettingsText.ChatFolderNotFound; return; }
-
-        if (!Directories.Contains(auto, StringComparer.OrdinalIgnoreCase))
-        {
-            Directories.Add(auto);
-            await SaveDirectoriesAsync();
-        }
     }
 
     private void OpenSelectedDirectory()

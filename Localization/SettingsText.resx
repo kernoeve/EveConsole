@@ -614,10 +614,6 @@
     <value>This computer's own EVE game log folder is always read when it can be found. Add a network path (\\MACHINE\share\Gamelogs) to also import logs from EVE clients running on other computers — nothing needs to be installed on them.</value>
     <comment>Note in SettingsWindow.</comment>
   </data>
-  <data name="Detect" xml:space="preserve">
-    <value>Detect</value>
-    <comment>Button or option in SettingsWindow.</comment>
-  </data>
   <data name="Open" xml:space="preserve">
     <value>Open</value>
     <comment>Button or option in SettingsWindow.</comment>
@@ -3111,10 +3107,6 @@ The application will restart.</value>
     <value>Could not count files — {0}</value>
     <comment>Game/Chat Logs tab, past import. {0} is the reason, in English.</comment>
   </data>
-  <data name="ChatFolderNotFound" xml:space="preserve">
-    <value>Could not find a local EVE chat log folder.</value>
-    <comment>Chat Logs tab, Detect button result.</comment>
-  </data>
   <data name="ChatNoFolder" xml:space="preserve">
     <value>No chat log folder found — add one below.</value>
     <comment>Chat Logs tab, the folders being read.</comment>
@@ -3134,10 +3126,6 @@ The application will restart.</value>
   <data name="GameLogNoFolder" xml:space="preserve">
     <value>No game log folder found — add one below.</value>
     <comment>Game Logs tab, the folders being read.</comment>
-  </data>
-  <data name="GameLogFolderNotFound" xml:space="preserve">
-    <value>Could not find a local EVE game log folder.</value>
-    <comment>Game Logs tab, Detect button result.</comment>
   </data>
   <data name="TimerMinimum" xml:space="preserve">
     <value>(min: {0} {1})</value>

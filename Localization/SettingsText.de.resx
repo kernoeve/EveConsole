@@ -487,9 +487,6 @@
   <data name="LeaveTheListEmptyNote" xml:space="preserve">
     <value>Der eigene EVE-Spielprotokollordner dieses Computers wird immer gelesen, wenn er gefunden wird. Fügen Sie einen Netzwerkpfad hinzu (\\RECHNER\Freigabe\Gamelogs), um zusätzlich Protokolle von EVE-Clients auf anderen Computern zu importieren – dort muss nichts installiert werden.</value>
   </data>
-  <data name="Detect" xml:space="preserve">
-    <value>Erkennen</value>
-  </data>
   <data name="Open" xml:space="preserve">
     <value>Öffnen</value>
   </data>
@@ -2368,9 +2365,6 @@ Die Anwendung wird neu gestartet.</value>
   <data name="LogsCountFailed" xml:space="preserve">
     <value>Dateien konnten nicht gezählt werden – {0}</value>
   </data>
-  <data name="ChatFolderNotFound" xml:space="preserve">
-    <value>Kein lokaler EVE-Ordner für Chatprotokolle gefunden.</value>
-  </data>
   <data name="ChatNoFolder" xml:space="preserve">
     <value>Kein Ordner für Chatprotokolle gefunden – fügen Sie unten einen hinzu.</value>
   </data>
@@ -2385,9 +2379,6 @@ Die Anwendung wird neu gestartet.</value>
   </data>
   <data name="GameLogNoFolder" xml:space="preserve">
     <value>Kein Ordner für Spielprotokolle gefunden – fügen Sie unten einen hinzu.</value>
-  </data>
-  <data name="GameLogFolderNotFound" xml:space="preserve">
-    <value>Kein lokaler EVE-Ordner für Spielprotokolle gefunden.</value>
   </data>
   <data name="TimerMinimum" xml:space="preserve">
     <value>(mind. {0} {1})</value>

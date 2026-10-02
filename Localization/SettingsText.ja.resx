@@ -487,9 +487,6 @@
   <data name="LeaveTheListEmptyNote" xml:space="preserve">
     <value>このコンピューター自身のEVEゲームログフォルダーは、見つかれば常に読み込まれます。ネットワークパス（\\MACHINE\share\Gamelogs）を追加すると、他のコンピューターで動作しているEVEクライアントのログも取り込めます — そのコンピューターには何もインストールする必要はありません。</value>
   </data>
-  <data name="Detect" xml:space="preserve">
-    <value>検出</value>
-  </data>
   <data name="Open" xml:space="preserve">
     <value>開く</value>
   </data>
@@ -2368,9 +2365,6 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
   <data name="LogsCountFailed" xml:space="preserve">
     <value>ファイルを数えられませんでした — {0}</value>
   </data>
-  <data name="ChatFolderNotFound" xml:space="preserve">
-    <value>ローカルのEVEチャットログフォルダーが見つかりませんでした。</value>
-  </data>
   <data name="ChatNoFolder" xml:space="preserve">
     <value>チャットログフォルダーが見つかりません — 下で追加してください。</value>
   </data>
@@ -2385,9 +2379,6 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
   </data>
   <data name="GameLogNoFolder" xml:space="preserve">
     <value>ゲームログフォルダーが見つかりません — 下で追加してください。</value>
-  </data>
-  <data name="GameLogFolderNotFound" xml:space="preserve">
-    <value>ローカルのEVEゲームログフォルダーが見つかりませんでした。</value>
   </data>
   <data name="TimerMinimum" xml:space="preserve">
     <value>（最小：{0} {1}）</value>

@@ -487,9 +487,6 @@
   <data name="LeaveTheListEmptyNote" xml:space="preserve">
     <value>Папка игровых журналов EVE на этом компьютере читается всегда, если её удаётся найти. Добавьте сетевой путь (\\MACHINE\share\Gamelogs), чтобы дополнительно импортировать журналы клиентов EVE, запущенных на других компьютерах, — устанавливать на них ничего не нужно.</value>
   </data>
-  <data name="Detect" xml:space="preserve">
-    <value>Определить</value>
-  </data>
   <data name="Open" xml:space="preserve">
     <value>Открыть</value>
   </data>
@@ -2368,9 +2365,6 @@ EVE Console сразу перезапустится, потому что баз�
   <data name="LogsCountFailed" xml:space="preserve">
     <value>Не удалось посчитать файлы — {0}</value>
   </data>
-  <data name="ChatFolderNotFound" xml:space="preserve">
-    <value>Не удалось найти локальную папку журналов чата EVE.</value>
-  </data>
   <data name="ChatNoFolder" xml:space="preserve">
     <value>Папка журналов чата не найдена — добавьте её ниже.</value>
   </data>
@@ -2385,9 +2379,6 @@ EVE Console сразу перезапустится, потому что баз�
   </data>
   <data name="GameLogNoFolder" xml:space="preserve">
     <value>Папка игровых журналов не найдена — добавьте её ниже.</value>
-  </data>
-  <data name="GameLogFolderNotFound" xml:space="preserve">
-    <value>Не удалось найти локальную папку игровых журналов EVE.</value>
   </data>
   <data name="TimerMinimum" xml:space="preserve">
     <value>(не менее {0} {1})</value>

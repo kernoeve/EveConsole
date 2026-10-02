@@ -487,9 +487,6 @@
   <data name="LeaveTheListEmptyNote" xml:space="preserve">
     <value>La carpeta de registros de juego de EVE de este equipo se lee siempre que se encuentra. Añade una ruta de red (\\MACHINE\share\Gamelogs) para importar además registros de clientes de EVE que se ejecutan en otros equipos; no hace falta instalar nada en ellos.</value>
   </data>
-  <data name="Detect" xml:space="preserve">
-    <value>Detectar</value>
-  </data>
   <data name="Open" xml:space="preserve">
     <value>Abrir</value>
   </data>
@@ -2368,9 +2365,6 @@ La aplicación se reiniciará.</value>
   <data name="LogsCountFailed" xml:space="preserve">
     <value>No se han podido contar los archivos — {0}</value>
   </data>
-  <data name="ChatFolderNotFound" xml:space="preserve">
-    <value>No se ha encontrado ninguna carpeta local de registros de chat de EVE.</value>
-  </data>
   <data name="ChatNoFolder" xml:space="preserve">
     <value>No se ha encontrado ninguna carpeta de registros de chat: añade una abajo.</value>
   </data>
@@ -2385,9 +2379,6 @@ La aplicación se reiniciará.</value>
   </data>
   <data name="GameLogNoFolder" xml:space="preserve">
     <value>No se ha encontrado ninguna carpeta de registros de juego: añade una abajo.</value>
-  </data>
-  <data name="GameLogFolderNotFound" xml:space="preserve">
-    <value>No se ha encontrado ninguna carpeta local de registros de juego de EVE.</value>
   </data>
   <data name="TimerMinimum" xml:space="preserve">
     <value>(mín.: {0} {1})</value>

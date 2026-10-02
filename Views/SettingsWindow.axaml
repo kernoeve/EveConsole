@@ -1305,7 +1305,6 @@
                   <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" Margin="6 0 0 0">
                     <Button Content="{x:Static loc:SettingsText.Add}"    Command="{Binding GameLogVm.AddDirectoryCommand}"    Padding="10 3" />
                     <Button Content="{x:Static loc:SettingsText.Remove}" Command="{Binding GameLogVm.RemoveDirectoryCommand}" Padding="10 3" />
-                    <Button Content="{x:Static loc:SettingsText.Detect}" Command="{Binding GameLogVm.DetectDirectoryCommand}" Padding="10 3" />
                     <Button Content="{x:Static loc:SettingsText.Open}"   Command="{Binding GameLogVm.OpenDirectoryCommand}"   Padding="10 3" />
                   </StackPanel>
                 </Grid>
@@ -1437,7 +1436,6 @@
                   <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" Margin="6 0 0 0">
                     <Button Content="{x:Static loc:SettingsText.Add}"    Command="{Binding ChatLogVm.AddDirectoryCommand}"    Padding="10 3" />
                     <Button Content="{x:Static loc:SettingsText.Remove}" Command="{Binding ChatLogVm.RemoveDirectoryCommand}" Padding="10 3" />
-                    <Button Content="{x:Static loc:SettingsText.Detect}" Command="{Binding ChatLogVm.DetectDirectoryCommand}" Padding="10 3" />
                     <Button Content="{x:Static loc:SettingsText.Open}"   Command="{Binding ChatLogVm.OpenDirectoryCommand}"   Padding="10 3" />
                   </StackPanel>
                 </Grid>

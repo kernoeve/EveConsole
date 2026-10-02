@@ -487,9 +487,6 @@
   <data name="LeaveTheListEmptyNote" xml:space="preserve">
     <value>Le dossier des journaux de jeu EVE de cet ordinateur est toujours lu lorsqu'il est trouvé. Ajoutez un chemin réseau (\\MACHINE\share\Gamelogs) pour importer en plus les journaux de clients EVE exécutés sur d'autres ordinateurs — rien n'a besoin d'y être installé.</value>
   </data>
-  <data name="Detect" xml:space="preserve">
-    <value>Détecter</value>
-  </data>
   <data name="Open" xml:space="preserve">
     <value>Ouvrir</value>
   </data>
@@ -2368,9 +2365,6 @@ L'application va redémarrer.</value>
   <data name="LogsCountFailed" xml:space="preserve">
     <value>Impossible de compter les fichiers — {0}</value>
   </data>
-  <data name="ChatFolderNotFound" xml:space="preserve">
-    <value>Impossible de trouver un dossier local de journaux de discussion EVE.</value>
-  </data>
   <data name="ChatNoFolder" xml:space="preserve">
     <value>Aucun dossier de journaux de discussion trouvé — ajoutez-en un ci-dessous.</value>
   </data>
@@ -2385,9 +2379,6 @@ L'application va redémarrer.</value>
   </data>
   <data name="GameLogNoFolder" xml:space="preserve">
     <value>Aucun dossier de journaux de jeu trouvé — ajoutez-en un ci-dessous.</value>
-  </data>
-  <data name="GameLogFolderNotFound" xml:space="preserve">
-    <value>Impossible de trouver un dossier local de journaux de jeu EVE.</value>
   </data>
   <data name="TimerMinimum" xml:space="preserve">
     <value>(min. : {0} {1})</value>
