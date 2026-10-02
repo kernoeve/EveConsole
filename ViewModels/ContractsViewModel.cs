@@ -310,7 +310,8 @@ public class ContractDetailVm : ReactiveObject
         ContractId  = c.ContractId;
         // Why there are no items, when there are none: asked and refused, or not asked yet.
         if (items.Count == 0)
-            _pullMessage = c.ItemsStatus >= 400 ? string.Format(MarketText.ItemsHttpError, c.ItemsStatus)
+            _pullMessage = c.ItemsStatus == ContractsService.ItemsGoneUnread ? MarketText.ItemsClosedUnread
+                         : c.ItemsStatus >= 400 ? string.Format(MarketText.ItemsHttpError, c.ItemsStatus)
                          : c.ItemsPulled        ? MarketText.ItemsNoneListed
                          :                        MarketText.ItemsNotAskedYet;
         Title       = string.IsNullOrWhiteSpace(c.Title) ? MarketText.NoTitle : c.Title!;
