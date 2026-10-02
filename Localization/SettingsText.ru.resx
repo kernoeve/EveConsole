@@ -3361,4 +3361,19 @@ EVE Console сразу перезапустится, потому что баз�
   <data name="LogsFolderThisComputer" xml:space="preserve">
     <value>✓ {0}  (этот компьютер)</value>
   </data>
+  <data name="IntelRegionsLabel" xml:space="preserve">
+    <value>РЕГИОНЫ</value>
+  </data>
+  <data name="TipIntelRegions" xml:space="preserve">
+    <value>Необязательно. Регионы, о которых сообщает этот интел-канал, через запятую. Они определяют, какую систему означает сокращённое имя вроде «QZ-X». Если оставить пустым, регионы определяются по системам, о которых канал сообщал.</value>
+  </data>
+  <data name="IntelRegionsLearned" xml:space="preserve">
+    <value>Определены: {0}</value>
+  </data>
+  <data name="IntelRegionsNoneLearned" xml:space="preserve">
+    <value>Определены: пока нет</value>
+  </data>
+  <data name="IntelRegionsUnknown" xml:space="preserve">
+    <value>Не регион: {0}</value>
+  </data>
 </root>

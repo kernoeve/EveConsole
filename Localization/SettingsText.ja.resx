@@ -3352,4 +3352,19 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
   <data name="LogsFolderThisComputer" xml:space="preserve">
     <value>✓ {0}  （このコンピューター）</value>
   </data>
+  <data name="IntelRegionsLabel" xml:space="preserve">
+    <value>リージョン</value>
+  </data>
+  <data name="TipIntelRegions" xml:space="preserve">
+    <value>任意。このインテルチャンネルが報告するリージョンをカンマ区切りで入力します。「QZ-X」のような短縮名がどのシステムを指すかを決めます。空欄の場合、チャンネルが報告してきたシステムからリージョンを学習します。</value>
+  </data>
+  <data name="IntelRegionsLearned" xml:space="preserve">
+    <value>学習済み：{0}</value>
+  </data>
+  <data name="IntelRegionsNoneLearned" xml:space="preserve">
+    <value>学習済み：まだありません</value>
+  </data>
+  <data name="IntelRegionsUnknown" xml:space="preserve">
+    <value>リージョンではありません：{0}</value>
+  </data>
 </root>

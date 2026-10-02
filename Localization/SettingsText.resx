@@ -4427,4 +4427,24 @@ The application will restart.</value>
     <value>✓ {0}  (this computer)</value>
     <comment>Game/Chat Logs tab, the folders being read: this computer's own EVE log folder, found automatically. {0} is the folder's path.</comment>
   </data>
+  <data name="IntelRegionsLabel" xml:space="preserve">
+    <value>REGIONS</value>
+    <comment>Settings → Chat Logs, channel list column header over each intel channel's optional regions box.</comment>
+  </data>
+  <data name="TipIntelRegions" xml:space="preserve">
+    <value>Optional. The regions this intel channel reports on, comma-separated. They decide which system a shortened name such as "QZ-X" means. Left empty, the regions are learned from the systems the channel has reported.</value>
+    <comment>Tooltip on the Regions column and box, Settings → Chat Logs.</comment>
+  </data>
+  <data name="IntelRegionsLearned" xml:space="preserve">
+    <value>Learned: {0}</value>
+    <comment>Placeholder in an empty Regions box. {0} is the regions the channel has been seen to report on, comma-separated.</comment>
+  </data>
+  <data name="IntelRegionsNoneLearned" xml:space="preserve">
+    <value>Learned: none yet</value>
+    <comment>Placeholder in an empty Regions box when the channel has no reports to learn from yet.</comment>
+  </data>
+  <data name="IntelRegionsUnknown" xml:space="preserve">
+    <value>Not a region: {0}</value>
+    <comment>Under a Regions box. {0} is the names typed that are no region, comma-separated.</comment>
+  </data>
 </root>

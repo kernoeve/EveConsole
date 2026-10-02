@@ -88,7 +88,7 @@ public class SettingsViewModel : ReactiveObject
     /// </summary>
     public Task FlushPendingSavesAsync() => Task.WhenAll(
         MarketVm.FlushAsync(), TimerVm.FlushAsync(), CorpTop10Vm.FlushAsync(),
-        AgentVm.FlushAsync(), AlertsVm.FlushAsync(), SlackVm.FlushAsync());
+        AgentVm.FlushAsync(), AlertsVm.FlushAsync(), SlackVm.FlushAsync(), ChatLogVm.FlushAsync());
 
     /// <summary>The window closed: nothing typed is lost to the pause.</summary>
     public Task CloseAsync() => Task.WhenAll(FlushPendingSavesAsync(), AgentVm.CloseAsync());

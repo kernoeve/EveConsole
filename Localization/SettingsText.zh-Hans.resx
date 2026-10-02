@@ -3352,4 +3352,19 @@ SQLite 数据库只会被读取，不会被修改。大型数据库需要一些�
   <data name="LogsFolderThisComputer" xml:space="preserve">
     <value>✓ {0}（此计算机）</value>
   </data>
+  <data name="IntelRegionsLabel" xml:space="preserve">
+    <value>星域</value>
+  </data>
+  <data name="TipIntelRegions" xml:space="preserve">
+    <value>可选。此情报频道所报告的星域，用逗号分隔。它们决定像“QZ-X”这样的缩写名指哪个星系。留空时，星域会从该频道报告过的星系中学习。</value>
+  </data>
+  <data name="IntelRegionsLearned" xml:space="preserve">
+    <value>已学习：{0}</value>
+  </data>
+  <data name="IntelRegionsNoneLearned" xml:space="preserve">
+    <value>已学习：暂无</value>
+  </data>
+  <data name="IntelRegionsUnknown" xml:space="preserve">
+    <value>不是星域：{0}</value>
+  </data>
 </root>

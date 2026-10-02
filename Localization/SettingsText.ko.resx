@@ -3352,4 +3352,19 @@ SQLite 데이터베이스는 읽기만 하고 변경하지 않습니다. 데이�
   <data name="LogsFolderThisComputer" xml:space="preserve">
     <value>✓ {0}  (이 컴퓨터)</value>
   </data>
+  <data name="IntelRegionsLabel" xml:space="preserve">
+    <value>리전</value>
+  </data>
+  <data name="TipIntelRegions" xml:space="preserve">
+    <value>선택 사항. 이 인텔 채널이 보고하는 리전을 쉼표로 구분해 입력합니다. "QZ-X" 같은 줄인 이름이 어느 성계를 뜻하는지 정합니다. 비워 두면 채널이 보고한 성계에서 리전을 학습합니다.</value>
+  </data>
+  <data name="IntelRegionsLearned" xml:space="preserve">
+    <value>학습됨: {0}</value>
+  </data>
+  <data name="IntelRegionsNoneLearned" xml:space="preserve">
+    <value>학습됨: 아직 없음</value>
+  </data>
+  <data name="IntelRegionsUnknown" xml:space="preserve">
+    <value>리전이 아님: {0}</value>
+  </data>
 </root>

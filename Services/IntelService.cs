@@ -68,7 +68,7 @@ public sealed class IntelService(
     private IntelVocabulary? _vocabulary;
 
     /// <summary>Each channel's regions and system counts, re-read hourly: they change slowly.</summary>
-    private readonly Dictionary<string, (DateTimeOffset At, IntelChannelHints Hints)> _hints = new(StringComparer.OrdinalIgnoreCase);
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, (DateTimeOffset At, IntelChannelHints Hints)> _hints = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>A name as ESI spells it, by the name as typed — a character's real capitalisation.</summary>
     private readonly Dictionary<string, string> _canonical = new(StringComparer.OrdinalIgnoreCase);
@@ -739,8 +739,7 @@ public sealed class IntelService(
 
     /// <summary>
     /// A channel's regions and how often it has named each system. The regions are the ones set
-    /// for it in Settings, or, when none are, every region holding at least
-    /// <see cref="RegionShare"/> of what the channel reported over the last year.
+    /// for it in Settings, or, when none are, the ones it has been seen to report on.
     /// </summary>
     private async Task<IntelChannelHints> HintsAsync(
         AppDbContext db, IntelVocabulary vocabulary, string channel, CancellationToken ct)
@@ -748,6 +747,26 @@ public sealed class IntelService(
         if (_hints.TryGetValue(channel, out var cached) && DateTimeOffset.UtcNow - cached.At < TimeSpan.FromHours(1))
             return cached.Hints;
 
+        var (frequency, learned) = await LearnAsync(db, vocabulary, channel, ct);
+
+        var regions = learned;
+        if (settings.IntelChannelRegions.TryGetValue(channel, out var named))
+        {
+            var wanted = named.Select(n => n.Trim().ToLowerInvariant()).ToHashSet();
+            regions = (await db.SdeRegions.AsNoTracking().Select(r => new { r.RegionId, r.Name }).ToListAsync(ct))
+                .Where(r => wanted.Contains(r.Name.ToLowerInvariant())).Select(r => r.RegionId).ToHashSet();
+        }
+
+        var hints = new IntelChannelHints(regions, frequency);
+        _hints[channel] = (DateTimeOffset.UtcNow, hints);
+        return hints;
+    }
+
+    /// <summary>How often a channel has named each system over the last year, and the regions
+    /// holding at least <see cref="RegionShare"/> of that.</summary>
+    private static async Task<(Dictionary<int, int> Frequency, HashSet<int> Regions)> LearnAsync(
+        AppDbContext db, IntelVocabulary vocabulary, string channel, CancellationToken ct)
+    {
         var since = DateTimeOffset.UtcNow.AddDays(-365).UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ssZ");
         var frequency = await db.IntelReports.AsNoTracking()
             .Where(r => r.ChannelName == channel && string.Compare(r.ReportedAt, since) >= 0)
@@ -755,25 +774,49 @@ public sealed class IntelService(
             .Select(g => new { g.Key, N = g.Count() })
             .ToDictionaryAsync(x => x.Key, x => x.N, ct);
 
-        HashSet<int> regions;
-        if (settings.IntelChannelRegions.TryGetValue(channel, out var named))
-        {
-            var wanted = named.Select(n => n.Trim().ToLowerInvariant()).ToHashSet();
-            regions = (await db.SdeRegions.AsNoTracking().Select(r => new { r.RegionId, r.Name }).ToListAsync(ct))
-                .Where(r => wanted.Contains(r.Name.ToLowerInvariant())).Select(r => r.RegionId).ToHashSet();
-        }
-        else
-        {
-            var total = frequency.Values.Sum();
-            regions = frequency.GroupBy(kv => vocabulary.RegionOf(kv.Key))
-                .Where(g => g.Key != 0 && total > 0 && g.Sum(kv => kv.Value) >= RegionShare * total)
-                .Select(g => g.Key).ToHashSet();
-        }
-
-        var hints = new IntelChannelHints(regions, frequency);
-        _hints[channel] = (DateTimeOffset.UtcNow, hints);
-        return hints;
+        var total   = frequency.Values.Sum();
+        var regions = frequency.GroupBy(kv => vocabulary.RegionOf(kv.Key))
+            .Where(g => g.Key != 0 && total > 0 && g.Sum(kv => kv.Value) >= RegionShare * total)
+            .Select(g => g.Key).ToHashSet();
+        return (frequency, regions);
     }
+
+    /// <summary>The regions a channel has been seen to report on, in the interface language —
+    /// what it goes by when none are set for it. Shown in Settings beside the box.</summary>
+    public async Task<IReadOnlyList<string>> LearnedRegionsAsync(string channel, CancellationToken ct = default)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        var (_, regions) = await LearnAsync(db, await VocabularyAsync(db, ct), channel, ct);
+        if (regions.Count == 0) return [];
+        return (await db.SdeRegions.AsNoTracking().Where(r => regions.Contains(r.RegionId))
+                    .Select(r => new { r.RegionId, r.Name }).ToListAsync(ct))
+            .Select(r => SdeNames.Region(r.RegionId, r.Name)).Order().ToList();
+    }
+
+    /// <summary>Region names as typed — English or the interface language, any capitals — as
+    /// their English names, and the ones that are no region.</summary>
+    public async Task<(IReadOnlyList<string> English, IReadOnlyList<string> Unknown)> ResolveRegionNamesAsync(
+        IReadOnlyList<string> typed, CancellationToken ct = default)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        var english = await db.SdeRegions.AsNoTracking().Select(r => new { r.RegionId, r.Name }).ToListAsync(ct);
+        var byName  = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var r in english) byName[r.Name] = r.Name;
+        var ids = english.ToDictionary(r => (long)r.RegionId, r => r.Name);
+        foreach (var n in await db.SdeNames.AsNoTracking().Where(n => n.Kind == SdeNameKind.Region)
+                     .Select(n => new { n.Id, n.Name }).ToListAsync(ct))
+            if (ids.TryGetValue(n.Id, out var en)) byName.TryAdd(n.Name, en);
+
+        var found = new List<string>();
+        var unknown = new List<string>();
+        foreach (var t in typed)
+            if (byName.TryGetValue(t.Trim(), out var en)) { if (!found.Contains(en)) found.Add(en); }
+            else unknown.Add(t.Trim());
+        return (found, unknown);
+    }
+
+    /// <summary>The regions set for a channel changed: re-read them on the next pass.</summary>
+    public void ForgetChannelHints() => _hints.Clear();
 
     /// <summary>Whether each one-word character among the candidates has ever been on a
     /// killmail here — as attacker or victim. What decides a name typed in other capitals than

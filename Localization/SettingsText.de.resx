@@ -3355,4 +3355,19 @@ Die Anwendung wird neu gestartet.</value>
   <data name="LogsFolderThisComputer" xml:space="preserve">
     <value>✓ {0}  (dieser Computer)</value>
   </data>
+  <data name="IntelRegionsLabel" xml:space="preserve">
+    <value>REGIONEN</value>
+  </data>
+  <data name="TipIntelRegions" xml:space="preserve">
+    <value>Optional. Die Regionen, über die dieser Intel-Kanal berichtet, durch Kommas getrennt. Sie entscheiden, welches System ein abgekürzter Name wie „QZ-X“ meint. Leer gelassen, werden die Regionen aus den Systemen gelernt, über die der Kanal berichtet hat.</value>
+  </data>
+  <data name="IntelRegionsLearned" xml:space="preserve">
+    <value>Gelernt: {0}</value>
+  </data>
+  <data name="IntelRegionsNoneLearned" xml:space="preserve">
+    <value>Gelernt: noch keine</value>
+  </data>
+  <data name="IntelRegionsUnknown" xml:space="preserve">
+    <value>Keine Region: {0}</value>
+  </data>
 </root>

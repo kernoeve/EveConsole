@@ -44,13 +44,44 @@ public class ChatChannelViewModel : ReactiveObject
         }
     }
 
-    public ChatChannelViewModel(string name, bool selected, bool intel, Action onChanged)
+    public ChatChannelViewModel(string name, bool selected, bool intel, Action onChanged,
+                                string regions = "", Action? onRegionsTyped = null)
     {
-        Name        = name;
-        _isSelected = selected;
-        _isIntel    = intel;
-        _onChanged  = onChanged;
+        Name           = name;
+        _isSelected    = selected;
+        _isIntel       = intel;
+        _onChanged     = onChanged;
+        _regionsText   = regions;
+        _onRegionsTyped = onRegionsTyped;
     }
+
+    private readonly Action? _onRegionsTyped;
+
+    private string _regionsText;
+    /// <summary>Optional: the regions this intel channel reports on, comma-separated. Empty means
+    /// learned from what it has reported.</summary>
+    public string RegionsText
+    {
+        get => _regionsText;
+        set
+        {
+            if (_regionsText == value) return;
+            this.RaiseAndSetIfChanged(ref _regionsText, value);
+            _onRegionsTyped?.Invoke();
+        }
+    }
+
+    private string _learnedText = "";
+    /// <summary>The regions it has been seen to report on — shown in the empty box.</summary>
+    public string LearnedText { get => _learnedText; set => this.RaiseAndSetIfChanged(ref _learnedText, value); }
+
+    private string? _regionsError;
+    public string? RegionsError
+    {
+        get => _regionsError;
+        set { this.RaiseAndSetIfChanged(ref _regionsError, value); this.RaisePropertyChanged(nameof(HasRegionsError)); }
+    }
+    public bool HasRegionsError => _regionsError is not null;
 }
 
 /// <summary>
@@ -67,6 +98,7 @@ public class ChatLogSettingsViewModel : ReactiveObject
     private bool _loading = true;
     /// <summary>Path reachability, probed off the UI thread — see ThrottledUiProbe.</summary>
     private readonly ThrottledUiProbe _pathProbe;
+    private readonly AutoSave         _regionsSave;
 
 
     public ChatLogSettingsViewModel(
@@ -75,6 +107,8 @@ public class ChatLogSettingsViewModel : ReactiveObject
         _settings = settings;
         _importer = importer;
         _intel    = intel;
+        _regionsSave = new AutoSave(SaveRegionsAsync,
+            ex => IntelStatus = string.Format(CommonText.ErrorWithMessage, ex.Message));
 
         _enabled     = settings.ChatEnabled;
         _historyDays = settings.ChatHistoryDays;
@@ -198,12 +232,61 @@ public class ChatLogSettingsViewModel : ReactiveObject
                              .Distinct(StringComparer.OrdinalIgnoreCase)
                              .OrderBy(n => n, StringComparer.OrdinalIgnoreCase);
 
+        var regions = _settings.IntelChannelRegions;
+
         Channels.Clear();
         foreach (var name in names)
             Channels.Add(new ChatChannelViewModel(
-                name, selected.Contains(name), intel.Contains(name), SaveSelection));
+                name, selected.Contains(name), intel.Contains(name), SaveSelection,
+                regions.TryGetValue(name, out var set) ? string.Join(", ", set) : "",
+                () => _regionsSave.Typed()));
 
         UpdateSelectionText();
+        _ = ShowLearnedRegionsAsync();
+    }
+
+    /// <summary>Each intel channel's learned regions, in its empty Regions box. Read off the UI
+    /// thread: it counts a year of the channel's reports.</summary>
+    private async Task ShowLearnedRegionsAsync()
+    {
+        if (_intel is null) return;
+        foreach (var channel in Channels.Where(c => c.IsIntel).ToList())
+        {
+            try
+            {
+                var learned = await Task.Run(() => _intel.LearnedRegionsAsync(channel.Name));
+                channel.LearnedText = learned.Count == 0
+                    ? SettingsText.IntelRegionsNoneLearned
+                    : string.Format(SettingsText.IntelRegionsLearned, string.Join(", ", learned));
+            }
+            catch { /* the box simply stays empty */ }
+        }
+    }
+
+    /// <summary>Saves a change still waiting — a box losing focus, or the Settings window closing.</summary>
+    public Task FlushAsync() => _regionsSave.FlushAsync();
+
+    /// <summary>
+    /// Saves the regions typed for each intel channel. Names are taken in English or the interface
+    /// language and stored in English; a name that is no region is left out and said so under its
+    /// box. The next intel pass reads them.
+    /// </summary>
+    private async Task SaveRegionsAsync()
+    {
+        if (_intel is null) return;
+        var map = new Dictionary<string, IReadOnlyList<string>>(StringComparer.OrdinalIgnoreCase);
+        foreach (var channel in Channels.ToList())
+        {
+            var typed = channel.RegionsText.Split([',', ';'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            if (typed.Length == 0) { channel.RegionsError = null; continue; }
+
+            var (english, unknown) = await _intel.ResolveRegionNamesAsync(typed);
+            channel.RegionsError = unknown.Count == 0 ? null
+                : string.Format(SettingsText.IntelRegionsUnknown, string.Join(", ", unknown));
+            if (english.Count > 0) map[channel.Name] = english;
+        }
+        _settings.IntelChannelRegions = map;
+        _intel.ForgetChannelHints();
     }
 
     private void SaveSelection()
