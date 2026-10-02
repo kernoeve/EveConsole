@@ -258,6 +258,99 @@ public static class PostgresSchema
         """
         ALTER TABLE "SdeDogmaAttributes" ADD COLUMN IF NOT EXISTS "ChargeRechargeTimeId" INTEGER NULL
         """,
+
+        // What the fitting engine runs on: each effect's category and the attributes that hold
+        // its cycle time, cap use, range and resistance, and its modifierInfo as rows. Mirrored
+        // for SQLite in SdeImportService.EnsureSdeSchema.
+        """
+        ALTER TABLE "SdeDogmaEffects" ADD COLUMN IF NOT EXISTS "EffectCategory" INTEGER NOT NULL DEFAULT 0
+        """,
+        """
+        ALTER TABLE "SdeDogmaEffects" ADD COLUMN IF NOT EXISTS "IsWarpSafe" BOOLEAN NOT NULL DEFAULT FALSE
+        """,
+        """
+        ALTER TABLE "SdeDogmaEffects" ADD COLUMN IF NOT EXISTS "DisallowAutoRepeat" BOOLEAN NOT NULL DEFAULT FALSE
+        """,
+        """
+        ALTER TABLE "SdeDogmaEffects" ADD COLUMN IF NOT EXISTS "DurationAttributeId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeDogmaEffects" ADD COLUMN IF NOT EXISTS "DischargeAttributeId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeDogmaEffects" ADD COLUMN IF NOT EXISTS "RangeAttributeId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeDogmaEffects" ADD COLUMN IF NOT EXISTS "FalloffAttributeId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeDogmaEffects" ADD COLUMN IF NOT EXISTS "TrackingSpeedAttributeId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeDogmaEffects" ADD COLUMN IF NOT EXISTS "ResistanceAttributeId" INTEGER NULL
+        """,
+        """
+        ALTER TABLE "SdeDogmaEffects" ADD COLUMN IF NOT EXISTS "FittingUsageChanceAttributeId" INTEGER NULL
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS "SdeFighterAbilities" (
+            "AbilityId"         INTEGER          NOT NULL,
+            "Name"              TEXT             NOT NULL DEFAULT '',
+            "Tooltip"           TEXT             NOT NULL DEFAULT '',
+            "TargetMode"        TEXT             NOT NULL DEFAULT '',
+            "IconId"            INTEGER          NULL,
+            "DisallowInHighSec" BOOLEAN          NOT NULL DEFAULT FALSE,
+            "DisallowInLowSec"  BOOLEAN          NOT NULL DEFAULT FALSE,
+            CONSTRAINT "PK_SdeFighterAbilities" PRIMARY KEY ("AbilityId")
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS "SdeFighterTypeAbilities" (
+            "TypeId"          INTEGER          NOT NULL,
+            "Slot"            INTEGER          NOT NULL,
+            "AbilityId"       INTEGER          NOT NULL,
+            "CooldownSeconds" DOUBLE PRECISION NULL,
+            "ChargeCount"     INTEGER          NULL,
+            "RearmSeconds"    DOUBLE PRECISION NULL,
+            CONSTRAINT "PK_SdeFighterTypeAbilities" PRIMARY KEY ("TypeId", "Slot")
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS "SdeDbuffs" (
+            "DbuffId"       INTEGER NOT NULL,
+            "Name"          TEXT    NOT NULL DEFAULT '',
+            "AggregateMode" TEXT    NOT NULL DEFAULT '',
+            "Operation"     TEXT    NOT NULL DEFAULT '',
+            "ShowInUi"      TEXT    NOT NULL DEFAULT '',
+            CONSTRAINT "PK_SdeDbuffs" PRIMARY KEY ("DbuffId")
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS "SdeDbuffModifiers" (
+            "DbuffId"     INTEGER NOT NULL,
+            "Ordinal"     INTEGER NOT NULL,
+            "Kind"        TEXT    NOT NULL DEFAULT '',
+            "AttributeId" INTEGER NOT NULL,
+            "GroupId"     INTEGER NULL,
+            "SkillTypeId" INTEGER NULL,
+            CONSTRAINT "PK_SdeDbuffModifiers" PRIMARY KEY ("DbuffId", "Ordinal")
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS "SdeDogmaEffectModifiers" (
+            "EffectId"             INTEGER NOT NULL,
+            "Ordinal"              INTEGER NOT NULL,
+            "Func"                 TEXT    NOT NULL,
+            "Domain"               TEXT    NOT NULL,
+            "Operation"            INTEGER NULL,
+            "ModifiedAttributeId"  INTEGER NULL,
+            "ModifyingAttributeId" INTEGER NULL,
+            "GroupId"              INTEGER NULL,
+            "SkillTypeId"          INTEGER NULL,
+            "StoppedEffectId"      INTEGER NULL,
+            CONSTRAINT "PK_SdeDogmaEffectModifiers" PRIMARY KEY ("EffectId", "Ordinal")
+        )
+        """,
         """
         ALTER TABLE "SdeFactions" ADD COLUMN IF NOT EXISTS "IconId" INTEGER NULL
         """,
@@ -790,6 +883,21 @@ public static class PostgresSchema
         ALTER TABLE "Corporations" ADD COLUMN IF NOT EXISTS "TokenError" TEXT NOT NULL DEFAULT ''
         """,
 
+        // Fits saved in the fitting tool, as EFT text. Mirrored for SQLite in App.axaml.cs.
+        """
+        CREATE TABLE IF NOT EXISTS "SavedFits" (
+            "Id"         BIGSERIAL   PRIMARY KEY,
+            "Name"       TEXT        NOT NULL DEFAULT '',
+            "ShipTypeId" INTEGER     NOT NULL DEFAULT 0,
+            "Eft"        TEXT        NOT NULL DEFAULT '',
+            "State"      TEXT        NOT NULL DEFAULT '',
+            "UpdatedAt"  TIMESTAMPTZ NOT NULL DEFAULT now()
+        )
+        """,
+        """
+        ALTER TABLE "SavedFits" ADD COLUMN IF NOT EXISTS "State" TEXT NOT NULL DEFAULT ''
+        """,
+
         // ── Corp moon-mining ledger, one row per day ─────────────────────────
         //
         // Replaces "EsiCorpMiningLedger", which was keyed without the date and so held only each
@@ -1072,6 +1180,7 @@ public static class PostgresSchema
         """CREATE INDEX IF NOT EXISTS "IX_IntelReports_Obsolete_Time" ON "IntelReports" ("Obsolete", "ReportedAt")""",
         """CREATE INDEX IF NOT EXISTS "IX_IntelReportCharacters_CharacterId" ON "IntelReportCharacters" ("CharacterId")""",
         """CREATE INDEX IF NOT EXISTS "IX_Alarms_Enabled" ON "Alarms" ("Enabled")""",
+        """CREATE INDEX IF NOT EXISTS "IX_SavedFits_ShipTypeId" ON "SavedFits" ("ShipTypeId")""",
         """CREATE INDEX IF NOT EXISTS "IX_AlarmActions_AlarmId" ON "AlarmActions" ("AlarmId")""",
         """CREATE INDEX IF NOT EXISTS "IX_AlarmSeenKeys_Alarm_Seen" ON "AlarmSeenKeys" ("AlarmId", "FirstSeenAt")""",
         """CREATE INDEX IF NOT EXISTS "IX_AlarmEvents_Alarm_Fired" ON "AlarmEvents" ("AlarmId", "FiredAt")""",

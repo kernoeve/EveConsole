@@ -156,6 +156,8 @@ public class SdeImportService
             await ImportDogmaAttributesAsync(archive, fsdRoot, db, progress, ct);
             await ImportDogmaEffectsAsync(archive, fsdRoot, db, progress, ct);
             await ImportTypeDogmaAsync(archive, fsdRoot, db, progress, ct);
+            await ImportFighterAbilitiesAsync(archive, fsdRoot, db, progress, ct);
+            await ImportDbuffsAsync(archive, fsdRoot, db, progress, ct);
             await ImportBlueprintsAsync(archive, fsdRoot, db, progress, ct);
             var customNames = await ImportUniverseAsync(archive, fsdRoot, db, progress, ct);
             await ImportStationsAsync(archive, fsdRoot, db, progress, ct);
@@ -295,6 +297,8 @@ public class SdeImportService
             "industryModifierSources.yaml",
             "dogmaUnits.yaml", "icons.yaml", "graphics.yaml", "skins.yaml", "skinLicenses.yaml",
             "npcStations.yaml", "stationServices.yaml", "stationOperations.yaml",
+            "fighterAbilities.yaml", "fighterAbilitiesByType.yaml",
+            "dbuffCollections.yaml",
         };
         var missingOptional = optional.Where(f => archive.GetEntry($"{fsdRoot}{f}") is null).ToList();
         if (missingOptional.Count > 0)
@@ -400,7 +404,15 @@ public class SdeImportService
             """CREATE TABLE IF NOT EXISTS "SdeTypes" ("TypeId" INTEGER NOT NULL PRIMARY KEY, "GroupId" INTEGER NOT NULL, "Name" TEXT NOT NULL, "Description" TEXT NOT NULL, "Volume" REAL NOT NULL, "Mass" REAL NOT NULL, "Capacity" REAL NOT NULL, "PortionSize" INTEGER NOT NULL, "BasePrice" REAL, "MarketGroupId" INTEGER, "IconId" INTEGER, "GraphicId" INTEGER, "FactionId" INTEGER, "RaceId" INTEGER, "MetaGroupId" INTEGER, "Published" INTEGER NOT NULL)""",
             """CREATE TABLE IF NOT EXISTS "SdeDogmaAttributeCategories" ("CategoryId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL)""",
             """CREATE TABLE IF NOT EXISTS "SdeDogmaAttributes" ("AttributeId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL, "DisplayName" TEXT NOT NULL, "CategoryId" INTEGER, "DefaultValue" REAL NOT NULL, "HighIsGood" INTEGER NOT NULL, "Stackable" INTEGER NOT NULL, "UnitId" INTEGER, "Published" INTEGER NOT NULL)""",
-            """CREATE TABLE IF NOT EXISTS "SdeDogmaEffects" ("EffectId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL, "DisplayName" TEXT NOT NULL, "Description" TEXT NOT NULL, "IsOffensive" INTEGER NOT NULL, "IsAssistance" INTEGER NOT NULL, "Published" INTEGER NOT NULL)""",
+            """CREATE TABLE IF NOT EXISTS "SdeDogmaEffects" ("EffectId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL, "DisplayName" TEXT NOT NULL, "Description" TEXT NOT NULL, "IsOffensive" INTEGER NOT NULL, "IsAssistance" INTEGER NOT NULL, "Published" INTEGER NOT NULL, "EffectCategory" INTEGER NOT NULL DEFAULT 0, "IsWarpSafe" INTEGER NOT NULL DEFAULT 0, "DisallowAutoRepeat" INTEGER NOT NULL DEFAULT 0, "DurationAttributeId" INTEGER, "DischargeAttributeId" INTEGER, "RangeAttributeId" INTEGER, "FalloffAttributeId" INTEGER, "TrackingSpeedAttributeId" INTEGER, "ResistanceAttributeId" INTEGER, "FittingUsageChanceAttributeId" INTEGER)""",
+            // The rules the fitting engine runs: one row per modifierInfo entry of each effect.
+            // Fighter abilities, and each fighter type's ability slots with their charges and cooldowns.
+            """CREATE TABLE IF NOT EXISTS "SdeFighterAbilities" ("AbilityId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL DEFAULT '', "Tooltip" TEXT NOT NULL DEFAULT '', "TargetMode" TEXT NOT NULL DEFAULT '', "IconId" INTEGER, "DisallowInHighSec" INTEGER NOT NULL DEFAULT 0, "DisallowInLowSec" INTEGER NOT NULL DEFAULT 0)""",
+            """CREATE TABLE IF NOT EXISTS "SdeFighterTypeAbilities" ("TypeId" INTEGER NOT NULL, "Slot" INTEGER NOT NULL, "AbilityId" INTEGER NOT NULL, "CooldownSeconds" REAL, "ChargeCount" INTEGER, "RearmSeconds" REAL, CONSTRAINT "PK_SdeFighterTypeAbilities" PRIMARY KEY ("TypeId", "Slot"))""",
+            // Fleet buffs (command bursts and the like): what each buff id changes, and how values combine.
+            """CREATE TABLE IF NOT EXISTS "SdeDbuffs" ("DbuffId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NOT NULL DEFAULT '', "AggregateMode" TEXT NOT NULL DEFAULT '', "Operation" TEXT NOT NULL DEFAULT '', "ShowInUi" TEXT NOT NULL DEFAULT '')""",
+            """CREATE TABLE IF NOT EXISTS "SdeDbuffModifiers" ("DbuffId" INTEGER NOT NULL, "Ordinal" INTEGER NOT NULL, "Kind" TEXT NOT NULL DEFAULT '', "AttributeId" INTEGER NOT NULL, "GroupId" INTEGER, "SkillTypeId" INTEGER, CONSTRAINT "PK_SdeDbuffModifiers" PRIMARY KEY ("DbuffId", "Ordinal"))""",
+            """CREATE TABLE IF NOT EXISTS "SdeDogmaEffectModifiers" ("EffectId" INTEGER NOT NULL, "Ordinal" INTEGER NOT NULL, "Func" TEXT NOT NULL, "Domain" TEXT NOT NULL, "Operation" INTEGER, "ModifiedAttributeId" INTEGER, "ModifyingAttributeId" INTEGER, "GroupId" INTEGER, "SkillTypeId" INTEGER, "StoppedEffectId" INTEGER, CONSTRAINT "PK_SdeDogmaEffectModifiers" PRIMARY KEY ("EffectId", "Ordinal"))""",
             """CREATE TABLE IF NOT EXISTS "SdeTypeDogmaAttributes" ("TypeId" INTEGER NOT NULL, "AttributeId" INTEGER NOT NULL, "Value" REAL NOT NULL, PRIMARY KEY ("TypeId", "AttributeId"))""",
             """CREATE TABLE IF NOT EXISTS "SdeTypeDogmaEffects" ("TypeId" INTEGER NOT NULL, "EffectId" INTEGER NOT NULL, "IsDefault" INTEGER NOT NULL, PRIMARY KEY ("TypeId", "EffectId"))""",
             """CREATE TABLE IF NOT EXISTS "SdeBlueprints" ("TypeId" INTEGER NOT NULL PRIMARY KEY, "MaxProductionLimit" INTEGER NOT NULL)""",
@@ -519,6 +531,17 @@ public class SdeImportService
             """ALTER TABLE "SdeDogmaAttributes" ADD COLUMN "DataType" INTEGER""",
             """ALTER TABLE "SdeDogmaAttributes" ADD COLUMN "DisplayWhenZero" INTEGER NOT NULL DEFAULT 0""",
             """ALTER TABLE "SdeDogmaAttributes" ADD COLUMN "ChargeRechargeTimeId" INTEGER""",
+            // -- SdeDogmaEffects: what the fitting engine runs on (10)
+            """ALTER TABLE "SdeDogmaEffects" ADD COLUMN "EffectCategory" INTEGER NOT NULL DEFAULT 0""",
+            """ALTER TABLE "SdeDogmaEffects" ADD COLUMN "IsWarpSafe" INTEGER NOT NULL DEFAULT 0""",
+            """ALTER TABLE "SdeDogmaEffects" ADD COLUMN "DisallowAutoRepeat" INTEGER NOT NULL DEFAULT 0""",
+            """ALTER TABLE "SdeDogmaEffects" ADD COLUMN "DurationAttributeId" INTEGER""",
+            """ALTER TABLE "SdeDogmaEffects" ADD COLUMN "DischargeAttributeId" INTEGER""",
+            """ALTER TABLE "SdeDogmaEffects" ADD COLUMN "RangeAttributeId" INTEGER""",
+            """ALTER TABLE "SdeDogmaEffects" ADD COLUMN "FalloffAttributeId" INTEGER""",
+            """ALTER TABLE "SdeDogmaEffects" ADD COLUMN "TrackingSpeedAttributeId" INTEGER""",
+            """ALTER TABLE "SdeDogmaEffects" ADD COLUMN "ResistanceAttributeId" INTEGER""",
+            """ALTER TABLE "SdeDogmaEffects" ADD COLUMN "FittingUsageChanceAttributeId" INTEGER""",
             // -- SdeFactions (4)
             """ALTER TABLE "SdeFactions" ADD COLUMN "IconId" INTEGER""",
             """ALTER TABLE "SdeFactions" ADD COLUMN "ShortDescription" TEXT NOT NULL DEFAULT ''""",
@@ -888,10 +911,37 @@ public class SdeImportService
             IsOffensive = kv.Value.isOffensive,
             IsAssistance = kv.Value.isAssistance,
             Published   = kv.Value.published,
+            EffectCategory           = kv.Value.effectCategoryID ?? kv.Value.effectCategory ?? 0,
+            IsWarpSafe               = kv.Value.isWarpSafe,
+            DisallowAutoRepeat       = kv.Value.disallowAutoRepeat,
+            DurationAttributeId      = kv.Value.durationAttributeID,
+            DischargeAttributeId     = kv.Value.dischargeAttributeID,
+            RangeAttributeId         = kv.Value.rangeAttributeID,
+            FalloffAttributeId       = kv.Value.falloffAttributeID,
+            TrackingSpeedAttributeId = kv.Value.trackingSpeedAttributeID,
+            ResistanceAttributeId    = kv.Value.resistanceAttributeID,
+            FittingUsageChanceAttributeId = kv.Value.fittingUsageChanceAttributeID,
         });
-        await SaveBatchesAsync(db, db.SdeDogmaEffects, rows, SettingsText.ImportStageDogmaEffects, raw.Count, p, 0.52, 0.54, ct);
+        await SaveBatchesAsync(db, db.SdeDogmaEffects, rows, SettingsText.ImportStageDogmaEffects, raw.Count, p, 0.52, 0.53, ct);
         await SaveNamesAsync(db, SdeNameKind.DogmaEffect,
-            raw.Select(kv => ((long)kv.Key, kv.Value.displayName ?? kv.Value.displayNameID)), p, 0.54, ct);
+            raw.Select(kv => ((long)kv.Key, kv.Value.displayName ?? kv.Value.displayNameID)), p, 0.53, ct);
+
+        // modifierInfo, one row per entry. The order within an effect is kept as the key, which
+        // is all it is: the engine applies modifiers by operation, not by position.
+        var mods = raw.SelectMany(kv => (kv.Value.modifierInfo ?? []).Select((m, i) => new SdeDogmaEffectModifier
+        {
+            EffectId             = kv.Key,
+            Ordinal              = i,
+            Func                 = m.func   ?? "",
+            Domain               = m.domain ?? "",
+            Operation            = m.operation,
+            ModifiedAttributeId  = m.modifiedAttributeID,
+            ModifyingAttributeId = m.modifyingAttributeID,
+            GroupId              = m.groupID,
+            SkillTypeId          = m.skillTypeID,
+            StoppedEffectId      = m.effectID,
+        }));
+        await SaveBatchesAsync(db, db.SdeDogmaEffectModifiers, mods, SettingsText.ImportStageDogmaEffectModifiers, -1, p, 0.53, 0.54, ct);
     }
 
     private async Task ImportTypeDogmaAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
@@ -1708,6 +1758,99 @@ public class SdeImportService
         await SaveTextsAsync(db, SdeTextKind.CertificateDescription, raw.Select(kv => ((long)kv.Key, kv.Value.description)), p, 0.97, ct);
     }
 
+    /// <summary>
+    /// Fighter abilities: what each is called and where it may be used, and which fighter type has
+    /// which in each slot, with its cooldown or charges. The dogma effects carry an ability's damage
+    /// and duration; these carry the rest the game shows.
+    /// </summary>
+    private async Task ImportFighterAbilitiesAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
+        IProgress<SdeImportProgress> p, CancellationToken ct)
+    {
+        var abilitiesEntry = zip.GetEntry($"{fsdRoot}fighterAbilities.yaml");
+        var byTypeEntry    = zip.GetEntry($"{fsdRoot}fighterAbilitiesByType.yaml");
+        if (abilitiesEntry is null || byTypeEntry is null)
+        {
+            Report(p, SettingsText.ImportStageFighterAbilities, SettingsText.SdeNotFoundInZip, 0.67);
+            return;
+        }
+        Report(p, SettingsText.ImportStageFighterAbilities, SettingsText.ImportParsing, 0.67);
+
+        Dictionary<int, FighterAbilityYaml> abilities;
+        using (var reader = OpenEntry(abilitiesEntry))
+            abilities = _yaml.Deserialize<Dictionary<int, FighterAbilityYaml>>(reader) ?? [];
+        var rows = abilities.Select(kv => new SdeFighterAbility
+        {
+            AbilityId         = kv.Key,
+            Name              = kv.Value.displayName?.en ?? "",
+            Tooltip           = kv.Value.tooltipText?.en ?? "",
+            TargetMode        = kv.Value.targetMode ?? "",
+            IconId            = kv.Value.iconID,
+            DisallowInHighSec = kv.Value.disallowInHighSec,
+            DisallowInLowSec  = kv.Value.disallowInLowSec,
+        });
+        await SaveBatchesAsync(db, db.SdeFighterAbilities, rows, SettingsText.ImportStageFighterAbilities, abilities.Count, p, 0.67, 0.672, ct);
+        await SaveNamesAsync(db, SdeNameKind.FighterAbility, abilities.Select(kv => ((long)kv.Key, kv.Value.displayName)), p, 0.672, ct);
+        await SaveTextsAsync(db, SdeTextKind.FighterAbilityTooltip, abilities.Select(kv => ((long)kv.Key, kv.Value.tooltipText)), p, 0.672, ct);
+
+        Dictionary<int, Dictionary<string, FighterAbilitySlotYaml>> byType;
+        using (var reader = OpenEntry(byTypeEntry))
+            byType = _yaml.Deserialize<Dictionary<int, Dictionary<string, FighterAbilitySlotYaml>>>(reader) ?? [];
+        // Slots are keyed "abilitySlot0" … "abilitySlot2"; the number is the slot.
+        var slots = byType.SelectMany(kv => kv.Value
+            .Where(s => s.Key.StartsWith("abilitySlot", StringComparison.Ordinal)
+                        && int.TryParse(s.Key.AsSpan("abilitySlot".Length), out _))
+            .Select(s => new SdeFighterTypeAbility
+            {
+                TypeId          = kv.Key,
+                Slot            = int.Parse(s.Key.AsSpan("abilitySlot".Length)),
+                AbilityId       = s.Value.abilityID,
+                CooldownSeconds = s.Value.cooldownSeconds,
+                ChargeCount     = s.Value.charges?.chargeCount,
+                RearmSeconds    = s.Value.charges?.rearmTimeSeconds,
+            }));
+        await SaveBatchesAsync(db, db.SdeFighterTypeAbilities, slots, SettingsText.ImportStageFighterAbilities, -1, p, 0.672, 0.674, ct);
+    }
+
+    /// <summary>
+    /// Fleet buffs (dbuffCollections.yaml): what each buff a command burst carries does — the
+    /// attributes it changes and how — and how several of the same buff combine. The fitting tool
+    /// applies fleet boosts from these.
+    /// </summary>
+    private async Task ImportDbuffsAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
+        IProgress<SdeImportProgress> p, CancellationToken ct)
+    {
+        var entry = zip.GetEntry($"{fsdRoot}dbuffCollections.yaml");
+        if (entry is null) { Report(p, SettingsText.ImportStageFleetBoosts, SettingsText.SdeNotFoundInZip, 0.674); return; }
+        Report(p, SettingsText.ImportStageFleetBoosts, SettingsText.ImportParsing, 0.674);
+
+        Dictionary<int, DbuffYaml> buffs;
+        using (var reader = OpenEntry(entry))
+            buffs = _yaml.Deserialize<Dictionary<int, DbuffYaml>>(reader) ?? [];
+        var rows = buffs.Select(kv => new SdeDbuff
+        {
+            DbuffId       = kv.Key,
+            Name          = kv.Value.displayName?.en ?? kv.Value.developerDescription ?? "",
+            AggregateMode = kv.Value.aggregateMode ?? "",
+            Operation     = kv.Value.operationName ?? "",
+            ShowInUi      = kv.Value.showOutputValueInUI ?? "",
+        });
+        await SaveBatchesAsync(db, db.SdeDbuffs, rows, SettingsText.ImportStageFleetBoosts, buffs.Count, p, 0.674, 0.675, ct);
+        await SaveNamesAsync(db, SdeNameKind.Dbuff, buffs.Where(kv => kv.Value.displayName is not null).Select(kv => ((long)kv.Key, kv.Value.displayName)), p, 0.675, ct);
+
+        // Every modifier list in the buff's order: on the ship, on all it holds, by group, by skill.
+        var modifiers = buffs.SelectMany(kv =>
+            (kv.Value.itemModifiers ?? []).Select(m => (Kind: "item", M: m))
+            .Concat((kv.Value.locationModifiers ?? []).Select(m => (Kind: "location", M: m)))
+            .Concat((kv.Value.locationGroupModifiers ?? []).Select(m => (Kind: "locationGroup", M: m)))
+            .Concat((kv.Value.locationRequiredSkillModifiers ?? []).Select(m => (Kind: "locationRequiredSkill", M: m)))
+            .Select((x, i) => new SdeDbuffModifier
+            {
+                DbuffId = kv.Key, Ordinal = i, Kind = x.Kind,
+                AttributeId = x.M.dogmaAttributeID, GroupId = x.M.groupID, SkillTypeId = x.M.skillID,
+            }));
+        await SaveBatchesAsync(db, db.SdeDbuffModifiers, modifiers, SettingsText.ImportStageFleetBoosts, -1, p, 0.675, 0.676, ct);
+    }
+
     private async Task ImportTypeMaterialsAsync(ZipArchive zip, string fsdRoot, AppDbContext db,
         IProgress<SdeImportProgress> p, CancellationToken ct)
     {
@@ -2516,6 +2659,49 @@ public class SdeImportService
         public LocalizedName?   nameID     { get; set; }
     }
 
+    private class FighterAbilityYaml
+    {
+        public LocalizedName? displayName       { get; set; }
+        public LocalizedName? tooltipText       { get; set; }
+        public string?        targetMode        { get; set; }
+        public int?           iconID            { get; set; }
+        public bool           disallowInHighSec { get; set; }
+        public bool           disallowInLowSec  { get; set; }
+    }
+
+    private class DbuffYaml
+    {
+        public string?                    aggregateMode                  { get; set; }
+        public string?                    developerDescription           { get; set; }
+        public LocalizedName?             displayName                    { get; set; }
+        public string?                    operationName                  { get; set; }
+        public string?                    showOutputValueInUI            { get; set; }
+        public List<DbuffModifierYaml>?   itemModifiers                  { get; set; }
+        public List<DbuffModifierYaml>?   locationModifiers              { get; set; }
+        public List<DbuffModifierYaml>?   locationGroupModifiers         { get; set; }
+        public List<DbuffModifierYaml>?   locationRequiredSkillModifiers { get; set; }
+    }
+
+    private class DbuffModifierYaml
+    {
+        public int  dogmaAttributeID { get; set; }
+        public int? groupID          { get; set; }
+        public int? skillID          { get; set; }
+    }
+
+    private class FighterAbilitySlotYaml
+    {
+        public int                  abilityID       { get; set; }
+        public double?              cooldownSeconds { get; set; }
+        public FighterChargesYaml?  charges         { get; set; }
+    }
+
+    private class FighterChargesYaml
+    {
+        public int    chargeCount      { get; set; }
+        public double rearmTimeSeconds { get; set; }
+    }
+
     private class DogmaEffectYaml
     {
         // New SDE: "name" field holds the effect name
@@ -2531,6 +2717,32 @@ public class SdeImportService
         public bool             isOffensive   { get; set; }
         public bool             isAssistance  { get; set; }
         public bool             published     { get; set; }
+
+        // New SDE "effectCategoryID"; old SDE "effectCategory".
+        public int?             effectCategoryID { get; set; }
+        public int?             effectCategory   { get; set; }
+        public bool             isWarpSafe         { get; set; }
+        public bool             disallowAutoRepeat { get; set; }
+        public int?             durationAttributeID      { get; set; }
+        public int?             dischargeAttributeID     { get; set; }
+        public int?             rangeAttributeID         { get; set; }
+        public int?             falloffAttributeID       { get; set; }
+        public int?             trackingSpeedAttributeID { get; set; }
+        public int?             resistanceAttributeID    { get; set; }
+        public int?             fittingUsageChanceAttributeID { get; set; }
+        public List<ModifierInfoYaml>? modifierInfo { get; set; }
+    }
+
+    private class ModifierInfoYaml
+    {
+        public string? func                 { get; set; }
+        public string? domain               { get; set; }
+        public int?    operation            { get; set; }
+        public int?    modifiedAttributeID  { get; set; }
+        public int?    modifyingAttributeID { get; set; }
+        public int?    groupID              { get; set; }
+        public int?    skillTypeID          { get; set; }
+        public int?    effectID             { get; set; }
     }
 
     private class TypeDogmaYaml

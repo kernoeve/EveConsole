@@ -13,6 +13,9 @@
   <data name="NavGroupStructures" xml:space="preserve">
     <value>Structures / Navigation</value>
   </data>
+  <data name="NavGroupShips" xml:space="preserve">
+    <value>Vaisseaux</value>
+  </data>
   <data name="NavGroupIndustry" xml:space="preserve">
     <value>Industrie</value>
   </data>
@@ -63,6 +66,9 @@
   </data>
   <data name="NavProductionCalc" xml:space="preserve">
     <value>Calcul de production</value>
+  </data>
+  <data name="NavFitting" xml:space="preserve">
+    <value>Montage</value>
   </data>
   <data name="NavPriceOverrides" xml:space="preserve">
     <value>Prix personnalisés</value>
@@ -150,6 +156,30 @@
   </data>
   <data name="TabUniverse" xml:space="preserve">
     <value>Univers</value>
+  </data>
+  <data name="DropToSplit" xml:space="preserve">
+    <value>Déposer ici pour afficher deux outils côte à côte</value>
+  </data>
+  <data name="DropToDetach" xml:space="preserve">
+    <value>Relâcher pour l'ouvrir dans sa propre fenêtre</value>
+  </data>
+  <data name="TipToggleNav" xml:space="preserve">
+    <value>Afficher ou masquer la navigation</value>
+  </data>
+  <data name="MenuCloseTab" xml:space="preserve">
+    <value>Fermer</value>
+  </data>
+  <data name="MenuCloseOtherTabs" xml:space="preserve">
+    <value>Fermer les autres onglets</value>
+  </data>
+  <data name="MenuCloseAllTabs" xml:space="preserve">
+    <value>Fermer tous les onglets</value>
+  </data>
+  <data name="MenuCloseOtherTabsSide" xml:space="preserve">
+    <value>Fermer les autres onglets de ce côté</value>
+  </data>
+  <data name="MenuCloseAllTabsSide" xml:space="preserve">
+    <value>Fermer tous les onglets de ce côté</value>
   </data>
   <data name="TabAlarms" xml:space="preserve">
     <value>Alarmes</value>

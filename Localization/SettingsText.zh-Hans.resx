@@ -2920,6 +2920,9 @@ SQLite 数据库只会被读取，不会被修改。大型数据库需要一些�
   <data name="ImportStageDogmaEffects" xml:space="preserve">
     <value>Dogma 效果</value>
   </data>
+  <data name="ImportStageDogmaEffectModifiers" xml:space="preserve">
+    <value>Dogma 效果修正</value>
+  </data>
   <data name="ImportStageTypeDogma" xml:space="preserve">
     <value>类型 Dogma</value>
   </data>
@@ -2928,6 +2931,12 @@ SQLite 数据库只会被读取，不会被修改。大型数据库需要一些�
   </data>
   <data name="ImportStageTypeDogmaEffects" xml:space="preserve">
     <value>类型 Dogma 效果</value>
+  </data>
+  <data name="ImportStageFighterAbilities" xml:space="preserve">
+    <value>铁骑舰载机技能</value>
+  </data>
+  <data name="ImportStageFleetBoosts" xml:space="preserve">
+    <value>舰队加成</value>
   </data>
   <data name="ImportStageBlueprints" xml:space="preserve">
     <value>蓝图</value>

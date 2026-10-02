@@ -2920,6 +2920,9 @@ L'application va redémarrer.</value>
   <data name="ImportStageDogmaEffects" xml:space="preserve">
     <value>Effets Dogma</value>
   </data>
+  <data name="ImportStageDogmaEffectModifiers" xml:space="preserve">
+    <value>Modificateurs d'effets Dogma</value>
+  </data>
   <data name="ImportStageTypeDogma" xml:space="preserve">
     <value>Dogma des types</value>
   </data>
@@ -2928,6 +2931,12 @@ L'application va redémarrer.</value>
   </data>
   <data name="ImportStageTypeDogmaEffects" xml:space="preserve">
     <value>Effets Dogma des types</value>
+  </data>
+  <data name="ImportStageFighterAbilities" xml:space="preserve">
+    <value>Aptitudes des chasseurs</value>
+  </data>
+  <data name="ImportStageFleetBoosts" xml:space="preserve">
+    <value>Bonus de flotte</value>
   </data>
   <data name="ImportStageBlueprints" xml:space="preserve">
     <value>Plans de construction</value>

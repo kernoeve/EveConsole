@@ -288,10 +288,6 @@
     <value>P</value>
     <comment>One-letter badge on a fitting saved by a character. Keep it to one character.</comment>
   </data>
-  <data name="FitBadgeCorp" xml:space="preserve">
-    <value>C</value>
-    <comment>One-letter badge on a fitting saved by a corporation. Keep it to one character.</comment>
-  </data>
   <data name="FetchingFits" xml:space="preserve">
     <value>Fetching fits from ESI…</value>
     <comment>Status in the Add Items From Fit window while the fittings are fetched.</comment>

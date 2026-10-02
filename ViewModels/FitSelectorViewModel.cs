@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
@@ -23,14 +24,17 @@ public record FitGroupOption(int GroupId, string GroupName)
     public override string ToString() => GroupName;
 }
 
-public record FitSelectorResult(EsiFittingData Fitting, int TargetGroupId);
+public record FitSelectorResult(EsiFittingData Fitting, int TargetGroupId, FitEntry? Entry = null);
+
+/// <summary>Whose fittings the picker lists: a character's own, or a corporation's.</summary>
+public sealed record FitOwner(FitSource Source, string Name);
 
 // ── Tree node ─────────────────────────────────────────────────────────────────
 
 public class FitTreeNode : ReactiveObject
 {
     private static readonly IBrush PersonalBrush = new SolidColorBrush(Color.Parse("#c8a84b"));
-    private static readonly IBrush CorpBrush     = new SolidColorBrush(Color.Parse("#5599cc"));
+    private static readonly IBrush AppBrush      = new SolidColorBrush(Color.Parse("#6fbf73"));
 
     public FitNodeKind    Kind    { get; init; }
     public string         Name    { get; init; } = "";
@@ -52,15 +56,17 @@ public class FitTreeNode : ReactiveObject
     public string SourceBadge => Source switch
     {
         FitSource.Personal => CommonText.FitBadgePersonal,
-        FitSource.Corp     => CommonText.FitBadgeCorp,
+        FitSource.App      => "",   // the owner beside it already says EVE Console
         _                  => ""
     };
     public IBrush SourceBrush => Source switch
     {
         FitSource.Personal => PersonalBrush,
-        FitSource.Corp     => CorpBrush,
+        FitSource.App      => AppBrush,
         _                  => Brushes.Transparent
     };
+    /// <summary>Whose fitting it is, beside its name: the character, or EVE Console.</summary>
+    public string OwnerLabel => Entry is { } e ? FitSelectorViewModel.OwnerLabel(e) : "";
 }
 
 // ── Detail panel line ─────────────────────────────────────────────────────────
@@ -81,12 +87,68 @@ public class FitDetailLine
 
 public class FitSelectorViewModel : ReactiveObject
 {
-    private readonly FittingsService                 _svc;
+    private readonly FittingsService?                _svc;
+    private readonly IReadOnlyList<FitEntry>         _localFits;
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private readonly ObservableCollection<Character>   _characters;
-    private readonly ObservableCollection<Corporation> _corporations;
 
     public ObservableCollection<FitTreeNode>   RootNodes   { get; } = [];
+
+    // ── Owner filter ──────────────────────────────────────────────────────────
+
+    /// <summary>A fitting's owner as the picker names it: a character's name, or EVE Console.</summary>
+    public static string OwnerLabel(FitEntry e) => e.OwnerName;
+
+    /// <summary>Everyone (null), then each character with fittings, then each corporation. Chosen
+    /// and matched by the owner itself; the label is only shown.</summary>
+    public ObservableCollection<Choice<FitOwner?>> Owners { get; } = [new(null, FittingText.OwnerEveryone)];
+
+    private FitOwner? _selectedOwner;
+    public Choice<FitOwner?> SelectedOwner
+    {
+        get => Owners.FirstOrDefault(o => o.Value == _selectedOwner) ?? Owners[0];
+        set
+        {
+            // A detaching ComboBox sets null; that is not a choice.
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            if (value.Value == _selectedOwner) return;
+            _selectedOwner = value.Value;
+            this.RaisePropertyChanged();
+            if (_allFits is not null) _ = BuildTreeAsync(Filtered(), CancellationToken.None);
+        }
+    }
+
+    private string _searchText = "";
+    /// <summary>Words to find in a fit's name or its hull's (as shown, or in English); every word must be found.</summary>
+    public string SearchText { get => _searchText; set => this.RaiseAndSetIfChanged(ref _searchText, value); }
+
+    private List<FitEntry>? _allFits;
+    private Dictionary<int, string> _hullNames = new();   // English, by type id
+    private List<FitEntry> Filtered()
+    {
+        IEnumerable<FitEntry> fits = _allFits!;
+        if (_selectedOwner is { } owner) fits = fits.Where(f => f.Source == owner.Source && f.OwnerName == owner.Name);
+        var words = _searchText.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (words.Length > 0)
+            fits = fits.Where(f => words.All(w => f.Data.Name.Contains(w, StringComparison.CurrentCultureIgnoreCase)
+                || SdeNames.Matches(SdeNameKind.Type, f.Data.ShipTypeId, _hullNames.GetValueOrDefault(f.Data.ShipTypeId, ""), w)));
+        return fits.ToList();
+    }
+    private bool Searching => _searchText.Trim().Length > 0;
+
+    /// <summary>Deletes a fit saved in EVE Console; set by the fitting tool, which keeps them.</summary>
+    public Func<long, Task>? DeleteLocal { get; init; }
+    public bool AllowsDelete      => DeleteLocal is not null;
+    public bool CanDeleteSelected => DeleteLocal is not null && _selectedNode?.Entry is { Source: FitSource.App };
+
+    /// <summary>Deletes the EVE Console fit chosen, once the view has asked.</summary>
+    public async Task DeleteSelectedAsync()
+    {
+        if (!CanDeleteSelected || _selectedNode!.Entry is not { SavedFitId: { } id } entry) return;
+        await DeleteLocal!(id);
+        _allFits!.Remove(entry);
+        await BuildTreeAsync(Filtered(), CancellationToken.None);
+    }
     public ObservableCollection<FitGroupOption> Groups      { get; } = [];
     public ObservableCollection<FitDetailLine>  DetailLines { get; } = [];
 
@@ -99,6 +161,7 @@ public class FitSelectorViewModel : ReactiveObject
             this.RaiseAndSetIfChanged(ref _selectedNode, value);
             this.RaisePropertyChanged(nameof(CanConfirm));
             this.RaisePropertyChanged(nameof(HasSelectedFit));
+            this.RaisePropertyChanged(nameof(CanDeleteSelected));
             _ = LoadDetailLinesAsync(value?.Entry, CancellationToken.None);
         }
     }
@@ -129,24 +192,44 @@ public class FitSelectorViewModel : ReactiveObject
     }
 
     public bool HasSelectedFit => _selectedNode?.IsFit == true;
-    public bool CanConfirm     => _selectedNode?.IsFit == true && _selectedGroup != null;
+    /// <summary>Whether the picker asks which Inventory Levels group the fit goes into. The
+    /// fitting tool opens fits rather than adding them to a group, and turns this off.</summary>
+    public bool ChooseGroup { get; init; } = true;
 
+    /// <summary>The window's title and its confirm button: adding a fit's items to a group, or
+    /// opening the fit in the fitting tool.</summary>
+    public string WindowTitle => TitleOverride ?? (ChooseGroup ? CommonText.TitleAddItemsFromFit : FittingText.TitleOpenFit);
+    public string ConfirmText => ConfirmOverride ?? (ChooseGroup ? CommonText.AddItems2 : FittingText.LoadFit);
+    /// <summary>Another title and confirm button, for a picker used for something else (adding a booster).</summary>
+    public string? TitleOverride   { get; init; }
+    public string? ConfirmOverride { get; init; }
+
+    public bool CanConfirm     => _selectedNode?.IsFit == true && (!ChooseGroup || _selectedGroup != null);
+
+    /// <param name="svc">Reads the game's fittings; null lists only <paramref name="localFits"/>.</param>
+    /// <param name="localFits">Fits saved in EVE Console, listed with the game's.</param>
     public FitSelectorViewModel(
-        FittingsService                     svc,
+        FittingsService?                    svc,
         IDbContextFactory<AppDbContext>     dbFactory,
         ObservableCollection<Character>     characters,
-        ObservableCollection<Corporation>   corporations,
         IReadOnlyList<FitGroupOption>       groupOptions,
-        int                                 preselectedGroupId)
+        int                                 preselectedGroupId,
+        IReadOnlyList<FitEntry>?            localFits = null)
     {
         _svc          = svc;
+        _localFits    = localFits ?? [];
         _dbFactory    = dbFactory;
         _characters   = characters;
-        _corporations = corporations;
 
         foreach (var g in groupOptions) Groups.Add(g);
         _selectedGroup = Groups.FirstOrDefault(g => g.GroupId == preselectedGroupId)
                          ?? Groups.FirstOrDefault();
+
+        // Typing narrows the tree after a pause, not on every key.
+        this.WhenAnyValue(x => x.SearchText).Skip(1)
+            .Throttle(TimeSpan.FromMilliseconds(250))
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Subscribe(text => { if (_allFits is not null) _ = BuildTreeAsync(Filtered(), CancellationToken.None); });
 
         _ = LoadAsync(CancellationToken.None);
     }
@@ -157,9 +240,27 @@ public class FitSelectorViewModel : ReactiveObject
     {
         try
         {
-            var fits = await _svc.FetchAllFitsAsync(_characters, _corporations, ct);
+            // EVE Console's own fits, then the game's; if the game cannot be reached the picker
+            // still lists what is saved here, and says why the rest are missing.
+            var fits = _localFits.ToList();
+            string? gameError = null;
+            if (_svc is not null)
+            {
+                try { fits.AddRange(await _svc.FetchAllFitsAsync(_characters, ct)); }
+                catch (Exception ex) { gameError = string.Format(CommonText.ErrorWithMessage, ex.Message); }
+            }
+            _allFits = fits;
+            var hullIds = fits.Select(f => f.Data.ShipTypeId).Distinct().ToList();
+            await using (var db = _dbFactory.CreateDbContext())
+                _hullNames = await db.SdeTypes.AsNoTracking().Where(t => hullIds.Contains(t.TypeId))
+                    .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct);
+            foreach (var f in fits.OrderBy(f => f.Source == FitSource.App ? 0 : 1).ThenBy(f => f.Source)
+                                  .ThenBy(f => f.OwnerName, StringComparer.OrdinalIgnoreCase)
+                                  .DistinctBy(f => (f.Source, f.OwnerName)))
+                Owners.Add(new(new FitOwner(f.Source, f.OwnerName), OwnerLabel(f)));
             StatusText = CommonText.BuildingFitTree;
             await BuildTreeAsync(fits, ct);
+            if (gameError is not null) StatusText = gameError;
         }
         catch (Exception ex)
         {
@@ -170,9 +271,11 @@ public class FitSelectorViewModel : ReactiveObject
 
     private async Task BuildTreeAsync(List<FitEntry> fits, CancellationToken ct)
     {
+        RootNodes.Clear();
+        SelectedNode = null;
         if (fits.Count == 0)
         {
-            StatusText = CommonText.NoFitsFound;
+            StatusText = Searching ? FittingText.NoFitsMatch : CommonText.NoFitsFound;
             IsLoading  = false;
             return;
         }
@@ -267,7 +370,8 @@ public class FitSelectorViewModel : ReactiveObject
             {
                 foreach (var (typeId, shipName, shipFits) in ships.OrderBy(s => s.Name, StringComparer.CurrentCulture))
                 {
-                    var shipNode = new FitTreeNode { Kind = FitNodeKind.Ship, Name = shipName, TypeId = typeId };
+                    // A search opens every hull it found something under.
+                    var shipNode = new FitTreeNode(startExpanded: Searching) { Kind = FitNodeKind.Ship, Name = shipName, TypeId = typeId };
                     foreach (var entry in shipFits.OrderBy(f => f.Data.Name))
                     {
                         shipNode.Children.Add(new FitTreeNode

@@ -13,6 +13,9 @@
   <data name="NavGroupStructures" xml:space="preserve">
     <value>ストラクチャ・ナビゲーション</value>
   </data>
+  <data name="NavGroupShips" xml:space="preserve">
+    <value>艦船</value>
+  </data>
   <data name="NavGroupIndustry" xml:space="preserve">
     <value>インダストリー</value>
   </data>
@@ -63,6 +66,9 @@
   </data>
   <data name="NavProductionCalc" xml:space="preserve">
     <value>生産計算</value>
+  </data>
+  <data name="NavFitting" xml:space="preserve">
+    <value>装備</value>
   </data>
   <data name="NavPriceOverrides" xml:space="preserve">
     <value>価格の上書き</value>
@@ -150,6 +156,30 @@
   </data>
   <data name="TabUniverse" xml:space="preserve">
     <value>宇宙</value>
+  </data>
+  <data name="DropToSplit" xml:space="preserve">
+    <value>ここにドロップすると2つのツールを並べて表示します</value>
+  </data>
+  <data name="DropToDetach" xml:space="preserve">
+    <value>離すと専用のウィンドウで開きます</value>
+  </data>
+  <data name="TipToggleNav" xml:space="preserve">
+    <value>ナビゲーションの表示・非表示</value>
+  </data>
+  <data name="MenuCloseTab" xml:space="preserve">
+    <value>閉じる</value>
+  </data>
+  <data name="MenuCloseOtherTabs" xml:space="preserve">
+    <value>他のタブを閉じる</value>
+  </data>
+  <data name="MenuCloseAllTabs" xml:space="preserve">
+    <value>すべてのタブを閉じる</value>
+  </data>
+  <data name="MenuCloseOtherTabsSide" xml:space="preserve">
+    <value>この側の他のタブを閉じる</value>
+  </data>
+  <data name="MenuCloseAllTabsSide" xml:space="preserve">
+    <value>この側のすべてのタブを閉じる</value>
   </data>
   <data name="TabAlarms" xml:space="preserve">
     <value>アラーム</value>

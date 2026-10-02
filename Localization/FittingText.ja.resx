@@ -1,0 +1,1168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TitleFitting" xml:space="preserve">
+    <value>装備</value>
+  </data>
+  <data name="ItemsHeading" xml:space="preserve">
+    <value>アイテム</value>
+  </data>
+  <data name="FinderUnlistedGroup" xml:space="preserve">
+    <value>マーケット外</value>
+  </data>
+  <data name="FinderDragHint" xml:space="preserve">
+    <value>アイテムをダブルクリックで追加、またはスロットにドラッグします。</value>
+  </data>
+  <data name="FilterAll" xml:space="preserve">
+    <value>すべて</value>
+  </data>
+  <data name="FilterModules" xml:space="preserve">
+    <value>モジュール</value>
+  </data>
+  <data name="FilterRigs" xml:space="preserve">
+    <value>リグ</value>
+  </data>
+  <data name="FilterSubsystems" xml:space="preserve">
+    <value>サブシステム</value>
+  </data>
+  <data name="FilterCharges" xml:space="preserve">
+    <value>チャージ</value>
+  </data>
+  <data name="FilterDrones" xml:space="preserve">
+    <value>ドローン</value>
+  </data>
+  <data name="FilterImplants" xml:space="preserve">
+    <value>インプラント</value>
+  </data>
+  <data name="FilterBoosters" xml:space="preserve">
+    <value>ブースター</value>
+  </data>
+  <data name="FilterOtherItems" xml:space="preserve">
+    <value>その他のアイテム</value>
+  </data>
+  <data name="SearchWatermark" xml:space="preserve">
+    <value>名前またはグループで検索…</value>
+  </data>
+  <data name="FitsOnly" xml:space="preserve">
+    <value>この船体に装備できるものだけ</value>
+  </data>
+  <data name="TipShowEverySlot" xml:space="preserve">
+    <value>すべてのスロットのモジュールを表示します</value>
+  </data>
+  <data name="AddToFit" xml:space="preserve">
+    <value>装備に追加</value>
+  </data>
+  <data name="AddToCargo" xml:space="preserve">
+    <value>カーゴに追加</value>
+  </data>
+  <data name="TipAddToCargo" xml:space="preserve">
+    <value>選択したアイテムをカーゴホールドに入れます — どんなアイテムでも積めます</value>
+  </data>
+  <data name="FinderHigh" xml:space="preserve">
+    <value>ハイ</value>
+  </data>
+  <data name="FinderMid" xml:space="preserve">
+    <value>ミディアム</value>
+  </data>
+  <data name="FinderLow" xml:space="preserve">
+    <value>ロー</value>
+  </data>
+  <data name="FinderService" xml:space="preserve">
+    <value>サービス</value>
+  </data>
+  <data name="FinderRig" xml:space="preserve">
+    <value>リグ</value>
+  </data>
+  <data name="FinderSubsystem" xml:space="preserve">
+    <value>サブシステム</value>
+  </data>
+  <data name="FinderCharge" xml:space="preserve">
+    <value>チャージ</value>
+  </data>
+  <data name="FinderDrone" xml:space="preserve">
+    <value>ドローン</value>
+  </data>
+  <data name="FinderFighter" xml:space="preserve">
+    <value>艦載戦闘機</value>
+  </data>
+  <data name="KindImplant" xml:space="preserve">
+    <value>インプラント</value>
+  </data>
+  <data name="KindBooster" xml:space="preserve">
+    <value>ブースター</value>
+  </data>
+  <data name="FinderOnlyHigh" xml:space="preserve">
+    <value>ハイパワースロットのモジュールのみ</value>
+  </data>
+  <data name="FinderOnlyMid" xml:space="preserve">
+    <value>ミディアムスロットのモジュールのみ</value>
+  </data>
+  <data name="FinderOnlyLow" xml:space="preserve">
+    <value>ローパワースロットのモジュールのみ</value>
+  </data>
+  <data name="FinderOnlyRig" xml:space="preserve">
+    <value>リグスロットのモジュールのみ</value>
+  </data>
+  <data name="FinderOnlySubsystem" xml:space="preserve">
+    <value>サブシステムスロットのモジュールのみ</value>
+  </data>
+  <data name="FinderOnlyService" xml:space="preserve">
+    <value>サービススロットのモジュールのみ</value>
+  </data>
+  <data name="ToggleItems" xml:space="preserve">
+    <value>☰ アイテム</value>
+  </data>
+  <data name="TipToggleItems" xml:space="preserve">
+    <value>アイテム一覧を表示または非表示にします</value>
+  </data>
+  <data name="NewFitLabel" xml:space="preserve">
+    <value>新しい装備</value>
+  </data>
+  <data name="HullWatermark" xml:space="preserve">
+    <value>船体 — 名前またはクラスを入力…</value>
+  </data>
+  <data name="PasteEft" xml:space="preserve">
+    <value>EFTを貼り付け…</value>
+  </data>
+  <data name="OpenFit" xml:space="preserve">
+    <value>装備を開く…</value>
+  </data>
+  <data name="TipOpenFit" xml:space="preserve">
+    <value>EVE Consoleに保存した装備、またはキャラクターがゲームに保存した装備を開きます</value>
+  </data>
+  <data name="TitleOpenFit" xml:space="preserve">
+    <value>装備を開く</value>
+  </data>
+  <data name="FitSearchWatermark" xml:space="preserve">
+    <value>装備名または船体名で検索…</value>
+  </data>
+  <data name="NoFitsMatch" xml:space="preserve">
+    <value>検索に一致する装備はありません。</value>
+  </data>
+  <data name="TitleDeleteSaved" xml:space="preserve">
+    <value>装備の削除</value>
+  </data>
+  <data name="ConfirmDeleteSaved" xml:space="preserve">
+    <value>EVE Consoleに保存した装備「{0}」を削除しますか？元に戻せません。</value>
+  </data>
+  <data name="DeleteSaved" xml:space="preserve">
+    <value>削除</value>
+  </data>
+  <data name="TipDeleteSaved" xml:space="preserve">
+    <value>選んだ装備を削除します（EVE Consoleに保存した装備のみ）</value>
+  </data>
+  <data name="EmptyToolHint" xml:space="preserve">
+    <value>船体から装備を始めるか、装備を貼り付けるか、ゲームまたは保存済みの装備から開いてください。それぞれ専用のタブで開きます。</value>
+  </data>
+  <data name="DropSideBySide" xml:space="preserve">
+    <value>ここにドロップすると2つの装備を並べて表示します</value>
+  </data>
+  <data name="TabNewFit" xml:space="preserve">
+    <value>新しい装備</value>
+  </data>
+  <data name="TipTab" xml:space="preserve">
+    <value>ドラッグして並べ替えます。右半分にドロップすると2つの装備を並べて表示します</value>
+  </data>
+  <data name="TipTabDirty" xml:space="preserve">
+    <value>開いたとき、または保存したときから変更されています</value>
+  </data>
+  <data name="TipCloseFit" xml:space="preserve">
+    <value>この装備を閉じます</value>
+  </data>
+  <data name="PilotLabel" xml:space="preserve">
+    <value>パイロット</value>
+  </data>
+  <data name="ModeLabel" xml:space="preserve">
+    <value>モード</value>
+  </data>
+  <data name="TipMode" xml:space="preserve">
+    <value>艦船の戦術モード。そのボーナスは数値に反映されます</value>
+  </data>
+  <data name="TipPilot" xml:space="preserve">
+    <value>数値の計算に使うスキルの持ち主</value>
+  </data>
+  <data name="PilotAllV" xml:space="preserve">
+    <value>全スキルV</value>
+  </data>
+  <data name="PilotAll0" xml:space="preserve">
+    <value>全スキル0</value>
+  </data>
+  <data name="FitNameWatermark" xml:space="preserve">
+    <value>装備名</value>
+  </data>
+  <data name="NewFitName" xml:space="preserve">
+    <value>新しい{0}</value>
+  </data>
+  <data name="DefaultFitName" xml:space="preserve">
+    <value>{0}の装備</value>
+  </data>
+  <data name="GameFitDescription" xml:space="preserve">
+    <value>EVE Consoleから保存</value>
+  </data>
+  <data name="GameFitNoName" xml:space="preserve">
+    <value>装備</value>
+  </data>
+  <data name="CopyEft" xml:space="preserve">
+    <value>EFTをコピー</value>
+  </data>
+  <data name="TipCopyEft" xml:space="preserve">
+    <value>この装備をEFTテキストとしてクリップボードにコピーします</value>
+  </data>
+  <data name="SaveFit" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="TipSaveFit" xml:space="preserve">
+    <value>開いた元、または最後に保存した装備に確認なしで上書き保存します。一度も保存していない装備は「名前を付けて保存」を使ってください。</value>
+  </data>
+  <data name="SaveFitAs" xml:space="preserve">
+    <value>名前を付けて保存…</value>
+  </data>
+  <data name="TipSaveFitAs" xml:space="preserve">
+    <value>名前と保存先を選びます：EVE Console、またはゲーム内のキャラクターの装備</value>
+  </data>
+  <data name="SavedInConsole" xml:space="preserve">
+    <value>EVE Consoleに保存済み</value>
+  </data>
+  <data name="SavedInGame" xml:space="preserve">
+    <value>ゲーム内の{0}の装備に保存済み</value>
+  </data>
+  <data name="NotSavedYet" xml:space="preserve">
+    <value>未保存</value>
+  </data>
+  <data name="TitleOverwriteFit" xml:space="preserve">
+    <value>装備の上書き</value>
+  </data>
+  <data name="ConfirmOverwriteApp" xml:space="preserve">
+    <value>この船体の「{0}」という装備はすでにEVE Consoleに保存されています。上書きしますか？</value>
+  </data>
+  <data name="ConfirmOverwriteGame" xml:space="preserve">
+    <value>ゲーム内の{1}の装備「{0}」を置き換えますか？ゲームでは装備を変更できないため、新しい装備を先に保存してから古い装備を削除します。</value>
+  </data>
+  <data name="GameSource" xml:space="preserve">
+    <value>ゲーム内の{0}の装備から：{1}</value>
+  </data>
+  <data name="SlotGroupHigh" xml:space="preserve">
+    <value>ハイパワースロット  {0} / {1}</value>
+  </data>
+  <data name="SlotGroupMid" xml:space="preserve">
+    <value>ミディアムスロット  {0} / {1}</value>
+  </data>
+  <data name="SlotGroupLow" xml:space="preserve">
+    <value>ローパワースロット  {0} / {1}</value>
+  </data>
+  <data name="SlotGroupRig" xml:space="preserve">
+    <value>リグスロット  {0} / {1}</value>
+  </data>
+  <data name="SlotGroupSubsystem" xml:space="preserve">
+    <value>サブシステムスロット  {0} / {1}</value>
+  </data>
+  <data name="SlotGroupService" xml:space="preserve">
+    <value>サービススロット  {0} / {1}</value>
+  </data>
+  <data name="EmptyRowHigh" xml:space="preserve">
+    <value>[空のハイパワースロット]</value>
+  </data>
+  <data name="EmptyRowMid" xml:space="preserve">
+    <value>[空のミディアムスロット]</value>
+  </data>
+  <data name="EmptyRowLow" xml:space="preserve">
+    <value>[空のローパワースロット]</value>
+  </data>
+  <data name="EmptyRowRig" xml:space="preserve">
+    <value>[空のリグスロット]</value>
+  </data>
+  <data name="EmptyRowSubsystem" xml:space="preserve">
+    <value>[空のサブシステムスロット]</value>
+  </data>
+  <data name="EmptyRowService" xml:space="preserve">
+    <value>[空のサービススロット]</value>
+  </data>
+  <data name="StateOff" xml:space="preserve">
+    <value>オフ</value>
+  </data>
+  <data name="StateOn" xml:space="preserve">
+    <value>オン</value>
+  </data>
+  <data name="StateAct" xml:space="preserve">
+    <value>起動</value>
+  </data>
+  <data name="StateHeat" xml:space="preserve">
+    <value>過熱</value>
+  </data>
+  <data name="TipStateOffline" xml:space="preserve">
+    <value>オフライン — クリックでオンラインにします</value>
+  </data>
+  <data name="TipStateOnlineActivate" xml:space="preserve">
+    <value>オンライン — クリックで起動します</value>
+  </data>
+  <data name="TipStateOnlineOffline" xml:space="preserve">
+    <value>オンライン — クリックでオフラインにします</value>
+  </data>
+  <data name="TipStateActive" xml:space="preserve">
+    <value>起動中 — クリックでオフラインにします</value>
+  </data>
+  <data name="TipStateOverheated" xml:space="preserve">
+    <value>オーバーヒート中 — クリックでオフラインにします</value>
+  </data>
+  <data name="HeatButton" xml:space="preserve">
+    <value>過熱</value>
+  </data>
+  <data name="TipHeatStop" xml:space="preserve">
+    <value>オーバーヒート中 — クリックで停止します</value>
+  </data>
+  <data name="TipHeatStart" xml:space="preserve">
+    <value>クリックでオーバーヒートします</value>
+  </data>
+  <data name="NoCharge" xml:space="preserve">
+    <value>チャージなし</value>
+  </data>
+  <data name="TipModuleValue" xml:space="preserve">
+    <value>モジュールのマーケット価値</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>削除</value>
+  </data>
+  <data name="TipChooseModule" xml:space="preserve">
+    <value>クリックしてこのスロットのモジュールを選択します</value>
+  </data>
+  <data name="StateNameOffline" xml:space="preserve">
+    <value>オフライン</value>
+  </data>
+  <data name="StateNameOnline" xml:space="preserve">
+    <value>オンライン</value>
+  </data>
+  <data name="StateNameActive" xml:space="preserve">
+    <value>起動中</value>
+  </data>
+  <data name="StateNameOverheated" xml:space="preserve">
+    <value>オーバーヒート中</value>
+  </data>
+  <data name="MenuPutOnline" xml:space="preserve">
+    <value>オンラインにする</value>
+  </data>
+  <data name="MenuPutOffline" xml:space="preserve">
+    <value>オフラインにする</value>
+  </data>
+  <data name="MenuActivate" xml:space="preserve">
+    <value>起動</value>
+  </data>
+  <data name="MenuDeactivate" xml:space="preserve">
+    <value>停止</value>
+  </data>
+  <data name="MenuOverheat" xml:space="preserve">
+    <value>オーバーヒート</value>
+  </data>
+  <data name="MenuStopOverheating" xml:space="preserve">
+    <value>オーバーヒートを停止</value>
+  </data>
+  <data name="MenuUnload" xml:space="preserve">
+    <value>{0}を抜き取る</value>
+  </data>
+  <data name="DronesHeading" xml:space="preserve">
+    <value>ドローンと艦載戦闘機</value>
+  </data>
+  <data name="InBay" xml:space="preserve">
+    <value>ベイ内</value>
+  </data>
+  <data name="Launched" xml:space="preserve">
+    <value>展開中</value>
+  </data>
+  <data name="InTube" xml:space="preserve">
+    <value>チューブ内</value>
+  </data>
+  <data name="TipInTube" xml:space="preserve">
+    <value>発進中 — 装備のダメージに数えるのは、チューブに入っている部隊です</value>
+  </data>
+  <data name="TipStackValue" xml:space="preserve">
+    <value>スタック全体のマーケット価値</value>
+  </data>
+  <data name="ClassLight" xml:space="preserve">
+    <value>軽量級</value>
+  </data>
+  <data name="ClassSupport" xml:space="preserve">
+    <value>支援</value>
+  </data>
+  <data name="ClassHeavy" xml:space="preserve">
+    <value>重量級</value>
+  </data>
+  <data name="TipSquadronLight" xml:space="preserve">
+    <value>最大{0}機の軽量級戦闘機部隊</value>
+  </data>
+  <data name="TipSquadronSupport" xml:space="preserve">
+    <value>最大{0}機の支援戦闘機部隊</value>
+  </data>
+  <data name="TipSquadronHeavy" xml:space="preserve">
+    <value>最大{0}機の重量級戦闘機部隊</value>
+  </data>
+  <data name="TipSquadron" xml:space="preserve">
+    <value>最大{0}機の部隊</value>
+  </data>
+  <data name="AbilityAttack" xml:space="preserve">
+    <value>攻撃</value>
+  </data>
+  <data name="AbilityMissiles" xml:space="preserve">
+    <value>ミサイル</value>
+  </data>
+  <data name="AbilityBomb" xml:space="preserve">
+    <value>ボム</value>
+  </data>
+  <data name="AbilityKamikaze" xml:space="preserve">
+    <value>カミカゼ</value>
+  </data>
+  <data name="AbilityEnergyNeutralizer" xml:space="preserve">
+    <value>エネルギーニュートライザー</value>
+  </data>
+  <data name="AbilityStasisWebifier" xml:space="preserve">
+    <value>ステイシスウェビファイヤー</value>
+  </data>
+  <data name="AbilityWarpDisruptor" xml:space="preserve">
+    <value>ワープ妨害</value>
+  </data>
+  <data name="AbilityEcm" xml:space="preserve">
+    <value>ECM</value>
+  </data>
+  <data name="AbilityTackle" xml:space="preserve">
+    <value>タックル</value>
+  </data>
+  <data name="AbilityEvasiveManeuvers" xml:space="preserve">
+    <value>回避作戦</value>
+  </data>
+  <data name="AbilityAfterburner" xml:space="preserve">
+    <value>アフターバーナー</value>
+  </data>
+  <data name="AbilityMicrowarpdrive" xml:space="preserve">
+    <value>マイクロワープドライブ</value>
+  </data>
+  <data name="AbilityMicroJumpDrive" xml:space="preserve">
+    <value>マイクロジャンプドライブ</value>
+  </data>
+  <data name="TipAbilityCounted" xml:space="preserve">
+    <value>{0}：オンの間はDPSに計上されます</value>
+  </data>
+  <data name="TipAbilityNoEffect" xml:space="preserve">
+    <value>{0}：装備の数値には影響しません</value>
+  </data>
+  <data name="CargoHeading" xml:space="preserve">
+    <value>カーゴホールド</value>
+  </data>
+  <data name="Quantity" xml:space="preserve">
+    <value>数量</value>
+  </data>
+  <data name="ImplantsHeading" xml:space="preserve">
+    <value>インプラントとブースター</value>
+  </data>
+  <data name="BoostsHeading" xml:space="preserve">
+    <value>フリートブースト</value>
+  </data>
+  <data name="BoostSelf" xml:space="preserve">
+    <value>自艦のコマンドバーストも自艦にかかる</value>
+  </data>
+  <data name="TipBoostSelf" xml:space="preserve">
+    <value>バーストは範囲内のフリートメンバー全員に届き、使用艦自身も含みます。単独で飛ぶ場合はオフにしてください。</value>
+  </data>
+  <data name="AddBooster" xml:space="preserve">
+    <value>ブースト艦を追加…</value>
+  </data>
+  <data name="TitleAddBooster" xml:space="preserve">
+    <value>支援する装備を追加</value>
+  </data>
+  <data name="ConfirmAddBooster" xml:space="preserve">
+    <value>追加</value>
+  </data>
+  <data name="TipBoosterPilot" xml:space="preserve">
+    <value>この装備のバーストとリモートモジュールを計算するスキル</value>
+  </data>
+  <data name="TipAddBooster" xml:space="preserve">
+    <value>この装備を支援する装備（いくつでも）：稼働中のコマンドバースト（同じボーナスが複数ある場合は最も強いものが適用）と、リモートリペアラー、リモートシールドブースター、キャパシタトランスミッター、ロジスティクスドローン（合算）</value>
+  </data>
+  <data name="BoostLine" xml:space="preserve">
+    <value>{0}  {1}  · {2}</value>
+  </data>
+  <data name="AssistShield" xml:space="preserve">
+    <value>リモートシールドブースト  {0:N1} HP/s  · {1}</value>
+  </data>
+  <data name="AssistArmor" xml:space="preserve">
+    <value>リモートアーマーリペア  {0:N1} HP/s  · {1}</value>
+  </data>
+  <data name="AssistHull" xml:space="preserve">
+    <value>リモート船体リペア  {0:N1} HP/s  · {1}</value>
+  </data>
+  <data name="AssistCapacitor" xml:space="preserve">
+    <value>キャパシタ転送  {0:N1} GJ/s  · {1}</value>
+  </data>
+  <data name="ResourcesHeading" xml:space="preserve">
+    <value>リソース</value>
+  </data>
+  <data name="Cpu" xml:space="preserve">
+    <value>CPU</value>
+  </data>
+  <data name="Powergrid" xml:space="preserve">
+    <value>パワーグリッド</value>
+  </data>
+  <data name="Calibration" xml:space="preserve">
+    <value>キャリブレーション</value>
+  </data>
+  <data name="Hardpoints" xml:space="preserve">
+    <value>タレット{0} / {1}    ランチャー{2} / {3}</value>
+  </data>
+  <data name="CargoLine" xml:space="preserve">
+    <value>カーゴ{0:N1} / {1:N0} m³</value>
+  </data>
+  <data name="CargoLineNoLimit" xml:space="preserve">
+    <value>カーゴ{0:N1} m³</value>
+  </data>
+  <data name="DroneLine" xml:space="preserve">
+    <value>ドローンベイ{0:0} / {1:0} m³    帯域幅{2:0} / {3:0} Mbit/s</value>
+  </data>
+  <data name="FighterLine" xml:space="preserve">
+    <value>戦闘機ベイ{0:N0} / {1:N0} m³    チューブ{2} / {3}</value>
+  </data>
+  <data name="FighterSlotsLight" xml:space="preserve">
+    <value>軽量級{0} / {1}</value>
+  </data>
+  <data name="FighterSlotsSupport" xml:space="preserve">
+    <value>支援{0} / {1}</value>
+  </data>
+  <data name="FighterSlotsHeavy" xml:space="preserve">
+    <value>重量級{0} / {1}</value>
+  </data>
+  <data name="ValueHeading" xml:space="preserve">
+    <value>価値</value>
+  </data>
+  <data name="ValueHull" xml:space="preserve">
+    <value>船体{0}</value>
+  </data>
+  <data name="ValueModules" xml:space="preserve">
+    <value>モジュール{0}</value>
+  </data>
+  <data name="ValueDrones" xml:space="preserve">
+    <value>ドローン{0}</value>
+  </data>
+  <data name="ValueCargo" xml:space="preserve">
+    <value>カーゴ{0}</value>
+  </data>
+  <data name="ValueImplants" xml:space="preserve">
+    <value>インプラントとブースター{0}（パイロットのもの、合計には含まない）</value>
+  </data>
+  <data name="ValueNoPrices" xml:space="preserve">
+    <value>マーケット価格がまだありません — 「設定 → マーケット」で資産価値のマーケットを選択してください。</value>
+  </data>
+  <data name="ValuePrices" xml:space="preserve">
+    <value>価格：{0}</value>
+  </data>
+  <data name="ValuePricesUnpricedOther" xml:space="preserve">
+    <value>価格：{1} — {0}種類のアイテムに価格がありません</value>
+  </data>
+  <data name="PriceBasisWithMarket" xml:space="preserve">
+    <value>{0}、{1}</value>
+  </data>
+  <data name="OffenseHeading" xml:space="preserve">
+    <value>攻撃</value>
+  </data>
+  <data name="MiningHeading" xml:space="preserve">
+    <value>採掘</value>
+  </data>
+  <data name="MiningOre" xml:space="preserve">
+    <value>鉱石{0:N0} m³/h</value>
+  </data>
+  <data name="MiningIce" xml:space="preserve">
+    <value>氷{0:N0} m³/h</value>
+  </data>
+  <data name="MiningGas" xml:space="preserve">
+    <value>ガス{0:N0} m³/h</value>
+  </data>
+  <data name="TipMining" xml:space="preserve">
+    <value>すべての採掘モジュールを稼働させた1時間分で、クリティカル成功を平均して含みます。残渣は岩や雲から失われる分で、得られる量からは引かれません。採掘クリスタル、スキル、ブースト、船体を考慮しています。</value>
+  </data>
+  <data name="DetailMining" xml:space="preserve">
+    <value>{1:0.#}秒ごとに{0:N1} m³</value>
+  </data>
+  <data name="DetailResidue" xml:space="preserve">
+    <value>残渣{0:0.#}%</value>
+  </data>
+  <data name="Dps0" xml:space="preserve">
+    <value>{0:N0} DPS</value>
+  </data>
+  <data name="DpsWeapons" xml:space="preserve">
+    <value>兵器{0:N1}</value>
+  </data>
+  <data name="DpsDrones" xml:space="preserve">
+    <value>ドローン{0:N1}</value>
+  </data>
+  <data name="DpsFighters" xml:space="preserve">
+    <value>艦載戦闘機{0:N1}</value>
+  </data>
+  <data name="DpsVolley" xml:space="preserve">
+    <value>一斉射撃{0:N0}</value>
+  </data>
+  <data name="DpsWithReloads" xml:space="preserve">
+    <value>リロード込み{0:N1}</value>
+  </data>
+  <data name="DpsSpooled" xml:space="preserve">
+    <value>最大スプール{0:N1}（{1}後）</value>
+  </data>
+  <data name="TipDpsReloads" xml:space="preserve">
+    <value>DPSはリロードの合間の値です。リロード込みでは、各兵器が装填分を撃ち切ってリロードすることを繰り返します。レーザーはクリスタルを消費しないためリロードしません。最大スプールは、エントロピック・ディスインテグレーターが1つの目標を撃ち続けて到達する値です。</value>
+  </data>
+  <data name="StrikeOnce" xml:space="preserve">
+    <value>{0}：{1:N0} {2}、{3}ごと</value>
+  </data>
+  <data name="StrikeOverTime" xml:space="preserve">
+    <value>{0}：毎秒{1:N0} {2}を{3:0}秒間（合計{4:N0}）、{6}ごと</value>
+  </data>
+  <data name="StrikeBomb" xml:space="preserve">
+    <value>{0}：半径{3:0.#} km内のすべてに{1:N0} {2}、{4}ごと</value>
+  </data>
+  <data name="StrikeBreacher" xml:space="preserve">
+    <value>{0}：目標の船体の{1:0.##}%を毎秒（最大{2:N0} HP）、{3:0}秒間、{4}ごと</value>
+  </data>
+  <data name="NeutLine" xml:space="preserve">
+    <value>ニュートラライズ{0:N1} GJ/s</value>
+  </data>
+  <data name="NosLine" xml:space="preserve">
+    <value>ノスフェラトゥ{0:N1} GJ/s</value>
+  </data>
+  <data name="DamageMix" xml:space="preserve">
+    <value>EM {0:P0} · 熱{1:P0} · 運動{2:P0} · 爆発{3:P0}</value>
+  </data>
+  <data name="Dps1" xml:space="preserve">
+    <value>{0:N1} DPS</value>
+  </data>
+  <data name="AbilityDps" xml:space="preserve">
+    <value>{0}：{1:N0} DPS</value>
+  </data>
+  <data name="AbilityAlpha" xml:space="preserve">
+    <value>{0}：アルファ{1:N0}</value>
+  </data>
+  <data name="TipAbilityChargesOther" xml:space="preserve">
+    <value>チャージ{0}発、1発あたり再装填{1:0.#}秒</value>
+  </data>
+  <data name="TipAbilityCooldown" xml:space="preserve">
+    <value>クールダウン{0:0}秒</value>
+  </data>
+  <data name="TipAbilityNotInHighSec" xml:space="preserve">
+    <value>ハイセクでは使用不可</value>
+  </data>
+  <data name="TipAbilityNotInEmpire" xml:space="preserve">
+    <value>ハイセク・ローセクでは使用不可</value>
+  </data>
+  <data name="DpsFightersSustained" xml:space="preserve">
+    <value>艦載戦闘機{0:N1}（持続{1:N1}）</value>
+  </data>
+  <data name="TipFighterSustained" xml:space="preserve">
+    <value>持続：各中隊はオンにしたアビリティのチャージを使い切るまで戦い、その後チューブで再装填と燃料補給を行ってから戻ります。ターゲットとの往復の飛行時間は含みません。</value>
+  </data>
+  <data name="DetailCalibration" xml:space="preserve">
+    <value>キャリブレーション{0:0}</value>
+  </data>
+  <data name="DetailCpu" xml:space="preserve">
+    <value>CPU {0:0.##}</value>
+  </data>
+  <data name="DetailPg" xml:space="preserve">
+    <value>PG {0:0.##}</value>
+  </data>
+  <data name="DetailRepairShield" xml:space="preserve">
+    <value>シールド{0:N1} HP/s</value>
+  </data>
+  <data name="DetailRepairArmor" xml:space="preserve">
+    <value>アーマー{0:N1} HP/s</value>
+  </data>
+  <data name="DetailWithReloads" xml:space="preserve">
+    <value>リロード込み{0:N1}</value>
+  </data>
+  <data name="DetailSpooled" xml:space="preserve">
+    <value>最大スプール{0:N1}</value>
+  </data>
+  <data name="EwarWeb" xml:space="preserve">
+    <value>速度{0:+0.#;-0.#}%</value>
+  </data>
+  <data name="EwarPoint" xml:space="preserve">
+    <value>ワープ妨害強度{0:0.#}</value>
+  </data>
+  <data name="EwarNeut" xml:space="preserve">
+    <value>{0:N1} GJ/sをニュートラライズ</value>
+  </data>
+  <data name="EwarNos" xml:space="preserve">
+    <value>最大{0:N1} GJ/sを吸収</value>
+  </data>
+  <data name="EwarJam" xml:space="preserve">
+    <value>ジャム強度{0}</value>
+  </data>
+  <data name="EwarDamp" xml:space="preserve">
+    <value>ロック距離{0:+0.#;-0.#}%・スキャン分解能{1:+0.#;-0.#}%</value>
+  </data>
+  <data name="EwarTracking" xml:space="preserve">
+    <value>最適射程{0:+0.#;-0.#}%・精度低下{1:+0.#;-0.#}%・追跡{2:+0.#;-0.#}%</value>
+  </data>
+  <data name="EwarGuidance" xml:space="preserve">
+    <value>ミサイル速度{0:+0.#;-0.#}%・飛翔時間{1:+0.#;-0.#}%・爆発速度{2:+0.#;-0.#}%・爆発半径{3:+0.#;-0.#}%</value>
+  </data>
+  <data name="EwarPaint" xml:space="preserve">
+    <value>シグネチャ{0:+0.#;-0.#}%</value>
+  </data>
+  <data name="EwarRange" xml:space="preserve">
+    <value>{0:0.#} km + {1:0.#} km</value>
+  </data>
+  <data name="EwarRangeOnly" xml:space="preserve">
+    <value>{0:0.#} km</value>
+  </data>
+  <data name="EwarEach" xml:space="preserve">
+    <value>各{0}</value>
+  </data>
+  <data name="AbilityEffect" xml:space="preserve">
+    <value>{0}：{1}</value>
+  </data>
+  <data name="AbilityKamikazeTargets" xml:space="preserve">
+    <value>主力艦とシタデルのみ</value>
+  </data>
+  <data name="FighterSpeed" xml:space="preserve">
+    <value>速度{0:N0} m/s</value>
+  </data>
+  <data name="PropulsionBurst" xml:space="preserve">
+    <value>{1:0}秒間{0:N0} m/s</value>
+  </data>
+  <data name="PropulsionSignature" xml:space="preserve">
+    <value>シグネチャ{0:+0;-0}%</value>
+  </data>
+  <data name="PropulsionJump" xml:space="preserve">
+    <value>{1:0}秒後に{0:0.#} kmジャンプ</value>
+  </data>
+  <data name="PropulsionResists" xml:space="preserve">
+    <value>シールド耐性{0:0}%</value>
+  </data>
+  <data name="DetailRepairHull" xml:space="preserve">
+    <value>船体{0:N1} HP/s</value>
+  </data>
+  <data name="DetailBreacherPods" xml:space="preserve">
+    <value>稼働中の突入ポッドダメージ {0:0}%</value>
+  </data>
+  <data name="DetailAdapted" xml:space="preserve">
+    <value>収束値 {0}</value>
+  </data>
+  <data name="DefenseHeading" xml:space="preserve">
+    <value>防衛</value>
+  </data>
+  <data name="Against" xml:space="preserve">
+    <value>想定ダメージ</value>
+  </data>
+  <data name="TipAgainst" xml:space="preserve">
+    <value>タンクを評価する想定ダメージ。リアクティブアーマーハードナーもこれに適応します</value>
+  </data>
+  <data name="ProfileEven" xml:space="preserve">
+    <value>均等（各25%）</value>
+  </data>
+  <data name="ProfileCustom" xml:space="preserve">
+    <value>カスタム</value>
+  </data>
+  <data name="DamageEm" xml:space="preserve">
+    <value>EM</value>
+  </data>
+  <data name="DamageThermal" xml:space="preserve">
+    <value>サーマル</value>
+  </data>
+  <data name="DamageKinetic" xml:space="preserve">
+    <value>キネティック</value>
+  </data>
+  <data name="DamageExplosive" xml:space="preserve">
+    <value>エクスプローシブ</value>
+  </data>
+  <data name="TipCustomProfile" xml:space="preserve">
+    <value>各ダメージタイプの比率 — 数値の大きさは任意です</value>
+  </data>
+  <data name="EhpLine" xml:space="preserve">
+    <value>{0:N0} EHP</value>
+  </data>
+  <data name="TipEhp" xml:space="preserve">
+    <value>上で選んだ想定ダメージに対する実効HP</value>
+  </data>
+  <data name="ColHp" xml:space="preserve">
+    <value>HP</value>
+  </data>
+  <data name="ColEm" xml:space="preserve">
+    <value>EM</value>
+  </data>
+  <data name="ColTh" xml:space="preserve">
+    <value>熱</value>
+  </data>
+  <data name="ColKin" xml:space="preserve">
+    <value>運動</value>
+  </data>
+  <data name="ColExp" xml:space="preserve">
+    <value>爆発</value>
+  </data>
+  <data name="ColEhp" xml:space="preserve">
+    <value>実効HP</value>
+  </data>
+  <data name="LayerShield" xml:space="preserve">
+    <value>シールド</value>
+  </data>
+  <data name="LayerArmor" xml:space="preserve">
+    <value>アーマー</value>
+  </data>
+  <data name="LayerHull" xml:space="preserve">
+    <value>船体</value>
+  </data>
+  <data name="RegenLine" xml:space="preserve">
+    <value>シールド回復 ピーク時{0:N1} HP/s（{1:N0} EHP/s）    リチャージ時間{2}</value>
+  </data>
+  <data name="RepairShield" xml:space="preserve">
+    <value>シールドブースト{0:N1} HP/s（{1:N0} EHP/s）</value>
+  </data>
+  <data name="RepairArmor" xml:space="preserve">
+    <value>アーマーリペア{0:N1} HP/s（{1:N0} EHP/s）</value>
+  </data>
+  <data name="RepairHull" xml:space="preserve">
+    <value>船体リペア{0:N1} HP/s（{1:N0} EHP/s）</value>
+  </data>
+  <data name="RepairRemoteShield" xml:space="preserve">
+    <value>リモートシールドブースト{0:N1} HP/s（{1:N0} EHP/s）</value>
+  </data>
+  <data name="RepairRemoteArmor" xml:space="preserve">
+    <value>リモートアーマーリペア{0:N1} HP/s（{1:N0} EHP/s）</value>
+  </data>
+  <data name="RepairRemoteHull" xml:space="preserve">
+    <value>リモート船体リペア{0:N1} HP/s（{1:N0} EHP/s）</value>
+  </data>
+  <data name="RepairCapRunsOut" xml:space="preserve">
+    <value>キャパシタを使うリペアは、キャパシタが尽きると停止します（{0}）</value>
+  </data>
+  <data name="CapacitorHeading" xml:space="preserve">
+    <value>キャパシタ</value>
+  </data>
+  <data name="CapStable" xml:space="preserve">
+    <value>{0:0.0}%で安定</value>
+  </data>
+  <data name="CapLasts" xml:space="preserve">
+    <value>持続時間{0}</value>
+  </data>
+  <data name="CapFlow" xml:space="preserve">
+    <value>消費{0:0.0} GJ/s    ピーク時リチャージ{1:0.0} GJ/s</value>
+  </data>
+  <data name="CapBoosters" xml:space="preserve">
+    <value>ブースター+{0:0.0} GJ/s</value>
+  </data>
+  <data name="CapTransfers" xml:space="preserve">
+    <value>トランスファー+{0:0.0} GJ/s</value>
+  </data>
+  <data name="NavigationHeading" xml:space="preserve">
+    <value>航行技術</value>
+  </data>
+  <data name="NavLine" xml:space="preserve">
+    <value>軸合わせ{0:0.00}秒    シグネチャ{1:N0} m    ワープ{2:0.##} AU/s</value>
+  </data>
+  <data name="NavLineStructure" xml:space="preserve">
+    <value>シグネチャ{0:N0} m</value>
+  </data>
+  <data name="NavLineNoWarp" xml:space="preserve">
+    <value>軸合わせ{0:0.00}秒    シグネチャ{1:N0} m    ワープ不可</value>
+  </data>
+  <data name="MassLine" xml:space="preserve">
+    <value>質量{0:N0} kg    慣性乗数{1:0.###}</value>
+  </data>
+  <data name="TargetingHeading" xml:space="preserve">
+    <value>ターゲティング</value>
+  </data>
+  <data name="TargetingLine" xml:space="preserve">
+    <value>ターゲット範囲{0:0.#} km    スキャン分解能{1:N0} mm    最大ロック数{2:0}</value>
+  </data>
+  <data name="LockTimes" xml:space="preserve">
+    <value>ロック：フリゲート{0:0.0}秒・巡洋艦{1:0.0}秒・戦艦{2:0.0}秒・主力艦{3:0.0}秒</value>
+  </data>
+  <data name="TipLockTimes" xml:space="preserve">
+    <value>この装備のスキャン分解能で、一般的なフリゲート（35 m）、巡洋艦（125 m）、戦艦（400 m）、主力艦（5,000 m）のシグネチャを持つ目標をロックする秒数です。</value>
+  </data>
+  <data name="SensorRadar" xml:space="preserve">
+    <value>電波{0:0.#}</value>
+  </data>
+  <data name="SensorLadar" xml:space="preserve">
+    <value>光学{0:0.#}</value>
+  </data>
+  <data name="SensorMagnetometric" xml:space="preserve">
+    <value>磁力{0:0.#}</value>
+  </data>
+  <data name="SensorGravimetric" xml:space="preserve">
+    <value>重力{0:0.#}</value>
+  </data>
+  <data name="DurationHours" xml:space="preserve">
+    <value>{0}時間{1}分</value>
+  </data>
+  <data name="DurationMinutes" xml:space="preserve">
+    <value>{0}分{1}秒</value>
+  </data>
+  <data name="DurationSeconds" xml:space="preserve">
+    <value>{0:0.0}秒</value>
+  </data>
+  <data name="StatusLoadingGameData" xml:space="preserve">
+    <value>ゲームデータを読み込み中…</value>
+  </data>
+  <data name="StatusNoGameData" xml:space="preserve">
+    <value>ゲームデータがまだありません — 「設定 → SDE」でSDEをインポートしてから、このツールを開き直してください。</value>
+  </data>
+  <data name="StatusGameDataUpdating" xml:space="preserve">
+    <value>装備の計算用にゲームデータを更新中です（進捗は「設定 → SDE」で確認できます）。完了したら、このツールを開き直してください。</value>
+  </data>
+  <data name="StatusStart" xml:space="preserve">
+    <value>船体から装備を始めるか、装備を貼り付けるか、ゲームまたは保存済みの装備から開いてください。</value>
+  </data>
+  <data name="StatusLoadFailed" xml:space="preserve">
+    <value>ゲームデータを読み込めませんでした：{0}</value>
+  </data>
+  <data name="StatusStartFitFirst" xml:space="preserve">
+    <value>先に装備を始めてください。</value>
+  </data>
+  <data name="StatusPickHullFirst" xml:space="preserve">
+    <value>先に船体を選んでください。</value>
+  </data>
+  <data name="StatusNewFit" xml:space="preserve">
+    <value>{0}の新しい装備です。「アイテム」からモジュールを追加してください。</value>
+  </data>
+  <data name="StatusNewFitPickHull" xml:space="preserve">
+    <value>新しい装備です。船体を選んでください。</value>
+  </data>
+  <data name="StatusImported" xml:space="preserve">
+    <value>{0}をインポートしました。</value>
+  </data>
+  <data name="StatusImportedUnrecognised" xml:space="preserve">
+    <value>インポートしましたが、認識できないものがあります：{0}</value>
+  </data>
+  <data name="StatusNoCharacters" xml:space="preserve">
+    <value>装備を読み込めるキャラクターがいません。</value>
+  </data>
+  <data name="StatusImportedFromGame" xml:space="preserve">
+    <value>ゲームから{0}をインポートしました。</value>
+  </data>
+  <data name="StatusOpened" xml:space="preserve">
+    <value>{0}を開きました。</value>
+  </data>
+  <data name="StatusDeleted" xml:space="preserve">
+    <value>{0}を削除しました。</value>
+  </data>
+  <data name="StatusAdded" xml:space="preserve">
+    <value>{0}を追加しました。</value>
+  </data>
+  <data name="StatusAddedSquadron" xml:space="preserve">
+    <value>{1}の部隊（{0}機）を追加しました。</value>
+  </data>
+  <data name="StatusAlreadyPluggedIn" xml:space="preserve">
+    <value>{0}はすでに装着されています。</value>
+  </data>
+  <data name="StatusNothingCanLoad" xml:space="preserve">
+    <value>{0}を装填できるモジュールが装備されていません。</value>
+  </data>
+  <data name="StatusLoadedCharge" xml:space="preserve">
+    <value>{0}を装填しました。</value>
+  </data>
+  <data name="StatusWrongSlot" xml:space="preserve">
+    <value>{0}はそのスロットに装着できません。</value>
+  </data>
+  <data name="StatusCannotLoad" xml:space="preserve">
+    <value>{0}には{1}を装填できません。</value>
+  </data>
+  <data name="StatusReplaced" xml:space="preserve">
+    <value>{1}を{0}に交換しました。</value>
+  </data>
+  <data name="StatusLoadedChargeInModulesOther" xml:space="preserve">
+    <value>{0}個のモジュールに{1}を装填しました。</value>
+  </data>
+  <data name="StatusInCargo" xml:space="preserve">
+    <value>{0}をカーゴホールドに入れました。</value>
+  </data>
+  <data name="StatusChooseHigh" xml:space="preserve">
+    <value>「アイテム」からハイパワースロットのモジュールを選択してください。</value>
+  </data>
+  <data name="StatusChooseMid" xml:space="preserve">
+    <value>「アイテム」からミディアムスロットのモジュールを選択してください。</value>
+  </data>
+  <data name="StatusChooseLow" xml:space="preserve">
+    <value>「アイテム」からローパワースロットのモジュールを選択してください。</value>
+  </data>
+  <data name="StatusChooseRig" xml:space="preserve">
+    <value>「アイテム」からリグスロットのモジュールを選択してください。</value>
+  </data>
+  <data name="StatusChooseSubsystem" xml:space="preserve">
+    <value>「アイテム」からサブシステムスロットのモジュールを選択してください。</value>
+  </data>
+  <data name="StatusChooseService" xml:space="preserve">
+    <value>「アイテム」からサービススロットのモジュールを選択してください。</value>
+  </data>
+  <data name="StatusCalculationFailed" xml:space="preserve">
+    <value>計算に失敗しました：{0}</value>
+  </data>
+  <data name="StatusDronesCutBack" xml:space="preserve">
+    <value>展開中のドローンと艦載戦闘機を、パイロットが制御でき船体が発進できる数まで減らしました。</value>
+  </data>
+  <data name="StatusNothingToCopy" xml:space="preserve">
+    <value>コピーするものがまだありません。</value>
+  </data>
+  <data name="StatusCopiedEft" xml:space="preserve">
+    <value>装備をEFTテキストとしてクリップボードにコピーしました。</value>
+  </data>
+  <data name="StatusNothingToSave" xml:space="preserve">
+    <value>保存するものがまだありません。</value>
+  </data>
+  <data name="StatusSavedInApp" xml:space="preserve">
+    <value>{0}をEVE Consoleに保存しました。</value>
+  </data>
+  <data name="StatusGameUnreachable" xml:space="preserve">
+    <value>ここからはゲームに保存できません。</value>
+  </data>
+  <data name="StatusSavingToGame" xml:space="preserve">
+    <value>{0}の装備に保存中…</value>
+  </data>
+  <data name="StatusSavedToGame" xml:space="preserve">
+    <value>ゲーム内の{0}の装備に保存しました。</value>
+  </data>
+  <data name="StatusNotFromGame" xml:space="preserve">
+    <value>この装備はゲームから開いたものではありません。</value>
+  </data>
+  <data name="StatusUpdatingInGame" xml:space="preserve">
+    <value>{0}の装備を更新中…</value>
+  </data>
+  <data name="StatusUpdatedInGame" xml:space="preserve">
+    <value>{1}の装備の{0}を更新しました。</value>
+  </data>
+  <data name="StatusSavedButOldNotRemoved" xml:space="preserve">
+    <value>新しい装備を保存しましたが、古い装備を削除できませんでした（HTTP {0}）。ゲーム内で古い装備を削除してください。</value>
+  </data>
+  <data name="StatusCharacterNotInApp" xml:space="preserve">
+    <value>そのキャラクターはEVE Consoleに登録されていません。</value>
+  </data>
+  <data name="StatusTokenExpired" xml:space="preserve">
+    <value>{0}のトークンの期限が切れています — 「設定 → ESIトークン」で再認証してください。</value>
+  </data>
+  <data name="StatusNoWriteScope" xml:space="preserve">
+    <value>{0}は装備の書き込みスコープを許可していません — 「設定 → ESIトークン」でキャラクターを更新してください。</value>
+  </data>
+  <data name="NotSavedNoPlace" xml:space="preserve">
+    <value>保存されなかったもの（装備には入れる場所がありません）：{0}。</value>
+  </data>
+  <data name="SkippedUnknownType" xml:space="preserve">
+    <value>タイプ{0}</value>
+  </data>
+  <data name="TitleSaveFit" xml:space="preserve">
+    <value>装備を保存</value>
+  </data>
+  <data name="SaveNameLabel" xml:space="preserve">
+    <value>名前</value>
+  </data>
+  <data name="SaveToLabel" xml:space="preserve">
+    <value>保存先</value>
+  </data>
+  <data name="SaveNote" xml:space="preserve">
+    <value>インプラントはパイロットのものであり、ゲーム内の装備には含まれません。</value>
+  </data>
+  <data name="SaveConfirm" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="SaveTargetApp" xml:space="preserve">
+    <value>EVE Console（このアプリ）</value>
+  </data>
+  <data name="SaveTargetReplace" xml:space="preserve">
+    <value>ゲーム内：{1}の装備の「{0}」を置き換え</value>
+  </data>
+  <data name="SaveTargetNew" xml:space="preserve">
+    <value>ゲーム内：{0}の新しい装備</value>
+  </data>
+  <data name="SaveWhyTokenExpired" xml:space="preserve">
+    <value>トークンの期限切れ — 「設定 → ESIトークン」で再認証してください</value>
+  </data>
+  <data name="SaveWhyNoScope" xml:space="preserve">
+    <value>装備の書き込みスコープが未許可 — 「設定 → ESIトークン」でキャラクターを更新してください</value>
+  </data>
+  <data name="SaveErrNoName" xml:space="preserve">
+    <value>装備には名前が必要です。</value>
+  </data>
+  <data name="SaveErrNoTarget" xml:space="preserve">
+    <value>保存先を選択してください。</value>
+  </data>
+  <data name="SaveErrCannotSave" xml:space="preserve">
+    <value>そのキャラクターには保存できません。</value>
+  </data>
+  <data name="TitleImportFit" xml:space="preserve">
+    <value>装備をインポート</value>
+  </data>
+  <data name="EftPasteNote" xml:space="preserve">
+    <value>EFT形式の装備を貼り付けてください — ゲームの装備ウィンドウでコピーでき、装備共有サイトでも使われている形式です。1行目で船体を指定します：[リフター, 自分の装備]。</value>
+  </data>
+  <data name="ImportButton" xml:space="preserve">
+    <value>インポート</value>
+  </data>
+  <data name="EftErrStart" xml:space="preserve">
+    <value>EFTの装備は[艦船, 装備名]で始まります。</value>
+  </data>
+  <data name="EftErrFirstLine" xml:space="preserve">
+    <value>EFTの装備は[艦船, 装備名]のような行で始まります。</value>
+  </data>
+  <data name="EftErrUnknownShip" xml:space="preserve">
+    <value>不明な艦船：{0}</value>
+  </data>
+  <data name="GameErrUnreachable" xml:space="preserve">
+    <value>ゲームに接続できませんでした。</value>
+  </data>
+  <data name="GameErrNoScope" xml:space="preserve">
+    <value>このキャラクターは装備の書き込みスコープを許可していません — 「設定 → ESIトークン」で再認証してください。</value>
+  </data>
+  <data name="GameErrRefused" xml:space="preserve">
+    <value>ゲームが装備を拒否しました（HTTP {0}）。</value>
+  </data>
+  <data name="WhyNotNoSlot" xml:space="preserve">
+    <value>{0}はスロットに装備するものではありません。</value>
+  </data>
+  <data name="NoFreeHigh" xml:space="preserve">
+    <value>ハイパワースロットに空きがありません。</value>
+  </data>
+  <data name="NoFreeMid" xml:space="preserve">
+    <value>ミディアムスロットに空きがありません。</value>
+  </data>
+  <data name="NoFreeLow" xml:space="preserve">
+    <value>ローパワースロットに空きがありません。</value>
+  </data>
+  <data name="NoFreeRig" xml:space="preserve">
+    <value>リグスロットに空きがありません。</value>
+  </data>
+  <data name="NoFreeSubsystem" xml:space="preserve">
+    <value>サブシステムスロットに空きがありません。</value>
+  </data>
+  <data name="NoFreeService" xml:space="preserve">
+    <value>サービススロットに空きがありません。</value>
+  </data>
+  <data name="WhyNotNoTurret" xml:space="preserve">
+    <value>タレットハードポイントに空きがありません。</value>
+  </data>
+  <data name="WhyNotNoLauncher" xml:space="preserve">
+    <value>ランチャーハードポイントに空きがありません。</value>
+  </data>
+  <data name="WhyNotRigSize" xml:space="preserve">
+    <value>リグのサイズが船体に合いません。</value>
+  </data>
+  <data name="WhyNotSubsystemHull" xml:space="preserve">
+    <value>このサブシステムは別の船体用です。</value>
+  </data>
+  <data name="WhyNotSubsystemFilled" xml:space="preserve">
+    <value>その種類のサブシステムはすでに装備されています。</value>
+  </data>
+  <data name="WhyNotHull" xml:space="preserve">
+    <value>{0}は{1}に装備できません。</value>
+  </data>
+  <data name="WhyNotMaxGroup" xml:space="preserve">
+    <value>このグループのモジュールは{0:0}個までしか装備できません。</value>
+  </data>
+  <data name="WhyNotMaxType" xml:space="preserve">
+    <value>このモジュールは{0:0}個までしか装備できません。</value>
+  </data>
+  <data name="LoadFit" xml:space="preserve">
+    <value>装備をロード</value>
+  </data>
+  <data name="LegendCharacter" xml:space="preserve">
+    <value>キャラクター</value>
+  </data>
+  <data name="TipOwnerFilter" xml:space="preserve">
+    <value>1人のキャラクター、またはEVE Consoleの装備だけを表示します</value>
+  </data>
+  <data name="OwnerEveryone" xml:space="preserve">
+    <value>すべて</value>
+  </data>
+</root>

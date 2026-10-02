@@ -2920,6 +2920,9 @@ EVE Console сразу перезапустится, потому что баз�
   <data name="ImportStageDogmaEffects" xml:space="preserve">
     <value>Эффекты Dogma</value>
   </data>
+  <data name="ImportStageDogmaEffectModifiers" xml:space="preserve">
+    <value>Воздействие эффектов Dogma</value>
+  </data>
   <data name="ImportStageTypeDogma" xml:space="preserve">
     <value>Dogma типов</value>
   </data>
@@ -2928,6 +2931,12 @@ EVE Console сразу перезапустится, потому что баз�
   </data>
   <data name="ImportStageTypeDogmaEffects" xml:space="preserve">
     <value>Эффекты Dogma типов</value>
+  </data>
+  <data name="ImportStageFighterAbilities" xml:space="preserve">
+    <value>Способности истребителей</value>
+  </data>
+  <data name="ImportStageFleetBoosts" xml:space="preserve">
+    <value>Флотские бонусы</value>
   </data>
   <data name="ImportStageBlueprints" xml:space="preserve">
     <value>Чертежи</value>

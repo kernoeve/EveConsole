@@ -13,6 +13,9 @@
   <data name="NavGroupStructures" xml:space="preserve">
     <value>Сооружения / навигация</value>
   </data>
+  <data name="NavGroupShips" xml:space="preserve">
+    <value>Корабли</value>
+  </data>
   <data name="NavGroupIndustry" xml:space="preserve">
     <value>Промышленность</value>
   </data>
@@ -63,6 +66,9 @@
   </data>
   <data name="NavProductionCalc" xml:space="preserve">
     <value>Расчёт производства</value>
+  </data>
+  <data name="NavFitting" xml:space="preserve">
+    <value>Оснащение</value>
   </data>
   <data name="NavPriceOverrides" xml:space="preserve">
     <value>Ручные цены</value>
@@ -150,6 +156,30 @@
   </data>
   <data name="TabUniverse" xml:space="preserve">
     <value>Вселенная</value>
+  </data>
+  <data name="DropToSplit" xml:space="preserve">
+    <value>Перетащите сюда, чтобы видеть два инструмента рядом</value>
+  </data>
+  <data name="DropToDetach" xml:space="preserve">
+    <value>Отпустите, чтобы открыть в отдельном окне</value>
+  </data>
+  <data name="TipToggleNav" xml:space="preserve">
+    <value>Показать или скрыть навигацию</value>
+  </data>
+  <data name="MenuCloseTab" xml:space="preserve">
+    <value>Закрыть</value>
+  </data>
+  <data name="MenuCloseOtherTabs" xml:space="preserve">
+    <value>Закрыть другие вкладки</value>
+  </data>
+  <data name="MenuCloseAllTabs" xml:space="preserve">
+    <value>Закрыть все вкладки</value>
+  </data>
+  <data name="MenuCloseOtherTabsSide" xml:space="preserve">
+    <value>Закрыть другие вкладки на этой стороне</value>
+  </data>
+  <data name="MenuCloseAllTabsSide" xml:space="preserve">
+    <value>Закрыть все вкладки на этой стороне</value>
   </data>
   <data name="TabAlarms" xml:space="preserve">
     <value>Тревоги</value>

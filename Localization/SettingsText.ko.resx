@@ -2920,6 +2920,9 @@ SQLite 데이터베이스는 읽기만 하고 변경하지 않습니다. 데이�
   <data name="ImportStageDogmaEffects" xml:space="preserve">
     <value>도그마 효과</value>
   </data>
+  <data name="ImportStageDogmaEffectModifiers" xml:space="preserve">
+    <value>도그마 효과 보정치</value>
+  </data>
   <data name="ImportStageTypeDogma" xml:space="preserve">
     <value>종류별 도그마</value>
   </data>
@@ -2928,6 +2931,12 @@ SQLite 데이터베이스는 읽기만 하고 변경하지 않습니다. 데이�
   </data>
   <data name="ImportStageTypeDogmaEffects" xml:space="preserve">
     <value>종류별 도그마 효과</value>
+  </data>
+  <data name="ImportStageFighterAbilities" xml:space="preserve">
+    <value>파이터 능력</value>
+  </data>
+  <data name="ImportStageFleetBoosts" xml:space="preserve">
+    <value>함대 버프</value>
   </data>
   <data name="ImportStageBlueprints" xml:space="preserve">
     <value>블루프린트</value>
