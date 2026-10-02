@@ -452,4 +452,20 @@
     <value>{0:dd MMM yyyy}</value>
     <comment>A date in a screen's binding, e.g. 28 Sep 2026. Keep {0:…} around the pattern. A .NET date format pattern: d = day, MMM = short month name, MMMM = full month name, yyyy = year, HH:mm = time, dddd = weekday. Reorder it and add your language's characters; keep the letters that stand for parts of the date.</comment>
   </data>
+  <data name="ItemNameFilterLabel" xml:space="preserve">
+    <value>Item name:</value>
+    <comment>Industry and Trade Opportunities, label before the box that filters the results by item name.</comment>
+  </data>
+  <data name="ItemNameFilterHint" xml:space="preserve">
+    <value>All or part of a name</value>
+    <comment>Industry and Trade Opportunities, placeholder in the item name filter box.</comment>
+  </data>
+  <data name="TipItemNameFilter" xml:space="preserve">
+    <value>Shows only the items whose name contains this text, in any case. The list narrows as you type; there is no need to calculate again.</value>
+    <comment>Industry and Trade Opportunities, tooltip on the item name filter box.</comment>
+  </data>
+  <data name="ItemNameFilterShowing" xml:space="preserve">
+    <value>Showing {0:N0} of {1:N0}</value>
+    <comment>Industry and Trade Opportunities, beside the item name filter. {0} is the number of items the filter shows, {1} all the items calculated.</comment>
+  </data>
 </root>

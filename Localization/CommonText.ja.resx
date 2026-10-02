@@ -340,4 +340,16 @@
   <data name="DateFullBinding" xml:space="preserve">
     <value>{0:yyyy年M月d日}</value>
   </data>
+  <data name="ItemNameFilterLabel" xml:space="preserve">
+    <value>アイテム名:</value>
+  </data>
+  <data name="ItemNameFilterHint" xml:space="preserve">
+    <value>名前の全部または一部</value>
+  </data>
+  <data name="TipItemNameFilter" xml:space="preserve">
+    <value>名前にこの文字列を含むアイテムだけを表示します（大文字・小文字は区別しません）。入力に合わせて一覧が絞り込まれるので、再計算は不要です。</value>
+  </data>
+  <data name="ItemNameFilterShowing" xml:space="preserve">
+    <value>{1:N0} 件中 {0:N0} 件を表示</value>
+  </data>
 </root>

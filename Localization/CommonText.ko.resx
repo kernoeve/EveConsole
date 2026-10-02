@@ -340,4 +340,16 @@
   <data name="DateFullBinding" xml:space="preserve">
     <value>{0:yyyy년 M월 d일}</value>
   </data>
+  <data name="ItemNameFilterLabel" xml:space="preserve">
+    <value>아이템 이름:</value>
+  </data>
+  <data name="ItemNameFilterHint" xml:space="preserve">
+    <value>이름 전체 또는 일부</value>
+  </data>
+  <data name="TipItemNameFilter" xml:space="preserve">
+    <value>이름에 이 텍스트가 들어 있는 아이템만 표시합니다(대소문자 구분 없음). 입력하는 대로 목록이 좁혀지며, 다시 계산할 필요가 없습니다.</value>
+  </data>
+  <data name="ItemNameFilterShowing" xml:space="preserve">
+    <value>{1:N0}개 중 {0:N0}개 표시</value>
+  </data>
 </root>

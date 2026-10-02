@@ -172,6 +172,12 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
         }
     }
 
+    // ── Name filter ───────────────────────────────────────────────────────────
+
+    /// <summary>Narrows the results to the items whose name contains what was typed, as it is
+    /// typed. See <see cref="ItemNameFilter{T}"/>.</summary>
+    public ItemNameFilter<IndustryRow> NameFilter { get; }
+
     // ── Excluded market groups (and everything nested under them) ────────────
 
     public ObservableCollection<ExcludedMarketGroupVm> ExcludedMarketGroups { get; } = [];
@@ -315,6 +321,8 @@ public class IndustryOpportunitiesViewModel : ReactiveObject
                        ?? ModeOptions[0];
 
         ResultsView = new DataGridCollectionView(Results);
+        NameFilter  = new ItemNameFilter<IndustryRow>(ResultsView, Results, r => r.TypeName);
+        Results.CollectionChanged += (_, _) => NameFilter.Update();
         RestoreSort();
         ResultsView.SortDescriptions.CollectionChanged += (_, _) => SaveSort();
         CalculateCommand           = ReactiveCommand.CreateFromTask(CalculateAsync);

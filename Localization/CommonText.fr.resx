@@ -340,4 +340,16 @@
   <data name="DateFullBinding" xml:space="preserve">
     <value>{0:dd MMM yyyy}</value>
   </data>
+  <data name="ItemNameFilterLabel" xml:space="preserve">
+    <value>Nom de l'objet :</value>
+  </data>
+  <data name="ItemNameFilterHint" xml:space="preserve">
+    <value>Tout ou partie d'un nom</value>
+  </data>
+  <data name="TipItemNameFilter" xml:space="preserve">
+    <value>N'affiche que les objets dont le nom contient ce texte, sans tenir compte des majuscules. La liste se réduit pendant la saisie ; inutile de relancer le calcul.</value>
+  </data>
+  <data name="ItemNameFilterShowing" xml:space="preserve">
+    <value>{0:N0} sur {1:N0} affichés</value>
+  </data>
 </root>

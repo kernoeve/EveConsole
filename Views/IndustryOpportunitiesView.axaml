@@ -150,6 +150,18 @@
                 BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" />
       </StackPanel>
 
+      <!-- ── Name filter: narrows the list as typed, no recalculation ───────── -->
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <TextBlock Text="{x:Static loc:CommonText.ItemNameFilterLabel}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
+                   VerticalAlignment="Center" />
+        <TextBox Text="{Binding NameFilter.Text}" Width="260" FontSize="12"
+                 Watermark="{x:Static loc:CommonText.ItemNameFilterHint}"
+                 ToolTip.Tip="{x:Static loc:CommonText.TipItemNameFilter}"
+                 Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" Foreground="{DynamicResource TextPrimaryBrush}" />
+        <TextBlock Text="{Binding NameFilter.Shown}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11"
+                   VerticalAlignment="Center" />
+      </StackPanel>
+
      </StackPanel>
     </Border>
 

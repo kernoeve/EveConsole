@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Reactive;
+using Avalonia.Collections;
 using EveConsole.Services;
 using Microsoft.Data.Sqlite;
 using ReactiveUI;
@@ -221,6 +222,14 @@ public class TradeOpportunitiesViewModel : ReactiveObject
 
     public ObservableCollection<TradeRow> Results { get; } = [];
 
+    /// <summary>The results as the grid shows them: filtered by name, sorted by its headers. The
+    /// summary below stays the whole list's — the filter only narrows what is looked at.</summary>
+    public DataGridCollectionView ResultsView { get; }
+
+    /// <summary>Narrows the results to the items whose name contains what was typed, as it is
+    /// typed. See <see cref="ItemNameFilter{T}"/>.</summary>
+    public ItemNameFilter<TradeRow> NameFilter { get; }
+
     // The button is named through its own entry, so the hint cannot drift from its label.
     private string _statusText = string.Format(MarketText.StatusSelectStations, MarketText.Calculate);
     public string StatusText
@@ -255,6 +264,9 @@ public class TradeOpportunitiesViewModel : ReactiveObject
         _historyService = historyService;
         _batchSvc       = batchSvc;
         _selectedMode   = ModeOptions[0];
+        ResultsView     = new DataGridCollectionView(Results);
+        NameFilter      = new ItemNameFilter<TradeRow>(ResultsView, Results, r => r.TypeName);
+        Results.CollectionChanged += (_, _) => NameFilter.Update();
         CalculateCommand           = ReactiveCommand.CreateFromTask(CalculateAsync);
         AddExcludedGroupCommand    = ReactiveCommand.CreateFromTask(AddExcludedGroupAsync);
         RemoveExcludedGroupCommand = ReactiveCommand.CreateFromTask<ExcludedMarketGroupVm>(RemoveExcludedGroupAsync);
