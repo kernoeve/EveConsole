@@ -532,4 +532,46 @@
   <data name="ReasonRawOverflow" xml:space="preserve">
     <value>原材料将自 {0} 起溢出储藏设施：采集速度超过工厂的处理速度。</value>
   </data>
+  <data name="ColImports" xml:space="preserve">
+    <value>进口</value>
+  </data>
+  <data name="ColExports" xml:space="preserve">
+    <value>出口</value>
+  </data>
+  <data name="ColWaitingVolume" xml:space="preserve">
+    <value>待运出 (m³)</value>
+  </data>
+  <data name="ColWaitingValue" xml:space="preserve">
+    <value>待运出 (ISK)</value>
+  </data>
+  <data name="TipImports" xml:space="preserve">
+    <value>每天从行星外运入：</value>
+  </data>
+  <data name="TipNoImports" xml:space="preserve">
+    <value>无需运入：这个殖民地的工厂所用的一切都在行星上生产。</value>
+  </data>
+  <data name="TipExports" xml:space="preserve">
+    <value>每天从行星运出。只包括行星上不再使用的产品；一个工厂为下一个工厂生产的不在其中：</value>
+  </data>
+  <data name="TipNoExports" xml:space="preserve">
+    <value>没有需要从行星运出的产品。</value>
+  </data>
+  <data name="TypePerDay" xml:space="preserve">
+    <value>{0}：每天 {1}</value>
+  </data>
+  <data name="VolumeM3" xml:space="preserve">
+    <value>{0} m³</value>
+  </data>
+  <data name="TipWaiting" xml:space="preserve">
+    <value>现在存放着、等待运走的出口产品（估计值，从游戏中最后一次打开该殖民地的时间 {0} 推算）：</value>
+  </data>
+  <data name="TipNoWaiting" xml:space="preserve">
+    <value>现在没有存放的出口产品（估计值，从游戏中最后一次打开该殖民地的时间 {0} 推算）。</value>
+  </data>
+  <data name="WaitingLine" xml:space="preserve">
+    <value>{0} × {1}：{2} m³，{3} ISK</value>
+  </data>
+  <data name="SummaryWaiting" xml:space="preserve">
+    <value>{0} m³ 出口产品待运出，价值 {1} ISK</value>
+  </data>
 </root>

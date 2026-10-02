@@ -559,4 +559,46 @@
   <data name="ReasonRawOverflow" xml:space="preserve">
     <value>Les matières premières déborderont du stockage à partir du {0} : l'extraction dépasse la cadence des usines.</value>
   </data>
+  <data name="ColImports" xml:space="preserve">
+    <value>Importations</value>
+  </data>
+  <data name="ColExports" xml:space="preserve">
+    <value>Exportations</value>
+  </data>
+  <data name="ColWaitingVolume" xml:space="preserve">
+    <value>En attente (m³)</value>
+  </data>
+  <data name="ColWaitingValue" xml:space="preserve">
+    <value>En attente (ISK)</value>
+  </data>
+  <data name="TipImports" xml:space="preserve">
+    <value>Apporté de l'extérieur de la planète, par jour :</value>
+  </data>
+  <data name="TipNoImports" xml:space="preserve">
+    <value>Rien n'est apporté : tout ce qu'utilisent les usines de cette colonie est produit sur la planète.</value>
+  </data>
+  <data name="TipExports" xml:space="preserve">
+    <value>Retiré de la planète, par jour. Seulement ce que rien n'utilise sur la planète ; ce qu'une usine produit pour la suivante n'y figure pas :</value>
+  </data>
+  <data name="TipNoExports" xml:space="preserve">
+    <value>Il ne reste rien à retirer de la planète.</value>
+  </data>
+  <data name="TypePerDay" xml:space="preserve">
+    <value>{0} : {1} par jour</value>
+  </data>
+  <data name="VolumeM3" xml:space="preserve">
+    <value>{0} m³</value>
+  </data>
+  <data name="TipWaiting" xml:space="preserve">
+    <value>Exportations en stock maintenant, en attente d'enlèvement ; estimation rejouée depuis la dernière visite de la colonie en jeu ({0}) :</value>
+  </data>
+  <data name="TipNoWaiting" xml:space="preserve">
+    <value>Aucune exportation en stock maintenant ; estimation rejouée depuis la dernière visite de la colonie en jeu ({0}).</value>
+  </data>
+  <data name="WaitingLine" xml:space="preserve">
+    <value>{0} × {1} : {2} m³, {3} ISK</value>
+  </data>
+  <data name="SummaryWaiting" xml:space="preserve">
+    <value>{0} m³ d'exportations en attente, d'une valeur de {1} ISK</value>
+  </data>
 </root>

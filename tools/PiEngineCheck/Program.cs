@@ -175,6 +175,25 @@ var extractorPlanet = new PiColonyLayout
     Check("extractor planet: P1 export charge per day", Near(charge.ExportPerDay, 40 * 960 * share), $"{charge.ExportPerDay}");
     Check("extractor planet: no import charges", Near(f.ImportChargesPerDay, 0));
 
+    // Imports and exports: the raw material is made and used up on the planet, so only the P1
+    // goes off it — and nothing comes in.
+    Check("extractor planet: exports are the P1 alone", f.Exports.Select(e => e.TypeId).SequenceEqual([X]),
+          string.Join(",", f.Exports.Select(e => e.TypeId)));
+    Check("extractor planet: no imports", !f.Imports.Any());
+
+    // Waiting to be picked up: the P1 in storage, not the raw material sitting beside it for the
+    // processor.
+    var waiting = PiWaitingExport.For(f, sd, new Dictionary<int, double> { [X] = 4.0, [A] = 1.0 });
+    var px      = storage.ContentsAt.GetValueOrDefault(X);
+    Check("extractor planet: raw material in storage, the case the next check is about",
+          storage.ContentsAt.GetValueOrDefault(A) > 0, $"{storage.ContentsAt.GetValueOrDefault(A)}");
+    Check("extractor planet: waiting is the P1 in storage alone",
+          waiting.Count == 1 && waiting[0].TypeId == X && waiting[0].Units == px && px > 0,
+          string.Join(",", waiting.Select(w => $"{w.TypeId}:{w.Units}")));
+    Check("extractor planet: waiting m³ and ISK", waiting.Count == 1
+          && Near(waiting[0].Volume, px * sd.VolumeOf(X)) && Near(waiting[0].Value, px * 4.0),
+          string.Join(",", waiting.Select(w => $"{w.Volume}/{w.Value}")));
+
     var later = PiEngine.Forecast(extractorPlanet, sd, H(t0, 24));
     Check("extractor planet: expired at 24 hours", later.Extractors.Single().IsExpired
           && later.Extractors.Single().RemainingOutput == 0);
@@ -225,6 +244,21 @@ PiColonyLayout FactoryPlanet() => new()
     Check("factory planet: Z in storage after ten cycles", storage.ContentsAt.GetValueOrDefault(Z) == 15_950,
           $"got {storage.ContentsAt.GetValueOrDefault(Z)}");
     Check("factory planet: storage full at 20 hours", storage.FullAt == H(t0, 20), $"got {storage.FullAt}");
+
+    // Both P1 come in from off the planet, the P2 goes off it.
+    Check("factory planet: imports are the two P1", f.Imports.Select(i => i.TypeId).Order().SequenceEqual(new[] { X, Y }.Order()),
+          string.Join(",", f.Imports.Select(i => i.TypeId)));
+    Check("factory planet: exports are the P2 alone", f.Exports.Select(e => e.TypeId).SequenceEqual([Z]),
+          string.Join(",", f.Exports.Select(e => e.TypeId)));
+
+    // Waiting: the Z in storage; the X and Y still on the launchpad are input, not waiting.
+    var waiting = PiWaitingExport.For(f, sd, new Dictionary<int, double> { [X] = 1, [Y] = 1, [Z] = 10 });
+    Check("factory planet: waiting is the Z in storage alone",
+          waiting.Count == 1 && waiting[0].TypeId == Z && waiting[0].Units == 15_950,
+          string.Join(",", waiting.Select(w => $"{w.TypeId}:{w.Units}")));
+    Check("factory planet: waiting m³ and ISK", waiting.Count == 1
+          && Near(waiting[0].Volume, 15_950 * sd.VolumeOf(Z)) && Near(waiting[0].Value, 159_500),
+          string.Join(",", waiting.Select(w => $"{w.Volume}/{w.Value}")));
 
     // Mid-cycle at the snapshot: its inputs are already in it, so nothing more is drawn until it
     // finishes half an hour later.

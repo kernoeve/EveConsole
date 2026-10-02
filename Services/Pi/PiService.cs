@@ -24,6 +24,33 @@ public sealed record PiEconomics(double OutputValuePerDay, double InputCostPerDa
             forecast.ImportChargesPerDay);
 }
 
+/// <summary>
+/// Product of one type in a colony's storage at the forecast's moment, waiting to be taken off:
+/// units, m³ and market value. Export types only (<see cref="PiColonyForecast.Exports"/>) — what
+/// a factory on the planet will still use is not waiting for anyone.
+/// </summary>
+public sealed record PiWaitingExport(int TypeId, long Units, double Volume, double Value)
+{
+    /// <summary>Every export type in the colony's storage, launchpads and command center, most
+    /// valuable first.</summary>
+    public static IReadOnlyList<PiWaitingExport> For(PiColonyForecast forecast, PiStaticData sd,
+                                                     IReadOnlyDictionary<int, double> prices)
+    {
+        var exports = forecast.Exports.Select(f => f.TypeId).ToHashSet();
+        return forecast.Storage
+            .SelectMany(s => s.ContentsAt)
+            .Where(kv => kv.Value > 0 && exports.Contains(kv.Key))
+            .GroupBy(kv => kv.Key)
+            .Select(g =>
+            {
+                var units = g.Sum(kv => kv.Value);
+                return new PiWaitingExport(g.Key, units, units * sd.VolumeOf(g.Key), units * prices.GetValueOrDefault(g.Key));
+            })
+            .OrderByDescending(w => w.Value).ThenByDescending(w => w.Volume)
+            .ToList();
+    }
+}
+
 /// <summary>Output thrown away, valued at market.</summary>
 public sealed record PiValuedLoss(PiLoss Loss, double Value);
 
@@ -151,6 +178,13 @@ public sealed record PiColonyStatus(
     /// <summary>Potential against forecast over the period ahead; null on a status built without
     /// prices.</summary>
     public PiPeriodEconomics? Period { get; init; }
+
+    /// <summary>Exports in storage at the forecast's moment, waiting to be taken off. ⚠️ An
+    /// estimate whenever the forecast is after the snapshot, like every storage figure.</summary>
+    public IReadOnlyList<PiWaitingExport> Waiting { get; init; } = [];
+
+    public double WaitingVolume => Waiting.Sum(w => w.Volume);
+    public double WaitingValue  => Waiting.Sum(w => w.Value);
 }
 
 /// <summary>A colony slot as the colony list has it, read or not.</summary>
@@ -307,6 +341,7 @@ public sealed class PiService(IDbContextFactory<AppDbContext> dbFactory, PiTaxSe
                     RegionId       = regionId,
                     RegionName     = regionName,
                     Period         = PiPeriodEconomics.For(f, prices),
+                    Waiting        = PiWaitingExport.For(f, sd, prices),
                 };
             })
             .ToList();

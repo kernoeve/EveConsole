@@ -532,4 +532,46 @@
   <data name="ReasonRawOverflow" xml:space="preserve">
     <value>{0}부터 원재료가 저장시설에 다 들어가지 못하고 넘칩니다: 추출 속도가 제조시설을 앞지릅니다.</value>
   </data>
+  <data name="ColImports" xml:space="preserve">
+    <value>수입품</value>
+  </data>
+  <data name="ColExports" xml:space="preserve">
+    <value>수출품</value>
+  </data>
+  <data name="ColWaitingVolume" xml:space="preserve">
+    <value>반출 대기 (m³)</value>
+  </data>
+  <data name="ColWaitingValue" xml:space="preserve">
+    <value>반출 대기 (ISK)</value>
+  </data>
+  <data name="TipImports" xml:space="preserve">
+    <value>행성 밖에서 하루에 들여오는 양:</value>
+  </data>
+  <data name="TipNoImports" xml:space="preserve">
+    <value>들여오는 것이 없습니다. 이 콜로니의 공장이 쓰는 것은 모두 행성에서 만들어집니다.</value>
+  </data>
+  <data name="TipExports" xml:space="preserve">
+    <value>하루에 행성에서 내보내는 양. 행성에서 쓰이지 않는 것만이며, 한 공장이 다음 공장을 위해 만드는 것은 빠져 있습니다:</value>
+  </data>
+  <data name="TipNoExports" xml:space="preserve">
+    <value>행성에서 내보낼 것이 남지 않습니다.</value>
+  </data>
+  <data name="TypePerDay" xml:space="preserve">
+    <value>{0}: 하루 {1}</value>
+  </data>
+  <data name="VolumeM3" xml:space="preserve">
+    <value>{0} m³</value>
+  </data>
+  <data name="TipWaiting" xml:space="preserve">
+    <value>지금 저장고에서 반출을 기다리는 수출품 — 추정치이며, 게임에서 콜로니를 마지막으로 연 시점({0})부터 재현했습니다:</value>
+  </data>
+  <data name="TipNoWaiting" xml:space="preserve">
+    <value>지금 저장고에 수출품이 없습니다 — 추정치이며, 게임에서 콜로니를 마지막으로 연 시점({0})부터 재현했습니다.</value>
+  </data>
+  <data name="WaitingLine" xml:space="preserve">
+    <value>{0} × {1}: {2} m³, {3} ISK</value>
+  </data>
+  <data name="SummaryWaiting" xml:space="preserve">
+    <value>반출 대기 수출품 {0} m³, 가치 {1} ISK</value>
+  </data>
 </root>

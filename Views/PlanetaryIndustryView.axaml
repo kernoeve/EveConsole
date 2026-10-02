@@ -109,6 +109,42 @@
             </DataGridTemplateColumn>
             <DataGridTextColumn Header="{x:Static loc:AssetsText.ColRegion}" Binding="{Binding RegionName}" Width="Auto" MinWidth="90" SortMemberPath="RegionName" />
             <DataGridTextColumn Header="{x:Static loc:PiText.ColKind}" Binding="{Binding KindText}" Width="Auto" MinWidth="80" SortMemberPath="KindText" />
+            <DataGridTemplateColumn Header="{x:Static loc:PiText.ColImports}" Width="180" SortMemberPath="ImportsText"
+                                    ClipboardContentBinding="{Binding ImportsText}">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:PiColonyRowVm">
+                  <TextBlock Text="{Binding ImportsText}" ToolTip.Tip="{Binding ImportsTip}" TextTrimming="CharacterEllipsis"
+                             VerticalAlignment="Center" Margin="4 0" />
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTemplateColumn Header="{x:Static loc:PiText.ColExports}" Width="180" SortMemberPath="ExportsText"
+                                    ClipboardContentBinding="{Binding ExportsText}">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:PiColonyRowVm">
+                  <TextBlock Text="{Binding ExportsText}" ToolTip.Tip="{Binding ExportsTip}" TextTrimming="CharacterEllipsis"
+                             VerticalAlignment="Center" Margin="4 0" />
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTemplateColumn Header="{x:Static loc:PiText.ColWaitingVolume}" Width="Auto" MinWidth="90" SortMemberPath="WaitingVolume"
+                                    ClipboardContentBinding="{Binding WaitingVolumeText}">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:PiColonyRowVm">
+                  <TextBlock Text="{Binding WaitingVolumeText}" ToolTip.Tip="{Binding WaitingTip}"
+                             TextAlignment="Right" VerticalAlignment="Center" Margin="4 0 8 0" />
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTemplateColumn Header="{x:Static loc:PiText.ColWaitingValue}" Width="Auto" MinWidth="90" SortMemberPath="WaitingValue"
+                                    ClipboardContentBinding="{Binding WaitingValueText}">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:PiColonyRowVm">
+                  <TextBlock Text="{Binding WaitingValueText}" ToolTip.Tip="{Binding WaitingTip}"
+                             TextAlignment="Right" VerticalAlignment="Center" Margin="4 0 8 0" />
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
             <DataGridTemplateColumn Header="{x:Static loc:PiText.ColCc}" Width="60" SortMemberPath="CcLevel"
                                     ClipboardContentBinding="{Binding CcLevelText}">
               <DataGridTemplateColumn.CellTemplate>

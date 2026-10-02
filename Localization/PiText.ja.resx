@@ -532,4 +532,46 @@
   <data name="ReasonRawOverflow" xml:space="preserve">
     <value>{0}から原料が保管施設からあふれます：抽出が工場の処理を上回っています。</value>
   </data>
+  <data name="ColImports" xml:space="preserve">
+    <value>輸入品</value>
+  </data>
+  <data name="ColExports" xml:space="preserve">
+    <value>輸出品</value>
+  </data>
+  <data name="ColWaitingVolume" xml:space="preserve">
+    <value>搬出待ち (m³)</value>
+  </data>
+  <data name="ColWaitingValue" xml:space="preserve">
+    <value>搬出待ち (ISK)</value>
+  </data>
+  <data name="TipImports" xml:space="preserve">
+    <value>惑星外から1日に運び込む量:</value>
+  </data>
+  <data name="TipNoImports" xml:space="preserve">
+    <value>運び込むものはありません。このコロニーの工場が使うものはすべて惑星上で作られています。</value>
+  </data>
+  <data name="TipExports" xml:space="preserve">
+    <value>1日に惑星から運び出す量。惑星上で使われないものだけで、工場が次の工場のために作るものは含みません:</value>
+  </data>
+  <data name="TipNoExports" xml:space="preserve">
+    <value>惑星から運び出すものは残りません。</value>
+  </data>
+  <data name="TypePerDay" xml:space="preserve">
+    <value>{0}: 1日{1}</value>
+  </data>
+  <data name="VolumeM3" xml:space="preserve">
+    <value>{0} m³</value>
+  </data>
+  <data name="TipWaiting" xml:space="preserve">
+    <value>現在保管されていて搬出を待っている輸出品（推定値。ゲーム内でコロニーを最後に開いた時点 {0} から再現）:</value>
+  </data>
+  <data name="TipNoWaiting" xml:space="preserve">
+    <value>現在保管されている輸出品はありません（推定値。ゲーム内でコロニーを最後に開いた時点 {0} から再現）。</value>
+  </data>
+  <data name="WaitingLine" xml:space="preserve">
+    <value>{0} × {1}: {2} m³、{3} ISK</value>
+  </data>
+  <data name="SummaryWaiting" xml:space="preserve">
+    <value>搬出待ちの輸出品 {0} m³（{1} ISK 相当）</value>
+  </data>
 </root>
