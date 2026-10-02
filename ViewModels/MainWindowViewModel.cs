@@ -464,7 +464,8 @@ public class MainWindowViewModel : ReactiveObject
     /// English; the ids are for naming them in the interface language.</summary>
     internal sealed record OnlineCharacterRow(
         string Name, bool Online, bool Docked, string? System, string? Place, string? Hull, string? ShipName,
-        int? SolarSystemId = null, long? StationId = null, int? ShipTypeId = null, long CharacterId = 0);
+        int? SolarSystemId = null, long? StationId = null, int? ShipTypeId = null, long CharacterId = 0,
+        long CorporationId = 0, long AllianceId = 0);
 
     /// <summary>
     /// Every character with a status row, with names looked up for the ones online.
@@ -484,6 +485,7 @@ public class MainWindowViewModel : ReactiveObject
             select new
             {
                 c.Id, c.Name, s.Online, s.SolarSystemId, s.StationId, s.StructureId, s.ShipTypeId, s.ShipName,
+                c.CorporationId, c.AllianceId,
             }).ToListAsync(ct);
 
         // Names only for who is online — nothing else is shown. A character who has just logged
@@ -529,7 +531,8 @@ public class MainWindowViewModel : ReactiveObject
                   : s.StructureId is long str ? structures.GetValueOrDefault(str) : null,
             Hull:   s.ShipTypeId is int hull ? ships.GetValueOrDefault(hull) : null,
             s.ShipName,
-            SolarSystemId: s.SolarSystemId, StationId: s.StationId, ShipTypeId: s.ShipTypeId, CharacterId: s.Id)).ToList();
+            SolarSystemId: s.SolarSystemId, StationId: s.StationId, ShipTypeId: s.ShipTypeId, CharacterId: s.Id,
+            CorporationId: s.CorporationId, AllianceId: s.AllianceId ?? 0)).ToList();
     }
 
     private async Task RefreshOnlineCharactersAsync(IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errorLogger)

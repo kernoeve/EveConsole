@@ -44,7 +44,10 @@ public sealed record MapJumpRange(int OriginId, IReadOnlySet<int> Systems);
 /// just before the ship's name in it.</summary>
 /// <param name="ShipAt">Where in <see cref="Text"/> the ship's name starts, so the icon goes
 /// beside the name whichever order a language puts the words in; -1 for no ship.</param>
-public sealed record MapMarkRow(string Text, long CharacterId = 0, int ShipTypeId = 0, int ShipAt = -1);
+/// <param name="CorporationId">The pilot's corporation, its logo after the portrait; 0 for none known.</param>
+/// <param name="AllianceId">Their alliance, its logo after the corporation's; 0 for none.</param>
+public sealed record MapMarkRow(string Text, long CharacterId = 0, int ShipTypeId = 0, int ShipAt = -1,
+                                long CorporationId = 0, long AllianceId = 0);
 
 /// <summary>A jump bridge drawn as an arc between two systems, and what its hover says.</summary>
 /// <param name="Complete">Both gates are known; false draws it fainter.</param>
@@ -1468,8 +1471,10 @@ public class MapCanvas : Control
         double LineWidth((FormattedText Before, FormattedText? After, bool Icon) p) =>
             p.Before.Width + (p.Icon ? gap + RowIcon + gap : 0) + (p.After?.Width ?? 0);
 
-        // The portrait's slot is kept on every row, picture or not, so the text starts in one column.
-        var textX = RowIcon + gap * 2;
+        // The portrait's slot is kept on every row, picture or not, so the text starts in one
+        // column — and so are the corporation's and the alliance's after it, when any row has one.
+        var logos = rows.Any(r => r.CorporationId > 0 || r.AllianceId > 0);
+        var textX = RowIcon + gap * 2 + (logos ? (RowIcon + gap) * 2 : 0);
         var rowH  = Math.Max(RowIcon, parts.Max(p => p.Before.Height)) + rowGap;
         var w = Math.Max(title.Width, textX + parts.Max(LineWidth)) + pad * 2;
         var h = title.Height + 4 + rowH * rows.Count + pad * 2;
@@ -1492,6 +1497,16 @@ public class MapCanvas : Control
             if (rows[i].CharacterId > 0 &&
                 Picture($"https://images.evetech.net/characters/{rows[i].CharacterId}/portrait?size=32") is { } portrait)
                 ctx.DrawImage(portrait, new Rect(lx, ry, RowIcon, RowIcon));
+            if (logos)
+            {
+                var cx = lx + RowIcon + gap;
+                if (rows[i].CorporationId > 0 &&
+                    Picture($"https://images.evetech.net/corporations/{rows[i].CorporationId}/logo?size=32") is { } corp)
+                    ctx.DrawImage(corp, new Rect(cx, ry, RowIcon, RowIcon));
+                if (rows[i].AllianceId > 0 &&
+                    Picture($"https://images.evetech.net/alliances/{rows[i].AllianceId}/logo?size=32") is { } alliance)
+                    ctx.DrawImage(alliance, new Rect(cx + RowIcon + gap, ry, RowIcon, RowIcon));
+            }
 
             var (before, after, icon) = parts[i];
             var tx = lx + textX;

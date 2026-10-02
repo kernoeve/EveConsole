@@ -12,7 +12,8 @@ namespace EveConsole.Services;
 /// <param name="NoVisual">The report said "nv": in local, not seen on grid.</param>
 public sealed record LivePilot(
     long CharacterId, string Name, int? ShipTypeId, string? Ship,
-    DateTimeOffset At, bool FromKillmail, bool NoVisual);
+    DateTimeOffset At, bool FromKillmail, bool NoVisual,
+    long CorporationId = 0, long AllianceId = 0);
 
 /// <summary>Everyone currently placed in one system.</summary>
 /// <param name="Unidentified">Pilots the newest standing report counted but did not name —
@@ -28,7 +29,7 @@ public sealed record SystemHostiles(int SystemId, IReadOnlyList<LivePilot> Pilot
 
 /// <summary>One of the user's own characters, online, and where it is.</summary>
 public sealed record OwnPilot(string Name, int SystemId, string? Hull, string? ShipName, bool Docked, string? Place,
-                              long CharacterId = 0, int? ShipTypeId = null);
+                              long CharacterId = 0, int? ShipTypeId = null, long CorporationId = 0, long AllianceId = 0);
 
 public sealed record LiveMapSnapshot(
     IReadOnlyDictionary<int, SystemHostiles>          Hostiles,
@@ -204,7 +205,7 @@ public sealed class LiveIntelService(
                 .Select(p => new LivePilot(p.CharacterId,
                     p.Name ?? resolved.GetValueOrDefault(p.CharacterId)
                            ?? string.Format(MapText.LiveCharacterId, p.CharacterId.ToString(CultureInfo.InvariantCulture)),
-                    p.ShipTypeId, Ship(p), p.At, p.FromKillmail, p.NoVisual))
+                    p.ShipTypeId, Ship(p), p.At, p.FromKillmail, p.NoVisual, p.CorporationId, p.AllianceId))
                 .ToList();
             hostiles[bySystem.Key] = new SystemHostiles(bySystem.Key, list, 0);
         }
@@ -240,7 +241,7 @@ public sealed class LiveIntelService(
                 .OrderBy(c => c.Name, StringComparer.CurrentCultureIgnoreCase)
                 .Select(c => new OwnPilot(c.Name, bySystem.Key,
                     c.ShipTypeId is int t && c.Hull is { } hull ? SdeNames.Type(t, hull) : c.Hull,
-                    c.ShipName, c.Docked, c.Place, c.CharacterId, c.ShipTypeId))
+                    c.ShipName, c.Docked, c.Place, c.CharacterId, c.ShipTypeId, c.CorporationId, c.AllianceId))
                 .ToList();
 
         return new LiveMapSnapshot(hostiles, own, now);

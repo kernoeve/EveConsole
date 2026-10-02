@@ -925,7 +925,7 @@ public sealed class MapToolViewModel : ReactiveObject
                         : p.NoVisual     ? MapText.LiveSourceIntelNoVisual
                         :                  MapText.LiveSourceIntel;
             var (text, at) = WithShipAt(MapText.LiveHostileLine, ship, p.Name, ShipMark, ago, source);
-            return new MapMarkRow(text, p.CharacterId, p.ShipTypeId ?? 0, at);
+            return new MapMarkRow(text, p.CharacterId, p.ShipTypeId ?? 0, at, p.CorporationId, p.AllianceId);
         })).ToList();
 
         if (h.Pilots.Count > MaxListed)
@@ -946,7 +946,7 @@ public sealed class MapToolViewModel : ReactiveObject
                   : o.Place is { } place ? string.Format(MapText.LiveDockedAt, place)
                   :                        MapText.LiveDocked;
         var (text, at) = WithShipAt(MapText.LiveOwnLine, ship, o.Name, ShipMark, where);
-        return new MapMarkRow(text, o.CharacterId, o.ShipTypeId ?? 0, at);
+        return new MapMarkRow(text, o.CharacterId, o.ShipTypeId ?? 0, at, o.CorporationId, o.AllianceId);
     }).ToList();
 
     /// <summary>Stands in for the ship's name while a line is formatted, to find where it lands.</summary>
