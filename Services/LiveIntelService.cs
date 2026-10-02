@@ -12,19 +12,24 @@ namespace EveConsole.Services;
 /// <param name="NoVisual">The report said "nv": in local, not seen on grid.</param>
 public sealed record LivePilot(
     long CharacterId, string Name, int? ShipTypeId, string? Ship,
-    DateTimeOffset At, bool FromKillmail, bool NoVisual);
+    DateTimeOffset At, bool FromKillmail, bool NoVisual,
+    long CorporationId = 0, long AllianceId = 0);
 
 /// <summary>Everyone currently placed in one system.</summary>
 /// <param name="Unidentified">Pilots the newest standing report counted but did not name —
-/// "+5", or names that did not resolve to a character.</param>
-public sealed record SystemHostiles(int SystemId, IReadOnlyList<LivePilot> Pilots, int Unidentified)
+/// "+5", "3 lokis", or names that did not resolve to a character.</param>
+/// <param name="Facts">What the standing reports said besides who — "bubbles, gate camp · on the
+/// QZ-X77 gate" — in the interface language; null when nothing.</param>
+/// <param name="Ships">The newest report's hulls with nobody named in them, as read.</param>
+public sealed record SystemHostiles(int SystemId, IReadOnlyList<LivePilot> Pilots, int Unidentified,
+                                    string? Facts = null, string? Ships = null)
 {
     public int Count => Pilots.Count + Unidentified;
 }
 
 /// <summary>One of the user's own characters, online, and where it is.</summary>
 public sealed record OwnPilot(string Name, int SystemId, string? Hull, string? ShipName, bool Docked, string? Place,
-                              long CharacterId = 0, int? ShipTypeId = null);
+                              long CharacterId = 0, int? ShipTypeId = null, long CorporationId = 0, long AllianceId = 0);
 
 public sealed record LiveMapSnapshot(
     IReadOnlyDictionary<int, SystemHostiles>          Hostiles,
@@ -81,7 +86,7 @@ public sealed class LiveIntelService(
         var cutoffText = cutoff.UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
         var reports = await db.IntelReports.AsNoTracking()
             .Where(r => string.Compare(r.ReportedAt, cutoffText) >= 0)
-            .Select(r => new { r.Id, r.ReportedAt, r.SystemId, r.PlayerCount, r.NoVisual, r.Obsolete })
+            .Select(r => new { r.Id, r.ReportedAt, r.SystemId, r.PlayerCount, r.NoVisual, r.Obsolete, r.Flags, r.Gate, r.Ships })
             .ToListAsync(ct);
 
         var reportIds = reports.Select(r => r.Id).ToList();
@@ -200,23 +205,31 @@ public sealed class LiveIntelService(
                 .Select(p => new LivePilot(p.CharacterId,
                     p.Name ?? resolved.GetValueOrDefault(p.CharacterId)
                            ?? string.Format(MapText.LiveCharacterId, p.CharacterId.ToString(CultureInfo.InvariantCulture)),
-                    p.ShipTypeId, Ship(p), p.At, p.FromKillmail, p.NoVisual))
+                    p.ShipTypeId, Ship(p), p.At, p.FromKillmail, p.NoVisual, p.CorporationId, p.AllianceId))
                 .ToList();
             hostiles[bySystem.Key] = new SystemHostiles(bySystem.Key, list, 0);
         }
 
         // Pilots a report counted without naming. Only the newest report still standing in each
-        // system: two reports of the same "+5" a minute apart are the same five, not ten.
+        // system: two reports of the same "+5" a minute apart are the same five, not ten. What
+        // the standing reports said besides — a spike, bubbles, the gate — is kept even where
+        // nobody was counted: "QZ-X77 bubbles" is worth a mark on its own.
+        var hullName = await IntelDisplay.HullNamesAsync(db,
+            reports.SelectMany(r => IntelDisplay.ParseShips(r.Ships)).Select(s => s.Name), ct);
         foreach (var bySystem in reports.Where(r => !r.Obsolete).GroupBy(r => r.SystemId))
         {
-            var newest = bySystem.OrderByDescending(r => r.ReportedAt, StringComparer.Ordinal).ThenByDescending(r => r.Id).First();
-            var named  = pilots.Count(p => p.IntelReportId == newest.Id);
-            var extra  = Math.Max(0, newest.PlayerCount - named);
-            if (extra == 0) continue;
+            var ordered = bySystem.OrderByDescending(r => r.ReportedAt, StringComparer.Ordinal).ThenByDescending(r => r.Id).ToList();
+            var newest  = ordered[0];
+            var named   = pilots.Count(p => p.IntelReportId == newest.Id);
+            var extra   = Math.Max(0, newest.PlayerCount - named);
+            var facts   = IntelDisplay.Facts(ordered.Aggregate(0, (f, r) => f | r.Flags),
+                                             ordered.Select(r => r.Gate).FirstOrDefault(g => !string.IsNullOrEmpty(g)));
+            var ships   = IntelDisplay.Ships(newest.Ships, hullName);
+            if (extra == 0 && facts is null) continue;
 
             hostiles[bySystem.Key] = hostiles.TryGetValue(bySystem.Key, out var h)
-                ? h with { Unidentified = extra }
-                : new SystemHostiles(bySystem.Key, [], extra);
+                ? h with { Unidentified = extra, Facts = facts, Ships = ships }
+                : new SystemHostiles(bySystem.Key, [], extra, facts, ships);
         }
 
         // ── Own characters ───────────────────────────────────────────────────
@@ -228,7 +241,7 @@ public sealed class LiveIntelService(
                 .OrderBy(c => c.Name, StringComparer.CurrentCultureIgnoreCase)
                 .Select(c => new OwnPilot(c.Name, bySystem.Key,
                     c.ShipTypeId is int t && c.Hull is { } hull ? SdeNames.Type(t, hull) : c.Hull,
-                    c.ShipName, c.Docked, c.Place, c.CharacterId, c.ShipTypeId))
+                    c.ShipName, c.Docked, c.Place, c.CharacterId, c.ShipTypeId, c.CorporationId, c.AllianceId))
                 .ToList();
 
         return new LiveMapSnapshot(hostiles, own, now);

@@ -1417,6 +1417,57 @@
   <data name="IntelSaidJumpsFromOther" xml:space="preserve">
     <value>a {0} saltos de {1}</value>
   </data>
+  <data name="AdriftStopEndsLabel" xml:space="preserve">
+    <value>Detener la nave lo termina</value>
+  </data>
+  <data name="AdriftStopEndsNote" xml:space="preserve">
+    <value>Marcado: detener la nave después de desatracar termina la alarma de ese desatraque; una nave detenida no se aleja a la deriva del punto de desatraque, y alguien pulsó detener. Se lee del registro de juego, así que debe leerse la carpeta de registros de juego de ese cliente (Ajustes → Registros de juego); sin ella, las etapas siguen como antes.</value>
+  </data>
+  <data name="CheckGameLogEvent" xml:space="preserve">
+    <value>Evento del registro de juego</value>
+  </data>
+  <data name="CheckGameLogEventNote" xml:space="preserve">
+    <value>Se activa cuando el registro de juego de uno de tus personajes indica que algo cercano le quitó el camuflaje, que sufrió una perturbación o interrupción de warp, o que está bajo ataque; marca cualquier combinación. Una perturbación o un ataque se activa una vez por combate: las líneas con no más de dos minutos entre ellas son un mismo combate. Hace falta que se lea la carpeta de registros de juego de ese cliente (Ajustes → Registros de juego) y un cliente del juego en inglés; se detecta en segundos.</value>
+  </data>
+  <data name="GameLogDecloakedLabel" xml:space="preserve">
+    <value>Camuflaje perdido</value>
+  </data>
+  <data name="GameLogDecloakedNote" xml:space="preserve">
+    <value>Tu camuflaje se desactivó cerca de una puerta estelar, una estructura u otra cosa que lo anula.</value>
+  </data>
+  <data name="GameLogScrambledLabel" xml:space="preserve">
+    <value>Warp perturbado</value>
+  </data>
+  <data name="GameLogScrambledNote" xml:space="preserve">
+    <value>Te alcanzó un perturbador o un disruptor de warp.</value>
+  </data>
+  <data name="GameLogAttackedLabel" xml:space="preserve">
+    <value>Bajo ataque</value>
+  </data>
+  <data name="GameLogAttackedNote" xml:space="preserve">
+    <value>Estás recibiendo daño.</value>
+  </data>
+  <data name="GameLogPlayersOnlyLabel" xml:space="preserve">
+    <value>Solo jugadores</value>
+  </data>
+  <data name="GameLogPlayersOnlyNote" xml:space="preserve">
+    <value>Marcado: una perturbación o un ataque solo cuenta si viene de un jugador, no de un NPC; de lo contrario, cazar ratas la dispararía toda la tarde.</value>
+  </data>
+  <data name="GameLogCharactersNote" xml:space="preserve">
+    <value>Opcional. Tus propios personajes que vigilar; déjalo vacío para todos.</value>
+  </data>
+  <data name="GameLogEventsTitle" xml:space="preserve">
+    <value>Eventos del registro de juego: {0}</value>
+  </data>
+  <data name="GameLogSaidDecloaked" xml:space="preserve">
+    <value>{0} perdió el camuflaje cerca de {1}.</value>
+  </data>
+  <data name="GameLogSaidScrambled" xml:space="preserve">
+    <value>{0} tiene el warp perturbado por {1}.</value>
+  </data>
+  <data name="GameLogSaidAttacked" xml:space="preserve">
+    <value>{0} está bajo ataque de {1}.</value>
+  </data>
   <data name="CheckPi" xml:space="preserve">
     <value>Industria planetaria</value>
   </data>
@@ -1455,5 +1506,17 @@
   </data>
   <data name="PiTitleOther" xml:space="preserve">
     <value>{0} colonias de industria planetaria necesitan atención</value>
+  </data>
+  <data name="IntelLyLabel" xml:space="preserve">
+    <value>Años luz</value>
+  </data>
+  <data name="IntelLyNote" xml:space="preserve">
+    <value>Opcional. Vigila además cada sistema a menos de estos años luz, a cuantas puertas esté, lo que un motor de salto o un cyno pone al alcance. Se activa con un informe que entre en cualquiera de los dos alcances. Máximo 20.</value>
+  </data>
+  <data name="IntelSaidLyFrom" xml:space="preserve">
+    <value>a {0} años luz de {1}</value>
+  </data>
+  <data name="IntelSaidLyOut" xml:space="preserve">
+    <value>a {0} años luz</value>
   </data>
 </root>

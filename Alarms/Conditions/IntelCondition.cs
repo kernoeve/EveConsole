@@ -46,6 +46,16 @@ public sealed class IntelCondition : IAlarmCondition
     /// little warning; the systems a list names are watched as they are unless asked.</summary>
     private const int DefaultJumps = 5;
 
+    /// <summary>The farthest light-year range: past a jump freighter's reach with every skill.</summary>
+    private const double MaxLy = 20;
+
+    private const double MetresPerLightYear = 9.4607304725808e15;
+
+    /// <summary>Every k-space system's position, for the light-year range. Read once: it only
+    /// changes when CCP adds space.</summary>
+    private static Dictionary<int, (double X, double Y, double Z)>? _positions;
+    private static readonly SemaphoreSlim PositionsGate = new(1, 1);
+
     // What the range is drawn around. The strings are what the editor shows and what the config
     // stores; the reader is lenient about case and a few synonyms.
     internal const string AroundUndocked   = "Undocked characters";
@@ -61,9 +71,10 @@ public sealed class IntelCondition : IAlarmCondition
     public string DisplayName => "Intel report";
 
     public string Description =>
-        "Fires when someone reports a pilot within a jump range of what you are watching: your " +
-        "characters while they are undocked (the default), named characters wherever they are, " +
-        "or a list of systems. A range of 0 watches just those systems. Reads the intel " +
+        "Fires when someone reports a pilot within a jump range — or a light-year range, for what " +
+        "is in jump-drive reach — of what you are watching: your characters while they are " +
+        "undocked (the default), named characters wherever they are, or a list of systems. Either " +
+        "range catching a report is enough. A jump range of 0 watches just those systems. Reads the intel " +
         "channels already being parsed under Settings → Chat Logs, and kills there with hostile " +
         "pilots among the attackers, which place those pilots in the system.";
 
@@ -110,6 +121,15 @@ public sealed class IntelCondition : IAlarmCondition
                               "means their own system only. Capped at 15 — past that it stops being " +
                               "a neighbourhood.",
             },
+            ly = new
+            {
+                type        = "number",
+                beside      = "jumps",
+                title       = "Light years",
+                description = "Optional. Also watch every system within this many light years of each " +
+                              "character or system, however many gates away — what a jump drive or a " +
+                              "cyno puts in reach. A report caught by either range fires. Capped at 20.",
+            },
             min_players = new
             {
                 type        = "integer",
@@ -137,6 +157,7 @@ public sealed class IntelCondition : IAlarmCondition
         "systems"          => new(AlarmsText.IntelSystemsLabel,     string.Format(AlarmsText.IntelSystemsNote,
                                   SdeNames.SolarSystem(30000142, "Jita"), SdeNames.SolarSystem(30002187, "Amarr"))),
         "jumps"            => new(AlarmsText.IntelJumpsLabel,       AlarmsText.IntelJumpsNote),
+        "ly"               => new(AlarmsText.IntelLyLabel,          AlarmsText.IntelLyNote),
         "min_players"      => new(AlarmsText.IntelMinPlayersLabel,  AlarmsText.IntelMinPlayersNote),
         "ignore_no_visual" => new(AlarmsText.IntelIgnoreNvLabel,    AlarmsText.IntelIgnoreNvNote),
         _                  => null,
@@ -155,21 +176,25 @@ public sealed class IntelCondition : IAlarmCondition
         var around  = ReadAround(config);
         var jumps   = ReadJumps(config, around);
         var minimum = ReadInt(config, "min_players") ?? 1;
-        var range   = jumps > 0 ? $"within {jumps} jump{(jumps == 1 ? "" : "s")} of " : "";
+        var ly      = ReadLy(config);
+        var reach   = new List<string>();
+        if (jumps > 0) reach.Add($"{jumps} jump{(jumps == 1 ? "" : "s")}");
+        if (ly is { } l) reach.Add($"{l.ToString("0.#", CultureInfo.InvariantCulture)} ly");
+        var range   = reach.Count > 0 ? $"within {string.Join(" or ", reach)} of " : "";
 
         string where;
         if (around == AroundSystems)
         {
             var systems = SystemNames(config);
             if (systems.Count == 0) return "Intel (no systems chosen)";
-            where = (jumps > 0 ? range : "in ") + string.Join(", ", systems);
+            where = (range.Length > 0 ? range : "in ") + string.Join(", ", systems);
         }
         else
         {
             var characters = ReadList(config, "characters");
             var who = characters.Count > 0 ? string.Join(", ", characters) : "your characters";
             if (around == AroundUndocked) who += " while undocked";
-            where = (jumps > 0 ? range : "in the system of ") + who;
+            where = (range.Length > 0 ? range : "in the system of ") + who;
         }
 
         return minimum > 1 ? $"Intel {where}, {minimum}+ pilots" : $"Intel {where}";
@@ -207,6 +232,7 @@ public sealed class IntelCondition : IAlarmCondition
     {
         var around  = ReadAround(config);
         var jumps   = ReadJumps(config, around);
+        var ly      = ReadLy(config);
         var minimum = Math.Max(1, ReadInt(config, "min_players") ?? 1);
         var skipNv  = ReadBool(config, "ignore_no_visual");
 
@@ -217,8 +243,13 @@ public sealed class IntelCondition : IAlarmCondition
         var distances = new Dictionary<int, int>();      // from the nearest origin
         var nearest   = new Dictionary<int, string>();   // the character that origin is, around characters
 
-        // Everything within range of one origin. The nearer figure wins when two origins reach
-        // the same system — two characters a jump apart, or a system listed twice.
+        var lyDistances = new Dictionary<int, double>();   // light years from the nearest origin
+        var lyNearest   = new Dictionary<int, string>();   // the character that is, around characters
+        var positions   = ly is null ? null : await PositionsAsync(conn, ct);
+
+        // Everything within range of one origin: by gates, and by light years when that is set.
+        // The nearer figure wins when two origins reach the same system — two characters a jump
+        // apart, or a system listed twice.
         async Task SpreadAsync(int origin, string? who)
         {
             foreach (var (id, hops) in await _graph.DistancesWithinAsync(origin, jumps, ct))
@@ -227,6 +258,18 @@ public sealed class IntelCondition : IAlarmCondition
                 if (distances.TryGetValue(id, out var known) && hops >= known) continue;
                 distances[id] = hops;
                 if (who is not null) nearest[id] = who;
+            }
+
+            if (ly is not { } reach || positions is null || !positions.TryGetValue(origin, out var o)) return;
+            foreach (var (id, p) in positions)
+            {
+                var dx = p.X - o.X; var dy = p.Y - o.Y; var dz = p.Z - o.Z;
+                var far = Math.Sqrt(dx * dx + dy * dy + dz * dz) / MetresPerLightYear;
+                if (far > reach) continue;
+                watched.Add(id);
+                if (lyDistances.TryGetValue(id, out var was) && far >= was) continue;
+                lyDistances[id] = far;
+                if (who is not null) lyNearest[id] = who;
             }
         }
 
@@ -256,11 +299,12 @@ public sealed class IntelCondition : IAlarmCondition
         var idList = string.Join(",", watched);
 
         var reports = new List<(long Id, string System, int Count, string Reporter, string? Note,
-                               DateTime At, int SystemId)>();
+                               DateTime At, int SystemId, int Flags, string? Gate, string? Ships)>();
         await using (var cmd = conn.CreateCommand())
         {
             cmd.CommandText = AppDb.CaseInsensitiveLike($"""
-                SELECT "Id", "SystemName", "PlayerCount", "ReporterName", "Note", "ReportedAt", "SystemId"
+                SELECT "Id", "SystemName", "PlayerCount", "ReporterName", "Note", "ReportedAt", "SystemId",
+                       "Flags", "Gate", "Ships"
                 FROM "IntelReports"
                 WHERE "ReportedAt" >= @cutoff
                   AND "SystemId" IN ({idList})
@@ -285,44 +329,61 @@ public sealed class IntelCondition : IAlarmCondition
                     // as the string it is and parse it as the UTC instant it is; the seen-key is
                     // built from this, so it must not depend on the machine's clock setting.
                     r.IsDBNull(5) ? default : ParseUtc(r.GetString(5)),
-                    r.IsDBNull(6) ? 0 : r.GetInt32(6)));
+                    r.IsDBNull(6) ? 0 : r.GetInt32(6),
+                    r.IsDBNull(7) ? 0 : r.GetInt32(7),
+                    r.IsDBNull(8) ? null : r.GetString(8),
+                    r.IsDBNull(9) ? null : r.GetString(9)));
         }
 
         // Named pilots and their hulls, kept apart: the announcement says the hulls first, the
         // names after, and a name with the hull in brackets could do neither.
-        var pilots = new Dictionary<long, List<string>>();
-        var hulls  = new Dictionary<long, List<string>>();
+        var named = new List<(long ReportId, long CharacterId, string Name, string? Ship)>();
         if (reports.Count > 0)
         await using (var cmd = conn.CreateCommand())
         {
             cmd.CommandText = AppDb.CaseInsensitiveLike($"""
-                SELECT "IntelReportId", "CharacterName", "ShipName"
+                SELECT "IntelReportId", "CharacterName", "ShipName", "CharacterId"
                 FROM "IntelReportCharacters"
                 WHERE "IntelReportId" IN ({string.Join(",", reports.Select(x => x.Id))})
                 """);
             await using var r = await cmd.ExecuteReaderAsync(ct);
             while (await r.ReadAsync(ct))
             {
-                var reportId = r.GetInt64(0);
-                var name     = r.IsDBNull(1) ? "" : r.GetString(1);
-                var ship     = r.IsDBNull(2) ? null : r.GetString(2);
+                var name = r.IsDBNull(1) ? "" : r.GetString(1);
                 if (string.IsNullOrWhiteSpace(name)) continue;
+                named.Add((r.GetInt64(0), r.IsDBNull(3) ? 0 : r.GetInt64(3), name, r.IsDBNull(2) ? null : r.GetString(2)));
+            }
+        }
 
-                if (!pilots.TryGetValue(reportId, out var list)) pilots[reportId] = list = [];
-                list.Add(name);
-                if (!string.IsNullOrWhiteSpace(ship))
-                {
-                    if (!hulls.TryGetValue(reportId, out var hl)) hulls[reportId] = hl = [];
-                    hl.Add(ship);
-                }
+        // Friendlies are not hostiles: a blue named in the channel is neither said nor counted,
+        // the same rule the live map and the killmail matches below go by.
+        var friendlyIds = await FriendlyPilotsAsync(ctx, named.Select(n => n.CharacterId).Distinct().ToList(), ct);
+        var pilots   = new Dictionary<long, List<string>>();
+        var hulls    = new Dictionary<long, List<string>>();
+        var friendly = new Dictionary<long, int>();
+        foreach (var n in named)
+        {
+            if (friendlyIds.Contains(n.CharacterId)) { friendly[n.ReportId] = friendly.GetValueOrDefault(n.ReportId) + 1; continue; }
+            if (!pilots.TryGetValue(n.ReportId, out var list)) pilots[n.ReportId] = list = [];
+            list.Add(n.Name);
+            if (!string.IsNullOrWhiteSpace(n.Ship))
+            {
+                if (!hulls.TryGetValue(n.ReportId, out var hl)) hulls[n.ReportId] = hl = [];
+                hl.Add(n.Ship);
             }
         }
 
         var matches = new List<AlarmMatch>(reports.Count);
-        foreach (var rep in reports)
+        foreach (var raw in reports)
         {
+            // Less the friendlies it named; a report of only friendlies says nobody is there.
+            var rep = raw with { Count = raw.Count - friendly.GetValueOrDefault(raw.Id) };
+            if (rep.Count < Math.Max(1, minimum)) continue;
+
             var names_ = pilots.TryGetValue(rep.Id, out var list) ? list : [];
-            var ships  = hulls.TryGetValue(rep.Id, out var hl) ? hl : [];
+            // The pilots' hulls, then the hulls nobody was named in: "3 lokis" is three Lokis.
+            var ships  = (hulls.TryGetValue(rep.Id, out var hl) ? hl : [])
+                .Concat(EveConsole.Services.IntelDisplay.ParseShips(rep.Ships).Select(s => s.Name)).ToList();
             var who    = names_.Count > 0
                 ? " — " + string.Join(", ", names_.Take(5)) + (names_.Count > 5 ? $", +{names_.Count - 5}" : "")
                 : "";
@@ -332,12 +393,7 @@ public sealed class IntelCondition : IAlarmCondition
             // How far out is only worth saying when there is a range: the systems a list names
             // at 0 jumps are simply where the report was. Around a character it is always said,
             // with the character, since they are what the distance is from.
-            var near     = nearest.GetValueOrDefault(rep.SystemId);
-            var jumpsOut = (jumps > 0 || near is not null) && distances.TryGetValue(rep.SystemId, out var d)
-                ? d : (int?)null;
-            var from = near is null || jumpsOut is not { } hops ? ""
-                     : hops == 0 ? $" (where {near} is)"
-                     : $" ({hops} jump{(hops == 1 ? "" : "s")} from {near})";
+            var (near, jumpsOut, lyOut, from) = HowFar(rep.SystemId, jumps, distances, nearest, lyDistances, lyNearest);
 
             // Keyed on WHERE, WHO was seen and a five-minute slice of WHEN — and not on the
             // report's row id, nor on who said it. A row id changes whenever a chat log is
@@ -360,14 +416,18 @@ public sealed class IntelCondition : IAlarmCondition
                     ["pilots"]    = names_,
                     ["hulls"]     = ships,
                     ["note"]      = rep.Note,
+                    ["flags"]     = EveConsole.Services.IntelDisplay.FlagsEnglish(rep.Flags),
+                    ["flag_bits"] = rep.Flags,
+                    ["gate"]      = rep.Gate,
                     ["jumps"]     = jumpsOut,
+                    ["ly"]        = lyOut,
                     ["near"]      = near,
                     ["at"]        = rep.At,
                 },
             });
         }
 
-        matches.AddRange(await KillMatchesAsync(ctx, watched, ctx.Now - lookback, minimum, jumps, distances, nearest, ct));
+        matches.AddRange(await KillMatchesAsync(ctx, watched, ctx.Now - lookback, minimum, jumps, distances, nearest, lyDistances, lyNearest, ct));
         return matches;
     }
 
@@ -385,9 +445,29 @@ public sealed class IntelCondition : IAlarmCondition
     /// <para>Keyed like a report — system, five-minute slice, the pilots' names — so the same
     /// gang reported in the channel and seen on a kill in the same minutes is one alert.</para>
     /// </summary>
+    /// <summary>Which of these characters are friendly: the user's own, in their corporations or
+    /// alliances, or set to positive standing — by the corporation and alliance last fetched for
+    /// them.</summary>
+    private static async Task<HashSet<long>> FriendlyPilotsAsync(
+        AlarmEvaluationContext ctx, List<long> ids, CancellationToken ct)
+    {
+        if (ids.Count == 0) return [];
+        await using var db = await ctx.DbFactory.CreateDbContextAsync(ct);
+        var friends = await LiveIntelService.FriendlyAsync(db, ct);
+        var flyFor  = await db.CharacterAffiliations.AsNoTracking()
+            .Where(a => ids.Contains(a.CharacterId)).ToListAsync(ct);
+        var result = ids.Where(friends.Characters.Contains).ToHashSet();
+        foreach (var a in flyFor)
+            if ((a.CorporationId > 0 && friends.Corporations.Contains(a.CorporationId))
+                || (a.AllianceId > 0 && friends.Alliances.Contains(a.AllianceId)))
+                result.Add(a.CharacterId);
+        return result;
+    }
+
     private static async Task<List<AlarmMatch>> KillMatchesAsync(
         AlarmEvaluationContext ctx, HashSet<int> watched, DateTimeOffset since, int minimum, int jumps,
-        IReadOnlyDictionary<int, int> distances, IReadOnlyDictionary<int, string> nearest, CancellationToken ct)
+        IReadOnlyDictionary<int, int> distances, IReadOnlyDictionary<int, string> nearest,
+        IReadOnlyDictionary<int, double> lyDistances, IReadOnlyDictionary<int, string> lyNearest, CancellationToken ct)
     {
         await using var db = await ctx.DbFactory.CreateDbContextAsync(ct);
         var systems = watched.ToList();
@@ -448,11 +528,7 @@ public sealed class IntelCondition : IAlarmCondition
             var system = SdeNames.SolarSystem(k.SolarSystemId, systemNames.GetValueOrDefault(k.SolarSystemId) ?? "");
             var at     = k.KillMailTime.UtcDateTime;
 
-            var near     = nearest.GetValueOrDefault(k.SolarSystemId);
-            var jumpsOut = (jumps > 0 || near is not null) && distances.TryGetValue(k.SolarSystemId, out var d) ? d : (int?)null;
-            var from = near is null || jumpsOut is not { } hops ? ""
-                     : hops == 0 ? $" (where {near} is)"
-                     : $" ({hops} jump{(hops == 1 ? "" : "s")} from {near})";
+            var (near, jumpsOut, lyOut, from) = HowFar(k.SolarSystemId, jumps, distances, nearest, lyDistances, lyNearest);
             var who = pilotNames.Count > 0
                 ? " — " + string.Join(", ", pilotNames.Take(5)) + (pilotNames.Count > 5 ? $", +{pilotNames.Count - 5}" : "")
                 : "";
@@ -472,6 +548,7 @@ public sealed class IntelCondition : IAlarmCondition
                     ["hulls"]       = hullNames,
                     ["note"]        = AlarmsText.IntelSaidOnKill,
                     ["jumps"]       = jumpsOut,
+                    ["ly"]          = lyOut,
                     ["near"]        = near,
                     ["at"]          = at,
                 },
@@ -529,7 +606,10 @@ public sealed class IntelCondition : IAlarmCondition
                 Pilots = g.SelectMany(m => Names(m.Detail!, "pilots")).Distinct(StringComparer.OrdinalIgnoreCase).ToList(),
                 Hulls  = g.SelectMany(m => Names(m.Detail!, "hulls")).Distinct(StringComparer.OrdinalIgnoreCase).ToList(),
                 Notes  = g.Select(m => Str(m.Detail!, "note").Trim().TrimEnd('.')).Where(n => n.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase).ToList(),
+                Flags  = g.Aggregate(0, (f, m) => f | (m.Detail!.TryGetValue("flag_bits", out var b) && b is int bits ? bits : 0)),
+                Gate   = g.Select(m => Str(m.Detail!, "gate")).FirstOrDefault(x => x.Length > 0),
                 Jumps  = g.Select(m => m.Detail!.TryGetValue("jumps", out var j) && j is int hops ? hops : (int?)null).Where(j => j is not null).Min(),
+                Ly     = g.Select(m => m.Detail!.TryGetValue("ly", out var l) && l is double far ? far : (double?)null).Where(l => l is not null).Min(),
                 Near   = g.Select(m => Str(m.Detail!, "near")).FirstOrDefault(n => n.Length > 0),
             })
             .OrderByDescending(s => s.Newest)
@@ -545,8 +625,16 @@ public sealed class IntelCondition : IAlarmCondition
             sb.Append(s.Jumps is { } jumps
                 ? Plurals.Format(AlarmsText.ResourceManager, nameof(AlarmsText.IntelSaidReportedAtOther), count, s.System,
                                  s.Near is { } near ? JumpsFrom(jumps, near) : JumpsOut(jumps))
+                : s.Ly is { } ly
+                ? Plurals.Format(AlarmsText.ResourceManager, nameof(AlarmsText.IntelSaidReportedAtOther), count, s.System,
+                                 s.Near is { } lyNear ? string.Format(AlarmsText.IntelSaidLyFrom, ly.ToString("0.0", CultureInfo.CurrentCulture), lyNear)
+                                                      : string.Format(AlarmsText.IntelSaidLyOut, ly.ToString("0.0", CultureInfo.CurrentCulture)))
                 : Plurals.Format(AlarmsText.ResourceManager, nameof(AlarmsText.IntelSaidReportedOther), count, s.System));
 
+            // What else was said — "Bubbles, gate camp · on the QZ-X77 gate." — before the
+            // hulls: it decides how to go in.
+            if (EveConsole.Services.IntelDisplay.Facts(s.Flags, s.Gate) is { } facts)
+                sb.Append(' ').Append(string.Format(AlarmsText.SaidSentence, char.ToUpper(facts[0], CultureInfo.CurrentCulture) + facts[1..]));
             if (s.Hulls.Count > 0)
                 sb.Append(' ').Append(string.Format(AlarmsText.IntelSaidFlying,
                     s.Hulls.Count == 1 ? AlarmWords.Hull(s.Hulls[0]) : AlarmWords.List(s.Hulls)));
@@ -572,6 +660,47 @@ public sealed class IntelCondition : IAlarmCondition
         static string JumpsFrom(int jumps, string near) => jumps == 0
             ? string.Format(AlarmsText.IntelSaidWhereIs, near)
             : Plurals.Format(AlarmsText.ResourceManager, nameof(AlarmsText.IntelSaidJumpsFromOther), jumps, near);
+    }
+
+    /// <summary>
+    /// How far a system is, for the summary and the announcement: the gate jumps when the jump
+    /// range caught it — that is how a gang comes — else the light years the light-year range
+    /// caught it at. English, for the summary; the announcement says it from the detail.
+    /// </summary>
+    private static (string? Near, int? Jumps, double? Ly, string From) HowFar(
+        int systemId, int jumps, IReadOnlyDictionary<int, int> distances, IReadOnlyDictionary<int, string> nearest,
+        IReadOnlyDictionary<int, double> lyDistances, IReadOnlyDictionary<int, string> lyNearest)
+    {
+        var near = nearest.GetValueOrDefault(systemId);
+        if (distances.TryGetValue(systemId, out var hops) && (jumps > 0 || near is not null))
+            return (near, hops, null, near is null ? "" : hops == 0 ? $" (where {near} is)" : $" ({hops} jump{(hops == 1 ? "" : "s")} from {near})");
+        if (distances.ContainsKey(systemId)) return (near, null, null, "");
+
+        if (!lyDistances.TryGetValue(systemId, out var far)) return (null, null, null, "");
+        var lyNear = lyNearest.GetValueOrDefault(systemId);
+        var ly     = Math.Round(far, 1);
+        var text   = ly.ToString("0.0", CultureInfo.InvariantCulture);
+        return (lyNear, null, ly, lyNear is null ? $" ({text} ly out)" : $" ({text} ly from {lyNear})");
+    }
+
+    /// <summary>Every k-space system's position, read once.</summary>
+    private static async Task<Dictionary<int, (double X, double Y, double Z)>> PositionsAsync(
+        System.Data.Common.DbConnection conn, CancellationToken ct)
+    {
+        if (_positions is { } cached) return cached;
+        await PositionsGate.WaitAsync(ct);
+        try
+        {
+            if (_positions is { } raced) return raced;
+            var map = new Dictionary<int, (double, double, double)>();
+            await using var cmd = conn.CreateCommand();
+            cmd.CommandText = """SELECT "SolarSystemId", "X", "Y", "Z" FROM "SdeSolarSystems" WHERE "IsWormhole" = FALSE""";
+            await using var r = await cmd.ExecuteReaderAsync(ct);
+            while (await r.ReadAsync(ct))
+                map[r.GetInt32(0)] = (r.GetDouble(1), r.GetDouble(2), r.GetDouble(3));
+            return _positions = map;
+        }
+        finally { PositionsGate.Release(); }
     }
 
     internal static string MatchKey(int systemId, DateTime at, IReadOnlyList<string> names, int count)
@@ -654,6 +783,18 @@ public sealed class IntelCondition : IAlarmCondition
 
     /// <summary>The range, capped. Left out, a list of systems is watched as it is — what the
     /// first shape of this check did — and characters at the default.</summary>
+    /// <summary>The light-year range, or null when it is not set (or 0).</summary>
+    private static double? ReadLy(JsonElement config)
+    {
+        if (config.ValueKind != JsonValueKind.Object || !config.TryGetProperty("ly", out var p)) return null;
+        double v;
+        if (p.ValueKind == JsonValueKind.Number) v = p.GetDouble();
+        else if (p.ValueKind == JsonValueKind.String
+                 && double.TryParse(p.GetString(), NumberStyles.Float, CultureInfo.InvariantCulture, out var s)) v = s;
+        else return null;
+        return v > 0 ? Math.Min(v, MaxLy) : null;
+    }
+
     private static int ReadJumps(JsonElement config, string around) =>
         Math.Clamp(ReadInt(config, "jumps") ?? (around == AroundSystems ? 0 : DefaultJumps), 0, MaxJumps);
 

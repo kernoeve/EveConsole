@@ -485,10 +485,7 @@
     <value>ログフォルダー</value>
   </data>
   <data name="LeaveTheListEmptyNote" xml:space="preserve">
-    <value>一覧を空のままにすると、ローカルのフォルダーが自動的に使われます。ネットワークパス（\\MACHINE\share\Gamelogs）を追加すると、他のコンピューターで動作しているEVEクライアントのログを取り込めます — そのコンピューターには何もインストールする必要はありません。</value>
-  </data>
-  <data name="Detect" xml:space="preserve">
-    <value>検出</value>
+    <value>このコンピューター自身のEVEゲームログフォルダーは、見つかれば常に読み込まれます。ネットワークパス（\\MACHINE\share\Gamelogs）を追加すると、他のコンピューターで動作しているEVEクライアントのログも取り込めます — そのコンピューターには何もインストールする必要はありません。</value>
   </data>
   <data name="Open" xml:space="preserve">
     <value>開く</value>
@@ -539,7 +536,7 @@
     <value>チャットログを取り込む</value>
   </data>
   <data name="LeaveTheListEmptyNote2" xml:space="preserve">
-    <value>一覧を空のままにすると、ローカルのフォルダーが自動的に使われます。ネットワークパス（\\MACHINE\share\Chatlogs）を追加すると、他のコンピューターで動作しているEVEクライアントのログを取り込めます — そのコンピューターには何もインストールする必要はありません。下のチャンネル検出で見つかるのは、ここで設定したフォルダーのチャンネルだけです。</value>
+    <value>このコンピューター自身のEVEチャットログフォルダーは、見つかれば常に読み込まれます。ネットワークパス（\\MACHINE\share\Chatlogs）を追加すると、他のコンピューターで動作しているEVEクライアントのログも取り込めます — そのコンピューターには何もインストールする必要はありません。下のチャンネル検出は、読み込み中のすべてのフォルダーのチャンネルを対象にします。</value>
   </data>
   <data name="ChannelsToStore" xml:space="preserve">
     <value>保存するチャンネル</value>
@@ -2368,9 +2365,6 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
   <data name="LogsCountFailed" xml:space="preserve">
     <value>ファイルを数えられませんでした — {0}</value>
   </data>
-  <data name="ChatFolderNotFound" xml:space="preserve">
-    <value>ローカルのEVEチャットログフォルダーが見つかりませんでした。</value>
-  </data>
   <data name="ChatNoFolder" xml:space="preserve">
     <value>チャットログフォルダーが見つかりません — 下で追加してください。</value>
   </data>
@@ -2385,9 +2379,6 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
   </data>
   <data name="GameLogNoFolder" xml:space="preserve">
     <value>ゲームログフォルダーが見つかりません — 下で追加してください。</value>
-  </data>
-  <data name="GameLogFolderNotFound" xml:space="preserve">
-    <value>ローカルのEVEゲームログフォルダーが見つかりませんでした。</value>
   </data>
   <data name="TimerMinimum" xml:space="preserve">
     <value>（最小：{0} {1}）</value>
@@ -3342,6 +3333,39 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
   </data>
   <data name="DiscordErrHttp" xml:space="preserve">
     <value>Discordに拒否されました（HTTP {0}）：{1}</value>
+  </data>
+  <data name="EveScoutHeading" xml:space="preserve">
+    <value>TheraとTurnur</value>
+  </data>
+  <data name="EveScoutNote" xml:space="preserve">
+    <value>TheraとTurnurからのワームホール接続を、マップとルートプランナー用に5分ごとにEVE-Scoutから読み取り、メタリミナルストームは1時間ごとに読み取ります。オフにすると保存済みのデータは削除されます。ホールは数時間で閉じ、ストームは移動するため、古い一覧は誤解を招きます。</value>
+  </data>
+  <data name="EveScoutPoll" xml:space="preserve">
+    <value>Thera/Turnurの接続とストームをEVE-Scoutから読み取る</value>
+  </data>
+  <data name="EveScoutRead" xml:space="preserve">
+    <value>{0}件の接続、{1:t}に読み取り</value>
+  </data>
+  <data name="EveScoutRefused" xml:space="preserve">
+    <value>EVE-Scoutの応答は{0}でした。次に読み取るまで前回の一覧を使います。</value>
+  </data>
+  <data name="LogsFolderThisComputer" xml:space="preserve">
+    <value>✓ {0}  （このコンピューター）</value>
+  </data>
+  <data name="IntelRegionsLabel" xml:space="preserve">
+    <value>リージョン</value>
+  </data>
+  <data name="TipIntelRegions" xml:space="preserve">
+    <value>任意。このインテルチャンネルが報告するリージョンをカンマ区切りで入力します。「QZ-X」のような短縮名がどのシステムを指すかを決めます。空欄の場合、チャンネルが報告してきたシステムからリージョンを学習します。</value>
+  </data>
+  <data name="IntelRegionsLearned" xml:space="preserve">
+    <value>学習済み：{0}</value>
+  </data>
+  <data name="IntelRegionsNoneLearned" xml:space="preserve">
+    <value>学習済み：まだありません</value>
+  </data>
+  <data name="IntelRegionsUnknown" xml:space="preserve">
+    <value>リージョンではありません：{0}</value>
   </data>
   <data name="ColPi" xml:space="preserve">
     <value>PI</value>

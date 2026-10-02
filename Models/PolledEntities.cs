@@ -1526,15 +1526,26 @@ public class IntelReport
 
     /// <summary>The message this came from — provenance, and what makes re-parsing idempotent.</summary>
     public int ChatMessageId { get; set; }
+
+    /// <summary>What else the reporter said about the system — spike, gate camp, bubbles,
+    /// wormhole, ESS, cyno, skyhook, combat probes — as <see cref="Monitoring.IntelRules.IntelFlags"/> bits.</summary>
+    public int Flags { get; set; }
+
+    /// <summary>The system whose gate they are on, when the reporter said so: "QZ-X77 gate".</summary>
+    public string? Gate { get; set; }
+
+    /// <summary>Hulls and classes named with no pilot to fly them, as written for a reader:
+    /// "3× Loki, Interdictor". Already counted in <see cref="PlayerCount"/>.</summary>
+    public string? Ships { get; set; }
 }
 
 /// <summary>A pilot named on an intel report. Separate table because one line often drags in
 /// several, and because superseding works pilot by pilot.</summary>
 /// <summary>
-/// Who a character flies for, cached from ESI. Affiliations change, so PulledAt is kept — but
-/// nothing expires them today: for reading old intel, the corp someone was in is roughly as
-/// useful as the one they are in now, and refetching thousands of pilots to chase that would
-/// cost far more than it is worth.
+/// Who a character flies for, cached from ESI. Fetched when a character is first reported in
+/// intel and again when they are reported more than a week after the last fetch — so a pilot
+/// still active is shown under their current ticker, while one not seen lately keeps whatever
+/// they flew for then. PulledAt is the last fetch.
 /// </summary>
 public class CharacterAffiliation
 {

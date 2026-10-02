@@ -153,6 +153,41 @@
                        Foreground="{Binding AdmColor}" FontWeight="SemiBold" />
           </StackPanel>
 
+          <StackPanel Orientation="Horizontal"
+                      IsVisible="{Binding IncursionText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+            <TextBlock Classes="hlabel" Text="{x:Static loc:MapText.SysIncursionLabel}" Margin="0 0 6 0" />
+            <TextBlock Classes="hvalue" Text="{Binding IncursionText}" Foreground="{Binding IncursionColor}" FontWeight="SemiBold" />
+          </StackPanel>
+
+          <StackPanel Orientation="Horizontal"
+                      IsVisible="{Binding Campaign, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+            <TextBlock Classes="hlabel" Text="{x:Static loc:MapText.SysCampaignLabel}" Margin="0 0 6 0" />
+            <TextBlock Classes="hvalue" Text="{Binding Campaign}" Foreground="#DC2626" FontWeight="SemiBold"
+                       TextWrapping="Wrap" MaxWidth="1000" />
+          </StackPanel>
+          <StackPanel Orientation="Horizontal"
+                      IsVisible="{Binding Weather, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+            <TextBlock Classes="hlabel" Text="{x:Static loc:MapText.SysWeatherLabel}" Margin="0 0 6 0" />
+            <TextBlock Classes="hvalue" Text="{Binding Weather}" Foreground="#F5B83D" />
+          </StackPanel>
+
+          <!-- From the map: the Ansiblex zone, and who is placed here now. -->
+          <StackPanel Orientation="Horizontal" IsVisible="{Binding HasZone}">
+            <TextBlock Classes="hlabel" Text="{x:Static loc:MapText.SysZoneLabel}" Margin="0 0 6 0" />
+            <TextBlock Classes="hvalue" Text="{Binding ZoneText}" Foreground="{Binding ZoneColor}" />
+          </StackPanel>
+          <StackPanel Orientation="Horizontal"
+                      IsVisible="{Binding HostilesNow, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+            <TextBlock Classes="hlabel" Text="{x:Static loc:MapText.SysNowLabel}" Margin="0 0 6 0" />
+            <TextBlock Classes="hvalue" Text="{Binding HostilesNow}" Foreground="{DynamicResource BadBrush}"
+                       TextWrapping="Wrap" MaxWidth="900" />
+          </StackPanel>
+          <StackPanel Orientation="Horizontal"
+                      IsVisible="{Binding OwnNow, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+            <TextBlock Classes="hlabel" Text="{x:Static loc:MapText.SysNowLabel}" Margin="0 0 6 0" />
+            <TextBlock Classes="hvalue" Text="{Binding OwnNow}" Foreground="{DynamicResource InfoBrush}" />
+          </StackPanel>
+
           <StackPanel Orientation="Horizontal" IsVisible="{Binding HasIndustryIndex}">
             <TextBlock Classes="hlabel" Text="{x:Static loc:MapText.IndustryIndices}" Margin="0 0 6 0" />
             <TextBlock Classes="hvalue" Text="{Binding IndustryIndex}" Foreground="{DynamicResource TextSecondaryBrush}"
@@ -284,6 +319,65 @@
                         <TextBlock Grid.Column="2" Classes="col" Text="{Binding Kind}"
                                    Foreground="{Binding KindColor}" />
                         <TextBlock Grid.Column="3" Classes="col" Text="{Binding Summary}" />
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+
+            <StackPanel IsVisible="{Binding HasBridges}">
+              <TextBlock Classes="colhead" Text="{x:Static loc:MapText.SysBridgesLabel}" Margin="0 0 0 6" />
+              <Grid ColumnDefinitions="150,2*,3*,120">
+                <TextBlock Grid.Column="0" Classes="colhead" Text="{x:Static loc:MapText.ColLeadsTo}" />
+                <TextBlock Grid.Column="1" Classes="colhead" Text="{x:Static loc:MapText.ColGate}" />
+                <TextBlock Grid.Column="2" Classes="colhead" Text="{x:Static loc:MapText.ColAccess}" />
+                <TextBlock Grid.Column="3" Classes="colhead" Text="{x:Static loc:MapText.ColFuel}" />
+              </Grid>
+              <ItemsControl ItemsSource="{Binding Bridges}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate DataType="vm:SysBridgeVm">
+                    <Border Classes="rowline">
+                      <Grid ColumnDefinitions="150,2*,3*,120">
+                        <Button Grid.Column="0" Classes="link" Command="{Binding OpenCommand}"
+                                ToolTip.Tip="{x:Static loc:MapText.TipOpenThisSystem}" VerticalAlignment="Top">
+                          <TextBlock Text="{Binding OtherLabel}" Classes="linktext col" Margin="0" />
+                        </Button>
+                        <TextBlock Grid.Column="1" Classes="col" Text="{Binding Gate}" TextWrapping="Wrap" />
+                        <TextBlock Grid.Column="2" Classes="colmuted" Text="{Binding Access}" TextWrapping="Wrap" />
+                        <TextBlock Grid.Column="3" Classes="colmuted" Text="{Binding Fuel}" />
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+
+            <StackPanel IsVisible="{Binding HasWormholes}">
+              <TextBlock Classes="colhead" Text="{x:Static loc:MapText.SysWormholesLabel}" Margin="0 0 0 6" />
+              <Grid ColumnDefinitions="2*,120,120,2*,120">
+                <TextBlock Grid.Column="0" Classes="colhead" Text="{x:Static loc:MapText.ColLeadsTo}" />
+                <TextBlock Grid.Column="1" Classes="colhead" Text="{x:Static loc:MapText.ColSigHere}" />
+                <TextBlock Grid.Column="2" Classes="colhead" Text="{x:Static loc:MapText.ColSigFar}" />
+                <TextBlock Grid.Column="3" Classes="colhead" Text="{x:Static loc:MapText.ColUpTo}" />
+                <TextBlock Grid.Column="4" Classes="colhead" Text="{x:Static loc:MapText.ColLeft}" />
+              </Grid>
+              <ItemsControl ItemsSource="{Binding Wormholes}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate DataType="vm:SysHoleVm">
+                    <Border Classes="rowline">
+                      <Grid ColumnDefinitions="2*,120,120,2*,120">
+                        <Panel Grid.Column="0">
+                          <Button Classes="link" Command="{Binding OpenCommand}" IsVisible="{Binding CanOpen}"
+                                  ToolTip.Tip="{x:Static loc:MapText.TipOpenThisSystem}">
+                            <TextBlock Text="{Binding Far}" Classes="linktext col" Margin="0" />
+                          </Button>
+                          <TextBlock Classes="col" Text="{Binding Far}" IsVisible="{Binding !CanOpen}" />
+                        </Panel>
+                        <TextBlock Grid.Column="1" Classes="col" Text="{Binding HereSig}" Foreground="#2DD4BF" />
+                        <TextBlock Grid.Column="2" Classes="colmuted" Text="{Binding FarSig}" />
+                        <TextBlock Grid.Column="3" Classes="col" Text="{Binding Size}" />
+                        <TextBlock Grid.Column="4" Classes="colmuted" Text="{Binding Left}" />
                       </Grid>
                     </Border>
                   </DataTemplate>
@@ -865,10 +959,17 @@
                         </ItemsControl.ItemTemplate>
                       </ItemsControl>
 
-                      <TextBlock Grid.Column="5" Text="{Binding Note}" FontSize="11"
-                                 Foreground="{DynamicResource TextDimBrush}" TextTrimming="CharacterEllipsis"
-                                 ToolTip.Tip="{Binding Note}" Margin="0 0 8 0"
-                                 VerticalAlignment="Center" />
+                      <!-- What else was said — flags and the gate, the unflown hulls — above the
+                           note, so the facts read first and the commentary after. -->
+                      <StackPanel Grid.Column="5" Margin="0 0 8 0" VerticalAlignment="Center"
+                                  ToolTip.Tip="{Binding NoteTip}">
+                        <TextBlock Text="{Binding Facts}" IsVisible="{Binding HasFacts}" FontSize="11" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource WarnBrush}" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="{Binding Ships}" IsVisible="{Binding HasShips}" FontSize="11"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="{Binding Note}" IsVisible="{Binding HasNote}" FontSize="11"
+                                   Foreground="{DynamicResource TextDimBrush}" TextTrimming="CharacterEllipsis" />
+                      </StackPanel>
                       <!-- The reporter, shown and linked exactly like the pilots they called.
                            The channel moves onto the name, where it belongs to the report rather
                            than to whichever badge the cursor happened to land on. -->

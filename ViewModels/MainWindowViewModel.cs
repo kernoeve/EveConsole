@@ -465,7 +465,8 @@ public class MainWindowViewModel : ReactiveObject
     /// English; the ids are for naming them in the interface language.</summary>
     internal sealed record OnlineCharacterRow(
         string Name, bool Online, bool Docked, string? System, string? Place, string? Hull, string? ShipName,
-        int? SolarSystemId = null, long? StationId = null, int? ShipTypeId = null, long CharacterId = 0);
+        int? SolarSystemId = null, long? StationId = null, int? ShipTypeId = null, long CharacterId = 0,
+        long CorporationId = 0, long AllianceId = 0);
 
     /// <summary>
     /// Every character with a status row, with names looked up for the ones online.
@@ -485,6 +486,7 @@ public class MainWindowViewModel : ReactiveObject
             select new
             {
                 c.Id, c.Name, s.Online, s.SolarSystemId, s.StationId, s.StructureId, s.ShipTypeId, s.ShipName,
+                c.CorporationId, c.AllianceId,
             }).ToListAsync(ct);
 
         // Names only for who is online — nothing else is shown. A character who has just logged
@@ -530,7 +532,8 @@ public class MainWindowViewModel : ReactiveObject
                   : s.StructureId is long str ? structures.GetValueOrDefault(str) : null,
             Hull:   s.ShipTypeId is int hull ? ships.GetValueOrDefault(hull) : null,
             s.ShipName,
-            SolarSystemId: s.SolarSystemId, StationId: s.StationId, ShipTypeId: s.ShipTypeId, CharacterId: s.Id)).ToList();
+            SolarSystemId: s.SolarSystemId, StationId: s.StationId, ShipTypeId: s.ShipTypeId, CharacterId: s.Id,
+            CorporationId: s.CorporationId, AllianceId: s.AllianceId ?? 0)).ToList();
     }
 
     private async Task RefreshOnlineCharactersAsync(IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errorLogger)
@@ -804,6 +807,16 @@ public class MainWindowViewModel : ReactiveObject
 
     public void OpenTool(string toolId)
     {
+        // Tools of their own once, tabs of the map tool now: a saved tab, the agent and old links
+        // still name them.
+        if (toolId is "jump_planner" or "route_planner")
+        {
+            OpenTool("universe");
+            if (toolId == "jump_planner") MapVm.ShowJumpPlannerTab();
+            else                          MapVm.ShowRouteTab();
+            return;
+        }
+
         var existing = AllTabs.FirstOrDefault(t => t.Id == toolId);
         if (existing is not null)
         {
@@ -835,7 +848,6 @@ public class MainWindowViewModel : ReactiveObject
             "universe"        => (ShellText.TabUniverse,        MapVm,             true),
             "alarms"          => (ShellText.TabAlarms,          AlarmsVm,          true),
             "scheduler"       => (ShellText.TabScheduler,       SchedulerVm,       true),
-            "jump_planner"    => (ShellText.NavJumpPlanner,    JumpPlannerVm,     true),
             "trade"           => (ShellText.TabTrade,           TradeOpportunitiesVm,     true),
             "industry_opps"   => (ShellText.TabIndustryOpps,   IndustryOpportunitiesVm,  true),
             "market_levels"   => (ShellText.NavMarketLevels,   MarketLevelVm,            true),
@@ -1044,6 +1056,9 @@ public class MainWindowViewModel : ReactiveObject
         LpValueService                  lpValueService,
         SchedulerService                schedulerService,
         ScheduledBlockRenderer          blockRenderer,
+        EveScoutService                 eveScout,
+        SystemGraph                     systemGraph,
+        SovCampaignService              sovCampaigns,
         EveConsole.Services.Pi.PiService piService)
     {
         // The main window's selection, as those who ask the main view model for it see it.
@@ -1063,7 +1078,7 @@ public class MainWindowViewModel : ReactiveObject
         GameLogSettingsVm = new GameLogSettingsViewModel(monitoringSettings, gameLogImport);
         ChatLogSettingsVm = new ChatLogSettingsViewModel(monitoringSettings, chatLogImport, intelService);
         ZkbSettingsVm     = new ZkillboardSettingsViewModel(zkillboardSettings, zkbPolling, zkbFirehose, zkbBackfill, zkbPost);
-        MapStatsSettingsVm = new MapStatsSettingsViewModel(mapStatsSettings, mapStatsBackfill, mapStatsPolling, mapStatsService);
+        MapStatsSettingsVm = new MapStatsSettingsViewModel(mapStatsSettings, mapStatsBackfill, mapStatsPolling, mapStatsService, eveScout);
         AlertSettingsVm   = new AlertSettingsViewModel(dbFactory);
         OverviewVm        = new OverviewViewModel(dbFactory.CreateDbContext(), AlertSettingsVm, errorLogger, newsService, appPrefs, corpActivityService, dbFactory, esi, standingBuyOrderService, indyFacilityCheck);
         CharacterVm       = new CharacterViewModel(auth, esi, dbFactory.CreateDbContext(), errorLogger);
@@ -1226,15 +1241,17 @@ public class MainWindowViewModel : ReactiveObject
                 _ = ItemBrowserVm.NavigateToItemCommand.Execute(typeId).Subscribe();
             },
         };
+        // The jump planner and the route planner are tabs of the map tool.
+        JumpPlannerVm          = new JumpPlannerViewModel(jumpPlanner);
+        var jumpBridges        = new JumpBridgeService(dbFactory, esi.GetSovSystemsAsync, corpActivityService);
         MapVm                  = new MapToolViewModel(
             universeMapService, mapStatsService, appPrefs, NewSystemPage,
-            new LiveIntelService(dbFactory, corpActivityService), errorLogger,
-            new JumpBridgeService(dbFactory, esi.GetSovSystemsAsync, corpActivityService));
+            new LiveIntelService(dbFactory, corpActivityService), errorLogger, jumpBridges,
+            new RoutePlannerService(dbFactory, systemGraph, jumpBridges, esi, eveScout),
+            JumpPlannerVm, dbFactory, eveScout, sovCampaigns);
         AlarmsVm               = new AlarmsViewModel(dbFactory, alarmService, alarmSounds, alarmMute);
         SchedulerVm            = new SchedulerViewModel(dbFactory, schedulerService, blockRenderer, slackService, discordService,
                                                         corpActivityService, salePostingService, errorLogger);
-        JumpPlannerVm          = new JumpPlannerViewModel(jumpPlanner);
-
         // Parks are added, deleted and renamed in Indy Parks but chosen in the Production
         // Calculator and the Worklist's Industry tab, which each fill their dropdown only once.
         IndyParksVm.ParksChanged += () =>
@@ -1416,7 +1433,6 @@ public class MainWindowViewModel : ReactiveObject
             [
                 new NavItem("structure_browser", ShellText.NavStructureBrowser),
                 new NavItem("universe",          ShellText.NavUniverseMap),
-                new NavItem("jump_planner",      ShellText.NavJumpPlanner),
             ]),
             new("industry", ShellText.NavGroupIndustry,
             [

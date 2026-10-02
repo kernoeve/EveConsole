@@ -1260,9 +1260,6 @@ Besitzer: {3}</value>
   <data name="LegendNotFwSpace" xml:space="preserve">
     <value>Kein FK-Gebiet</value>
   </data>
-  <data name="TipOpenRegionForIncursions" xml:space="preserve">
-    <value>Öffnen Sie eine Region, um die Übergriffe zu sehen</value>
-  </data>
   <data name="NodeNoIncursion" xml:space="preserve">
     <value>Kein Übergriff</value>
   </data>
@@ -1558,7 +1555,7 @@ Besitzer: {3}</value>
     <value>Live-Markierungen</value>
   </data>
   <data name="LiveMarkHostiles" xml:space="preserve">
-    <value>Feinde, die in den letzten 5 Minuten hier gemeldet wurden – per Intel oder Abschussbericht. Zeigen Sie darauf, um zu sehen, wer es ist und was geflogen wird.</value>
+    <value>Feinde, die in den letzten 5 Minuten hier gemeldet wurden – per Intel oder Abschussbericht. Zeigen Sie darauf, um zu sehen, wer es ist und was geflogen wird. „!“: Intel meldete hier etwas (Spike, Bubbles, Camp), zählte aber niemanden.</value>
   </data>
   <data name="LiveMarkOwn" xml:space="preserve">
     <value>Ihre Charaktere, die hier online sind. Zeigen Sie darauf, um Schiff und Andockstatus zu sehen.</value>
@@ -1819,5 +1816,515 @@ Kein Hauptstadtsystem, daher keine Zone</value>
   </data>
   <data name="LegendZoneNoCapital" xml:space="preserve">
     <value>Halter hat kein Hauptstadtsystem</value>
+  </data>
+  <data name="RoutePlannerTab" xml:space="preserve">
+    <value>Routenplaner</value>
+  </data>
+  <data name="TipRoutePlannerTab" xml:space="preserve">
+    <value>Eine Route durch Stargates, Sprungbrücken und Thera oder Turnur planen</value>
+  </data>
+  <data name="JumpPlannerTab" xml:space="preserve">
+    <value>Sprungplaner</value>
+  </data>
+  <data name="TipJumpPlannerTab" xml:space="preserve">
+    <value>Eine Sprungroute für ein Großkampfschiff planen</value>
+  </data>
+  <data name="ClearRoute" xml:space="preserve">
+    <value>Route entfernen</value>
+  </data>
+  <data name="TipClearRoute" xml:space="preserve">
+    <value>Die geplanten Routen von der Karte nehmen</value>
+  </data>
+  <data name="RouteCharacterLabel" xml:space="preserve">
+    <value>Charakter</value>
+  </data>
+  <data name="RouteCharacterAt" xml:space="preserve">
+    <value>{0} — in {1}</value>
+  </data>
+  <data name="RouteCharacterNote" xml:space="preserve">
+    <value>Seine Allianz entscheidet, welche Sprungbrücken offen sind: Nur die Allianz mit der Souveränität im Startsystem eines Sprungs darf ihn nutzen.</value>
+  </data>
+  <data name="RouteFromLabel" xml:space="preserve">
+    <value>Von</value>
+  </data>
+  <data name="RouteToLabel" xml:space="preserve">
+    <value>Nach</value>
+  </data>
+  <data name="HintRouteSystem" xml:space="preserve">
+    <value>Systemname</value>
+  </data>
+  <data name="RouteFromHere" xml:space="preserve">
+    <value>Hier</value>
+  </data>
+  <data name="TipRouteFromHere" xml:space="preserve">
+    <value>Dort beginnen, wo der Charakter ist</value>
+  </data>
+  <data name="TipRouteSwap" xml:space="preserve">
+    <value>Von und Nach tauschen</value>
+  </data>
+  <data name="RoutePreferenceLabel" xml:space="preserve">
+    <value>Bevorzugen</value>
+  </data>
+  <data name="RouteShortest" xml:space="preserve">
+    <value>Kürzeste</value>
+  </data>
+  <data name="RouteSafer" xml:space="preserve">
+    <value>Sicherer (Hochsicherheit)</value>
+  </data>
+  <data name="RouteLessSecure" xml:space="preserve">
+    <value>Weniger sicher (Niedrig- und Nullsicherheit)</value>
+  </data>
+  <data name="RouteUseBridges" xml:space="preserve">
+    <value>Sprungbrücken nutzen</value>
+  </data>
+  <data name="RouteUseWormholes" xml:space="preserve">
+    <value>Thera und Turnur nutzen</value>
+  </data>
+  <data name="TipRouteUseWormholes" xml:space="preserve">
+    <value>Wurmlöcher laut EVE-Scout (Einstellungen → Kartendaten)</value>
+  </data>
+  <data name="RouteShipSizeLabel" xml:space="preserve">
+    <value>Schiff</value>
+  </data>
+  <data name="ShipSizeSmall" xml:space="preserve">
+    <value>Fregatte oder Zerstörer</value>
+  </data>
+  <data name="ShipSizeMedium" xml:space="preserve">
+    <value>Kreuzer oder Schlachtkreuzer</value>
+  </data>
+  <data name="ShipSizeLarge" xml:space="preserve">
+    <value>Schlachtschiff</value>
+  </data>
+  <data name="ShipSizeXLarge" xml:space="preserve">
+    <value>Frachter</value>
+  </data>
+  <data name="AvoidListButton" xml:space="preserve">
+    <value>Meideliste</value>
+  </data>
+  <data name="TipAvoidList" xml:space="preserve">
+    <value>Die Systeme zeigen oder verbergen, die Routen meiden</value>
+  </data>
+  <data name="AvoidSummary" xml:space="preserve">
+    <value>Gemiedene Systeme: {0}</value>
+  </data>
+  <data name="HintAvoidAdd" xml:space="preserve">
+    <value>Zu meidendes System hinzufügen</value>
+  </data>
+  <data name="TipAvoidRemove" xml:space="preserve">
+    <value>Von der Meideliste nehmen</value>
+  </data>
+  <data name="AvoidNote" xml:space="preserve">
+    <value>Ein System auf der Karte oder in einer Route rechts anklicken, um es hinzuzufügen oder zu entfernen.</value>
+  </data>
+  <data name="AvoidAdd" xml:space="preserve">
+    <value>{0} zur Meideliste hinzufügen</value>
+  </data>
+  <data name="AvoidRemove" xml:space="preserve">
+    <value>{0} von der Meideliste entfernen</value>
+  </data>
+  <data name="RouteRulesNote" xml:space="preserve">
+    <value>Großkampfschiffe können keine Sprungbrücken nutzen, außer Rorquals, Frachter und Sprungfrachter. Der Autopilot des Spiels erhält jede Brücke als Wegpunkt; die Stargates dazwischen wählt er selbst.</value>
+  </data>
+  <data name="RouteShowOnMap" xml:space="preserve">
+    <value>Auf der Karte zeigen</value>
+  </data>
+  <data name="RouteSetDestination" xml:space="preserve">
+    <value>Ziel setzen</value>
+  </data>
+  <data name="TipRouteSetDestination" xml:space="preserve">
+    <value>Die Route für den gewählten Charakter an den Autopiloten des Spiels senden</value>
+  </data>
+  <data name="RoutePickBoth" xml:space="preserve">
+    <value>Wählen Sie ein Start- und ein Zielsystem.</value>
+  </data>
+  <data name="RouteNotFound" xml:space="preserve">
+    <value>Keine Route: Die Systeme sind auf den erlaubten Wegen nicht verbunden, oder die Meideliste versperrt jeden Weg.</value>
+  </data>
+  <data name="RouteSummary" xml:space="preserve">
+    <value>{0} Sprünge — {1} per Sprungbrücke, {2} per Wurmloch · niedrigste Sicherheit {3}</value>
+  </data>
+  <data name="RouteBridgeAccessUnknown" xml:space="preserve">
+    <value>Für einige Brücken dieser Route ist kein Souveränitätsinhaber bekannt; wer sie nutzen darf, ist daher unbekannt.</value>
+  </data>
+  <data name="RouteSent" xml:space="preserve">
+    <value>Ziel für {0} gesetzt ({1} Wegpunkte). Jede Brücke und jedes Wurmloch springen Sie selbst.</value>
+  </data>
+  <data name="RouteNotSent" xml:space="preserve">
+    <value>Das Ziel wurde nicht gesetzt: {0}</value>
+  </data>
+  <data name="RouteViaStart" xml:space="preserve">
+    <value>Start</value>
+  </data>
+  <data name="RouteViaGate" xml:space="preserve">
+    <value>Stargate</value>
+  </data>
+  <data name="RouteViaBridge" xml:space="preserve">
+    <value>Sprungbrücke</value>
+  </data>
+  <data name="RouteViaBridgeZone" xml:space="preserve">
+    <value>Sprungbrücke · Zone {0}, {1}× Kondensator</value>
+  </data>
+  <data name="RouteViaWormhole" xml:space="preserve">
+    <value>Wurmloch {0} → {1}</value>
+  </data>
+  <data name="RouteViaWormholeShort" xml:space="preserve">
+    <value>Wurmloch</value>
+  </data>
+  <data name="ColVia" xml:space="preserve">
+    <value>Über</value>
+  </data>
+  <data name="ColHostiles" xml:space="preserve">
+    <value>Feinde</value>
+  </data>
+  <data name="ColKillsHour" xml:space="preserve">
+    <value>Abschüsse (1 h)</value>
+  </data>
+  <data name="WormholesToggle" xml:space="preserve">
+    <value>Thera / Turnur</value>
+  </data>
+  <data name="TipWormholesToggle" xml:space="preserve">
+    <value>Verbindungen von Thera und Turnur zeigen, wie EVE-Scout sie auflistet</value>
+  </data>
+  <data name="LegendWormholes" xml:space="preserve">
+    <value>Wurmloch nach Thera (Θ) oder Turnur (T); gestrichelte Linien von Turnur. Für die Signaturen darüberfahren.</value>
+  </data>
+  <data name="ShipSizeCapital" xml:space="preserve">
+    <value>Großkampfschiff</value>
+  </data>
+  <data name="HoleTitle" xml:space="preserve">
+    <value>Wurmlöcher in {0}</value>
+  </data>
+  <data name="HoleLine" xml:space="preserve">
+    <value>{0}: {1} hier, {2} auf der anderen Seite · bis {3} · {4}</value>
+  </data>
+  <data name="HoleHubTitle" xml:space="preserve">
+    <value>Wurmlöcher aus {0}: {1}</value>
+  </data>
+  <data name="HoleHubLine" xml:space="preserve">
+    <value>{0} ({1}): {2} hier, {3} auf der anderen Seite · bis {4} · {5}</value>
+  </data>
+  <data name="HoleRegionTitle" xml:space="preserve">
+    <value>Wurmlöcher von Thera und Turnur in {0}</value>
+  </data>
+  <data name="HoleRegionLine" xml:space="preserve">
+    <value>{0} — {1}</value>
+  </data>
+  <data name="HoleHoursLeft" xml:space="preserve">
+    <value>noch {0} h</value>
+  </data>
+  <data name="HoleUnderHour" xml:space="preserve">
+    <value>weniger als eine Stunde</value>
+  </data>
+  <data name="RouteAllOnline" xml:space="preserve">
+    <value>Alle Eingeloggten</value>
+  </data>
+  <data name="RouteNobodyOnline" xml:space="preserve">
+    <value>Kein Charakter ist eingeloggt; das Spiel nimmt ein Ziel nur für einen eingeloggten Charakter an.</value>
+  </data>
+  <data name="TipRouteClear" xml:space="preserve">
+    <value>Die Route hier und auf der Karte löschen</value>
+  </data>
+  <data name="TipShowOnMap" xml:space="preserve">
+    <value>Die Route auf den Tabs der Universumskarte zeichnen</value>
+  </data>
+  <data name="SysZoneLabel" xml:space="preserve">
+    <value>Ansiblex-Zone</value>
+  </data>
+  <data name="SysZoneLine" xml:space="preserve">
+    <value>Zone {0} · {1:0.0} Lj von {2}, der Hauptstadt · Sprungbrücken mit Ziel hier: {3}</value>
+  </data>
+  <data name="SysZoneFree" xml:space="preserve">
+    <value>kostenlos</value>
+  </data>
+  <data name="SysZoneCost" xml:space="preserve">
+    <value>{0}× Kondensator</value>
+  </data>
+  <data name="SysZoneNone" xml:space="preserve">
+    <value>Der Inhaber hat kein Hauptstadtsystem, daher keine Zone</value>
+  </data>
+  <data name="SysNowLabel" xml:space="preserve">
+    <value>Jetzt</value>
+  </data>
+  <data name="SysHostilesNow" xml:space="preserve">
+    <value>{0} Feinde in den letzten 5 Minuten hier gemeldet: {1}</value>
+  </data>
+  <data name="SysOwnNow" xml:space="preserve">
+    <value>Ihre Charaktere hier: {0}</value>
+  </data>
+  <data name="SysBridgesLabel" xml:space="preserve">
+    <value>Sprungbrücken</value>
+  </data>
+  <data name="SysWormholesLabel" xml:space="preserve">
+    <value>Thera und Turnur</value>
+  </data>
+  <data name="ColLeadsTo" xml:space="preserve">
+    <value>Führt nach</value>
+  </data>
+  <data name="ColGate" xml:space="preserve">
+    <value>Brücke hier</value>
+  </data>
+  <data name="ColAccess" xml:space="preserve">
+    <value>Wer springen darf</value>
+  </data>
+  <data name="ColSigHere" xml:space="preserve">
+    <value>Signatur hier</value>
+  </data>
+  <data name="ColSigFar" xml:space="preserve">
+    <value>Andere Seite</value>
+  </data>
+  <data name="ColUpTo" xml:space="preserve">
+    <value>Bis</value>
+  </data>
+  <data name="ColLeft" xml:space="preserve">
+    <value>Verbleibend</value>
+  </data>
+  <data name="OverlaySovStandings" xml:space="preserve">
+    <value>Souveränität nach Ansehen</value>
+  </data>
+  <data name="StandingOwn" xml:space="preserve">
+    <value>Eigene</value>
+  </data>
+  <data name="StandingExcellent" xml:space="preserve">
+    <value>Ausgezeichnet</value>
+  </data>
+  <data name="StandingGood" xml:space="preserve">
+    <value>Gut</value>
+  </data>
+  <data name="StandingNeutral" xml:space="preserve">
+    <value>Neutral</value>
+  </data>
+  <data name="StandingBad" xml:space="preserve">
+    <value>Schlecht</value>
+  </data>
+  <data name="StandingTerrible" xml:space="preserve">
+    <value>Schrecklich</value>
+  </data>
+  <data name="NodeStanding" xml:space="preserve">
+    <value>{0} · {1} ({2:+0.0;-0.0;0.0})</value>
+  </data>
+  <data name="LegendStandingCount" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="LegendStandingNote" xml:space="preserve">
+    <value>Aus den Kontakten Ihrer Charaktere, Corporations und Allianzen; das Wort der Allianz zählt vor dem der Corporation, und das vor dem eines Charakters.</value>
+  </data>
+  <data name="IncursionLine" xml:space="preserve">
+    <value>{0}: {1} · {2:0} % · {3}</value>
+  </data>
+  <data name="SysIncursionLabel" xml:space="preserve">
+    <value>Incursion</value>
+  </data>
+  <data name="SysIncursionLine" xml:space="preserve">
+    <value>{0} · {1:0} % Einfluss · {2} · Sammelpunkt in {3}</value>
+  </data>
+  <data name="SysIncursionStagingHere" xml:space="preserve">
+    <value>diesem System</value>
+  </data>
+  <data name="StormsToggle" xml:space="preserve">
+    <value>Stürme</value>
+  </data>
+  <data name="TipStormsToggle" xml:space="preserve">
+    <value>Metaliminale Stürme zeigen, wie EVE-Scout sie auflistet</value>
+  </data>
+  <data name="LegendStorms" xml:space="preserve">
+    <value>Metaliminaler Sturm (⚡), an EVE-Scout gemeldet. Für die Art darüberfahren.</value>
+  </data>
+  <data name="StormTitle" xml:space="preserve">
+    <value>Wetter in {0}</value>
+  </data>
+  <data name="StormRegionTitle" xml:space="preserve">
+    <value>Stürme in {0}</value>
+  </data>
+  <data name="StormLine" xml:space="preserve">
+    <value>{0} · hier seit {1} h</value>
+  </data>
+  <data name="SysWeatherLabel" xml:space="preserve">
+    <value>Wetter</value>
+  </data>
+  <data name="CampaignsToggle" xml:space="preserve">
+    <value>Souveränitätskämpfe</value>
+  </data>
+  <data name="TipCampaignsToggle" xml:space="preserve">
+    <value>Souveränitätskämpfe zeigen: ⚔ wo einer angesetzt ist, ein roter Ring sobald gekämpft wird</value>
+  </data>
+  <data name="LegendCampaigns" xml:space="preserve">
+    <value>Souveränitätskampf (⚔); roter Ring sobald er begonnen hat. Für Struktur, Verteidiger, Beginn und Stand darüberfahren.</value>
+  </data>
+  <data name="CampaignsTab" xml:space="preserve">
+    <value>Souveränitätskämpfe</value>
+  </data>
+  <data name="TipCampaignsTab" xml:space="preserve">
+    <value>Alle laufenden und kommenden Souveränitätskämpfe, von ESI</value>
+  </data>
+  <data name="CampaignKindIhub" xml:space="preserve">
+    <value>Souveränitäts-Hub</value>
+  </data>
+  <data name="CampaignKindTcu" xml:space="preserve">
+    <value>Territorial Claim Unit</value>
+  </data>
+  <data name="CampaignKindStation" xml:space="preserve">
+    <value>Station</value>
+  </data>
+  <data name="CampaignKindFreeport" xml:space="preserve">
+    <value>Freeport</value>
+  </data>
+  <data name="DurationHm" xml:space="preserve">
+    <value>{0} h {1:00} min</value>
+  </data>
+  <data name="DurationM" xml:space="preserve">
+    <value>{0} min</value>
+  </data>
+  <data name="CampaignRunning" xml:space="preserve">
+    <value>läuft seit {0}</value>
+  </data>
+  <data name="CampaignStartsIn" xml:space="preserve">
+    <value>beginnt in {0}</value>
+  </data>
+  <data name="CampaignAt" xml:space="preserve">
+    <value>EVE {0:yyyy-MM-dd HH:mm} · lokal {1:g}</value>
+  </data>
+  <data name="CampaignScores" xml:space="preserve">
+    <value>Verteidiger {0:0} % · Angreifer {1:0} %</value>
+  </data>
+  <data name="CampaignLine" xml:space="preserve">
+    <value>{0} · {1} · verteidigt von {2}</value>
+  </data>
+  <data name="CampaignTitle" xml:space="preserve">
+    <value>Souveränitätskampf in {0}</value>
+  </data>
+  <data name="CampaignRegionTitle" xml:space="preserve">
+    <value>Souveränitätskämpfe in {0}</value>
+  </data>
+  <data name="CampaignRegionLine" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="CampaignsAllRegions" xml:space="preserve">
+    <value>Alle Regionen</value>
+  </data>
+  <data name="CampaignsRegionLabel" xml:space="preserve">
+    <value>Region</value>
+  </data>
+  <data name="CampaignsNone" xml:space="preserve">
+    <value>Derzeit keine Souveränitätskämpfe.</value>
+  </data>
+  <data name="CampaignsSummary" xml:space="preserve">
+    <value>Kämpfe: {0} · laufend: {1}</value>
+  </data>
+  <data name="CampaignStateRunning" xml:space="preserve">
+    <value>Läuft</value>
+  </data>
+  <data name="CampaignStateScheduled" xml:space="preserve">
+    <value>Angesetzt</value>
+  </data>
+  <data name="ColCampaignState" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="ColCampaignWhen" xml:space="preserve">
+    <value>Wann</value>
+  </data>
+  <data name="ColCampaignStart" xml:space="preserve">
+    <value>Beginn</value>
+  </data>
+  <data name="ColCampaignKind" xml:space="preserve">
+    <value>Struktur</value>
+  </data>
+  <data name="ColCampaignDefender" xml:space="preserve">
+    <value>Verteidiger</value>
+  </data>
+  <data name="ColCampaignScores" xml:space="preserve">
+    <value>Stand</value>
+  </data>
+  <data name="SysCampaignLabel" xml:space="preserve">
+    <value>Kampf</value>
+  </data>
+  <data name="FwFrontline" xml:space="preserve">
+    <value>Frontlinie</value>
+  </data>
+  <data name="FwCommandOps" xml:space="preserve">
+    <value>Kommandooperationen</value>
+  </data>
+  <data name="FwRearguard" xml:space="preserve">
+    <value>Nachhut</value>
+  </data>
+  <data name="LegendFwTier" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="LegendFwContested" xml:space="preserve">
+    <value>Gestrichelt: umkämpft ({0})</value>
+  </data>
+  <data name="IntelFlagSpike" xml:space="preserve">
+    <value>Spike</value>
+  </data>
+  <data name="IntelFlagCamp" xml:space="preserve">
+    <value>Gate-Camp</value>
+  </data>
+  <data name="IntelFlagBubbles" xml:space="preserve">
+    <value>Bubbles</value>
+  </data>
+  <data name="IntelFlagHotdrop" xml:space="preserve">
+    <value>Hotdrop-Gefahr</value>
+  </data>
+  <data name="IntelFlagCyno" xml:space="preserve">
+    <value>Cyno</value>
+  </data>
+  <data name="IntelFlagWormhole" xml:space="preserve">
+    <value>Wurmloch</value>
+  </data>
+  <data name="IntelFlagProbes" xml:space="preserve">
+    <value>Kampfsonden</value>
+  </data>
+  <data name="IntelFlagEss" xml:space="preserve">
+    <value>am ESS</value>
+  </data>
+  <data name="IntelFlagSkyhook" xml:space="preserve">
+    <value>an einem Skyhook</value>
+  </data>
+  <data name="IntelOnGate" xml:space="preserve">
+    <value>am Gate nach {0}</value>
+  </data>
+  <data name="LiveFactsTitle" xml:space="preserve">
+    <value>Gemeldet in {0}</value>
+  </data>
+  <data name="LiveShipsRow" xml:space="preserve">
+    <value>Schiffe: {0}</value>
+  </data>
+  <data name="JumpRangeTab" xml:space="preserve">
+    <value>Sprungreichweite</value>
+  </data>
+  <data name="TipJumpRangeTab" xml:space="preserve">
+    <value>Alle Systeme, die ein Sprungantrieb von einem Charakter oder System aus erreicht, auf der Karte umrandet</value>
+  </data>
+  <data name="JumpRangeCharacterNote" xml:space="preserve">
+    <value>Die Wahl eines Charakters übernimmt sein System, seinen Rumpf, falls dieser einen Sprungantrieb hat, und seine Jump Drive Calibration. Die Reichweite folgt ihm dann, wenn er sich bewegt.</value>
+  </data>
+  <data name="JumpRangeLandLabel" xml:space="preserve">
+    <value>LANDEN IN</value>
+  </data>
+  <data name="TipJumpRangeShowOnMap" xml:space="preserve">
+    <value>Die Systeme in Reichweite auf den Tabs der Universumskarte umranden</value>
+  </data>
+  <data name="JumpRangeRulesNote" xml:space="preserve">
+    <value>Ein Sprungantrieb kann in Hochsicherheit, im Wurmlochraum, in Pochven oder in Zarzakh nicht benutzt werden, daher liegt keines davon je in Reichweite. Entfernungen sind Lichtjahre in gerader Linie.</value>
+  </data>
+  <data name="JumpRangeColLy" xml:space="preserve">
+    <value>LJ</value>
+  </data>
+  <data name="JumpRangeSummary" xml:space="preserve">
+    <value>{0} Systeme innerhalb von {1} LJ von {2}</value>
+  </data>
+  <data name="JumpRangeFollowing" xml:space="preserve">
+    <value>Folgt {0}, wenn er sich bewegt</value>
+  </data>
+  <data name="JumpRangeHighSec" xml:space="preserve">
+    <value>In Hochsicherheit kann kein Sprungantrieb benutzt werden ({0}).</value>
+  </data>
+  <data name="JumpRangeNoDrive" xml:space="preserve">
+    <value>In {0} kann kein Sprungantrieb benutzt werden.</value>
+  </data>
+  <data name="JumpRangeNothing" xml:space="preserve">
+    <value>Nichts ist in Reichweite.</value>
+  </data>
+  <data name="LegendJumpRange" xml:space="preserve">
+    <value>In Sprungreichweite des Systems im Tab Sprungreichweite (der dickere Ring)</value>
   </data>
 </root>

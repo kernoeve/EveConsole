@@ -132,7 +132,9 @@ public sealed class QueryDatabaseTool : IAgentTool
         INTEL (parsed from the chat channels marked as intel in Settings → Chat Logs)
         IntelReports: Id, ReportedAt, ChannelName, ReporterName, ReporterCharacterId,
             SystemId, SystemName, PlayerCount, Note, NoVisual, Obsolete, ObsoleteSetOn,
-            ChatMessageId, Message(the original posted line)
+            ChatMessageId, Message(the original posted line), Flags(bits: 1 spike, 2 gate camp,
+            4 bubbles, 8 wormhole, 16 ESS, 32 cyno, 64 skyhook, 128 combat probes, 256 hotdrop),
+            Gate(system whose gate they are on), Ships(hulls with no pilot named, e.g. "3× Loki")
         IntelReportCharacters: IntelReportId, CharacterId, CharacterName, ShipTypeId, ShipName
             - Obsolete=1 means a later report supersedes this one.
 

@@ -526,12 +526,43 @@ public class EsiClient
     {
         [System.Text.Json.Serialization.JsonPropertyName("alliance")]
         public EsiSovAlliance? Alliance { get; set; }
+        /// <summary>An NPC holder. Exactly one of alliance, faction or unclaimed is present.</summary>
+        [System.Text.Json.Serialization.JsonPropertyName("faction")]
+        public EsiSovFaction?  Faction  { get; set; }
+    }
+
+    public sealed class EsiSovFaction
+    {
+        [System.Text.Json.Serialization.JsonPropertyName("faction_id")]
+        public int FactionId { get; set; }
+    }
+
+    /// <summary>The structure holding an alliance's claim. Its window is left out while the hub is
+    /// in an active campaign.</summary>
+    public sealed class EsiSovHub
+    {
+        [System.Text.Json.Serialization.JsonPropertyName("id")]
+        public long                    Id                  { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("vulnerability_window")]
+        public EsiSovVulnerability?    VulnerabilityWindow { get; set; }
+    }
+
+    public sealed class EsiSovVulnerability
+    {
+        [System.Text.Json.Serialization.JsonPropertyName("start")]
+        public DateTimeOffset? Start { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("end")]
+        public DateTimeOffset? End   { get; set; }
     }
 
     public sealed class EsiSovAlliance
     {
         [System.Text.Json.Serialization.JsonPropertyName("alliance_id")]
         public long                 AllianceId  { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("corporation_id")]
+        public long?                CorporationId { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("sovereignty_hub")]
+        public EsiSovHub?           SovereigntyHub { get; set; }
         /// <summary>The alliance's capital system. Since 2026-09-22 an Ansiblex jump's capacitor
         /// cost grows with the distance from here to where the jump lands.</summary>
         [System.Text.Json.Serialization.JsonPropertyName("is_capital_system")]

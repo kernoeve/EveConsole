@@ -164,6 +164,9 @@
           <Button Classes="tool" Content="{x:Static loc:MapText.Clear}" Command="{Binding ClearCommand}" />
         </StackPanel>
 
+        <CheckBox IsChecked="{Binding ShowOnMap}" Content="{x:Static loc:MapText.RouteShowOnMap}"
+                  ToolTip.Tip="{x:Static loc:MapText.TipShowOnMap}" FontSize="11" />
+
         <TextBlock Text="{Binding StatusText}" FontSize="10.5" Foreground="{DynamicResource InfoBrush}"
                    TextWrapping="Wrap" />
       </StackPanel>

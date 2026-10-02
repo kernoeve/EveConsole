@@ -111,6 +111,8 @@ public class UniverseViewModel : ReactiveObject
             new(MapText.OverlaySovereigntyAdm,        "adm",            "Sovereignty ADM"),
             // Ansiblex zones: each claimed system by its distance from its holder's capital.
             new(MapText.OverlaySovZones,              "sovzones",       "Sovereignty zones"),
+            // Each claimed system by what the capsuleer's side thinks of its holder.
+            new(MapText.OverlaySovStandings,          "sovstandings",   "Sovereignty standings"),
             new(MapText.OverlayIndustryManufacturing, "industry:manufacturing",                   "Industry — manufacturing"),
             new(MapText.OverlayIndustryReactions,     "industry:reaction",                        "Industry — reactions"),
             new(MapText.OverlayIndustryMeResearch,    "industry:researching_material_efficiency", "Industry — ME research"),
@@ -364,6 +366,158 @@ public class UniverseViewModel : ReactiveObject
             this.RaiseAndSetIfChanged(ref _bridges, value);
             this.RaisePropertyChanged(nameof(VisibleBridges));
         }
+    }
+
+    // ── Thera and Turnur ─────────────────────────────────────────────────────
+
+    private IReadOnlyDictionary<int, MapHoleMark>? _holes;
+    /// <summary>Wormhole marks per system and region, pushed in by the map tool.</summary>
+    public IReadOnlyDictionary<int, MapHoleMark>? Holes
+    {
+        get => _holes;
+        set { this.RaiseAndSetIfChanged(ref _holes, value); this.RaisePropertyChanged(nameof(VisibleHoles)); }
+    }
+
+    private IReadOnlyList<MapHoleLink>? _holeLinks;
+    public IReadOnlyList<MapHoleLink>? HoleLinks
+    {
+        get => _holeLinks;
+        set { this.RaiseAndSetIfChanged(ref _holeLinks, value); this.RaisePropertyChanged(nameof(VisibleHoleLinks)); }
+    }
+
+    private bool _holesAvailable;
+    /// <summary>EVE-Scout is being read: the toggle is offered only then.</summary>
+    public bool HolesAvailable
+    {
+        get => _holesAvailable;
+        set => this.RaiseAndSetIfChanged(ref _holesAvailable, value);
+    }
+
+    private bool _showHoles = UiState.GetBool(UiState.UniverseWormholes, true);
+    public bool ShowHoles
+    {
+        get => _showHoles;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _showHoles, value);
+            UiState.SetBool(UiState.UniverseWormholes, value);
+            this.RaisePropertyChanged(nameof(VisibleHoles));
+            this.RaisePropertyChanged(nameof(VisibleHoleLinks));
+        }
+    }
+
+    private IReadOnlyDictionary<int, MapHoleMark>? _storms;
+    /// <summary>Metaliminal storm marks per system and region, pushed in by the map tool.</summary>
+    public IReadOnlyDictionary<int, MapHoleMark>? Storms
+    {
+        get => _storms;
+        set { this.RaiseAndSetIfChanged(ref _storms, value); this.RaisePropertyChanged(nameof(VisibleStorms)); }
+    }
+
+    private bool _showStorms = UiState.GetBool(UiState.UniverseStorms, true);
+    public bool ShowStorms
+    {
+        get => _showStorms;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _showStorms, value);
+            UiState.SetBool(UiState.UniverseStorms, value);
+            this.RaisePropertyChanged(nameof(VisibleStorms));
+        }
+    }
+
+    public IReadOnlyDictionary<int, MapHoleMark>? VisibleStorms => _showStorms ? _storms : null;
+
+    private IReadOnlyDictionary<int, MapCampaignMark>? _campaigns;
+    /// <summary>Sovereignty campaign marks per system and region, pushed in by the map tool.</summary>
+    public IReadOnlyDictionary<int, MapCampaignMark>? Campaigns
+    {
+        get => _campaigns;
+        set { this.RaiseAndSetIfChanged(ref _campaigns, value); this.RaisePropertyChanged(nameof(VisibleCampaigns)); }
+    }
+
+    private bool _campaignsAvailable;
+    public bool CampaignsAvailable
+    {
+        get => _campaignsAvailable;
+        set => this.RaiseAndSetIfChanged(ref _campaignsAvailable, value);
+    }
+
+    private bool _showCampaigns = UiState.GetBool(UiState.UniverseCampaigns, true);
+    public bool ShowCampaigns
+    {
+        get => _showCampaigns;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _showCampaigns, value);
+            UiState.SetBool(UiState.UniverseCampaigns, value);
+            this.RaisePropertyChanged(nameof(VisibleCampaigns));
+        }
+    }
+
+    public IReadOnlyDictionary<int, MapCampaignMark>? VisibleCampaigns => _showCampaigns ? _campaigns : null;
+
+    public IReadOnlyDictionary<int, MapHoleMark>? VisibleHoles     => _showHoles ? _holes : null;
+    public IReadOnlyList<MapHoleLink>?            VisibleHoleLinks => _showHoles ? _holeLinks : null;
+
+    /// <summary>The jump range tab's systems, ringed on the map; null for none. Pushed in by the map tool.</summary>
+    private MapJumpRange? _jumpRange;
+    public MapJumpRange? JumpRange
+    {
+        get => _jumpRange;
+        set { this.RaiseAndSetIfChanged(ref _jumpRange, value); this.RaisePropertyChanged(nameof(HasJumpRange)); }
+    }
+    public bool HasJumpRange => _jumpRange is not null;
+
+    /// <summary>The route avoid list, ringed on the map. Pushed in by the map tool.</summary>
+    private IReadOnlyCollection<int>? _avoided = RouteAvoidList.Ids;
+    public IReadOnlyCollection<int>? Avoided
+    {
+        get => _avoided;
+        set => this.RaiseAndSetIfChanged(ref _avoided, value);
+    }
+
+    /// <summary>The planned routes drawn on this map, one per planning tool, pushed in by the map
+    /// tool; null or empty for none.</summary>
+    private IReadOnlyList<IReadOnlyList<MapRouteStep>>? _routes;
+    public IReadOnlyList<IReadOnlyList<MapRouteStep>>? Routes
+    {
+        get => _routes;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _routes, value);
+            this.RaisePropertyChanged(nameof(HasRoute));
+        }
+    }
+
+    public bool HasRoute => _routes is { Count: > 0 };
+
+    /// <summary>Set by the map tool: takes the routes off every map, since they belong to the
+    /// planning tools rather than to one map.</summary>
+    public Action? ClearRoutesRequested { get; set; }
+
+    /// <summary>Takes the routes off the map.</summary>
+    public void ClearRoute()
+    {
+        if (ClearRoutesRequested is { } clear) clear();
+        else Routes = null;
+    }
+
+    private ReactiveCommand<Unit, Unit>? _clearRouteCommand;
+    public ReactiveCommand<Unit, Unit> ClearRouteCommand => _clearRouteCommand ??= ReactiveCommand.Create(ClearRoute);
+
+    /// <summary>Frames the systems of a route the map shows. UI thread.</summary>
+    public void FocusSystems(IReadOnlyCollection<int> systemIds)
+    {
+        if (Graph is not { } g) return;
+        var members = g.Nodes.Where(n => n.Tier == 1 && systemIds.Contains(n.Id)).ToList();
+        if (members.Count == 0) return;
+        double minX = members.Min(n => n.X), maxX = members.Max(n => n.X);
+        double minY = members.Min(n => n.Y), maxY = members.Max(n => n.Y);
+        var w = Math.Max(maxX - minX, 1e15);
+        var h = Math.Max(maxY - minY, 1e15);
+        FocusBounds = null;
+        FocusBounds = new Rect(minX - w * 0.1, minY - h * 0.1, w * 1.2, h * 1.2);
     }
 
     /// <summary>What the canvas draws: the bridges, or none while they are switched off.</summary>
@@ -740,7 +894,9 @@ public class UniverseViewModel : ReactiveObject
         BuildContinuousOverlayAsync(MapGraph g)
     {
         var regionOnly = new MapGraph(g.Nodes.Where(n => n.Tier == 0).ToList(), []);
-        var systemOnly = new MapGraph(g.Nodes.Where(n => n.Tier == 1).ToList(), []);
+        // The system tier keeps its gate links: an overlay judging a system by its neighbours
+        // (faction warfare's front lines) reads them.
+        var systemOnly = new MapGraph(g.Nodes.Where(n => n.Tier == 1).ToList(), g.Edges.Where(e => e.Tier == 1).ToList());
 
         var (regionStyles, regionLegend) = await BuildOverlayAsync(regionOnly, byRegion: true);
         var (systemStyles, systemLegend) = await BuildOverlayAsync(systemOnly, byRegion: false);
@@ -774,6 +930,10 @@ public class UniverseViewModel : ReactiveObject
 
             case "sovzones":
                 await BuildSovZonesOverlayAsync(g, styles, legend, byRegion);
+                break;
+
+            case "sovstandings":
+                await BuildSovStandingsOverlayAsync(g, styles, legend, byRegion);
                 break;
 
             case { } k when k.StartsWith("industry:"):
@@ -997,6 +1157,78 @@ public class UniverseViewModel : ReactiveObject
     }
 
     /// <summary>
+    /// Sovereignty by standing: each claimed system in the game's standing colours by what the
+    /// capsuleer's side thinks of its holder — the holder's alliance, else its corporation —
+    /// with the capsuleer's own space green. NPC and unclaimed space stay grey.
+    /// </summary>
+    private async Task BuildSovStandingsOverlayAsync(
+        MapGraph g, Dictionary<int, MapNodeStyle> styles, List<LegendEntryVm> legend, bool byRegion)
+    {
+        if (_stats is null) return;
+        var sov       = await _stats.GetSovereigntyOverlayAsync();
+        var standings = await _stats.GetStandingsAsync();
+        var corps     = await _stats.GetLatestSovereigntyAsync();
+
+        var unclaimed = Color.Parse("#3a3a48");
+        var bands = new (string Label, Color Fill)[]
+        {
+            (MapText.StandingOwn,       Color.Parse("#3fb950")),
+            (MapText.StandingExcellent, Color.Parse("#1f5fd6")),
+            (MapText.StandingGood,      Color.Parse("#5aa2ff")),
+            (MapText.StandingNeutral,   Color.Parse("#7b7b8c")),
+            (MapText.StandingBad,       Color.Parse("#f08a2e")),
+            (MapText.StandingTerrible,  Color.Parse("#e5484d")),
+        };
+        var counts = new int[bands.Length];
+
+        foreach (var n in g.Nodes)
+        {
+            if (byRegion)
+            {
+                styles[n.Id] = new MapNodeStyle(unclaimed, Detail: MapText.TipOpenRegionForSovereignty);
+                continue;
+            }
+            if (!sov.TryGetValue(n.Id, out var s) || s.AllianceId is not { } alliance)
+            {
+                var holder = s is not null && s.Holder.Length > 0
+                    ? s.FactionId is { } faction ? SdeNames.Faction(faction, s.Holder) : s.Holder
+                    : null;
+                styles[n.Id] = new MapNodeStyle(unclaimed, Caption: holder, Detail: holder ?? MapText.SovUnclaimed);
+                continue;
+            }
+
+            var corp = corps.TryGetValue(n.Id, out var row) ? row.CorporationId : null;
+            int band;
+            double? value = null;
+            if (standings.OwnAlliances.Contains(alliance) || corp is { } c0 && standings.OwnCorporations.Contains(c0)) band = 0;
+            else
+            {
+                value = standings.Standing.TryGetValue(alliance, out var a) ? a
+                      : corp is { } c && standings.Standing.TryGetValue(c, out var cs) ? cs : null;
+                band = value switch
+                {
+                    >= 5   => 1,
+                    > 0    => 2,
+                    <= -5  => 5,
+                    < 0    => 4,
+                    _      => 3,
+                };
+            }
+            counts[band]++;
+            styles[n.Id] = new MapNodeStyle(bands[band].Fill,
+                Caption: ShortHolder(s.Holder),
+                Detail: value is { } v
+                    ? string.Format(MapText.NodeStanding, s.Holder, bands[band].Label, v)
+                    : $"{s.Holder} · {bands[band].Label}");
+        }
+
+        for (var i = 0; i < bands.Length; i++)
+            legend.Add(new LegendEntryVm(string.Format(MapText.LegendStandingCount, bands[i].Label, counts[i]), bands[i].Fill));
+        legend.Add(new LegendEntryVm(MapText.LegendUnclaimedNpc, unclaimed));
+        legend.Add(new LegendEntryVm(MapText.LegendStandingNote, unclaimed));
+    }
+
+    /// <summary>
     /// Ansiblex zones: each claimed system coloured by how far it lies from its holder's capital
     /// system — the zone a bridge jump landing there is charged at since 2026-09-22 — with the
     /// zone and the holder in the caption. The colours are the bridge halves' own.
@@ -1185,6 +1417,7 @@ public class UniverseViewModel : ReactiveObject
         if (_stats is null) return;
 
         var fw       = await _stats.GetLatestFactionWarfareAsync();
+        var tiers    = FwTiers(fw, g);
         // As shown — only ever the tooltip and legend text, looked up by id.
         var factions = (await _stats.GetFactionNamesAsync())
             .ToDictionary(kv => kv.Key, kv => SdeNames.Faction(kv.Key, kv.Value));
@@ -1210,28 +1443,89 @@ public class UniverseViewModel : ReactiveObject
                 ? 100.0 * f.VictoryPoints / f.VictoryPointsThreshold
                 : 0;
 
-            // Contested systems are lifted toward full saturation so a fight stands out
-            // against quiet space held by the same militia.
-            var color = FromHsv(hues.GetValueOrDefault(f.OccupierFactionId),
-                                f.ContestedState == "contested" ? 0.75 : 0.35,
-                                f.ContestedState == "contested" ? 0.95 : 0.65);
+            // The militia's hue; how bright, by where the war is — the front line bright,
+            // command operations softer, the rearguard dim. Being fought over is the dashed
+            // outline, so it shows whatever the shade, and the caption says how far along.
+            var tier   = tiers.GetValueOrDefault(n.Id, FwTier.Rearguard);
+            var (s, v) = FwShade(tier);
+            var fought = f.ContestedState is "contested" or "vulnerable";
 
             styles[n.Id] = new MapNodeStyle(
-                color,
-                Caption: contested > 0 ? $"{contested:F0}%" : ContestedLabel(f.ContestedState),
+                FromHsv(hues.GetValueOrDefault(f.OccupierFactionId), s, v),
+                Caption: contested > 0 ? $"{contested:F0}%" : FwTierLabel(tier),
                 Detail: $"{factions.GetValueOrDefault(f.OccupierFactionId, MapText.FactionUnknown)} · " +
-                        $"{ContestedLabel(f.ContestedState)}" +
+                        $"{FwTierLabel(tier)} · {ContestedLabel(f.ContestedState)}" +
                         (f.VictoryPointsThreshold > 0
                             ? " · " + string.Format(MapText.NodeVictoryPoints,
                                                     f.VictoryPoints, f.VictoryPointsThreshold)
-                            : ""));
+                            : ""),
+                Dashed: fought);
         }
 
         foreach (var (id, h) in hues)
             legend.Add(new LegendEntryVm(factions.GetValueOrDefault(id, string.Format(MapText.FactionNumbered, id)),
-                FromHsv(h, 0.75, 0.95)));
+                FromHsv(h, 0.85, 1.0)));
+        foreach (var t in new[] { FwTier.Frontline, FwTier.Command, FwTier.Rearguard })
+        {
+            var (_, v) = FwShade(t);
+            legend.Add(new LegendEntryVm(string.Format(MapText.LegendFwTier, FwTierLabel(t), tiers.Values.Count(x => x == t)),
+                FromHsv(0, 0, v * 0.85)));
+        }
+        legend.Add(new LegendEntryVm(string.Format(MapText.LegendFwContested,
+            fw.Values.Count(f => f.ContestedState is "contested" or "vulnerable")), neutral));
         legend.Add(new LegendEntryVm(MapText.LegendNotFwSpace, neutral));
     }
+
+    /// <summary>Where a faction-warfare system stands in the war.</summary>
+    internal enum FwTier { Frontline, Command, Rearguard }
+
+    /// <summary>
+    /// Each faction-warfare system's place in the war, from who occupies it and its gates: a
+    /// front line borders a system occupied by another militia; command operations border their
+    /// own militia's front line; everything else a militia holds is its rearguard. Read off the
+    /// map's own gate links.
+    /// </summary>
+    internal static Dictionary<int, FwTier> FwTiers(IReadOnlyDictionary<int, EveConsole.Models.MapFactionWarfare> fw, MapGraph g)
+    {
+        var tiers = new Dictionary<int, FwTier>();
+        if (fw.Count == 0) return tiers;
+
+        var next = new Dictionary<int, List<int>>();
+        void Link(int a, int b)
+        {
+            if (!next.TryGetValue(a, out var l)) next[a] = l = [];
+            l.Add(b);
+        }
+        foreach (var e in g.Edges)
+            if (fw.ContainsKey(e.FromId) && fw.ContainsKey(e.ToId)) { Link(e.FromId, e.ToId); Link(e.ToId, e.FromId); }
+        IEnumerable<int> Near(int id) => next.TryGetValue(id, out var l) ? l : [];
+
+        foreach (var (id, f) in fw)
+            if (Near(id).Any(n => fw[n].OccupierFactionId != f.OccupierFactionId)) tiers[id] = FwTier.Frontline;
+        foreach (var (id, f) in fw)
+        {
+            if (tiers.ContainsKey(id)) continue;
+            tiers[id] = Near(id).Any(n => tiers.TryGetValue(n, out var t) && t == FwTier.Frontline
+                                          && fw[n].OccupierFactionId == f.OccupierFactionId)
+                ? FwTier.Command : FwTier.Rearguard;
+        }
+        return tiers;
+    }
+
+    private static string FwTierLabel(FwTier tier) => tier switch
+    {
+        FwTier.Frontline => MapText.FwFrontline,
+        FwTier.Command   => MapText.FwCommandOps,
+        _                => MapText.FwRearguard,
+    };
+
+    /// <summary>Saturation and brightness by tier: the front line bright, the rearguard dim.</summary>
+    private static (double S, double V) FwShade(FwTier tier) => tier switch
+    {
+        FwTier.Frontline => (0.85, 1.00),
+        FwTier.Command   => (0.55, 0.75),
+        _                => (0.35, 0.50),
+    };
 
     /// <summary>A faction-warfare system's state as shown; ESI's own word for one not listed.
     /// The overlay compares ESI's word, never this.</summary>
@@ -1263,9 +1557,11 @@ public class UniverseViewModel : ReactiveObject
     {
         if (_stats is null) return;
 
-        var inc     = await _stats.GetLatestIncursionsAsync();
-        var quiet   = Color.Parse("#2a2a34");
-        var staging = Color.Parse("#ff4f4f");
+        var inc      = await _stats.GetLatestIncursionsAsync();
+        var factions = await _stats.GetFactionNamesAsync();
+        var places   = await _stats.GetConstellationPlacesAsync(inc.Keys);
+        var quiet    = Color.Parse("#2a2a34");
+        var staging  = Color.Parse("#ff4f4f");
 
         var stateColor = new Dictionary<string, Color>(StringComparer.OrdinalIgnoreCase)
         {
@@ -1274,13 +1570,34 @@ public class UniverseViewModel : ReactiveObject
             ["withdrawing"] = Color.Parse("#9a7a5a"),
         };
 
+        string Faction(int id) => SdeNames.Faction(id, factions.GetValueOrDefault(id, ""));
+        string Line(EveConsole.Models.MapIncursion i) =>
+            string.Format(MapText.IncursionLine,
+                places.TryGetValue(i.ConstellationId, out var p) ? SdeNames.Constellation(i.ConstellationId, p.Name) : "",
+                IncursionStateLabel(i.State), i.Influence * 100, Faction(i.FactionId))
+            + (i.HasBoss ? " · " + MapText.NodeBossUp : "");
+        // The worst first: an established incursion is the one to know about.
+        static int Rank(string state) => state.ToLowerInvariant() switch { "established" => 0, "mobilizing" => 1, "withdrawing" => 2, _ => 3 };
+
         foreach (var n in g.Nodes)
         {
-            if (byRegion || n.ConstellationId == 0 || !inc.TryGetValue(n.ConstellationId, out var i))
+            // Zoomed out: each region with incursions in it, coloured by the most advanced one,
+            // its hover listing them all.
+            if (byRegion)
             {
-                styles[n.Id] = new MapNodeStyle(quiet, Detail: byRegion
-                    ? MapText.TipOpenRegionForIncursions
-                    : MapText.NodeNoIncursion);
+                var here = inc.Values.Where(i => places.TryGetValue(i.ConstellationId, out var p) && p.RegionId == n.RegionId)
+                                     .OrderBy(i => Rank(i.State)).ToList();
+                styles[n.Id] = here.Count == 0
+                    ? new MapNodeStyle(quiet, Detail: MapText.NodeNoIncursion)
+                    : new MapNodeStyle(stateColor.GetValueOrDefault(here[0].State, quiet),
+                          Caption: IncursionStateLabel(here[0].State),
+                          Detail: string.Join("\n", here.Select(Line)));
+                continue;
+            }
+
+            if (n.ConstellationId == 0 || !inc.TryGetValue(n.ConstellationId, out var i))
+            {
+                styles[n.Id] = new MapNodeStyle(quiet, Detail: MapText.NodeNoIncursion);
                 continue;
             }
 
@@ -1291,7 +1608,8 @@ public class UniverseViewModel : ReactiveObject
                 Detail: IncursionStateLabel(i.State) +
                         (isStaging ? " · " + MapText.NodeStagingSystem : "") +
                         " · " + string.Format(MapText.NodeInfluence, i.Influence * 100) +
-                        (i.HasBoss ? " · " + MapText.NodeBossUp : ""));
+                        (i.HasBoss ? " · " + MapText.NodeBossUp : "") +
+                        " · " + Faction(i.FactionId));
         }
 
         legend.Add(new LegendEntryVm(MapText.LegendStagingSystem, staging));

@@ -485,10 +485,7 @@
     <value>日志文件夹</value>
   </data>
   <data name="LeaveTheListEmptyNote" xml:space="preserve">
-    <value>列表留空则自动使用本地文件夹。添加网络路径（\\MACHINE\share\Gamelogs）可导入其他电脑上运行的 EVE 客户端的日志——那些电脑上无需安装任何东西。</value>
-  </data>
-  <data name="Detect" xml:space="preserve">
-    <value>检测</value>
+    <value>只要能找到，本计算机自己的 EVE 游戏日志文件夹始终会被读取。添加网络路径（\\MACHINE\share\Gamelogs）可额外导入在其他计算机上运行的 EVE 客户端的日志——无需在那些计算机上安装任何东西。</value>
   </data>
   <data name="Open" xml:space="preserve">
     <value>打开</value>
@@ -539,7 +536,7 @@
     <value>导入聊天日志</value>
   </data>
   <data name="LeaveTheListEmptyNote2" xml:space="preserve">
-    <value>列表留空则自动使用本地文件夹。添加网络路径（\\MACHINE\share\Chatlogs）可导入其他电脑上运行的 EVE 客户端的日志——那些电脑上无需安装任何东西。下方的频道发现只能看到此处配置的文件夹中的频道。</value>
+    <value>只要能找到，本计算机自己的 EVE 聊天日志文件夹始终会被读取。添加网络路径（\\MACHINE\share\Chatlogs）可额外导入在其他计算机上运行的 EVE 客户端的日志——无需在那些计算机上安装任何东西。下方的频道发现会查看所有正在读取的文件夹中的频道。</value>
   </data>
   <data name="ChannelsToStore" xml:space="preserve">
     <value>要存储的频道</value>
@@ -2368,9 +2365,6 @@ SQLite 数据库只会被读取，不会被修改。大型数据库需要一些�
   <data name="LogsCountFailed" xml:space="preserve">
     <value>无法统计文件——{0}</value>
   </data>
-  <data name="ChatFolderNotFound" xml:space="preserve">
-    <value>找不到本地的 EVE 聊天日志文件夹。</value>
-  </data>
   <data name="ChatNoFolder" xml:space="preserve">
     <value>未找到聊天日志文件夹——请在下方添加一个。</value>
   </data>
@@ -2385,9 +2379,6 @@ SQLite 数据库只会被读取，不会被修改。大型数据库需要一些�
   </data>
   <data name="GameLogNoFolder" xml:space="preserve">
     <value>未找到游戏日志文件夹——请在下方添加一个。</value>
-  </data>
-  <data name="GameLogFolderNotFound" xml:space="preserve">
-    <value>找不到本地的 EVE 游戏日志文件夹。</value>
   </data>
   <data name="TimerMinimum" xml:space="preserve">
     <value>（最小：{0} {1}）</value>
@@ -3342,6 +3333,39 @@ SQLite 数据库只会被读取，不会被修改。大型数据库需要一些�
   </data>
   <data name="DiscordErrHttp" xml:space="preserve">
     <value>Discord 拒绝了请求（HTTP {0}）：{1}</value>
+  </data>
+  <data name="EveScoutHeading" xml:space="preserve">
+    <value>Thera 与 Turnur</value>
+  </data>
+  <data name="EveScoutNote" xml:space="preserve">
+    <value>Thera 和 Turnur 的虫洞连接每五分钟从 EVE-Scout 读取一次，供地图和路线规划器使用；超限风暴每小时读取一次。关闭后会删除已保存的数据：虫洞会在几小时内关闭，风暴会移动，旧列表会误导。</value>
+  </data>
+  <data name="EveScoutPoll" xml:space="preserve">
+    <value>从 EVE-Scout 读取 Thera/Turnur 连接和风暴</value>
+  </data>
+  <data name="EveScoutRead" xml:space="preserve">
+    <value>{0} 个连接，读取于 {1:t}</value>
+  </data>
+  <data name="EveScoutRefused" xml:space="preserve">
+    <value>EVE-Scout 返回 {0}；在下次读取前保留上一份列表。</value>
+  </data>
+  <data name="LogsFolderThisComputer" xml:space="preserve">
+    <value>✓ {0}（此计算机）</value>
+  </data>
+  <data name="IntelRegionsLabel" xml:space="preserve">
+    <value>星域</value>
+  </data>
+  <data name="TipIntelRegions" xml:space="preserve">
+    <value>可选。此情报频道所报告的星域，用逗号分隔。它们决定像“QZ-X”这样的缩写名指哪个星系。留空时，星域会从该频道报告过的星系中学习。</value>
+  </data>
+  <data name="IntelRegionsLearned" xml:space="preserve">
+    <value>已学习：{0}</value>
+  </data>
+  <data name="IntelRegionsNoneLearned" xml:space="preserve">
+    <value>已学习：暂无</value>
+  </data>
+  <data name="IntelRegionsUnknown" xml:space="preserve">
+    <value>不是星域：{0}</value>
   </data>
   <data name="ColPi" xml:space="preserve">
     <value>PI</value>

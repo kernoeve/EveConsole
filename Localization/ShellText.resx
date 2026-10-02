@@ -72,10 +72,6 @@
   <data name="NavUniverseMap" xml:space="preserve">
     <value>Universe Map</value>
   </data>
-  <data name="NavJumpPlanner" xml:space="preserve">
-    <value>Jump Planner</value>
-    <comment>Capital-ship jump routes.</comment>
-  </data>
   <data name="NavIndustryJobs" xml:space="preserve">
     <value>Industry Jobs</value>
   </data>

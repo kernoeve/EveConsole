@@ -611,12 +611,8 @@
     <comment>Text in SettingsWindow.</comment>
   </data>
   <data name="LeaveTheListEmptyNote" xml:space="preserve">
-    <value>Leave the list empty to use the local folder automatically. Add a network path (\\MACHINE\share\Gamelogs) to import logs from EVE clients running on other computers — nothing needs to be installed on them.</value>
+    <value>This computer's own EVE game log folder is always read when it can be found. Add a network path (\\MACHINE\share\Gamelogs) to also import logs from EVE clients running on other computers — nothing needs to be installed on them.</value>
     <comment>Note in SettingsWindow.</comment>
-  </data>
-  <data name="Detect" xml:space="preserve">
-    <value>Detect</value>
-    <comment>Button or option in SettingsWindow.</comment>
   </data>
   <data name="Open" xml:space="preserve">
     <value>Open</value>
@@ -683,7 +679,7 @@
     <comment>Button or option in SettingsWindow.</comment>
   </data>
   <data name="LeaveTheListEmptyNote2" xml:space="preserve">
-    <value>Leave the list empty to use the local folder automatically. Add a network path (\\MACHINE\share\Chatlogs) to import logs from EVE clients running on other computers — nothing needs to be installed on them. Channel discovery below only sees channels from the folder(s) configured here.</value>
+    <value>This computer's own EVE chat log folder is always read when it can be found. Add a network path (\\MACHINE\share\Chatlogs) to also import logs from EVE clients running on other computers — nothing needs to be installed on them. Channel discovery below sees channels from every folder being read.</value>
     <comment>Note in SettingsWindow.</comment>
   </data>
   <data name="ChannelsToStore" xml:space="preserve">
@@ -3111,10 +3107,6 @@ The application will restart.</value>
     <value>Could not count files — {0}</value>
     <comment>Game/Chat Logs tab, past import. {0} is the reason, in English.</comment>
   </data>
-  <data name="ChatFolderNotFound" xml:space="preserve">
-    <value>Could not find a local EVE chat log folder.</value>
-    <comment>Chat Logs tab, Detect button result.</comment>
-  </data>
   <data name="ChatNoFolder" xml:space="preserve">
     <value>No chat log folder found — add one below.</value>
     <comment>Chat Logs tab, the folders being read.</comment>
@@ -3134,10 +3126,6 @@ The application will restart.</value>
   <data name="GameLogNoFolder" xml:space="preserve">
     <value>No game log folder found — add one below.</value>
     <comment>Game Logs tab, the folders being read.</comment>
-  </data>
-  <data name="GameLogFolderNotFound" xml:space="preserve">
-    <value>Could not find a local EVE game log folder.</value>
-    <comment>Game Logs tab, Detect button result.</comment>
   </data>
   <data name="TimerMinimum" xml:space="preserve">
     <value>(min: {0} {1})</value>
@@ -4414,6 +4402,50 @@ The application will restart.</value>
   <data name="DiscordErrHttp" xml:space="preserve">
     <value>Discord refused it (HTTP {0}): {1}</value>
     <comment>Error when Discord refused a post. {0} is the HTTP status number, {1} Discord's own message (in English).</comment>
+  </data>
+  <data name="EveScoutHeading" xml:space="preserve">
+    <value>Thera and Turnur</value>
+    <comment>Settings → Map Data: heading of the EVE-Scout section. Thera and Turnur are solar systems.</comment>
+  </data>
+  <data name="EveScoutNote" xml:space="preserve">
+    <value>Wormhole connections from Thera and Turnur, read from EVE-Scout every five minutes for the map and the route planner, and metaliminal storms, read hourly. Switching this off deletes what is stored: holes close within hours and storms move, and an old list would mislead.</value>
+    <comment>Settings → Map Data, under the EVE-Scout heading. EVE-Scout is a proper name.</comment>
+  </data>
+  <data name="EveScoutPoll" xml:space="preserve">
+    <value>Read Thera/Turnur connections and storms from EVE-Scout</value>
+    <comment>Settings → Map Data: tick box that turns the EVE-Scout poll on or off.</comment>
+  </data>
+  <data name="EveScoutRead" xml:space="preserve">
+    <value>{0} connections, read at {1:t}</value>
+    <comment>Settings → Map Data, under the EVE-Scout tick box. {0} the number of connections, {1} the time they were read.</comment>
+  </data>
+  <data name="EveScoutRefused" xml:space="preserve">
+    <value>EVE-Scout answered {0}; the last list is kept until the next read.</value>
+    <comment>Settings → Map Data, under the EVE-Scout tick box, when the read failed. {0} is an HTTP status code.</comment>
+  </data>
+  <data name="LogsFolderThisComputer" xml:space="preserve">
+    <value>✓ {0}  (this computer)</value>
+    <comment>Game/Chat Logs tab, the folders being read: this computer's own EVE log folder, found automatically. {0} is the folder's path.</comment>
+  </data>
+  <data name="IntelRegionsLabel" xml:space="preserve">
+    <value>REGIONS</value>
+    <comment>Settings → Chat Logs, channel list column header over each intel channel's optional regions box.</comment>
+  </data>
+  <data name="TipIntelRegions" xml:space="preserve">
+    <value>Optional. The regions this intel channel reports on, comma-separated. They decide which system a shortened name such as "QZ-X" means. Left empty, the regions are learned from the systems the channel has reported.</value>
+    <comment>Tooltip on the Regions column and box, Settings → Chat Logs.</comment>
+  </data>
+  <data name="IntelRegionsLearned" xml:space="preserve">
+    <value>Learned: {0}</value>
+    <comment>Placeholder in an empty Regions box. {0} is the regions the channel has been seen to report on, comma-separated.</comment>
+  </data>
+  <data name="IntelRegionsNoneLearned" xml:space="preserve">
+    <value>Learned: none yet</value>
+    <comment>Placeholder in an empty Regions box when the channel has no reports to learn from yet.</comment>
+  </data>
+  <data name="IntelRegionsUnknown" xml:space="preserve">
+    <value>Not a region: {0}</value>
+    <comment>Under a Regions box. {0} is the names typed that are no region, comma-separated.</comment>
   </data>
   <data name="ColPi" xml:space="preserve">
     <value>PI</value>

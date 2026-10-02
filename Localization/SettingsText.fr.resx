@@ -485,10 +485,7 @@
     <value>Dossiers des journaux</value>
   </data>
   <data name="LeaveTheListEmptyNote" xml:space="preserve">
-    <value>Laissez la liste vide pour utiliser automatiquement le dossier local. Ajoutez un chemin réseau (\\MACHINE\share\Gamelogs) pour importer les journaux de clients EVE exécutés sur d'autres ordinateurs — rien n'a besoin d'y être installé.</value>
-  </data>
-  <data name="Detect" xml:space="preserve">
-    <value>Détecter</value>
+    <value>Le dossier des journaux de jeu EVE de cet ordinateur est toujours lu lorsqu'il est trouvé. Ajoutez un chemin réseau (\\MACHINE\share\Gamelogs) pour importer en plus les journaux de clients EVE exécutés sur d'autres ordinateurs — rien n'a besoin d'y être installé.</value>
   </data>
   <data name="Open" xml:space="preserve">
     <value>Ouvrir</value>
@@ -539,7 +536,7 @@
     <value>Importer les journaux de discussion</value>
   </data>
   <data name="LeaveTheListEmptyNote2" xml:space="preserve">
-    <value>Laissez la liste vide pour utiliser automatiquement le dossier local. Ajoutez un chemin réseau (\\MACHINE\share\Chatlogs) pour importer les journaux de clients EVE exécutés sur d'autres ordinateurs — rien n'a besoin d'y être installé. La découverte des canaux ci-dessous ne voit que les canaux des dossiers configurés ici.</value>
+    <value>Le dossier des journaux de discussion EVE de cet ordinateur est toujours lu lorsqu'il est trouvé. Ajoutez un chemin réseau (\\MACHINE\share\Chatlogs) pour importer en plus les journaux de clients EVE exécutés sur d'autres ordinateurs — rien n'a besoin d'y être installé. La découverte des canaux ci-dessous voit les canaux de tous les dossiers lus.</value>
   </data>
   <data name="ChannelsToStore" xml:space="preserve">
     <value>Canaux à enregistrer</value>
@@ -2368,9 +2365,6 @@ L'application va redémarrer.</value>
   <data name="LogsCountFailed" xml:space="preserve">
     <value>Impossible de compter les fichiers — {0}</value>
   </data>
-  <data name="ChatFolderNotFound" xml:space="preserve">
-    <value>Impossible de trouver un dossier local de journaux de discussion EVE.</value>
-  </data>
   <data name="ChatNoFolder" xml:space="preserve">
     <value>Aucun dossier de journaux de discussion trouvé — ajoutez-en un ci-dessous.</value>
   </data>
@@ -2385,9 +2379,6 @@ L'application va redémarrer.</value>
   </data>
   <data name="GameLogNoFolder" xml:space="preserve">
     <value>Aucun dossier de journaux de jeu trouvé — ajoutez-en un ci-dessous.</value>
-  </data>
-  <data name="GameLogFolderNotFound" xml:space="preserve">
-    <value>Impossible de trouver un dossier local de journaux de jeu EVE.</value>
   </data>
   <data name="TimerMinimum" xml:space="preserve">
     <value>(min. : {0} {1})</value>
@@ -3345,6 +3336,39 @@ L'application va redémarrer.</value>
   </data>
   <data name="DiscordErrHttp" xml:space="preserve">
     <value>Discord a refusé (HTTP {0}) : {1}</value>
+  </data>
+  <data name="EveScoutHeading" xml:space="preserve">
+    <value>Thera et Turnur</value>
+  </data>
+  <data name="EveScoutNote" xml:space="preserve">
+    <value>Connexions de trous de ver depuis Thera et Turnur, lues sur EVE-Scout toutes les cinq minutes pour la carte et le planificateur d'itinéraire, et tempêtes métaliminales, lues toutes les heures. Désactiver supprime ce qui est enregistré : les trous se ferment en quelques heures et les tempêtes se déplacent, une ancienne liste induirait en erreur.</value>
+  </data>
+  <data name="EveScoutPoll" xml:space="preserve">
+    <value>Lire les connexions Thera/Turnur et les tempêtes sur EVE-Scout</value>
+  </data>
+  <data name="EveScoutRead" xml:space="preserve">
+    <value>{0} connexions, lues à {1:t}</value>
+  </data>
+  <data name="EveScoutRefused" xml:space="preserve">
+    <value>EVE-Scout a répondu {0} ; la dernière liste est conservée jusqu'à la prochaine lecture.</value>
+  </data>
+  <data name="LogsFolderThisComputer" xml:space="preserve">
+    <value>✓ {0}  (cet ordinateur)</value>
+  </data>
+  <data name="IntelRegionsLabel" xml:space="preserve">
+    <value>RÉGIONS</value>
+  </data>
+  <data name="TipIntelRegions" xml:space="preserve">
+    <value>Facultatif. Les régions que couvre ce canal d'intel, séparées par des virgules. Elles décident quel système désigne un nom abrégé comme « QZ-X ». Laissé vide, les régions sont apprises à partir des systèmes signalés par le canal.</value>
+  </data>
+  <data name="IntelRegionsLearned" xml:space="preserve">
+    <value>Apprises : {0}</value>
+  </data>
+  <data name="IntelRegionsNoneLearned" xml:space="preserve">
+    <value>Apprises : aucune pour l'instant</value>
+  </data>
+  <data name="IntelRegionsUnknown" xml:space="preserve">
+    <value>Pas une région : {0}</value>
   </data>
   <data name="ColPi" xml:space="preserve">
     <value>PI</value>

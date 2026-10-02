@@ -58,9 +58,6 @@
   <data name="NavUniverseMap" xml:space="preserve">
     <value>Universumskarte</value>
   </data>
-  <data name="NavJumpPlanner" xml:space="preserve">
-    <value>Sprungplaner</value>
-  </data>
   <data name="NavIndustryJobs" xml:space="preserve">
     <value>Industrieaufträge</value>
   </data>

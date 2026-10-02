@@ -1305,7 +1305,6 @@
                   <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" Margin="6 0 0 0">
                     <Button Content="{x:Static loc:SettingsText.Add}"    Command="{Binding GameLogVm.AddDirectoryCommand}"    Padding="10 3" />
                     <Button Content="{x:Static loc:SettingsText.Remove}" Command="{Binding GameLogVm.RemoveDirectoryCommand}" Padding="10 3" />
-                    <Button Content="{x:Static loc:SettingsText.Detect}" Command="{Binding GameLogVm.DetectDirectoryCommand}" Padding="10 3" />
                     <Button Content="{x:Static loc:SettingsText.Open}"   Command="{Binding GameLogVm.OpenDirectoryCommand}"   Padding="10 3" />
                   </StackPanel>
                 </Grid>
@@ -1437,7 +1436,6 @@
                   <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" Margin="6 0 0 0">
                     <Button Content="{x:Static loc:SettingsText.Add}"    Command="{Binding ChatLogVm.AddDirectoryCommand}"    Padding="10 3" />
                     <Button Content="{x:Static loc:SettingsText.Remove}" Command="{Binding ChatLogVm.RemoveDirectoryCommand}" Padding="10 3" />
-                    <Button Content="{x:Static loc:SettingsText.Detect}" Command="{Binding ChatLogVm.DetectDirectoryCommand}" Padding="10 3" />
                     <Button Content="{x:Static loc:SettingsText.Open}"   Command="{Binding ChatLogVm.OpenDirectoryCommand}"   Padding="10 3" />
                   </StackPanel>
                 </Grid>
@@ -1467,10 +1465,12 @@
                           IsEnabled="{Binding !ChatLogVm.IsBusy}" Padding="14 4" />
                 </StackPanel>
 
-                <Grid ColumnDefinitions="*,84" Margin="8 0 8 0">
+                <Grid ColumnDefinitions="*,84,240" Margin="8 0 8 0">
                   <TextBlock Grid.Column="0" Text="{x:Static loc:SettingsText.ChannelLabel}" FontSize="9" FontWeight="SemiBold" Foreground="{DynamicResource TextDimBrush}" />
                   <TextBlock Grid.Column="1" Text="{x:Static loc:SettingsText.IntelLabel}"   FontSize="9" FontWeight="SemiBold" Foreground="{DynamicResource TextDimBrush}"
                              HorizontalAlignment="Center" />
+                  <TextBlock Grid.Column="2" Text="{x:Static loc:SettingsText.IntelRegionsLabel}" FontSize="9" FontWeight="SemiBold" Foreground="{DynamicResource TextDimBrush}"
+                             ToolTip.Tip="{x:Static loc:SettingsText.TipIntelRegions}" />
                 </Grid>
 
                 <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="3"
@@ -1479,12 +1479,17 @@
                     <ItemsControl ItemsSource="{Binding ChatLogVm.Channels}" Margin="8">
                       <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="vm:ChatChannelViewModel">
-                          <Grid ColumnDefinitions="*,84" Margin="0 1">
+                          <Grid ColumnDefinitions="*,84,240" RowDefinitions="Auto,Auto" Margin="0 1">
                             <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected}" Content="{Binding Name}"
                                       Foreground="{DynamicResource TextPrimaryBrush}" FontSize="11" />
                             <CheckBox Grid.Column="1" IsChecked="{Binding IsIntel}"
                                       HorizontalAlignment="Center" VerticalAlignment="Center"
                                       ToolTip.Tip="{x:Static loc:SettingsText.TipParseThisChannelForSightings}" />
+                            <TextBox Grid.Column="2" Text="{Binding RegionsText}" Watermark="{Binding LearnedText}"
+                                     IsVisible="{Binding IsIntel}" FontSize="11" MinHeight="24" Padding="6 2"
+                                     ToolTip.Tip="{x:Static loc:SettingsText.TipIntelRegions}" />
+                            <TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding RegionsError}" IsVisible="{Binding HasRegionsError}"
+                                       FontSize="10" Foreground="{DynamicResource BadBrush}" TextWrapping="Wrap" />
                           </Grid>
                         </DataTemplate>
                       </ItemsControl.ItemTemplate>
@@ -1583,6 +1588,17 @@
 
               <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource TextFaintBrush}"
                          Text="{x:Static loc:SettingsText.PastTheHourlyWindowNote}" />
+            </StackPanel>
+          </Border>
+
+          <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
+            <StackPanel Margin="14" Spacing="10">
+              <TextBlock Text="{x:Static loc:SettingsText.EveScoutHeading}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
+              <TextBlock TextWrapping="Wrap" FontSize="11.5" Foreground="{DynamicResource TextMutedBrush}"
+                         Text="{x:Static loc:SettingsText.EveScoutNote}" />
+              <CheckBox IsChecked="{Binding EveScoutEnabled}" Content="{x:Static loc:SettingsText.EveScoutPoll}"
+                        FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
+              <TextBlock Text="{Binding EveScoutStatus}" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" />
             </StackPanel>
           </Border>
 

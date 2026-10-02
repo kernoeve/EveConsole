@@ -58,9 +58,6 @@
   <data name="NavUniverseMap" xml:space="preserve">
     <value>星图</value>
   </data>
-  <data name="NavJumpPlanner" xml:space="preserve">
-    <value>跳跃规划</value>
-  </data>
   <data name="NavIndustryJobs" xml:space="preserve">
     <value>工业任务</value>
   </data>

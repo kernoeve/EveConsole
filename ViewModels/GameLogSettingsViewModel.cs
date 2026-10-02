@@ -39,7 +39,6 @@ public class GameLogSettingsViewModel : ReactiveObject
 
         AddDirectoryCommand    = ReactiveCommand.CreateFromTask(AddDirectoryAsync);
         RemoveDirectoryCommand = ReactiveCommand.CreateFromTask(RemoveDirectoryAsync);
-        DetectDirectoryCommand = ReactiveCommand.CreateFromTask(DetectDirectoryAsync);
         OpenDirectoryCommand   = ReactiveCommand.Create(OpenSelectedDirectory);
         ImportHistoryCommand   = ReactiveCommand.CreateFromTask(() => _importer.ImportHistoryAsync(HistoryDays));
         CancelImportCommand    = ReactiveCommand.Create(() => _importer.CancelImport());
@@ -185,7 +184,6 @@ public class GameLogSettingsViewModel : ReactiveObject
 
     public ReactiveCommand<Unit, Unit> AddDirectoryCommand    { get; }
     public ReactiveCommand<Unit, Unit> RemoveDirectoryCommand { get; }
-    public ReactiveCommand<Unit, Unit> DetectDirectoryCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenDirectoryCommand   { get; }
     public ReactiveCommand<Unit, Unit> ImportHistoryCommand   { get; }
     public ReactiveCommand<Unit, Unit> CancelImportCommand    { get; }
@@ -224,10 +222,13 @@ public class GameLogSettingsViewModel : ReactiveObject
     private string DescribeResolvedPaths()
     {
         var resolved = _settings.ResolveDirectories();
+        var local    = MonitoringSettings.DefaultGameLogDirectory();
         return resolved.Count == 0
             ? SettingsText.GameLogNoFolder
             : string.Join("\n", resolved.Select(d =>
-                Directory.Exists(d) ? "✓ " + d : string.Format(SettingsText.LogsFolderUnreachable, d)));
+                MonitoringSettings.IsLocalDefault(d, local) ? string.Format(SettingsText.LogsFolderThisComputer, d)
+                : Directory.Exists(d) ? "✓ " + d
+                : string.Format(SettingsText.LogsFolderUnreachable, d)));
     }
 
     private async Task AddDirectoryAsync()
@@ -246,18 +247,6 @@ public class GameLogSettingsViewModel : ReactiveObject
         if (SelectedDirectory is null) return;
         Directories.Remove(SelectedDirectory);
         await SaveDirectoriesAsync();
-    }
-
-    private async Task DetectDirectoryAsync()
-    {
-        var auto = MonitoringSettings.DefaultGameLogDirectory();
-        if (auto is null) { ResolvedPaths = SettingsText.GameLogFolderNotFound; return; }
-
-        if (!Directories.Contains(auto, StringComparer.OrdinalIgnoreCase))
-        {
-            Directories.Add(auto);
-            await SaveDirectoriesAsync();
-        }
     }
 
     private void OpenSelectedDirectory()

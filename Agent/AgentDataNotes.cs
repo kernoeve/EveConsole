@@ -69,14 +69,14 @@ public static class AgentDataNotes
           in, but its rows outlive a departure (UpdatedAt stops advancing), so it is not a roster.
           Someone absent from EsiCorpMembers who appears in older data has left.
 
-        - ⚠️ CharacterAffiliations is a FIRST-SEEN CACHE from INTEL REPORTS ONLY, and it is both
-          stale and sparse. A row is written the first time a character id appears in a parsed
-          intel channel, and is NEVER refreshed afterwards. Nothing else writes to it.
+        - ⚠️ CharacterAffiliations is a cache from INTEL REPORTS ONLY, and it is both stale and
+          sparse. A row is written when a character id first appears in a parsed intel channel,
+          and refreshed only when they are reported again a week or more later. Nothing else
+          writes to it.
 
           Two consequences, and the second is the one that catches people out:
-          · Rows are old. Most are months old and will stay that way. PulledAt is when the
-            character was first SEEN, not when their corporation was last checked — the name
-            invites exactly the opposite reading.
+          · Rows can be old: a character not reported lately keeps the corporation they had
+            then. PulledAt is the last fetch, which for them may be months ago.
           · ABSENCE MEANS NOTHING. A character with no row was simply never reported in intel.
             It does NOT mean they have no corporation, are not in an alliance, or have left one.
             Contract counterparties, market counterparties and mail senders are mostly absent for

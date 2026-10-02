@@ -1254,9 +1254,6 @@
   <data name="LegendNotFwSpace" xml:space="preserve">
     <value>팩션 전쟁 지역 아님</value>
   </data>
-  <data name="TipOpenRegionForIncursions" xml:space="preserve">
-    <value>인커젼을 보려면 지역을 여십시오</value>
-  </data>
   <data name="NodeNoIncursion" xml:space="preserve">
     <value>인커젼 없음</value>
   </data>
@@ -1516,7 +1513,7 @@
     <value>실시간 표시</value>
   </data>
   <data name="LiveMarkHostiles" xml:space="preserve">
-    <value>최근 5분 동안 인텔 또는 킬 메일로 이곳에서 확인된 적대 세력입니다. 마우스를 올리면 누가 무엇을 타고 있는지 표시합니다.</value>
+    <value>최근 5분 동안 인텔 또는 킬 메일로 이곳에서 확인된 적대 세력입니다. 마우스를 올리면 누가 무엇을 타고 있는지 표시합니다. "!"는 인텔이 이곳에서 무언가(급증, 버블, 캠프)를 보고했지만 인원은 세지 않았다는 뜻입니다.</value>
   </data>
   <data name="LiveMarkOwn" xml:space="preserve">
     <value>이곳에서 접속 중인 내 캐릭터입니다. 마우스를 올리면 함선과 정박 여부를 표시합니다.</value>
@@ -1777,5 +1774,515 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   </data>
   <data name="LegendZoneNoCapital" xml:space="preserve">
     <value>보유자에게 수도 항성계가 없음</value>
+  </data>
+  <data name="RoutePlannerTab" xml:space="preserve">
+    <value>경로 플래너</value>
+  </data>
+  <data name="TipRoutePlannerTab" xml:space="preserve">
+    <value>스타게이트, 점프 브릿지, Thera 또는 Turnur를 지나는 경로 계획</value>
+  </data>
+  <data name="JumpPlannerTab" xml:space="preserve">
+    <value>점프 플래너</value>
+  </data>
+  <data name="TipJumpPlannerTab" xml:space="preserve">
+    <value>캐피탈 함선의 점프 경로 계획</value>
+  </data>
+  <data name="ClearRoute" xml:space="preserve">
+    <value>경로 지우기</value>
+  </data>
+  <data name="TipClearRoute" xml:space="preserve">
+    <value>계획된 경로를 지도에서 제거</value>
+  </data>
+  <data name="RouteCharacterLabel" xml:space="preserve">
+    <value>캐릭터</value>
+  </data>
+  <data name="RouteCharacterAt" xml:space="preserve">
+    <value>{0} — {1}</value>
+  </data>
+  <data name="RouteCharacterNote" xml:space="preserve">
+    <value>캐릭터의 얼라이언스가 사용할 수 있는 점프 브릿지를 결정합니다. 점프 출발지의 소버린티를 가진 얼라이언스만 사용할 수 있습니다.</value>
+  </data>
+  <data name="RouteFromLabel" xml:space="preserve">
+    <value>출발</value>
+  </data>
+  <data name="RouteToLabel" xml:space="preserve">
+    <value>도착</value>
+  </data>
+  <data name="HintRouteSystem" xml:space="preserve">
+    <value>항성계 이름</value>
+  </data>
+  <data name="RouteFromHere" xml:space="preserve">
+    <value>현재 위치</value>
+  </data>
+  <data name="TipRouteFromHere" xml:space="preserve">
+    <value>캐릭터가 있는 곳에서 출발</value>
+  </data>
+  <data name="TipRouteSwap" xml:space="preserve">
+    <value>출발과 도착 바꾸기</value>
+  </data>
+  <data name="RoutePreferenceLabel" xml:space="preserve">
+    <value>선호</value>
+  </data>
+  <data name="RouteShortest" xml:space="preserve">
+    <value>최단</value>
+  </data>
+  <data name="RouteSafer" xml:space="preserve">
+    <value>더 안전(하이시큐)</value>
+  </data>
+  <data name="RouteLessSecure" xml:space="preserve">
+    <value>덜 안전(로우·널시큐)</value>
+  </data>
+  <data name="RouteUseBridges" xml:space="preserve">
+    <value>점프 브릿지 사용</value>
+  </data>
+  <data name="RouteUseWormholes" xml:space="preserve">
+    <value>Thera 및 Turnur 사용</value>
+  </data>
+  <data name="TipRouteUseWormholes" xml:space="preserve">
+    <value>EVE-Scout에 등록된 웜홀(설정 → 지도 데이터)</value>
+  </data>
+  <data name="RouteShipSizeLabel" xml:space="preserve">
+    <value>함선</value>
+  </data>
+  <data name="ShipSizeSmall" xml:space="preserve">
+    <value>프리깃 또는 디스트로이어</value>
+  </data>
+  <data name="ShipSizeMedium" xml:space="preserve">
+    <value>크루저 또는 배틀크루저</value>
+  </data>
+  <data name="ShipSizeLarge" xml:space="preserve">
+    <value>배틀쉽</value>
+  </data>
+  <data name="ShipSizeXLarge" xml:space="preserve">
+    <value>화물선</value>
+  </data>
+  <data name="AvoidListButton" xml:space="preserve">
+    <value>회피 목록</value>
+  </data>
+  <data name="TipAvoidList" xml:space="preserve">
+    <value>경로가 피하는 항성계 표시/숨기기</value>
+  </data>
+  <data name="AvoidSummary" xml:space="preserve">
+    <value>회피 항성계: {0}</value>
+  </data>
+  <data name="HintAvoidAdd" xml:space="preserve">
+    <value>회피할 항성계 추가</value>
+  </data>
+  <data name="TipAvoidRemove" xml:space="preserve">
+    <value>회피 목록에서 제거</value>
+  </data>
+  <data name="AvoidNote" xml:space="preserve">
+    <value>지도나 경로의 항성계를 오른쪽 클릭하여 추가하거나 제거하십시오.</value>
+  </data>
+  <data name="AvoidAdd" xml:space="preserve">
+    <value>{0}을(를) 회피 목록에 추가</value>
+  </data>
+  <data name="AvoidRemove" xml:space="preserve">
+    <value>{0}을(를) 회피 목록에서 제거</value>
+  </data>
+  <data name="RouteRulesNote" xml:space="preserve">
+    <value>캐피탈 함선은 점프 브릿지를 사용할 수 없습니다(로퀄, 화물선, 점프 화물선 제외). 게임 오토파일럿에는 각 브릿지가 웨이포인트로 전달되며, 그 사이의 게이트는 오토파일럿이 직접 고릅니다.</value>
+  </data>
+  <data name="RouteShowOnMap" xml:space="preserve">
+    <value>지도에 표시</value>
+  </data>
+  <data name="RouteSetDestination" xml:space="preserve">
+    <value>목적지 설정</value>
+  </data>
+  <data name="TipRouteSetDestination" xml:space="preserve">
+    <value>선택한 캐릭터의 게임 오토파일럿으로 경로 전송</value>
+  </data>
+  <data name="RoutePickBoth" xml:space="preserve">
+    <value>출발 항성계와 도착 항성계를 고르십시오.</value>
+  </data>
+  <data name="RouteNotFound" xml:space="preserve">
+    <value>경로 없음: 허용한 방법으로는 항성계가 연결되지 않거나, 회피 목록이 모든 길을 막고 있습니다.</value>
+  </data>
+  <data name="RouteSummary" xml:space="preserve">
+    <value>{0}점프 — 점프 브릿지 {1}회, 웜홀 {2}회 · 최저 시큐리티 {3}</value>
+  </data>
+  <data name="RouteBridgeAccessUnknown" xml:space="preserve">
+    <value>이 경로의 일부 브릿지는 소버린티 보유자를 알 수 없어, 누가 사용할 수 있는지 알 수 없습니다.</value>
+  </data>
+  <data name="RouteSent" xml:space="preserve">
+    <value>{0}의 목적지를 설정했습니다(웨이포인트 {1}개). 브릿지와 웜홀 점프는 직접 하십시오.</value>
+  </data>
+  <data name="RouteNotSent" xml:space="preserve">
+    <value>목적지를 설정하지 못했습니다: {0}</value>
+  </data>
+  <data name="RouteViaStart" xml:space="preserve">
+    <value>출발</value>
+  </data>
+  <data name="RouteViaGate" xml:space="preserve">
+    <value>게이트</value>
+  </data>
+  <data name="RouteViaBridge" xml:space="preserve">
+    <value>점프 브릿지</value>
+  </data>
+  <data name="RouteViaBridgeZone" xml:space="preserve">
+    <value>점프 브릿지 · 구역 {0}, 캐패시터 {1}배</value>
+  </data>
+  <data name="RouteViaWormhole" xml:space="preserve">
+    <value>웜홀 {0} → {1}</value>
+  </data>
+  <data name="RouteViaWormholeShort" xml:space="preserve">
+    <value>웜홀</value>
+  </data>
+  <data name="ColVia" xml:space="preserve">
+    <value>경유</value>
+  </data>
+  <data name="ColHostiles" xml:space="preserve">
+    <value>적대</value>
+  </data>
+  <data name="ColKillsHour" xml:space="preserve">
+    <value>격추(1시간)</value>
+  </data>
+  <data name="WormholesToggle" xml:space="preserve">
+    <value>Thera / Turnur</value>
+  </data>
+  <data name="TipWormholesToggle" xml:space="preserve">
+    <value>EVE-Scout에 등록된 Thera 및 Turnur 연결 표시</value>
+  </data>
+  <data name="LegendWormholes" xml:space="preserve">
+    <value>Thera(Θ) 또는 Turnur(T)로 가는 웜홀. Turnur에서는 점선. 마우스를 올리면 시그니처를 표시합니다.</value>
+  </data>
+  <data name="ShipSizeCapital" xml:space="preserve">
+    <value>캐피탈</value>
+  </data>
+  <data name="HoleTitle" xml:space="preserve">
+    <value>{0}의 웜홀</value>
+  </data>
+  <data name="HoleLine" xml:space="preserve">
+    <value>{0}: 여기 {1}, 건너편 {2} · 최대 {3} · {4}</value>
+  </data>
+  <data name="HoleHubTitle" xml:space="preserve">
+    <value>{0}에서 나가는 웜홀: {1}</value>
+  </data>
+  <data name="HoleHubLine" xml:space="preserve">
+    <value>{0}({1}): 여기 {2}, 건너편 {3} · 최대 {4} · {5}</value>
+  </data>
+  <data name="HoleRegionTitle" xml:space="preserve">
+    <value>{0}의 Thera 및 Turnur 웜홀</value>
+  </data>
+  <data name="HoleRegionLine" xml:space="preserve">
+    <value>{0} — {1}</value>
+  </data>
+  <data name="HoleHoursLeft" xml:space="preserve">
+    <value>{0}시간 남음</value>
+  </data>
+  <data name="HoleUnderHour" xml:space="preserve">
+    <value>1시간 미만 남음</value>
+  </data>
+  <data name="RouteAllOnline" xml:space="preserve">
+    <value>접속 중인 모두</value>
+  </data>
+  <data name="RouteNobodyOnline" xml:space="preserve">
+    <value>접속 중인 캐릭터가 없습니다. 게임은 접속 중인 캐릭터에게만 목적지를 설정합니다.</value>
+  </data>
+  <data name="TipRouteClear" xml:space="preserve">
+    <value>여기와 지도에서 경로 지우기</value>
+  </data>
+  <data name="TipShowOnMap" xml:space="preserve">
+    <value>유니버스 지도 탭에 경로 그리기</value>
+  </data>
+  <data name="SysZoneLabel" xml:space="preserve">
+    <value>앤시블렉스 구역</value>
+  </data>
+  <data name="SysZoneLine" xml:space="preserve">
+    <value>구역 {0} · 수도 {2}에서 {1:0.0}광년 · 여기 도착하는 점프 브릿지: {3}</value>
+  </data>
+  <data name="SysZoneFree" xml:space="preserve">
+    <value>무료</value>
+  </data>
+  <data name="SysZoneCost" xml:space="preserve">
+    <value>캐패시터 {0}배</value>
+  </data>
+  <data name="SysZoneNone" xml:space="preserve">
+    <value>보유자에게 수도 항성계가 없어 구역이 없습니다</value>
+  </data>
+  <data name="SysNowLabel" xml:space="preserve">
+    <value>현재</value>
+  </data>
+  <data name="SysHostilesNow" xml:space="preserve">
+    <value>최근 5분간 여기서 확인된 적대 {0}명: {1}</value>
+  </data>
+  <data name="SysOwnNow" xml:space="preserve">
+    <value>여기 있는 내 캐릭터: {0}</value>
+  </data>
+  <data name="SysBridgesLabel" xml:space="preserve">
+    <value>점프 브릿지</value>
+  </data>
+  <data name="SysWormholesLabel" xml:space="preserve">
+    <value>Thera 및 Turnur</value>
+  </data>
+  <data name="ColLeadsTo" xml:space="preserve">
+    <value>목적지</value>
+  </data>
+  <data name="ColGate" xml:space="preserve">
+    <value>여기 브릿지</value>
+  </data>
+  <data name="ColAccess" xml:space="preserve">
+    <value>사용 가능 대상</value>
+  </data>
+  <data name="ColSigHere" xml:space="preserve">
+    <value>여기 시그니처</value>
+  </data>
+  <data name="ColSigFar" xml:space="preserve">
+    <value>건너편</value>
+  </data>
+  <data name="ColUpTo" xml:space="preserve">
+    <value>최대</value>
+  </data>
+  <data name="ColLeft" xml:space="preserve">
+    <value>남은 시간</value>
+  </data>
+  <data name="OverlaySovStandings" xml:space="preserve">
+    <value>소버린티 스탠딩</value>
+  </data>
+  <data name="StandingOwn" xml:space="preserve">
+    <value>내 소속</value>
+  </data>
+  <data name="StandingExcellent" xml:space="preserve">
+    <value>매우 좋음</value>
+  </data>
+  <data name="StandingGood" xml:space="preserve">
+    <value>좋음</value>
+  </data>
+  <data name="StandingNeutral" xml:space="preserve">
+    <value>중립</value>
+  </data>
+  <data name="StandingBad" xml:space="preserve">
+    <value>나쁨</value>
+  </data>
+  <data name="StandingTerrible" xml:space="preserve">
+    <value>매우 나쁨</value>
+  </data>
+  <data name="NodeStanding" xml:space="preserve">
+    <value>{0} · {1} ({2:+0.0;-0.0;0.0})</value>
+  </data>
+  <data name="LegendStandingCount" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="LegendStandingNote" xml:space="preserve">
+    <value>내 캐릭터, 코퍼레이션, 얼라이언스의 연락처 기준. 얼라이언스 설정이 코퍼레이션보다, 코퍼레이션이 캐릭터보다 우선합니다.</value>
+  </data>
+  <data name="IncursionLine" xml:space="preserve">
+    <value>{0}: {1} · {2:0}% · {3}</value>
+  </data>
+  <data name="SysIncursionLabel" xml:space="preserve">
+    <value>인커젼</value>
+  </data>
+  <data name="SysIncursionLine" xml:space="preserve">
+    <value>{0} · 영향력 {1:0}% · {2} · 거점 {3}</value>
+  </data>
+  <data name="SysIncursionStagingHere" xml:space="preserve">
+    <value>이 항성계</value>
+  </data>
+  <data name="StormsToggle" xml:space="preserve">
+    <value>폭풍</value>
+  </data>
+  <data name="TipStormsToggle" xml:space="preserve">
+    <value>EVE-Scout에 등록된 메타리미널 폭풍 표시</value>
+  </data>
+  <data name="LegendStorms" xml:space="preserve">
+    <value>메타리미널 폭풍(⚡), EVE-Scout 보고 기준. 마우스를 올리면 종류를 표시합니다.</value>
+  </data>
+  <data name="StormTitle" xml:space="preserve">
+    <value>{0}의 날씨</value>
+  </data>
+  <data name="StormRegionTitle" xml:space="preserve">
+    <value>{0}의 폭풍</value>
+  </data>
+  <data name="StormLine" xml:space="preserve">
+    <value>{0} · 이곳에 {1}시간째</value>
+  </data>
+  <data name="SysWeatherLabel" xml:space="preserve">
+    <value>날씨</value>
+  </data>
+  <data name="CampaignsToggle" xml:space="preserve">
+    <value>소버린티 전투</value>
+  </data>
+  <data name="TipCampaignsToggle" xml:space="preserve">
+    <value>소버린티 전투 표시: 예정된 곳에 ⚔, 전투가 시작되면 빨간 고리</value>
+  </data>
+  <data name="LegendCampaigns" xml:space="preserve">
+    <value>소버린티 전투(⚔). 시작되면 빨간 고리. 마우스를 올리면 구조물, 방어 측, 시작 시각, 점수를 표시합니다.</value>
+  </data>
+  <data name="CampaignsTab" xml:space="preserve">
+    <value>소버린티 전투</value>
+  </data>
+  <data name="TipCampaignsTab" xml:space="preserve">
+    <value>진행 중이거나 예정된 모든 소버린티 전투 (ESI 기준)</value>
+  </data>
+  <data name="CampaignKindIhub" xml:space="preserve">
+    <value>소버린티 허브</value>
+  </data>
+  <data name="CampaignKindTcu" xml:space="preserve">
+    <value>영유권 주장 유닛</value>
+  </data>
+  <data name="CampaignKindStation" xml:space="preserve">
+    <value>정거장</value>
+  </data>
+  <data name="CampaignKindFreeport" xml:space="preserve">
+    <value>자유항</value>
+  </data>
+  <data name="DurationHm" xml:space="preserve">
+    <value>{0}시간 {1:00}분</value>
+  </data>
+  <data name="DurationM" xml:space="preserve">
+    <value>{0}분</value>
+  </data>
+  <data name="CampaignRunning" xml:space="preserve">
+    <value>진행 {0}째</value>
+  </data>
+  <data name="CampaignStartsIn" xml:space="preserve">
+    <value>{0} 후 시작</value>
+  </data>
+  <data name="CampaignAt" xml:space="preserve">
+    <value>EVE {0:yyyy-MM-dd HH:mm} · 로컬 {1:g}</value>
+  </data>
+  <data name="CampaignScores" xml:space="preserve">
+    <value>방어 {0:0}% · 공격 {1:0}%</value>
+  </data>
+  <data name="CampaignLine" xml:space="preserve">
+    <value>{0} · {1} · 방어: {2}</value>
+  </data>
+  <data name="CampaignTitle" xml:space="preserve">
+    <value>{0}의 소버린티 전투</value>
+  </data>
+  <data name="CampaignRegionTitle" xml:space="preserve">
+    <value>{0}의 소버린티 전투</value>
+  </data>
+  <data name="CampaignRegionLine" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="CampaignsAllRegions" xml:space="preserve">
+    <value>모든 지역</value>
+  </data>
+  <data name="CampaignsRegionLabel" xml:space="preserve">
+    <value>지역</value>
+  </data>
+  <data name="CampaignsNone" xml:space="preserve">
+    <value>현재 소버린티 전투가 없습니다.</value>
+  </data>
+  <data name="CampaignsSummary" xml:space="preserve">
+    <value>전투: {0} · 진행 중: {1}</value>
+  </data>
+  <data name="CampaignStateRunning" xml:space="preserve">
+    <value>진행 중</value>
+  </data>
+  <data name="CampaignStateScheduled" xml:space="preserve">
+    <value>예정</value>
+  </data>
+  <data name="ColCampaignState" xml:space="preserve">
+    <value>상태</value>
+  </data>
+  <data name="ColCampaignWhen" xml:space="preserve">
+    <value>시기</value>
+  </data>
+  <data name="ColCampaignStart" xml:space="preserve">
+    <value>시작</value>
+  </data>
+  <data name="ColCampaignKind" xml:space="preserve">
+    <value>구조물</value>
+  </data>
+  <data name="ColCampaignDefender" xml:space="preserve">
+    <value>방어 측</value>
+  </data>
+  <data name="ColCampaignScores" xml:space="preserve">
+    <value>점수</value>
+  </data>
+  <data name="SysCampaignLabel" xml:space="preserve">
+    <value>전투</value>
+  </data>
+  <data name="FwFrontline" xml:space="preserve">
+    <value>최전선</value>
+  </data>
+  <data name="FwCommandOps" xml:space="preserve">
+    <value>지휘 작전</value>
+  </data>
+  <data name="FwRearguard" xml:space="preserve">
+    <value>후방</value>
+  </data>
+  <data name="LegendFwTier" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="LegendFwContested" xml:space="preserve">
+    <value>점선: 교전 중 ({0})</value>
+  </data>
+  <data name="IntelFlagSpike" xml:space="preserve">
+    <value>로컬 급증</value>
+  </data>
+  <data name="IntelFlagCamp" xml:space="preserve">
+    <value>게이트 캠프</value>
+  </data>
+  <data name="IntelFlagBubbles" xml:space="preserve">
+    <value>버블</value>
+  </data>
+  <data name="IntelFlagHotdrop" xml:space="preserve">
+    <value>핫드롭 위험</value>
+  </data>
+  <data name="IntelFlagCyno" xml:space="preserve">
+    <value>사이노</value>
+  </data>
+  <data name="IntelFlagWormhole" xml:space="preserve">
+    <value>웜홀</value>
+  </data>
+  <data name="IntelFlagProbes" xml:space="preserve">
+    <value>전투 프로브</value>
+  </data>
+  <data name="IntelFlagEss" xml:space="preserve">
+    <value>ESS에 있음</value>
+  </data>
+  <data name="IntelFlagSkyhook" xml:space="preserve">
+    <value>스카이훅에 있음</value>
+  </data>
+  <data name="IntelOnGate" xml:space="preserve">
+    <value>{0} 게이트</value>
+  </data>
+  <data name="LiveFactsTitle" xml:space="preserve">
+    <value>{0}에서 보고됨</value>
+  </data>
+  <data name="LiveShipsRow" xml:space="preserve">
+    <value>함선: {0}</value>
+  </data>
+  <data name="JumpRangeTab" xml:space="preserve">
+    <value>점프 범위</value>
+  </data>
+  <data name="TipJumpRangeTab" xml:space="preserve">
+    <value>캐릭터나 성계에서 점프 드라이브로 닿는 모든 성계를 지도에 표시합니다</value>
+  </data>
+  <data name="JumpRangeCharacterNote" xml:space="preserve">
+    <value>캐릭터를 고르면 그 성계, 점프 드라이브가 있다면 그 함선, Jump Drive Calibration을 가져옵니다. 이후 범위는 캐릭터가 움직이는 대로 따라갑니다.</value>
+  </data>
+  <data name="JumpRangeLandLabel" xml:space="preserve">
+    <value>도착 성계</value>
+  </data>
+  <data name="TipJumpRangeShowOnMap" xml:space="preserve">
+    <value>범위 안의 성계를 우주 지도 탭에 표시합니다</value>
+  </data>
+  <data name="JumpRangeRulesNote" xml:space="preserve">
+    <value>점프 드라이브는 하이섹, 웜홀 우주, 포크벤, 자르자크에서 쓸 수 없으므로 그곳은 범위에 들지 않습니다. 거리는 직선 광년입니다.</value>
+  </data>
+  <data name="JumpRangeColLy" xml:space="preserve">
+    <value>광년</value>
+  </data>
+  <data name="JumpRangeSummary" xml:space="preserve">
+    <value>{2}에서 {1}광년 이내 성계 {0}개</value>
+  </data>
+  <data name="JumpRangeFollowing" xml:space="preserve">
+    <value>{0}의 이동을 따라가는 중</value>
+  </data>
+  <data name="JumpRangeHighSec" xml:space="preserve">
+    <value>하이섹에서는 점프 드라이브를 쓸 수 없습니다({0}).</value>
+  </data>
+  <data name="JumpRangeNoDrive" xml:space="preserve">
+    <value>{0}에서는 점프 드라이브를 쓸 수 없습니다.</value>
+  </data>
+  <data name="JumpRangeNothing" xml:space="preserve">
+    <value>범위 안에 아무것도 없습니다.</value>
+  </data>
+  <data name="LegendJumpRange" xml:space="preserve">
+    <value>점프 범위 탭의 성계에서 점프 범위 안(굵은 고리가 출발 성계)</value>
   </data>
 </root>

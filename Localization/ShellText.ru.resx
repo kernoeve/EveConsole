@@ -58,9 +58,6 @@
   <data name="NavUniverseMap" xml:space="preserve">
     <value>Карта вселенной</value>
   </data>
-  <data name="NavJumpPlanner" xml:space="preserve">
-    <value>Планировщик прыжков</value>
-  </data>
   <data name="NavIndustryJobs" xml:space="preserve">
     <value>Промышленные проекты</value>
   </data>

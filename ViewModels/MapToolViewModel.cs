@@ -4,8 +4,10 @@ using System.Reactive;
 using System.Reactive.Linq;
 using Avalonia.Threading;
 using EveConsole.Controls;
+using EveConsole.Data;
 using EveConsole.Localization;
 using EveConsole.Services;
+using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 
 namespace EveConsole.ViewModels;
@@ -36,9 +38,15 @@ public sealed class MapToolViewModel : ReactiveObject
     private readonly LiveIntelService?          _live;
     private readonly AppErrorLogger?            _errors;
     private readonly JumpBridgeService?         _bridges;
+    private readonly RoutePlannerService?       _routes;
+    private readonly JumpPlannerViewModel?      _jumpPlanner;
+    private readonly IDbContextFactory<AppDbContext>? _db;
+    private readonly EveScoutService?           _eveScout;
+    private readonly SovCampaignService?        _campaigns;
 
     public static readonly TimeSpan LiveEvery    = TimeSpan.FromSeconds(5);
     public static readonly TimeSpan OverlayEvery = TimeSpan.FromSeconds(60);
+    public static readonly TimeSpan PageEvery    = TimeSpan.FromSeconds(30);
 
     public MapToolViewModel(
         UniverseMapService        map,
@@ -47,10 +55,21 @@ public sealed class MapToolViewModel : ReactiveObject
         Func<SystemPageViewModel> newSystemPage,
         LiveIntelService?         live,
         AppErrorLogger?           errors  = null,
-        JumpBridgeService?        bridges = null)
+        JumpBridgeService?        bridges = null,
+        RoutePlannerService?      routes  = null,
+        JumpPlannerViewModel?     jumpPlanner = null,
+        IDbContextFactory<AppDbContext>? db = null,
+        EveScoutService?          eveScout = null,
+        SovCampaignService?       campaigns = null)
     {
+        _eveScout      = eveScout;
+        _campaigns     = campaigns;
+        if (eveScout is not null) eveScout.Changed += () => _ = ReloadHolesAsync();
         _errors        = errors;
         _bridges       = bridges;
+        _routes        = routes;
+        _jumpPlanner   = jumpPlanner;
+        _db            = db;
         if (bridges is not null) bridges.Changed += () => _ = ReloadBridgesAsync();
         _map           = map;
         _stats         = stats;
@@ -65,6 +84,17 @@ public sealed class MapToolViewModel : ReactiveObject
 
         NewUniverseTabCommand = ReactiveCommand.Create(() => { NewUniverseTab(); });
         ShowBridgesTabCommand = ReactiveCommand.Create(() => { ShowBridgesTab(); });
+        ShowRouteTabCommand   = ReactiveCommand.Create(() => { ShowRouteTab(); });
+        ShowJumpPlannerTabCommand = ReactiveCommand.Create(() => { ShowJumpPlannerTab(); });
+        ShowJumpRangeTabCommand   = ReactiveCommand.Create(() => { ShowJumpRangeTab(); });
+        ShowCampaignsTabCommand   = ReactiveCommand.Create(() => { ShowCampaignsTab(); });
+
+        // The avoid list is ringed on every map, whoever changed it.
+        RouteAvoidList.Changed += () => Dispatcher.UIThread.Post(() =>
+        {
+            var ids = RouteAvoidList.Ids;
+            foreach (var tab in AllTabs.OfType<UniverseTabViewModel>()) tab.Map.Avoided = ids;
+        });
 
         // Typing refreshes the suggestions; picking one opens it. Throttled: each keystroke is a
         // query.
@@ -80,6 +110,7 @@ public sealed class MapToolViewModel : ReactiveObject
 
         // The tool opens on New Eden, as the single map did.
         NewUniverseTab();
+        _ = ReloadHolesAsync();
     }
 
     // ── Panes and tabs ───────────────────────────────────────────────────────
@@ -129,6 +160,164 @@ public sealed class MapToolViewModel : ReactiveObject
 
     public bool HasBridges => _bridges is not null;
 
+    public ReactiveCommand<Unit, Unit> ShowRouteTabCommand       { get; }
+    public ReactiveCommand<Unit, Unit> ShowJumpPlannerTabCommand { get; }
+    public ReactiveCommand<Unit, Unit> ShowJumpRangeTabCommand   { get; }
+
+    public bool HasRoutes      => _routes is not null;
+    public bool HasCampaigns   => _campaigns is not null;
+
+    public ReactiveCommand<Unit, Unit> ShowCampaignsTabCommand { get; }
+
+    /// <summary>The sovereignty campaigns tab: one, brought forward if open.</summary>
+    public CampaignsTabViewModel? ShowCampaignsTab()
+    {
+        if (_campaigns is null) return null;
+        if (AllTabs.OfType<CampaignsTabViewModel>().FirstOrDefault() is { } open)
+        {
+            SelectedTab = open;
+            return open;
+        }
+        var tab = new CampaignsTabViewModel(this);
+        Add(tab);
+        tab.Show(_campaignList);
+        _ = ReloadCampaignsAsync();
+        return tab;
+    }
+
+    // ── Sovereignty campaigns ────────────────────────────────────────────────
+
+    private IReadOnlyList<SovCampaign> _campaignList = [];
+
+    /// <summary>Reads the campaigns (at most once a minute; the service keeps the last) and puts
+    /// them on every map and the campaigns tab.</summary>
+    public async Task ReloadCampaignsAsync()
+    {
+        if (_campaigns is null) return;
+        try
+        {
+            var list = await Task.Run(() => _campaigns.GetAsync());
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                _campaignList = list;
+                foreach (var t in AllTabs.OfType<UniverseTabViewModel>()) t.ApplyCampaigns(list, true);
+                foreach (var t in AllTabs.OfType<CampaignsTabViewModel>()) t.Show(list);
+            });
+        }
+        catch (Exception ex) { _errors?.Log(nameof(MapToolViewModel), "sov campaigns", ex); }
+    }
+
+    /// <summary>
+    /// Campaign marks for one map: one on each campaign's system, ringed once its fight has
+    /// started, and one on each region holding any, for the zoomed-out tier.
+    /// </summary>
+    internal static Dictionary<int, MapCampaignMark> BuildCampaigns(IReadOnlyList<SovCampaign> campaigns, MapGraph graph)
+    {
+        var marks = new Dictionary<int, MapCampaignMark>();
+        if (campaigns.Count == 0) return marks;
+        var now     = DateTimeOffset.UtcNow;
+        var nodes   = graph.Nodes.Where(n => !n.IsRegion || !graph.IsContinuous).GroupBy(n => n.Id).ToDictionary(g => g.Key, g => g.First());
+        var regions = graph.Nodes.Where(n => n.IsRegion && graph.IsContinuous).GroupBy(n => n.RegionId).ToDictionary(g => g.Key, g => g.First());
+
+        foreach (var g in campaigns.GroupBy(c => c.SystemId))
+            if (nodes.TryGetValue(g.Key, out var node))
+                marks[g.Key] = new MapCampaignMark(string.Format(MapText.CampaignTitle, node.Label),
+                    string.Join("\n", g.Select(c => CampaignText.Line(c, now) + "\n" + CampaignText.Times(c))),
+                    g.Any(c => c.IsRunning(now)));
+
+        foreach (var region in regions.Values)
+        {
+            var inside = campaigns.Where(c => c.RegionId == region.RegionId).ToList();
+            if (inside.Count == 0) continue;
+            marks[region.Id] = new MapCampaignMark(string.Format(MapText.CampaignRegionTitle, region.Label),
+                string.Join("\n", inside.Select(c => string.Format(MapText.CampaignRegionLine,
+                    SdeNames.SolarSystem(c.SystemId, c.SystemName), CampaignText.Line(c, now)))),
+                inside.Any(c => c.IsRunning(now)));
+        }
+        return marks;
+    }
+    public bool HasJumpPlanner => _jumpPlanner is not null;
+
+    /// <summary>The route planner tab: one, brought forward if open.</summary>
+    public RouteTabViewModel? ShowRouteTab()
+    {
+        if (_routes is null) return null;
+        if (AllTabs.OfType<RouteTabViewModel>().FirstOrDefault() is { } open)
+        {
+            SelectedTab = open;
+            return open;
+        }
+        var tab = new RouteTabViewModel(this, _routes, _map, _db, _stats);
+        Add(tab);
+        return tab;
+    }
+
+    /// <summary>The capital jump planner, which was a tool of its own: one tab, brought forward if open.</summary>
+    public JumpPlannerTabViewModel? ShowJumpPlannerTab()
+    {
+        if (_jumpPlanner is null) return null;
+        if (AllTabs.OfType<JumpPlannerTabViewModel>().FirstOrDefault() is { } open)
+        {
+            SelectedTab = open;
+            return open;
+        }
+        var tab = new JumpPlannerTabViewModel(this, _jumpPlanner);
+        Add(tab);
+        return tab;
+    }
+
+    /// <summary>What a jump drive reaches from a system: one tab, brought forward if open.</summary>
+    public JumpRangeTabViewModel? ShowJumpRangeTab()
+    {
+        if (_jumpPlanner is null) return null;
+        if (AllTabs.OfType<JumpRangeTabViewModel>().FirstOrDefault() is { } open)
+        {
+            SelectedTab = open;
+            return open;
+        }
+        var tab = new JumpRangeTabViewModel(this, _jumpPlanner.Service, _map, _db);
+        Add(tab);
+        return tab;
+    }
+
+    /// <summary>The jump range on the maps, and the tab it is from.</summary>
+    private (MapTabViewModel Owner, MapJumpRange Range)? _jumpRange;
+
+    /// <summary>Puts the jump range tab's systems on every map, or takes them off (null). UI thread.</summary>
+    public void SetJumpRange(MapTabViewModel owner, MapJumpRange? range)
+    {
+        if (range is null && _jumpRange?.Owner != owner) return;
+        _jumpRange = range is null ? null : (owner, range);
+        foreach (var t in AllTabs.OfType<UniverseTabViewModel>()) t.Map.JumpRange = range;
+    }
+
+    /// <summary>The routes on the maps, by the tab that planned them. A tab's route goes when it
+    /// clears it, turns Show on map off, or closes.</summary>
+    private readonly Dictionary<MapTabViewModel, IReadOnlyList<MapRouteStep>> _routeByTab = new();
+    private IReadOnlyList<IReadOnlyList<MapRouteStep>> _routeList = [];
+
+    /// <summary>Puts a tool's route on every map, or takes it off (null or empty). UI thread.</summary>
+    public void SetRoute(MapTabViewModel owner, IReadOnlyList<MapRouteStep>? steps)
+    {
+        if (steps is { Count: > 0 }) _routeByTab[owner] = steps;
+        else if (!_routeByTab.Remove(owner)) return;
+        PushRoutes();
+    }
+
+    /// <summary>The map's own Clear route: every route off every map, until a tool plans again.</summary>
+    private void ClearAllRoutes()
+    {
+        if (_routeByTab.Count == 0) return;
+        _routeByTab.Clear();
+        PushRoutes();
+    }
+
+    private void PushRoutes()
+    {
+        _routeList = [.. _routeByTab.Values];
+        foreach (var t in AllTabs.OfType<UniverseTabViewModel>()) t.Map.Routes = _routeList;
+    }
+
     /// <summary>The jump bridges tab: there is only ever one, brought forward if open.</summary>
     public BridgesTabViewModel? ShowBridgesTab()
     {
@@ -155,12 +344,19 @@ public sealed class MapToolViewModel : ReactiveObject
         Add(tab);
         if (_snapshot is { } live) tab.ApplyLive(live);
         map.Bridges = _bridgeLines;
+        map.Routes  = _routeList;
+        map.JumpRange = _jumpRange?.Range;
+        map.ClearRoutesRequested = ClearAllRoutes;
+        tab.ApplyHoles(_holeList, _stormList, _eveScout?.Enabled == true);
+        tab.ApplyCampaigns(_campaignList, _campaigns is not null);
         return tab;
     }
 
     private SystemTabViewModel NewSystemTab(int systemId)
     {
-        var tab = new SystemTabViewModel(this, _newSystemPage(), systemId);
+        var page = _newSystemPage();
+        page.ExtrasSource = LoadExtrasAsync;
+        var tab = new SystemTabViewModel(this, page, systemId);
         Add(tab);
         _ = tab.LoadAsync();
         return tab;
@@ -178,6 +374,10 @@ public sealed class MapToolViewModel : ReactiveObject
     {
         var pane = tab.Pane;
         if (!TakeOut(tab)) return;
+        // A planning tool's route goes with it, and the jump range with its tab.
+        SetRoute(tab, null);
+        SetJumpRange(tab, null);
+        tab.OnClosed();
         if (pane == _activePane) this.RaisePropertyChanged(nameof(SelectedTab));
         PanesChanged();
     }
@@ -354,6 +554,9 @@ public sealed class MapToolViewModel : ReactiveObject
     // ── Live ─────────────────────────────────────────────────────────────────
 
     private LiveMapSnapshot? _snapshot;
+
+    /// <summary>Who is where, as last read — for the route planner's hostiles column.</summary>
+    public LiveMapSnapshot? Snapshot => _snapshot;
     private CancellationTokenSource? _liveCts;
 
     /// <summary>Starts reading who is where while the tool is on screen, and stops when it is
@@ -426,6 +629,8 @@ public sealed class MapToolViewModel : ReactiveObject
     private async Task LiveLoopAsync(CancellationToken ct)
     {
         var overlayDue = DateTimeOffset.UtcNow + OverlayEvery;
+        var pagesDue   = DateTimeOffset.UtcNow + PageEvery;
+        await ReloadCampaignsAsync();
         await ReloadBridgesAsync();
         using var timer = new PeriodicTimer(LiveEvery);
         do
@@ -439,6 +644,16 @@ public sealed class MapToolViewModel : ReactiveObject
                     foreach (var tab in AllTabs.OfType<UniverseTabViewModel>()) tab.ApplyLive(snapshot);
                 });
 
+                if (DateTimeOffset.UtcNow >= pagesDue)
+                {
+                    pagesDue = DateTimeOffset.UtcNow + PageEvery;
+                    // Only a page on screen: a tab behind another one is refreshed when it is
+                    // next shown, rather than read every 30 s for nobody.
+                    var pages = await Dispatcher.UIThread.InvokeAsync(() =>
+                        AllTabs.OfType<SystemTabViewModel>().Where(t => t.IsSelected).Select(t => t.Page).ToList());
+                    foreach (var page in pages) await Task.Run(page.RefreshAsync, ct);
+                }
+
                 if (DateTimeOffset.UtcNow >= overlayDue)
                 {
                     overlayDue = DateTimeOffset.UtcNow + OverlayEvery;
@@ -449,6 +664,8 @@ public sealed class MapToolViewModel : ReactiveObject
                     // overlay publishes its result back to the UI thread itself.
                     foreach (var map in maps) await Task.Run(map.RefreshLiveOverlayAsync, ct);
                     await ReloadBridgesAsync();
+                    await ReloadHolesAsync();
+                    await ReloadCampaignsAsync();
                 }
             }
             catch (OperationCanceledException) when (ct.IsCancellationRequested) { return; }
@@ -473,6 +690,159 @@ public sealed class MapToolViewModel : ReactiveObject
     {
         try { return await timer.WaitForNextTickAsync(ct); }
         catch (OperationCanceledException) { return false; }
+    }
+
+    // ── Thera and Turnur ─────────────────────────────────────────────────────
+
+    private IReadOnlyList<EveConsole.Models.EveScoutConnection> _holeList = [];
+    private IReadOnlyList<EveConsole.Models.EveScoutStorm>      _stormList = [];
+
+    /// <summary>Reads the stored EVE-Scout list and puts it on every map. Off, or empty: no marks.</summary>
+    public async Task ReloadHolesAsync()
+    {
+        if (_eveScout is null) return;
+        try
+        {
+            var enabled = _eveScout.Enabled;
+            var list   = enabled ? await Task.Run(() => _eveScout.GetOpenAsync()) : [];
+            var storms = enabled ? await Task.Run(() => _eveScout.GetStormsAsync()) : [];
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                _holeList  = list;
+                _stormList = storms;
+                foreach (var tab in AllTabs.OfType<UniverseTabViewModel>()) tab.ApplyHoles(list, storms, enabled);
+            });
+        }
+        catch (Exception ex) { _errors?.Log(nameof(MapToolViewModel), "wormholes", ex); }
+    }
+
+    /// <summary>
+    /// Storm marks for one map: a ⚡ on each system with a storm, and on each region holding any,
+    /// for the zoomed-out tier. The storm's own name is EVE-Scout's (English).
+    /// </summary>
+    internal static Dictionary<int, MapHoleMark> BuildStorms(IReadOnlyList<EveConsole.Models.EveScoutStorm> storms, MapGraph graph)
+    {
+        var marks = new Dictionary<int, MapHoleMark>();
+        if (storms.Count == 0) return marks;
+        var nodes   = graph.Nodes.Where(n => !n.IsRegion || !graph.IsContinuous).GroupBy(n => n.Id).ToDictionary(g => g.Key, g => g.First());
+        var regions = graph.Nodes.Where(n => n.IsRegion && graph.IsContinuous).GroupBy(n => n.RegionId).ToDictionary(g => g.Key, g => g.First());
+
+        foreach (var g in storms.GroupBy(s => s.SystemId))
+            if (nodes.TryGetValue(g.Key, out var node))
+                marks[g.Key] = new MapHoleMark("⚡", string.Format(MapText.StormTitle, node.Label),
+                    string.Join("\n", g.Select(StormLine)));
+
+        foreach (var region in regions.Values)
+        {
+            var inside = storms.Where(s => nodes.TryGetValue(s.SystemId, out var n) && n.RegionId == region.RegionId).ToList();
+            if (inside.Count == 0) continue;
+            marks[region.Id] = new MapHoleMark("⚡", string.Format(MapText.StormRegionTitle, region.Label),
+                string.Join("\n", inside.Select(s => string.Format(MapText.HoleRegionLine,
+                    SdeNames.SolarSystem(s.SystemId, s.SystemName), s.DisplayName))));
+        }
+        return marks;
+    }
+
+    /// <summary>One storm, as its hover and the system page say it.</summary>
+    internal static string StormLine(EveConsole.Models.EveScoutStorm s) =>
+        string.Format(MapText.StormLine, s.DisplayName, s.HoursInSystem);
+
+    /// <summary>The largest ship a hole takes, in the interface language (EVE-Scout's size word).</summary>
+    internal static string HoleSize(string size) => size.ToLowerInvariant() switch
+    {
+        "small"   => MapText.ShipSizeSmall,
+        "medium"  => MapText.ShipSizeMedium,
+        "large"   => MapText.ShipSizeLarge,
+        "xlarge"  => MapText.ShipSizeXLarge,
+        "capital" => MapText.ShipSizeCapital,
+        _         => size,
+    };
+
+    /// <summary>How long a hole has left, in whole hours; "" when EVE-Scout does not say.</summary>
+    internal static string HoleLeft(DateTimeOffset? expires) =>
+        expires is not { } end ? ""
+        : (end - DateTimeOffset.UtcNow).TotalHours < 1 ? MapText.HoleUnderHour
+        : string.Format(MapText.HoleHoursLeft, (int)(end - DateTimeOffset.UtcNow).TotalHours);
+
+    /// <summary>
+    /// What a system page shows from the map: the system's Ansiblex zone, its jump bridges, its
+    /// Thera and Turnur holes, and who is placed there now. From what the map already holds
+    /// where it can; the zones are the bridge service's, cached half an hour.
+    /// </summary>
+    public async Task<SystemMapExtras> LoadExtrasAsync(int systemId, CancellationToken ct)
+    {
+        SystemZone? zone = null;
+        IReadOnlyList<JumpBridge> bridges = [];
+        if (_bridges is not null)
+        {
+            var zones = await Task.Run(() => _bridges.GetZonesAsync(ct), ct);
+            zone = zones.TryGetValue(systemId, out var z) ? z : null;
+            var list = _bridgeList ?? await Task.Run(() => _bridges.GetAsync(ct), ct);
+            bridges = [.. list.Bridges.Where(b => b.SystemA == systemId || b.SystemB == systemId)];
+        }
+        var holes  = _holeList.Where(c => c.HubSystemId == systemId || c.OtherSystemId == systemId).ToList();
+        var storms = _stormList.Where(s => s.SystemId == systemId).ToList();
+        var fights = _campaignList.Where(c => c.SystemId == systemId).ToList();
+        var live   = _snapshot;
+        return new SystemMapExtras(zone, bridges, holes,
+            live?.Hostiles.GetValueOrDefault(systemId),
+            live?.Own.GetValueOrDefault(systemId) ?? [], storms, fights);
+    }
+
+    /// <summary>
+    /// The marks and lines for one map: a mark on every system with a hole to Thera or Turnur,
+    /// one on Turnur listing all of its own, a summary on each region for the zoomed-out tier, and
+    /// a line from Turnur to each system — Thera is in wormhole space, off the map, so its holes
+    /// are marks only.
+    /// </summary>
+    internal static (Dictionary<int, MapHoleMark> Marks, List<MapHoleLink> Links) BuildHoles(
+        IReadOnlyList<EveConsole.Models.EveScoutConnection> holes, MapGraph graph)
+    {
+        var marks = new Dictionary<int, MapHoleMark>();
+        var links = new List<MapHoleLink>();
+        if (holes.Count == 0) return (marks, links);
+
+        var nodes   = graph.Nodes.Where(n => !n.IsRegion || !graph.IsContinuous).GroupBy(n => n.Id).ToDictionary(g => g.Key, g => g.First());
+        var regions = graph.Nodes.Where(n => n.IsRegion && graph.IsContinuous).GroupBy(n => n.RegionId).ToDictionary(g => g.Key, g => g.First());
+        var now     = DateTimeOffset.UtcNow;
+
+        static bool IsThera(EveConsole.Models.EveScoutConnection c) => c.HubSystemId == 31000005;   // Thera
+        static string Glyph(IEnumerable<EveConsole.Models.EveScoutConnection> cs) =>
+            (cs.Any(IsThera) ? "Θ" : "") + (cs.Any(c => !IsThera(c)) ? "T" : "");
+        string Hub(EveConsole.Models.EveScoutConnection c) => SdeNames.SolarSystem(c.HubSystemId, c.HubSystemName);
+        string Other(EveConsole.Models.EveScoutConnection c) => SdeNames.SolarSystem(c.OtherSystemId, c.OtherSystemName);
+        string Size(string s) => HoleSize(s);
+        string Left(EveConsole.Models.EveScoutConnection c) => HoleLeft(c.ExpiresAt);
+
+        // Each system with holes: what they are, seen from that system.
+        foreach (var g in holes.GroupBy(c => c.OtherSystemId))
+        {
+            if (!nodes.TryGetValue(g.Key, out var node)) continue;
+            marks[g.Key] = new MapHoleMark(Glyph(g), string.Format(MapText.HoleTitle, node.Label),
+                string.Join("\n", g.Select(c => string.Format(MapText.HoleLine, Hub(c), c.OtherSignature, c.HubSignature, Size(c.MaxShipSize), Left(c)))));
+        }
+
+        // The hubs the map shows (Turnur): every hole out of it, and a line to each.
+        foreach (var g in holes.GroupBy(c => c.HubSystemId))
+        {
+            if (!nodes.TryGetValue(g.Key, out var hub)) continue;
+            marks[g.Key] = new MapHoleMark(Glyph(g), string.Format(MapText.HoleHubTitle, hub.Label, g.Count()),
+                string.Join("\n", g.Select(c => string.Format(MapText.HoleHubLine, Other(c),
+                    c.OtherRegionId is int rid ? SdeNames.Region(rid, c.OtherRegionName) : c.OtherRegionName,
+                    c.HubSignature, c.OtherSignature, Size(c.MaxShipSize), Left(c)))));
+            foreach (var c in g)
+                if (nodes.ContainsKey(c.OtherSystemId)) links.Add(new MapHoleLink(g.Key, c.OtherSystemId));
+        }
+
+        // Regions, for the zoomed-out tier: which of their systems have holes.
+        foreach (var region in regions.Values)
+        {
+            var inside = holes.Where(c => nodes.TryGetValue(c.OtherSystemId, out var n) && n.RegionId == region.RegionId).ToList();
+            if (inside.Count == 0) continue;
+            marks[region.Id] = new MapHoleMark(Glyph(inside), string.Format(MapText.HoleRegionTitle, region.Label),
+                string.Join("\n", inside.Select(c => string.Format(MapText.HoleRegionLine, Other(c), Hub(c)))));
+        }
+        return (marks, links);
     }
 
     // ── Markers from a snapshot ──────────────────────────────────────────────
@@ -502,12 +872,15 @@ public sealed class MapToolViewModel : ReactiveObject
             var ownRows     = o is null ? null : OwnRows(o);
             result[id] = new MapMarkers(
                 h?.Count ?? 0,
-                h is null ? null : string.Format(MapText.LiveHostilesTitle, h.Count, node.Label),
+                h is null ? null
+                    : h.Count > 0 ? string.Format(MapText.LiveHostilesTitle, h.Count, node.Label)
+                    : string.Format(MapText.LiveFactsTitle, node.Label),
                 hostileRows is null ? null : string.Join("\n", hostileRows.Select(r => r.Text)),
                 o?.Count ?? 0,
                 o is null ? null : string.Format(MapText.LiveOwnTitle, o.Count, node.Label),
                 ownRows is null ? null : string.Join("\n", ownRows.Select(r => r.Text)),
-                hostileRows, ownRows);
+                hostileRows, ownRows,
+                Reported: h is { Facts: not null });
         }
 
         // Regions: the sum, and which systems it is in.
@@ -541,7 +914,9 @@ public sealed class MapToolViewModel : ReactiveObject
     /// the map can put the portrait and the ship's icon in front of it.</summary>
     private static List<MapMarkRow> HostileRows(SystemHostiles h, DateTimeOffset now)
     {
-        var rows = h.Pilots.Take(MaxListed).Select(p =>
+        // What was said about the system first — a spike or bubbles changes how to go in.
+        var said = h.Facts is { } facts ? new List<MapMarkRow> { new(facts) } : [];
+        var rows = said.Concat(h.Pilots.Take(MaxListed).Select(p =>
         {
             var ship    = p.Ship is { Length: > 0 } s ? s : MapText.LiveShipUnknown;
             var minutes = (int)Math.Max(0, (now - p.At).TotalMinutes);
@@ -550,13 +925,15 @@ public sealed class MapToolViewModel : ReactiveObject
                         : p.NoVisual     ? MapText.LiveSourceIntelNoVisual
                         :                  MapText.LiveSourceIntel;
             var (text, at) = WithShipAt(MapText.LiveHostileLine, ship, p.Name, ShipMark, ago, source);
-            return new MapMarkRow(text, p.CharacterId, p.ShipTypeId ?? 0, at);
-        }).ToList();
+            return new MapMarkRow(text, p.CharacterId, p.ShipTypeId ?? 0, at, p.CorporationId, p.AllianceId);
+        })).ToList();
 
         if (h.Pilots.Count > MaxListed)
             rows.Add(new MapMarkRow(string.Format(MapText.LiveMore, h.Pilots.Count - MaxListed)));
         if (h.Unidentified > 0)
             rows.Add(new MapMarkRow(string.Format(MapText.LiveUnidentified, h.Unidentified)));
+        if (h.Ships is { } ships)
+            rows.Add(new MapMarkRow(string.Format(MapText.LiveShipsRow, ships)));
         return rows;
     }
 
@@ -569,7 +946,7 @@ public sealed class MapToolViewModel : ReactiveObject
                   : o.Place is { } place ? string.Format(MapText.LiveDockedAt, place)
                   :                        MapText.LiveDocked;
         var (text, at) = WithShipAt(MapText.LiveOwnLine, ship, o.Name, ShipMark, where);
-        return new MapMarkRow(text, o.CharacterId, o.ShipTypeId ?? 0, at);
+        return new MapMarkRow(text, o.CharacterId, o.ShipTypeId ?? 0, at, o.CorporationId, o.AllianceId);
     }).ToList();
 
     /// <summary>Stands in for the ship's name while a line is formatted, to find where it lands.</summary>
@@ -637,6 +1014,9 @@ public abstract class MapTabViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> CloseCommand  { get; }
     public ReactiveCommand<Unit, Unit> SelectCommand { get; }
 
+    /// <summary>Called once the tab has been closed: what it started, it stops.</summary>
+    public virtual void OnClosed() { }
+
     /// <summary>When this tab was last selected, in selections (see MapToolViewModel).</summary>
     public long LastActive { get; internal set; }
 
@@ -659,7 +1039,12 @@ public sealed class UniverseTabViewModel : MapTabViewModel
         // A map that arrives after the marks were read (the graph loads a moment after the tab
         // opens) gets them as soon as it can place them.
         map.WhenAnyValue(m => m.Graph).Where(g => g is not null)
-           .Subscribe(_ => { if (_live is { } live) ApplyLive(live); });
+           .Subscribe(_ =>
+           {
+               if (_live is { } live) ApplyLive(live);
+               if (_holes is { } holes) ApplyHoles(holes, _storms, Map.HolesAvailable);
+               ApplyCampaigns(_campaigns, Map.CampaignsAvailable);
+           });
     }
 
     public UniverseViewModel Map { get; }
@@ -668,6 +1053,35 @@ public sealed class UniverseTabViewModel : MapTabViewModel
     public override string TabGlyph => "◎";
 
     private LiveMapSnapshot? _live;
+    private IReadOnlyList<EveConsole.Models.EveScoutConnection>? _holes;
+    private IReadOnlyList<EveConsole.Models.EveScoutStorm>       _storms = [];
+
+    private IReadOnlyList<SovCampaign> _campaigns = [];
+
+    /// <summary>Puts the sovereignty campaigns on this map, as soon as it can place them. UI thread.</summary>
+    public void ApplyCampaigns(IReadOnlyList<SovCampaign> campaigns, bool available)
+    {
+        _campaigns = campaigns;
+        Map.CampaignsAvailable = available;
+        if (Map.Graph is { } graph) Map.Campaigns = MapToolViewModel.BuildCampaigns(campaigns, graph);
+    }
+
+    /// <summary>Puts Thera and Turnur's holes and the storms on this map, as soon as it can place
+    /// them. UI thread.</summary>
+    public void ApplyHoles(IReadOnlyList<EveConsole.Models.EveScoutConnection> holes,
+                           IReadOnlyList<EveConsole.Models.EveScoutStorm> storms, bool available)
+    {
+        _holes  = holes;
+        _storms = storms;
+        Map.HolesAvailable = available;
+        if (Map.Graph is { } graph)
+        {
+            var (marks, links) = MapToolViewModel.BuildHoles(holes, graph);
+            Map.Holes     = marks;
+            Map.HoleLinks = links;
+            Map.Storms    = MapToolViewModel.BuildStorms(storms, graph);
+        }
+    }
 
     /// <summary>Draws a snapshot on this map. UI thread.</summary>
     public void ApplyLive(LiveMapSnapshot live)
@@ -675,6 +1089,45 @@ public sealed class UniverseTabViewModel : MapTabViewModel
         _live = live;
         if (Map.Graph is { } graph) Map.Markers = MapToolViewModel.BuildMarkers(live, graph);
     }
+}
+
+
+
+/// <summary>The capital jump planner, moved into the map tool from a tool of its own.</summary>
+public sealed class JumpPlannerTabViewModel : MapTabViewModel
+{
+    private readonly IDisposable _follow;
+
+    public JumpPlannerTabViewModel(MapToolViewModel tool, JumpPlannerViewModel planner) : base(tool)
+    {
+        Planner = planner;
+        // The planner publishes its finished route as MapRoute (null when cleared); the maps
+        // follow it, and Show on map. The planner outlives the tab, so a route planned before is
+        // shown again when the tab is reopened.
+        _follow = planner.WhenAnyValue(p => p.MapRoute, p => p.ShowOnMap)
+                         .Subscribe(_ => Dispatcher.UIThread.Post(Push));
+    }
+
+    public JumpPlannerViewModel Planner { get; }
+
+    private void Push()
+    {
+        var legs = Planner.Legs;
+        if (!Planner.ShowOnMap || Planner.MapRoute is null || legs.Count == 0)
+        {
+            Tool.SetRoute(this, null);
+            return;
+        }
+        // Every leg is a jump drive's: dashed all the way.
+        var steps = new List<MapRouteStep> { new(legs[0].FromSystemId, legs[0].FromRegionId, false) };
+        steps.AddRange(legs.Select(l => new MapRouteStep(l.ToSystemId, l.ToRegionId, true)));
+        Tool.SetRoute(this, steps);
+    }
+
+    public override void OnClosed() => _follow.Dispose();
+
+    public override string TabTitle => MapText.JumpPlannerTab;
+    public override string TabGlyph => "⤴";
 }
 
 /// <summary>One system's page.</summary>
@@ -685,6 +1138,8 @@ public sealed class SystemTabViewModel : MapTabViewModel
         Page     = page;
         SystemId = systemId;
         page.WhenAnyValue(p => p.Name).Subscribe(_ => this.RaisePropertyChanged(nameof(TabTitle)));
+        this.WhenAnyValue(t => t.IsSelected).Skip(1).Where(s => s)
+            .Subscribe(shown => _ = Task.Run(page.RefreshAsync));
     }
 
     public SystemPageViewModel Page     { get; }

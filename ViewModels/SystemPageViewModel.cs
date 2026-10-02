@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive;
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
+using EveConsole.Controls;
 using EveConsole.Models;
 using EveConsole.Services;
 using LiveChartsCore;
@@ -40,6 +42,9 @@ public abstract class IconRowVm : ReactiveObject
 
 public class SovStructureVm(SystemViewService.SovStructureRow r) : IconRowVm
 {
+    public long   Key       { get; } = r.StructureId;
+    /// <summary>What a refresh compares: a hub whose owner, ADM, state or window moved is redrawn.</summary>
+    public string Signature { get; } = $"{r.Owner}|{r.Adm}|{r.State}|{r.Window}";
     public string TypeName { get; } = SdeNames.Type(r.TypeId, r.TypeName);
     public string Owner    { get; } = r.Owner;
     public string Adm      { get; } = r.Adm is { } a ? $"{a:F1}" : "—";
@@ -359,9 +364,27 @@ public class IntelFaceVm : ReactiveObject
 /// </summary>
 public class IntelRowVm(SystemViewService.IntelRow r)
 {
+    /// <summary>Which sighting this is, for a refresh to find it again: reports have no id of
+    /// their own here.</summary>
+    public string Key       { get; } = $"{r.When.UtcTicks}|{r.ReporterId}|{r.Channel}|{r.Message}";
+    /// <summary>What a refresh compares: a report gone obsolete, or re-parsed, is redrawn.</summary>
+    public string Signature { get; } = $"{r.Obsolete}|{r.PlayerCount}|{r.Pilots.Count}|{r.Facts}|{r.Ships}";
     public string When     { get; } = r.When.UtcDateTime.ToString("yyyy-MM-dd HH:mm");
     public string Count    { get; } = r.PlayerCount.ToString("N0");
     public string Note     { get; } = r.Note;
+
+    /// <summary>What else the report said — "bubbles, gate camp · on the QZ-X77 gate".</summary>
+    public string Facts    { get; } = r.Facts ?? "";
+    public bool   HasFacts { get; } = !string.IsNullOrEmpty(r.Facts);
+
+    /// <summary>Hulls named with nobody to fly them: "Ships: 3× Loki".</summary>
+    public string Ships    { get; } = r.Ships is { } s ? string.Format(MapText.LiveShipsRow, s) : "";
+    public bool   HasShips { get; } = r.Ships is not null;
+    public bool   HasNote  { get; } = !string.IsNullOrEmpty(r.Note);
+
+    /// <summary>Everything in the note column, for its hover.</summary>
+    public string NoteTip  { get; } = string.Join("\n", new[] { r.Facts, r.Ships is { } sh ? string.Format(MapText.LiveShipsRow, sh) : null, r.Note }
+                                                     .Where(x => !string.IsNullOrEmpty(x)));
     public string Reporter { get; } = r.Reporter;
     public string Channel  { get; } = r.Channel;
 
@@ -737,6 +760,7 @@ public class SystemPageViewModel : ReactiveObject
 
         var header    = await _svc.GetHeaderAsync(systemId);
         if (header is null) return;
+        _systemId = systemId;
 
         var sovStructs = await _svc.GetSovStructuresAsync(systemId);
         var events     = await _svc.GetEventsAsync(systemId);
@@ -750,6 +774,7 @@ public class SystemPageViewModel : ReactiveObject
         var indexHist  = await _svc.GetIndustryHistoryAsync(systemId);
         var agents     = await _svc.GetAgentsAsync(systemId);
         var intel      = await _svc.GetIntelAsync(systemId);
+        var incursion  = await _svc.GetIncursionAsync(header.ConstellationId);
 
         // The kill list is the same query and the same row type the Kills tool uses, so the
         // formatting and icons match the rest of the app rather than being reinvented here. By
@@ -759,71 +784,8 @@ public class SystemPageViewModel : ReactiveObject
 
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
-            // The header keeps the English (the constellation link finds its constellation by
-            // it); these are what the page shows.
-            _header = header;
-            Name          = SdeNames.SolarSystem(header.SystemId, header.Name);
-            Region        = SdeNames.Region(header.RegionId, header.Region);
-            Constellation = SdeNames.Constellation(header.ConstellationId, header.Constellation);
-            Security      = EveConsole.Services.SecurityColors.Text(header.Security);
-            SecurityTrue  = EveConsole.Services.SecurityColors.TrueText(header.Security);
-            SecurityColor = EveConsole.Services.SecurityColors.Hex(header.Security);
-            SecurityTip   = EveConsole.Services.SecurityColors.Tip(header.Security);
-            SecurityClass = header.SecurityClass;
-            LocalPirates  = SdeNames.Faction(header.LocalPirateFactionId, header.LocalPirates);
-
-            _regionId        = header.RegionId;
-            _constellationId = header.ConstellationId;
-            _pirateFactionId = header.LocalPirateFactionId;
-            this.RaisePropertyChanged(nameof(HasRegionLink));
-            this.RaisePropertyChanged(nameof(HasConstellationLink));
-            this.RaisePropertyChanged(nameof(HasPirateLink));
-
-            HasAdm = header.Adm is not null;
-            Adm    = header.Adm is { } adm ? adm.ToString("F1") : "";
-            // The same reading the sovereignty overlay uses: 6 is fully defended, 1 undefended.
-            AdmColor = header.Adm switch
-            {
-                >= 5.0 => "#4fc07a",
-                >= 3.0 => "#e0913c",
-                not null => "#d94848",
-                _        => "#8a8a9a",
-            };
-            // Cost indices are fractions in the API; players talk in percent. All six are shown
-            // rather than manufacturing alone — a system can be cheap to build in and expensive
-            // to invent in, and only one of those was visible before.
-            HasIndustryIndex = header.Industry.Count > 0;
-            IndustryIndex    = string.Join("   ",
-                header.Industry.Select(i => $"{i.ShortName} {i.Index * 100:F2}%"));
-
-            var bits = new List<string>();
-            if (header.Power > 0)                bits.Add(string.Format(MapText.ProductionPower, header.Power));
-            if (header.Workforce > 0)            bits.Add(string.Format(MapText.ProductionWorkforce, header.Workforce));
-            if (header.MagmaticGasPerHour > 0)   bits.Add(string.Format(MapText.ProductionMagmaticGas, header.MagmaticGasPerHour));
-            if (header.SuperionicIcePerHour > 0) bits.Add(string.Format(MapText.ProductionSuperionicIce, header.SuperionicIcePerHour));
-            Production    = string.Join("  ·  ", bits);
-            HasProduction = bits.Count > 0;
-            Holder = string.IsNullOrEmpty(header.AllianceName)
-                ? (string.IsNullOrEmpty(header.CorporationName) ? MapText.SovUnclaimed : header.CorporationName)
-                : string.IsNullOrEmpty(header.CorporationName)
-                    ? header.AllianceName
-                    : $"{header.AllianceName}  ·  {header.CorporationName}";
-
-            SovAlliance       = header.AllianceName;
-            SovCorporation    = header.CorporationName;
-            _sovAllianceId    = header.AllianceId    ?? 0;
-            _sovCorporationId = header.CorporationId ?? 0;
-            HasSovAlliance    = _sovAllianceId    > 0 && SovAlliance.Length    > 0;
-            HasSovCorporation = _sovCorporationId > 0 && SovCorporation.Length > 0;
-            this.RaisePropertyChanged(nameof(HasSovNeither));
-
-            PlanetCount = header.Planets.ToString("N0");
-            MoonCount   = header.Moons.ToString("N0");
-            BeltCount   = header.Belts.ToString("N0");
-            Jumps     = $"{header.Jumps1h:N0} / {header.Jumps24h:N0}";
-            ShipKills = $"{header.ShipKills1h:N0} / {header.ShipKills24h:N0}";
-            NpcKills  = $"{header.NpcKills1h:N0} / {header.NpcKills24h:N0}";
-            PodKills  = $"{header.PodKills1h:N0} / {header.PodKills24h:N0}";
+            ApplyHeader(header);
+            ApplyIncursion(incursion, header.SystemId);
 
             Fill(SovStructures, sovStructs.Select(s => new SovStructureVm(s)));
             Fill(Events,     events.Select(e => new SystemEventVm(e)));
@@ -871,11 +833,86 @@ public class SystemPageViewModel : ReactiveObject
                                 killPage.Rows.Count);
         });
 
+        await ApplyExtrasAsync(generation);
+
         // Deliberately not awaited. The caller reveals the page as soon as this method returns,
         // so awaiting the icons kept the whole page off screen behind several hundred image
         // requests — on a cold cache that is by far the largest part of opening a system, while
         // the data above is a few hundred milliseconds.
         _ = LoadImagesAsync(header, generation);
+    }
+
+    /// <summary>
+    /// The header: names, security, sovereignty, indices and the 1 h / 24 h counts. Every setter
+    /// raises only on a change, so a refresh that finds nothing new moves nothing. UI thread.
+    /// </summary>
+    private void ApplyHeader(SystemViewService.SystemHeader header)
+    {
+        // The header keeps the English (the constellation link finds its constellation by
+        // it); these are what the page shows.
+        _header = header;
+        Name          = SdeNames.SolarSystem(header.SystemId, header.Name);
+        Region        = SdeNames.Region(header.RegionId, header.Region);
+        Constellation = SdeNames.Constellation(header.ConstellationId, header.Constellation);
+        Security      = EveConsole.Services.SecurityColors.Text(header.Security);
+        SecurityTrue  = EveConsole.Services.SecurityColors.TrueText(header.Security);
+        SecurityColor = EveConsole.Services.SecurityColors.Hex(header.Security);
+        SecurityTip   = EveConsole.Services.SecurityColors.Tip(header.Security);
+        SecurityClass = header.SecurityClass;
+        LocalPirates  = SdeNames.Faction(header.LocalPirateFactionId, header.LocalPirates);
+
+        _regionId        = header.RegionId;
+        _constellationId = header.ConstellationId;
+        _pirateFactionId = header.LocalPirateFactionId;
+        this.RaisePropertyChanged(nameof(HasRegionLink));
+        this.RaisePropertyChanged(nameof(HasConstellationLink));
+        this.RaisePropertyChanged(nameof(HasPirateLink));
+
+        HasAdm = header.Adm is not null;
+        Adm    = header.Adm is { } adm ? adm.ToString("F1") : "";
+        // The same reading the sovereignty overlay uses: 6 is fully defended, 1 undefended.
+        AdmColor = header.Adm switch
+        {
+            >= 5.0 => "#4fc07a",
+            >= 3.0 => "#e0913c",
+            not null => "#d94848",
+            _        => "#8a8a9a",
+        };
+        // Cost indices are fractions in the API; players talk in percent. All six are shown
+        // rather than manufacturing alone — a system can be cheap to build in and expensive
+        // to invent in, and only one of those was visible before.
+        HasIndustryIndex = header.Industry.Count > 0;
+        IndustryIndex    = string.Join("   ",
+            header.Industry.Select(i => $"{i.ShortName} {i.Index * 100:F2}%"));
+
+        var bits = new List<string>();
+        if (header.Power > 0)                bits.Add(string.Format(MapText.ProductionPower, header.Power));
+        if (header.Workforce > 0)            bits.Add(string.Format(MapText.ProductionWorkforce, header.Workforce));
+        if (header.MagmaticGasPerHour > 0)   bits.Add(string.Format(MapText.ProductionMagmaticGas, header.MagmaticGasPerHour));
+        if (header.SuperionicIcePerHour > 0) bits.Add(string.Format(MapText.ProductionSuperionicIce, header.SuperionicIcePerHour));
+        Production    = string.Join("  ·  ", bits);
+        HasProduction = bits.Count > 0;
+        Holder = string.IsNullOrEmpty(header.AllianceName)
+            ? (string.IsNullOrEmpty(header.CorporationName) ? MapText.SovUnclaimed : header.CorporationName)
+            : string.IsNullOrEmpty(header.CorporationName)
+                ? header.AllianceName
+                : $"{header.AllianceName}  ·  {header.CorporationName}";
+
+        SovAlliance       = header.AllianceName;
+        SovCorporation    = header.CorporationName;
+        _sovAllianceId    = header.AllianceId    ?? 0;
+        _sovCorporationId = header.CorporationId ?? 0;
+        HasSovAlliance    = _sovAllianceId    > 0 && SovAlliance.Length    > 0;
+        HasSovCorporation = _sovCorporationId > 0 && SovCorporation.Length > 0;
+        this.RaisePropertyChanged(nameof(HasSovNeither));
+
+        PlanetCount = header.Planets.ToString("N0");
+        MoonCount   = header.Moons.ToString("N0");
+        BeltCount   = header.Belts.ToString("N0");
+        Jumps     = $"{header.Jumps1h:N0} / {header.Jumps24h:N0}";
+        ShipKills = $"{header.ShipKills1h:N0} / {header.ShipKills24h:N0}";
+        NpcKills  = $"{header.NpcKills1h:N0} / {header.NpcKills24h:N0}";
+        PodKills  = $"{header.PodKills1h:N0} / {header.PodKills24h:N0}";
     }
 
     /// <summary>
@@ -950,6 +987,7 @@ public class SystemPageViewModel : ReactiveObject
     /// </summary>
     private void BuildSparklines(List<SystemViewService.HourPoint> hourly)
     {
+        _newestHour = hourly.Count > 0 ? hourly[^1].Hour : null;
         if (hourly.Count == 0)
         {
             HourJumpSeries = HourNpcSeries = HourShipSeries = HourPodSeries = [];
@@ -1186,6 +1224,235 @@ public class SystemPageViewModel : ReactiveObject
         MinStep         = Math.Max(1, labels.Length / 10),
         SeparatorsPaint = null,
     };
+
+    // ── Refresh ──────────────────────────────────────────────────────────────
+
+    private int _systemId;
+    private int _refreshing;
+    private DateTimeOffset? _newestHour;
+
+    /// <summary>
+    /// Reads again what moves — the header's counts, intel, recent kills, sovereignty hubs, the
+    /// hourly charts when a new hour has come in, and the map's extras (zone, bridges, Thera and
+    /// Turnur, who is here now) — and changes only what changed. Lists are merged row by row,
+    /// never cleared and refilled: a new kill slides in at the top and nothing else moves. What
+    /// does not move (celestials, structures, agents, the long graphs) stays as loaded. The map
+    /// tool calls this every 30 s while the page is the tab on screen.
+    /// </summary>
+    public async Task RefreshAsync()
+    {
+        if (_systemId == 0 || Interlocked.Exchange(ref _refreshing, 1) == 1) return;
+        var generation = _loadGeneration;
+        try
+        {
+            var header     = await _svc.GetHeaderAsync(_systemId);
+            if (header is null) return;
+            var intel      = await _svc.GetIntelAsync(_systemId);
+            var incursion  = await _svc.GetIncursionAsync(header.ConstellationId);
+            var sovStructs = await _svc.GetSovStructuresAsync(_systemId);
+            var hourly     = await _svc.GetHourlyHistoryAsync(_systemId);
+            var killPage   = await _kills.GetListAsync(0, 50, solarSystemId: _systemId);
+            if (generation != _loadGeneration) return;
+
+            var added = new List<object>();
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                ApplyHeader(header);
+                ApplyIncursion(incursion, header.SystemId);
+
+                added.AddRange(Merge(Intel, [.. intel.Select(i => new IntelRowVm(i))], r => r.Key, (a, b) => a.Signature == b.Signature));
+                HasIntel = intel.Count > 0;
+                IntelSummary = intel.Count == 0 ? "" : string.Format(MapText.IntelSummary, intel.Count, intel.Count(i => !i.Obsolete));
+
+                added.AddRange(Merge(Kills, [.. killPage.Rows.Select(r => new KillmailListRowVm(r))], k => k.KillMailId, (_, _) => true));
+                KillsNote = killPage.Rows.Count == 0
+                    ? MapText.KillsNone
+                    : string.Format(killPage.HasMore ? MapText.KillsMostRecentMore : MapText.KillsMostRecent, killPage.Rows.Count);
+
+                added.AddRange(Merge(SovStructures, [.. sovStructs.Select(s => new SovStructureVm(s))], s => s.Key, (a, b) => a.Signature == b.Signature));
+
+                // The four small charts only when an hour has been added: redrawn every time,
+                // they would visibly blink.
+                var newest = hourly.Count > 0 ? hourly[^1].Hour : (DateTimeOffset?)null;
+                if (newest != _newestHour) BuildSparklines(hourly);
+            });
+            await ApplyExtrasAsync(generation);
+
+            // Icons for the rows that came in; the rest already have theirs.
+            await Task.WhenAll(added.Select(r => r switch
+            {
+                IntelRowVm i        => i.LoadIconsAsync(),
+                KillmailListRowVm k => k.LoadImagesAsync(),
+                SovStructureVm s    => s.LoadIconAsync(),
+                _                   => Task.CompletedTask,
+            }));
+        }
+        catch
+        {
+            // A refresh that fails leaves the page as it was; the next one tries again.
+        }
+        finally { Interlocked.Exchange(ref _refreshing, 0); }
+    }
+
+    /// <summary>
+    /// Brings <paramref name="target"/> to <paramref name="fresh"/>'s rows and order by moving,
+    /// inserting, replacing and removing single rows — never clearing — so a list on screen only
+    /// moves where something changed. A row whose key is kept and whose content is the same is
+    /// left alone, its icons and all. Returns the rows put in, which need their icons.
+    /// </summary>
+    internal static List<T> Merge<T, TKey>(ObservableCollection<T> target, IReadOnlyList<T> fresh,
+                                           Func<T, TKey> key, Func<T, T, bool> same) where TKey : notnull
+    {
+        var added = new List<T>();
+        var wanted = fresh.Select(key).ToHashSet();
+        for (var i = target.Count - 1; i >= 0; i--)
+            if (!wanted.Contains(key(target[i]))) target.RemoveAt(i);
+
+        for (var i = 0; i < fresh.Count; i++)
+        {
+            var k = key(fresh[i]);
+            if (i < target.Count && EqualityComparer<TKey>.Default.Equals(key(target[i]), k))
+            {
+                if (!same(target[i], fresh[i])) { target[i] = fresh[i]; added.Add(fresh[i]); }
+                continue;
+            }
+            var at = -1;
+            for (var j = i + 1; j < target.Count; j++)
+                if (EqualityComparer<TKey>.Default.Equals(key(target[j]), k)) { at = j; break; }
+            if (at >= 0)
+            {
+                target.Move(at, i);
+                if (!same(target[i], fresh[i])) { target[i] = fresh[i]; added.Add(fresh[i]); }
+            }
+            else
+            {
+                target.Insert(i, fresh[i]);
+                added.Add(fresh[i]);
+            }
+        }
+        return added;
+    }
+
+    // ── Incursion ────────────────────────────────────────────────────────────
+
+    private string _incursionText = "";
+    /// <summary>The incursion in this system's constellation, or "" for none.</summary>
+    public string IncursionText { get => _incursionText; private set => this.RaiseAndSetIfChanged(ref _incursionText, value); }
+
+    private string _incursionColor = "#c8543f";
+    public string IncursionColor { get => _incursionColor; private set => this.RaiseAndSetIfChanged(ref _incursionColor, value); }
+
+    private void ApplyIncursion(SystemViewService.IncursionInfo? i, int systemId)
+    {
+        if (i is null) { IncursionText = ""; return; }
+        var state = i.State.ToLowerInvariant() switch
+        {
+            "established" => MapText.IncursionEstablished,
+            "mobilizing"  => MapText.IncursionMobilizing,
+            "withdrawing" => MapText.IncursionWithdrawing,
+            _             => i.State,
+        };
+        IncursionColor = i.State.ToLowerInvariant() switch
+        {
+            "established" => "#c8543f",
+            "mobilizing"  => "#e0913c",
+            _             => "#9a7a5a",
+        };
+        // The state leads the line, so it takes a capital where the language has them.
+        if (state.Length > 0) state = char.ToUpper(state[0], System.Globalization.CultureInfo.CurrentCulture) + state[1..];
+        IncursionText = string.Format(MapText.SysIncursionLine, state, i.Influence * 100,
+                            SdeNames.Faction(i.FactionId, i.FactionName),
+                            i.StagingSystemId == systemId ? MapText.SysIncursionStagingHere
+                                                          : SdeNames.SolarSystem(i.StagingSystemId, i.StagingName))
+                      + (i.HasBoss ? " · " + MapText.NodeBossUp : "");
+    }
+
+    // ── From the map: zone, bridges, Thera and Turnur, who is here now ─────────
+
+    /// <summary>Set by the map tool: what it knows about a system that the system service does
+    /// not — its Ansiblex zone, its jump bridges, its Thera and Turnur wormholes, and who is
+    /// placed there now. Null outside the map tool.</summary>
+    public Func<int, CancellationToken, Task<SystemMapExtras>>? ExtrasSource { get; set; }
+
+    public ObservableCollection<SysBridgeVm> Bridges   { get; } = [];
+    public ObservableCollection<SysHoleVm>   Wormholes { get; } = [];
+
+    private string _zoneText = "";
+    public string ZoneText { get => _zoneText; private set => this.RaiseAndSetIfChanged(ref _zoneText, value); }
+
+    private string _zoneColor = "#8a8a9a";
+    public string ZoneColor { get => _zoneColor; private set => this.RaiseAndSetIfChanged(ref _zoneColor, value); }
+
+    private bool _hasZone;
+    public bool HasZone { get => _hasZone; private set => this.RaiseAndSetIfChanged(ref _hasZone, value); }
+
+    private string _hostilesNow = "";
+    /// <summary>Hostiles placed here in the last 5 minutes, by intel or killmail; "" for none.</summary>
+    public string HostilesNow { get => _hostilesNow; private set => this.RaiseAndSetIfChanged(ref _hostilesNow, value); }
+
+    private string _ownNow = "";
+    /// <summary>The capsuleer's characters here now; "" for none.</summary>
+    public string OwnNow { get => _ownNow; private set => this.RaiseAndSetIfChanged(ref _ownNow, value); }
+
+    private string _campaign = "";
+    /// <summary>The sovereignty campaign here, scheduled or running; "" for none.</summary>
+    public string Campaign { get => _campaign; private set => this.RaiseAndSetIfChanged(ref _campaign, value); }
+
+    private string _weather = "";
+    /// <summary>The metaliminal storm reported here, as EVE-Scout lists it; "" for none.</summary>
+    public string Weather { get => _weather; private set => this.RaiseAndSetIfChanged(ref _weather, value); }
+
+    private bool _hasBridges;
+    public bool HasBridges { get => _hasBridges; private set => this.RaiseAndSetIfChanged(ref _hasBridges, value); }
+
+    private bool _hasWormholes;
+    public bool HasWormholes { get => _hasWormholes; private set => this.RaiseAndSetIfChanged(ref _hasWormholes, value); }
+
+    private async Task ApplyExtrasAsync(int generation)
+    {
+        if (ExtrasSource is not { } source || _systemId == 0) return;
+        SystemMapExtras extras;
+        try { extras = await source(_systemId, CancellationToken.None); }
+        catch { return; }
+        if (generation != _loadGeneration) return;
+
+        var id = _systemId;
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            if (extras.Zone is { } z)
+            {
+                HasZone   = true;
+                ZoneColor = MapCanvas.ZoneColors[Math.Clamp(z.Zone, 0, MapCanvas.ZoneColors.Length - 1)].ToString();
+                ZoneText  = z.Zone == 0
+                    ? MapText.SysZoneNone
+                    : string.Format(MapText.SysZoneLine, z.Zone, z.DistanceLy ?? 0,
+                                    SdeNames.SolarSystem(z.CapitalSystemId, z.CapitalName),
+                                    JumpBridgeService.ZoneMultiplier(z.Zone) is var m and > 0
+                                        ? string.Format(MapText.SysZoneCost, m) : MapText.SysZoneFree);
+            }
+            else HasZone = false;
+
+            HostilesNow = extras.Hostiles is { Count: > 0 } h
+                ? string.Format(MapText.SysHostilesNow, h.Count,
+                    string.Join(", ", h.Pilots.Take(8).Select(p => p.Ship is { Length: > 0 } ship ? $"{p.Name} ({ship})" : p.Name))
+                    + (h.Count > 8 ? ", …" : ""))
+                : "";
+            Campaign = extras.Campaigns is { Count: > 0 } fights
+                ? string.Join("  ·  ", fights.Select(c => $"{CampaignText.Line(c, DateTimeOffset.UtcNow)} · {CampaignText.Times(c)}"))
+                : "";
+            Weather = extras.Storms is { Count: > 0 } storms
+                ? string.Join(" · ", storms.Select(MapToolViewModel.StormLine))
+                : "";
+            OwnNow = extras.Own.Count > 0
+                ? string.Format(MapText.SysOwnNow, string.Join(", ", extras.Own.Select(o => o.Name)))
+                : "";
+
+            Merge(Bridges, [.. extras.Bridges.Select(b => new SysBridgeVm(b, id))], b => b.OtherSystemId, (a, b) => a.Signature == b.Signature);
+            HasBridges = Bridges.Count > 0;
+            Merge(Wormholes, [.. extras.Holes.Select(c => new SysHoleVm(c, id))], w => w.Key, (a, b) => a.Signature == b.Signature);
+            HasWormholes = Wormholes.Count > 0;
+        });
+    }
 
     private static void Fill<T>(ObservableCollection<T> target, IEnumerable<T> items)
     {

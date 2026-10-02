@@ -485,10 +485,7 @@
     <value>Protokollordner</value>
   </data>
   <data name="LeaveTheListEmptyNote" xml:space="preserve">
-    <value>Lassen Sie die Liste leer, um automatisch den lokalen Ordner zu verwenden. Fügen Sie einen Netzwerkpfad hinzu (\\RECHNER\Freigabe\Gamelogs), um Protokolle von EVE-Clients auf anderen Computern zu importieren – dort muss nichts installiert werden.</value>
-  </data>
-  <data name="Detect" xml:space="preserve">
-    <value>Erkennen</value>
+    <value>Der eigene EVE-Spielprotokollordner dieses Computers wird immer gelesen, wenn er gefunden wird. Fügen Sie einen Netzwerkpfad hinzu (\\RECHNER\Freigabe\Gamelogs), um zusätzlich Protokolle von EVE-Clients auf anderen Computern zu importieren – dort muss nichts installiert werden.</value>
   </data>
   <data name="Open" xml:space="preserve">
     <value>Öffnen</value>
@@ -539,7 +536,7 @@
     <value>Chatprotokolle importieren</value>
   </data>
   <data name="LeaveTheListEmptyNote2" xml:space="preserve">
-    <value>Lassen Sie die Liste leer, um automatisch den lokalen Ordner zu verwenden. Fügen Sie einen Netzwerkpfad hinzu (\\RECHNER\Freigabe\Chatlogs), um Protokolle von EVE-Clients auf anderen Computern zu importieren – dort muss nichts installiert werden. Die Kanalsuche unten sieht nur Kanäle aus den hier eingerichteten Ordnern.</value>
+    <value>Der eigene EVE-Chatprotokollordner dieses Computers wird immer gelesen, wenn er gefunden wird. Fügen Sie einen Netzwerkpfad hinzu (\\RECHNER\Freigabe\Chatlogs), um zusätzlich Protokolle von EVE-Clients auf anderen Computern zu importieren – dort muss nichts installiert werden. Die Kanalsuche unten sieht Kanäle aus allen gelesenen Ordnern.</value>
   </data>
   <data name="ChannelsToStore" xml:space="preserve">
     <value>Zu speichernde Kanäle</value>
@@ -2368,9 +2365,6 @@ Die Anwendung wird neu gestartet.</value>
   <data name="LogsCountFailed" xml:space="preserve">
     <value>Dateien konnten nicht gezählt werden – {0}</value>
   </data>
-  <data name="ChatFolderNotFound" xml:space="preserve">
-    <value>Kein lokaler EVE-Ordner für Chatprotokolle gefunden.</value>
-  </data>
   <data name="ChatNoFolder" xml:space="preserve">
     <value>Kein Ordner für Chatprotokolle gefunden – fügen Sie unten einen hinzu.</value>
   </data>
@@ -2385,9 +2379,6 @@ Die Anwendung wird neu gestartet.</value>
   </data>
   <data name="GameLogNoFolder" xml:space="preserve">
     <value>Kein Ordner für Spielprotokolle gefunden – fügen Sie unten einen hinzu.</value>
-  </data>
-  <data name="GameLogFolderNotFound" xml:space="preserve">
-    <value>Kein lokaler EVE-Ordner für Spielprotokolle gefunden.</value>
   </data>
   <data name="TimerMinimum" xml:space="preserve">
     <value>(mind. {0} {1})</value>
@@ -3345,6 +3336,39 @@ Die Anwendung wird neu gestartet.</value>
   </data>
   <data name="DiscordErrHttp" xml:space="preserve">
     <value>Von Discord abgelehnt (HTTP {0}): {1}</value>
+  </data>
+  <data name="EveScoutHeading" xml:space="preserve">
+    <value>Thera und Turnur</value>
+  </data>
+  <data name="EveScoutNote" xml:space="preserve">
+    <value>Wurmlochverbindungen von Thera und Turnur, alle fünf Minuten von EVE-Scout für Karte und Routenplaner gelesen, und metaliminale Stürme, stündlich gelesen. Beim Ausschalten wird Gespeichertes gelöscht: Löcher schließen sich innerhalb von Stunden und Stürme ziehen weiter, eine alte Liste würde in die Irre führen.</value>
+  </data>
+  <data name="EveScoutPoll" xml:space="preserve">
+    <value>Thera/Turnur-Verbindungen und Stürme von EVE-Scout lesen</value>
+  </data>
+  <data name="EveScoutRead" xml:space="preserve">
+    <value>{0} Verbindungen, gelesen um {1:t}</value>
+  </data>
+  <data name="EveScoutRefused" xml:space="preserve">
+    <value>EVE-Scout antwortete {0}; die letzte Liste bleibt bis zum nächsten Lesen erhalten.</value>
+  </data>
+  <data name="LogsFolderThisComputer" xml:space="preserve">
+    <value>✓ {0}  (dieser Computer)</value>
+  </data>
+  <data name="IntelRegionsLabel" xml:space="preserve">
+    <value>REGIONEN</value>
+  </data>
+  <data name="TipIntelRegions" xml:space="preserve">
+    <value>Optional. Die Regionen, über die dieser Intel-Kanal berichtet, durch Kommas getrennt. Sie entscheiden, welches System ein abgekürzter Name wie „QZ-X“ meint. Leer gelassen, werden die Regionen aus den Systemen gelernt, über die der Kanal berichtet hat.</value>
+  </data>
+  <data name="IntelRegionsLearned" xml:space="preserve">
+    <value>Gelernt: {0}</value>
+  </data>
+  <data name="IntelRegionsNoneLearned" xml:space="preserve">
+    <value>Gelernt: noch keine</value>
+  </data>
+  <data name="IntelRegionsUnknown" xml:space="preserve">
+    <value>Keine Region: {0}</value>
   </data>
   <data name="ColPi" xml:space="preserve">
     <value>PI</value>

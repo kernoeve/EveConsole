@@ -337,8 +337,20 @@ public static class AppKnowledge
         the user's online characters. A system page has tabs for its celestials, kills, industry
         indices, graphs and intel.
 
+        ### Route Planner
+        A Universe Map tab. Plans a route from system to system through gates, the jump bridges
+        the chosen character's alliance may use, and Thera/Turnur wormholes from EVE-Scout;
+        shortest, safer or less secure, keeping out of the avoid list (right-click a system to
+        add or remove it). Lists each jump with security, hostiles and last-hour kills; Show on
+        map draws it, Set destination sends it to the game's autopilot.
+
+        ### Jump Range
+        A Universe Map tab. Every system a jump drive reaches from a character's system (taking
+        their hull and Jump Drive Calibration, and following them as they move) or any system,
+        nearest first, optionally only where you can dock; ringed green on the map.
+
         ### Jump Planner
-        Plans a capital jump route. Pick a jump-capable hull, Jump Drive Calibration and Jump Fuel
+        A Universe Map tab. Plans a capital jump route. Pick a jump-capable hull, Jump Drive Calibration and Jump Fuel
         Conservation levels (the range per jump is shown) and a Jump Through rule for where
         midpoints may stop (anywhere, stations and structures, Fortizar/Keepstar or Keepstar
         systems), then add waypoints by name and Plan Route. The map shows the route with total
@@ -428,6 +440,7 @@ public static class AppKnowledge
         ("inv_levels",          "Inventory Levels",       "Inventory Levels"),
         ("structure_browser",   "Structure Browser",      "Structure Browser"),
         ("universe",            "Universe Map",           "Universe Map"),
+        ("route_planner",       "Route Planner",          "Route Planner"),
         ("jump_planner",        "Jump Planner",           "Jump Planner"),
         ("industry",            "Industry Jobs",          "Industry Jobs"),
         ("indy_parks",          "Indy Parks",             "Indy Parks"),

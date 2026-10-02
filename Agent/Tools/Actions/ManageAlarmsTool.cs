@@ -49,8 +49,9 @@ public sealed class ManageAlarmsTool : IAgentTool
          ACTIONS AVAILABLE (the "actions" array; each entry has a "kind")
          - {"kind":"tts"} — spoken at once by text-to-speech in the words the check composed,
            with no model involved, and shown in the agent window as the application's line.
-           Prefer it for intel, ship_undock and undocked_too_long, whose words are already
-           written; add "message" to say something of your own instead (placeholders as below).
+           Prefer it for intel, ship_undock, undocked_too_long and game_log_event, whose words
+           are already written; add "message" to say something of your own instead (placeholders
+           as below).
          - {"kind":"agent_notify"} — the alarm tells YOU it fired and you tell the capsuleer.
            Use it when the capsuleer wants the detail put into words, or a question asked.
            Optionally add "instruction" with anything they want mentioned. Nothing else is

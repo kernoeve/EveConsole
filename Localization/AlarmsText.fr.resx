@@ -1417,6 +1417,57 @@
   <data name="IntelSaidJumpsFromOther" xml:space="preserve">
     <value>à {0} sauts de {1}</value>
   </data>
+  <data name="AdriftStopEndsLabel" xml:space="preserve">
+    <value>Arrêter le vaisseau y met fin</value>
+  </data>
+  <data name="AdriftStopEndsNote" xml:space="preserve">
+    <value>Coché : arrêter le vaisseau après le désamarrage met fin à l'alarme de ce désamarrage — un vaisseau arrêté ne dérive pas loin du point de désamarrage, et quelqu'un a appuyé sur stop. Lu dans le journal de jeu : le dossier des journaux de jeu de ce client doit donc être lu (Paramètres → Journaux de jeu) ; sans lui, les étapes se déroulent comme avant.</value>
+  </data>
+  <data name="CheckGameLogEvent" xml:space="preserve">
+    <value>Événement du journal de jeu</value>
+  </data>
+  <data name="CheckGameLogEventNote" xml:space="preserve">
+    <value>Se déclenche quand le journal de jeu d'un de vos personnages indique qu'il a été décamouflé par quelque chose à proximité, brouillé ou perturbé en warp, ou qu'il est attaqué — cochez n'importe quelle combinaison. Un brouillage ou une attaque se déclenche une fois par combat : des lignes séparées de deux minutes au plus forment un même combat. Le dossier des journaux de jeu de ce client doit être lu (Paramètres → Journaux de jeu), et le client du jeu doit être en anglais ; détecté en quelques secondes.</value>
+  </data>
+  <data name="GameLogDecloakedLabel" xml:space="preserve">
+    <value>Décamouflé</value>
+  </data>
+  <data name="GameLogDecloakedNote" xml:space="preserve">
+    <value>Votre camouflage est tombé près d'une porte des étoiles, d'une structure ou de toute autre chose qui l'annule.</value>
+  </data>
+  <data name="GameLogScrambledLabel" xml:space="preserve">
+    <value>Warp brouillé</value>
+  </data>
+  <data name="GameLogScrambledNote" xml:space="preserve">
+    <value>Un brouilleur ou un perturbateur de warp vous a atteint.</value>
+  </data>
+  <data name="GameLogAttackedLabel" xml:space="preserve">
+    <value>Attaqué</value>
+  </data>
+  <data name="GameLogAttackedNote" xml:space="preserve">
+    <value>Vous subissez des dégâts.</value>
+  </data>
+  <data name="GameLogPlayersOnlyLabel" xml:space="preserve">
+    <value>Joueurs uniquement</value>
+  </data>
+  <data name="GameLogPlayersOnlyNote" xml:space="preserve">
+    <value>Coché : un brouillage ou une attaque ne compte que s'il vient d'un joueur, pas d'un PNJ — sinon, chasser les rats le déclencherait toute la soirée.</value>
+  </data>
+  <data name="GameLogCharactersNote" xml:space="preserve">
+    <value>Facultatif. Vos propres personnages à surveiller ; laissez vide pour tous.</value>
+  </data>
+  <data name="GameLogEventsTitle" xml:space="preserve">
+    <value>Événements du journal de jeu : {0}</value>
+  </data>
+  <data name="GameLogSaidDecloaked" xml:space="preserve">
+    <value>{0} a été décamouflé près de {1}.</value>
+  </data>
+  <data name="GameLogSaidScrambled" xml:space="preserve">
+    <value>{0} est brouillé en warp par {1}.</value>
+  </data>
+  <data name="GameLogSaidAttacked" xml:space="preserve">
+    <value>{0} est attaqué par {1}.</value>
+  </data>
   <data name="CheckPi" xml:space="preserve">
     <value>Industrie planétaire</value>
   </data>
@@ -1455,5 +1506,17 @@
   </data>
   <data name="PiTitleOther" xml:space="preserve">
     <value>{0} colonies d'industrie planétaire demandent votre attention</value>
+  </data>
+  <data name="IntelLyLabel" xml:space="preserve">
+    <value>Années-lumière</value>
+  </data>
+  <data name="IntelLyNote" xml:space="preserve">
+    <value>Facultatif. Surveiller aussi chaque système à moins de ce nombre d'années-lumière, quel que soit le nombre de portails — ce qu'un moteur de saut ou un cyno met à portée. Un rapport capté par l'une ou l'autre portée déclenche l'alarme. 20 au plus.</value>
+  </data>
+  <data name="IntelSaidLyFrom" xml:space="preserve">
+    <value>à {0} années-lumière de {1}</value>
+  </data>
+  <data name="IntelSaidLyOut" xml:space="preserve">
+    <value>à {0} années-lumière</value>
   </data>
 </root>

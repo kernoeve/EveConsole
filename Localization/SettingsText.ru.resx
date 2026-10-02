@@ -485,10 +485,7 @@
     <value>Папки журналов</value>
   </data>
   <data name="LeaveTheListEmptyNote" xml:space="preserve">
-    <value>Оставьте список пустым, чтобы автоматически использовать локальную папку. Добавьте сетевой путь (\\MACHINE\share\Gamelogs), чтобы импортировать журналы клиентов EVE, запущенных на других компьютерах, — на них ничего устанавливать не нужно.</value>
-  </data>
-  <data name="Detect" xml:space="preserve">
-    <value>Определить</value>
+    <value>Папка игровых журналов EVE на этом компьютере читается всегда, если её удаётся найти. Добавьте сетевой путь (\\MACHINE\share\Gamelogs), чтобы дополнительно импортировать журналы клиентов EVE, запущенных на других компьютерах, — устанавливать на них ничего не нужно.</value>
   </data>
   <data name="Open" xml:space="preserve">
     <value>Открыть</value>
@@ -539,7 +536,7 @@
     <value>Импортировать журналы чата</value>
   </data>
   <data name="LeaveTheListEmptyNote2" xml:space="preserve">
-    <value>Оставьте список пустым, чтобы автоматически использовать локальную папку. Добавьте сетевой путь (\\MACHINE\share\Chatlogs), чтобы импортировать журналы клиентов EVE, запущенных на других компьютерах, — на них ничего устанавливать не нужно. Поиск каналов ниже видит только каналы из заданных здесь папок.</value>
+    <value>Папка журналов чата EVE на этом компьютере читается всегда, если её удаётся найти. Добавьте сетевой путь (\\MACHINE\share\Chatlogs), чтобы дополнительно импортировать журналы клиентов EVE, запущенных на других компьютерах, — устанавливать на них ничего не нужно. Поиск каналов ниже видит каналы из всех читаемых папок.</value>
   </data>
   <data name="ChannelsToStore" xml:space="preserve">
     <value>Сохраняемые каналы</value>
@@ -2368,9 +2365,6 @@ EVE Console сразу перезапустится, потому что баз�
   <data name="LogsCountFailed" xml:space="preserve">
     <value>Не удалось посчитать файлы — {0}</value>
   </data>
-  <data name="ChatFolderNotFound" xml:space="preserve">
-    <value>Не удалось найти локальную папку журналов чата EVE.</value>
-  </data>
   <data name="ChatNoFolder" xml:space="preserve">
     <value>Папка журналов чата не найдена — добавьте её ниже.</value>
   </data>
@@ -2385,9 +2379,6 @@ EVE Console сразу перезапустится, потому что баз�
   </data>
   <data name="GameLogNoFolder" xml:space="preserve">
     <value>Папка игровых журналов не найдена — добавьте её ниже.</value>
-  </data>
-  <data name="GameLogFolderNotFound" xml:space="preserve">
-    <value>Не удалось найти локальную папку игровых журналов EVE.</value>
   </data>
   <data name="TimerMinimum" xml:space="preserve">
     <value>(не менее {0} {1})</value>
@@ -3351,6 +3342,39 @@ EVE Console сразу перезапустится, потому что баз�
   </data>
   <data name="DiscordErrHttp" xml:space="preserve">
     <value>Discord отклонил запрос (HTTP {0}): {1}</value>
+  </data>
+  <data name="EveScoutHeading" xml:space="preserve">
+    <value>Thera и Turnur</value>
+  </data>
+  <data name="EveScoutNote" xml:space="preserve">
+    <value>Соединения червоточин из Thera и Turnur раз в пять минут считываются с EVE-Scout для карты и планировщика маршрутов, а металиминальные штормы — раз в час. При отключении сохранённое удаляется: червоточины закрываются за часы, штормы перемещаются, и старый список вводил бы в заблуждение.</value>
+  </data>
+  <data name="EveScoutPoll" xml:space="preserve">
+    <value>Считывать соединения Thera/Turnur и штормы с EVE-Scout</value>
+  </data>
+  <data name="EveScoutRead" xml:space="preserve">
+    <value>Соединений: {0}, считано в {1:t}</value>
+  </data>
+  <data name="EveScoutRefused" xml:space="preserve">
+    <value>EVE-Scout ответил {0}; последний список сохраняется до следующего чтения.</value>
+  </data>
+  <data name="LogsFolderThisComputer" xml:space="preserve">
+    <value>✓ {0}  (этот компьютер)</value>
+  </data>
+  <data name="IntelRegionsLabel" xml:space="preserve">
+    <value>РЕГИОНЫ</value>
+  </data>
+  <data name="TipIntelRegions" xml:space="preserve">
+    <value>Необязательно. Регионы, о которых сообщает этот интел-канал, через запятую. Они определяют, какую систему означает сокращённое имя вроде «QZ-X». Если оставить пустым, регионы определяются по системам, о которых канал сообщал.</value>
+  </data>
+  <data name="IntelRegionsLearned" xml:space="preserve">
+    <value>Определены: {0}</value>
+  </data>
+  <data name="IntelRegionsNoneLearned" xml:space="preserve">
+    <value>Определены: пока нет</value>
+  </data>
+  <data name="IntelRegionsUnknown" xml:space="preserve">
+    <value>Не регион: {0}</value>
   </data>
   <data name="ColPi" xml:space="preserve">
     <value>PI</value>

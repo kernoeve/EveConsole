@@ -12,6 +12,14 @@ public class MapStatsSettings(AppPreferencesService prefs)
         set => _ = prefs.SetBoolAsync("mapstats.enabled", value);
     }
 
+    /// <summary>Thera and Turnur connections from EVE-Scout (see EveScoutService). On unless
+    /// switched off; shared, like the rest, so the one client that polls reads it.</summary>
+    public bool EveScoutEnabled
+    {
+        get => prefs.GetBool("mapstats.evescout", true);
+        set => _ = prefs.SetBoolAsync("mapstats.evescout", value);
+    }
+
     /// <summary>
     /// How much history to pull on the first run. Deliberately short: it keeps a new install's
     /// first run to minutes rather than tens of minutes, and nothing is lost by starting small

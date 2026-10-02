@@ -1888,6 +1888,74 @@
     <value>{0} jumps from {1}</value>
     <comment>Spoken, in IntelSaidReportedAt: how many gate jumps from one of the capsuleer's characters. {0} is the number of jumps, {1} the character's name.</comment>
   </data>
+  <data name="AdriftStopEndsLabel" xml:space="preserve">
+    <value>Stopping the ship ends it</value>
+    <comment>Alarm editor, Undocked too long check: a checkbox, shown when Jump arrivals is unticked.</comment>
+  </data>
+  <data name="AdriftStopEndsNote" xml:space="preserve">
+    <value>Ticked: stopping the ship after the undock ends that undock's alarm — a stopped ship does not drift off the undock, and somebody pressed stop. Read from the game log, so that client's game log folder must be read (Settings → Game Logs); without it the stages run as before.</value>
+    <comment>Alarm editor, Undocked too long check, beside the Stopping the ship ends it checkbox.</comment>
+  </data>
+  <data name="CheckGameLogEvent" xml:space="preserve">
+    <value>Game log event</value>
+    <comment>Alarm editor, name of the check in the Check list.</comment>
+  </data>
+  <data name="CheckGameLogEventNote" xml:space="preserve">
+    <value>Fires when the game log of one of your characters says it was decloaked by something nearby, warp scrambled or disrupted, or is under attack — tick any mix. A scramble or an attack fires once per fight: lines with no more than two minutes between them are one fight. Needs that client's game log folder being read (Settings → Game Logs), and an English game client; seen within seconds.</value>
+    <comment>Alarm editor, under the Check list when Game log event is picked.</comment>
+  </data>
+  <data name="GameLogDecloakedLabel" xml:space="preserve">
+    <value>Decloaked</value>
+    <comment>Alarm editor, Game log event check: checkbox.</comment>
+  </data>
+  <data name="GameLogDecloakedNote" xml:space="preserve">
+    <value>Your cloak dropped near a gate, a structure or anything else that drops one.</value>
+    <comment>Alarm editor, Game log event check, beside Decloaked.</comment>
+  </data>
+  <data name="GameLogScrambledLabel" xml:space="preserve">
+    <value>Warp scrambled</value>
+    <comment>Alarm editor, Game log event check: checkbox.</comment>
+  </data>
+  <data name="GameLogScrambledNote" xml:space="preserve">
+    <value>A warp scramble or warp disruption landed on you.</value>
+    <comment>Alarm editor, Game log event check, beside Warp scrambled.</comment>
+  </data>
+  <data name="GameLogAttackedLabel" xml:space="preserve">
+    <value>Under attack</value>
+    <comment>Alarm editor, Game log event check: checkbox.</comment>
+  </data>
+  <data name="GameLogAttackedNote" xml:space="preserve">
+    <value>You are taking damage.</value>
+    <comment>Alarm editor, Game log event check, beside Under attack.</comment>
+  </data>
+  <data name="GameLogPlayersOnlyLabel" xml:space="preserve">
+    <value>Players only</value>
+    <comment>Alarm editor, Game log event check: checkbox.</comment>
+  </data>
+  <data name="GameLogPlayersOnlyNote" xml:space="preserve">
+    <value>Ticked: a scramble or an attack counts only from a player, not an NPC — ratting would otherwise set it off all evening.</value>
+    <comment>Alarm editor, Game log event check, beside Players only.</comment>
+  </data>
+  <data name="GameLogCharactersNote" xml:space="preserve">
+    <value>Optional. Your own characters to watch; leave empty for all of them.</value>
+    <comment>Alarm editor, Game log event check, beside Characters.</comment>
+  </data>
+  <data name="GameLogEventsTitle" xml:space="preserve">
+    <value>Game log events: {0}</value>
+    <comment>Title of a Game log event alarm's alert or dialog for several events. {0} is how many.</comment>
+  </data>
+  <data name="GameLogSaidDecloaked" xml:space="preserve">
+    <value>{0} decloaked near {1}.</value>
+    <comment>Spoken when a Game log event alarm fires. {0} is the character, {1} what dropped the cloak, as the game log names it (in English, e.g. Stargate (Jita), Keepstar).</comment>
+  </data>
+  <data name="GameLogSaidScrambled" xml:space="preserve">
+    <value>{0} is warp scrambled by {1}.</value>
+    <comment>Spoken when a Game log event alarm fires. {0} is the character, {1} who scrambled them, as the game log names them (pilot and ship, or an NPC).</comment>
+  </data>
+  <data name="GameLogSaidAttacked" xml:space="preserve">
+    <value>{0} is under attack by {1}.</value>
+    <comment>Spoken when a Game log event alarm fires. {0} is the character, {1} who is attacking, as the game log names them (pilots and ships, or NPCs).</comment>
+  </data>
   <data name="CheckPi" xml:space="preserve">
     <value>Planetary Industry</value>
     <comment>Name of an alarm check in the alarm editor's Check list.</comment>
@@ -1939,5 +2007,21 @@
   <data name="PiTitleOther" xml:space="preserve">
     <value>{0} Planetary Industry colonies need attention</value>
     <comment>Title of a Planetary Industry alarm's alert or dialog. {0} is the number of colonies.</comment>
+  </data>
+  <data name="IntelLyLabel" xml:space="preserve">
+    <value>Light years</value>
+    <comment>Alarm editor, Intel report check: label of the light-year range to watch, beside Jumps.</comment>
+  </data>
+  <data name="IntelLyNote" xml:space="preserve">
+    <value>Optional. Also watch every system within this many light years, however many gates away — what a jump drive or a cyno puts in reach. A report caught by either range fires. Capped at 20.</value>
+    <comment>Alarm editor, Intel report check, under Light years.</comment>
+  </data>
+  <data name="IntelSaidLyFrom" xml:space="preserve">
+    <value>{0} light years from {1}</value>
+    <comment>Spoken, in IntelSaidReportedAt: straight-line distance from one of the capsuleer's characters. {0} the light years (one decimal), {1} the character's name.</comment>
+  </data>
+  <data name="IntelSaidLyOut" xml:space="preserve">
+    <value>{0} light years out</value>
+    <comment>Spoken, in IntelSaidReportedAt: straight-line distance from the watched system. {0} the light years (one decimal).</comment>
   </data>
 </root>

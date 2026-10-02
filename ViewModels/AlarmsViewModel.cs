@@ -135,6 +135,32 @@ public sealed class AlarmFieldVm : ReactiveObject
     /// <summary>Shown among the check's fields: not a stage's, and in force.</summary>
     public bool IsInForm => !IsStage && Applies;
 
+    /// <summary>The field this one sits beside on one row, by the schema's <c>beside</c> — two
+    /// small numbers that go together, such as "Jumps" and "Light years". Null for a row of its own.</summary>
+    public string? BesideName { get; init; }
+
+    private AlarmFieldVm? _partner;
+    /// <summary>The field shown to the right of this one, in its row; null for none.</summary>
+    public AlarmFieldVm? Partner
+    {
+        get => _partner;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _partner, value);
+            this.RaisePropertyChanged(nameof(HasPartner));
+            this.RaisePropertyChanged(nameof(Span));
+        }
+    }
+    public bool HasPartner => _partner is not null;
+
+    /// <summary>How many of the row's three columns this field takes: all of them alone, the
+    /// first beside a partner.</summary>
+    public int Span => _partner is null ? 3 : 1;
+
+    private bool _isBeside;
+    /// <summary>Shown in its partner's row, so not in a row of its own.</summary>
+    public bool IsBeside { get => _isBeside; set => this.RaiseAndSetIfChanged(ref _isBeside, value); }
+
     public AlarmFieldVm()
     {
         AddCommand    = ReactiveCommand.CreateFromTask(AddAsync);
@@ -664,8 +690,22 @@ public sealed class AlarmsViewModel : ReactiveObject
             .Subscribe(a => _ = LoadEditorAsync(a!.Id));
 
         this.WhenAnyValue(x => x.SelectedCondition)
-            .Subscribe(_ => RebuildFields());
+            .Subscribe(choice =>
+            {
+                RebuildFields();
+
+                // A new alarm starts on the check's own interval, unless "Check every" was
+                // already changed by hand. An alarm being edited keeps what it was saved with.
+                var dflt = choice?.Condition.DefaultPollSeconds ?? GeneralPollSeconds;
+                if (EditingId == 0 && PollSeconds == _pollDefault) PollSeconds = dflt;
+                _pollDefault = dflt;
+            });
     }
+
+    private const int GeneralPollSeconds = 60;
+
+    /// <summary>The interval the selected check suggested, to tell an untouched box from one set by hand.</summary>
+    private int _pollDefault = GeneralPollSeconds;
 
     /// <summary>
     /// One editor section per stage of the selected check, each holding the stage's field and
@@ -919,7 +959,8 @@ public sealed class AlarmsViewModel : ReactiveObject
         ActiveFrom        = "";
         ActiveThru        = "";
         SetRepeat(AlarmRepeat.Continuous);
-        PollSeconds       = 60;
+        PollSeconds       = GeneralPollSeconds;
+        _pollDefault      = GeneralPollSeconds;
         CooldownSeconds   = 0;
         SelectedCondition = Conditions.FirstOrDefault();
         RebuildFields();
@@ -1085,6 +1126,7 @@ public sealed class AlarmsViewModel : ReactiveObject
                 UnitsName   = kind == "enum" ? unitsName : null,
                 ShowIfField  = showIfValues is not null ? showIf.Name : null,
                 ShowIfValues = showIfValues,
+                BesideName   = spec.TryGetProperty("beside", out var bs) && bs.ValueKind == JsonValueKind.String ? bs.GetString() : null,
             };
             if (field.HasUnits) field.UnitsText = unitsDflt;
 
@@ -1130,13 +1172,25 @@ public sealed class AlarmsViewModel : ReactiveObject
             Fields.Add(field);
         }
 
+        // Pairs on one row: the field named by "beside" takes this one to its right.
+        foreach (var field in Fields.Where(f => f.BesideName is not null))
+            if (Fields.FirstOrDefault(f => f.Name == field.BesideName && f.Partner is null) is { } host)
+            {
+                host.Partner   = field;
+                field.IsBeside = true;
+            }
+
         // A field shown only for some choices follows that choice as it changes — and as an
-        // existing alarm's config sets it, since that goes through the same Text.
+        // existing alarm's config sets it, since that goes through the same Text. A checkbox
+        // has no Text: its choice is "true" or "false", from the tick.
         foreach (var field in Fields.Where(f => f.ShowIfField is not null))
         {
             if (Fields.FirstOrDefault(f => f.Name == field.ShowIfField) is not { } choice) continue;
-            choice.WhenAnyValue(c => c.Text).Subscribe(value =>
-                field.Applies = field.ShowIfValues!.Contains(value, StringComparer.OrdinalIgnoreCase));
+            choice.WhenAnyValue(c => c.Text, c => c.Flag).Subscribe(v =>
+            {
+                var value = choice.IsBoolean ? (v.Item2 ? "true" : "false") : v.Item1;
+                field.Applies = field.ShowIfValues!.Contains(value, StringComparer.OrdinalIgnoreCase);
+            });
         }
 
         // ⚠️ Rebuilt here, with the fields, and not only when the condition changes: reopening

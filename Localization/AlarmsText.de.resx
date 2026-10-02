@@ -1417,6 +1417,57 @@
   <data name="IntelSaidJumpsFromOther" xml:space="preserve">
     <value>{0} Sprünge von {1} entfernt</value>
   </data>
+  <data name="AdriftStopEndsLabel" xml:space="preserve">
+    <value>Anhalten des Schiffs beendet ihn</value>
+  </data>
+  <data name="AdriftStopEndsNote" xml:space="preserve">
+    <value>Angekreuzt: Wird das Schiff nach dem Abdocken angehalten, endet der Alarm für dieses Abdocken – ein angehaltenes Schiff treibt nicht vom Abdockpunkt weg, und jemand hat auf Stopp gedrückt. Wird aus dem Spielprotokoll gelesen, daher muss der Spielprotokollordner dieses Clients gelesen werden (Einstellungen → Spielprotokolle); ohne ihn laufen die Stufen wie bisher.</value>
+  </data>
+  <data name="CheckGameLogEvent" xml:space="preserve">
+    <value>Spielprotokoll-Ereignis</value>
+  </data>
+  <data name="CheckGameLogEventNote" xml:space="preserve">
+    <value>Löst aus, wenn das Spielprotokoll eines Ihrer Charaktere meldet, dass er durch etwas in der Nähe enttarnt, per Warpstörung festgehalten oder gestört wurde oder angegriffen wird – beliebig ankreuzbar. Eine Warpstörung oder ein Angriff löst einmal pro Kampf aus: Zeilen mit höchstens zwei Minuten Abstand gelten als ein Kampf. Der Spielprotokollordner dieses Clients muss gelesen werden (Einstellungen → Spielprotokolle), und der Spielclient muss auf Englisch laufen; erkannt innerhalb von Sekunden.</value>
+  </data>
+  <data name="GameLogDecloakedLabel" xml:space="preserve">
+    <value>Enttarnt</value>
+  </data>
+  <data name="GameLogDecloakedNote" xml:space="preserve">
+    <value>Ihre Tarnung ist nahe einem Stargate, einer Struktur oder etwas anderem, das sie aufhebt, ausgefallen.</value>
+  </data>
+  <data name="GameLogScrambledLabel" xml:space="preserve">
+    <value>Warpgestört</value>
+  </data>
+  <data name="GameLogScrambledNote" xml:space="preserve">
+    <value>Ein Warpstörer oder Warpunterbrecher hat Sie erfasst.</value>
+  </data>
+  <data name="GameLogAttackedLabel" xml:space="preserve">
+    <value>Angegriffen</value>
+  </data>
+  <data name="GameLogAttackedNote" xml:space="preserve">
+    <value>Sie erleiden Schaden.</value>
+  </data>
+  <data name="GameLogPlayersOnlyLabel" xml:space="preserve">
+    <value>Nur Spieler</value>
+  </data>
+  <data name="GameLogPlayersOnlyNote" xml:space="preserve">
+    <value>Angekreuzt: Eine Warpstörung oder ein Angriff zählt nur von einem Spieler, nicht von einem NPC – sonst würde Ratten ihn den ganzen Abend auslösen.</value>
+  </data>
+  <data name="GameLogCharactersNote" xml:space="preserve">
+    <value>Optional. Ihre eigenen Charaktere, die überwacht werden; leer lassen für alle.</value>
+  </data>
+  <data name="GameLogEventsTitle" xml:space="preserve">
+    <value>Spielprotokoll-Ereignisse: {0}</value>
+  </data>
+  <data name="GameLogSaidDecloaked" xml:space="preserve">
+    <value>{0} wurde nahe {1} enttarnt.</value>
+  </data>
+  <data name="GameLogSaidScrambled" xml:space="preserve">
+    <value>{0} wird von {1} warpgestört.</value>
+  </data>
+  <data name="GameLogSaidAttacked" xml:space="preserve">
+    <value>{0} wird von {1} angegriffen.</value>
+  </data>
   <data name="CheckPi" xml:space="preserve">
     <value>Planetare Industrie</value>
   </data>
@@ -1455,5 +1506,17 @@
   </data>
   <data name="PiTitleOther" xml:space="preserve">
     <value>{0} Kolonien der Planetaren Industrie brauchen Aufmerksamkeit</value>
+  </data>
+  <data name="IntelLyLabel" xml:space="preserve">
+    <value>Lichtjahre</value>
+  </data>
+  <data name="IntelLyNote" xml:space="preserve">
+    <value>Optional. Zusätzlich jedes System innerhalb so vieler Lichtjahre überwachen, egal wie viele Gates entfernt – was ein Sprungantrieb oder ein Cyno in Reichweite bringt. Ein Bericht, den eine der beiden Reichweiten erfasst, löst aus. Höchstens 20.</value>
+  </data>
+  <data name="IntelSaidLyFrom" xml:space="preserve">
+    <value>{0} Lichtjahre von {1}</value>
+  </data>
+  <data name="IntelSaidLyOut" xml:space="preserve">
+    <value>{0} Lichtjahre entfernt</value>
   </data>
 </root>

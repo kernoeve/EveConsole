@@ -1272,9 +1272,6 @@
   <data name="LegendNotFwSpace" xml:space="preserve">
     <value>Вне зоны войн</value>
   </data>
-  <data name="TipOpenRegionForIncursions" xml:space="preserve">
-    <value>Откройте сектор, чтобы увидеть вторжения</value>
-  </data>
   <data name="NodeNoIncursion" xml:space="preserve">
     <value>Нет вторжения</value>
   </data>
@@ -1642,7 +1639,7 @@
     <value>Отметки в реальном времени</value>
   </data>
   <data name="LiveMarkHostiles" xml:space="preserve">
-    <value>Противники, замеченные здесь за последние 5 минут — по разведке или отчёту о бое. Наведите курсор, чтобы увидеть, кто это и на чём летает.</value>
+    <value>Противники, замеченные здесь за последние 5 минут — по разведке или отчёту о бое. Наведите курсор, чтобы увидеть, кто это и на чём летает. «!» — разведка сообщила здесь о чём-то (всплеск, бублики, кемп), но никого не насчитала.</value>
   </data>
   <data name="LiveMarkOwn" xml:space="preserve">
     <value>Ваши персонажи в сети в этой системе. Наведите курсор, чтобы увидеть корабль и находится ли персонаж в доке.</value>
@@ -1903,5 +1900,515 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   </data>
   <data name="LegendZoneNoCapital" xml:space="preserve">
     <value>У владельца нет столичной системы</value>
+  </data>
+  <data name="RoutePlannerTab" xml:space="preserve">
+    <value>Планировщик маршрутов</value>
+  </data>
+  <data name="TipRoutePlannerTab" xml:space="preserve">
+    <value>Проложить маршрут через врата, прыжковые мосты и Thera или Turnur</value>
+  </data>
+  <data name="JumpPlannerTab" xml:space="preserve">
+    <value>Планировщик прыжков</value>
+  </data>
+  <data name="TipJumpPlannerTab" xml:space="preserve">
+    <value>Проложить прыжковый маршрут для КБТ</value>
+  </data>
+  <data name="ClearRoute" xml:space="preserve">
+    <value>Убрать маршрут</value>
+  </data>
+  <data name="TipClearRoute" xml:space="preserve">
+    <value>Убрать проложенные маршруты с карты</value>
+  </data>
+  <data name="RouteCharacterLabel" xml:space="preserve">
+    <value>Персонаж</value>
+  </data>
+  <data name="RouteCharacterAt" xml:space="preserve">
+    <value>{0} — в {1}</value>
+  </data>
+  <data name="RouteCharacterNote" xml:space="preserve">
+    <value>Его альянс определяет, какие прыжковые мосты открыты: пользоваться мостом может только альянс, владеющий суверенитетом в системе начала прыжка.</value>
+  </data>
+  <data name="RouteFromLabel" xml:space="preserve">
+    <value>Откуда</value>
+  </data>
+  <data name="RouteToLabel" xml:space="preserve">
+    <value>Куда</value>
+  </data>
+  <data name="HintRouteSystem" xml:space="preserve">
+    <value>Название системы</value>
+  </data>
+  <data name="RouteFromHere" xml:space="preserve">
+    <value>Отсюда</value>
+  </data>
+  <data name="TipRouteFromHere" xml:space="preserve">
+    <value>Начать там, где находится персонаж</value>
+  </data>
+  <data name="TipRouteSwap" xml:space="preserve">
+    <value>Поменять местами «откуда» и «куда»</value>
+  </data>
+  <data name="RoutePreferenceLabel" xml:space="preserve">
+    <value>Предпочитать</value>
+  </data>
+  <data name="RouteShortest" xml:space="preserve">
+    <value>Кратчайший</value>
+  </data>
+  <data name="RouteSafer" xml:space="preserve">
+    <value>Безопаснее (высокая безопасность)</value>
+  </data>
+  <data name="RouteLessSecure" xml:space="preserve">
+    <value>Менее безопасный (низкая и нулевая)</value>
+  </data>
+  <data name="RouteUseBridges" xml:space="preserve">
+    <value>Использовать прыжковые мосты</value>
+  </data>
+  <data name="RouteUseWormholes" xml:space="preserve">
+    <value>Использовать Thera и Turnur</value>
+  </data>
+  <data name="TipRouteUseWormholes" xml:space="preserve">
+    <value>Червоточины из списка EVE-Scout (Настройки → Данные карты)</value>
+  </data>
+  <data name="RouteShipSizeLabel" xml:space="preserve">
+    <value>Корабль</value>
+  </data>
+  <data name="ShipSizeSmall" xml:space="preserve">
+    <value>Фрегат или эсминец</value>
+  </data>
+  <data name="ShipSizeMedium" xml:space="preserve">
+    <value>Крейсер или линейный крейсер</value>
+  </data>
+  <data name="ShipSizeLarge" xml:space="preserve">
+    <value>Линкор</value>
+  </data>
+  <data name="ShipSizeXLarge" xml:space="preserve">
+    <value>Грузовой корабль</value>
+  </data>
+  <data name="AvoidListButton" xml:space="preserve">
+    <value>Список избегания</value>
+  </data>
+  <data name="TipAvoidList" xml:space="preserve">
+    <value>Показать или скрыть системы, которые маршруты обходят</value>
+  </data>
+  <data name="AvoidSummary" xml:space="preserve">
+    <value>Избегаемых систем: {0}</value>
+  </data>
+  <data name="HintAvoidAdd" xml:space="preserve">
+    <value>Добавить систему для обхода</value>
+  </data>
+  <data name="TipAvoidRemove" xml:space="preserve">
+    <value>Убрать из списка избегания</value>
+  </data>
+  <data name="AvoidNote" xml:space="preserve">
+    <value>Щёлкните правой кнопкой по системе на карте или в маршруте, чтобы добавить или убрать её.</value>
+  </data>
+  <data name="AvoidAdd" xml:space="preserve">
+    <value>Добавить {0} в список избегания</value>
+  </data>
+  <data name="AvoidRemove" xml:space="preserve">
+    <value>Убрать {0} из списка избегания</value>
+  </data>
+  <data name="RouteRulesNote" xml:space="preserve">
+    <value>КБТ не могут пользоваться прыжковыми мостами, кроме Rorqual, грузовых кораблей и прыжковых грузовиков. Автопилот игры получает каждый мост как путевую точку; врата между ними он выбирает сам.</value>
+  </data>
+  <data name="RouteShowOnMap" xml:space="preserve">
+    <value>Показать на карте</value>
+  </data>
+  <data name="RouteSetDestination" xml:space="preserve">
+    <value>Задать пункт назначения</value>
+  </data>
+  <data name="TipRouteSetDestination" xml:space="preserve">
+    <value>Отправить маршрут в автопилот игры для выбранного персонажа</value>
+  </data>
+  <data name="RoutePickBoth" xml:space="preserve">
+    <value>Выберите систему отправления и систему назначения.</value>
+  </data>
+  <data name="RouteNotFound" xml:space="preserve">
+    <value>Маршрута нет: системы не связаны разрешёнными путями, или список избегания перекрывает все пути.</value>
+  </data>
+  <data name="RouteSummary" xml:space="preserve">
+    <value>Прыжков: {0} — по мостам: {1}, через червоточины: {2} · минимальная безопасность {3}</value>
+  </data>
+  <data name="RouteBridgeAccessUnknown" xml:space="preserve">
+    <value>У некоторых мостов на этом маршруте владелец суверенитета неизвестен, поэтому неизвестно, кто может ими пользоваться.</value>
+  </data>
+  <data name="RouteSent" xml:space="preserve">
+    <value>Пункт назначения задан для {0} (путевых точек: {1}). Каждый мост и червоточину проходите сами.</value>
+  </data>
+  <data name="RouteNotSent" xml:space="preserve">
+    <value>Пункт назначения не задан: {0}</value>
+  </data>
+  <data name="RouteViaStart" xml:space="preserve">
+    <value>Начало</value>
+  </data>
+  <data name="RouteViaGate" xml:space="preserve">
+    <value>Врата</value>
+  </data>
+  <data name="RouteViaBridge" xml:space="preserve">
+    <value>Прыжковый мост</value>
+  </data>
+  <data name="RouteViaBridgeZone" xml:space="preserve">
+    <value>Прыжковый мост · зона {0}, ×{1} конденсатора</value>
+  </data>
+  <data name="RouteViaWormhole" xml:space="preserve">
+    <value>Червоточина {0} → {1}</value>
+  </data>
+  <data name="RouteViaWormholeShort" xml:space="preserve">
+    <value>Червоточина</value>
+  </data>
+  <data name="ColVia" xml:space="preserve">
+    <value>Через</value>
+  </data>
+  <data name="ColHostiles" xml:space="preserve">
+    <value>Враги</value>
+  </data>
+  <data name="ColKillsHour" xml:space="preserve">
+    <value>Убийства (1 ч)</value>
+  </data>
+  <data name="WormholesToggle" xml:space="preserve">
+    <value>Thera / Turnur</value>
+  </data>
+  <data name="TipWormholesToggle" xml:space="preserve">
+    <value>Показать соединения Thera и Turnur из списка EVE-Scout</value>
+  </data>
+  <data name="LegendWormholes" xml:space="preserve">
+    <value>Червоточина в Thera (Θ) или Turnur (T); пунктир от Turnur. Наведите курсор, чтобы увидеть сигнатуры.</value>
+  </data>
+  <data name="ShipSizeCapital" xml:space="preserve">
+    <value>КБТ</value>
+  </data>
+  <data name="HoleTitle" xml:space="preserve">
+    <value>Червоточины в {0}</value>
+  </data>
+  <data name="HoleLine" xml:space="preserve">
+    <value>{0}: здесь {1}, на той стороне {2} · до {3} · {4}</value>
+  </data>
+  <data name="HoleHubTitle" xml:space="preserve">
+    <value>Червоточины из {0}: {1}</value>
+  </data>
+  <data name="HoleHubLine" xml:space="preserve">
+    <value>{0} ({1}): здесь {2}, на той стороне {3} · до {4} · {5}</value>
+  </data>
+  <data name="HoleRegionTitle" xml:space="preserve">
+    <value>Червоточины Thera и Turnur в {0}</value>
+  </data>
+  <data name="HoleRegionLine" xml:space="preserve">
+    <value>{0} — {1}</value>
+  </data>
+  <data name="HoleHoursLeft" xml:space="preserve">
+    <value>осталось {0} ч</value>
+  </data>
+  <data name="HoleUnderHour" xml:space="preserve">
+    <value>осталось меньше часа</value>
+  </data>
+  <data name="RouteAllOnline" xml:space="preserve">
+    <value>Все в игре</value>
+  </data>
+  <data name="RouteNobodyOnline" xml:space="preserve">
+    <value>Ни один персонаж не в игре; игра принимает пункт назначения только для персонажа в игре.</value>
+  </data>
+  <data name="TipRouteClear" xml:space="preserve">
+    <value>Убрать маршрут здесь и на карте</value>
+  </data>
+  <data name="TipShowOnMap" xml:space="preserve">
+    <value>Рисовать маршрут на вкладках карты вселенной</value>
+  </data>
+  <data name="SysZoneLabel" xml:space="preserve">
+    <value>Зона Ansiblex</value>
+  </data>
+  <data name="SysZoneLine" xml:space="preserve">
+    <value>Зона {0} · {1:0.0} св. л. от столицы {2} · прыжковые мосты с прибытием сюда: {3}</value>
+  </data>
+  <data name="SysZoneFree" xml:space="preserve">
+    <value>бесплатно</value>
+  </data>
+  <data name="SysZoneCost" xml:space="preserve">
+    <value>×{0} конденсатора</value>
+  </data>
+  <data name="SysZoneNone" xml:space="preserve">
+    <value>У владельца нет столичной системы, поэтому зоны нет</value>
+  </data>
+  <data name="SysNowLabel" xml:space="preserve">
+    <value>Сейчас</value>
+  </data>
+  <data name="SysHostilesNow" xml:space="preserve">
+    <value>Врагов замечено здесь за последние 5 минут — {0}: {1}</value>
+  </data>
+  <data name="SysOwnNow" xml:space="preserve">
+    <value>Ваши персонажи здесь: {0}</value>
+  </data>
+  <data name="SysBridgesLabel" xml:space="preserve">
+    <value>Прыжковые мосты</value>
+  </data>
+  <data name="SysWormholesLabel" xml:space="preserve">
+    <value>Thera и Turnur</value>
+  </data>
+  <data name="ColLeadsTo" xml:space="preserve">
+    <value>Ведёт в</value>
+  </data>
+  <data name="ColGate" xml:space="preserve">
+    <value>Мост здесь</value>
+  </data>
+  <data name="ColAccess" xml:space="preserve">
+    <value>Кто может прыгать</value>
+  </data>
+  <data name="ColSigHere" xml:space="preserve">
+    <value>Сигнатура здесь</value>
+  </data>
+  <data name="ColSigFar" xml:space="preserve">
+    <value>Другая сторона</value>
+  </data>
+  <data name="ColUpTo" xml:space="preserve">
+    <value>До</value>
+  </data>
+  <data name="ColLeft" xml:space="preserve">
+    <value>Осталось</value>
+  </data>
+  <data name="OverlaySovStandings" xml:space="preserve">
+    <value>Суверенитет по репутации</value>
+  </data>
+  <data name="StandingOwn" xml:space="preserve">
+    <value>Свои</value>
+  </data>
+  <data name="StandingExcellent" xml:space="preserve">
+    <value>Отличная</value>
+  </data>
+  <data name="StandingGood" xml:space="preserve">
+    <value>Хорошая</value>
+  </data>
+  <data name="StandingNeutral" xml:space="preserve">
+    <value>Нейтральная</value>
+  </data>
+  <data name="StandingBad" xml:space="preserve">
+    <value>Плохая</value>
+  </data>
+  <data name="StandingTerrible" xml:space="preserve">
+    <value>Ужасная</value>
+  </data>
+  <data name="NodeStanding" xml:space="preserve">
+    <value>{0} · {1} ({2:+0.0;-0.0;0.0})</value>
+  </data>
+  <data name="LegendStandingCount" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="LegendStandingNote" xml:space="preserve">
+    <value>По контактам ваших персонажей, корпораций и альянсов; мнение альянса важнее мнения корпорации, а оно — мнения персонажа.</value>
+  </data>
+  <data name="IncursionLine" xml:space="preserve">
+    <value>{0}: {1} · {2:0}% · {3}</value>
+  </data>
+  <data name="SysIncursionLabel" xml:space="preserve">
+    <value>Инкурсия</value>
+  </data>
+  <data name="SysIncursionLine" xml:space="preserve">
+    <value>{0} · влияние {1:0}% · {2} · сбор в {3}</value>
+  </data>
+  <data name="SysIncursionStagingHere" xml:space="preserve">
+    <value>этой системе</value>
+  </data>
+  <data name="StormsToggle" xml:space="preserve">
+    <value>Штормы</value>
+  </data>
+  <data name="TipStormsToggle" xml:space="preserve">
+    <value>Показать металиминальные штормы из списка EVE-Scout</value>
+  </data>
+  <data name="LegendStorms" xml:space="preserve">
+    <value>Металиминальный шторм (⚡) по сообщениям EVE-Scout. Наведите курсор, чтобы увидеть вид.</value>
+  </data>
+  <data name="StormTitle" xml:space="preserve">
+    <value>Погода в {0}</value>
+  </data>
+  <data name="StormRegionTitle" xml:space="preserve">
+    <value>Штормы в {0}</value>
+  </data>
+  <data name="StormLine" xml:space="preserve">
+    <value>{0} · здесь {1} ч</value>
+  </data>
+  <data name="SysWeatherLabel" xml:space="preserve">
+    <value>Погода</value>
+  </data>
+  <data name="CampaignsToggle" xml:space="preserve">
+    <value>Бои за суверенитет</value>
+  </data>
+  <data name="TipCampaignsToggle" xml:space="preserve">
+    <value>Показать бои за суверенитет: ⚔ там, где бой назначен, красное кольцо, когда он идёт</value>
+  </data>
+  <data name="LegendCampaigns" xml:space="preserve">
+    <value>Бой за суверенитет (⚔); красное кольцо, когда начался. Наведите курсор: структура, защитник, начало и счёт.</value>
+  </data>
+  <data name="CampaignsTab" xml:space="preserve">
+    <value>Бои за суверенитет</value>
+  </data>
+  <data name="TipCampaignsTab" xml:space="preserve">
+    <value>Все текущие и предстоящие бои за суверенитет, по данным ESI</value>
+  </data>
+  <data name="CampaignKindIhub" xml:space="preserve">
+    <value>Хаб суверенитета</value>
+  </data>
+  <data name="CampaignKindTcu" xml:space="preserve">
+    <value>Блок территориальных претензий</value>
+  </data>
+  <data name="CampaignKindStation" xml:space="preserve">
+    <value>Станция</value>
+  </data>
+  <data name="CampaignKindFreeport" xml:space="preserve">
+    <value>Свободный порт</value>
+  </data>
+  <data name="DurationHm" xml:space="preserve">
+    <value>{0} ч {1:00} мин</value>
+  </data>
+  <data name="DurationM" xml:space="preserve">
+    <value>{0} мин</value>
+  </data>
+  <data name="CampaignRunning" xml:space="preserve">
+    <value>идёт {0}</value>
+  </data>
+  <data name="CampaignStartsIn" xml:space="preserve">
+    <value>начнётся через {0}</value>
+  </data>
+  <data name="CampaignAt" xml:space="preserve">
+    <value>EVE {0:yyyy-MM-dd HH:mm} · местное {1:g}</value>
+  </data>
+  <data name="CampaignScores" xml:space="preserve">
+    <value>защитник {0:0}% · нападающие {1:0}%</value>
+  </data>
+  <data name="CampaignLine" xml:space="preserve">
+    <value>{0} · {1} · защищает {2}</value>
+  </data>
+  <data name="CampaignTitle" xml:space="preserve">
+    <value>Бой за суверенитет в {0}</value>
+  </data>
+  <data name="CampaignRegionTitle" xml:space="preserve">
+    <value>Бои за суверенитет в {0}</value>
+  </data>
+  <data name="CampaignRegionLine" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="CampaignsAllRegions" xml:space="preserve">
+    <value>Все регионы</value>
+  </data>
+  <data name="CampaignsRegionLabel" xml:space="preserve">
+    <value>Регион</value>
+  </data>
+  <data name="CampaignsNone" xml:space="preserve">
+    <value>Сейчас боёв за суверенитет нет.</value>
+  </data>
+  <data name="CampaignsSummary" xml:space="preserve">
+    <value>Боёв: {0} · идёт: {1}</value>
+  </data>
+  <data name="CampaignStateRunning" xml:space="preserve">
+    <value>Идёт</value>
+  </data>
+  <data name="CampaignStateScheduled" xml:space="preserve">
+    <value>Назначен</value>
+  </data>
+  <data name="ColCampaignState" xml:space="preserve">
+    <value>Состояние</value>
+  </data>
+  <data name="ColCampaignWhen" xml:space="preserve">
+    <value>Когда</value>
+  </data>
+  <data name="ColCampaignStart" xml:space="preserve">
+    <value>Начало</value>
+  </data>
+  <data name="ColCampaignKind" xml:space="preserve">
+    <value>Структура</value>
+  </data>
+  <data name="ColCampaignDefender" xml:space="preserve">
+    <value>Защитник</value>
+  </data>
+  <data name="ColCampaignScores" xml:space="preserve">
+    <value>Счёт</value>
+  </data>
+  <data name="SysCampaignLabel" xml:space="preserve">
+    <value>Бой</value>
+  </data>
+  <data name="FwFrontline" xml:space="preserve">
+    <value>Линия фронта</value>
+  </data>
+  <data name="FwCommandOps" xml:space="preserve">
+    <value>Командные операции</value>
+  </data>
+  <data name="FwRearguard" xml:space="preserve">
+    <value>Тыл</value>
+  </data>
+  <data name="LegendFwTier" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="LegendFwContested" xml:space="preserve">
+    <value>Пунктир: идёт борьба ({0})</value>
+  </data>
+  <data name="IntelFlagSpike" xml:space="preserve">
+    <value>всплеск в локале</value>
+  </data>
+  <data name="IntelFlagCamp" xml:space="preserve">
+    <value>кемп на гейте</value>
+  </data>
+  <data name="IntelFlagBubbles" xml:space="preserve">
+    <value>бублики</value>
+  </data>
+  <data name="IntelFlagHotdrop" xml:space="preserve">
+    <value>риск хотдропа</value>
+  </data>
+  <data name="IntelFlagCyno" xml:space="preserve">
+    <value>цино</value>
+  </data>
+  <data name="IntelFlagWormhole" xml:space="preserve">
+    <value>вормхол</value>
+  </data>
+  <data name="IntelFlagProbes" xml:space="preserve">
+    <value>боевые зонды</value>
+  </data>
+  <data name="IntelFlagEss" xml:space="preserve">
+    <value>на ESS</value>
+  </data>
+  <data name="IntelFlagSkyhook" xml:space="preserve">
+    <value>на скайхуке</value>
+  </data>
+  <data name="IntelOnGate" xml:space="preserve">
+    <value>на гейте в {0}</value>
+  </data>
+  <data name="LiveFactsTitle" xml:space="preserve">
+    <value>Сообщено в {0}</value>
+  </data>
+  <data name="LiveShipsRow" xml:space="preserve">
+    <value>Корабли: {0}</value>
+  </data>
+  <data name="JumpRangeTab" xml:space="preserve">
+    <value>Дальность прыжка</value>
+  </data>
+  <data name="TipJumpRangeTab" xml:space="preserve">
+    <value>Все системы, до которых достаёт прыжковый двигатель от персонажа или системы, обведены на карте</value>
+  </data>
+  <data name="JumpRangeCharacterNote" xml:space="preserve">
+    <value>При выборе персонажа берутся его система, его корпус, если у него есть прыжковый двигатель, и его Jump Drive Calibration. Дальше дальность следует за ним, когда он перемещается.</value>
+  </data>
+  <data name="JumpRangeLandLabel" xml:space="preserve">
+    <value>ПРИЗЕМЛЕНИЕ</value>
+  </data>
+  <data name="TipJumpRangeShowOnMap" xml:space="preserve">
+    <value>Обвести системы в пределах дальности на вкладках карты вселенной</value>
+  </data>
+  <data name="JumpRangeRulesNote" xml:space="preserve">
+    <value>Прыжковый двигатель нельзя использовать в хайсеке, в пространстве червоточин, в Почвене и в Зарзахе, поэтому они никогда не попадают в дальность. Расстояния — световые годы по прямой.</value>
+  </data>
+  <data name="JumpRangeColLy" xml:space="preserve">
+    <value>СВ. Л.</value>
+  </data>
+  <data name="JumpRangeSummary" xml:space="preserve">
+    <value>{0} систем в пределах {1} св. л. от {2}</value>
+  </data>
+  <data name="JumpRangeFollowing" xml:space="preserve">
+    <value>Следует за {0} при перемещении</value>
+  </data>
+  <data name="JumpRangeHighSec" xml:space="preserve">
+    <value>В хайсеке прыжковый двигатель использовать нельзя ({0}).</value>
+  </data>
+  <data name="JumpRangeNoDrive" xml:space="preserve">
+    <value>В {0} прыжковый двигатель использовать нельзя.</value>
+  </data>
+  <data name="JumpRangeNothing" xml:space="preserve">
+    <value>В пределах дальности ничего нет.</value>
+  </data>
+  <data name="LegendJumpRange" xml:space="preserve">
+    <value>В дальности прыжка от системы вкладки «Дальность прыжка» (толстое кольцо — сама система)</value>
   </data>
 </root>

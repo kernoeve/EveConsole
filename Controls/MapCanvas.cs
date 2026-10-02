@@ -20,23 +20,34 @@ namespace EveConsole.Controls;
 /// <param name="Caption">Second line inside the node box — whatever the current overlay is
 /// measuring (constellation, security, kill count). Shown under the dot at low zoom.</param>
 /// <param name="Detail">Longer text for the hover tooltip.</param>
-public sealed record MapNodeStyle(Color Fill, string? Caption = null, string? Detail = null);
+/// <param name="Dashed">Ringed with a dashed outline: a second fact the fill cannot carry, such as
+/// a faction-warfare system being fought over.</param>
+public sealed record MapNodeStyle(Color Fill, string? Caption = null, string? Detail = null, bool Dashed = false);
 
 /// <summary>
 /// Live marks on one node: hostiles believed to be there now, and the user's own characters.
 /// Each carries the text its hover shows, so the canvas stays ignorant of intel.
 /// </summary>
+/// <param name="Reported">Intel said something here — a spike, bubbles — though nobody was
+/// counted: the mark shows "!" instead of a number.</param>
 public sealed record MapMarkers(
     int Hostiles, string? HostileTitle, string? HostileDetail,
     int Own,      string? OwnTitle,     string? OwnDetail,
     IReadOnlyList<MapMarkRow>? HostileRows = null,
-    IReadOnlyList<MapMarkRow>? OwnRows     = null);
+    IReadOnlyList<MapMarkRow>? OwnRows     = null,
+    bool Reported = false);
+
+/// <summary>The jump range tab's answer: where it is from, and every system in range.</summary>
+public sealed record MapJumpRange(int OriginId, IReadOnlySet<int> Systems);
 
 /// <summary>One line of a mark's hover: the pilot's portrait in front of it, and the ship's icon
 /// just before the ship's name in it.</summary>
 /// <param name="ShipAt">Where in <see cref="Text"/> the ship's name starts, so the icon goes
 /// beside the name whichever order a language puts the words in; -1 for no ship.</param>
-public sealed record MapMarkRow(string Text, long CharacterId = 0, int ShipTypeId = 0, int ShipAt = -1);
+/// <param name="CorporationId">The pilot's corporation, its logo after the portrait; 0 for none known.</param>
+/// <param name="AllianceId">Their alliance, its logo after the corporation's; 0 for none.</param>
+public sealed record MapMarkRow(string Text, long CharacterId = 0, int ShipTypeId = 0, int ShipAt = -1,
+                                long CorporationId = 0, long AllianceId = 0);
 
 /// <summary>A jump bridge drawn as an arc between two systems, and what its hover says.</summary>
 /// <param name="Complete">Both gates are known; false draws it fainter.</param>
@@ -45,6 +56,21 @@ public sealed record MapMarkRow(string Text, long CharacterId = 0, int ShipTypeI
 /// <param name="ZoneTo">The same for the half at <see cref="ToId"/>.</param>
 public sealed record MapBridgeLine(int FromId, int ToId, string Title, string Detail, bool Complete,
                                    int ZoneFrom = 0, int ZoneTo = 0);
+
+/// <summary>A wormhole mark on a node: the glyph shown (Θ for Thera, T for Turnur), and its hover.</summary>
+public sealed record MapHoleMark(string Glyph, string Title, string Detail);
+
+/// <summary>A sovereignty campaign mark on a node, and its hover. <paramref name="Running"/>: the
+/// fight has started, and the node is ringed.</summary>
+public sealed record MapCampaignMark(string Title, string Detail, bool Running);
+
+/// <summary>A wormhole drawn as a line between two systems on the map — Turnur's, since Thera is
+/// not on it.</summary>
+public sealed record MapHoleLink(int FromId, int ToId);
+
+/// <summary>One system of a planned route, and whether it was reached by something other than a
+/// stargate — a jump bridge or a wormhole — which is drawn dashed.</summary>
+public sealed record MapRouteStep(int SystemId, int RegionId, bool Jumped);
 
 /// <summary>Where the view is looking: the world point at its centre and the zoom. Held by the
 /// view model so a tab keeps its place when the view is rebuilt.</summary>
@@ -115,6 +141,78 @@ public class MapCanvas : Control
         set => SetValue(BridgesProperty, value);
     }
 
+    /// <summary>Planned routes, each start first — one per tool that planned one (the route
+    /// planner, the jump planner) — drawn over the gates and under the systems.</summary>
+    public static readonly StyledProperty<IReadOnlyList<IReadOnlyList<MapRouteStep>>?> RoutesProperty =
+        AvaloniaProperty.Register<MapCanvas, IReadOnlyList<IReadOnlyList<MapRouteStep>>?>(nameof(Routes));
+
+    public IReadOnlyList<IReadOnlyList<MapRouteStep>>? Routes
+    {
+        get => GetValue(RoutesProperty);
+        set => SetValue(RoutesProperty, value);
+    }
+
+    /// <summary>Thera and Turnur wormholes per node id (systems, and regions on the zoomed-out tier).</summary>
+    public static readonly StyledProperty<IReadOnlyDictionary<int, MapHoleMark>?> HolesProperty =
+        AvaloniaProperty.Register<MapCanvas, IReadOnlyDictionary<int, MapHoleMark>?>(nameof(Holes));
+
+    public IReadOnlyDictionary<int, MapHoleMark>? Holes
+    {
+        get => GetValue(HolesProperty);
+        set => SetValue(HolesProperty, value);
+    }
+
+    /// <summary>Sovereignty campaigns per node id (systems, and regions zoomed out).</summary>
+    public static readonly StyledProperty<IReadOnlyDictionary<int, MapCampaignMark>?> CampaignsProperty =
+        AvaloniaProperty.Register<MapCanvas, IReadOnlyDictionary<int, MapCampaignMark>?>(nameof(Campaigns));
+
+    public IReadOnlyDictionary<int, MapCampaignMark>? Campaigns
+    {
+        get => GetValue(CampaignsProperty);
+        set => SetValue(CampaignsProperty, value);
+    }
+
+    /// <summary>Metaliminal storms per node id (systems, and regions zoomed out).</summary>
+    public static readonly StyledProperty<IReadOnlyDictionary<int, MapHoleMark>?> StormsProperty =
+        AvaloniaProperty.Register<MapCanvas, IReadOnlyDictionary<int, MapHoleMark>?>(nameof(Storms));
+
+    public IReadOnlyDictionary<int, MapHoleMark>? Storms
+    {
+        get => GetValue(StormsProperty);
+        set => SetValue(StormsProperty, value);
+    }
+
+    /// <summary>Wormholes between two systems the map shows, drawn as dashed lines.</summary>
+    public static readonly StyledProperty<IReadOnlyList<MapHoleLink>?> HoleLinksProperty =
+        AvaloniaProperty.Register<MapCanvas, IReadOnlyList<MapHoleLink>?>(nameof(HoleLinks));
+
+    public IReadOnlyList<MapHoleLink>? HoleLinks
+    {
+        get => GetValue(HoleLinksProperty);
+        set => SetValue(HoleLinksProperty, value);
+    }
+
+    /// <summary>Systems on the route avoid list, ringed in red where systems are drawn.</summary>
+    /// <summary>Systems a jump drive reaches from the jump range tab's system, ringed; the
+    /// origin ringed heavier.</summary>
+    public static readonly StyledProperty<MapJumpRange?> JumpRangeProperty =
+        AvaloniaProperty.Register<MapCanvas, MapJumpRange?>(nameof(JumpRange));
+
+    public MapJumpRange? JumpRange
+    {
+        get => GetValue(JumpRangeProperty);
+        set => SetValue(JumpRangeProperty, value);
+    }
+
+    public static readonly StyledProperty<IReadOnlyCollection<int>?> AvoidedProperty =
+        AvaloniaProperty.Register<MapCanvas, IReadOnlyCollection<int>?>(nameof(Avoided));
+
+    public IReadOnlyCollection<int>? Avoided
+    {
+        get => GetValue(AvoidedProperty);
+        set => SetValue(AvoidedProperty, value);
+    }
+
     public static readonly StyledProperty<IReadOnlyDictionary<int, MapMarkers>?> MarkersProperty =
         AvaloniaProperty.Register<MapCanvas, IReadOnlyDictionary<int, MapMarkers>?>(nameof(Markers));
 
@@ -165,7 +263,7 @@ public class MapCanvas : Control
 
     static MapCanvas()
     {
-        AffectsRender<MapCanvas>(GraphProperty, OverlayProperty, SelectedIdProperty, BadgesProperty, MarkersProperty, BridgesProperty);
+        AffectsRender<MapCanvas>(GraphProperty, OverlayProperty, SelectedIdProperty, BadgesProperty, MarkersProperty, BridgesProperty, RoutesProperty, AvoidedProperty, JumpRangeProperty, HolesProperty, HoleLinksProperty, StormsProperty, CampaignsProperty);
     }
 
     public MapCanvas()
@@ -662,6 +760,19 @@ public class MapCanvas : Control
         if (Bridges is { Count: > 0 } bridges && (!g.IsContinuous || _activeTier == 1))
             DrawBridges(ctx, bridges);
 
+        // Wormhole links, like the bridges: where systems are drawn, under them.
+        if (HoleLinks is { Count: > 0 } holeLinks && (!g.IsContinuous || _activeTier == 1))
+            foreach (var l in holeLinks)
+            {
+                if (!_byId.TryGetValue(l.FromId, out var a) || !_byId.TryGetValue(l.ToId, out var b)) continue;
+                ctx.DrawLine(HoleLinkPen, ToScreen(a.X, a.Y), ToScreen(b.X, b.Y));
+            }
+
+        // A planned route over both, under the systems so their names stay readable.
+        if (Routes is { Count: > 0 } routes)
+            foreach (var route in routes)
+                if (route.Count > 0) DrawRoute(ctx, route, g.IsContinuous && _activeTier == 0);
+
         // How much room neighbouring systems have on screen decides the representation: dots
         // when they are packed together, labelled boxes once they are far enough apart. One or
         // the other, never both.
@@ -696,13 +807,63 @@ public class MapCanvas : Control
                 _pendingMarks.Add((marks, useBoxes && _nodeRects.TryGetValue(n.Id, out var box)
                     ? box
                     : new Rect(p.X - NodeRadius, p.Y - NodeRadius, NodeRadius * 2, NodeRadius * 2), useBoxes));
+
+            if (Campaigns?.TryGetValue(n.Id, out var campaign) == true)
+                _pendingCampaigns.Add((campaign, useBoxes && _nodeRects.TryGetValue(n.Id, out var cbox)
+                    ? cbox
+                    : new Rect(p.X - NodeRadius, p.Y - NodeRadius, NodeRadius * 2, NodeRadius * 2), useBoxes));
+
+            if (Storms?.TryGetValue(n.Id, out var storm) == true)
+                _pendingStorms.Add((storm, useBoxes && _nodeRects.TryGetValue(n.Id, out var sbox)
+                    ? sbox
+                    : new Rect(p.X - NodeRadius, p.Y - NodeRadius, NodeRadius * 2, NodeRadius * 2), useBoxes));
+
+            if (Holes?.TryGetValue(n.Id, out var hole) == true)
+                _pendingHoles.Add((hole, useBoxes && _nodeRects.TryGetValue(n.Id, out var hbox)
+                    ? hbox
+                    : new Rect(p.X - NodeRadius, p.Y - NodeRadius, NodeRadius * 2, NodeRadius * 2), useBoxes));
         }
+
+        // In jump range: a green ring on each system, a heavier one on the origin. On the
+        // zoomed-out tier, a region holding any of them is ringed instead.
+        if (JumpRange is { } range)
+        {
+            var systemTier = !g.IsContinuous || _activeTier == 1;
+            var ringed = systemTier
+                ? range.Systems
+                : range.Systems.Select(id => _byId.TryGetValue(id, out var sn) ? sn.RegionId : 0)
+                       .Append(_byId.TryGetValue(range.OriginId, out var on) ? on.RegionId : 0)
+                       .Where(r => r != 0).ToHashSet();
+            foreach (var id in ringed) DrawRangeRing(ctx, id, RangePen);
+            if (systemTier) DrawRangeRing(ctx, range.OriginId, RangeOriginPen);
+        }
+
+        // Avoided systems, ringed over their node, where systems are drawn.
+        if (Avoided is { Count: > 0 } avoided && (!g.IsContinuous || _activeTier == 1))
+            foreach (var id in avoided)
+            {
+                if (!_byId.TryGetValue(id, out var n)) continue;
+                if (_nodeRects.TryGetValue(id, out var box))
+                {
+                    ctx.DrawRectangle(null, AvoidPen, box.Inflate(3), 4, 4);
+                    continue;
+                }
+                var at = ToScreen(n.X, n.Y);
+                if (at.X < -20 || at.Y < -20 || at.X > Bounds.Width + 20 || at.Y > Bounds.Height + 20) continue;
+                ctx.DrawEllipse(null, AvoidPen, at, NodeRadius + 4, NodeRadius + 4);
+            }
 
         // Live marks in a pass of their own, after every node: drawn with their node, a
         // neighbour's box painted later covered them — on the region tier, where boxes crowd,
         // most of a mark could vanish under the next region.
         foreach (var (marks, anchor, isBox) in _pendingMarks) DrawMarkers(ctx, marks, anchor, isBox);
         _pendingMarks.Clear();
+        foreach (var (hole, anchor, isBox) in _pendingHoles) DrawHole(ctx, hole, anchor, isBox);
+        _pendingHoles.Clear();
+        foreach (var (storm, anchor, isBox) in _pendingStorms) DrawStorm(ctx, storm, anchor, isBox);
+        _pendingStorms.Clear();
+        foreach (var (campaign, anchor, isBox) in _pendingCampaigns) DrawCampaign(ctx, campaign, anchor, isBox);
+        _pendingCampaigns.Clear();
 
         // A badge tooltip wins: the cursor is on the mark, so that is what the question is about.
         if (_badgeHover is { } badge)  DrawTooltipBox(ctx, badge.Title, badge.Detail, badge.Rows);
@@ -755,6 +916,7 @@ public class MapCanvas : Control
         DrawingContext ctx, MapNode n, Point p, Color fill, MapNodeStyle? style, bool labels)
     {
         ctx.DrawEllipse(new ImmutableSolidColorBrush(fill), NodePen, p, NodeRadius, NodeRadius);
+        if (style?.Dashed == true)   ctx.DrawEllipse(null, DashedOutlinePen, p, NodeRadius + 2.5, NodeRadius + 2.5);
 
         if (n.Id == SelectedId)      ctx.DrawEllipse(null, SelectedPen, p, NodeRadius + 4, NodeRadius + 4);
         else if (_hover?.Id == n.Id) ctx.DrawEllipse(null, HoverPen,    p, NodeRadius + 3, NodeRadius + 3);
@@ -789,6 +951,8 @@ public class MapCanvas : Control
 
         var radius = Math.Min(7, h / 2);
         ctx.DrawRectangle(new ImmutableSolidColorBrush(fill), BoxPen, new RoundedRect(rect, radius));
+        if (style?.Dashed == true)
+            ctx.DrawRectangle(null, DashedOutlinePen, new RoundedRect(rect.Inflate(2.5), radius + 2));
 
         ctx.DrawText(text.Name, new Point(p.X - text.Name.Width / 2, rect.Y + padY));
         if (text.Caption is not null)
@@ -814,6 +978,10 @@ public class MapCanvas : Control
     // Docking was gold and orange, which at 9px were one colour. Violet and green share no hue,
     // so the three ranks are told apart at a glance rather than by comparison — and the bar's
     // stepped height still says which is which if the colours ever fail someone.
+
+    /// <summary>The dashed ring of <see cref="MapNodeStyle.Dashed"/>: light, so it reads on any fill.</summary>
+    private static readonly IPen DashedOutlinePen = new ImmutablePen(
+        new ImmutableSolidColorBrush(Color.Parse("#F0F0F5")), 1.6, new ImmutableDashStyle([2, 1.5], 0));
 
     private static readonly IBrush DockSuper   = new ImmutableSolidColorBrush(Color.Parse("#a855f7"));
     private static readonly IBrush DockCapital = new ImmutableSolidColorBrush(Color.Parse("#22c55e"));
@@ -979,6 +1147,41 @@ public class MapCanvas : Control
     private readonly List<(MapBridgeLine Line, Point[] Points)> _bridgeHits = new();
     private MapBridgeLine? _bridgeHover;
 
+    private static readonly IPen AvoidPen = new ImmutablePen(new ImmutableSolidColorBrush(Color.Parse("#E0FF4D4D")), 2, new ImmutableDashStyle([3, 2], 0));
+
+    private static readonly ImmutableSolidColorBrush RouteBrush = new ImmutableSolidColorBrush(Color.Parse("#E6FFC23D"));
+    private static readonly IPen   RoutePen       = new ImmutablePen(RouteBrush, 4, lineCap: PenLineCap.Round);
+    private static readonly IPen   RouteJumpPen   = new ImmutablePen(RouteBrush, 3, new ImmutableDashStyle([2, 2], 0), PenLineCap.Round);
+    private static readonly IPen   RouteEndPen    = new ImmutablePen(RouteBrush, 2.5);
+
+    /// <summary>
+    /// The route as one line through its systems — or, on the region tier, through the regions it
+    /// passes. A hop by bridge or wormhole is dashed; a system the map does not show (Thera, out
+    /// in wormhole space) is crossed by a dashed line from the system before it to the one after.
+    /// The start and the end are ringed.
+    /// </summary>
+    private void DrawRoute(DrawingContext ctx, IReadOnlyList<MapRouteStep> route, bool regionTier)
+    {
+        Point? last = null;
+        var dashed = false;
+        int? lastId = null;
+        foreach (var step in route)
+        {
+            var id = regionTier ? step.RegionId : step.SystemId;
+            dashed |= step.Jumped;
+            if (id == lastId) { dashed = false; continue; }
+            if (!_byId.TryGetValue(id, out var node)) { dashed = true; continue; }
+
+            var p = ToScreen(node.X, node.Y);
+            if (last is { } from) ctx.DrawLine(dashed && !regionTier ? RouteJumpPen : RoutePen, from, p);
+            last = p; lastId = id; dashed = false;
+        }
+
+        foreach (var end in new[] { route[0], route[^1] })
+            if (_byId.TryGetValue(regionTier ? end.RegionId : end.SystemId, out var node))
+                ctx.DrawEllipse(null, RouteEndPen, ToScreen(node.X, node.Y), NodeRadius + 6, NodeRadius + 6);
+    }
+
     /// <summary>
     /// An arc rather than a straight line, so a bridge never lies along the gates between the
     /// same two systems, and two bridges from one system fan apart. Bowed to one side by a fifth
@@ -1063,6 +1266,83 @@ public class MapCanvas : Control
     // read as each other.
 
     private readonly List<(MapMarkers Marks, Rect Anchor, bool IsBox)> _pendingMarks = new();
+    private readonly List<(MapHoleMark Hole, Rect Anchor, bool IsBox)> _pendingHoles = new();
+    private readonly List<(MapHoleMark Storm, Rect Anchor, bool IsBox)> _pendingStorms = new();
+    private readonly List<(MapCampaignMark Campaign, Rect Anchor, bool IsBox)> _pendingCampaigns = new();
+
+    private static readonly ImmutableSolidColorBrush CampaignBrush = new(Color.Parse("#DC2626"));
+    private static readonly IPen CampaignRingPen = new ImmutablePen(new ImmutableSolidColorBrush(Color.Parse("#E6B91C1C")), 3.5);
+
+    /// <summary>
+    /// A red tag with ⚔ at the node's lower right — the other corners are the wormhole's and the
+    /// storm's — and, once the fight has started, a solid red ring round the node: solid, where
+    /// the avoid list's ring is dashed. Hover for the campaign.
+    /// </summary>
+    private void DrawCampaign(DrawingContext ctx, MapCampaignMark c, Rect anchor, bool isBox)
+    {
+        if (c.Running)
+        {
+            if (isBox) ctx.DrawRectangle(null, CampaignRingPen, anchor.Inflate(5), 6, 6);
+            else       ctx.DrawEllipse(null, CampaignRingPen, anchor.Center, anchor.Width / 2 + 6, anchor.Height / 2 + 6);
+        }
+        var text = new FormattedText("⚔", CultureInfo.CurrentCulture, FlowDirection.LeftToRight, BoldFace, 9.5, MarkInk);
+        var w    = Math.Max(13, text.Width + 6);
+        var x    = isBox ? anchor.Right - w / 2 : anchor.Right + 1;
+        var y    = isBox ? anchor.Bottom - 6 : anchor.Bottom + 2;
+        var rect = new Rect(x, y, w, 13);
+        ctx.DrawRectangle(CampaignBrush, MarkPen, new RoundedRect(rect, 3));
+        ctx.DrawText(text, new Point(rect.Center.X - text.Width / 2, rect.Center.Y - text.Height / 2));
+        _badgeTips.Add((rect.Inflate(2), c.Title, c.Detail, null));
+    }
+
+    private static readonly ImmutableSolidColorBrush StormBrush = new(Color.Parse("#F5B83D"));
+    private static readonly IBrush StormInk = new ImmutableSolidColorBrush(Color.Parse("#2b1d00"));
+
+    /// <summary>An amber tag with ⚡ at the node's upper left — the wormhole tag takes the upper
+    /// right. Hover for the storm.</summary>
+    private void DrawStorm(DrawingContext ctx, MapHoleMark s, Rect anchor, bool isBox)
+    {
+        var text = new FormattedText(s.Glyph, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, BoldFace, 9.5, StormInk);
+        var w    = Math.Max(13, text.Width + 6);
+        var x    = isBox ? anchor.Left - w / 2 : anchor.Left - w - 1;
+        var y    = isBox ? anchor.Top - 7 : anchor.Top - 15;
+        var rect = new Rect(x, y, w, 13);
+        ctx.DrawRectangle(StormBrush, MarkPen, new RoundedRect(rect, 3));
+        ctx.DrawText(text, new Point(rect.Center.X - text.Width / 2, rect.Center.Y - text.Height / 2));
+        _badgeTips.Add((rect.Inflate(2), s.Title, s.Detail, null));
+    }
+
+    private static readonly ImmutableSolidColorBrush HoleBrush = new(Color.Parse("#2DD4BF"));
+    private static readonly IBrush HoleInk = new ImmutableSolidColorBrush(Color.Parse("#062925"));
+    private static readonly IPen   HoleLinkPen = new ImmutablePen(new ImmutableSolidColorBrush(Color.Parse("#B32DD4BF")), 1.6, new ImmutableDashStyle([1.5, 2.5], 0));
+
+    /// <summary>
+    /// A teal tag with Θ (Thera) or T (Turnur) at the node's upper right — clear of the hostile
+    /// mark to the right of centre and the own-character mark to the left. Hover for the holes.
+    /// </summary>
+    private void DrawHole(DrawingContext ctx, MapHoleMark h, Rect anchor, bool isBox)
+    {
+        var text = new FormattedText(h.Glyph, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, BoldFace, 9.5, HoleInk);
+        var w    = Math.Max(13, text.Width + 6);
+        var x    = isBox ? anchor.Right - w / 2 : anchor.Right + 1;
+        var y    = isBox ? anchor.Top - 7 : anchor.Top - 15;
+        var rect = new Rect(x, y, w, 13);
+        ctx.DrawRectangle(HoleBrush, MarkPen, new RoundedRect(rect, 3));
+        ctx.DrawText(text, new Point(rect.Center.X - text.Width / 2, rect.Center.Y - text.Height / 2));
+        _badgeTips.Add((rect.Inflate(2), h.Title, h.Detail, null));
+    }
+
+    private IPen RangePen       => new Pen(Palette.Good, 1.6);
+    private IPen RangeOriginPen => new Pen(Palette.Good, 3);
+
+    private void DrawRangeRing(DrawingContext ctx, int id, IPen pen)
+    {
+        if (!_byId.TryGetValue(id, out var n)) return;
+        if (_nodeRects.TryGetValue(id, out var box)) { ctx.DrawRectangle(null, pen, box.Inflate(5), 5, 5); return; }
+        var at = ToScreen(n.X, n.Y);
+        if (at.X < -20 || at.Y < -20 || at.X > Bounds.Width + 20 || at.Y > Bounds.Height + 20) return;
+        ctx.DrawEllipse(null, pen, at, NodeRadius + 6, NodeRadius + 6);
+    }
 
     private static readonly IBrush MarkInk = new ImmutableSolidColorBrush(Color.Parse("#ffffff"));
     private static readonly IPen   MarkPen = new ImmutablePen(new ImmutableSolidColorBrush(Color.Parse("#0b0b10")), 1.5);
@@ -1073,10 +1353,10 @@ public class MapCanvas : Control
         // below. Above a dot, where its label (to the right) does not run.
         var y = isBox ? anchor.Center.Y : anchor.Top - 5;
 
-        if (m.Hostiles > 0)
+        if (m.Hostiles > 0 || m.Reported)
         {
-            var text = new FormattedText(m.Hostiles.ToString(CultureInfo.CurrentCulture), CultureInfo.CurrentCulture,
-                FlowDirection.LeftToRight, BoldFace, 9.5, MarkInk);
+            var text = new FormattedText(m.Hostiles > 0 ? m.Hostiles.ToString(CultureInfo.CurrentCulture) : "!",
+                CultureInfo.CurrentCulture, FlowDirection.LeftToRight, BoldFace, 9.5, MarkInk);
             var r  = Math.Max(7.5, text.Width / 2 + 4);
             var cx = isBox ? anchor.Right + r + 3 : anchor.Right + r - 3;
             var c  = new Point(cx, y);
@@ -1191,8 +1471,10 @@ public class MapCanvas : Control
         double LineWidth((FormattedText Before, FormattedText? After, bool Icon) p) =>
             p.Before.Width + (p.Icon ? gap + RowIcon + gap : 0) + (p.After?.Width ?? 0);
 
-        // The portrait's slot is kept on every row, picture or not, so the text starts in one column.
-        var textX = RowIcon + gap * 2;
+        // The portrait's slot is kept on every row, picture or not, so the text starts in one
+        // column — and so are the corporation's and the alliance's after it, when any row has one.
+        var logos = rows.Any(r => r.CorporationId > 0 || r.AllianceId > 0);
+        var textX = RowIcon + gap * 2 + (logos ? (RowIcon + gap) * 2 : 0);
         var rowH  = Math.Max(RowIcon, parts.Max(p => p.Before.Height)) + rowGap;
         var w = Math.Max(title.Width, textX + parts.Max(LineWidth)) + pad * 2;
         var h = title.Height + 4 + rowH * rows.Count + pad * 2;
@@ -1215,6 +1497,16 @@ public class MapCanvas : Control
             if (rows[i].CharacterId > 0 &&
                 Picture($"https://images.evetech.net/characters/{rows[i].CharacterId}/portrait?size=32") is { } portrait)
                 ctx.DrawImage(portrait, new Rect(lx, ry, RowIcon, RowIcon));
+            if (logos)
+            {
+                var cx = lx + RowIcon + gap;
+                if (rows[i].CorporationId > 0 &&
+                    Picture($"https://images.evetech.net/corporations/{rows[i].CorporationId}/logo?size=32") is { } corp)
+                    ctx.DrawImage(corp, new Rect(cx, ry, RowIcon, RowIcon));
+                if (rows[i].AllianceId > 0 &&
+                    Picture($"https://images.evetech.net/alliances/{rows[i].AllianceId}/logo?size=32") is { } alliance)
+                    ctx.DrawImage(alliance, new Rect(cx + RowIcon + gap, ry, RowIcon, RowIcon));
+            }
 
             var (before, after, icon) = parts[i];
             var tx = lx + textX;
@@ -1255,6 +1547,9 @@ public class MapCanvas : Control
     }
 
     // ── Interaction ──────────────────────────────────────────────────────────
+
+    /// <summary>The node drawn at a point of this control — what a right-click is about.</summary>
+    public MapNode? NodeAt(Point p) => HitTest(p);
 
     private MapNode? HitTest(Point p)
     {
