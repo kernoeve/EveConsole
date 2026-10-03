@@ -1846,17 +1846,11 @@
   <data name="SourceAssetSafety" xml:space="preserve">
     <value>자산 보호</value>
   </data>
-  <data name="StationWithIdLower" xml:space="preserve">
-    <value>정거장 {0}</value>
-  </data>
   <data name="UnnamedStructureWithId" xml:space="preserve">
     <value>이름 없는 구조물 {0}</value>
   </data>
   <data name="CharacterWithId" xml:space="preserve">
     <value>캐릭터 {0}</value>
-  </data>
-  <data name="SafetyChooseDestinationOther" xml:space="preserve">
-    <value>자산 보호 포장 {0:N0}개의 목적지 선택</value>
   </data>
   <data name="SafetyTypesInOneWrapOther" xml:space="preserve">
     <value>포장 1개에 아이템 {0:N0}종</value>
@@ -2226,5 +2220,17 @@
   </data>
   <data name="PiOpenDetail" xml:space="preserve">
     <value>데이터가 {0} 지나 추정치를 더 이상 믿을 수 없습니다. 게임에서 콜로니를 열면 갱신됩니다.</value>
+  </data>
+  <data name="SafetyChooseByOther" xml:space="preserve">
+    <value>{1:M월 d일 HH:mm}까지 자산 보호 포장 {0:N0}개의 목적지 선택</value>
+  </data>
+  <data name="SafetyPassedTitleOther" xml:space="preserve">
+    <value>자산 보호 — 포장 {0:N0}개가 아직 남아 있습니다. 목적지 선택 기한이 지났습니다</value>
+  </data>
+  <data name="SafetyPassedDetail" xml:space="preserve">
+    <value>{0}. {1}. 아직 자산 보호 상태이며, 남은 기한 기록이 없습니다.</value>
+  </data>
+  <data name="SafetyOpensAt" xml:space="preserve">
+    <value>{0:M월 d일 HH:mm}부터 배송 가능</value>
   </data>
 </root>

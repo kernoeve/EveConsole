@@ -2468,10 +2468,6 @@
     <value>Asset Safety</value>
     <comment>Name of a Worklist source (a switch on the Sources tab, and the error line): items in asset safety that need a delivery decision.</comment>
   </data>
-  <data name="StationWithIdLower" xml:space="preserve">
-    <value>station {0}</value>
-    <comment>Mid-sentence, for a station whose name is not known. {0} is its id. Lower case.</comment>
-  </data>
   <data name="UnnamedStructureWithId" xml:space="preserve">
     <value>Unnamed structure {0}</value>
     <comment>Shown for a player structure whose name cannot be read. {0} is its id.</comment>
@@ -2479,14 +2475,6 @@
   <data name="CharacterWithId" xml:space="preserve">
     <value>Character {0}</value>
     <comment>Shown for a character whose name is not known. {0} is its id.</comment>
-  </data>
-  <data name="SafetyChooseDestinationOne" xml:space="preserve">
-    <value>choose a destination for {0:N0} asset safety wrap</value>
-    <comment>Worklist task title, after the station ("Station — choose a destination…"): items in asset safety can be sent somewhere now. {0} is the number of Asset Safety Wraps (one). Lower case.</comment>
-  </data>
-  <data name="SafetyChooseDestinationOther" xml:space="preserve">
-    <value>choose a destination for {0:N0} asset safety wraps</value>
-    <comment>Worklist task title, after the station ("Station — choose a destination…"): items in asset safety can be sent somewhere now. {0} is the number of Asset Safety Wraps. Lower case.</comment>
   </data>
   <data name="SafetyTypesInOneWrapOne" xml:space="preserve">
     <value>{0:N0} item type in 1 wrap</value>
@@ -3003,5 +2991,29 @@
   <data name="PiOpenDetail" xml:space="preserve">
     <value>Its data is {0} old, so its estimates can no longer be trusted. Opening the colony in the game refreshes it.</value>
     <comment>Worklist task detail. {0} is a length of time.</comment>
+  </data>
+  <data name="SafetyChooseByOne" xml:space="preserve">
+    <value>choose a destination for {0:N0} asset safety wrap by {1:d MMM HH:mm}</value>
+    <comment>Worklist task title, after the station the game delivers to: items in asset safety, and the deadline to choose where they go. {0} is the number of wraps, {1} the deadline. Lower case.</comment>
+  </data>
+  <data name="SafetyChooseByOther" xml:space="preserve">
+    <value>choose a destination for {0:N0} asset safety wraps by {1:d MMM HH:mm}</value>
+    <comment>Worklist task title, after the station the game delivers to: items in asset safety, and the deadline to choose where they go. {0} is the number of wraps, {1} the deadline. Lower case.</comment>
+  </data>
+  <data name="SafetyPassedTitleOne" xml:space="preserve">
+    <value>Asset safety — {0:N0} wrap still waiting; the deadline to choose has passed</value>
+    <comment>Worklist task title: a wrap still in asset safety whose deadline has passed or is not on record. {0} is the number of wraps.</comment>
+  </data>
+  <data name="SafetyPassedTitleOther" xml:space="preserve">
+    <value>Asset safety — {0:N0} wraps still waiting; the deadline to choose has passed</value>
+    <comment>Worklist task title: wraps still in asset safety whose deadline has passed or is not on record. {0} is the number of wraps.</comment>
+  </data>
+  <data name="SafetyPassedDetail" xml:space="preserve">
+    <value>{0}. {1}. Still in asset safety, with no open deadline on record.</value>
+    <comment>Worklist task detail. {0} is the owner, {1} what the wraps hold (such as "12 item types across 2 wraps").</comment>
+  </data>
+  <data name="SafetyOpensAt" xml:space="preserve">
+    <value>Can be delivered from {0:d MMM HH:mm}</value>
+    <comment>Worklist: why an asset safety task waits. {0} is when a destination can first be picked.</comment>
   </data>
 </root>

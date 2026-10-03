@@ -383,6 +383,23 @@ public sealed record WorklistItem
     /// Null everywhere else.</para>
     /// </summary>
     public string? TitleTag { get; init; }
+
+    /// <summary>
+    /// The row's icon when the task has no item type of its own to show — a character's portrait
+    /// for a skill queue or a free colony slot, the planet for an extractor restart, the station
+    /// for asset safety, the ore for a refine. An image server URL (see <see cref="WorklistIcons"/>).
+    /// A task with a <see cref="TypeId"/> shows that type instead: what it moves or makes.
+    /// </summary>
+    public string? IconUrl { get; init; }
+}
+
+/// <summary>Image server URLs for the worklist's icons, at the size the rows draw them.</summary>
+public static class WorklistIcons
+{
+    public static string Type(int typeId)            => $"https://images.evetech.net/types/{typeId}/icon?size=32";
+    /// <summary>A station or structure type's picture: the render, not the generic station glyph.</summary>
+    public static string Render(int typeId)          => $"https://images.evetech.net/types/{typeId}/render?size=32";
+    public static string Portrait(long characterId)  => $"https://images.evetech.net/characters/{characterId}/portrait?size=32";
 }
 
 /// <summary>
