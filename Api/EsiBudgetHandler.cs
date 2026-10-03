@@ -16,11 +16,14 @@ public sealed class EsiBudgetHandler(bool governed = true) : DelegatingHandler
             ? request.RequestUri.PathAndQuery
             : request.RequestUri?.OriginalString ?? "";
 
-        var turn = governed && EsiClient.IsBackgroundLane ? await EsiBudget.Shared.WaitTurnAsync(path, ct) : null;
+        // Rate-limit buckets are per character for a call with a login — see EsiGroupState.
+        var owner = EsiBudget.BucketOwner(request.Headers.Authorization);
+
+        var turn = governed && EsiClient.IsBackgroundLane ? await EsiBudget.Shared.WaitTurnAsync(path, ct, owner) : null;
         try
         {
             var response = await base.SendAsync(request, ct);
-            EsiBudget.Shared.Record(path, (int)response.StatusCode, response.Headers);
+            EsiBudget.Shared.Record(path, (int)response.StatusCode, response.Headers, owner);
             return response;
         }
         finally { turn?.Dispose(); }

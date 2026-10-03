@@ -16,6 +16,11 @@ public sealed class EsiGroupRowVm
     public double LeftPercent { get; init; }
     public IBrush LeftBrush  { get; init; } = Palette.Good;
     public string StateText  { get; init; } = "";
+    /// <summary>Whose allowance the Left figure is — the lowest of the group's.</summary>
+    public string LowestText { get; init; } = "";
+    /// <summary>Of that bucket, what this app spent in the window, and what went elsewhere.</summary>
+    public string SpentHereText      { get; init; } = "";
+    public string SpentElsewhereText { get; init; } = "";
     public string RoutesText { get; init; } = "";
     public int    Refusals   { get; init; }
 }
@@ -70,6 +75,10 @@ public sealed class EsiLimitsViewModel : ReactiveObject
 
     private string _lastKey = "";
 
+    /// <summary>Character names by id, for whose bucket is lowest. Set by the tool when it loads
+    /// its characters; an id it does not know is shown as one.</summary>
+    public IReadOnlyDictionary<long, string> CharacterNames { get; set; } = new Dictionary<long, string>();
+
     public void Refresh(EsiBudget? budget = null)
     {
         var now = DateTimeOffset.UtcNow;
@@ -94,7 +103,7 @@ public sealed class EsiLimitsViewModel : ReactiveObject
             : string.Format(DataText.EsiWindowSpentOurs, s.OursThisWindow);
         CallsText = string.Format(DataText.EsiCallsText, s.CallsLastMinute, s.ErrorsLastMinute, s.ErrorsLastHour, s.Refused420, s.Refused429);
 
-        var paced = s.Groups.Count(g => g.Paced);
+        var paced = s.Groups.Count(g => g.PacedBuckets > 0);
         (GovernorText, GovernorBrush) = s.Level switch
         {
             EsiGovernorLevel.Stopped    => (string.Format(DataText.EsiGovernorStopped,    EsiBudget.StoppedBelow),    Palette.Bad),
@@ -106,7 +115,7 @@ public sealed class EsiLimitsViewModel : ReactiveObject
 
         // The lists are rebuilt only when something in them changed, so a selection or scroll in
         // them survives the two-second tick.
-        var key = string.Join("|", s.Groups.Select(g => $"{g.Group}:{g.Remaining}:{g.Refusals}:{g.Paced}:{g.BlockedUntil}"))
+        var key = string.Join("|", s.Groups.Select(g => $"{g.Group}:{g.Remaining}:{g.Refusals}:{g.PacedBuckets}:{g.BlockedUntil}:{g.Owner}:{g.Buckets}:{g.SpentHere}:{g.SpentElsewhere}"))
                 + "#" + string.Join("|", s.Errors.Select(e => $"{e.Route}:{e.Status}:{e.LastMinute}:{e.LastHour}:{e.SinceStart}"));
         if (key == _lastKey) return;
         _lastKey = key;
@@ -123,7 +132,11 @@ public sealed class EsiLimitsViewModel : ReactiveObject
                 LeftPercent = share,
                 LeftBrush   = share < 20 ? Palette.Bad : share < 50 ? Palette.Warn : Palette.Good,
                 StateText   = g.BlockedUntil is { } b ? string.Format(DataText.EsiGroupBlocked, b.ToLocalTime().ToString("HH:mm:ss"))
-                            : g.Paced ? DataText.EsiGroupPaced : "",
+                            : g.PacedBuckets > 1 ? string.Format(DataText.EsiGroupPacedSome, g.PacedBuckets)
+                            : g.PacedBuckets > 0 ? DataText.EsiGroupPaced : "",
+                LowestText  = Lowest(g),
+                SpentHereText      = g.SpentHere.ToString("N0"),
+                SpentElsewhereText = g.SpentElsewhere is int e2 ? e2.ToString("N0") : DataText.EsiSpentElsewhereWatching,
                 RoutesText  = string.Join(CommonText.ListSeparator, g.Routes),
                 Refusals    = g.Refusals,
             };
@@ -139,6 +152,14 @@ public sealed class EsiLimitsViewModel : ReactiveObject
         }).ToList());
         NoGroups = Groups.Count == 0;
         NoErrors = Errors.Count == 0;
+    }
+
+    // Whose bucket is lowest, and of how many — one per character, or the connection's own.
+    private string Lowest(EsiGroupState g)
+    {
+        var who = g.Owner == 0 ? DataText.EsiBucketConnection
+                : CharacterNames.GetValueOrDefault(g.Owner) ?? string.Format(DataText.EsiBucketCharacter, g.Owner);
+        return g.Buckets > 1 ? string.Format(DataText.EsiBucketLowestOf, who, g.Buckets) : who;
     }
 
     private static string Window(TimeSpan w) =>

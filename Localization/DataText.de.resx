@@ -1676,6 +1676,30 @@
     <value>Zuletzt</value>
   </data>
   <data name="EsiLimitsNote" xml:space="preserve">
-    <value>ESI erlaubt etwa 100 fehlgeschlagene Aufrufe pro Minute für alles an diesem Internetanschluss – andere Programme und Computer eingeschlossen – und lehnt danach jeden Aufruf ab (420). Manche Endpunkte haben zusätzlich ein eigenes Kontingent (Ratenlimit-Gruppen). Gedrosselt wird nur die Hintergrundarbeit; was Sie selbst tun, geht sofort durch.</value>
+    <value>ESI erlaubt etwa 100 fehlgeschlagene Aufrufe pro Minute für alles an diesem Internetanschluss – andere Programme und Computer eingeschlossen – und lehnt danach jeden Aufruf ab (420). Manche Endpunkte haben zusätzlich ein eigenes Kontingent (Ratenlimit-Gruppen), das für jeden Charakter getrennt geführt wird, ohne Anmeldung für den Anschluss; jede Gruppe zeigt ihr niedrigstes. Gedrosselt wird nur die Hintergrundarbeit; was Sie selbst tun, geht sofort durch.</value>
+  </data>
+  <data name="ColEsiLowest" xml:space="preserve">
+    <value>Niedrigstes Kontingent</value>
+  </data>
+  <data name="EsiBucketConnection" xml:space="preserve">
+    <value>Dieser Anschluss</value>
+  </data>
+  <data name="EsiBucketCharacter" xml:space="preserve">
+    <value>Charakter {0}</value>
+  </data>
+  <data name="EsiBucketLowestOf" xml:space="preserve">
+    <value>{0} (niedrigstes von {1:N0})</value>
+  </data>
+  <data name="EsiGroupPacedSome" xml:space="preserve">
+    <value>Gedrosselt ({0:N0})</value>
+  </data>
+  <data name="ColEsiSpentHere" xml:space="preserve">
+    <value>Hier verbraucht</value>
+  </data>
+  <data name="ColEsiSpentElsewhere" xml:space="preserve">
+    <value>Anderswo verbraucht</value>
+  </data>
+  <data name="EsiSpentElsewhereWatching" xml:space="preserve">
+    <value>wird gemessen…</value>
   </data>
 </root>

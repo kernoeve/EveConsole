@@ -2233,7 +2233,39 @@
     <comment>ESI limits tab, column: the time of the latest error.</comment>
   </data>
   <data name="EsiLimitsNote" xml:space="preserve">
-    <value>ESI allows about 100 failed calls a minute for everything on this internet connection — other programs and computers included — and refuses every call (420) once they are spent. Some routes also have an allowance of their own (rate-limit groups). Only background work is slowed to stay under them; anything you do yourself goes straight through.</value>
+    <value>ESI allows about 100 failed calls a minute for everything on this internet connection — other programs and computers included — and refuses every call (420) once they are spent. Some routes also have an allowance of their own (rate-limit groups), kept separately for each character, or for the connection when no login is used; each group shows its lowest. Only background work is slowed to stay under them; anything you do yourself goes straight through.</value>
     <comment>ESI limits tab, note at the bottom.</comment>
+  </data>
+  <data name="ColEsiLowest" xml:space="preserve">
+    <value>Lowest bucket</value>
+    <comment>ESI limits tab, column: whose allowance in the group is lowest — a character, or the connection itself.</comment>
+  </data>
+  <data name="EsiBucketConnection" xml:space="preserve">
+    <value>This connection</value>
+    <comment>ESI limits tab, Lowest bucket column: the allowance for calls made without a login, which ESI keeps per internet connection.</comment>
+  </data>
+  <data name="EsiBucketCharacter" xml:space="preserve">
+    <value>Character {0}</value>
+    <comment>ESI limits tab, Lowest bucket column, when the character's name is not known. {0} is its id.</comment>
+  </data>
+  <data name="EsiBucketLowestOf" xml:space="preserve">
+    <value>{0} (lowest of {1:N0})</value>
+    <comment>ESI limits tab, Lowest bucket column. {0} is the character (or this connection), {1} how many separate allowances the group has.</comment>
+  </data>
+  <data name="EsiGroupPacedSome" xml:space="preserve">
+    <value>Paced ({0:N0})</value>
+    <comment>ESI limits tab, state: running low, so calls are slowed to its refill rate. {0} is how many characters' allowances are being slowed.</comment>
+  </data>
+  <data name="ColEsiSpentHere" xml:space="preserve">
+    <value>Spent here</value>
+    <comment>ESI limits tab, column: tokens this app spent from the lowest bucket in its window.</comment>
+  </data>
+  <data name="ColEsiSpentElsewhere" xml:space="preserve">
+    <value>Spent elsewhere</value>
+    <comment>ESI limits tab, column: tokens the lowest bucket lost that this app did not spend — the same character logged in to this app on another computer.</comment>
+  </data>
+  <data name="EsiSpentElsewhereWatching" xml:space="preserve">
+    <value>measuring…</value>
+    <comment>ESI limits tab, Spent elsewhere column, until the app has watched the bucket for a whole window.</comment>
   </data>
 </root>

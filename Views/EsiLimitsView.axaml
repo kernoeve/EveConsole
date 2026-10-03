@@ -61,6 +61,9 @@
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
+          <DataGridTextColumn Header="{x:Static loc:DataText.ColEsiLowest}"  Binding="{Binding LowestText}" Width="220" />
+          <DataGridTextColumn Header="{x:Static loc:DataText.ColEsiSpentHere}"      Binding="{Binding SpentHereText}"      Width="110" CellStyleClasses="num" />
+          <DataGridTextColumn Header="{x:Static loc:DataText.ColEsiSpentElsewhere}" Binding="{Binding SpentElsewhereText}" Width="120" CellStyleClasses="num" />
           <DataGridTextColumn Header="{x:Static loc:DataText.ColEsiRefused}" Binding="{Binding Refusals}"   Width="80" CellStyleClasses="num" />
           <DataGridTextColumn Header="{x:Static loc:DataText.ColEsiState}"   Binding="{Binding StateText}"  Width="140" />
           <DataGridTextColumn Header="{x:Static loc:DataText.ColEsiRoutes}"  Binding="{Binding RoutesText}" Width="*" />

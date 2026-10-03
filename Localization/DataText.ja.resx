@@ -1646,6 +1646,30 @@
     <value>最終</value>
   </data>
   <data name="EsiLimitsNote" xml:space="preserve">
-    <value>ESI はこのインターネット回線上のすべて（他のプログラムやコンピューターを含む）に対して1分あたり約100件の失敗した呼び出しを許し、それを使い切るとすべての呼び出しを拒否します (420)。一部のルートには個別の上限（レート制限グループ）もあります。制限内に収めるために遅くするのはバックグラウンド処理だけで、自分で行う操作はそのまま通ります。</value>
+    <value>ESI はこのインターネット回線上のすべて（他のプログラムやコンピューターを含む）に対して1分あたり約100件の失敗した呼び出しを許し、それを使い切るとすべての呼び出しを拒否します (420)。一部のルートには個別の上限（レート制限グループ）もあり、キャラクターごとに（ログインなしの場合は回線ごとに）別々に管理されます。各グループには最も少ない枠を表示します。制限内に収めるために遅くするのはバックグラウンド処理だけで、自分で行う操作はそのまま通ります。</value>
+  </data>
+  <data name="ColEsiLowest" xml:space="preserve">
+    <value>最も少ない枠</value>
+  </data>
+  <data name="EsiBucketConnection" xml:space="preserve">
+    <value>この回線</value>
+  </data>
+  <data name="EsiBucketCharacter" xml:space="preserve">
+    <value>キャラクター {0}</value>
+  </data>
+  <data name="EsiBucketLowestOf" xml:space="preserve">
+    <value>{0}（{1:N0}件中で最少）</value>
+  </data>
+  <data name="EsiGroupPacedSome" xml:space="preserve">
+    <value>間隔調整中 ({0:N0})</value>
+  </data>
+  <data name="ColEsiSpentHere" xml:space="preserve">
+    <value>このアプリの消費</value>
+  </data>
+  <data name="ColEsiSpentElsewhere" xml:space="preserve">
+    <value>他所での消費</value>
+  </data>
+  <data name="EsiSpentElsewhereWatching" xml:space="preserve">
+    <value>計測中…</value>
   </data>
 </root>

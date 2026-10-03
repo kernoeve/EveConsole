@@ -1676,6 +1676,30 @@
     <value>Último</value>
   </data>
   <data name="EsiLimitsNote" xml:space="preserve">
-    <value>ESI permite unas 100 llamadas fallidas por minuto para todo lo que hay en esta conexión a internet —otros programas y ordenadores incluidos— y rechaza todas las llamadas (420) cuando se agotan. Algunas rutas tienen además un margen propio (grupos con límite de frecuencia). Solo se frena el trabajo en segundo plano; lo que haces tú pasa directamente.</value>
+    <value>ESI permite unas 100 llamadas fallidas por minuto para todo lo que hay en esta conexión a internet —otros programas y ordenadores incluidos— y rechaza todas las llamadas (420) cuando se agotan. Algunas rutas tienen además un margen propio (grupos con límite de frecuencia), que se lleva por separado para cada personaje, o para la conexión cuando no se usa inicio de sesión; cada grupo muestra el más bajo. Solo se frena el trabajo en segundo plano; lo que haces tú pasa directamente.</value>
+  </data>
+  <data name="ColEsiLowest" xml:space="preserve">
+    <value>Margen más bajo</value>
+  </data>
+  <data name="EsiBucketConnection" xml:space="preserve">
+    <value>Esta conexión</value>
+  </data>
+  <data name="EsiBucketCharacter" xml:space="preserve">
+    <value>Personaje {0}</value>
+  </data>
+  <data name="EsiBucketLowestOf" xml:space="preserve">
+    <value>{0} (el más bajo de {1:N0})</value>
+  </data>
+  <data name="EsiGroupPacedSome" xml:space="preserve">
+    <value>Frenado ({0:N0})</value>
+  </data>
+  <data name="ColEsiSpentHere" xml:space="preserve">
+    <value>Gastado aquí</value>
+  </data>
+  <data name="ColEsiSpentElsewhere" xml:space="preserve">
+    <value>Gastado en otro lugar</value>
+  </data>
+  <data name="EsiSpentElsewhereWatching" xml:space="preserve">
+    <value>midiendo…</value>
   </data>
 </root>

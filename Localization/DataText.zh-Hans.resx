@@ -1646,6 +1646,30 @@
     <value>最近</value>
   </data>
   <data name="EsiLimitsNote" xml:space="preserve">
-    <value>ESI 对这条网络连接上的所有程序（包括其他程序和电脑）每分钟大约允许 100 次失败的调用，用完后会拒绝所有调用 (420)。有些路由还有各自的额度（速率限制组）。为了不超限，只会放慢后台任务；你自己的操作会直接通过。</value>
+    <value>ESI 对这条网络连接上的所有程序（包括其他程序和电脑）每分钟大约允许 100 次失败的调用，用完后会拒绝所有调用 (420)。有些路由还有各自的额度（速率限制组），每个角色分别计算，未登录的调用则按连接计算；每个组显示最低的那个。为了不超限，只会放慢后台任务；你自己的操作会直接通过。</value>
+  </data>
+  <data name="ColEsiLowest" xml:space="preserve">
+    <value>最低额度</value>
+  </data>
+  <data name="EsiBucketConnection" xml:space="preserve">
+    <value>此连接</value>
+  </data>
+  <data name="EsiBucketCharacter" xml:space="preserve">
+    <value>角色 {0}</value>
+  </data>
+  <data name="EsiBucketLowestOf" xml:space="preserve">
+    <value>{0}（{1:N0} 个中最低）</value>
+  </data>
+  <data name="EsiGroupPacedSome" xml:space="preserve">
+    <value>已限速 ({0:N0})</value>
+  </data>
+  <data name="ColEsiSpentHere" xml:space="preserve">
+    <value>本应用消耗</value>
+  </data>
+  <data name="ColEsiSpentElsewhere" xml:space="preserve">
+    <value>其他地方消耗</value>
+  </data>
+  <data name="EsiSpentElsewhereWatching" xml:space="preserve">
+    <value>测量中…</value>
   </data>
 </root>

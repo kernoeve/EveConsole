@@ -1736,6 +1736,30 @@
     <value>Последняя</value>
   </data>
   <data name="EsiLimitsNote" xml:space="preserve">
-    <value>ESI допускает около 100 неудачных запросов в минуту на всё это интернет-подключение — включая другие программы и компьютеры — и после этого отклоняет все запросы (420). У некоторых маршрутов есть и собственный лимит (группы с лимитом частоты). Чтобы не превышать их, замедляется только фоновая работа; то, что вы делаете сами, проходит сразу.</value>
+    <value>ESI допускает около 100 неудачных запросов в минуту на всё это интернет-подключение — включая другие программы и компьютеры — и после этого отклоняет все запросы (420). У некоторых маршрутов есть и собственный лимит (группы с лимитом частоты), который ведётся отдельно для каждого персонажа, а без входа — для подключения; для каждой группы показан наименьший. Чтобы не превышать их, замедляется только фоновая работа; то, что вы делаете сами, проходит сразу.</value>
+  </data>
+  <data name="ColEsiLowest" xml:space="preserve">
+    <value>Наименьший лимит</value>
+  </data>
+  <data name="EsiBucketConnection" xml:space="preserve">
+    <value>Это подключение</value>
+  </data>
+  <data name="EsiBucketCharacter" xml:space="preserve">
+    <value>Персонаж {0}</value>
+  </data>
+  <data name="EsiBucketLowestOf" xml:space="preserve">
+    <value>{0} (наименьший из {1:N0})</value>
+  </data>
+  <data name="EsiGroupPacedSome" xml:space="preserve">
+    <value>Замедлено ({0:N0})</value>
+  </data>
+  <data name="ColEsiSpentHere" xml:space="preserve">
+    <value>Потрачено здесь</value>
+  </data>
+  <data name="ColEsiSpentElsewhere" xml:space="preserve">
+    <value>Потрачено в другом месте</value>
+  </data>
+  <data name="EsiSpentElsewhereWatching" xml:space="preserve">
+    <value>измерение…</value>
   </data>
 </root>

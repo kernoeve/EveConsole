@@ -1676,6 +1676,30 @@
     <value>Dernière</value>
   </data>
   <data name="EsiLimitsNote" xml:space="preserve">
-    <value>ESI autorise environ 100 appels en échec par minute pour tout ce qui passe par cette connexion internet — autres programmes et ordinateurs compris — et refuse ensuite tous les appels (420). Certaines routes ont en plus leur propre quota (groupes à limite de débit). Seul le travail en arrière-plan est ralenti pour rester en dessous ; ce que vous faites vous-même passe directement.</value>
+    <value>ESI autorise environ 100 appels en échec par minute pour tout ce qui passe par cette connexion internet — autres programmes et ordinateurs compris — et refuse ensuite tous les appels (420). Certaines routes ont en plus leur propre quota (groupes à limite de débit), tenu séparément pour chaque personnage, ou pour la connexion sans identification ; chaque groupe affiche le plus bas. Seul le travail en arrière-plan est ralenti pour rester en dessous ; ce que vous faites vous-même passe directement.</value>
+  </data>
+  <data name="ColEsiLowest" xml:space="preserve">
+    <value>Quota le plus bas</value>
+  </data>
+  <data name="EsiBucketConnection" xml:space="preserve">
+    <value>Cette connexion</value>
+  </data>
+  <data name="EsiBucketCharacter" xml:space="preserve">
+    <value>Personnage {0}</value>
+  </data>
+  <data name="EsiBucketLowestOf" xml:space="preserve">
+    <value>{0} (le plus bas sur {1:N0})</value>
+  </data>
+  <data name="EsiGroupPacedSome" xml:space="preserve">
+    <value>Ralenti ({0:N0})</value>
+  </data>
+  <data name="ColEsiSpentHere" xml:space="preserve">
+    <value>Dépensé ici</value>
+  </data>
+  <data name="ColEsiSpentElsewhere" xml:space="preserve">
+    <value>Dépensé ailleurs</value>
+  </data>
+  <data name="EsiSpentElsewhereWatching" xml:space="preserve">
+    <value>mesure en cours…</value>
   </data>
 </root>

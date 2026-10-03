@@ -1,6 +1,8 @@
 using System.Collections.Concurrent;
 using System.Globalization;
 using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace EveConsole.Api;
@@ -18,10 +20,29 @@ public enum EsiGovernorLevel
     Stopped,
 }
 
-/// <summary>One rate-limit group as ESI last described it.</summary>
+/// <summary>
+/// One rate-limit group as ESI last described it — through its LOWEST bucket.
+///
+/// <para>⚠️ A group is not one bucket. ESI keeps one per group per user: per character for a call
+/// made with a login (application + character), per IP for one without. Reading the group off
+/// whichever answer came last showed one character's allowance, then another's, and the figure
+/// leapt by hundreds between ticks. The lowest is the one that can run out, so it is the one
+/// shown; <paramref name="Owner"/> says whose it is.</para>
+/// </summary>
+/// <param name="Owner">The character whose bucket is the lowest, or 0 for the connection's own
+/// (calls made without a login).</param>
+/// <param name="Buckets">How many buckets the app has seen in the group.</param>
+/// <param name="Paced">The lowest bucket is being paced; <paramref name="PacedBuckets"/> counts all.</param>
+/// <param name="SpentHere">Tokens this app spent from the lowest bucket within its window, from
+/// each answer's X-Ratelimit-Used.</param>
+/// <param name="SpentElsewhere">What the lowest bucket has lost that this app did not spend — the
+/// same application logged in as the same character somewhere else. Null until the app has
+/// watched the bucket for a whole window: before that, tokens it spent before it started would
+/// read as someone else's.</param>
 public sealed record EsiGroupState(
     string Group, int? Tokens, TimeSpan? Window, int? Remaining, int? Used, DateTimeOffset SeenAt,
-    IReadOnlyList<string> Routes, int Refusals, DateTimeOffset? BlockedUntil, bool Paced)
+    IReadOnlyList<string> Routes, int Refusals, DateTimeOffset? BlockedUntil, bool Paced,
+    long Owner = 0, int Buckets = 1, int PacedBuckets = 0, int SpentHere = 0, int? SpentElsewhere = null)
 {
     /// <summary>What is left, as ESI last said — or the whole allowance once a window has passed
     /// since then. ⚠️ Not refilled in between: the bucket is a floating window (a token comes back
@@ -95,10 +116,17 @@ public sealed class EsiBudget
     private sealed class Group
     {
         public int? Tokens; public TimeSpan? Window; public int? Remaining; public int? Used;
-        public DateTimeOffset SeenAt; public readonly HashSet<string> Routes = [];
+        public DateTimeOffset SeenAt;
         public int Refusals; public DateTimeOffset? BlockedUntil; public DateTimeOffset NextPaced;
+        // What this app spent from the bucket, newest last, trimmed to its window; and when it
+        // first saw the bucket, so "spent elsewhere" waits for a whole window of watching.
+        public readonly Queue<(DateTimeOffset At, int Used)> Spent = new();
+        public DateTimeOffset FirstSeen;
     }
-    private readonly Dictionary<string, Group> _groups = [];
+    // One bucket per group per owner — see EsiGroupState. The routes are the group's, not a
+    // bucket's.
+    private readonly Dictionary<(string Group, long Owner), Group> _groups = [];
+    private readonly Dictionary<string, HashSet<string>> _groupRoutes = [];
     private readonly ConcurrentDictionary<string, string> _routeGroup = new();
 
     // Background spacing, and the one-at-a-time gate.
@@ -119,19 +147,20 @@ public sealed class EsiBudget
     // ── Recording ───────────────────────────────────────────────────────────────
 
     /// <summary>What one response said: its status, the error window, its route's bucket.</summary>
-    public void Record(string path, int status, HttpResponseHeaders headers, DateTimeOffset? now = null)
+    /// <param name="owner">Whose bucket: the character the call was made as, or 0 for none.</param>
+    public void Record(string path, int status, HttpResponseHeaders headers, long owner = 0, DateTimeOffset? now = null)
     {
         int? I(string name) => headers.TryGetValues(name, out var v) && int.TryParse(v.FirstOrDefault(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var n) ? n : null;
         string? S(string name) => headers.TryGetValues(name, out var v) ? v.FirstOrDefault() : null;
         Record(path, status, I("X-Esi-Error-Limit-Remain"), I("X-Esi-Error-Limit-Reset"),
                S("X-Ratelimit-Group"), S("X-Ratelimit-Limit"), I("X-Ratelimit-Remaining"), I("X-Ratelimit-Used"),
-               I("Retry-After"), now);
+               I("Retry-After"), now, owner);
     }
 
     /// <summary>The same, from values already read — the core, and what the tests drive.</summary>
     internal void Record(string path, int status, int? errorRemain, int? errorReset,
                          string? group, string? limit, int? remaining, int? used, int? retryAfter,
-                         DateTimeOffset? now = null)
+                         DateTimeOffset? now = null, long owner = 0)
     {
         var at    = now ?? DateTimeOffset.UtcNow;
         var route = EsiClient.RouteTemplate(path);
@@ -166,11 +195,18 @@ public sealed class EsiBudget
             if (group is not null)
             {
                 _routeGroup[route] = group;
-                if (!_groups.TryGetValue(group, out var g)) _groups[group] = g = new Group();
-                g.Routes.Add(route);
+                if (!_groups.TryGetValue((group, owner), out var g)) _groups[(group, owner)] = g = new Group { FirstSeen = at };
+                if (!_groupRoutes.TryGetValue(group, out var routes)) _groupRoutes[group] = routes = [];
+                routes.Add(route);
                 if (ParseLimit(limit) is { } l) { g.Tokens = l.Tokens; g.Window = l.Window; }
                 if (remaining is not null) { g.Remaining = remaining; g.SeenAt = at; }
-                if (used is not null) g.Used = used;
+                if (used is not null)
+                {
+                    g.Used = used;
+                    g.Spent.Enqueue((at, used.Value));
+                    if (g.Window is { } gw)
+                        while (g.Spent.Count > 0 && at - g.Spent.Peek().At >= gw) g.Spent.Dequeue();
+                }
                 if (status == 429)
                 {
                     g.Refusals++;
@@ -240,7 +276,9 @@ public sealed class EsiBudget
     /// as the budget calls for — and at its bucket's refill rate when that is low. Dispose what it
     /// returns once the call has its answer: it is the one-at-a-time gate when that is held.
     /// </summary>
-    public async Task<IDisposable?> WaitTurnAsync(string path, CancellationToken ct)
+    /// <param name="owner">Whose bucket the call draws on — see <see cref="Record(string, int, HttpResponseHeaders, long, DateTimeOffset?)"/>.
+    /// One character's low bucket paces that character's calls, not everyone's.</param>
+    public async Task<IDisposable?> WaitTurnAsync(string path, CancellationToken ct, long owner = 0)
     {
         var route = EsiClient.RouteTemplate(path);
         while (true)
@@ -283,7 +321,7 @@ public sealed class EsiBudget
             }
 
             // The route's bucket, when it is low: one call per token's refill time.
-            if (_routeGroup.TryGetValue(route, out var name) && _groups.TryGetValue(name, out var g)
+            if (_routeGroup.TryGetValue(route, out var name) && _groups.TryGetValue((name, owner), out var g)
                 && PacedLocked(g, now) && g.Tokens is int t && g.Window is { } w)
             {
                 // A call's cost in tokens, as ESI said for the last one; the refill of that many.
@@ -307,6 +345,44 @@ public sealed class EsiBudget
         if (g.Tokens is not int t || g.Window is not { } w || g.Remaining is not int r || w <= TimeSpan.Zero) return false;
         return now - g.SeenAt < w && r < t * PaceBelowShare;
     }
+
+    /// <summary>
+    /// Whose bucket a request draws on: the character its login token was issued for, or 0 for a
+    /// call without one. Read from the token itself — an EVE SSO access token is a JWT whose
+    /// subject is "CHARACTER:EVE:&lt;id&gt;" — because the bucket is keyed by the token, whichever
+    /// character's or corporation's route it calls. Not verified: it only picks a bucket.
+    /// </summary>
+    public static long BucketOwner(AuthenticationHeaderValue? auth)
+    {
+        if (auth is null || !string.Equals(auth.Scheme, "Bearer", StringComparison.OrdinalIgnoreCase)
+            || auth.Parameter is not { Length: > 0 } token) return 0;
+        if (s_owners.TryGetValue(token, out var known)) return known;
+
+        long owner = 0;
+        try
+        {
+            var parts = token.Split('.');
+            if (parts.Length == 3)
+            {
+                var b64 = parts[1].Replace('-', '+').Replace('_', '/');
+                b64 = b64.PadRight(b64.Length + (4 - b64.Length % 4) % 4, '=');
+                using var doc = JsonDocument.Parse(Encoding.UTF8.GetString(Convert.FromBase64String(b64)));
+                if (doc.RootElement.TryGetProperty("sub", out var sub) && sub.GetString() is { } s
+                    && s.LastIndexOf(':') is var i and >= 0
+                    && long.TryParse(s.AsSpan(i + 1), NumberStyles.Integer, CultureInfo.InvariantCulture, out var id))
+                    owner = id;
+            }
+        }
+        catch (FormatException) { }
+        catch (JsonException) { }
+
+        // A token lives twenty minutes, so the cache only ever needs the current few per
+        // character; clearing it now and then is simpler than ageing entries out.
+        if (s_owners.Count > 500) s_owners.Clear();
+        s_owners[token] = owner;
+        return owner;
+    }
+    private static readonly ConcurrentDictionary<string, long> s_owners = new();
 
     private sealed class Release(SemaphoreSlim gate) : IDisposable
     {
@@ -335,11 +411,38 @@ public sealed class EsiBudget
                 })
                 .OrderByDescending(e => e.LastHour).ThenByDescending(e => e.SinceStart)
                 .ToList();
-            var groups = _groups.Select(kv => new EsiGroupState(kv.Key, kv.Value.Tokens, kv.Value.Window, kv.Value.Remaining,
-                    kv.Value.Used, kv.Value.SeenAt, kv.Value.Routes.Order().ToList(), kv.Value.Refusals,
-                    kv.Value.BlockedUntil is { } b && b > now ? b : null, PacedLocked(kv.Value, now)))
+            // Each group through its lowest bucket, as it stands now — a bucket a window past its
+            // last answer counts as whole again — with the refusals and pacing of all of them.
+            var groups = _groups.GroupBy(kv => kv.Key.Group)
+                .Select(byGroup =>
+                {
+                    var lowest = byGroup
+                        .OrderBy(kv => Current(kv.Value) ?? int.MaxValue)
+                        .ThenBy(kv => kv.Key.Owner)
+                        .First();
+                    var g = lowest.Value;
+                    var blocked = byGroup.Select(kv => kv.Value.BlockedUntil).Where(b => b > now).Max();
+
+                    // Ours, within the window ESI's figure covers: Record keeps the queue trimmed to
+                    // the window back from the bucket's latest answer, which is that figure's.
+                    var here = 0;
+                    int? elsewhere = null;
+                    if (g.Window is { } w)
+                    {
+                        here = g.Spent.Sum(x => x.Used);
+                        if (g.Tokens is int t && g.Remaining is int r && now - g.SeenAt < w && g.SeenAt - g.FirstSeen >= w)
+                            elsewhere = Math.Max(0, t - r - here);
+                    }
+                    return new EsiGroupState(byGroup.Key, g.Tokens, g.Window, g.Remaining, g.Used, g.SeenAt,
+                        _groupRoutes.GetValueOrDefault(byGroup.Key)?.Order().ToList() ?? [],
+                        byGroup.Sum(kv => kv.Value.Refusals), blocked, PacedLocked(g, now),
+                        lowest.Key.Owner, byGroup.Count(), byGroup.Count(kv => PacedLocked(kv.Value, now)),
+                        here, elsewhere);
+                })
                 .OrderBy(g => g.Group, StringComparer.OrdinalIgnoreCase)
                 .ToList();
+
+            int? Current(Group g) => g.Window is { } w && now - g.SeenAt >= w ? g.Tokens : g.Remaining;
             return new EsiBudgetSnapshot(
                 inWindow ? _errorRemain : null, _maxSeenRemain, inWindow ? _errorResetAt : null,
                 inWindow ? _oursThisWindow : 0, others,

@@ -993,6 +993,8 @@ public class ApiActivityViewModel : ReactiveObject
             .OrderBy(c => c.Name)
             .ToListAsync();
 
+        Limits.CharacterNames = chars.ToDictionary(c => c.Id, c => c.Name);
+
         TokenOptions.Clear();
         foreach (var c in chars)
             TokenOptions.Add(new TokenOption(c.Id, "character", c.Name));
